@@ -140,7 +140,7 @@ function QualificationStateDropdown({
         <Controller
             name={`qualificationDetails.${index}.qualificationState`}
             control={control}
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
                 <div className='flex flex-col gap-1.5'>
                     <Label>State*</Label>
                     <Select onValueChange={field.onChange} value={field.value || ''}>
@@ -171,6 +171,11 @@ function QualificationStateDropdown({
                             )}
                         </SelectContent>
                     </Select>
+                    {fieldState.error && (
+                        <div className='font-medium text-[0.8rem] text-destructive'>
+                            {fieldState.error.message}
+                        </div>
+                    )}
                 </div>
             )}
         />
@@ -222,8 +227,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             .map((item: any) => {
                 if (item.key !== undefined && item.value !== undefined) return item;
                 return {
-                    key: String(item.HRMGT_Id ?? item.key ?? ''),
-                    value: String(item.HRMGT_EmployeeGroupType ?? item.value ?? item.label ?? '')
+                    key: Number(item.HRMGT_Id ?? item.hrmgT_Id ?? item.key ?? 0),
+                    value: String(item.HRMGT_EmployeeGroupType ?? item.hrmgT_EmployeeGroupType ?? item.value ?? item.label ?? '')
                 };
             })
             .filter((item: IGroupTypeDropdown) => item.key != null && item.key !== undefined && item.key !== 0);
@@ -241,8 +246,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             .map((item: any) => {
                 if (item.key !== undefined && item.value !== undefined) return item;
                 return {
-                    key: String(item.HRMET_Id ?? item.key ?? ''),
-                    value: String(item.HRMET_EmployeeType ?? item.value ?? item.label ?? '')
+                    key: Number(item.HRMET_Id ?? item.hrmeT_Id ?? item.key ?? 0),
+                    value: String(item.HRMET_EmployeeType ?? item.hrmeT_EmployeeType ?? item.value ?? item.label ?? '')
                 };
             })
             .filter((item: IEmployeeTypeDropdown) => item.key != null && item.key !== undefined && item.key !== 0);
@@ -272,7 +277,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 // Try logging individual item to see structure
                 if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Department Item:', item);
                 return {
-                    key: String(item.hrmD_Id ?? item.HRMD_Id ?? item.departmentId ?? item.key ?? ''),
+                    key: Number(item.hrmD_Id ?? item.HRMD_Id ?? item.departmentId ?? item.key ?? 0),
                     value: String(
                         item.hrmD_DepartmentName ??
                         item.HRMD_DepartmentName ??
@@ -287,7 +292,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     )
                 };
             })
-            .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
+            .filter((item: any) => item.key != null && item.key !== undefined && item.key !== 0);
     }, [departmentDropdownResponse]);
 
 
@@ -315,7 +320,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 if (item.key !== undefined && item.value !== undefined) return item;
                 if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Religion Item:', item);
                 return {
-                    key: String(item.ivrmmR_Id ?? item.IVRMMR_Id ?? item.hrmR_Id ?? item.religionId ?? item.ReligionId ?? item.id ?? item.key ?? ''),
+                    key: Number(item.ivrmmR_Id ?? item.IVRMMR_Id ?? item.hrmR_Id ?? item.religionId ?? item.ReligionId ?? item.id ?? item.key ?? 0),
                     value: String(
                         item.ivrmmR_Name ??
                         item.IVRMMR_Name ??
@@ -329,7 +334,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     )
                 };
             })
-            .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
+            .filter((item: any) => item.key != null && item.key !== undefined && item.key !== 0);
     }, [religionDropdownResponse]);
 
 
@@ -1359,7 +1364,12 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
 
     // Use fetched states if country is selected, otherwise fall back to empty array
     const availableContactStates: IStateDropdown[] = contactCountryId ? (Array.isArray(contactStates) ? contactStates : []) : [];
-    const availablePermanentStates: IStateDropdown[] = permanentCountryId ? (Array.isArray(permanentStates) ? permanentStates : []) : [];
+
+    // If syncing from communication address, use contact states immediately to avoid race conditions
+    // where permanent states are still loading when the sync happens
+    const availablePermanentStates: IStateDropdown[] = sameAsCommunicationAddress
+        ? availableContactStates
+        : (permanentCountryId ? (Array.isArray(permanentStates) ? permanentStates : []) : []);
 
     // Copy communication address to permanent address when checkbox is checked
     const prevSameAsAddress = useRef(sameAsCommunicationAddress);
@@ -1372,21 +1382,33 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         contactCountry
     });
 
-    useEffect(() => {
-        if (sameAsCommunicationAddress && prevSameAsAddress.current !== sameAsCommunicationAddress) {
-            setValue('permanentAddress', contactAddress || '');
-            setValue('permanentArea', contactArea || '');
-            setValue('permanentCity', contactCity || '');
-            setValue('permanentState', contactState || '');
-            setValue('permanentPincode', contactPincode || '');
-            setValue('permanentCountry', contactCountry || '');
-        }
-        prevSameAsAddress.current = sameAsCommunicationAddress;
-    }, [sameAsCommunicationAddress, contactAddress, contactArea, contactCity, contactState, contactPincode, contactCountry, setValue]);
-
+    // Sync communication address to permanent address when "Same As Communication Address" is checked
     useEffect(() => {
         if (sameAsCommunicationAddress) {
-            const currentContactValues = {
+            console.log('🔄 [DEBUG] Update Form - Syncing address fields:', {
+                contactAddress,
+                contactArea,
+                contactCity,
+                contactState,
+                contactPincode,
+                contactCountry
+            });
+
+            // Update permanent address fields with communication address values
+            setValue('permanentAddress', contactAddress || '', { shouldValidate: true, shouldDirty: true });
+            setValue('permanentArea', contactArea || '', { shouldValidate: true, shouldDirty: true });
+            setValue('permanentCity', contactCity || '', { shouldValidate: true, shouldDirty: true });
+            setValue('permanentPincode', contactPincode || '', { shouldValidate: true, shouldDirty: true });
+            setValue('permanentCountry', contactCountry || '', { shouldValidate: true, shouldDirty: true });
+
+            // Set state with a tiny timeout to ensure the country change and options sharing 
+            // has propagated through the form state
+            setTimeout(() => {
+                setValue('permanentState', contactState || '', { shouldValidate: true, shouldDirty: true });
+            }, 0);
+
+            // Update ref for change tracking if needed
+            prevContactValues.current = {
                 contactAddress,
                 contactArea,
                 contactCity,
@@ -1394,22 +1416,17 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 contactPincode,
                 contactCountry
             };
-            const hasChanged = Object.keys(currentContactValues).some(
-                (key) =>
-                    currentContactValues[key as keyof typeof currentContactValues] !==
-                    prevContactValues.current[key as keyof typeof prevContactValues.current]
-            );
-            if (hasChanged) {
-                setValue('permanentAddress', contactAddress || '');
-                setValue('permanentArea', contactArea || '');
-                setValue('permanentCity', contactCity || '');
-                setValue('permanentState', contactState || '');
-                setValue('permanentPincode', contactPincode || '');
-                setValue('permanentCountry', contactCountry || '');
-                prevContactValues.current = currentContactValues;
-            }
         }
-    }, [sameAsCommunicationAddress, contactAddress, contactArea, contactCity, contactState, contactPincode, contactCountry, setValue]);
+    }, [
+        sameAsCommunicationAddress,
+        contactAddress,
+        contactArea,
+        contactCity,
+        contactState,
+        contactPincode,
+        contactCountry,
+        setValue
+    ]);
 
 
 
@@ -1696,7 +1713,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         const currentTabFields = tabFieldMap[currentTabKey] || [];
 
         if (currentTabFields.length > 0) {
-            const isValid = await trigger(currentTabFields as any);
+            // Trigger full validation to run object-level refinements (like bank detail requirements)
+            // but we still only filter and show errors for the current tab.
+            const isValid = await trigger();
             if (!isValid) {
                 const formErrors = formState.errors;
                 const errorMessages: string[] = [];
@@ -2148,7 +2167,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             setPhotoFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {
-                setSelectedPhoto(reader.result as string);
+                const base64 = reader.result as string;
+                setSelectedPhoto(base64);
+                // Synchronize with form state for validation
+                setValue('employeePhoto', base64, { shouldValidate: true, shouldDirty: true });
+                trigger('employeePhoto');
             };
             reader.readAsDataURL(file);
         }
@@ -3354,7 +3377,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         render={({ field, fieldState }) => (
                                                             <div className='mt-5 flex flex-col gap-1.5'>
                                                                 <Label htmlFor={field.name}>
-                                                                    Date of Retirement
+                                                                    Date Of Retirement
                                                                     <span className='ml-1 text-red-500'>*</span>
                                                                 </Label>
                                                                 <div className='flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-muted-foreground text-sm'>
@@ -3535,6 +3558,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         maxLength={10}
                                                                         {...register(`mobileDetails.${index}.mobileNo`)}
                                                                         className='min-w-[200px] flex-1'
+                                                                        error={(errors.mobileDetails as any)?.[index]?.mobileNo?.message}
                                                                     />
                                                                     <Button
                                                                         type='button'
@@ -3572,6 +3596,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     <Plus className='mr-1 h-4 w-4' /> Add Mobile
                                                                 </Button>
                                                             </div>
+                                                            {errors.mobileDetails && !Array.isArray(errors.mobileDetails) && (
+                                                                <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                    {(errors.mobileDetails as any).message}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
 
@@ -3676,6 +3705,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                     </div>
                                                     <InputText
                                                         label='Aadhaar No.'
+                                                        required
                                                         id='aadharNo'
                                                         maxLength={12}
                                                         onKeyDown={(e) => {
@@ -3706,6 +3736,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                     />
                                                     <InputText
                                                         label='PAN Card No.'
+                                                        required
                                                         id='panCardNo'
                                                         maxLength={10}
                                                         onKeyDown={(e) => {
@@ -3789,7 +3820,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                             );
                                                             return (
                                                                 <div className='flex flex-col gap-1.5'>
-                                                                    <Label>Salary Type</Label>
+                                                                    <Label>
+                                                                        Salary Type <span className='text-red-500'>*</span>
+                                                                    </Label>
                                                                     <Select
                                                                         key={`salaryType-${selectValue}-${availableOptions.length}`}
                                                                         onValueChange={field.onChange}
@@ -3873,8 +3906,14 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                     />
                                                     {/* Employee Photo Upload */}
                                                     <div className='space-y-2'>
-                                                        <Label>Upload Employee Photo</Label>
-                                                        <div className='rounded-lg border-2 border-gray-300 border-dashed p-4 text-center'>
+                                                        <Label>
+                                                            Upload Employee Photo <span className='text-red-500'>*</span>
+                                                        </Label>
+                                                        <div
+                                                            className={cn(
+                                                                'rounded-lg border-2 border-dashed p-4 text-center',
+                                                                errors.employeePhoto ? 'border-destructive bg-destructive/5' : 'border-gray-300'
+                                                            )}>
                                                             <div className='mx-auto mb-4 flex h-32 w-32 items-center justify-center overflow-hidden rounded-lg bg-gray-100'>
                                                                 {selectedPhoto ? (
                                                                     <img
@@ -3909,6 +3948,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         onClick={() => {
                                                                             setSelectedPhoto(null);
                                                                             setPhotoFile(null);
+                                                                            setValue('employeePhoto', '', { shouldValidate: true, shouldDirty: true });
                                                                             const fileInput = document.getElementById(
                                                                                 'employeePhoto'
                                                                             ) as HTMLInputElement;
@@ -3919,15 +3959,25 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 )}
                                                             </div>
                                                         </div>
+                                                        {errors.employeePhoto && (
+                                                            <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                {errors.employeePhoto.message as string}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     {/* Bank Details - Conditional on Mode of Payment */}
                                                     {watch('modeOfPayment') === 'Bank' ? (
                                                         <div className='space-y-4'>
                                                             <div className='rounded-md bg-gray-200 px-4 py-2'>
                                                                 <h3 className='font-semibold text-base text-gray-900 uppercase'>
-                                                                    EMPLOYEE BANK DETAILS:
+                                                                    EMPLOYEE BANK DETAILS: <span className='text-red-500'>*</span>
                                                                 </h3>
                                                             </div>
+                                                            {(errors.bankDetails || (watch('modeOfPayment') === 'Bank' && bankFields.length === 0)) && (
+                                                                <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                    {(errors.bankDetails as any)?.message || 'Bank Details are required when Mode of Payment is Bank'}
+                                                                </div>
+                                                            )}
                                                             <div className='rounded-lg border bg-card'>
                                                                 <div className='rounded-t-lg bg-gray-200 px-4 py-2 text-gray-900'>
                                                                     <div className='grid grid-cols-5 gap-2 font-semibold text-sm'>
@@ -3946,27 +3996,39 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                 <Controller
                                                                                     name={`bankDetails.${index}.employerBankName`}
                                                                                     control={control}
-                                                                                    render={({ field }) => (
-                                                                                        <Select
-                                                                                            onValueChange={field.onChange}
-                                                                                            value={field.value || ''}>
-                                                                                            <SelectTrigger>
-                                                                                                <SelectValue placeholder='--Select--' />
-                                                                                            </SelectTrigger>
-                                                                                            <SelectContent>
-                                                                                                {memoizedBankOptions.map((bank: any) => {
-                                                                                                    const val = getSafeValue(bank.value);
-                                                                                                    if (!val) return null;
-                                                                                                    return (
-                                                                                                        <SelectItem
-                                                                                                            key={bank.id}
-                                                                                                            value={val}>
-                                                                                                            {bank.name}
-                                                                                                        </SelectItem>
-                                                                                                    );
-                                                                                                })}
-                                                                                            </SelectContent>
-                                                                                        </Select>
+                                                                                    render={({ field, fieldState }) => (
+                                                                                        <div className='flex flex-col gap-1.5'>
+                                                                                            <Select
+                                                                                                onValueChange={field.onChange}
+                                                                                                value={field.value || ''}>
+                                                                                                <SelectTrigger
+                                                                                                    className={cn(
+                                                                                                        fieldState.error
+                                                                                                            ? 'border-destructive focus-visible:ring-destructive'
+                                                                                                            : 'border-input focus-visible:ring-ring'
+                                                                                                    )}>
+                                                                                                    <SelectValue placeholder='--Select--' />
+                                                                                                </SelectTrigger>
+                                                                                                <SelectContent>
+                                                                                                    {memoizedBankOptions.map((bank: any) => {
+                                                                                                        const val = getSafeValue(bank.value);
+                                                                                                        if (!val) return null;
+                                                                                                        return (
+                                                                                                            <SelectItem
+                                                                                                                key={bank.id}
+                                                                                                                value={val}>
+                                                                                                                {bank.name}
+                                                                                                            </SelectItem>
+                                                                                                        );
+                                                                                                    })}
+                                                                                                </SelectContent>
+                                                                                            </Select>
+                                                                                            {fieldState.error && (
+                                                                                                <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                                                    {fieldState.error.message}
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </div>
                                                                                     )}
                                                                                 />
                                                                             </div>
@@ -4002,6 +4064,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         }
                                                                                     }}
                                                                                     {...register(`bankDetails.${index}.bankAccountNo`)}
+                                                                                    error={(errors.bankDetails as any)?.[index]?.bankAccountNo?.message}
                                                                                     className='w-full'
                                                                                 />
                                                                             </div>
@@ -4107,6 +4170,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                                                             <InputText
                                                                 label='Address'
+                                                                required
                                                                 id='contactAddress'
                                                                 maxLength={100}
                                                                 {...register('contactAddress')}
@@ -4114,6 +4178,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                             />
                                                             <InputText
                                                                 label='Area'
+                                                                required
                                                                 id='contactArea'
                                                                 {...register('contactArea')}
                                                                 error={errors.contactArea?.message}
@@ -4132,7 +4197,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         });
                                                                         return (
                                                                             <>
-                                                                                <Label>Country</Label>
+                                                                                <Label>
+                                                                                    Country <span className='text-red-500'>*</span>
+                                                                                </Label>
                                                                                 <Select onValueChange={field.onChange} value={field.value}>
                                                                                     <SelectTrigger>
                                                                                         <SelectValue placeholder='Select Country' />
@@ -4189,7 +4256,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         });
                                                                         return (
                                                                             <>
-                                                                                <Label>State</Label>
+                                                                                <Label>
+                                                                                    State <span className='text-red-500'>*</span>
+                                                                                </Label>
                                                                                 <Select onValueChange={field.onChange} value={field.value}>
                                                                                     <SelectTrigger>
                                                                                         <SelectValue placeholder='Select State' />
@@ -4232,12 +4301,14 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                             </div>
                                                             <InputText
                                                                 label='City'
+                                                                required
                                                                 id='contactCity'
                                                                 {...register('contactCity')}
                                                                 error={errors.contactCity?.message}
                                                             />
                                                             <InputText
                                                                 label='Pincode'
+                                                                required
                                                                 id='contactPincode'
                                                                 maxLength={10}
                                                                 onKeyDown={(e) => {
@@ -4294,6 +4365,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                                                             <InputText
                                                                 label='Address'
+                                                                required
                                                                 id='permanentAddress'
                                                                 maxLength={100}
                                                                 {...register('permanentAddress')}
@@ -4302,6 +4374,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                             />
                                                             <InputText
                                                                 label='Area'
+                                                                required
                                                                 id='permanentArea'
                                                                 {...register('permanentArea')}
                                                                 error={errors.permanentArea?.message}
@@ -4313,7 +4386,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     control={control}
                                                                     render={({ field }) => (
                                                                         <>
-                                                                            <Label>Country</Label>
+                                                                            <Label>
+                                                                                Country <span className='text-red-500'>*</span>
+                                                                            </Label>
                                                                             <Select
                                                                                 onValueChange={field.onChange}
                                                                                 value={field.value}
@@ -4363,7 +4438,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     control={control}
                                                                     render={({ field }) => (
                                                                         <>
-                                                                            <Label>State</Label>
+                                                                            <Label>
+                                                                                State <span className='text-red-500'>*</span>
+                                                                            </Label>
                                                                             <Select
                                                                                 onValueChange={field.onChange}
                                                                                 value={field.value}
@@ -4641,7 +4718,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                             <Controller
                                                                                 name={`qualificationDetails.${index}.qualificationCountry`}
                                                                                 control={control}
-                                                                                render={({ field }) => (
+                                                                                render={({ field, fieldState }) => (
                                                                                     <div className='flex flex-col gap-1.5'>
                                                                                         <Label>Country*</Label>
                                                                                         <Select
@@ -4691,6 +4768,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                     .filter(Boolean)}
                                                                                             </SelectContent>
                                                                                         </Select>
+                                                                                        {fieldState.error && (
+                                                                                            <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                                                {fieldState.error.message}
+                                                                                            </div>
+                                                                                        )}
                                                                                     </div>
                                                                                 )}
                                                                             />
@@ -4708,16 +4790,18 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         {/* Row 4: Registration No., Result */}
                                                                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                                             <InputText
-                                                                                label='Registration No.'
+                                                                                label='Registration No. *'
                                                                                 id={`qualificationDetails.${index}.registrationNo`}
                                                                                 maxLength={50}
                                                                                 {...register(`qualificationDetails.${index}.registrationNo`)}
+                                                                                error={errors.qualificationDetails?.[index]?.registrationNo?.message}
                                                                             />
                                                                             <InputText
                                                                                 label='Result *'
                                                                                 id={`qualificationDetails.${index}.result`}
                                                                                 maxLength={20}
                                                                                 {...register(`qualificationDetails.${index}.result`)}
+                                                                                error={errors.qualificationDetails?.[index]?.result?.message}
                                                                             />
                                                                         </div>
                                                                         {/* Row 5: CGPA Or Percentage dropdown */}
@@ -4729,7 +4813,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                     <div className='flex flex-col gap-1.5'>
                                                                                         <Label>CGPA Or Percentage *</Label>
                                                                                         <Select
-                                                                                            onValueChange={field.onChange}
+                                                                                            onValueChange={(val) => {
+                                                                                                field.onChange(val);
+                                                                                                setValue(`qualificationDetails.${index}.cgpa`, '');
+                                                                                                setValue(`qualificationDetails.${index}.percentage`, '');
+                                                                                            }}
                                                                                             value={field.value || 'CGPA'}>
                                                                                             <SelectTrigger
                                                                                                 className={cn(
@@ -4773,7 +4861,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                             />
                                                                             <InputText
                                                                                 label={cgpaOrPercentage === 'Percentage' ? 'Percentage' : 'CGPA'}
-                                                                                id={`qualificationDetails.${index}.cgpa`}
+                                                                                id={`qualificationDetails.${index}.${cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa'}`}
                                                                                 maxLength={cgpaOrPercentage === 'Percentage' ? 3 : 4}
                                                                                 onKeyDown={(e) => {
                                                                                     const controlKeys = [
@@ -4811,7 +4899,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         }
                                                                                     }
                                                                                 }}
-                                                                                {...register(`qualificationDetails.${index}.cgpa`)}
+                                                                                {...register(`qualificationDetails.${index}.${cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa'}`)}
+                                                                                error={errors.qualificationDetails?.[index]?.[cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa']?.message}
                                                                             />
                                                                         </div>
                                                                         {/* Row 6: Area Of Specialization */}
@@ -4819,7 +4908,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                             <Controller
                                                                                 name={`qualificationDetails.${index}.areaOfSpecialisation`}
                                                                                 control={control}
-                                                                                render={({ field }) => {
+                                                                                render={({ field, fieldState }) => {
                                                                                     const specialisations = options?.specialisations || [];
                                                                                     return (
                                                                                         <div className='flex flex-col gap-1.5'>
@@ -4855,6 +4944,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                         .filter(Boolean)}
                                                                                                 </SelectContent>
                                                                                             </Select>
+                                                                                            {fieldState.error && (
+                                                                                                <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                                                    {fieldState.error.message}
+                                                                                                </div>
+                                                                                            )}
                                                                                         </div>
                                                                                     );
                                                                                 }}
@@ -5039,7 +5133,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 {...register(`experienceDetails.${index}.department`)}
                                                             />
                                                             <InputText
-                                                                label='Designation *'
+                                                                label='Designation'
                                                                 id={`experienceDetails.${index}.designation`}
                                                                 maxLength={100}
                                                                 {...register(`experienceDetails.${index}.designation`)}

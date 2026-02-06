@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DateField } from '@/components/ui/dateField';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { Label } from '@/components/ui/extension/field';
+import { Label, FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -140,7 +140,7 @@ function QualificationStateDropdown({
         <Controller
             name={`qualificationDetails.${index}.qualificationState`}
             control={control}
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
                 <div className='flex flex-col gap-1.5'>
                     <Label>State*</Label>
                     <Select onValueChange={field.onChange} value={field.value || ''}>
@@ -175,6 +175,11 @@ function QualificationStateDropdown({
                             )}
                         </SelectContent>
                     </Select>
+                    {fieldState.error && (
+                        <div className='font-medium text-[0.8rem] text-destructive'>
+                            {fieldState.error.message}
+                        </div>
+                    )}
                 </div>
             )}
         />
@@ -613,8 +618,24 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         isLoadingLeaveReasons
     ]);
 
-
-
+    // Memoize bank options specifically to prevent Select recreation
+    const memoizedBankOptions = useMemo(() => {
+        if (!options?.banks) return [];
+        return (options.banks || [])
+            .filter((b: IBankDropdown) => {
+                return b.key != null && b.key !== undefined && b.key !== 0;
+            })
+            .map((b: IBankDropdown) => {
+                const key = b.key?.toString().trim();
+                if (!key || key === '') return null;
+                return {
+                    id: key,
+                    name: b.value || String(b.key),
+                    value: key
+                };
+            })
+            .filter(Boolean);
+    }, [options?.banks]);
     const { mutate: saveEmployeeMutation, isPending } = useSaveEmployee();
     const { mutate: saveQualificationDetails, isPending: isSavingQualification } = useSaveEmployeeQualification();
     const { mutate: saveExperienceDetails, isPending: isSavingExperience } = useSaveEmployeeExperience();
@@ -1611,24 +1632,40 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
 
     // Use fetched states if country is selected, otherwise fall back to empty array
     const availableContactStates: IStateDropdown[] = contactCountryId ? (Array.isArray(contactStates) ? contactStates : []) : [];
-    const availablePermanentStates: IStateDropdown[] = permanentCountryId ? (Array.isArray(permanentStates) ? permanentStates : []) : [];
 
-    // Copy communication address to permanent address when checkbox is checked
-    // Removed strict prevSameAsAddress check to allow continuous sync when checked
+    // If syncing from communication address, use contact states immediately to avoid race conditions
+    // where permanent states are still loading when the sync happens
+    const availablePermanentStates: IStateDropdown[] = sameAsCommunicationAddress
+        ? availableContactStates
+        : (permanentCountryId ? (Array.isArray(permanentStates) ? permanentStates : []) : []);
+
+    // Sync communication address to permanent address when "Same As Communication Address" is checked
     useEffect(() => {
         if (sameAsCommunicationAddress) {
-            setValue('permanentAddress', contactAddress || '');
-            setValue('permanentArea', contactArea || '');
-            setValue('permanentCity', contactCity || '');
-            setValue('permanentState', contactState || ''); // This might need to wait for states to load? No, existing options should cover it if same country.
-            setValue('permanentPincode', contactPincode || '');
-            setValue('permanentCountry', contactCountry || '');
-        }
-    }, [sameAsCommunicationAddress, contactAddress, contactArea, contactCity, contactState, contactPincode, contactCountry, setValue]);
+            console.log('🔄 [DEBUG] Syncing address fields:', {
+                contactAddress,
+                contactArea,
+                contactCity,
+                contactState,
+                contactPincode,
+                contactCountry
+            });
 
-    useEffect(() => {
-        if (sameAsCommunicationAddress) {
-            const currentContactValues = {
+            // Update permanent address fields with communication address values
+            setValue('permanentAddress', contactAddress || '', { shouldValidate: true, shouldDirty: true });
+            setValue('permanentArea', contactArea || '', { shouldValidate: true, shouldDirty: true });
+            setValue('permanentCity', contactCity || '', { shouldValidate: true, shouldDirty: true });
+            setValue('permanentPincode', contactPincode || '', { shouldValidate: true, shouldDirty: true });
+            setValue('permanentCountry', contactCountry || '', { shouldValidate: true, shouldDirty: true });
+
+            // Set state with a tiny timeout to ensure the country change and options sharing 
+            // has propagated through the form state
+            setTimeout(() => {
+                setValue('permanentState', contactState || '', { shouldValidate: true, shouldDirty: true });
+            }, 0);
+
+            // Update ref for change tracking if needed (though dependency array handles it)
+            prevContactValues.current = {
                 contactAddress,
                 contactArea,
                 contactCity,
@@ -1636,22 +1673,17 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 contactPincode,
                 contactCountry
             };
-            const hasChanged = Object.keys(currentContactValues).some(
-                (key) =>
-                    currentContactValues[key as keyof typeof currentContactValues] !==
-                    prevContactValues.current[key as keyof typeof prevContactValues.current]
-            );
-            if (hasChanged) {
-                setValue('permanentAddress', contactAddress || '');
-                setValue('permanentArea', contactArea || '');
-                setValue('permanentCity', contactCity || '');
-                setValue('permanentState', contactState || '');
-                setValue('permanentPincode', contactPincode || '');
-                setValue('permanentCountry', contactCountry || '');
-                prevContactValues.current = currentContactValues;
-            }
         }
-    }, [sameAsCommunicationAddress, contactAddress, contactArea, contactCity, contactState, contactPincode, contactCountry, setValue]);
+    }, [
+        sameAsCommunicationAddress,
+        contactAddress,
+        contactArea,
+        contactCity,
+        contactState,
+        contactPincode,
+        contactCountry,
+        setValue
+    ]);
 
     // Auto-calculate retirement date from DOB
     useEffect(() => {
@@ -1662,7 +1694,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     const retirementDate = new Date(dob);
                     retirementDate.setFullYear(retirementDate.getFullYear() + 60);
                     const formattedDate = format(retirementDate, 'yyyy-MM-dd');
-                    setValue('dateOfRetirement', formattedDate, { shouldValidate: false, shouldDirty: false });
+                    setValue('dateOfRetirement', formattedDate, { shouldValidate: true, shouldDirty: true });
                 }
             } catch (_error) {
                 // Invalid date, ignore
@@ -1670,24 +1702,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         }
     }, [dateOfBirth, setValue]);
 
-    // Memoize bank options specifically to prevent Select recreation
-    const memoizedBankOptions = useMemo(() => {
-        if (!options?.banks) return [];
-        return (options.banks || [])
-            .filter((b: IBankDropdown) => {
-                return b.key != null && b.key !== undefined && b.key !== 0;
-            })
-            .map((b: IBankDropdown) => {
-                const key = b.key?.toString().trim();
-                if (!key || key === '') return null;
-                return {
-                    id: key,
-                    name: b.value || String(b.key),
-                    value: key
-                };
-            })
-            .filter(Boolean);
-    }, [options?.banks]);
+
 
     // Watch documentList for file handling
     const watchDocuments = watch('documentList');
@@ -1783,7 +1798,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         const currentTabFields = tabFieldMap[currentTabKey] || [];
 
         if (currentTabFields.length > 0) {
-            const isValid = await trigger(currentTabFields as any);
+            // Trigger full validation to run object-level refinements (like bank detail requirements)
+            // but we still only filter and show errors for the current tab.
+            const isValid = await trigger();
             if (!isValid) {
                 const formErrors = formState.errors;
                 const errorMessages: string[] = [];
@@ -2329,7 +2346,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             setPhotoFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {
-                setSelectedPhoto(reader.result as string);
+                const base64String = reader.result as string;
+                setSelectedPhoto(base64String);
+                setValue('employeePhoto', base64String, { shouldValidate: true });
             };
             reader.readAsDataURL(file);
         }
@@ -2940,6 +2959,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 field={field}
                                                                 fieldState={fieldState}
                                                                 label='Date Of Confirmation'
+                                                                required
                                                                 placeholder='Pick date of confirmation'
                                                             />
                                                         )}
@@ -3338,6 +3358,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             .filter(Boolean)}
                                                                     </SelectContent>
                                                                 </Select>
+                                                                {fieldState.error && (
+                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                        {fieldState.error.message}
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         )}
                                                     />
@@ -3399,33 +3424,13 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         name='dateOfRetirement'
                                                         control={control}
                                                         render={({ field, fieldState }) => (
-                                                            <div className='mt-5 flex flex-col gap-1.5'>
-                                                                <Label htmlFor={field.name}>
-                                                                    Date of Retirement
-                                                                    <span className='ml-1 text-red-500'>*</span>
-                                                                </Label>
-                                                                <div className='flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-muted-foreground text-sm'>
-                                                                    {field.value
-                                                                        ? (() => {
-                                                                            try {
-                                                                                const date = new Date(field.value);
-                                                                                return date.toLocaleDateString('en-GB', {
-                                                                                    day: '2-digit',
-                                                                                    month: '2-digit',
-                                                                                    year: 'numeric'
-                                                                                });
-                                                                            } catch {
-                                                                                return field.value;
-                                                                            }
-                                                                        })()
-                                                                        : 'Pick date of retirement'}
-                                                                </div>
-                                                                {fieldState?.error && (
-                                                                    <div className='text-destructive text-sm'>
-                                                                        {fieldState.error.message}
-                                                                    </div>
-                                                                )}
-                                                            </div>
+                                                            <DateField
+                                                                field={field}
+                                                                fieldState={fieldState}
+                                                                label='Date Of Retirement'
+                                                                required
+                                                                placeholder='Pick date of retirement'
+                                                            />
                                                         )}
                                                     />
                                                     <Controller
@@ -3506,6 +3511,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             .filter(Boolean)}
                                                                     </SelectContent>
                                                                 </Select>
+                                                                {fieldState.error && (
+                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                        {fieldState.error.message}
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         )}
                                                     />
@@ -3563,6 +3573,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         maxLength={10}
                                                                         {...register(`mobileDetails.${index}.mobileNo`)}
                                                                         className='min-w-[200px] flex-1'
+                                                                        error={(errors.mobileDetails as any)?.[index]?.mobileNo?.message}
                                                                     />
                                                                     <Button
                                                                         type='button'
@@ -3582,6 +3593,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 onClick={() => appendMobile({ mobileNo: '', type: 'Default' })}>
                                                                 <Plus className='mr-1 h-4 w-4' /> Add Mobile
                                                             </Button>
+                                                            {errors.mobileDetails && !Array.isArray(errors.mobileDetails) && (
+                                                                <FormError>{(errors.mobileDetails as any).message}</FormError>
+                                                            )}
                                                         </div>
                                                     </div>
                                                     {/* Multiple Email IDs */}
@@ -3660,7 +3674,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     </div>
                                                     <InputText
                                                         label='Aadhaar No.'
+                                                        required
                                                         id='aadharNo'
+                                                        placeholder='12 digit Aadhaar No'
                                                         maxLength={12}
                                                         onKeyDown={(e) => {
                                                             const controlKeys = [
@@ -3690,7 +3706,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     />
                                                     <InputText
                                                         label='PAN Card No.'
+                                                        required
                                                         id='panCardNo'
+                                                        placeholder='Enter PAN Card No'
                                                         maxLength={10}
                                                         onKeyDown={(e) => {
                                                             const controlKeys = [
@@ -3764,7 +3782,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         control={control}
                                                         render={({ field, fieldState }) => (
                                                             <div className='flex flex-col gap-1.5'>
-                                                                <Label>Salary Type</Label>
+                                                                <Label>
+                                                                    Salary Type <span className='text-red-500'>*</span>
+                                                                </Label>
                                                                 <Select onValueChange={field.onChange} value={field.value}>
                                                                     <SelectTrigger
                                                                         className={cn(
@@ -3851,7 +3871,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     />
                                                     {/* Employee Photo Upload */}
                                                     <div className='space-y-2'>
-                                                        <Label>Upload Employee Photo</Label>
+                                                        <Label>
+                                                            Upload Employee Photo <span className='text-red-500'>*</span>
+                                                        </Label>
                                                         <div className='rounded-lg border-2 border-gray-300 border-dashed p-4 text-center'>
                                                             <div className='mx-auto mb-4 flex h-32 w-32 items-center justify-center overflow-hidden rounded-lg bg-gray-100'>
                                                                 {selectedPhoto ? (
@@ -3877,7 +3899,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     variant='outline'
                                                                     className='w-full bg-gray-100'
                                                                     onClick={() => document.getElementById('employeePhoto')?.click()}>
-                                                                    {selectedPhoto ? 'Change Photo' : 'Upload Employee Photo'}
+                                                                    {selectedPhoto ? 'Change Photo' : (<span>Upload Employee Photo <span className='text-red-500'>*</span></span>)}
                                                                 </Button>
                                                                 {selectedPhoto && (
                                                                     <Button
@@ -3887,6 +3909,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         onClick={() => {
                                                                             setSelectedPhoto(null);
                                                                             setPhotoFile(null);
+                                                                            setValue('employeePhoto', '', { shouldValidate: true });
                                                                             const fileInput = document.getElementById(
                                                                                 'employeePhoto'
                                                                             ) as HTMLInputElement;
@@ -3897,15 +3920,25 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 )}
                                                             </div>
                                                         </div>
+                                                        {errors.employeePhoto && (
+                                                            <div className='mt-2 font-medium text-[0.8rem] text-destructive'>
+                                                                {errors.employeePhoto.message as string}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     {/* Bank Details - Conditional on Mode of Payment */}
                                                     {watch('modeOfPayment') === 'Bank' ? (
                                                         <div className='space-y-4'>
                                                             <div className='rounded-md bg-gray-200 px-4 py-2'>
                                                                 <h3 className='font-semibold text-base text-gray-900 uppercase'>
-                                                                    EMPLOYEE BANK DETAILS:
+                                                                    EMPLOYEE BANK DETAILS: <span className='text-red-500'>*</span>
                                                                 </h3>
                                                             </div>
+                                                            {(errors.bankDetails || (watch('modeOfPayment') === 'Bank' && bankFields.length === 0)) && (
+                                                                <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                    {(errors.bankDetails as any)?.message || 'Bank Details are required when Mode of Payment is Bank'}
+                                                                </div>
+                                                            )}
                                                             <div className='rounded-lg border bg-card'>
                                                                 <div className='rounded-t-lg bg-gray-200 px-4 py-2 text-gray-900'>
                                                                     <div className='grid grid-cols-5 gap-2 font-semibold text-sm'>
@@ -3924,110 +3957,85 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                 <Controller
                                                                                     name={`bankDetails.${index}.employerBankName`}
                                                                                     control={control}
-                                                                                    render={({ field }) => (
-                                                                                        <Select
-                                                                                            onValueChange={field.onChange}
-                                                                                            value={field.value || ''}>
-                                                                                            <SelectTrigger>
-                                                                                                <SelectValue placeholder='--Select--' />
-                                                                                            </SelectTrigger>
-                                                                                            <SelectContent>
-                                                                                                {memoizedBankOptions.map((bank: any) => {
-                                                                                                    const val = getSafeValue(bank.value);
-                                                                                                    if (!val) return null;
-                                                                                                    return (
-                                                                                                        <SelectItem
-                                                                                                            key={bank.id}
-                                                                                                            value={val}>
-                                                                                                            {bank.name}
-                                                                                                        </SelectItem>
-                                                                                                    );
-                                                                                                })}
-                                                                                            </SelectContent>
-                                                                                        </Select>
+                                                                                    render={({ field, fieldState }) => (
+                                                                                        <div className='flex flex-col gap-1.5'>
+                                                                                            <Select
+                                                                                                onValueChange={field.onChange}
+                                                                                                value={field.value || ''}>
+                                                                                                <SelectTrigger
+                                                                                                    className={cn(
+                                                                                                        fieldState.error
+                                                                                                            ? 'border-destructive focus-visible:ring-destructive'
+                                                                                                            : 'border-input focus-visible:ring-ring'
+                                                                                                    )}>
+                                                                                                    <SelectValue placeholder='--Select--' />
+                                                                                                </SelectTrigger>
+                                                                                                <SelectContent>
+                                                                                                    {(memoizedBankOptions || []).map((bank: any) => {
+                                                                                                        return (
+                                                                                                            <SelectItem
+                                                                                                                key={bank.id}
+                                                                                                                value={bank.value}>
+                                                                                                                {bank.name}
+                                                                                                            </SelectItem>
+                                                                                                        );
+                                                                                                    })}
+                                                                                                </SelectContent>
+                                                                                            </Select>
+                                                                                            {fieldState.error && (
+                                                                                                <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                                                    {fieldState.error.message}
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </div>
                                                                                     )}
                                                                                 />
                                                                             </div>
                                                                             <div>
                                                                                 <InputText
                                                                                     placeholder='Bank Account No.'
-                                                                                    maxLength={14}
-                                                                                    onKeyDown={(e) => {
-                                                                                        const controlKeys = [
-                                                                                            'Backspace',
-                                                                                            'Delete',
-                                                                                            'Tab',
-                                                                                            'Escape',
-                                                                                            'Enter',
-                                                                                            'ArrowLeft',
-                                                                                            'ArrowRight',
-                                                                                            'ArrowUp',
-                                                                                            'ArrowDown'
-                                                                                        ];
-                                                                                        if (
-                                                                                            controlKeys.includes(e.key) ||
-                                                                                            e.ctrlKey ||
-                                                                                            e.metaKey
-                                                                                        ) {
-                                                                                            return;
-                                                                                        }
-                                                                                        if (e.key === ' ') {
-                                                                                            e.preventDefault();
-                                                                                            return;
-                                                                                        }
-                                                                                        if (!/^[0-9]$/.test(e.key)) {
-                                                                                            e.preventDefault();
-                                                                                        }
-                                                                                    }}
+                                                                                    maxLength={20}
                                                                                     {...register(`bankDetails.${index}.bankAccountNo`)}
-                                                                                    className='w-full'
+                                                                                    error={(errors.bankDetails as any)?.[index]?.bankAccountNo?.message}
                                                                                 />
                                                                             </div>
                                                                             <div>
                                                                                 <Controller
                                                                                     name={`bankDetails.${index}.accountType`}
                                                                                     control={control}
-                                                                                    render={({ field }) => (
-                                                                                        <Select
-                                                                                            onValueChange={field.onChange}
-                                                                                            value={field.value || undefined}>
-                                                                                            <SelectTrigger>
-                                                                                                <SelectValue placeholder='Select' />
-                                                                                            </SelectTrigger>
-                                                                                            <SelectContent>
-                                                                                                {(options?.contactTypes || []).length ===
-                                                                                                    0 ? (
-                                                                                                    <SelectItem value='no-options' disabled>
-                                                                                                        No options available
-                                                                                                    </SelectItem>
-                                                                                                ) : (
-                                                                                                    (options?.contactTypes || [])
-                                                                                                        .filter((item: any) => {
-                                                                                                            const key =
-                                                                                                                item.key ||
-                                                                                                                item.value ||
-                                                                                                                item.id;
-                                                                                                            return (
-                                                                                                                key != null &&
-                                                                                                                key !== '' &&
-                                                                                                                String(key).trim() !== ''
-                                                                                                            );
-                                                                                                        })
-                                                                                                        .map((item: any) => {
-                                                                                                            const val = getSafeValue(item.key || item.value || item.id);
-                                                                                                            if (!val) return null;
-                                                                                                            return (
-                                                                                                                <SelectItem
-                                                                                                                    key={item.key || item.value || item.id}
-                                                                                                                    value={val}>
-                                                                                                                    {item.value || item.label || item.name || String(item.key || item.value || item.id)}
-                                                                                                                </SelectItem>
-                                                                                                            );
-                                                                                                        })
-                                                                                                        .filter(Boolean)
-                                                                                                )}
-                                                                                            </SelectContent>
-                                                                                        </Select>
+                                                                                    render={({ field, fieldState }) => (
+                                                                                        <div className='flex flex-col gap-1.5'>
+                                                                                            <Select
+                                                                                                onValueChange={field.onChange}
+                                                                                                value={field.value || ''}>
+                                                                                                <SelectTrigger
+                                                                                                    className={cn(
+                                                                                                        fieldState.error
+                                                                                                            ? 'border-destructive focus-visible:ring-destructive'
+                                                                                                            : 'border-input focus-visible:ring-ring'
+                                                                                                    )}>
+                                                                                                    <SelectValue placeholder='Select' />
+                                                                                                </SelectTrigger>
+                                                                                                <SelectContent>
+                                                                                                    {(options?.contactTypes || []).map((item: any) => {
+                                                                                                        const val = getSafeValue(item.key || item.value || item.id);
+                                                                                                        if (!val) return null;
+                                                                                                        return (
+                                                                                                            <SelectItem
+                                                                                                                key={item.key || item.value || item.id}
+                                                                                                                value={val}>
+                                                                                                                {item.value || item.label || item.name || String(item.key || item.value || item.id)}
+                                                                                                            </SelectItem>
+                                                                                                        );
+                                                                                                    })}
+                                                                                                </SelectContent>
+                                                                                            </Select>
+                                                                                            {fieldState.error && (
+                                                                                                <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                                                    {fieldState.error.message}
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </div>
                                                                                     )}
                                                                                 />
                                                                             </div>
@@ -4085,14 +4093,18 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                                                             <InputText
                                                                 label='Address'
+                                                                required
                                                                 id='contactAddress'
+                                                                placeholder='Flat/House No, Building name, Street'
                                                                 maxLength={100}
                                                                 {...register('contactAddress')}
                                                                 error={errors.contactAddress?.message}
                                                             />
                                                             <InputText
                                                                 label='Area'
+                                                                required
                                                                 id='contactArea'
+                                                                placeholder='Enter area name'
                                                                 {...register('contactArea')}
                                                                 error={errors.contactArea?.message}
                                                             />
@@ -4100,11 +4112,18 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 <Controller
                                                                     name='contactCountry'
                                                                     control={control}
-                                                                    render={({ field }) => (
-                                                                        <>
-                                                                            <Label>Country</Label>
+                                                                    render={({ field, fieldState }) => (
+                                                                        <div className='flex flex-col gap-1.5'>
+                                                                            <Label>
+                                                                                Country <span className='text-red-500'>*</span>
+                                                                            </Label>
                                                                             <Select onValueChange={field.onChange} value={field.value}>
-                                                                                <SelectTrigger>
+                                                                                <SelectTrigger
+                                                                                    className={cn(
+                                                                                        fieldState.error
+                                                                                            ? 'border-destructive focus-visible:ring-destructive'
+                                                                                            : 'border-input focus-visible:ring-ring'
+                                                                                    )}>
                                                                                     <SelectValue placeholder='Select Country' />
                                                                                 </SelectTrigger>
                                                                                 <SelectContent>
@@ -4139,7 +4158,12 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                         .filter(Boolean)}
                                                                                 </SelectContent>
                                                                             </Select>
-                                                                        </>
+                                                                            {fieldState.error && (
+                                                                                <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                                    {fieldState.error.message}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
                                                                     )}
                                                                 />
                                                             </div>
@@ -4147,11 +4171,18 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 <Controller
                                                                     name='contactState'
                                                                     control={control}
-                                                                    render={({ field }) => (
-                                                                        <>
-                                                                            <Label>State</Label>
+                                                                    render={({ field, fieldState }) => (
+                                                                        <div className='flex flex-col gap-1.5'>
+                                                                            <Label>
+                                                                                State <span className='text-red-500'>*</span>
+                                                                            </Label>
                                                                             <Select onValueChange={field.onChange} value={field.value}>
-                                                                                <SelectTrigger>
+                                                                                <SelectTrigger
+                                                                                    className={cn(
+                                                                                        fieldState.error
+                                                                                            ? 'border-destructive focus-visible:ring-destructive'
+                                                                                            : 'border-input focus-visible:ring-ring'
+                                                                                    )}>
                                                                                     <SelectValue placeholder='Select State' />
                                                                                 </SelectTrigger>
                                                                                 <SelectContent>
@@ -4185,20 +4216,29 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                     )}
                                                                                 </SelectContent>
                                                                             </Select>
-                                                                        </>
+                                                                            {fieldState.error && (
+                                                                                <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                                    {fieldState.error.message}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
                                                                     )}
                                                                 />
                                                             </div>
                                                             <InputText
                                                                 label='City'
+                                                                required
                                                                 id='contactCity'
+                                                                placeholder='Enter city name'
                                                                 {...register('contactCity')}
                                                                 error={errors.contactCity?.message}
                                                             />
                                                             <InputText
                                                                 label='Pincode'
+                                                                required
                                                                 id='contactPincode'
-                                                                maxLength={10}
+                                                                placeholder='Enter 6-digit pincode'
+                                                                maxLength={6}
                                                                 onKeyDown={(e) => {
                                                                     const controlKeys = [
                                                                         'Backspace',
@@ -4253,7 +4293,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                                                             <InputText
                                                                 label='Address'
+                                                                required={!sameAsCommunicationAddress}
                                                                 id='permanentAddress'
+                                                                placeholder='Flat/House No, Building name, Street'
                                                                 maxLength={100}
                                                                 {...register('permanentAddress')}
                                                                 error={errors.permanentAddress?.message}
@@ -4261,7 +4303,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             />
                                                             <InputText
                                                                 label='Area'
+                                                                required={!sameAsCommunicationAddress}
                                                                 id='permanentArea'
+                                                                placeholder='Enter area name'
                                                                 {...register('permanentArea')}
                                                                 error={errors.permanentArea?.message}
                                                                 disabled={sameAsCommunicationAddress}
@@ -4270,14 +4314,21 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 <Controller
                                                                     name='permanentCountry'
                                                                     control={control}
-                                                                    render={({ field }) => (
-                                                                        <>
-                                                                            <Label>Country</Label>
+                                                                    render={({ field, fieldState }) => (
+                                                                        <div className='flex flex-col gap-1.5'>
+                                                                            <Label>
+                                                                                Country {!sameAsCommunicationAddress && <span className='text-red-500'>*</span>}
+                                                                            </Label>
                                                                             <Select
                                                                                 onValueChange={field.onChange}
                                                                                 value={field.value}
                                                                                 disabled={sameAsCommunicationAddress}>
-                                                                                <SelectTrigger>
+                                                                                <SelectTrigger
+                                                                                    className={cn(
+                                                                                        fieldState.error
+                                                                                            ? 'border-destructive focus-visible:ring-destructive'
+                                                                                            : 'border-input focus-visible:ring-ring'
+                                                                                    )}>
                                                                                     <SelectValue placeholder='Select Country' />
                                                                                 </SelectTrigger>
                                                                                 <SelectContent>
@@ -4312,7 +4363,12 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                         .filter(Boolean)}
                                                                                 </SelectContent>
                                                                             </Select>
-                                                                        </>
+                                                                            {fieldState.error && (
+                                                                                <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                                    {fieldState.error.message}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
                                                                     )}
                                                                 />
                                                             </div>
@@ -4320,14 +4376,21 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 <Controller
                                                                     name='permanentState'
                                                                     control={control}
-                                                                    render={({ field }) => (
-                                                                        <>
-                                                                            <Label>State</Label>
+                                                                    render={({ field, fieldState }) => (
+                                                                        <div className='flex flex-col gap-1.5'>
+                                                                            <Label>
+                                                                                State {!sameAsCommunicationAddress && <span className='text-red-500'>*</span>}
+                                                                            </Label>
                                                                             <Select
                                                                                 onValueChange={field.onChange}
                                                                                 value={field.value}
                                                                                 disabled={sameAsCommunicationAddress}>
-                                                                                <SelectTrigger>
+                                                                                <SelectTrigger
+                                                                                    className={cn(
+                                                                                        fieldState.error
+                                                                                            ? 'border-destructive focus-visible:ring-destructive'
+                                                                                            : 'border-input focus-visible:ring-ring'
+                                                                                    )}>
                                                                                     <SelectValue placeholder='Select State' />
                                                                                 </SelectTrigger>
                                                                                 <SelectContent>
@@ -4361,21 +4424,30 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                     )}
                                                                                 </SelectContent>
                                                                             </Select>
-                                                                        </>
+                                                                            {fieldState.error && (
+                                                                                <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                                    {fieldState.error.message}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
                                                                     )}
                                                                 />
                                                             </div>
                                                             <InputText
                                                                 label='City'
+                                                                required={!sameAsCommunicationAddress}
                                                                 id='permanentCity'
+                                                                placeholder='Enter city name'
                                                                 {...register('permanentCity')}
                                                                 error={errors.permanentCity?.message}
                                                                 disabled={sameAsCommunicationAddress}
                                                             />
                                                             <InputText
                                                                 label='Pincode'
+                                                                required={!sameAsCommunicationAddress}
                                                                 id='permanentPincode'
-                                                                maxLength={10}
+                                                                placeholder='Enter 6-digit pincode'
+                                                                maxLength={6}
                                                                 onKeyDown={(e) => {
                                                                     const controlKeys = [
                                                                         'Backspace',
@@ -4486,11 +4558,12 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         id={`qualificationDetails.${index}.qualification`}
                                                                         maxLength={50}
                                                                         {...register(`qualificationDetails.${index}.qualification`)}
+                                                                        error={errors.qualificationDetails?.[index]?.qualification?.message}
                                                                     />
                                                                     <Controller
                                                                         name={`qualificationDetails.${index}.course`}
                                                                         control={control}
-                                                                        render={({ field }) => {
+                                                                        render={({ field, fieldState }) => {
                                                                             const courses = options?.courses || [];
                                                                             return (
                                                                                 <div className='flex flex-col gap-1.5'>
@@ -4498,7 +4571,13 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                     <Select
                                                                                         onValueChange={field.onChange}
                                                                                         value={field.value || ''}>
-                                                                                        <SelectTrigger className='h-9'>
+                                                                                        <SelectTrigger
+                                                                                            className={cn(
+                                                                                                'h-9',
+                                                                                                fieldState.error
+                                                                                                    ? 'border-destructive focus-visible:ring-destructive'
+                                                                                                    : 'border-input focus-visible:ring-ring'
+                                                                                            )}>
                                                                                             <SelectValue placeholder='Select Course' />
                                                                                         </SelectTrigger>
                                                                                         <SelectContent>
@@ -4539,6 +4618,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                             )}
                                                                                         </SelectContent>
                                                                                     </Select>
+                                                                                    {fieldState.error && (
+                                                                                        <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                                            {fieldState.error.message}
+                                                                                        </div>
+                                                                                    )}
                                                                                 </div>
                                                                             );
                                                                         }}
@@ -4551,12 +4635,14 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         id={`qualificationDetails.${index}.college`}
                                                                         maxLength={100}
                                                                         {...register(`qualificationDetails.${index}.college`)}
+                                                                        error={errors.qualificationDetails?.[index]?.college?.message}
                                                                     />
                                                                     <InputText
                                                                         label='University *'
                                                                         id={`qualificationDetails.${index}.university`}
                                                                         maxLength={100}
                                                                         {...register(`qualificationDetails.${index}.university`)}
+                                                                        error={errors.qualificationDetails?.[index]?.university?.message}
                                                                     />
                                                                 </div>
                                                                 {/* Row 3: Year Of Passing, Country, State */}
@@ -4589,11 +4675,12 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             }
                                                                         }}
                                                                         {...register(`qualificationDetails.${index}.yearOfPassing`)}
+                                                                        error={errors.qualificationDetails?.[index]?.yearOfPassing?.message}
                                                                     />
                                                                     <Controller
                                                                         name={`qualificationDetails.${index}.qualificationCountry`}
                                                                         control={control}
-                                                                        render={({ field }) => (
+                                                                        render={({ field, fieldState }) => (
                                                                             <div className='flex flex-col gap-1.5'>
                                                                                 <Label>Country*</Label>
                                                                                 <Select
@@ -4643,6 +4730,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                             .filter(Boolean)}
                                                                                     </SelectContent>
                                                                                 </Select>
+                                                                                {fieldState.error && (
+                                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                                        {fieldState.error.message}
+                                                                                    </div>
+                                                                                )}
                                                                             </div>
                                                                         )}
                                                                     />
@@ -4656,16 +4748,18 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 {/* Row 4: Registration No., Result */}
                                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                                     <InputText
-                                                                        label='Registration No.'
+                                                                        label='Registration No. *'
                                                                         id={`qualificationDetails.${index}.registrationNo`}
                                                                         maxLength={50}
                                                                         {...register(`qualificationDetails.${index}.registrationNo`)}
+                                                                        error={errors.qualificationDetails?.[index]?.registrationNo?.message}
                                                                     />
                                                                     <InputText
                                                                         label='Result *'
                                                                         id={`qualificationDetails.${index}.result`}
                                                                         maxLength={20}
                                                                         {...register(`qualificationDetails.${index}.result`)}
+                                                                        error={errors.qualificationDetails?.[index]?.result?.message}
                                                                     />
                                                                 </div>
                                                                 {/* Row 5: CGPA Or Percentage dropdown */}
@@ -4677,7 +4771,12 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             <div className='flex flex-col gap-1.5'>
                                                                                 <Label>CGPA Or Percentage *</Label>
                                                                                 <Select
-                                                                                    onValueChange={field.onChange}
+                                                                                    onValueChange={(val) => {
+                                                                                        field.onChange(val);
+                                                                                        // Clear both fields when type changes to avoid validation issues
+                                                                                        setValue(`qualificationDetails.${index}.cgpa`, '');
+                                                                                        setValue(`qualificationDetails.${index}.percentage`, '');
+                                                                                    }}
                                                                                     value={field.value || 'CGPA'}>
                                                                                     <SelectTrigger
                                                                                         className={cn(
@@ -4721,7 +4820,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     />
                                                                     <InputText
                                                                         label={cgpaOrPercentage === 'Percentage' ? 'Percentage' : 'CGPA'}
-                                                                        id={`qualificationDetails.${index}.cgpa`}
+                                                                        id={`qualificationDetails.${index}.${cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa'}`}
                                                                         maxLength={cgpaOrPercentage === 'Percentage' ? 3 : 4}
                                                                         onKeyDown={(e) => {
                                                                             const controlKeys = [
@@ -4759,7 +4858,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                 }
                                                                             }
                                                                         }}
-                                                                        {...register(`qualificationDetails.${index}.cgpa`)}
+                                                                        {...register(`qualificationDetails.${index}.${cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa'}`)}
+                                                                        error={errors.qualificationDetails?.[index]?.[cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa']?.message}
                                                                     />
                                                                 </div>
                                                                 {/* Row 6: Area Of Specialization */}
@@ -4767,7 +4867,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     <Controller
                                                                         name={`qualificationDetails.${index}.areaOfSpecialisation`}
                                                                         control={control}
-                                                                        render={({ field }) => {
+                                                                        render={({ field, fieldState }) => {
                                                                             const specialisations = options?.specialisations || [];
                                                                             return (
                                                                                 <div className='flex flex-col gap-1.5'>
@@ -4803,6 +4903,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                 .filter(Boolean)}
                                                                                         </SelectContent>
                                                                                     </Select>
+                                                                                    {fieldState.error && (
+                                                                                        <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                                            {fieldState.error.message}
+                                                                                        </div>
+                                                                                    )}
                                                                                 </div>
                                                                             );
                                                                         }}
@@ -4966,7 +5071,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 {...register(`experienceDetails.${index}.department`)}
                                                             />
                                                             <InputText
-                                                                label='Designation *'
+                                                                label='Designation'
                                                                 id={`experienceDetails.${index}.designation`}
                                                                 maxLength={100}
                                                                 {...register(`experienceDetails.${index}.designation`)}
@@ -5653,8 +5758,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             </div>
                         </div>
                     </div>
-                </div>
-            </form>
-        </div>
+                </div >
+            </form >
+        </div >
     );
 }
