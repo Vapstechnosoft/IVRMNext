@@ -41,7 +41,9 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import {
+    exportToExcelforFeeClassWise,
     exportToExcelforFeeGroupWise,
+    exportToExcelforFeeHeadWise,
     exportToExcelforFeeInstallmentWise,
     exportToExcelforFeeStudentorStaffWise,
     exportToExcelforFeeStudentorStaffWiseofBalance,
@@ -164,12 +166,14 @@ export default function FeeDefaulterReport() {
     const [reportData, setReportData] = useState<IStudentFeeDefaulterReport[]>([]);
     const [studentreportData, setstudentReportData] = useState<IStudentFeeDefaulterReport[]>([]);
     const [studentGroupreportData, setstudentGroupReportData] = useState<IStudentFeeDefaulterReport[]>([]);
+    const [studentHeadreportData, setstudentHeadReportData] = useState<IStudentFeeDefaulterReport[]>([]);
+    const [studentClassreportData, setstudentClassReportData] = useState<IStudentFeeDefaulterReport[]>([]);
     const [balancereportData, setBalanceReportData] = useState<IStudentFeeDefaulterReport[]>([]);
     const [dynamicFeeNames, setDynamicFeeNames] = useState<string[]>([]);
     const [reportLoading, setReportLoading] = useState(false);
     const [showReport, setShowReport] = useState(false);
     const [search, setSearch] = useState('');
-    const [sortKey, setSortKey] = useState<'feeGroup' | 'totalDue' | null>(null);
+    const [sortKey, setSortKey] = useState<'feeGroup' | 'totalDue' | 'fmH_FeeName' | 'totalBalance' | 'asmcL_ClassName' | null>(null);
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [sectionLoading, setSectionLoading] = useState(false);
@@ -178,12 +182,12 @@ export default function FeeDefaulterReport() {
     const term_group = mastersettingList?.data?.[0]?.fmC_GroupOrTermFlg;
 
     // Hooks
-    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
+    const { data: academicData, error: academicError } = useAcademicYearDropdown();
     const { data: classListResponse, isLoading: loadingClasses, error: classListError } = useFeeClassListDefaulterreport();
     const {
-        data: sectionListResponse,
-        isLoading: loadingSections,
-        error: sectionListError,
+        // data: sectionListResponse,
+        // isLoading: loadingSections,
+        // error: sectionListError,
         refetch: refetchSections
     } = useFeeSectionListDefaulterreport();
     const { data: feegroupData, isLoading: loadingfeegroup, error: feegroupError } = useFeeGroupDefaulterreport();
@@ -423,7 +427,7 @@ export default function FeeDefaulterReport() {
         return rows;
     }, [reportData, search, sortKey, sortOrder]);
 
-    const handleSort = (key: 'feeGroup' | 'totalDue') => {
+    const handleSort = (key: 'feeGroup' | 'totalDue' | 'fmH_FeeName' | 'totalBalance' | 'asmcL_ClassName') => {
         if (sortKey === key) {
             setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
         } else {
@@ -472,6 +476,27 @@ export default function FeeDefaulterReport() {
 
         exportToExcelforFeeGroupWise(rowsToExport, 'Defaulter_Report');
     };
+    const handleExportExcelforFeeHeadWise = () => {
+        const rowsToExport = studentHeadreportData.filter((r) => selectedIds.includes(r.id));
+
+        if (!rowsToExport || rowsToExport.length === 0) {
+            toast.error('No data selected to export');
+            return;
+        }
+
+        exportToExcelforFeeHeadWise(rowsToExport, 'Defaulter_Report');
+    };
+
+    const handleExportExcelforFeeClassWise = () => {
+        const rowsToExport = studentClassreportData.filter((r) => selectedIds.includes(r.id));
+
+        if (!rowsToExport || rowsToExport.length === 0) {
+            toast.error('No data selected to export');
+            return;
+        }
+
+        exportToExcelforFeeClassWise(rowsToExport, 'Defaulter_Report');
+    };
 
     const handlePrintforFeeGroupWise = () => {
         const rowsToPrint = studentGroupreportData.filter((row) => selectedIds.includes(row.id));
@@ -493,6 +518,58 @@ export default function FeeDefaulterReport() {
         const sumRow = {
             'Sl.No': '',
             'Fee Group': 'Total',
+            'Balance Amount': `₹${total.toLocaleString('en-IN')}`
+        };
+
+        printTable(columnHeaders, printableRows, sumRow);
+    };
+
+    const handlePrintforFeeHeadWise = () => {
+        const rowsToPrint = studentHeadreportData.filter((row) => selectedIds.includes(row.id));
+
+        if (!rowsToPrint || rowsToPrint.length === 0) {
+            toast.error('No data selected to print');
+            return;
+        }
+
+        const columnHeaders = ['Sl.No', 'Fee Head', 'Balance Amount'];
+
+        const printableRows = rowsToPrint.map((row, index) => ({
+            'Sl.No': index + 1,
+            'Fee Head': row.fmH_FeeName,
+            'Balance Amount': `₹${row.totalBalance}`
+        }));
+
+        const total = rowsToPrint.reduce((sum, r) => sum + r.totalBalance, 0);
+        const sumRow = {
+            'Sl.No': '',
+            'Fee Head': 'Total',
+            'Balance Amount': `₹${total.toLocaleString('en-IN')}`
+        };
+
+        printTable(columnHeaders, printableRows, sumRow);
+    };
+
+    const handlePrintforFeeClassWise = () => {
+        const rowsToPrint = studentClassreportData.filter((row) => selectedIds.includes(row.id));
+
+        if (!rowsToPrint || rowsToPrint.length === 0) {
+            toast.error('No data selected to print');
+            return;
+        }
+
+        const columnHeaders = ['Sl.No', 'Class Name', 'Balance Amount'];
+
+        const printableRows = rowsToPrint.map((row, index) => ({
+            'Sl.No': index + 1,
+            'Class Name': row.asmcL_ClassName,
+            'Balance Amount': `₹${row.totalBalance}`
+        }));
+
+        const total = rowsToPrint.reduce((sum, r) => sum + r.totalBalance, 0);
+        const sumRow = {
+            'Sl.No': '',
+            'Class Name': 'Total',
             'Balance Amount': `₹${total.toLocaleString('en-IN')}`
         };
 
@@ -694,12 +771,41 @@ export default function FeeDefaulterReport() {
         printTable(columnHeaders, tableRows, sumRow);
     };
 
+    useEffect(() => {
+        setReportData([]);
+        setstudentGroupReportData([]);
+        setstudentHeadReportData([]);
+        setstudentClassReportData([]);
+        setSelectedIds([]);
+        setShowReport(false);
+        if (filters.status.balance) {
+            setFilters((prev) => ({
+                ...prev,
+                status: {
+                    ...prev.status,
+                    balance: false
+                }
+            }));
+        }
+    }, [
+        filters.breakdown,
+        filters.classId,
+        filters.sectionId,
+        filters.academicYearId,
+        filters.customGroupIds,
+        filters.termIds,
+        filters.feeGroupIds,
+        breakdown
+    ]);
+
     const onSubmit: SubmitHandler<FormFields> = async () => {
         setReportLoading(true);
         setShowReport(false);
         setReportData([]);
         setstudentReportData([]);
         setstudentGroupReportData([]);
+        setstudentHeadReportData([]);
+        setstudentClassReportData([]);
 
         try {
             const blc_new = filters.status.balance === true ? 1 : 0;
@@ -763,6 +869,8 @@ export default function FeeDefaulterReport() {
             const studentDataArray = (reportArray as any)?.data?.list?.studentalldata;
             const studentGroupDataArray = (reportArray as any)?.data?.list?.groupalldata;
             const BalanceGroupDataArray = (reportArray as any)?.data?.list;
+            const studentHeadArray = (reportArray as any)?.data?.list?.headalldata;
+            const studentClassArray = (reportArray as any)?.data?.list?.classalldata;
 
             let hasData = false;
             if (studentDataArray != null) {
@@ -845,6 +953,89 @@ export default function FeeDefaulterReport() {
                 } else {
                     toast.info('No group data found!');
                     setstudentGroupReportData([]);
+                }
+            }
+            if (studentHeadArray != null) {
+                if (studentHeadArray && Array.isArray(studentHeadArray)) {
+                    const studentHeadData = JSON.parse(JSON.stringify(studentHeadArray));
+                    const mapApiToReportRows = (apiData: any[]): IStudentFeeDefaulterReport[] => {
+                        return apiData.map((item, index) => ({
+                            id: index + 1,
+                            amsT_AdmNo: item.amsT_AdmNo,
+                            amsT_emailId: item.amsT_emailId,
+                            amsT_FatherName: item.amsT_FatherName,
+                            amsT_Id: item.amsT_Id,
+                            amsT_MobileNo: item.amsT_MobileNo,
+                            amsT_Route: item.amsT_Route,
+                            asmcL_ClassName: item.asmcL_ClassName,
+                            classSection: item.classSection,
+                            fmG_GroupName: item.fmG_GroupName,
+                            fmH_FeeName: item.fmH_FeeName,
+                            fmT_Name: item.fmT_Name,
+                            studentName: item.studentName,
+                            totalBalance: item.totalBalance,
+                            fine_Amount: item.fine_Amount,
+                            admno: item.admno,
+                            feeName: item.feeName,
+                            className: item.className,
+                            sectionName: item.sectionName,
+                            fatherName: item.fatherName,
+                            mobileNo: item.mobileNo,
+                            email: item.email,
+                            tobepaid: item.tobepaid
+                        }));
+                    };
+                    const data = mapApiToReportRows(studentHeadData);
+                    setstudentHeadReportData(data);
+                    toast.success(reportArray.message);
+                    if (studentHeadData.length > 0) {
+                        hasData = true;
+                    }
+                } else {
+                    toast.info('No group data found!');
+                    setstudentGroupReportData([]);
+                }
+            }
+
+            if (studentClassArray != null) {
+                if (studentClassArray && Array.isArray(studentClassArray)) {
+                    const studentClassData = JSON.parse(JSON.stringify(studentClassArray));
+                    const mapApiToReportRows = (apiData: any[]): IStudentFeeDefaulterReport[] => {
+                        return apiData.map((item, index) => ({
+                            id: index + 1,
+                            amsT_AdmNo: item.amsT_AdmNo,
+                            amsT_emailId: item.amsT_emailId,
+                            amsT_FatherName: item.amsT_FatherName,
+                            amsT_Id: item.amsT_Id,
+                            amsT_MobileNo: item.amsT_MobileNo,
+                            amsT_Route: item.amsT_Route,
+                            asmcL_ClassName: item.asmcL_ClassName,
+                            classSection: item.classSection,
+                            fmG_GroupName: item.fmG_GroupName,
+                            fmH_FeeName: item.fmH_FeeName,
+                            fmT_Name: item.fmT_Name,
+                            studentName: item.studentName,
+                            totalBalance: item.totalBalance,
+                            fine_Amount: item.fine_Amount,
+                            admno: item.admno,
+                            feeName: item.feeName,
+                            className: item.className,
+                            sectionName: item.sectionName,
+                            fatherName: item.fatherName,
+                            mobileNo: item.mobileNo,
+                            email: item.email,
+                            tobepaid: item.tobepaid
+                        }));
+                    };
+                    const data = mapApiToReportRows(studentClassData);
+                    setstudentClassReportData(data);
+                    toast.success(reportArray.message);
+                    if (studentClassData.length > 0) {
+                        hasData = true;
+                    }
+                } else {
+                    toast.info('No group data found!');
+                    setstudentClassReportData([]);
                 }
             }
 
@@ -966,7 +1157,12 @@ export default function FeeDefaulterReport() {
             }
 
             if (hasData) {
-                const combinedData = [...(studentDataArray || []), ...(studentGroupDataArray || [])];
+                const combinedData = [
+                    ...(studentDataArray || []),
+                    ...(studentGroupDataArray || []),
+                    ...(studentHeadArray || []),
+                    ...(studentClassArray || [])
+                ];
                 setReportData(combinedData);
                 setShowReport(true);
             } else {
@@ -1676,6 +1872,8 @@ export default function FeeDefaulterReport() {
                                     {showReport &&
                                         (studentreportData.length > 0 ||
                                             studentGroupreportData.length > 0 ||
+                                            studentHeadreportData.length > 0 ||
+                                            studentClassreportData.length > 0 ||
                                             balancereportData.length > 0) && (
                                             <div className='-mx-8 mt-12 overflow-hidden rounded-lg bg-white shadow-xl'>
                                                 {/* Loading State */}
@@ -1717,6 +1915,51 @@ export default function FeeDefaulterReport() {
                                                                     </div>
                                                                 </div>
                                                             )}
+                                                            {filters.userType === 'Student' &&
+                                                                studentHeadreportData.length > 0 &&
+                                                                breakdown === 'FHW' && (
+                                                                    <div className='flex gap-3'>
+                                                                        <div className='mb-4 flex justify-end gap-2'>
+                                                                            <Button
+                                                                                size='sm'
+                                                                                className='h-8 w-auto px-3 text-xs'
+                                                                                onClick={handleExportExcelforFeeHeadWise}>
+                                                                                Export Excel
+                                                                            </Button>
+
+                                                                            <Button
+                                                                                size='sm'
+                                                                                variant='outline'
+                                                                                className='h-8 w-auto px-3 text-xs'
+                                                                                onClick={handlePrintforFeeHeadWise}>
+                                                                                Print
+                                                                            </Button>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+
+                                                            {filters.userType === 'Student' &&
+                                                                studentClassreportData.length > 0 &&
+                                                                breakdown === 'FCW' && (
+                                                                    <div className='flex gap-3'>
+                                                                        <div className='mb-4 flex justify-end gap-2'>
+                                                                            <Button
+                                                                                size='sm'
+                                                                                className='h-8 w-auto px-3 text-xs'
+                                                                                onClick={handleExportExcelforFeeClassWise}>
+                                                                                Export Excel
+                                                                            </Button>
+
+                                                                            <Button
+                                                                                size='sm'
+                                                                                variant='outline'
+                                                                                className='h-8 w-auto px-3 text-xs'
+                                                                                onClick={handlePrintforFeeClassWise}>
+                                                                                Print
+                                                                            </Button>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
                                                             {filters.userType === 'Student' &&
                                                                 studentreportData.length > 0 &&
                                                                 breakdown === 'FSW' && (
@@ -1970,6 +2213,153 @@ export default function FeeDefaulterReport() {
                                                                     </table>
                                                                 </div>
                                                             )}
+                                                            {filters.userType === 'Student' &&
+                                                                studentHeadreportData.length > 0 &&
+                                                                breakdown === 'FHW' && (
+                                                                    <div className='overflow-x-auto border'>
+                                                                        <table className='w-full table-auto border-collapse'>
+                                                                            <thead className='bg-primary text-white'>
+                                                                                <tr>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Checkbox
+                                                                                            checked={
+                                                                                                selectedIds.length ===
+                                                                                                    filteredData.length &&
+                                                                                                filteredData.length > 0
+                                                                                            }
+                                                                                            indeterminate={
+                                                                                                selectedIds.length > 0 &&
+                                                                                                selectedIds.length < filteredData.length
+                                                                                            }
+                                                                                            onCheckedChange={toggleAll}
+                                                                                        />
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>Sl No</th>
+                                                                                    <th
+                                                                                        className='cursor-pointer p-2 text-center'
+                                                                                        onClick={() => handleSort('fmH_FeeName')}>
+                                                                                        Head Name{' '}
+                                                                                        {sortKey === 'fmH_FeeName' &&
+                                                                                            (sortOrder === 'asc' ? '↑' : '↓')}
+                                                                                    </th>
+                                                                                    <th
+                                                                                        className='cursor-pointer p-2 text-center'
+                                                                                        onClick={() => handleSort('totalBalance')}>
+                                                                                        Balance Amount{' '}
+                                                                                        {sortKey === 'totalBalance' &&
+                                                                                            (sortOrder === 'asc' ? '↑' : '↓')}
+                                                                                    </th>
+                                                                                </tr>
+                                                                            </thead>
+
+                                                                            <tbody>
+                                                                                {studentHeadreportData.map((row, index) => (
+                                                                                    <tr key={row.id} className='border-b'>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            <Checkbox
+                                                                                                checked={selectedIds.includes(row.id)}
+                                                                                                onCheckedChange={() => toggleRow(row.id)}
+                                                                                            />
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-medium'>
+                                                                                            {index + 1}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-medium'>
+                                                                                            {row.fmH_FeeName}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{row.totalBalance.toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                ))}
+
+                                                                                {/* Total */}
+                                                                                <tr className='bg-gray-100 font-bold'>
+                                                                                    <td />
+                                                                                    <td />
+                                                                                    <td className='p-2 text-center'>Total</td>
+                                                                                    <td className='p-2 text-center'>
+                                                                                        ₹{totalBalance.toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                )}
+
+                                                            {filters.userType === 'Student' &&
+                                                                studentClassreportData.length > 0 &&
+                                                                breakdown === 'FCW' && (
+                                                                    <div className='overflow-x-auto border'>
+                                                                        <table className='w-full table-auto border-collapse'>
+                                                                            <thead className='bg-primary text-white'>
+                                                                                <tr>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Checkbox
+                                                                                            checked={
+                                                                                                selectedIds.length ===
+                                                                                                    filteredData.length &&
+                                                                                                filteredData.length > 0
+                                                                                            }
+                                                                                            indeterminate={
+                                                                                                selectedIds.length > 0 &&
+                                                                                                selectedIds.length < filteredData.length
+                                                                                            }
+                                                                                            onCheckedChange={toggleAll}
+                                                                                        />
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>Sl No</th>
+                                                                                    <th
+                                                                                        className='cursor-pointer p-2 text-center'
+                                                                                        onClick={() => handleSort('fmH_FeeName')}>
+                                                                                        Class Name{' '}
+                                                                                        {sortKey === 'fmH_FeeName' &&
+                                                                                            (sortOrder === 'asc' ? '↑' : '↓')}
+                                                                                    </th>
+                                                                                    <th
+                                                                                        className='cursor-pointer p-2 text-center'
+                                                                                        onClick={() => handleSort('totalBalance')}>
+                                                                                        Balance Amount{' '}
+                                                                                        {sortKey === 'totalBalance' &&
+                                                                                            (sortOrder === 'asc' ? '↑' : '↓')}
+                                                                                    </th>
+                                                                                </tr>
+                                                                            </thead>
+
+                                                                            <tbody>
+                                                                                {studentClassreportData.map((row, index) => (
+                                                                                    <tr key={row.id} className='border-b'>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            <Checkbox
+                                                                                                checked={selectedIds.includes(row.id)}
+                                                                                                onCheckedChange={() => toggleRow(row.id)}
+                                                                                            />
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-medium'>
+                                                                                            {index + 1}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-medium'>
+                                                                                            {row.asmcL_ClassName}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{row.totalBalance.toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                ))}
+
+                                                                                {/* Total */}
+                                                                                <tr className='bg-gray-100 font-bold'>
+                                                                                    <td />
+                                                                                    <td />
+                                                                                    <td className='p-2 text-center'>Total</td>
+                                                                                    <td className='p-2 text-center'>
+                                                                                        ₹{totalBalance.toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                )}
                                                             {filters.userType === 'Student' &&
                                                                 studentreportData.length > 0 &&
                                                                 breakdown === 'FSW' && (
