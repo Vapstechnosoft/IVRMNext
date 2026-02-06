@@ -2,76 +2,80 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { IInvRGRNReportData } from "@/types/inventory/reports/inv-r-grn";
 
-export const getColumns = (typeflag: string, optionflag?: string): ColumnDef<IInvRGRNReportData>[] => {
+export const getColumns = (typeflag: string, optionflag?: string, page: number = 1, pageSize: number = 10): ColumnDef<IInvRGRNReportData>[] => {
     const commonNumberClass = "text-right font-mono";
+    const rightHeader = (title: string) => <div className="text-right w-full">{title}</div>;
+
+    // Function to calculate global row index
+    const getRowNumber = (index: number) => (page - 1) * pageSize + index + 1;
 
     if (typeflag === 'All' || typeflag === 'Detailed') {
         return [
             {
                 accessorKey: "rowNumber",
                 header: "SL.No.",
-                cell: ({ row }) => row.index + 1,
+                cell: ({ row }) => getRowNumber(row.index),
                 size: 60,
             },
             {
-                accessorKey: "invmgrN_GRNNo",
+                accessorKey: "invmgrn_grnno",
                 header: "GRN No",
             },
             {
-                accessorKey: "invmgrN_PurchaseDate",
+                accessorKey: "invmgrn_purchasedate",
                 header: "Purchase Date",
                 cell: ({ row }) => {
-                    const date = row.getValue("invmgrN_PurchaseDate") as string;
-                    // Assuming date is in a parseable format or already formatted
-                    return date;
+                    const date = row.getValue("invmgrn_purchasedate") as string;
+                    // Format date if needed, for instance split 'T'
+                    return date ? date.split('T')[0] : '';
                 }
             },
             {
-                accessorKey: "invmS_SupplierName",
+                accessorKey: "invms_suppliername",
                 header: "Supplier",
             },
             {
-                accessorKey: "invmI_ItemName",
+                accessorKey: "invmi_itemname",
                 header: "Item",
             },
             {
-                accessorKey: "invmuoM_UOMName",
+                accessorKey: "invmuom_uomname",
                 header: "UOM",
             },
             {
-                accessorKey: "invtgrN_Qty",
-                header: "Quantity",
-                cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invtgrN_Qty")).toFixed(2)}</div>,
+                accessorKey: "invtgrn_qty",
+                header: () => rightHeader("Quantity"),
+                cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invtgrn_qty")).toFixed(2)}</div>,
             },
             {
-                accessorKey: "invtgrN_PurchaseRate",
-                header: "Rate",
-                cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invtgrN_PurchaseRate")).toFixed(2)}</div>,
+                accessorKey: "invtgrn_purchaserate",
+                header: () => rightHeader("Rate"),
+                cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invtgrn_purchaserate")).toFixed(2)}</div>,
             },
             {
-                accessorKey: "invtgrN_MRP",
-                header: "MRP",
-                cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invtgrN_MRP")).toFixed(2)}</div>,
+                accessorKey: "invtgrn_mrp",
+                header: () => rightHeader("MRP"),
+                cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invtgrn_mrp")).toFixed(2)}</div>,
             },
             {
-                accessorKey: "invtgrN_SalesPrice",
-                header: "Sale Price",
-                cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invtgrN_SalesPrice")).toFixed(2)}</div>,
+                accessorKey: "invtgrn_salesprice",
+                header: () => rightHeader("Sale Price"),
+                cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invtgrn_salesprice")).toFixed(2)}</div>,
             },
             {
-                accessorKey: "invtgrN_DiscountAmt",
-                header: "Discount",
-                cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invtgrN_DiscountAmt")).toFixed(2)}</div>,
+                accessorKey: "invtgrn_discountamt",
+                header: () => rightHeader("Discount"),
+                cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invtgrn_discountamt")).toFixed(2)}</div>,
             },
             {
-                accessorKey: "invtgrN_TaxAmt",
-                header: "Tax",
-                cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invtgrN_TaxAmt")).toFixed(2)}</div>,
+                accessorKey: "invtgrn_taxamt",
+                header: () => rightHeader("Tax"),
+                cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invtgrn_taxamt")).toFixed(2)}</div>,
             },
             {
-                accessorKey: "invtgrN_Amount",
-                header: "Total Amount",
-                cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invtgrN_Amount")).toFixed(2)}</div>,
+                accessorKey: "invtgrn_amount",
+                header: () => rightHeader("Total Amount"),
+                cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invtgrn_amount")).toFixed(2)}</div>,
             },
         ];
     } else if (typeflag === 'Overall') {
@@ -80,51 +84,60 @@ export const getColumns = (typeflag: string, optionflag?: string): ColumnDef<IIn
                 {
                     accessorKey: "rowNumber",
                     header: "SL.No.",
-                    cell: ({ row }) => row.index + 1,
+                    cell: ({ row }) => getRowNumber(row.index),
                     size: 60,
                 },
                 {
-                    accessorKey: "invmI_ItemName",
+                    id: "item_name",
+                    accessorFn: (row) => row.invmi_itemname || row.invmI_ItemName,
                     header: "Item",
                 },
                 {
-                    accessorKey: "invmI_ItemCode",
+                    id: "item_code",
+                    accessorFn: (row) => row.invmi_itemcode || row.invmI_ItemCode,
                     header: "Item Code",
                 },
                 {
-                    accessorKey: "grnQuantity",
-                    header: "Quantity",
-                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("grnQuantity")).toFixed(2)}</div>,
+                    id: "qty",
+                    accessorFn: (row) => row.grnQuantity ?? row.grnquantity,
+                    header: () => rightHeader("Quantity"),
+                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("qty") || 0).toFixed(2)}</div>,
                 },
                 {
-                    accessorKey: "grnRate",
-                    header: "Rate",
-                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("grnRate")).toFixed(2)}</div>,
+                    id: "rate",
+                    accessorFn: (row) => row.grnRate ?? row.grnrate,
+                    header: () => rightHeader("Rate"),
+                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("rate") || 0).toFixed(2)}</div>,
                 },
                 {
-                    accessorKey: "grnMRP",
-                    header: "MRP",
-                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("grnMRP")).toFixed(2)}</div>,
+                    id: "mrp",
+                    accessorFn: (row) => row.grnMRP ?? row.grnmrp,
+                    header: () => rightHeader("MRP"),
+                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("mrp") || 0).toFixed(2)}</div>,
                 },
                 {
-                    accessorKey: "grnSalePrice",
-                    header: "Sale Price",
-                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("grnSalePrice")).toFixed(2)}</div>,
+                    id: "sale_price",
+                    accessorFn: (row) => row.grnSalePrice ?? row.grnsaleprice,
+                    header: () => rightHeader("Sale Price"),
+                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("sale_price") || 0).toFixed(2)}</div>,
                 },
                 {
-                    accessorKey: "grnDiscount",
-                    header: "Discount",
-                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("grnDiscount")).toFixed(2)}</div>,
+                    id: "discount",
+                    accessorFn: (row) => row.grnDiscount ?? row.grndiscount,
+                    header: () => rightHeader("Discount"),
+                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("discount") || 0).toFixed(2)}</div>,
                 },
                 {
-                    accessorKey: "grnTax",
-                    header: "Tax",
-                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("grnTax")).toFixed(2)}</div>,
+                    id: "tax",
+                    accessorFn: (row) => row.grnTax ?? row.grntax,
+                    header: () => rightHeader("Tax"),
+                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("tax") || 0).toFixed(2)}</div>,
                 },
                 {
-                    accessorKey: "grnAmount",
-                    header: "Amount",
-                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("grnAmount")).toFixed(2)}</div>,
+                    id: "amount",
+                    accessorFn: (row) => row.grnAmount ?? row.grnamount,
+                    header: () => rightHeader("Amount"),
+                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("amount") || 0).toFixed(2)}</div>,
                 },
             ];
         } else if (optionflag === 'Supplier') {
@@ -132,59 +145,70 @@ export const getColumns = (typeflag: string, optionflag?: string): ColumnDef<IIn
                 {
                     accessorKey: "rowNumber",
                     header: "SL.No.",
-                    cell: ({ row }) => row.index + 1,
+                    cell: ({ row }) => getRowNumber(row.index),
                     size: 60,
                 },
                 {
-                    accessorKey: "invmS_SupplierName",
+                    id: "supplier_name",
+                    accessorFn: (row) => row.invms_suppliername || row.invmS_SupplierName,
                     header: "Supplier Name",
                 },
                 {
-                    accessorKey: "invmS_SupplierCode",
+                    id: "supplier_code",
+                    accessorFn: (row) => row.invmS_SupplierCode, // Assuming this key might strictly be Pascal based on usage elsewhere? Or add lowercase fallback if needed.
                     header: "Code",
                 },
                 {
-                    accessorKey: "invmS_SupplierConatctNo",
+                    id: "contact",
+                    accessorFn: (row) => row.invms_supplierconatctno || row.invmS_SupplierConatctNo,
                     header: "Contact No.",
                 },
                 {
-                    accessorKey: "invmS_EmailId",
+                    id: "email",
+                    accessorFn: (row) => row.invms_emailid || row.invmS_EmailId,
                     header: "Email ID",
                 },
                 {
-                    accessorKey: "grnQuantity",
-                    header: "Quantity",
-                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("grnQuantity")).toFixed(2)}</div>,
+                    id: "qty",
+                    accessorFn: (row) => row.grnQuantity ?? row.grnquantity,
+                    header: () => rightHeader("Quantity"),
+                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("qty") || 0).toFixed(2)}</div>,
                 },
                 {
-                    accessorKey: "grnRate",
-                    header: "Rate",
-                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("grnRate")).toFixed(2)}</div>,
+                    id: "rate",
+                    accessorFn: (row) => row.grnRate ?? row.grnrate,
+                    header: () => rightHeader("Rate"),
+                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("rate") || 0).toFixed(2)}</div>,
                 },
                 {
-                    accessorKey: "grnMRP",
-                    header: "MRP",
-                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("grnMRP")).toFixed(2)}</div>,
+                    id: "mrp",
+                    accessorFn: (row) => row.grnMRP ?? row.grnmrp,
+                    header: () => rightHeader("MRP"),
+                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("mrp") || 0).toFixed(2)}</div>,
                 },
                 {
-                    accessorKey: "grnSalePrice",
-                    header: "Sale Price",
-                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("grnSalePrice")).toFixed(2)}</div>,
+                    id: "sale_price",
+                    accessorFn: (row) => row.grnSalePrice ?? row.grnsaleprice,
+                    header: () => rightHeader("Sale Price"),
+                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("sale_price") || 0).toFixed(2)}</div>,
                 },
                 {
-                    accessorKey: "grnDiscount",
-                    header: "Discount",
-                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("grnDiscount")).toFixed(2)}</div>,
+                    id: "discount",
+                    accessorFn: (row) => row.grnDiscount ?? row.grndiscount,
+                    header: () => rightHeader("Discount"),
+                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("discount") || 0).toFixed(2)}</div>,
                 },
                 {
-                    accessorKey: "grnTax",
-                    header: "Tax",
-                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("grnTax")).toFixed(2)}</div>,
+                    id: "tax",
+                    accessorFn: (row) => row.grnTax ?? row.grntax,
+                    header: () => rightHeader("Tax"),
+                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("tax") || 0).toFixed(2)}</div>,
                 },
                 {
-                    accessorKey: "grnAmount",
-                    header: "Amount",
-                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("grnAmount")).toFixed(2)}</div>,
+                    id: "amount",
+                    accessorFn: (row) => row.grnAmount ?? row.grnamount,
+                    header: () => rightHeader("Amount"),
+                    cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("amount") || 0).toFixed(2)}</div>,
                 },
             ];
         }

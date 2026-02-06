@@ -151,31 +151,19 @@ export async function fetchInvMasterGroupData(searchParams?: ApiSearchparams): P
 }
 
 export async function saveInvMasterMainGroup(data: any) {
-    const params = new URLSearchParams();
-    const mapping: Record<string, string> = {
-        invmG_Id: 'INVMG_Id',
-        invmG_GroupName: 'INVMG_GroupName',
-        invmG_AliasName: 'INVMG_AliasName',
-        invmG_GroupPrefix: 'INVMG_GroupPrefix',
-        invmG_GroupSuffix: 'INVMG_GroupSuffix',
-        invmG_GroupStartingNo: 'INVMG_GroupStartingNo',
-        invmG_ActiveFlg: 'INVMG_ActiveFlg'
+    const payload = {
+        INVMG_Id: data.invmG_Id || 0,
+        INVMG_GroupName: data.invmG_GroupName,
+        INVMG_AliasName: data.invmG_AliasName,
+        INVMG_GroupPrefix: data.invmG_GroupPrefix,
+        INVMG_GroupSuffix: data.invmG_GroupSuffix,
+        INVMG_GroupStartingNo: data.invmG_GroupStartingNo,
+        INVMG_ActiveFlg: data.invmG_ActiveFlg,
+        INVMG_MGUGIGFlg: 'MG'
     };
 
-    for (const key in data) {
-        const apiKey = mapping[key] || key;
-        const val = data[key];
-        // Skip ID if it's 0 (new record)
-        if (apiKey === 'INVMG_Id' && (val === 0 || !val)) continue;
-
-        if (val !== undefined && val !== null) {
-            params.append(apiKey, val.toString());
-        }
-    }
-    params.append('INVMG_MGUGIGFlg', 'MG');
-
-    const url = `/INV_MasterGroupFacade/savedetails?${params.toString()}`;
-    return await api.post<any>('inventory', url, {});
+    const url = `/INV_MasterGroupFacade/savedetails`;
+    return await api.post<any>('inventory', url, payload);
 }
 
 export async function saveInvMasterUserGroup(data: any) {

@@ -6,84 +6,92 @@ export const getColumns = (
     typeflag: string,
     optionflag: string | undefined,
     showTax: boolean,
-    showDiscount: boolean
+    showDiscount: boolean,
+    page: number = 1,
+    pageSize: number = 10
 ): ColumnDef<IInvRSalesReportData>[] => {
 
     const commonNumberClass = "text-right font-mono";
+    const rightHeader = (title: string) => <div className="text-right w-full">{title}</div>;
+
+    // Function to calculate global row index
+    const getRowNumber = (index: number) => (page - 1) * pageSize + index + 1;
+
     const dateCell = ({ row }: any) => {
-        // Angular: kendo.toString(kendo.parseDate(INVMSL_SalesDate, 'yyyy-MM-dd'), 'dd/MM/yyyy')
-        // Assuming API returns YYYY-MM-DD or ISO
-        const date = row.getValue("invmsL_SalesDate");
-        return date;
+        const date = row.original.sales_Date || row.original.invmsL_SalesDate;
+        if (!date) return '';
+        return date.split('T')[0];
     };
 
     let columns: ColumnDef<IInvRSalesReportData>[] = [];
 
-    // Common Columns for 'All' or Detailed -> Item/SaleNo
+    // Common Columns
     const slNoCol: ColumnDef<IInvRSalesReportData> = {
         accessorKey: "rowNumber",
         header: "SL.No.",
-        cell: ({ row }) => row.index + 1,
+        cell: ({ row }) => getRowNumber(row.index),
         size: 60,
     };
 
     const salesNoCol: ColumnDef<IInvRSalesReportData> = {
-        accessorKey: "invmsL_SalesNo",
+        id: "sales_no",
         header: "Sale No",
+        accessorFn: (row) => row.invmsL_SalesNo
     };
 
     const salesDateCol: ColumnDef<IInvRSalesReportData> = {
-        accessorKey: "invmsL_SalesDate",
+        id: "sales_date",
         header: "Sale Date",
         cell: dateCell
     };
 
     const itemCol: ColumnDef<IInvRSalesReportData> = {
-        accessorKey: "invmI_ItemName",
+        id: "item_name",
         header: "Item",
+        accessorFn: (row) => row.item_Name || row.invmI_ItemName
     };
 
     const quantityCol: ColumnDef<IInvRSalesReportData> = {
-        accessorKey: "invtsL_SalesQty", // Or saleQty 
-        header: "Quantity",
+        id: "qty",
+        header: () => rightHeader("Quantity"),
         cell: ({ row }) => {
-            const val = row.original.invtsL_SalesQty ?? row.original.saleQty;
+            const val = row.original.sales_Qty ?? row.original.invtsL_SalesQty ?? row.original.saleQty ?? 0;
             return <div className={commonNumberClass}>{Number(val).toFixed(2)}</div>;
         }
     };
 
     const priceCol: ColumnDef<IInvRSalesReportData> = {
-        accessorKey: "invtsL_SalesPrice", // Or salePrice
-        header: "Price",
+        id: "price",
+        header: () => rightHeader("Price"),
         cell: ({ row }) => {
-            const val = row.original.invtsL_SalesPrice ?? row.original.salePrice;
+            const val = row.original.sales_Price ?? row.original.invtsL_SalesPrice ?? row.original.salePrice ?? 0;
             return <div className={commonNumberClass}>{Number(val).toFixed(2)}</div>;
         }
     };
 
     const amountCol: ColumnDef<IInvRSalesReportData> = {
-        accessorKey: "invtsL_Amount", // Or saleAmount
-        header: "Amount",
+        id: "amount",
+        header: () => rightHeader("Amount"),
         cell: ({ row }) => {
-            const val = row.original.invtsL_Amount ?? row.original.saleAmount;
+            const val = row.original.total_Amount ?? row.original.invtsL_Amount ?? row.original.saleAmount ?? 0;
             return <div className={commonNumberClass}>{Number(val).toFixed(2)}</div>;
         }
     };
 
     const taxCol: ColumnDef<IInvRSalesReportData> = {
-        accessorKey: "invtsL_TaxAmt", // Or saleTax
-        header: "Tax",
+        id: "tax",
+        header: () => rightHeader("Tax"),
         cell: ({ row }) => {
-            const val = row.original.invtsL_TaxAmt ?? row.original.saleTax;
+            const val = row.original.tax_Amt ?? row.original.invtsL_TaxAmt ?? row.original.saleTax ?? 0;
             return <div className={commonNumberClass}>{Number(val).toFixed(2)}</div>;
         }
     };
 
     const discountCol: ColumnDef<IInvRSalesReportData> = {
-        accessorKey: "invtsL_DiscountAmt", // Or saleDiscount
-        header: "Discount",
+        id: "discount",
+        header: () => rightHeader("Discount"),
         cell: ({ row }) => {
-            const val = row.original.invtsL_DiscountAmt ?? row.original.saleDiscount;
+            const val = row.original.discount_Amt ?? row.original.invtsL_DiscountAmt ?? row.original.saleDiscount ?? 0;
             return <div className={commonNumberClass}>{Number(val).toFixed(2)}</div>;
         }
     };
