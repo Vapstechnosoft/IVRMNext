@@ -103,7 +103,7 @@ export const masterPeriodSchema = {
         periodorder: number().min(1, 'Please enter Period Order'),
         categoryids: z.array(z.string()).nonempty('Please select at least one Category'),
         noOfPeriods: z.number().min(1, 'Enter at least 1 period').max(20, 'Max 20 periods allowed'),
-        half: z.string().optional()
+        half: z.string().min(1, 'Please select Half Day')
     })
 };
 
