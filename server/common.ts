@@ -4800,8 +4800,9 @@ export async function getUserAccessibleModules() {
                                             icon: 'FileText',
                                             url: '/Sports/Reports/StudentEligbleReport',
                                             title: 'Student Eligible Report',
-                                            description: 'Student Eligible Report'
+                                            description: 'Generate Student Eligible Report'
                                         },
+
                                         {
                                             id: 2,
                                             name: 'Student Age Calculation Report',
@@ -4842,14 +4843,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Sport House Report',
                                             description: 'Sport House Report'
                                         },
-                                        {
-                                            id: 7,
-                                            name: 'Sport Student Participation Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportStudentParticipationReport',
-                                            title: 'Sport Student Participation Report',
-                                            description: 'Sport Student Participation Report'
-                                        },
+                                        // {
+                                        //     id: 7,
+                                        //     name: 'Sport Student Participation Report',
+                                        //     icon: 'FileText',
+                                        //     url: '/Sports/Reports/SportStudentParticipationReport',
+                                        //     title: 'Sport Student Participation Report',
+                                        //     description: 'Sport Student Participation Report'
+                                        // },
                                         {
                                             id: 8,
                                             name: 'Sport Topper List Report',
@@ -4905,6 +4906,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Sports/Reports/SportPointsAndRecordReport',
                                             title: 'Sport Points And Record Report',
                                             description: 'View Sport Points And Record Report'
+                                        },
+                                        {
+                                            id: 15,
+                                            name: 'Eligibility Certificate Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/EligibilityCertificateReport',
+                                            title: 'Eligibility Certificate Report',
+                                            description: 'Generate Eligibility Certificate Report'
                                         }
                                     ]
                                 }
