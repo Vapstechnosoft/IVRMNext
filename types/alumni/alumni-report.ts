@@ -37,7 +37,7 @@ export interface IAlumniReportInitialData {
 }
 
 export interface IAlumniReportSearchPayload {
-    occupation: string;
+    Occupation: string;
     city: string;
     statelistarray: { IVRMMS_Id: number }[];
     classlistnew: { ASMCL_Id: number }[];
@@ -47,7 +47,7 @@ export interface IAlumniReportSearchPayload {
 }
 
 export interface IAlumniReportResultItem {
-    almst_Id: number; // Note: controller has almst_Id but table uses user.almst_Id in some places, searchResult[0].almst_Id
+    almst_Id: number;
     amsT_FirstName: string;
     amsT_DOB: string;
     ALMST_FatherName: string;

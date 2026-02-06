@@ -1,15 +1,33 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { ICalendarEvent } from '@/types/alumni/alumni-dashboard';
-import { Calendar as CalendarIcon, MapPin } from 'lucide-react';
+import { Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface CalendarSectionProps {
-    events: ICalendarEvent[];
+    events: any[];
 }
 
 export default function CalendarSection({ events }: CalendarSectionProps) {
+    // Helper to get event name from either format
+    const getEventName = (event: any) => event.coemE_EventName || event.coeme_eventname || event.coemE_EventName || 'Event';
+
+    // Helper to get start date from either format
+    const getStartDate = (event: any) => event.coeE_EStartDate || event.coee_estartdate || null;
+
+    // Helper to get end date from either format
+    const getEndDate = (event: any) => event.coeE_EEndDate || event.coee_eenddate || null;
+
+    // Safe date format function
+    const safeFormat = (dateStr: string | null, formatStr: string) => {
+        if (!dateStr) return '-';
+        try {
+            return format(new Date(dateStr), formatStr);
+        } catch {
+            return dateStr;
+        }
+    };
+
     return (
         <Card className='h-full'>
             <CardHeader className='border-b bg-muted/20'>
@@ -26,27 +44,31 @@ export default function CalendarSection({ events }: CalendarSectionProps) {
                     </div>
                 ) : (
                     <div className='space-y-6'>
-                        {events.map((event, idx) => (
-                            <div key={idx} className='group relative pl-8 before:absolute before:left-0 before:top-1 before:h-4 before:w-4 before:rounded-full before:bg-primary/20 before:transition-colors hover:before:bg-primary'>
-                                <div className='flex flex-col space-y-1'>
-                                    <span className='text-xs font-semibold text-primary uppercase tracking-wider'>
-                                        {format(new Date(event.coeE_EStartDate), 'MMMM')}
-                                    </span>
-                                    <h4 className='font-bold text-base group-hover:text-primary transition-colors'>
-                                        {event.coemE_EventName}
-                                    </h4>
-                                    <div className='flex items-center space-x-4 text-xs text-muted-foreground'>
-                                        <div className='flex items-center'>
-                                            <CalendarIcon className='mr-1 h-3 w-3' />
-                                            {format(new Date(event.coeE_EStartDate), 'dd MMM yyyy')}
-                                            {event.coeE_EEndDate && event.coeE_EEndDate !== event.coeE_EStartDate && (
-                                                <> - {format(new Date(event.coeE_EEndDate), 'dd MMM yyyy')}</>
-                                            )}
+                        {events.map((event, idx) => {
+                            const startDate = getStartDate(event);
+                            const endDate = getEndDate(event);
+                            return (
+                                <div key={idx} className='group relative pl-8 before:absolute before:left-0 before:top-1 before:h-4 before:w-4 before:rounded-full before:bg-primary/20 before:transition-colors hover:before:bg-primary'>
+                                    <div className='flex flex-col space-y-1'>
+                                        <span className='text-xs font-semibold text-primary uppercase tracking-wider'>
+                                            {safeFormat(startDate, 'MMMM')}
+                                        </span>
+                                        <h4 className='font-bold text-base group-hover:text-primary transition-colors'>
+                                            {getEventName(event)}
+                                        </h4>
+                                        <div className='flex items-center space-x-4 text-xs text-muted-foreground'>
+                                            <div className='flex items-center'>
+                                                <CalendarIcon className='mr-1 h-3 w-3' />
+                                                {safeFormat(startDate, 'dd MMM yyyy')}
+                                                {endDate && endDate !== startDate && (
+                                                    <> - {safeFormat(endDate, 'dd MMM yyyy')}</>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </CardContent>

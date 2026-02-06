@@ -2,8 +2,6 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
 import type { ICredentialStudent } from '@/types/alumni/student-password-creation';
 
 export const getStudentPasswordCreationColumns = (
@@ -59,23 +57,24 @@ export const getStudentPasswordCreationColumns = (
         {
             accessorKey: 'amsT_emailId',
             header: 'EMAIL ID',
-        },
-        {
-            id: 'actions',
-            header: 'RESET',
-            cell: ({ row }) => {
-                const student = row.original;
-                return (
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8 rounded-full"
-                        onClick={() => onResetPassword(student)}
-                        disabled={!row.getIsSelected()}
-                    >
-                        <RefreshCw className="h-4 w-4" />
-                    </Button>
-                );
-            },
-        },
+        }
+        // ,
+        // {
+        //     id: 'actions',
+        //     header: 'RESET',
+        //     cell: ({ row }) => {
+        //         const student = row.original;
+        //         return (
+        //             <Button
+        //                 variant="outline"
+        //                 size="icon"
+        //                 className="h-8 w-8 rounded-full"
+        //                 onClick={() => onResetPassword(student)}
+        //                 disabled={!row.getIsSelected()}
+        //             >
+        //                 <RefreshCw className="h-4 w-4" />
+        //             </Button>
+        //         );
+        //     },
+        // },
     ];

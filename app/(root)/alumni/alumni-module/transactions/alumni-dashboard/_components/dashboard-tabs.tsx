@@ -109,14 +109,17 @@ export default function DashboardTabs({
                                         <th className="p-3 text-left">SL.NO.</th>
                                         <th className="p-3 text-left">STUDENT NAME</th>
                                         <th className="p-3 text-center">DOB</th>
+                                        {showAdminDetails && <th className="p-3 text-center">ADM NO</th>}
                                         <th className="p-3 text-center">YEAR</th>
                                         <th className="p-3 text-center">CLASS</th>
+                                        {showAdminDetails && <th className="p-3 text-left">EMAIL ID</th>}
+                                        {showAdminDetails && <th className="p-3 text-left">MOBILE</th>}
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {filteredBirthdays.length === 0 ? (
                                         <tr>
-                                            <td colSpan={5} className="p-8 text-center text-muted-foreground">No Records Found</td>
+                                            <td colSpan={showAdminDetails ? 8 : 5} className="p-8 text-center text-muted-foreground">No Records Found</td>
                                         </tr>
                                     ) : (
                                         filteredBirthdays.map((b, idx) => (
@@ -124,8 +127,11 @@ export default function DashboardTabs({
                                                 <td className="p-3">{idx + 1}</td>
                                                 <td className="p-3 font-medium">{b.studentname}</td>
                                                 <td className="p-3 text-center">{b.ALMST_DOB ? format(new Date(b.ALMST_DOB), 'dd-MM-yyyy') : '-'}</td>
+                                                {showAdminDetails && <td className="p-3 text-center">{b.ALMST_AdmNo}</td>}
                                                 <td className="p-3 text-center">{b.ASMAY_Year}</td>
                                                 <td className="p-3 text-center">{b.classname}</td>
+                                                {showAdminDetails && <td className="p-3 text-left">{b.ALMST_emailId}</td>}
+                                                {showAdminDetails && <td className="p-3 text-left">{b.ALMST_MobileNo}</td>}
                                             </tr>
                                         ))
                                     )}

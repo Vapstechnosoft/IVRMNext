@@ -1,61 +1,111 @@
 'use client';
 
 import { IAlumniReportResultItem } from "@/types/alumni/alumni-report";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import React from "react";
 
 interface AlumniReportPrintProps {
     data: IAlumniReportResultItem[];
     institutionName?: string;
+    showEmail?: boolean;
+    showPhone?: boolean;
 }
 
 export const AlumniReportPrint = React.forwardRef<HTMLDivElement, AlumniReportPrintProps>(
-    ({ data, institutionName }, ref) => {
+    ({ data, institutionName, showEmail = true, showPhone = true }, ref) => {
         const currentDate = format(new Date(), "dd/MM/yyyy");
 
-        return (
-            <div ref={ref} className="p-8 bg-white text-black print:p-0">
-                <div className="text-center mb-8 border-b pb-4">
-                    <h1 className="text-2xl font-bold uppercase">{institutionName || "Institution Name"}</h1>
-                    <h2 className="text-xl font-semibold underline mt-2">ALUMNI REPORT</h2>
-                </div>
+        const formatDate = (dateStr: string | null | undefined) => {
+            if (!dateStr) return "-";
+            const date = new Date(dateStr);
+            return isValid(date) ? format(date, "dd/MM/yyyy") : "-";
+        };
 
-                <table className="w-full border-collapse border border-black text-[10px]">
-                    <thead>
-                        <tr className="bg-gray-100">
-                            <th className="border border-black p-1 w-8">SL NO</th>
-                            <th className="border border-black p-1 text-left">Alumni Details</th>
-                            <th className="border border-black p-1 text-left w-1/2">Full Address</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {data.map((row, index) => (
-                            <tr key={row.almst_Id} className="break-inside-avoid">
-                                <td className="border border-black p-2 text-center align-top">{index + 1}</td>
-                                <td className="border border-black p-2 align-top">
-                                    <div className="font-bold">Name: {row.amsT_FirstName}</div>
-                                    <div>DOB: {row.amsT_DOB ? format(new Date(row.amsT_DOB), "dd/MM/yyyy") : "-"}</div>
-                                    <div>Mobile: {row.amsT_MobileNo}</div>
-                                    <div>E-mail: {row.amsT_emailId}</div>
-                                    <div>Desig.: {row.ALSPR_Designation}</div>
-                                    <div>City: {row.city}</div>
-                                </td>
-                                <td className="border border-black p-2 align-top">
-                                    <p className="whitespace-pre-wrap leading-relaxed">
-                                        {row.ALMST_FullAddess}
-                                    </p>
+        if (!data || data.length === 0) {
+            return (
+                <div ref={ref} style={{ padding: '20px', background: 'white', color: 'black', textAlign: 'center' }}>
+                    No data selected for printing.
+                </div>
+            );
+        }
+
+        return (
+            <div ref={ref} style={{ padding: '20mm', background: 'white', color: 'black', minHeight: '100%', width: '100%' }}>
+                <style dangerouslySetInnerHTML={{
+                    __html: `
+                    @media print {
+                        .print-component-wrapper {
+                            display: block !important;
+                            position: static !important;
+                            visibility: visible !important;
+                        }
+                    }
+                `}} />
+                <div className="print-component-wrapper">
+                    <div style={{ textAlign: 'center', marginBottom: '20px', borderBottom: '2px solid black', paddingBottom: '10px' }}>
+                        <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0', textTransform: 'uppercase' }}>
+                            {institutionName || "VAPS TECHNOSOFT"}
+                        </h1>
+                        <h2 style={{ fontSize: '20px', fontWeight: 'bold', textDecoration: 'underline', marginTop: '10px' }}>
+                            ALUMNI REPORT
+                        </h2>
+                    </div>
+
+                    <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid black', fontSize: '9px' }}>
+                        <thead>
+                            <tr style={{ backgroundColor: '#f3f4f6' }}>
+                                <th style={{ border: '1px solid black', padding: '5px', width: '30px', textAlign: 'center' }}>SL</th>
+                                <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left' }}>Alumnus Name</th>
+                                <th style={{ border: '1px solid black', padding: '5px', textAlign: 'center', width: '70px' }}>DOB</th>
+                                {showPhone && <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left', width: '100px' }}>Mobile No</th>}
+                                {showEmail && <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left', width: '150px' }}>Email Id</th>}
+                                <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left', width: '100px' }}>Designation/City</th>
+                                <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left', width: '180px' }}>Full Address</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {data.map((row, index) => (
+                                <tr key={row.almst_Id || index}>
+                                    <td style={{ border: '1px solid black', padding: '5px', textAlign: 'center', verticalAlign: 'top' }}>
+                                        {index + 1}
+                                    </td>
+                                    <td style={{ border: '1px solid black', padding: '5px', verticalAlign: 'top', fontWeight: '500' }}>
+                                        {row.amsT_FirstName}
+                                    </td>
+                                    <td style={{ border: '1px solid black', padding: '5px', textAlign: 'center', verticalAlign: 'top' }}>
+                                        {formatDate(row.amsT_DOB)}
+                                    </td>
+                                    {showPhone && (
+                                        <td style={{ border: '1px solid black', padding: '5px', verticalAlign: 'top' }}>
+                                            {row.amsT_MobileNo || '-'}
+                                        </td>
+                                    )}
+                                    {showEmail && (
+                                        <td style={{ border: '1px solid black', padding: '5px', verticalAlign: 'top', wordBreak: 'break-all' }}>
+                                            {row.amsT_emailId || '-'}
+                                        </td>
+                                    )}
+                                    <td style={{ border: '1px solid black', padding: '5px', verticalAlign: 'top' }}>
+                                        <div style={{ fontStyle: 'italic' }}>{row.ALSPR_Designation || '-'}</div>
+                                        <div style={{ fontWeight: '500' }}>{row.city || '-'}</div>
+                                    </td>
+                                    <td style={{ border: '1px solid black', padding: '5px', verticalAlign: 'top' }}>
+                                        <p style={{ whiteSpace: 'pre-wrap', lineHeight: '1.4', margin: '0', fontSize: '8px' }}>
+                                            {row.ALMST_FullAddess}
+                                        </p>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colSpan={5 + (showEmail ? 1 : 0) + (showPhone ? 1 : 0)} style={{ paddingTop: '15px', textAlign: 'center', fontStyle: 'italic', fontSize: '8px', opacity: 0.7 }}>
+                                    Date: {currentDate} | Generated by Vaps Technosoft Pvt. Ltd.
                                 </td>
                             </tr>
-                        ))}
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colSpan={3} className="pt-4 text-center italic text-[8px]">
-                                Date: {currentDate} | Generated by Vaps Technosoft Pvt. Ltd.
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
+                        </tfoot>
+                    </table>
+                </div>
             </div>
         );
     }

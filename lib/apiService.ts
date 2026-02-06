@@ -115,7 +115,7 @@ class ApiService {
                 config.httpsAgent = new https.Agent({
                     rejectUnauthorized: false // Bypass SSL certificate validation
                 });
-               
+
 
                 console.info('🔵 [API SERVICE] SSL bypass enabled for:', baseURL);
             }
@@ -157,7 +157,7 @@ class ApiService {
                     return config;
                 }
             },
-            (error) => Promise.reject(this.handleError(error))
+            (error) => Promise.reject(error)
         );
 
         // Response Interceptor
@@ -175,7 +175,7 @@ class ApiService {
                         console.error('Error refreshing session:', refreshError);
                     }
                 }
-                return Promise.reject(this.handleError(error));
+                return Promise.reject(error);
             }
         );
     }
@@ -212,8 +212,10 @@ class ApiService {
     ): Promise<ApiResponse<T>> {
         try {
             const instance = this.getOrCreateInstance(baseUrlKey);
-            const baseURL = instance.defaults.baseURL;
-            const fullUrl = `${baseURL}${url}`;
+            const baseURL = instance.defaults.baseURL || '';
+            const cleanBaseURL = baseURL.endsWith('/') ? baseURL.slice(0, -1) : baseURL;
+            const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+            const fullUrl = `${cleanBaseURL}${cleanUrl}`;
 
             console.info('🌐 [API SERVICE] Request initiated');
             console.info('📤 [API SERVICE] Request details:', {

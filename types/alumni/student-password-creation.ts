@@ -33,7 +33,7 @@ export interface ICredentialStudent {
 }
 
 export interface IStudentPasswordCreationReportResponse {
-    messagelist: ICredentialStudent[];
+    data: ICredentialStudent[];
 }
 
 export interface ICommonResponse {

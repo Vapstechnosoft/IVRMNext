@@ -33,15 +33,15 @@ export const userPasswordCreationColumns: ColumnDef<IStudent>[] = [
         cell: ({ row }) => <span className='uppercase'>{row.original.studentname}</span>
     },
     {
-        accessorKey: 'amsT_AdmNo',
+        accessorKey: 'amst_admno',
         header: 'ADMISSION NUMBER'
     },
     {
-        accessorKey: 'asmcL_ClassName',
+        accessorKey: 'asmcl_classname',
         header: 'CLASS'
     },
     {
-        accessorKey: 'asmC_SectionName',
+        accessorKey: 'asmc_sectionname',
         header: 'SECTION'
     }
 ];

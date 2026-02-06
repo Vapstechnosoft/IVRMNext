@@ -20,6 +20,7 @@ export default function UserPasswordCreationPage() {
     const [isTableLoading, setIsTableLoading] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
     const [selectedStudents, setSelectedStudents] = useState<IStudent[]>([]);
+    const [filterData, setFilterData] = useState<string>('');
 
     const fetchInitialData = useCallback(async () => {
         setIsLoading(true);
@@ -41,13 +42,15 @@ export default function UserPasswordCreationPage() {
         fetchInitialData();
     }, [fetchInitialData]);
 
-    const handleFilterSuccess = (studentList: IStudent[]) => {
+    const handleFilterSuccess = (studentList: IStudent[], filterdata: string) => {
         setStudents(studentList);
+        setFilterData(filterdata);
     };
 
     const handleReset = () => {
         setStudents([]);
         setSelectedStudents([]);
+        setFilterData('');
     };
 
     const handleCreateUsername = async () => {
@@ -59,7 +62,10 @@ export default function UserPasswordCreationPage() {
         setIsCreating(true);
         try {
             const payload = {
-                data_array: selectedStudents
+                filterdata: filterData,
+                data_array: selectedStudents.map((student) => ({
+                    AMST_Id: student.amst_id
+                }))
             };
             const res = await createUsername(payload);
             if (res.success || res.message === 'Success') {
@@ -103,6 +109,8 @@ export default function UserPasswordCreationPage() {
                             isLoading={isTableLoading}
                             showExportOptions={true}
                             onRowSelectionChange={setSelectedStudents}
+                            totalItems={students.length}
+                            manualPagination={false}
                         />
 
                         {selectedStudents.length > 0 && (

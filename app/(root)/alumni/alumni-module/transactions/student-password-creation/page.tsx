@@ -30,6 +30,7 @@ import {
     Loader2
 } from 'lucide-react';
 import { exportToExcel } from '@/lib/export-to-file';
+import StudentCredentialsReport from './_components/student-credentials-report';
 
 export default function StudentPasswordCreationPage() {
     const [initialLoading, setInitialLoading] = useState(true);
@@ -43,13 +44,26 @@ export default function StudentPasswordCreationPage() {
 
     useEffect(() => {
         const fetchInitial = async () => {
-            const res = await getInitialData();
-            if (res.success) {
-                setYears(res.data?.yearList || []);
-                setClasses(res.data?.classlist || []);
-                setSections(res.data?.sectionlist || []);
-            } else {
-                toast.error(res.message);
+            try {
+                const res = await getInitialData();
+                // Assuming res is the body and has success property based on common API pattern
+                if (res && (res as any).success !== false) { // flexible check
+                    setYears((res as any).yearList || (res as any).data?.yearList || []);
+                    setClasses((res as any).classlist || (res as any).data?.classlist || []);
+                    setSections((res as any).sectionlist || (res as any).data?.sectionlist || []);
+                } else {
+                    // Fallback if structure is different
+                    if ((res as any).yearList) {
+                        setYears((res as any).yearList);
+                        setClasses((res as any).classlist || []);
+                        setSections((res as any).sectionlist || []);
+                    } else {
+                        toast.error((res as any).message || 'Failed to load initial data');
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+                toast.error('Failed to fetch initial data');
             }
             setInitialLoading(false);
         };
@@ -59,31 +73,46 @@ export default function StudentPasswordCreationPage() {
     const handleReportDetails = async (values: any) => {
         setTableLoading(true);
         setFilterParams(values);
-        const res = await getReportDetails({
-            asmaY_Id: parseInt(values.asmaY_Id),
-            asmcL_Id: parseInt(values.asmcL_Id),
-            asmS_Id: values.asmS_Id ? parseInt(values.asmS_Id) : 0,
-            filterdata: values.filterdata
-        });
-        if (res.success) {
-            if (res.data?.length === 0) {
-                toast.warning('No records found');
+        try {
+            const res = await getReportDetails({
+                asmaY_Id: parseInt(values.asmaY_Id),
+                asmcL_Id: parseInt(values.asmcL_Id),
+                asmS_Id: values.asmS_Id ? parseInt(values.asmS_Id) : 0,
+                filterdata: values.filterdata
+            });
+            if (res && (res as any).success !== false) { // API usually returns success: true.
+                const data = (res as any).data || res; // Handle if data is directly returned or in .data
+                if (Array.isArray(data)) {
+                    setStudents(data);
+                } else if (data && Array.isArray(data.data)) {
+                    setStudents(data.data);
+                } else {
+                    setStudents([]);
+                    if ((res as any).message) toast.warning((res as any).message); // Use message from API if available
+                    else if (data && data.length === 0) toast.warning('No records found');
+                }
+            } else {
+                toast.error((res as any).message || 'Failed to fetch details');
             }
-            setStudents(res.data || []);
-        } else {
-            toast.error(res.message);
+        } catch (error) {
+            console.error(error);
+            toast.error('An error occurred while fetching details');
         }
         setTableLoading(false);
     };
 
     const handleResetPassword = async (student: ICredentialStudent) => {
-        const res = await resetStudentPassword(student, selectedStudents);
-        if (res.success) {
-            toast.success(res.message);
-            // Re-fetch report to update data
-            if (filterParams) handleReportDetails(filterParams);
-        } else {
-            toast.error(res.message);
+        try {
+            const res = await resetStudentPassword(student, selectedStudents);
+            if ((res as any).message === 'Success' || (res as any).success) {
+                toast.success((res as any).message || 'Password Reset Successfully');
+                // Re-fetch report to update data
+                if (filterParams) handleReportDetails(filterParams);
+            } else {
+                toast.error((res as any).message || 'Failed to reset password');
+            }
+        } catch (error) {
+            toast.error('Failed to reset password');
         }
     };
 
@@ -92,9 +121,13 @@ export default function StudentPasswordCreationPage() {
             toast.warning('Please select atleast one student');
             return;
         }
-        const res = await sendSMS(filterParams.filterdata, selectedStudents);
-        if (res.success) toast.success(res.message);
-        else toast.error(res.message);
+        try {
+            const res = await sendSMS(filterParams.filterdata, selectedStudents);
+            if ((res as any).success === 'success' || (res as any).success === true) toast.success((res as any).message || 'SMS Sent Successfully');
+            else toast.error((res as any).message || 'Failed to send SMS');
+        } catch (error) {
+            toast.error('Failed to send SMS');
+        }
     };
 
     const handleSendEmail = async () => {
@@ -102,9 +135,13 @@ export default function StudentPasswordCreationPage() {
             toast.warning('Please select atleast one student');
             return;
         }
-        const res = await sendEmail(filterParams.filterdata, selectedStudents);
-        if (res.success) toast.success(res.message);
-        else toast.error(res.message);
+        try {
+            const res = await sendEmail(filterParams.filterdata, selectedStudents);
+            if ((res as any).success === 'success' || (res as any).success === true) toast.success((res as any).message || 'Email Sent Successfully');
+            else toast.error((res as any).message || 'Failed to send Email');
+        } catch (error) {
+            toast.error('Failed to send Email');
+        }
     };
 
     const handleSendWhatsApp = async () => {
@@ -112,9 +149,13 @@ export default function StudentPasswordCreationPage() {
             toast.warning('Please select atleast one student');
             return;
         }
-        const res = await sendWhatsApp(filterParams.filterdata, selectedStudents);
-        if (res.success) toast.success(res.message);
-        else toast.error(res.message);
+        try {
+            const res = await sendWhatsApp(filterParams.filterdata, selectedStudents);
+            if ((res as any).success === 'success' || (res as any).success === true) toast.success((res as any).message || 'WhatsApp Sent Successfully');
+            else toast.error((res as any).message || 'Failed to send WhatsApp');
+        } catch (error) {
+            toast.error('Failed to send WhatsApp');
+        }
     };
 
     const columns = getStudentPasswordCreationColumns(handleResetPassword);
@@ -155,10 +196,12 @@ export default function StudentPasswordCreationPage() {
                             columns={columns}
                             isLoading={tableLoading}
                             onRowSelectionChange={setSelectedStudents}
+                            totalItems={students.length}
+                            manualPagination={false}
                         />
 
                         <div className="flex flex-wrap items-center justify-center gap-4 border-t pt-6">
-                            <Button
+                            {/* <Button
                                 onClick={handleSendSMS}
                                 className="w-32 bg-blue-600 hover:bg-blue-700"
                                 disabled={selectedStudents.length === 0}
@@ -178,7 +221,7 @@ export default function StudentPasswordCreationPage() {
                                 disabled={selectedStudents.length === 0}
                             >
                                 <MessageSquare className="mr-2 h-4 w-4" /> WHATSAPP
-                            </Button>
+                            </Button> */}
                             <Button
                                 variant="outline"
                                 className="w-32"
@@ -212,6 +255,10 @@ export default function StudentPasswordCreationPage() {
                     </div>
                 </CollapsibleSection>
             )}
+            {/* Printable Report Section */}
+            <div id="print-section">
+                <StudentCredentialsReport students={selectedStudents} />
+            </div>
         </div>
     );
 }

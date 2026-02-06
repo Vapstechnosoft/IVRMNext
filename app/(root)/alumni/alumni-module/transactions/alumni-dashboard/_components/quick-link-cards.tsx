@@ -2,14 +2,14 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import {
-    User,
-    Heart,
-    Cake,
-    Image as ImageIcon,
-    Bell,
-    Calendar,
-    UserPlus,
-    ChevronRight
+    UserCircle,
+    HeartHandshake,
+    Images,
+    Megaphone,
+    CalendarDays,
+    UserRoundPlus,
+    ChevronRight,
+    GraduationCap
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -21,6 +21,7 @@ interface QuickLinkCardsProps {
     onNotice: () => void;
     onEvents: () => void;
     onFriendRequest: () => void;
+    onDirectory: () => void;
     totalCount?: number;
     donationAmount?: number;
 }
@@ -33,65 +34,66 @@ export default function QuickLinkCards({
     onNotice,
     onEvents,
     onFriendRequest,
+    onDirectory,
     totalCount = 0,
     donationAmount = 0
 }: QuickLinkCardsProps) {
     const cards = [
         {
             title: 'MY PROFILE',
-            icon: '/images/pictureprofile.png',
-            fallbackIcon: <User className='h-8 w-8 text-green-500' />,
+            icon: '/assets/student_academic.png',
+            fallbackIcon: <UserCircle className='h-8 w-8 text-green-500' />,
             action: onProfile,
             detail: 'View your profile details',
             color: 'border-green-500/20'
         },
         {
             title: 'DONATION',
-            icon: '/images/Donate.jpg',
-            fallbackIcon: <Heart className='h-8 w-8 text-blue-500' />,
+            icon: '/assets/logo1.png',
+            fallbackIcon: <HeartHandshake className='h-8 w-8 text-blue-500' />,
             action: onDonation,
             detail: `Total Donate: ₹${donationAmount}`,
             color: 'border-blue-500/20'
         },
         {
-            title: 'BIRTHDAY',
-            icon: '/images/Birthday.png',
-            fallbackIcon: <Cake className='h-8 w-8 text-yellow-500' />,
-            action: onBirthday,
-            detail: 'Birthday Details',
-            color: 'border-yellow-500/20'
-        },
-        {
             title: 'GALLERY',
-            icon: '/images/Gallary.jpg',
-            fallbackIcon: <ImageIcon className='h-8 w-8 text-orange-500' />,
+            icon: '/assets/sophia_banner.jpg',
+            fallbackIcon: <Images className='h-8 w-8 text-orange-500' />,
             action: onGallery,
             detail: 'Photo & Video Gallery',
             color: 'border-orange-500/20'
         },
         {
             title: 'NOTICE',
-            icon: '/images/Notice.png',
-            fallbackIcon: <Bell className='h-8 w-8 text-purple-500' />,
+            icon: '/assets/tunbridge_logo.png',
+            fallbackIcon: <Megaphone className='h-8 w-8 text-purple-500' />,
             action: onNotice,
             detail: 'Important Notifications',
             color: 'border-purple-500/20'
         },
         {
             title: 'EVENTS',
-            icon: '/images/Events2.png',
-            fallbackIcon: <Calendar className='h-8 w-8 text-red-500' />,
+            icon: '/assets/Login_BG.png',
+            fallbackIcon: <CalendarDays className='h-8 w-8 text-red-500' />,
             action: onEvents,
             detail: 'All Events',
             color: 'border-red-500/20'
         },
         {
             title: 'FRIEND REQUEST',
-            icon: '/images/friendrequest.png',
-            fallbackIcon: <UserPlus className='h-8 w-8 text-teal-500' />,
+            icon: '/assets/student_academic.png',
+            fallbackIcon: <UserRoundPlus className='h-8 w-8 text-teal-500' />,
             action: onFriendRequest,
             detail: `Pending: ${totalCount}`,
             color: 'border-teal-500/20'
+        },
+        {
+            title: 'ALUMNI Details',
+            icon: '/assets/student_academic.png',
+            fallbackIcon: <GraduationCap className='h-8 w-8 text-cyan-500' />,
+            action: onDirectory,
+            detail: 'Search Alumni Network',
+            color: 'border-cyan-500/20'
         }
     ];
 
@@ -104,18 +106,17 @@ export default function QuickLinkCards({
                     onClick={card.action}
                 >
                     <CardContent className='flex flex-col items-center justify-center space-y-3 p-6 text-center'>
-                        <div className='relative h-16 w-24'>
-                            {/* Assuming these images exist in the project, if not fallback is shown */}
+                        <div className='relative flex h-16 w-16 items-center justify-center rounded-full bg-muted/30'>
                             <Image
                                 src={card.icon}
                                 alt={card.title}
                                 fill
-                                className='object-contain'
+                                className='object-contain transition-opacity duration-300'
                                 onError={(e) => {
-                                    (e.target as any).style.display = 'none';
+                                    (e.target as any).style.opacity = '0';
                                 }}
                             />
-                            <div className='flex h-full w-full items-center justify-center opacity-50 transition-opacity hover:opacity-100'>
+                            <div className='absolute inset-0 flex items-center justify-center transition-opacity hover:opacity-100'>
                                 {card.fallbackIcon}
                             </div>
                         </div>

@@ -59,12 +59,12 @@ export interface IGallery {
 }
 
 export interface INotice {
-    ALNTB_Title: string;
-    ALNTB_Description: string;
-    ALNTB_StartDate: string;
-    ALNTB_EndDate: string;
-    FileCount: number;
-    ALNTB_Id: number;
+    alntb_title: string;
+    alntb_description: string;
+    alntb_startdate: string;
+    alntb_enddate: string;
+    filecount: number;
+    alntb_id: number;
 }
 
 export interface IYearwiseCount {
@@ -77,11 +77,12 @@ export interface IYearwiseCount {
 
 export interface IClasswiseStudent {
     studentname: string;
-    ASMAY_Year: string;
-    ALMST_AdmNo: string;
+    asmay_year: string;
+    almst_admno: string | null;
     classname: string;
-    ALMST_MobileNo: string;
-    ALMST_emailId: string;
+    almst_mobileno: number | string;
+    almst_emailid: string;
+    almst_dob: string;
 }
 export interface IAlumniGalleryDetail {
     algA_Id: number;

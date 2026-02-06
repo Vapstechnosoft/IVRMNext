@@ -12,7 +12,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { IAlumniAcademicYear, IAlumniClass } from "@/types/alumni/alumni-search";
 import { ICountry, IState, IDistrict } from "@/types/alumni/alumni-report";
 import { useEffect, useState } from "react";
-import { getStates, getDistricts } from "@/server/alumni/alumni-report";
+import { getStates, getDistricts, getDetailsByType } from "@/server/alumni/alumni-report";
 import { Search, RotateCcw, FileText } from "lucide-react";
 import { toast } from "sonner";
 
@@ -34,6 +34,49 @@ export function AlumniReportFilterForm({ initialData, onSubmit, onReset, loading
     const [districts, setDistricts] = useState<IDistrict[]>([]);
     const [loadingStates, setLoadingStates] = useState(false);
     const [loadingDistricts, setLoadingDistricts] = useState(false);
+    const [filterType, setFilterType] = useState<string>("City");
+    const [cityOptions, setCityOptions] = useState<{ almsT_ConCity: string }[]>(initialData.citylist || []);
+    const [occupationOptions, setOccupationOptions] = useState<{ designation: string }[]>(initialData.occupationlist || []);
+    const [fetchingFilterData, setFetchingFilterData] = useState(false);
+
+    const handleFilterTypeChange = async (value: string) => {
+        setFilterType(value);
+        if (value === "City" && cityOptions.length === 0) {
+            setFetchingFilterData(true);
+            try {
+                const res = await getDetailsByType("City");
+                if (res && res.success) {
+                    const data = res.data || res;
+                    console.log("City Response Data:", data);
+                    const list = data.citylist || data.searchResult || data.retObject || (Array.isArray(data) ? data : []) || [];
+                    setCityOptions(list.map((c: any) => ({
+                        almsT_ConCity: c.almsT_PerCity || c.cityName || c.city || c.almsT_ConCity || c
+                    })).filter((c: any) => c.almsT_ConCity));
+                }
+            } catch (e) {
+                toast.error("Failed to fetch cities");
+            } finally {
+                setFetchingFilterData(false);
+            }
+        } else if (value === "Occupation" && occupationOptions.length === 0) {
+            setFetchingFilterData(true);
+            try {
+                const res = await getDetailsByType("Occupation");
+                if (res && res.success) {
+                    const data = res.data || res;
+                    console.log("Occupation Response Data:", data);
+                    const list = data.occupationlist || data.searchResult || data.retObject || (Array.isArray(data) ? data : []) || [];
+                    setOccupationOptions(list.map((o: any) => ({
+                        designation: o.alspR_Designation || o.designation || o
+                    })).filter((o: any) => o.designation));
+                }
+            } catch (e) {
+                toast.error("Failed to fetch occupations");
+            } finally {
+                setFetchingFilterData(false);
+            }
+        }
+    };
 
     const form = useForm<AlumniReportFormValues>({
         resolver: zodResolver(alumniReportSchema),
@@ -60,8 +103,15 @@ export function AlumniReportFilterForm({ initialData, onSubmit, onReset, loading
                 setLoadingStates(true);
                 try {
                     const response = await getStates(selectedCountries.map(id => ({ IVRMMC_Id: id })));
+                    console.log("States Response:", response);
                     if (response.success && response.data) {
-                        setStates(response.data.statelist || []);
+                        let data = [];
+                        if (Array.isArray(response.data)) {
+                            data = response.data;
+                        } else {
+                            data = response.data.statelist || response.data.retObject || [];
+                        }
+                        setStates(data);
                     }
                 } catch (error) {
                     toast.error("Failed to fetch states");
@@ -82,8 +132,15 @@ export function AlumniReportFilterForm({ initialData, onSubmit, onReset, loading
                 setLoadingDistricts(true);
                 try {
                     const response = await getDistricts(selectedStates.map(id => ({ IVRMMS_Id: id })));
+                    console.log("Districts Response:", response);
                     if (response.success && response.data) {
-                        setDistricts(response.data.districtlist || []);
+                        let data = [];
+                        if (Array.isArray(response.data)) {
+                            data = response.data;
+                        } else {
+                            data = response.data.districtlist || response.data.retObject || [];
+                        }
+                        setDistricts(data);
                     }
                 } catch (error) {
                     toast.error("Failed to fetch districts");
@@ -240,56 +297,76 @@ export function AlumniReportFilterForm({ initialData, onSubmit, onReset, loading
                             )}
                         />
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="city"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>City</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select City" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {initialData.citylist.map((c, i) => (
-                                                    <SelectItem key={i} value={c.almsT_ConCity}>
-                                                        {c.almsT_ConCity}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                        <div className="space-y-4 p-4 border rounded-md">
+                            <h3 className="text-sm font-medium">Filter Options</h3>
+                            <RadioGroup
+                                defaultValue={filterType}
+                                onValueChange={handleFilterTypeChange}
+                                className="flex space-x-4 mb-4"
+                            >
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="City" id="r-city" />
+                                    <label htmlFor="r-city" className="text-sm cursor-pointer">City</label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="Occupation" id="r-occupation" />
+                                    <label htmlFor="r-occupation" className="text-sm cursor-pointer">Occupation</label>
+                                </div>
+                            </RadioGroup>
 
-                            <FormField
-                                control={form.control}
-                                name="occupation"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Occupation</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select Occupation" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {initialData.occupationlist.map((o, i) => (
-                                                    <SelectItem key={i} value={o.designation}>
-                                                        {o.designation}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                            {filterType === 'City' && (
+                                <FormField
+                                    control={form.control}
+                                    name="city"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>City</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder={fetchingFilterData ? "Loading Cities..." : "Select City"} />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {cityOptions.map((c, i) => (
+                                                        <SelectItem key={i} value={c.almsT_ConCity}>
+                                                            {c.almsT_ConCity}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
+
+                            {filterType === 'Occupation' && (
+                                <FormField
+                                    control={form.control}
+                                    name="occupation"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Occupation</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder={fetchingFilterData ? "Loading Occupations..." : "Select Occupation"} />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {occupationOptions.map((o, i) => (
+                                                        <SelectItem key={i} value={o.designation}>
+                                                            {o.designation}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
                         </div>
 
                         <div className="flex space-x-6 p-4 border rounded-md bg-muted/50">

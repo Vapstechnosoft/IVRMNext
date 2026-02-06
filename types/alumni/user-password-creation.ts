@@ -21,15 +21,15 @@ export interface ISection {
 
 export interface IStudent {
     studentname: string;
-    amsT_AdmNo: string;
-    asmcL_ClassName: string;
-    asmC_SectionName: string;
-    amsT_Id: number;
+    amst_admno: string;
+    asmcl_classname: string;
+    asmc_sectionname: string;
+    amst_id: number;
     selected?: boolean;
 }
 
 export interface IUserPasswordCreationReportResponse {
     success: boolean;
     message: string;
-    messagelist: IStudent[];
+    data: IStudent[];
 }

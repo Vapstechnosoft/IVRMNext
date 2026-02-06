@@ -11,6 +11,7 @@ import {
     getClasswiseStudent,
     getBirthdayData
 } from '@/server/alumni/alumni-dashboard';
+import { getMasterCOEInitialData } from '@/server/alumni/master-coe';
 import type {
     IDashboardData,
     IGallery,
@@ -43,6 +44,7 @@ export default function AlumniDashboardPage() {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<IDashboardData | null>(null);
     const [birthdayData, setBirthdayData] = useState<IAlumniBirthday[]>([]);
+    const [coeEvents, setCoeEvents] = useState<any[]>([]);
 
     // Modal States
     const [galleryModal, setGalleryModal] = useState<{ open: boolean; items: IGallery[] }>({ open: false, items: [] });
@@ -58,30 +60,31 @@ export default function AlumniDashboardPage() {
         const fetchInitialData = async () => {
             setLoading(true);
             try {
-                const [dashboardRes, birthdayRes] = await Promise.allSettled([
+                const [dashboardRes, birthdayRes, coeRes] = await Promise.all([
                     getDashboardData(),
-                    getBirthdayData()
+                    getBirthdayData(),
+                    getMasterCOEInitialData()
                 ]);
 
-                if (dashboardRes.status === 'fulfilled') {
-                    if (dashboardRes.value.success) {
-                        setData(dashboardRes.value.data!);
+                if (dashboardRes.success) {
+                    console.log('Dashboard Data:', dashboardRes.data);
+                    console.log('Batch Data:', dashboardRes.data?.batch);
+                    setData(dashboardRes.data!);
+
+                    // Prioritize distinct birthday API data if available, else fall back to dashboard's list
+                    if (birthdayRes.success && birthdayRes.data && birthdayRes.data.length > 0) {
+                        setBirthdayData(birthdayRes.data);
                     } else {
-                        toast.error(dashboardRes.value.message || 'Failed to fetch dashboard data');
+                        setBirthdayData(dashboardRes.data!.alumnibirthday || []);
                     }
                 } else {
-                    toast.error('Dashboard data fetch failed');
+                    toast.error(dashboardRes.message || 'Failed to fetch dashboard data');
                 }
 
-                if (birthdayRes.status === 'fulfilled') {
-                    if (birthdayRes.value.success) {
-                        setBirthdayData(birthdayRes.value.data || []);
-                    } else {
-                        console.warn('Birthday fetch error:', birthdayRes.value.message);
-                        if (dashboardRes.status === 'fulfilled' && dashboardRes.value.success) {
-                            setBirthdayData(dashboardRes.value.data!.alumnibirthday || []);
-                        }
-                    }
+                // Set COE Events from mapped_eventlist
+                if (coeRes?.success && coeRes?.data?.mapped_eventlist) {
+                    console.log('COE Events Data:', coeRes.data.mapped_eventlist);
+                    setCoeEvents(coeRes.data.mapped_eventlist);
                 }
             } catch (error) {
                 console.error('Fetch error:', error);
@@ -112,11 +115,13 @@ export default function AlumniDashboardPage() {
     };
 
     const handleViewGallery = async (id: number) => {
+        console.log('handleViewGallery called with id:', id);
         const res = await viewGalleryItem(id);
+        console.log('viewGalleryItem response:', res);
         if (res.success) {
-            setGalleryDetail({ open: true, data: res.data! });
+            setGalleryDetail({ open: true, data: res.data || [] });
         } else {
-            toast.error(res.message);
+            toast.error(res.message || 'Failed to load gallery details');
         }
     };
 
@@ -168,22 +173,31 @@ export default function AlumniDashboardPage() {
     const isAdmin = data?.rolename !== 'Alumni';
 
     return (
-        <div className='container min-h-screen space-y-8 bg-background p-6'>
-            {/* Header Section */}
-            <div className='flex items-center justify-between border-b pb-4'>
-                <div className='flex items-center space-x-3'>
-                    <div className='rounded-xl bg-primary/10 p-2'>
-                        <LayoutDashboard className='h-6 w-6 text-primary' />
-                    </div>
-                    <div>
-                        <h1 className='text-3xl font-bold tracking-tight'>Alumni Dashboard</h1>
-                        <p className='text-sm text-muted-foreground'>Welcome back to your alumni portal</p>
+        <div className='min-h-screen space-y-8 bg-[#f8fafc] p-6 pb-12 font-sans'>
+            {/* Header Section with Premium Gradient */}
+            <div className='relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-800 p-8 text-white shadow-2xl'>
+                <div className='relative z-10 flex items-center justify-between'>
+                    <div className='flex items-center space-x-5'>
+                        <div className='rounded-2xl bg-white/20 p-4 backdrop-blur-md'>
+                            <LayoutDashboard className='h-8 w-8 text-white' />
+                        </div>
+                        <div>
+                            <h1 className='text-4xl font-extrabold tracking-tight'>Alumni Dashboard</h1>
+                            <p className='mt-1 text-blue-100/80 font-medium'>
+                                Welcome to the {data?.rolename || 'Alumni'} Portal. Stay connected with your alma mater.
+                            </p>
+                        </div>
                     </div>
                 </div>
+                {/* Decorative Elements */}
+                <div className='absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/10 blur-3xl' />
+                <div className='absolute -left-16 -bottom-16 h-48 w-48 rounded-full bg-blue-400/20 blur-2xl' />
             </div>
 
             {/* Birthday Marquee */}
-            <BirthdayMarquee birthdays={data?.birthdaylist || []} />
+            <div className='-mx-6'>
+                <BirthdayMarquee birthdays={data?.birthdaylist || []} />
+            </div>
 
             {/* Quick Links */}
             <QuickLinkCards
@@ -192,8 +206,9 @@ export default function AlumniDashboardPage() {
                 onBirthday={() => router.push('/alumni/alumni-module/transactions/alumni-birthday')}
                 onGallery={handleGallery}
                 onNotice={handleNotice}
-                onEvents={() => { }} // This will open the event calendar scroll
+                onEvents={() => router.push('/alumni/alumni-module/transactions/coe-events')}
                 onFriendRequest={() => router.push('/alumni/alumni-module/transactions/alumni-friend-request-accept')}
+                onDirectory={() => router.push('/alumni/alumni-module/transactions/alumni-details')}
                 totalCount={data?.friendrequestlist?.length}
                 donationAmount={data?.totaldonation?.[0]?.ALDON_Amount}
             />
@@ -212,7 +227,7 @@ export default function AlumniDashboardPage() {
 
                 {/* Event Calendar */}
                 <div className='lg:col-span-1'>
-                    <CalendarSection events={data?.calenderlist || []} />
+                    <CalendarSection events={coeEvents.length > 0 ? coeEvents : (data?.calenderlist || [])} />
                 </div>
             </div>
 
@@ -255,34 +270,36 @@ export default function AlumniDashboardPage() {
                         <DialogTitle>Notice Board</DialogTitle>
                     </DialogHeader>
                     <ScrollArea className='h-[60vh]'>
-                        <table className='w-full border-collapse text-sm'>
-                            <thead>
-                                <tr className='border-b bg-muted/50'>
-                                    <th className='p-3 text-left'>Title</th>
-                                    <th className='p-3 text-left'>Description</th>
-                                    <th className='p-3 text-center'>Start Date</th>
-                                    <th className='p-3 text-center'>End Date</th>
-                                    <th className='p-3 text-center'>View</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {noticeModal.items.map((item) => (
-                                    <tr key={item.ALNTB_Id} className='border-b'>
-                                        <td className='p-3 font-medium'>{item.ALNTB_Title}</td>
-                                        <td className='p-3 max-w-xs truncate'>{item.ALNTB_Description}</td>
-                                        <td className='p-3 text-center'>{item.ALNTB_StartDate ? format(new Date(item.ALNTB_StartDate), 'dd-MM-yyyy') : '-'}</td>
-                                        <td className='p-3 text-center'>{item.ALNTB_EndDate ? format(new Date(item.ALNTB_EndDate), 'dd-MM-yyyy') : '-'}</td>
-                                        <td className='p-3 text-center'>
-                                            {item.FileCount > 0 && (
-                                                <button onClick={() => handleViewNotice(item.ALNTB_Id)} className='text-primary'>
-                                                    <Eye className='h-4 w-4' />
-                                                </button>
-                                            )}
-                                        </td>
+                        <div className="w-full">
+                            <table className='w-full border-collapse text-sm'>
+                                <thead>
+                                    <tr className='border-b bg-muted/50'>
+                                        <th className='p-3 text-left'>Title</th>
+                                        <th className='p-3 text-left'>Description</th>
+                                        <th className='p-3 text-center'>Start Date</th>
+                                        <th className='p-3 text-center'>End Date</th>
+                                        <th className='p-3 text-center'>View</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {noticeModal.items.map((item) => (
+                                        <tr key={item.alntb_id} className='border-b'>
+                                            <td className='p-3 font-medium'>{item.alntb_title}</td>
+                                            <td className='p-3 max-w-xs truncate'>{item.alntb_description}</td>
+                                            <td className='p-3 text-center'>{item.alntb_startdate ? format(new Date(item.alntb_startdate), 'dd-MM-yyyy') : '-'}</td>
+                                            <td className='p-3 text-center'>{item.alntb_enddate ? format(new Date(item.alntb_enddate), 'dd-MM-yyyy') : '-'}</td>
+                                            <td className='p-3 text-center'>
+                                                {item.filecount > 0 && (
+                                                    <button onClick={() => handleViewNotice(item.alntb_id)} className='text-primary'>
+                                                        <Eye className='h-4 w-4' />
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </ScrollArea>
                 </DialogContent>
             </Dialog>
@@ -296,8 +313,8 @@ export default function AlumniDashboardPage() {
                     <table className='w-full border-collapse text-sm'>
                         <thead>
                             <tr className='border-b bg-muted/50'>
-                                <th className='p-3 text-left'>Batch</th>
-                                <th className='p-3 text-left'>Class</th>
+                                <th className='p-3 text-center'>Batch</th>
+                                <th className='p-3 text-center'>Class</th>
                                 <th className='p-3 text-center'>Total</th>
                                 <th className='p-3 text-center'>Action</th>
                             </tr>
@@ -305,12 +322,16 @@ export default function AlumniDashboardPage() {
                         <tbody>
                             {yearwiseModal.items.map((item, idx) => (
                                 <tr key={idx} className='border-b'>
-                                    <td className='p-3'>{item.BATCHES}</td>
-                                    <td className='p-3'>{item.classname}</td>
+                                    <td className='p-3 text-center'>{item.BATCHES}</td>
+                                    <td className='p-3 text-center'>{item.classname}</td>
                                     <td className='p-3 text-center'>{item.NOofstudents}</td>
                                     <td className='p-3 text-center'>
                                         <button
-                                            onClick={() => handleViewClasswise(item.ASMAY_Id, item.ASMCL_Id)}
+                                            onClick={() => {
+                                                const yearId = item.ASMAY_Id || (item as any).asmay_id;
+                                                const classId = item.ASMCL_Id || (item as any).asmcL_Id || (item as any).asmcl_id;
+                                                handleViewClasswise(yearId, classId);
+                                            }}
                                             className='text-primary hover:underline font-medium'
                                         >
                                             View Students
@@ -319,6 +340,17 @@ export default function AlumniDashboardPage() {
                                 </tr>
                             ))}
                         </tbody>
+                        {yearwiseModal.items.length > 0 && (
+                            <tfoot>
+                                <tr className='bg-muted/20 font-bold'>
+                                    <td className='p-3 text-center' colSpan={2}>Grand Total</td>
+                                    <td className='p-3 text-center'>
+                                        {yearwiseModal.items.reduce((acc, item) => acc + (Number(item.NOofstudents) || 0), 0)}
+                                    </td>
+                                    <td className='p-3 text-center'>-</td>
+                                </tr>
+                            </tfoot>
+                        )}
                     </table>
                 </DialogContent>
             </Dialog>
@@ -330,30 +362,36 @@ export default function AlumniDashboardPage() {
                         <DialogTitle>Student List</DialogTitle>
                     </DialogHeader>
                     <ScrollArea className='h-[70vh]'>
-                        <table className='w-full border-collapse text-sm'>
-                            <thead>
-                                <tr className='border-b bg-muted/50 font-bold'>
-                                    <th className='p-3 text-left'>Name</th>
-                                    <th className='p-3 text-left'>Year</th>
-                                    <th className='p-3 text-left'>Adm No</th>
-                                    <th className='p-3 text-left'>Class</th>
-                                    <th className='p-3 text-left'>Mobile</th>
-                                    <th className='p-3 text-left'>Email</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {classwiseModal.items.map((item, idx) => (
-                                    <tr key={idx} className='border-b'>
-                                        <td className='p-3'>{item.studentname}</td>
-                                        <td className='p-3 text-center'>{item.ASMAY_Year}</td>
-                                        <td className='p-3'>{item.ALMST_AdmNo}</td>
-                                        <td className='p-3'>{item.classname}</td>
-                                        <td className='p-3'>{item.ALMST_MobileNo}</td>
-                                        <td className='p-3'>{item.ALMST_emailId}</td>
+                        <div className="w-full">
+                            <table className='w-full border-collapse text-sm'>
+                                <thead>
+                                    <tr className='border-b bg-muted/50 font-bold'>
+                                        <th className='p-3 text-left'>Name</th>
+                                        <th className='p-3 text-left'>Year</th>
+                                        <th className='p-3 text-left'>Adm No</th>
+                                        <th className='p-3 text-left'>Class</th>
+                                        <th className='p-3 text-left'>Mobile</th>
+                                        <th className='p-3 text-left'>Email</th>
+                                        <th className='p-3 text-left'>DOB</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {classwiseModal.items.map((item, idx) => (
+                                        <tr key={idx} className='border-b'>
+                                            <td className='p-3'>{item.studentname}</td>
+                                            <td className='p-3 text-center'>{item.asmay_year}</td>
+                                            <td className='p-3'>{item.almst_admno || '-'}</td>
+                                            <td className='p-3'>{item.classname}</td>
+                                            <td className='p-3'>{item.almst_mobileno}</td>
+                                            <td className='p-3'>{item.almst_emailid}</td>
+                                            <td className='p-3'>
+                                                {item.almst_dob ? format(new Date(item.almst_dob), 'dd-MM-yyyy') : '-'}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </ScrollArea>
                 </DialogContent>
             </Dialog>
@@ -372,16 +410,97 @@ export default function AlumniDashboardPage() {
                                     <p className='truncate text-sm font-medium'>{file.alntbfL_FileName}</p>
                                     <a
                                         href={file.alntbfL_FilePath}
-                                        target='_blank'
-                                        rel='noreferrer'
+                                        download={file.alntbfL_FileName}
                                         className='flex items-center text-xs text-primary hover:underline'
                                     >
-                                        <Download className='mr-1 h-3 w-3' /> Download
+                                        <Download className='mr-1 h-3 w-3' />Download
                                     </a>
                                 </div>
                             </Card>
                         ))}
                     </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Gallery Detail Modal (Photos/Videos) */}
+            <Dialog open={galleryDetail.open} onOpenChange={(v) => setGalleryDetail({ ...galleryDetail, open: v })}>
+                <DialogContent className='max-w-4xl'>
+                    <DialogHeader>
+                        <DialogTitle>Gallery Media</DialogTitle>
+                    </DialogHeader>
+                    <ScrollArea className='h-[60vh]'>
+                        <div className="w-full">
+                            <table className='w-full border-collapse text-sm'>
+                                <thead>
+                                    <tr className='border-b bg-muted/50'>
+                                        <th className='p-3 text-left'>Sl.No</th>
+                                        <th className='p-3 text-left'>Gallery Name</th>
+                                        <th className='p-3 text-center'>Date</th>
+                                        <th className='p-3 text-center'>Time</th>
+                                        <th className='p-3 text-center'>Status</th>
+                                        <th className='p-3 text-center'>View</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {galleryDetail.data.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={6} className='p-4 text-center text-muted-foreground'>
+                                                No media files found in this gallery.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        galleryDetail.data.map((item, idx) => (
+                                            <tr key={idx} className='border-b hover:bg-muted/30'>
+                                                <td className='p-3'>{idx + 1}</td>
+                                                <td className='p-3 font-medium'>{item.alga_galleryname}</td>
+                                                <td className='p-3 text-center'>
+                                                    {item.alga_date ? (() => {
+                                                        try {
+                                                            return format(new Date(item.alga_date), 'dd-MM-yyyy');
+                                                        } catch {
+                                                            return item.alga_date;
+                                                        }
+                                                    })() : '-'}
+                                                </td>
+                                                <td className='p-3 text-center'>
+                                                    {item.alga_time ? (() => {
+                                                        try {
+                                                            // Try to extract time from datetime string like "2026-01-16 07:15:42"
+                                                            const timeStr = item.alga_time.toString();
+                                                            const timePart = timeStr.includes(' ') ? timeStr.split(' ')[1] : timeStr;
+                                                            return timePart?.substring(0, 5) || item.alga_time;
+                                                        } catch {
+                                                            return item.alga_time;
+                                                        }
+                                                    })() : '-'}
+                                                </td>
+                                                <td className='p-3 text-center'>
+                                                    <span className={`rounded px-2 py-1 text-xs font-semibold ${item.alga_activeflag ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                        {item.alga_activeflag ? 'Active' : 'Inactive'}
+                                                    </span>
+                                                </td>
+                                                <td className='p-3 text-center'>
+                                                    {(item.algap_photos || item.algav_videos) ? (
+                                                        <a
+                                                            href={item.algap_photos || item.algav_videos}
+                                                            target='_blank'
+                                                            rel='noreferrer'
+                                                            className='inline-flex items-center text-primary hover:underline'
+                                                        >
+                                                            <Eye className='mr-1 h-4 w-4' />
+                                                            {item.algav_videos ? 'Video' : 'Photo'}
+                                                        </a>
+                                                    ) : (
+                                                        <span className='text-muted-foreground'>-</span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </ScrollArea>
                 </DialogContent>
             </Dialog>
 

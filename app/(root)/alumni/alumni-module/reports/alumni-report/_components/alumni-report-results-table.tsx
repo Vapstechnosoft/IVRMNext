@@ -62,7 +62,29 @@ export function AlumniReportResultsTable({
         const selectedRecords = getSelectedRecords();
         if (selectedRecords.length === 0) return;
 
-        const worksheet = XLSX.utils.json_to_sheet(selectedRecords);
+        // Map to friendly headers and format data
+        const dataToExport = selectedRecords.map((item, index) => ({
+            "SL NO": index + 1,
+            "Alumni Name": item.amsT_FirstName,
+            "DOB": item.amsT_DOB ? format(new Date(item.amsT_DOB), "dd/MM/yyyy") : "-",
+            "Father Name": item.ALMST_FatherName,
+            "Mobile No": item.amsT_MobileNo,
+            "Email Id": item.amsT_emailId,
+            "Joined Year": item.ASMAY_Id_Join,
+            "Left Year": item.ASMAY_Id_Left,
+            "Joined Class": item.JoinClass,
+            "Left Class": item.LeftClass,
+            "Member Id": item.ALMST_MembershipId,
+            "Member Category": item.ALMMC_MembershipCategory,
+            "District": item.IVRMMD_Name,
+            "Blood Group": item.amsT_BloodGroup,
+            "Profession": item.ALSPR_Designation,
+            "City:State": item.city,
+            "Full Address": item.ALMST_FullAddess,
+            "Pin Code": item.ALMST_ConPincode || item.ALMST_PerPincode || "-"
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Alumni Report");
         XLSX.writeFile(workbook, "Alumni_Report.xlsx");
@@ -97,7 +119,7 @@ export function AlumniReportResultsTable({
                         <FileSpreadsheet className="mr-2 h-4 w-4" />
                         Export
                     </Button>
-                    {isReportView ? (
+                    {/* {isReportView ? (
                         <Button
                             variant="default"
                             size="sm"
@@ -117,7 +139,7 @@ export function AlumniReportResultsTable({
                             <Printer className="mr-2 h-4 w-4" />
                             Print Address Book
                         </Button>
-                    )}
+                    )} */}
                 </div>
             </div>
 

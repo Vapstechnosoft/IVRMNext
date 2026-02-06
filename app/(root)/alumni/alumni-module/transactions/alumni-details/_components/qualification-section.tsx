@@ -20,7 +20,7 @@ import {
 import { Plus, Trash2, GraduationCap } from 'lucide-react';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import type { IAlumnusMembershipFormValues } from './schema';
-import type { IState } from '@/types/alumni/alumnus-membership';
+import type { IState } from '@/types/alumni/alumni-membership';
 
 interface QualificationSectionProps {
     form: UseFormReturn<IAlumnusMembershipFormValues>;
@@ -54,9 +54,19 @@ export default function QualificationSection({ form, states }: QualificationSect
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Qualification <span className="text-destructive">*</span></FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="e.g., B.Tech, M.S." {...field} />
-                                        </FormControl>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select Qualification" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="PUC">PUC</SelectItem>
+                                                <SelectItem value="UG">UG</SelectItem>
+                                                <SelectItem value="PG">PG</SelectItem>
+                                                <SelectItem value="Other">Other</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                         <FormMessage />
                                     </FormItem>
                                 )}
