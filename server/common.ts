@@ -1558,6 +1558,21 @@ export async function getUserAccessibleModules() {
                                             description: 'Report Card_X'
                                         }
                                     ]
+                                },
+                                {
+                                    id: 1,
+                                    name: 'AI Performance Analysis',
+                                    icon: 'BarChart',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'AI Performance Analysis',
+                                            icon: 'BarChart',
+                                            url: '/Exam/exam-module/ai-performance-analysis',
+                                            title: 'AI Performance Analysis',
+                                            description: 'Analyze performance metrics and AI-driven insights'
+                                        }
+                                    ]
                                 }
                             ]
                         }
@@ -5803,9 +5818,17 @@ export async function getUserAccessibleModules() {
                             sub_menu: [
                                 {
                                     id: 40006,
-                                    name: 'Exam',
+                                    name: 'Exam Module',
                                     icon: 'BookOpen',
                                     pages: [
+                                        {
+                                            id: 21265,
+                                            name: 'Marks Entry',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/marks-entry/exam-marks-entry',
+                                            title: 'Marks Entry',
+                                            description: 'Manage Marks Entry Details'
+                                        },
                                         {
                                             id: 1,
                                             name: 'Exam Report Card ',

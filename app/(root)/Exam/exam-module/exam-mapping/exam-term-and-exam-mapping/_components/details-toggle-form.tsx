@@ -117,7 +117,7 @@ interface ToggleExamTermAndExamMappingFormProps {
 
 export default function ToggleExamTermAndExamMappingForm({ rowData, onClose }: ToggleExamTermAndExamMappingFormProps) {
     // Custom hook to refetch data after toggle
-    const { refetchAll } = useExamTermAndExamMappingDetails(30, rowData.asmaY_Id, rowData.emcA_Id, rowData.ecT_Id);
+    const { refetchAll } = useExamTermAndExamMappingDetails(rowData.asmaY_Id, rowData.emcA_Id, rowData.ecT_Id);
 
     const isActive = rowData.ecteX_ActiveFlag;
 
@@ -138,7 +138,7 @@ export default function ToggleExamTermAndExamMappingForm({ rowData, onClose }: T
     const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
             // Call backend API for toggle
-            const response = await toggleExamTermAndExamMappingDetails(30, Number(rowData.ecteX_Id));
+            const response = await toggleExamTermAndExamMappingDetails(Number(rowData.ecteX_Id));
 
             if (response.success) {
                 toast.success(response.message || 'Status updated successfully');

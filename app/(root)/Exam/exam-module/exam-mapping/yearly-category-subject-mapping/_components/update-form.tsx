@@ -36,7 +36,7 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
         defaultValues: {
             userId: 0,
             eycG_Id: rowData?.eycG_Id || 0,
-            mI_Id: 30,
+            // mI_Id: 30,
             asmaY_Id: rowData?.asmaY_Id || 0,
             emcA_Id: rowData?.emcA_Id || 0,
             emG_Id: rowData?.emG_Id || 0,
@@ -107,7 +107,7 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
         reset({
             userId: 1,
             eycG_Id: rowData.eycG_Id ?? 0,
-            mI_Id: 30,
+            // mI_Id: 30,
             asmaY_Id: rowData.asmaY_Id ?? 0,
             emcA_Id: rowData.emcA_Id ?? 0,
             emG_Id: rowData.emG_Id ?? 0,
@@ -178,7 +178,7 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
         reset({
             userId: 1,
             eycG_Id: rowData.eycG_Id ?? 0,
-            mI_Id: 30,
+            // mI_Id: 30,
             asmaY_Id: rowData.asmaY_Id ?? 0,
             emcA_Id: rowData.emcA_Id ?? 0,
             emG_Id: rowData.emG_Id ?? 0,

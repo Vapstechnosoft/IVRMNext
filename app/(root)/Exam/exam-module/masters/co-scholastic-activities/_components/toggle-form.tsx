@@ -41,7 +41,7 @@ export default function ToggleCoScholasticActivityForm({ rowData, onClose }: Tog
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleCoScholasticActivity(30, Number(rowData.ecacT_Id));
+            const response = await toggleCoScholasticActivity(Number(rowData.ecacT_Id));
 
             if (response.success) {
                 toast.success(response.message);

@@ -39,7 +39,7 @@ export default function ToggleExamSubjectGroupingForm({ rowData, onClose }: Togg
     const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
             // Call your backend API here
-            const response = await toggleExamSubjectGroupMappingSubject(30, Number(rowData.esgS_Id));
+            const response = await toggleExamSubjectGroupMappingSubject(Number(rowData.esgS_Id));
 
             if (response.success) {
                 toast.success(response.message);

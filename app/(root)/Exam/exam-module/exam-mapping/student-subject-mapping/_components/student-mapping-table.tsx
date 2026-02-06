@@ -71,7 +71,7 @@ interface Student {
 
 interface Payload {
     estsU_Id: number;
-    mI_Id: number;
+    // mI_Id: number;
     asmaY_Id: number;
     asmcL_Id: number;
     asmS_Id: number;
@@ -98,7 +98,7 @@ interface Props {
     maxApplicableSubjects?: number;
     // Additional props for payload
     estsU_Id: number;
-    mI_Id: number;
+    // mI_Id: number;
     asmaY_Id: number;
     asmcL_Id: number;
     asmS_Id: number;
@@ -122,7 +122,7 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
             onUpdateMapping,
             isloading = false,
             estsU_Id,
-            mI_Id,
+            // mI_Id,
             asmaY_Id,
             asmcL_Id,
             asmS_Id,
@@ -451,7 +451,7 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
 
                 const payload: Payload = {
                     estsU_Id,
-                    mI_Id,
+                    mI_Id: 0, // Ignored by backend
                     asmaY_Id,
                     asmcL_Id,
                     asmS_Id,

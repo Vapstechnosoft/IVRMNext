@@ -192,7 +192,7 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
     const onSubmit = async (data: FormFields) => {
         try {
             const payload: any = {
-                mi_Id: 30,
+                // mi_Id: 30,
                 ASMAY_Id: data.asmaY_Id,
                 Type: data.Type,
                 mob_flg: data.mob_flg ? 1 : 0,
@@ -364,8 +364,8 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                                     field.value === 'All'
                                                         ? 'All'
                                                         : field.value && field.value !== 0
-                                                          ? String(field.value)
-                                                          : undefined
+                                                            ? String(field.value)
+                                                            : undefined
                                                 }
                                                 onValueChange={(v) => field.onChange(v === 'All' ? 'All' : Number(v))}>
                                                 <SelectTrigger>

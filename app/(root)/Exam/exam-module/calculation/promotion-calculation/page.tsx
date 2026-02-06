@@ -6,7 +6,7 @@ import ExamMarksCalculationForm from './_components/add-form';
 export default function ExamMarksCalculationPage() {
     return (
         <div className='container mx-auto p-6'>
-            <CollapsibleSection title='Exam Marks Calculation' defaultOpen>
+            <CollapsibleSection title='Promotion Calculation' defaultOpen>
                 <ExamMarksCalculationForm />
             </CollapsibleSection>
         </div>
