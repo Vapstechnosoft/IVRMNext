@@ -164,7 +164,7 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
         error: detailsError,
         isLoading: detailsLoading,
         refetch: refetchDetails
-    } = useExamTermAndExamMappingDetails(orgId, rowData?.asmaY_Id ?? 0, rowData?.emcA_Id ?? 0, rowData?.ecT_Id ?? 0);
+    } = useExamTermAndExamMappingDetails(rowData?.asmaY_Id ?? 0, rowData?.emcA_Id ?? 0, rowData?.ecT_Id ?? 0);
     useEffect(() => {
         refetchDetails();
     }, [rowData]);

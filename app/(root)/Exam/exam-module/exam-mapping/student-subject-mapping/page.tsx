@@ -338,7 +338,11 @@ function StudentSubjectMappingContent() {
             console.info('Payload:', payload);
             const response = await addOrUpdateStudentSubjectMappings(payload);
             if (response.success) {
+                setIsGridOpen(false);
+                setStudents([]);
+                setSubjects([]);
                 toast.success(response.message || 'Mapping saved successfully');
+
             } else {
                 toast.error(response.message || 'Failed to save mapping');
             }

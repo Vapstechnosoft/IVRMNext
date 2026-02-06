@@ -451,7 +451,6 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
 
                 const payload: Payload = {
                     estsU_Id,
-                    mI_Id: 0, // Ignored by backend
                     asmaY_Id,
                     asmcL_Id,
                     asmS_Id,
@@ -474,7 +473,6 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
         }, [
             createSubjectMapping,
             estsU_Id,
-            mI_Id,
             asmaY_Id,
             asmcL_Id,
             asmS_Id,

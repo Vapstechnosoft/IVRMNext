@@ -81,7 +81,7 @@ export default function UpdateYearlyCategoryDatesMapping({ selectedRow, onSucces
         if (!selectedYearId) return;
         async function fetchCategories() {
             try {
-                const { data: cats } = await getCategoryDropDownByAcademicYearlist(orgId, selectedYearId);
+                const { data: cats } = await getCategoryDropDownByAcademicYearlist(selectedYearId);
                 setCategories(Array.isArray(cats) ? cats : []);
             } catch (err: any) {
                 toast.error(err?.message ?? 'Failed to load categories');
