@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
 
 interface ReportFormProps {
-    onReportGenerated: (data: any, typeflag: string, optionflag?: string, showTax?: boolean, showDiscount?: boolean) => void;
+    onReportGenerated: (data: any[], payload: InvRSalesSchema, total: number) => void;
 }
 
 export default function ReportForm({ onReportGenerated }: ReportFormProps) {
@@ -166,10 +166,8 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                 if (res.success) {
                     onReportGenerated(
                         res.data.get_SalesReport,
-                        data.typeflag,
-                        data.optionflag,
-                        data.showTax,
-                        data.showDiscount
+                        data,
+                        res.total || 0
                     );
                 }
             }
@@ -178,7 +176,7 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
 
     const handleCancel = () => {
         reset();
-        onReportGenerated([], 'All');
+        onReportGenerated([], {} as InvRSalesSchema, 0);
     };
 
     // Generic Combobox for Single Selects
@@ -227,7 +225,7 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <CollapsibleSection title="Report Configuration"  defaultOpen={true}>
+            <CollapsibleSection title="Report Configuration" defaultOpen={true}>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
 
                     {/* Report Type */}
@@ -325,7 +323,7 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                                 <Controller name="salesArray" control={control} render={({ field }) => (
                                     <MultiSelect options={grnSalesOptions} onValueChange={(val) => field.onChange(detailsData?.data?.get_salesdetails?.filter((i: any) => val.includes(i.invmsL_Id.toString())))} defaultValue={field.value?.map((v: any) => v.invmsL_Id.toString())} placeholder="Select Sale No..." />
                                 )} />
-                                {errors.optionflag && <FormError>{errors.optionflag.message}</FormError>}
+                                {errors.salesArray && <FormError>{errors.salesArray.message}</FormError>}
                             </div>
                         )}
 
@@ -335,7 +333,7 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                                 <Controller name="itemArray" control={control} render={({ field }) => (
                                     <MultiSelect options={itemOptions} onValueChange={(val) => field.onChange(detailsData?.data?.get_salesdetails?.filter((i: any) => val.includes(i.invmI_Id.toString())))} defaultValue={field.value?.map((v: any) => v.invmI_Id.toString())} placeholder="Select Item..." />
                                 )} />
-                                {errors.optionflag && <FormError>{errors.optionflag.message}</FormError>}
+                                {errors.itemArray && <FormError>{errors.itemArray.message}</FormError>}
                             </div>
                         )}
 
