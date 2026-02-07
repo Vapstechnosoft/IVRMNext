@@ -38,11 +38,16 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
         try {
             const defaultNumber = (value: any): number => (value === null || value === undefined ? 0 : Number(value));
             const defaultString = (value: any): string => (value === null || value === undefined ? '' : String(value));
+            let AutoRecieptPrintFlag = false;
 
+            if (data.fmC_AutoRecieptPrintFlag === '1') {
+                AutoRecieptPrintFlag = true;
+            }
             const payload = {
                 // mi_id: 30,
                 FMC_id: 0,
-                FMC_AutoRecieptPrintFlag: defaultNumber(data.fmC_AutoRecieptPrintFlag),
+                // FMC_AutoRecieptPrintFlag: defaultNumber(data.fmC_AutoRecieptPrintFlag),
+                FMC_AutoRecieptPrintFlag: AutoRecieptPrintFlag,
                 FMC_RebateTypeFlag: data.FMC_RebateTypeFlag,
                 FMC_EnablePartialPaymentFlg: defaultNumber(data.FMC_EnablePartialPaymentFlg),
                 FMC_Receipt_Signatory: defaultString(data.FMC_Receipt_Signatory),
