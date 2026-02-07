@@ -153,7 +153,7 @@ export default function ModuleMenuGrid({ data: initialData, onSave, onCancel }: 
                                 </thead>
                                 <tbody>
                                     {paginatedData.map((item, index) => (
-                                        <tr key={item.ivrmmM_Id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                        <tr key={`mod-grid-${item.ivrmmM_Id}`} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                                             <td className="p-2 border text-center">{startIndex + index + 1}</td>
                                             <td className="p-2 border text-center">{item.modulename}</td>
 
