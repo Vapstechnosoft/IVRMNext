@@ -221,24 +221,18 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                 if (pasrId && applicationFormDetails?.data && !applicationFormDetailsLoading) {
                     try {
                         const resp = applicationFormDetails.data;
-                        const studentDetails = resp.data || resp;
-                        const student = studentDetails?.student_details || studentDetails || {};
-
+                        const student = resp?.student_details || resp || {};
                         const payload = {
                             ...student,
-                            selectedSourceDetails: (studentDetails?.student_sources || studentDetails?.studentSource || []).map(
-                                (s: any) => ({
-                                    pamS_Id: String(s.pamS_Id)
-                                })
-                            ),
-                            selectedRefrenceDetails: (studentDetails?.student_refrences || studentDetails?.studentReference || []).map(
-                                (r: any) => ({
-                                    pamR_Id: String(r.pamR_Id)
-                                })
-                            ),
-                            siblingsDetails: studentDetails?.student_siblings || [],
-                            previousSchoolDetails: studentDetails?.previous_schools || [],
-                            selectedDocuments: (studentDetails?.student_documents || []).map((d: any) => ({
+                            selectedSourceDetails: (resp?.student_sources || resp?.studentSource || []).map((s: any) => ({
+                                pamS_Id: String(s.pamS_Id)
+                            })),
+                            selectedRefrenceDetails: (resp?.student_refrences || resp?.studentReference || []).map((r: any) => ({
+                                pamR_Id: String(r.pamR_Id)
+                            })),
+                            siblingsDetails: resp?.student_siblings || [],
+                            previousSchoolDetails: resp?.previous_schools || [],
+                            selectedDocuments: (resp?.student_documents || []).map((d: any) => ({
                                 pasrD_Id: d.pasrD_Id,
                                 pasR_Id: d.pasR_Id,
                                 amsmD_Id: d.amsmD_Id,
