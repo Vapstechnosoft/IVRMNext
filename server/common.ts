@@ -5464,6 +5464,107 @@ export async function getUserAccessibleModules() {
                                 }
                             ]
                         }
+                    ]
+                },
+
+
+                {
+                    id: 14,
+                    name: 'Lesson Planner',
+                    icon: 'GraduationCap',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Lesson Planner Module',
+                            icon: 'FileStack',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Master',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master School Topic',
+                                            icon: 'BookOpenText',
+                                            url: '/lesson-planner/lesson-planner-module/master/master-school-topic',
+                                            title: 'Master School Topic',
+                                            description: 'Manage Master School Topic'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Master School Unit',
+                                            icon: 'BookOpenText',
+                                            url: '/lesson-planner/lesson-planner-module/master/master-school-unit',
+                                            title: 'Master School Unit',
+                                            description: 'Manage Master School Unit'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Transactions',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'School Staff Period Mapping',
+                                            icon: 'BookOpenText',
+                                            url: '/lesson-planner/lesson-planner-module/transactions/school-staff-period-mapping',
+                                            title: 'School Staff Period Mapping',
+                                            description: 'School Staff Period Mapping'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'School Master Unit Topic Mapping',
+                                            icon: 'BookOpenText',
+                                            url: '/lesson-planner/lesson-planner-module/transactions/school-master-unit-topic-mapping',
+                                            title: 'School Master Unit Topic Mapping',
+                                            description: 'School Master Unit Topic Mapping'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'School Subject Master Topic Mapping',
+                                            icon: 'BookOpenText',
+                                            url: '/lesson-planner/lesson-planner-module/transactions/school-subject-master-topic-mapping',
+                                            title: 'School Subject Master Topic Mapping',
+                                            description: 'School Subject Master Topic Mapping'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'School Staff Period Transaction',
+                                            icon: 'BookOpenText',
+                                            url: '/lesson-planner/lesson-planner-module/transactions/school-staff-period-transaction',
+                                            title: 'School Staff Period Transaction',
+                                            description: 'School Staff Period Transaction'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Reports',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'School Staff Period Transaction Deviation Report',
+                                            icon: 'BookOpenText',
+                                            url: '/lesson-planner/lesson-planner-module/reports/school-staff-period-transaction-deviation-report',
+                                            title: 'School Staff Period Transaction Deviation Report',
+                                            description: 'School Staff Period Transaction Deviation Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'School Staff Period Transaction Report',
+                                            icon: 'BookOpenText',
+                                            url: '/lesson-planner/lesson-planner-module/reports/school-staff-period-transaction-report',
+                                            title: 'School Staff Period Transaction Report',
+                                            description: 'School Staff Period Transaction Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
                         //    ,
                         //        {
                         //         id: 8,
@@ -5490,90 +5591,6 @@ export async function getUserAccessibleModules() {
                         //     },
                     ]
                 }
-
-                // {
-                //     id: 13,
-                //     name: 'Super Admin',
-                //     icon: 'Settings',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Super Admin Module',
-                //             icon: 'Settings',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Master Trust',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Master Trust',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/masters/trust-master',
-                //                             title: 'Master Trust',
-                //                             description: 'Manage Master Trust Details'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 2,
-                //                     name: 'Institution',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Master Institution',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/institution/master-institution',
-                //                             title: 'Master Institution',
-                //                             description: 'Manage Master Institution'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Institution Subscription',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/institution/institution-subscription',
-                //                             title: 'Institution Subscription',
-                //                             description: 'Manage Institution Subscription'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Auto Mapping',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/institution/auto-mapping',
-                //                             title: 'Auto Mapping',
-                //                             description: 'Manage Institution Auto Mapping'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 3,
-                //                     name: 'General Setting',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'General Setting Wizard',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/wizard',
-                //                             title: 'General Setting Wizard',
-                //                             description: 'General Setting Wizard'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Modules',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/module',
-                //                             title: 'Modules',
-                //                             description: 'Manage Master Modules'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // }
             ]
         };
     } else if (session?.role.toUpperCase() === 'STUDENT') {
