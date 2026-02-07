@@ -33,6 +33,13 @@ export const SchoolSubjectTopicMappingColumns: ColumnDef<ISchoolSubjectTopicMapp
         header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
         cell: ({ row }) => <div>{row.getValue('asmcL_ClassName')}</div>
     },
+    // {
+    //     id: 'section',
+    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />,
+    //     accessorFn: (row: any) => row.asmC_SectionName || row.asmS_SectionName || row.sectionName || '',
+    //     cell: ({ row }) => <div>{row.getValue('section')}</div>
+    // },
+
     {
         accessorKey: 'ismS_SubjectName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Subject' />,

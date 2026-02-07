@@ -52,7 +52,7 @@ export default function ViewFilesModal({ isOpen, onClose, files, type }: ViewFil
                         <tbody>
                             {files.length > 0 ? (
                                 files.map((file, index) => (
-                                    <tr key={index} className="hover:bg-muted/50">
+                                    <tr key={file.lpmtR_Id || index} className="hover:bg-muted/50">
                                         <td className="border p-2 text-center">{index + 1}</td>
                                         <td className="border p-2">{file.lpmtR_FileName}</td>
                                         <td className="border p-2 text-center">

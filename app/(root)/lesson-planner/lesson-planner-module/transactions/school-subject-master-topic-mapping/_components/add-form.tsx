@@ -22,7 +22,7 @@ const useFileState = () => {
 const formSchema = z.object({
     ASMAY_Id: z.number().min(1, 'Academic Year is required'),
     ASMCL_Id: z.number().min(1, 'Class is required'),
-    ASMS_Id: z.number().min(1, 'Section is required'),
+    ASMS_Id: z.number().min(1, 'Section is required').optional(),
     ISMS_Id: z.number().min(1, 'Subject is required'),
     LPMU_Id: z.number().min(1, 'Unit is required'),
     LPMMT_Id: z.number().min(1, 'Main Topic is required'),
@@ -57,6 +57,17 @@ export default function AddSchoolSubjectTopicMappingForm({
         const data = res.data || res;
         if (Array.isArray(data)) return data;
         if (data.$values && Array.isArray(data.$values)) return data.$values;
+
+        // Prioritize known keys for this module
+        if (data.getSection) {
+            if (Array.isArray(data.getSection)) return data.getSection;
+            if (data.getSection.$values && Array.isArray(data.getSection.$values)) return data.getSection.$values;
+        }
+        if (data.getsubjectlist) {
+            if (Array.isArray(data.getsubjectlist)) return data.getsubjectlist;
+            if (data.getsubjectlist.$values && Array.isArray(data.getsubjectlist.$values)) return data.getsubjectlist.$values;
+        }
+
         if (data[fallbackKey]) {
             if (Array.isArray(data[fallbackKey])) return data[fallbackKey];
             if (data[fallbackKey].$values && Array.isArray(data[fallbackKey].$values)) return data[fallbackKey].$values;
@@ -122,10 +133,15 @@ export default function AddSchoolSubjectTopicMappingForm({
                 const res: any = await onChangeClass(form.getValues('ASMAY_Id'), id);
                 console.info('Add handleClassChange RAW:', JSON.stringify(res));
 
-                // Extract data - the API returns sections directly in data array
-                let data = extractArray(res, 'mastersection');
+                // Extract data - the API returns sections directly in data array or under 'getSection'
+                let data = extractArray(res, 'getSection');
 
-                // If extractArray didn't find mastersection, try getting data directly
+                // If extractArray didn't find getSection, try mastersection
+                if (data.length === 0) {
+                    data = extractArray(res, 'mastersection');
+                }
+
+                // If still empty, try getting data directly
                 if (data.length === 0 && res.data && Array.isArray(res.data)) {
                     data = res.data;
                 } else if (data.length === 0 && Array.isArray(res)) {
@@ -301,8 +317,8 @@ export default function AddSchoolSubjectTopicMappingForm({
                             <Select onValueChange={handleYearChange} value={field.value?.toString() || ''}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Select Year" /></SelectTrigger></FormControl>
                                 <SelectContent>
-                                    {masterYear.map((item: any) => (
-                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id?.toString() || ''}>{item.asmaY_Year}</SelectItem>
+                                    {masterYear.filter(item => item.asmaY_Id).map((item: any, index: number) => (
+                                        <SelectItem key={`${item.asmaY_Id}-${index}`} value={item.asmaY_Id.toString()}>{item.asmaY_Year}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -316,8 +332,8 @@ export default function AddSchoolSubjectTopicMappingForm({
                             <Select onValueChange={handleClassChange} value={field.value?.toString() || ''}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Select Class" /></SelectTrigger></FormControl>
                                 <SelectContent>
-                                    {classes.map((item: any) => (
-                                        <SelectItem key={item.asmcL_Id} value={item.asmcL_Id?.toString() || ''}>{item.asmcL_ClassName}</SelectItem>
+                                    {classes.filter(item => item.asmcL_Id).map((item: any, index: number) => (
+                                        <SelectItem key={`${item.asmcL_Id}-${index}`} value={item.asmcL_Id.toString()}>{item.asmcL_ClassName}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -327,12 +343,14 @@ export default function AddSchoolSubjectTopicMappingForm({
 
                     <FormField control={form.control} name="ASMS_Id" render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Section <span className="text-red-500">*</span></FormLabel>
+                            <FormLabel>Section</FormLabel>
                             <Select onValueChange={handleSectionChange} value={field.value?.toString() || ''}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Select Section" /></SelectTrigger></FormControl>
                                 <SelectContent>
-                                    {sections.map((item: any) => (
-                                        <SelectItem key={item.asmS_Id} value={item.asmS_Id?.toString() || ''}>{item.asmC_SectionName}</SelectItem>
+                                    {sections.filter(item => item.asmS_Id || item.ASMS_Id).map((item: any, index: number) => (
+                                        <SelectItem key={`${item.asmS_Id || item.ASMS_Id || index}`} value={(item.asmS_Id || item.ASMS_Id).toString()}>
+                                            {item.asmC_SectionName || item.asmS_SectionName || item.sectionName}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -346,8 +364,8 @@ export default function AddSchoolSubjectTopicMappingForm({
                             <Select onValueChange={handleSubjectChange} value={field.value?.toString() || ''}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Select Subject" /></SelectTrigger></FormControl>
                                 <SelectContent>
-                                    {subjects.map((item: any) => (
-                                        <SelectItem key={item.ismS_Id} value={item.ismS_Id?.toString() || ''}>{item.ismS_SubjectName}</SelectItem>
+                                    {subjects.filter(item => item.ismS_Id).map((item: any, index: number) => (
+                                        <SelectItem key={`${item.ismS_Id}-${index}`} value={item.ismS_Id.toString()}>{item.ismS_SubjectName}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -361,8 +379,8 @@ export default function AddSchoolSubjectTopicMappingForm({
                             <Select onValueChange={handleUnitChange} value={field.value?.toString() || ''}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Select Unit" /></SelectTrigger></FormControl>
                                 <SelectContent>
-                                    {units.map((item: any) => (
-                                        <SelectItem key={item.lpmU_Id} value={item.lpmU_Id?.toString() || ''}>{item.lpmU_UnitName}</SelectItem>
+                                    {units.filter(item => item.lpmU_Id).map((item: any, index: number) => (
+                                        <SelectItem key={`${item.lpmU_Id}-${index}`} value={item.lpmU_Id.toString()}>{item.lpmU_UnitName}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -376,8 +394,8 @@ export default function AddSchoolSubjectTopicMappingForm({
                             <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Select Topic" /></SelectTrigger></FormControl>
                                 <SelectContent>
-                                    {mainTopics.map((item: any) => (
-                                        <SelectItem key={item.lpmmT_Id} value={item.lpmmT_Id?.toString() || ''}>{item.lpmmT_TopicName}</SelectItem>
+                                    {mainTopics.filter(item => item.lpmmT_Id).map((item: any, index: number) => (
+                                        <SelectItem key={`${item.lpmmT_Id}-${index}`} value={item.lpmmT_Id.toString()}>{item.lpmmT_TopicName}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>

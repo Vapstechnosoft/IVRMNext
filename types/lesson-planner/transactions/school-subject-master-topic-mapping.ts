@@ -22,6 +22,7 @@ export interface ISchoolSubjectTopicMapping {
     // Additional fields for display
     asmaY_Year?: string;
     asmcL_ClassName?: string;
+    asmC_SectionName?: string;
     ismS_SubjectName?: string;
     lpmU_UnitName?: string;
     lpmmT_TopicName?: string;

@@ -46,7 +46,7 @@ export function FileUploadSection({ name, label, files, onAdd, onRemove, onUploa
                 </thead>
                 <tbody>
                     {files.map((file, index) => (
-                        <tr key={index} className="border-b last:border-0">
+                        <tr key={file.id || index} className="border-b last:border-0">
                             <td className="text-center p-2">{index + 1}</td>
                             <td className="text-center p-2">
                                 <Input

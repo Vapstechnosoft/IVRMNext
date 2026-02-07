@@ -200,7 +200,7 @@ export default function OrderSchoolSubjectTopicMappingForm({
                                     <FormLabel>Academic Year</FormLabel>
                                     <Select onValueChange={handleYearChange} value={field.value?.toString() || ''}>
                                         <FormControl><SelectTrigger><SelectValue placeholder="Select Year" /></SelectTrigger></FormControl>
-                                        <SelectContent>{masterYear.map((y: any) => <SelectItem key={y.asmaY_Id} value={y.asmaY_Id?.toString() || ''}>{y.asmaY_Year}</SelectItem>)}</SelectContent>
+                                        <SelectContent>{masterYear.filter(y => y.asmaY_Id).map((y: any, idx: number) => <SelectItem key={`${y.asmaY_Id}-${idx}`} value={y.asmaY_Id.toString()}>{y.asmaY_Year}</SelectItem>)}</SelectContent>
                                     </Select>
                                 </FormItem>
                             )} />
@@ -209,7 +209,7 @@ export default function OrderSchoolSubjectTopicMappingForm({
                                     <FormLabel>Class</FormLabel>
                                     <Select onValueChange={handleClassChange} value={field.value?.toString() || ''}>
                                         <FormControl><SelectTrigger><SelectValue placeholder="Select Class" /></SelectTrigger></FormControl>
-                                        <SelectContent>{classes.map((c: any) => <SelectItem key={c.asmcL_Id} value={c.asmcL_Id?.toString() || ''}>{c.asmcL_ClassName}</SelectItem>)}</SelectContent>
+                                        <SelectContent>{classes.filter(c => c.asmcL_Id).map((c: any, idx: number) => <SelectItem key={`${c.asmcL_Id}-${idx}`} value={c.asmcL_Id.toString()}>{c.asmcL_ClassName}</SelectItem>)}</SelectContent>
                                     </Select>
                                 </FormItem>
                             )} />
@@ -218,7 +218,7 @@ export default function OrderSchoolSubjectTopicMappingForm({
                                     <FormLabel>Subject</FormLabel>
                                     <Select onValueChange={handleSubjectChange} value={field.value?.toString() || ''}>
                                         <FormControl><SelectTrigger><SelectValue placeholder="Select Subject" /></SelectTrigger></FormControl>
-                                        <SelectContent>{subjects.map((c: any) => <SelectItem key={c.ismS_Id} value={c.ismS_Id?.toString() || ''}>{c.ismS_SubjectName}</SelectItem>)}</SelectContent>
+                                        <SelectContent>{subjects.filter(c => c.ismS_Id).map((c: any, idx: number) => <SelectItem key={`${c.ismS_Id}-${idx}`} value={c.ismS_Id.toString()}>{c.ismS_SubjectName}</SelectItem>)}</SelectContent>
                                     </Select>
                                 </FormItem>
                             )} />
@@ -227,7 +227,7 @@ export default function OrderSchoolSubjectTopicMappingForm({
                                     <FormLabel>Unit</FormLabel>
                                     <Select onValueChange={handleUnitChange} value={field.value?.toString() || ''}>
                                         <FormControl><SelectTrigger><SelectValue placeholder="Select Unit" /></SelectTrigger></FormControl>
-                                        <SelectContent>{units.map((c: any) => <SelectItem key={c.lpmU_Id} value={c.lpmU_Id?.toString() || ''}>{c.lpmU_UnitName}</SelectItem>)}</SelectContent>
+                                        <SelectContent>{units.filter(c => c.lpmU_Id).map((c: any, idx: number) => <SelectItem key={`${c.lpmU_Id}-${idx}`} value={c.lpmU_Id.toString()}>{c.lpmU_UnitName}</SelectItem>)}</SelectContent>
                                     </Select>
                                 </FormItem>
                             )} />
@@ -236,7 +236,7 @@ export default function OrderSchoolSubjectTopicMappingForm({
                                     <FormLabel>Main Topic</FormLabel>
                                     <Select onValueChange={handleTopicChange} value={field.value?.toString() || ''}>
                                         <FormControl><SelectTrigger><SelectValue placeholder="Select Topic" /></SelectTrigger></FormControl>
-                                        <SelectContent>{topics.map((c: any) => <SelectItem key={c.lpmmT_Id} value={c.lpmmT_Id?.toString() || ''}>{c.lpmmT_TopicName}</SelectItem>)}</SelectContent>
+                                        <SelectContent>{topics.filter(c => c.lpmmT_Id).map((c: any, idx: number) => <SelectItem key={`${c.lpmmT_Id}-${idx}`} value={c.lpmmT_Id.toString()}>{c.lpmmT_TopicName}</SelectItem>)}</SelectContent>
                                     </Select>
                                 </FormItem>
                             )} />

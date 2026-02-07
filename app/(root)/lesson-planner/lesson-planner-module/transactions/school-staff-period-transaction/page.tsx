@@ -71,13 +71,15 @@ export default function SchoolStaffPeriodTransactionPage() {
                 );
 
                 const responseData = res.data || res;
-                if (responseData && responseData.getalldates && responseData.getalldates.length > 0) {
+                const dates = responseData.getalldates || [];
+                const topics = responseData.gettopicdetails || [];
+
+                if (dates.length > 0) {
                     // Extract topicId with extreme robustness
-                    const topics = responseData.gettopicdetails || [];
                     const firstTopic = topics[0] || {};
                     const fallbackTopicId = firstTopic.lpmT_Id || firstTopic.LPMT_Id || firstTopic.lpmt_id || 0;
 
-                    const formatted = responseData.getalldates.map((d: any) => {
+                    const formatted = dates.map((d: any) => {
                         const dateTopicId = d.lpmT_Id || d.LPMT_Id || d.lpmt_id || fallbackTopicId;
                         return {
                             ...d,
@@ -85,6 +87,18 @@ export default function SchoolStaffPeriodTransactionPage() {
                             minDatedof: d.alldates || d.Alldates || d.allDates
                         };
                     });
+                    setGridData(formatted);
+                } else if (topics.length > 0) {
+                    const formatted = topics.map((t: any) => ({
+                        ...t,
+                        alldates: t.lplP_LPDate === '0001-01-01T00:00:00' ? null : t.lplP_LPDate,
+                        topicname: t.lpmT_TopicName,
+                        lpmT_Id: t.lpmT_Id,
+                        lplP_Id: t.lplP_Id,
+                        // If it's an existing mapping, it might have a taken date
+                        lpcswA_TakenDate: t.lplP_CTDate === '0001-01-01T00:00:00' ? null : t.lplP_CTDate,
+                        Selected: t.lplP_Id > 0 // Auto select if it looks like an existing record
+                    }));
                     setGridData(formatted);
                 } else {
                     toast.info('No records found');
