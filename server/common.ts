@@ -3668,7 +3668,16 @@ export async function getUserAccessibleModules() {
                                             url: '/Transport/transport-module/transaction/vehicle-route-mapping',
                                             title: 'Vehicle Route Mapping',
                                             description: 'Manage Vehicle Route Mapping'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Transport Approve',
+                                            icon: 'Settings',
+                                            url: '/Transport/transport-module/transaction/transport-approve',
+                                            title: 'Transport Approve',
+                                            description: 'Manage Transport Approve'
                                         }
+
                                     ]
                                 },
                                 {
@@ -3683,6 +3692,30 @@ export async function getUserAccessibleModules() {
                                             url: '/Transport/transport-module/reports/month-end-report',
                                             title: 'Month End Report',
                                             description: 'Transport Month End Report'
+                                        },
+                                        {
+                                            id: 30202,
+                                            name: 'Transport Report',
+                                            icon: 'FileText',
+                                            url: '/Transport/transport-module/reports/transport-report',
+                                            title: 'Transport Report',
+                                            description: 'Transport Report'
+                                        },
+                                        {
+                                            id: 30203,
+                                            name: 'Fee Student Route Mapping Report',
+                                            icon: 'FileText',
+                                            url: '/Transport/transport-module/reports/fee-student-route-mapping-report',
+                                            title: 'Fee Student Route Mapping Report',
+                                            description: 'Fee Student Route Mapping Report'
+                                        },
+                                        {
+                                            id: 30204,
+                                            name: 'Student Route Mapping Report',
+                                            icon: 'FileText',
+                                            url: '/Transport/transport-module/reports/student-route-mapping-report',
+                                            title: 'Student Route Mapping Report',
+                                            description: 'Student Route Mapping Report'
                                         }
                                     ]
                                 }

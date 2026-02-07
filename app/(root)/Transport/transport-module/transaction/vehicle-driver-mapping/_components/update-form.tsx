@@ -12,7 +12,7 @@ import { saveVehicleDriverMapping } from '@/server/transport/transport-module/tr
 import type { IVehicleDriverMapping } from '@/types/transport/transport-module/transaction';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CalendarIcon, Loader2, Save } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -29,16 +29,19 @@ export default function UpdateForm({ onClose, selectedRow: row }: UpdateFormProp
     const { refetchAll } = useVehicleDriverMapping();
 
     // Fetch master data directly in the form
-    const { data: vehicleData } = useVehicleDropDown();
-    const { data: driverData } = useDriverDropDown();
-    const { data: sessionData } = useSessionDropDown();
+    const { data: vehicleData, isLoading: vehicleLoading } = useVehicleDropDown();
+    const { data: driverData, isLoading: driverLoading } = useDriverDropDown();
+    const { data: sessionData, isLoading: sessionLoading } = useSessionDropDown();
 
-    const vehicles = Array.isArray(vehicleData) ? vehicleData : vehicleData?.data || [];
-    const drivers = Array.isArray(driverData) ? driverData : driverData?.data || [];
-    const sessions = Array.isArray(sessionData) ? sessionData : sessionData?.data || [];
+    const vehicles = useMemo(() => Array.isArray(vehicleData) ? vehicleData : vehicleData?.data || [], [vehicleData]);
+    const drivers = useMemo(() => Array.isArray(driverData) ? driverData : driverData?.data || [], [driverData]);
+    const sessions = useMemo(() => Array.isArray(sessionData) ? sessionData : sessionData?.data || [], [sessionData]);
+
+    const isDataLoading = vehicleLoading || driverLoading || sessionLoading;
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
+        mode: 'onChange',
         defaultValues: {
             trvD_Id: row?.trvD_Id,
             trmV_Id: row?.trmV_Id || 0,
@@ -54,27 +57,43 @@ export default function UpdateForm({ onClose, selectedRow: row }: UpdateFormProp
 
     const { reset } = form;
 
-    // Prefill data when editing ensuring all fields are mapped correctly
+
     useEffect(() => {
-        if (row) {
-            // Handle Flag string mismatch if any ("Pick Up" vs "PickUp")
+        if (row && !isDataLoading) {
+
+
+
             let flagValue = row.trmS_Flag;
-            // Clean up potentially messy flag data
             if (flagValue === 'Pick Up' || flagValue === 'Pickup') flagValue = 'PickUp';
+
+            // Resolve Vehicle ID: Direct ID -> Casing variants -> Lookup by No
+            let vehicleId = row.trmV_Id || (row as any).trmV_Id || (row as any).TrmV_Id || (row as any).TRMV_Id || 0;
+            if (!vehicleId && row.trmV_VehicleNo && vehicles.length > 0) {
+                const match = vehicles.find((v: any) => v.trmV_VehicleNo === row.trmV_VehicleNo);
+                if (match) vehicleId = match.trmV_Id;
+            }
+
+            // Resolve Driver ID: Direct ID -> Casing variants -> Lookup by Name
+            let driverId = row.trmD_Id || (row as any).trmD_Id || (row as any).TrmD_Id || (row as any).TRMD_Id || 0;
+            if (!driverId && row.trmD_DriverName && drivers.length > 0) {
+                const match = drivers.find((d: any) => d.trmD_DriverName === row.trmD_DriverName);
+                if (match) driverId = match.trmD_Id;
+            }
 
             reset({
                 trvD_Id: row.trvD_Id,
-                trmV_Id: row.trmV_Id,
-                trmD_Id: row.trmD_Id,
-                trmS_Id: row.trmS_Id,
+                trmV_Id: Number(vehicleId),
+                trmD_Id: Number(driverId),
+                trmS_Id: row.trmS_Id, // Session seems to work fine directly
                 trmS_Flag: flagValue || 'PickUp',
-                trvD_Date: row.trvD_Date ? new Date(row.trvD_Date).toString() !== 'Invalid Date' ? row.trvD_Date : new Date().toISOString() : new Date().toISOString(),
+
+                trvD_Date: new Date().toISOString(),
                 trmV_VehicleNo: row.trmV_VehicleNo,
                 trmD_DriverName: row.trmD_DriverName,
                 trmS_SessionName: row.trmS_SessionName,
             });
         }
-    }, [row, reset]); // Removed data dependencies to avoid re-resetting if not needed, rely on row change
+    }, [row, reset, vehicles, drivers, isDataLoading]);
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         setIsLoading(true);
@@ -93,6 +112,15 @@ export default function UpdateForm({ onClose, selectedRow: row }: UpdateFormProp
             setIsLoading(false);
         }
     };
+
+    if (isDataLoading) {
+        return (
+            <div className="flex h-60 w-full items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <span className="ml-2">Loading data...</span>
+            </div>
+        );
+    }
 
     return (
         <Form {...form}>

@@ -254,20 +254,20 @@ export const useMasterRouteSchedule = (searchParams?: ApiSearchparams) => {
 
 export const useMasterVehicle = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
-            queryKey: ['MASTER_VEHICLE', searchParams ?? {}],
+            queryKey: [TRANSPORT_QUERY_KEYS.VECHILE_GRID_LIST, searchParams ?? {}],
             queryFn: async () => getMasterVehicle(searchParams),
             staleTime: 300
         }),
 
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: ['MASTER_VEHICLE']
+                queryKey: [TRANSPORT_QUERY_KEYS.VECHILE_GRID_LIST]
             });
         }
     };
+
 };
 
 // import { getExpirySettings } from '@/server/transport/transport-module/masters/expiry-settings';

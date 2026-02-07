@@ -12,7 +12,7 @@ import { saveVehicleRouteMapping } from '@/server/transport/transport-module/tra
 import type { IVehicleRouteMapping } from '@/types/transport/transport-module/transaction';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CalendarIcon, Loader2, Save } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -28,13 +28,15 @@ export default function UpdateForm({ onClose, selectedRow: row }: UpdateFormProp
     const [isLoading, setIsLoading] = useState(false);
     const { refetchAll } = useVehicleRouteMapping();
 
-    const { data: vehicleData } = useVehicleDropDown();
-    const { data: routeData } = useRouteDropDown();
-    const { data: sessionData } = useSessionDropDown();
+    const { data: vehicleData, isLoading: vehicleLoading } = useVehicleDropDown();
+    const { data: routeData, isLoading: routeLoading } = useRouteDropDown();
+    const { data: sessionData, isLoading: sessionLoading } = useSessionDropDown();
 
-    const vehicles = Array.isArray(vehicleData) ? vehicleData : vehicleData?.data || [];
-    const routes = Array.isArray(routeData) ? routeData : routeData?.data || [];
-    const sessions = Array.isArray(sessionData) ? sessionData : sessionData?.data || [];
+    const vehicles = useMemo(() => Array.isArray(vehicleData) ? vehicleData : vehicleData?.data || [], [vehicleData]);
+    const routes = useMemo(() => Array.isArray(routeData) ? routeData : routeData?.data || [], [routeData]);
+    const sessions = useMemo(() => Array.isArray(sessionData) ? sessionData : sessionData?.data || [], [sessionData]);
+
+    const isDataLoading = vehicleLoading || routeLoading || sessionLoading;
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -54,16 +56,39 @@ export default function UpdateForm({ onClose, selectedRow: row }: UpdateFormProp
     const { reset } = form;
 
     useEffect(() => {
-        if (row) {
+        if (row && !isDataLoading) {
+            console.log("UpdateForm Row Data:", row);
+
             let flagValue = row.trmS_Flag;
             // Normalize flag value if backend sends variations
             if (flagValue === 'Pick Up' || flagValue === 'Pickup') flagValue = 'PickUp';
 
+            // Resolve Vehicle ID: Direct ID -> Casing variants -> Lookup by No
+            let vehicleId = row.trmV_Id || (row as any).trmV_Id || (row as any).TrmV_Id || (row as any).TRMV_Id || 0;
+            if (!vehicleId && row.trmV_VehicleNo && vehicles.length > 0) {
+                const match = vehicles.find((v: any) => v.trmV_VehicleNo === row.trmV_VehicleNo);
+                if (match) vehicleId = match.trmV_Id;
+            }
+
+            // Resolve Route ID: Direct ID -> Casing variants -> Lookup by Name
+            let routeId = row.trmR_Id || (row as any).trmR_Id || (row as any).TrmR_Id || (row as any).TRMR_Id || 0;
+            if (!routeId && row.trmR_RouteName && routes.length > 0) {
+                const match = routes.find((r: any) => r.trmR_RouteName === row.trmR_RouteName);
+                if (match) routeId = match.trmR_Id;
+            }
+
+            // Resolve Session ID: Direct ID -> Casing variants -> Lookup by Name
+            let sessionId = row.trmS_Id || (row as any).trmS_Id || (row as any).TrmS_Id || (row as any).TRMS_Id || 0;
+            if (!sessionId && row.trmS_SessionName && sessions.length > 0) {
+                const match = sessions.find((s: any) => s.trmS_SessionName === row.trmS_SessionName);
+                if (match) sessionId = match.trmS_Id;
+            }
+
             reset({
                 trvR_Id: row.trvR_Id,
-                trmV_Id: row.trmV_Id,
-                trmR_Id: row.trmR_Id,
-                trmS_Id: row.trmS_Id,
+                trmV_Id: Number(vehicleId),
+                trmR_Id: Number(routeId),
+                trmS_Id: Number(sessionId),
                 trmS_Flag: flagValue || 'PickUp',
                 trvR_Date: row.trvR_Date ? new Date(row.trvR_Date).toString() !== 'Invalid Date' ? row.trvR_Date : new Date().toISOString() : new Date().toISOString(),
                 trmV_VehicleNo: row.trmV_VehicleNo,
@@ -71,7 +96,7 @@ export default function UpdateForm({ onClose, selectedRow: row }: UpdateFormProp
                 trmS_SessionName: row.trmS_SessionName,
             });
         }
-    }, [row, reset]);
+    }, [row, reset, vehicles, routes, sessions, isDataLoading]);
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         setIsLoading(true);
@@ -99,6 +124,15 @@ export default function UpdateForm({ onClose, selectedRow: row }: UpdateFormProp
             setIsLoading(false);
         }
     };
+
+    if (isDataLoading) {
+        return (
+            <div className="flex h-60 w-full items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <span className="ml-2">Loading data...</span>
+            </div>
+        );
+    }
 
     return (
         <Form {...form}>
