@@ -35,7 +35,7 @@ function ExamSubjectWizardDetailsPageContent({
 }) {
     const [details, setDetails] = useState<IExamSubjectWizardDetails[]>([]);
     const [loading, setLoading] = useState(false);
-    const { data: response, isLoading, error, refetchAll } = useExamSubjectWizardDetails(30, rowData?.eycE_Id);
+    const { data: response, isLoading, error, refetchAll } = useExamSubjectWizardDetails(rowData?.eycE_Id);
     useEffect(() => {
         refetchAll();
     }, [rowData]);

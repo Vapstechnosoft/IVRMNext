@@ -35,7 +35,7 @@ export default function ProgressCardReportForm({
         resolver: zodResolver(vvehpc_examreportcardSchema.addOrUpdate),
         mode: 'all',
         defaultValues: {
-            mI_Id: 30,
+            // mI_Id: 30,
             asmaY_Id: 0,
             asmcL_Id: 0,
             asmS_Id: 0,
@@ -180,7 +180,7 @@ export default function ProgressCardReportForm({
 
         const currentDateTime = new Date().toISOString();
         const payload: any = {
-            mI_Id: 30,
+            // mI_Id: 30,
             asmaY_Id: data.asmaY_Id,
             asmcL_Id: data.asmcL_Id,
             asmS_Id: data.asmS_Id,

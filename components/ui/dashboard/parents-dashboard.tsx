@@ -42,8 +42,8 @@ export default function ParentsDashboard() {
                         typeof data?.data === 'string'
                             ? data.data
                             : Array.isArray(data?.data)
-                              ? ((data.data[0] as unknown as string) ?? null)
-                              : null;
+                                ? ((data.data[0] as unknown as string) ?? null)
+                                : null;
                     setPdfBase64(base64);
                 },
                 onError: (error) => {

@@ -454,6 +454,187 @@ export function exportToExcelforStudentWise(rows: IFeeYearlyCollectionReport[], 
     XLSX.writeFile(workbook, `${fileName}.xlsx`);
 }
 
+export function exportToExcelforTermWise(
+  rows: IFeeYearlyCollectionReport[],
+  fileName: string,
+  selectedTerms: any[]
+) {
+  if (!rows || rows.length === 0) return;
+
+  const feeHeads = Array.from(
+    new Map(rows.map(r => [r.fmh_id, r])).values()
+  );
+
+  const wsData: any[][] = [];
+  const headerRow1: any[] = ['Sl No', 'Fee Head'];
+  selectedTerms.forEach(term => {
+    headerRow1.push(term.fmT_Name);
+    for (let i = 0; i < 6; i++) headerRow1.push('');
+  });
+  wsData.push(headerRow1);
+  const headerRow2: any[] = ['', ''];
+  selectedTerms.forEach(() => {
+    headerRow2.push(
+      'Paid',
+      'Balance',
+      'Concession',
+      'Arrear',
+      'Excess',
+      'Charges',
+      'Payable'
+    );
+  });
+  wsData.push(headerRow2);
+  feeHeads.forEach((feeHead, index) => {
+    const row: any[] = [index + 1, feeHead.fmh_feename];
+
+    selectedTerms.forEach(term => {
+      const data = rows.find(
+        r => r.fmh_id === feeHead.fmh_id && r.fmt_id === term.fmT_Id
+      );
+
+      row.push(
+        data?.paid || 0,
+        data?.balance || 0,
+        data?.concession || 0,
+        data?.arrear || 0,
+        data?.excess || 0,
+        data?.charges || 0,
+        data?.payable || 0
+      );
+    });
+
+    wsData.push(row);
+  });
+  const totalRow: any[] = ['Total', ''];
+
+  selectedTerms.forEach(term => {
+    const termRows = rows.filter(r => r.fmt_id === term.fmT_Id);
+
+    totalRow.push(
+      termRows.reduce((s, r) => s + (r.paid || 0), 0),
+      termRows.reduce((s, r) => s + (r.balance || 0), 0),
+      termRows.reduce((s, r) => s + (r.concession || 0), 0),
+      termRows.reduce((s, r) => s + (r.arrear || 0), 0),
+      termRows.reduce((s, r) => s + (r.excess || 0), 0),
+      termRows.reduce((s, r) => s + (r.charges || 0), 0),
+      termRows.reduce((s, r) => s + (r.payable || 0), 0)
+    );
+  });
+
+  wsData.push(totalRow);
+  const worksheet = XLSX.utils.aoa_to_sheet(wsData);
+   worksheet['!merges'] = worksheet['!merges'] ?? [];
+
+  selectedTerms.forEach((_, index) => {
+    const startCol = 2 + index * 7;
+    worksheet['!merges']!.push({
+      s: { r: 0, c: startCol },
+      e: { r: 0, c: startCol + 6 }
+    });
+  });
+  worksheet['!cols'] = [
+    { wch: 8 },
+    { wch: 20 },
+    ...Array(selectedTerms.length * 7).fill({ wch: 14 })
+  ];
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Term Wise Report');
+  XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export function exportToExcelforStudentTermWise(
+  rows: IFeeYearlyCollectionReport[],
+  fileName: string,
+  selectedTerms: any[]
+) {
+  if (!rows || rows.length === 0) return;
+
+  const feeHeads = Array.from(
+    new Map(rows.map(r => [r.fmh_id, r])).values()
+  );
+
+  const wsData: any[][] = [];
+  const headerRow1: any[] = ['Sl No', 'Fee Head'];
+  selectedTerms.forEach(term => {
+    headerRow1.push(term.fmT_Name);
+    for (let i = 0; i < 6; i++) headerRow1.push('');
+  });
+  wsData.push(headerRow1);
+  const headerRow2: any[] = ['', ''];
+  selectedTerms.forEach(() => {
+    headerRow2.push(
+      'Paid',
+      'Balance',
+      'Concession',
+      'Arrear',
+      'Excess',
+      'Charges',
+      'Payable'
+    );
+  });
+  wsData.push(headerRow2);
+  feeHeads.forEach((feeHead, index) => {
+    const row: any[] = [index + 1, feeHead.fmh_feename];
+
+    selectedTerms.forEach(term => {
+      const data = rows.find(
+        r => r.fmh_id === feeHead.fmh_id && r.fmt_id === term.fmT_Id
+      );
+
+      row.push(
+        data?.paid || 0,
+        data?.balance || 0,
+        data?.concession || 0,
+        data?.arrear || 0,
+        data?.excess || 0,
+        data?.charges || 0,
+        data?.payable || 0
+      );
+    });
+
+    wsData.push(row);
+  });
+  const totalRow: any[] = ['Total', ''];
+
+  selectedTerms.forEach(term => {
+    const termRows = rows.filter(r => r.fmt_id === term.fmT_Id);
+
+    totalRow.push(
+      termRows.reduce((s, r) => s + (r.paid || 0), 0),
+      termRows.reduce((s, r) => s + (r.balance || 0), 0),
+      termRows.reduce((s, r) => s + (r.concession || 0), 0),
+      termRows.reduce((s, r) => s + (r.arrear || 0), 0),
+      termRows.reduce((s, r) => s + (r.excess || 0), 0),
+      termRows.reduce((s, r) => s + (r.charges || 0), 0),
+      termRows.reduce((s, r) => s + (r.payable || 0), 0)
+    );
+  });
+
+  wsData.push(totalRow);
+  const worksheet = XLSX.utils.aoa_to_sheet(wsData);
+   worksheet['!merges'] = worksheet['!merges'] ?? [];
+
+  selectedTerms.forEach((_, index) => {
+    const startCol = 2 + index * 7;
+    worksheet['!merges']!.push({
+      s: { r: 0, c: startCol },
+      e: { r: 0, c: startCol + 6 }
+    });
+  });
+  worksheet['!cols'] = [
+    { wch: 8 },
+    { wch: 20 },
+    ...Array(selectedTerms.length * 7).fill({ wch: 14 })
+  ];
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Term Wise Report');
+  XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+
 export function exportToExcelforInstallmentWise(rows: IFeeYearlyCollectionReport[], fileName: string) {
     if (!rows || rows.length === 0) return;
 
@@ -819,3 +1000,124 @@ export function printTable(columns: string[], rows: any[], sumRow?: any) {
     printWindow.document.close();
     printWindow.print();
 }
+
+export function printTermWiseTable(
+  rows: IFeeYearlyCollectionReport[],
+  selectedTerms: any[]
+) {
+  const printWindow = window.open('', '', 'width=1400,height=800');
+  if (!printWindow) return;
+  const feeHeads = Array.from(
+    new Map(rows.map(r => [r.fmh_id, r])).values()
+  );
+
+  let headerRow1 = `<tr>
+      <th rowspan="2">Sl No</th>
+      <th rowspan="2">Fee Head</th>`;
+
+  selectedTerms.forEach(term => {
+    headerRow1 += `<th colspan="7">${term.fmT_Name}</th>`;
+  });
+
+  headerRow1 += `</tr>`;
+  let headerRow2 = `<tr>`;
+
+  selectedTerms.forEach(() => {
+    headerRow2 += `
+      <th>Paid</th>
+      <th>Balance</th>
+      <th>Concession</th>
+      <th>Arrear</th>
+      <th>Excess</th>
+      <th>Charges</th>
+      <th>Payable</th>
+    `;
+  });
+
+  headerRow2 += `</tr>`;
+  let bodyRows = '';
+
+  feeHeads.forEach((feeHead, index) => {
+    bodyRows += `<tr>
+      <td>${index + 1}</td>
+      <td>${feeHead.fmh_feename}</td>`;
+
+    selectedTerms.forEach(term => {
+      const data = rows.find(
+        r => r.fmh_id === feeHead.fmh_id && r.fmt_id === term.fmT_Id
+      );
+      const formatCurrency = (value?: number) =>
+  `₹${(value || 0).toLocaleString('en-IN')}`;
+      
+
+      bodyRows += `
+        <td>${formatCurrency(data?.paid)}</td>
+        <td>${formatCurrency(data?.balance)}</td>
+        <td>${formatCurrency(data?.concession)}</td>
+        <td>${formatCurrency(data?.arrear)}</td>
+        <td>${formatCurrency(data?.excess)}</td>
+        <td>${formatCurrency(data?.charges)}</td>
+        <td>${formatCurrency(data?.payable)}</td>
+      `;
+    });
+
+    bodyRows += `</tr>`;
+  });
+  let totalRow = `<tr style="font-weight:bold;background:#f3f3f3">
+      <td colspan="2">TOTAL</td>`;
+
+  selectedTerms.forEach(term => {
+    const termRows = rows.filter(r => r.fmt_id === term.fmT_Id);
+const formatCurrency = (value?: number) =>
+  `₹${(value || 0).toLocaleString('en-IN')}`;
+const sum = (rows: any[], key: string) =>
+  rows.reduce((s, r) => s + (r[key] || 0), 0);
+    totalRow += `
+      <td>${formatCurrency(sum(termRows, 'paid'))}</td>
+      <td>${formatCurrency(sum(termRows, 'balance'))}</td>
+      <td>${formatCurrency(sum(termRows, 'concession'))}</td>
+      <td>${formatCurrency(sum(termRows, 'arrear'))}</td>
+      <td>${formatCurrency(sum(termRows, 'excess'))}</td>
+      <td>${formatCurrency(sum(termRows, 'charges'))}</td>
+      <td>${formatCurrency(sum(termRows, 'payable'))}</td>
+    `;
+  });
+
+  totalRow += `</tr>`;
+  printWindow.document.write(`
+    <html>
+    <head>
+      <title>Yearly Fee Collection (Term Wise)</title>
+      <style>
+        body { font-family: Arial; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { 
+          border: 1px solid #333; 
+          padding: 6px; 
+          font-size: 12px; 
+          text-align: right;
+        }
+        th { background: #eaeaea; text-align: center; }
+        td:nth-child(1), td:nth-child(2) { text-align: left; }
+      </style>
+    </head>
+    <body>
+      <h3 style="text-align:center">Yearly Fee Collection – Term Wise</h3>
+      <table>
+        <thead>
+          ${headerRow1}
+          ${headerRow2}
+        </thead>
+        <tbody>
+          ${bodyRows}
+          ${totalRow}
+        </tbody>
+      </table>
+    </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.print();
+}
+

@@ -51,7 +51,7 @@ export const useGetMasterSubjectDropdownList = (searchParams?: ApiSearchparams) 
     return {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.MASTER_SUBJECT_DROPDOWN_LIST, searchParams ?? {}],
-            queryFn: async () => getMasterSubjectDropdownList(30),
+            queryFn: async () => getMasterSubjectDropdownList(),
             staleTime: 300
         }),
 
@@ -137,7 +137,7 @@ export const useMasterSubExamDropdownList = () => {
     return {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.MASTER_SUB_EXAM_DROPDOWN_LIST],
-            queryFn: async () => getMasterSubExamDropdownList(30),
+            queryFn: async () => getMasterSubExamDropdownList(),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -171,7 +171,7 @@ export const useMasterSubSubjectDropdownList = (searchParams?: ApiSearchparams) 
     return {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.MASTER_SUB_SUBJECT_EX_DROPDOWN_LIST, searchParams ?? {}],
-            queryFn: async () => getMasterSubSubjectDropdownList(30),
+            queryFn: async () => getMasterSubSubjectDropdownList(),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -257,7 +257,7 @@ export const useMasterSubjectGroupDropdownList = () => {
     return {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.MASTER_SUBJECT_GROUP_DROPDOWN_LIST],
-            queryFn: async () => getSubjectsGroupDropDownByList(30),
+            queryFn: async () => getSubjectsGroupDropDownByList(),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -446,7 +446,7 @@ export const useMasterLifeSkills = (searchParams?: ApiSearchparams) => {
     return {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.LIFE_SKILLS, searchParams ?? {}],
-            queryFn: async () => getMasterLifeSkills(30, searchParams),
+            queryFn: async () => getMasterLifeSkills(searchParams),
             staleTime: 0
         }),
 
@@ -464,7 +464,7 @@ export const useMasterLifeSkillArea = (searchParams?: ApiSearchparams) => {
     return {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.LIFE_SKILLS_AREA, searchParams ?? {}],
-            queryFn: async () => getMasterLifeSkillAreas(30, searchParams),
+            queryFn: async () => getMasterLifeSkillAreas(searchParams),
             staleTime: 0
         }),
 
@@ -482,7 +482,7 @@ export const useMasterLifeSkillAreaMapping = (searchParams?: ApiSearchparams) =>
     return {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.LIFE_SKILLS_AREA_MAPPING, searchParams ?? {}],
-            queryFn: async () => getMasterLifeSkillMappings(30, searchParams),
+            queryFn: async () => getMasterLifeSkillMappings(searchParams),
             staleTime: 0
         }),
 

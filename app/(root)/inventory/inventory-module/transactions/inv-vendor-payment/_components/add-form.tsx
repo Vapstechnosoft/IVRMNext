@@ -206,10 +206,16 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
             return;
         }
 
+        // Recalculate total amount to ensure it matches the sum of selected payments
+        const calculatedTotal = validPayments.reduce((sum, item) => sum + (Number(item.invsptgrN_Amount) || 0), 0);
+
         const payload = {
             ...data,
+            invspT_Amount: calculatedTotal,
             paymentArray: validPayments
         };
+
+        console.log("AddVendorPaymentForm: Submitting payload:", payload);
 
         saveMutation.mutate(payload, {
             onSuccess: (res) => {
@@ -218,8 +224,17 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
         });
     };
 
+    const onError = (errors: any) => {
+        console.error("Form Validation Errors:", errors);
+        toast.error("Please check the form for errors.");
+        // Specifically check for invspT_Amount error which might be hidden
+        if (errors.invspT_Amount) {
+            toast.error(`Total Amount Error: ${errors.invspT_Amount.message}`);
+        }
+    };
+
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                     <div className="grid gap-2">
@@ -391,11 +406,21 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
                                         />
                                     </TableCell>
                                     <TableCell>
-                                        <Input
-                                            type="number"
-                                            className="text-right h-8"
-                                            defaultValue={field.invsptgrN_Amount}
-                                            onBlur={(e) => handleAmountBlur(index, e.target.value)}
+                                        <Controller
+                                            control={control}
+                                            name={`paymentArray.${index}.invsptgrN_Amount`}
+                                            render={({ field: valField }) => (
+                                                <Input
+                                                    type="number"
+                                                    className="text-right h-8"
+                                                    {...valField}
+                                                    onChange={(e) => valField.onChange(e.target.valueAsNumber || 0)}
+                                                    onBlur={(e) => {
+                                                        valField.onBlur();
+                                                        handleAmountBlur(index, e.target.value);
+                                                    }}
+                                                />
+                                            )}
                                         />
                                     </TableCell>
                                     <TableCell>

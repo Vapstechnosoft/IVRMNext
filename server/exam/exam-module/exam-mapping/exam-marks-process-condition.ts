@@ -6,7 +6,7 @@ import type { IExamMarksProcessCondition } from '@/types/exam/exam-module/exam-m
 
 export async function getExamMarksProcessCondition(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/exam_marks_process_condition/30?${urlParams}`;
+    const url = `/exam_marks_process_condition?${urlParams}`;
     return await api.get<IExamMarksProcessCondition>('exam', url);
 }
 

@@ -77,18 +77,16 @@ export async function getInvVendorPaymentLoadData(searchParams?: ApiSearchparams
 }
 
 export async function getInvVendorPaymentGRNDetails(invmS_Id: number, invmgrN_Id?: number) {
-    const url = `/INV_VendorPayment/getGRNdetail`;
-    const payload: any = { invmS_Id };
-    if (invmgrN_Id) {
-        payload.INVMGRN_Id = invmgrN_Id;
-    }
+    // Controller signature: getGRNdetail(long INVMS_Id, long INVMGRN_Id)
+    // This expects query parameters.
+    const url = `/INV_VendorPaymentFacade/getGRNdetail?INVMS_Id=${invmS_Id}&INVMGRN_Id=${invmgrN_Id || 0}`;
+
     try {
-        const response = await api.post<any>('inventory', url, payload);
+        const response = await api.get<any>('inventory', url);
         return {
             success: true,
             data: {
-                get_SuplierGRNno: extractData(response, 'get_SuplierGRNno'),
-                get_GRNpayment: extractData(response, 'get_GRNpayment')
+                get_GRNpayment: extractData(response, 'data')
             }
         };
     } catch (error) {
@@ -97,9 +95,17 @@ export async function getInvVendorPaymentGRNDetails(invmS_Id: number, invmgrN_Id
     }
 }
 
+
+
 export async function saveInvVendorPayment(data: any) {
+    console.log("saveInvVendorPayment: Received data:", JSON.stringify(data, null, 2));
+
+    // Updated to match the working API endpoint provided by the user
     const url = `/INV_VendorPaymentFacade/saveVendorPayment`;
+
     // Transform data to match the DTO expected by the backend
+    // Removing injected MI_Id and UserId to match the user's provided working JSON example perfectly.
+    // If the backend needs them, they might be extracted from the token or the DTO doesn't require them explicitly in this payload.
     const payload = {
         INVSPT_Id: data.invspT_Id || 0,
         INVMS_Id: data.invmS_Id,
@@ -111,7 +117,7 @@ export async function saveInvVendorPayment(data: any) {
         INVSPT_ChequeDDDate: data.invspT_ChequeDDDate ? new Date(data.invspT_ChequeDDDate).toISOString() : null,
         INVSPT_Amount: data.invspT_Amount,
         INVSPT_Remarks: data.invspT_Remarks,
-        PaymentArray: data.paymentArray?.map((p: any) => ({
+        paymentArray: data.paymentArray?.map((p: any) => ({
             INVSPTGRN_Id: p.invsptgrN_Id || 0,
             INVMGRN_Id: p.invmgrN_Id,
             INVSPTGRN_Amount: p.invsptgrN_Amount,
@@ -131,10 +137,18 @@ export async function saveInvVendorPayment(data: any) {
             message: response.message || (response.success ? 'Record saved successfully' : 'Failed to save record')
         };
     } catch (error: any) {
-        console.error("Error saving Vendor Payment:", error);
+        console.error("Error saving Vendor Payment:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
+        // Try to extract validation errors if any
+        let errorMsg = error.response?.data?.message || error.message || 'An error occurred while saving';
+        if (error.response?.data?.errors) {
+            errorMsg += ': ' + JSON.stringify(error.response.data.errors);
+        } else if (typeof error.response?.data === 'string') {
+            errorMsg += ': ' + error.response.data;
+        }
+
         return {
             success: false,
-            message: error.response?.data?.title || error.response?.data?.message || error.message || 'An error occurred while saving'
+            message: errorMsg
         };
     }
 }
@@ -217,17 +231,14 @@ export async function getGRNList(invmS_Id: number) {
 }
 
 export async function getGRNDetail(invmS_Id: number, invmgrN_Id: number) {
-    // Switched to POST and ensuring correct payload keys
-    const url = `/INV_VendorPayment/getGRNdetail`;
-    const payload = {
-        INVMS_Id: invmS_Id,
-        INVMGRN_Id: invmgrN_Id
-    };
+    // Updated to use GET and query params matching the C# controller
+    const url = `/INV_VendorPaymentFacade/getGRNdetail?INVMS_Id=${invmS_Id}&INVMGRN_Id=${invmgrN_Id}`;
+
     try {
-        const response = await api.post<any>('inventory', url, payload);
+        const response = await api.get<any>('inventory', url);
         return {
             success: response.success ?? true,
-            data: extractData(response, 'get_GRNpayment') // Note: getGRNDetail(old) had 'data', getInvVendorPaymentGRNDetail had 'get_GRNpayment'. Using get_GRNpayment as it seems more specific.
+            data: extractData(response, 'data') // User confirmed data is in 'data' property
         };
     } catch (error) {
         console.error("Error fetching GRN detail:", error);

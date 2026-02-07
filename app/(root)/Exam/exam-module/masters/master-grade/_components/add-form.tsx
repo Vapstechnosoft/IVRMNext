@@ -31,7 +31,6 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
         mode: 'onChange',
         defaultValues: {
             emgR_Id: 0,
-            mI_Id: 0,
             emgR_GradeName: '',
             emgR_MarksPerFlag: 'm',
             emgR_ActiveFlag: true,
@@ -110,7 +109,6 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
         try {
             const payload = {
                 emgR_Id: 0,
-                mI_Id: 30,
                 emgR_GradeName: data.emgR_GradeName,
                 emgR_MarksPerFlag: data.emgR_MarksPerFlag,
                 grade_list: data.grade_list.map(({ emgD_Id, ...row }) => ({

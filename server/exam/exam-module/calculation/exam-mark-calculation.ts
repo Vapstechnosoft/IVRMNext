@@ -20,7 +20,7 @@ export async function getExamCalculation(
 
     // Parameters must be passed as query string for this endpoint
     const params = {
-        MI_Id: 30,
+        // MI_Id: 30,
         ASMAY_Id: asmaY_Id,
         ASMCL_Id: asmcL_Id,
         ASMS_Id: asmS_Id,

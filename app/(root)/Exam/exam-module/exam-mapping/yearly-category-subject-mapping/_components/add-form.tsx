@@ -28,7 +28,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
         defaultValues: {
             userId: 1,
             eycG_Id: 0,
-            mI_Id: 30,
+            // mI_Id: 30,
             asmaY_Id: 0,
             emcA_Id: 0,
             emG_Id: 0,
@@ -48,7 +48,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
         reset({
             userId: 1,
             eycG_Id: rowData?.eycG_Id ?? 0,
-            mI_Id: 30,
+            // mI_Id: 30,
             asmaY_Id: rowData?.asmaY_Id ?? 0,
             emcA_Id: 0,
             emG_Id: rowData?.emG_Id ?? 0,
@@ -79,7 +79,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
         if (!selectedYearId) return;
         async function fetchCategories() {
             try {
-                const { data: cats } = await getCategoryDropDownByAcademicYearlist(30, selectedYearId);
+                const { data: cats } = await getCategoryDropDownByAcademicYearlist(selectedYearId);
                 setCategories(Array.isArray(cats) ? cats : []);
                 setValue('emcA_Id', 0); // reset selected category whenever year changes
             } catch (err: any) {
@@ -129,7 +129,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
             {
                 userId: 1,
                 eycG_Id: 0,
-                mI_Id: 30,
+                // mI_Id: 30,
                 asmaY_Id: 0,
                 emcA_Id: 0,
                 emG_Id: 0,

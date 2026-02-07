@@ -314,14 +314,90 @@ export default function AddFeeOpeningBalanceForm({
         }
     };
 
+    // const columns: ColumnDef<StudentRow>[] = useMemo(
+    //     () => [
+    //         // ... your columns (unchanged)
+    //         {
+    //             id: 'select',
+    //             header: () => {
+    //                 const checkedCount = students.filter((s) => s.checked).length;
+    //                 const allChecked = checkedCount === students.length && students.length > 0;
+    //                 const someChecked = checkedCount > 0 && !allChecked;
+
+    //                 return (
+    //                     <Checkbox
+    //                         checked={allChecked}
+    //                         {...(someChecked ? { 'data-state': 'indeterminate' } : {})}
+    //                         onCheckedChange={(checked) => {
+    //                             setStudents((prev) => prev.map((s) => ({ ...s, checked: !!checked })));
+    //                         }}
+    //                     />
+    //                 );
+    //             },
+    //             cell: ({ row }) => (
+    //                 <Checkbox
+    //                     checked={row.original.checked}
+    //                     onCheckedChange={(checked) => {
+    //                         setStudents((prev) => prev.map((s) => (s.amst_Id === row.original.amst_Id ? { ...s, checked: !!checked } : s)));
+    //                     }}
+    //                 />
+    //             ),
+    //             size: 50
+    //         },
+    //         {
+    //             accessorKey: 'fullName',
+    //             header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+    //             size: 300
+    //         },
+    //         {
+    //             accessorKey: 'fmoB_Student_Due',
+    //             header: 'Student Due',
+    //             cell: ({ row }) => (
+    //                 <Input
+    //                     type='number'
+    //                     min='0'
+    //                     step='1'
+    //                     className='w-32 text-right font-medium sm:w-40'
+    //                     value={row.original.fmoB_Student_Due}
+    //                     onChange={(e) => {
+    //                         const val = Number(e.target.value) || 0;
+    //                         setStudents((prev) =>
+    //                             prev.map((s) => (s.amst_Id === row.original.amst_Id ? { ...s, fmoB_Student_Due: val } : s))
+    //                         );
+    //                     }}
+    //                 />
+    //             )
+    //         },
+    //         {
+    //             accessorKey: 'fmoB_Institution_Due',
+    //             header: 'Institution Due',
+    //             cell: ({ row }) => (
+    //                 <Input
+    //                     type='number'
+    //                     min='0'
+    //                     step='1'
+    //                     className='w-32 text-right font-medium sm:w-40'
+    //                     value={row.original.fmoB_Institution_Due}
+    //                     onChange={(e) => {
+    //                         const val = Number(e.target.value) || 0;
+    //                         setStudents((prev) =>
+    //                             prev.map((s) => (s.amst_Id === row.original.amst_Id ? { ...s, fmoB_Institution_Due: val } : s))
+    //                         );
+    //                     }}
+    //                 />
+    //             )
+    //         }
+    //     ],
+    //     [students]
+    // );
     const columns: ColumnDef<StudentRow>[] = useMemo(
         () => [
-            // ... your columns (unchanged)
             {
                 id: 'select',
-                header: () => {
-                    const checkedCount = students.filter((s) => s.checked).length;
-                    const allChecked = checkedCount === students.length && students.length > 0;
+                header: ({ table }) => {
+                    const rows = table.getRowModel().rows;
+                    const checkedCount = rows.filter((r) => r.original.checked).length;
+                    const allChecked = checkedCount === rows.length && rows.length > 0;
                     const someChecked = checkedCount > 0 && !allChecked;
 
                     return (
@@ -344,11 +420,13 @@ export default function AddFeeOpeningBalanceForm({
                 ),
                 size: 50
             },
+
             {
                 accessorKey: 'fullName',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
                 size: 300
             },
+
             {
                 accessorKey: 'fmoB_Student_Due',
                 header: 'Student Due',
@@ -358,9 +436,10 @@ export default function AddFeeOpeningBalanceForm({
                         min='0'
                         step='1'
                         className='w-32 text-right font-medium sm:w-40'
-                        value={row.original.fmoB_Student_Due}
+                        value={row.getValue('fmoB_Student_Due')}
                         onChange={(e) => {
-                            const val = Number(e.target.value) || 0;
+                            const val = e.target.value === '' ? 0 : Number(e.target.value);
+
                             setStudents((prev) =>
                                 prev.map((s) => (s.amst_Id === row.original.amst_Id ? { ...s, fmoB_Student_Due: val } : s))
                             );
@@ -368,6 +447,7 @@ export default function AddFeeOpeningBalanceForm({
                     />
                 )
             },
+
             {
                 accessorKey: 'fmoB_Institution_Due',
                 header: 'Institution Due',
@@ -377,9 +457,10 @@ export default function AddFeeOpeningBalanceForm({
                         min='0'
                         step='1'
                         className='w-32 text-right font-medium sm:w-40'
-                        value={row.original.fmoB_Institution_Due}
+                        value={row.getValue('fmoB_Institution_Due')}
                         onChange={(e) => {
-                            const val = Number(e.target.value) || 0;
+                            const val = e.target.value === '' ? 0 : Number(e.target.value);
+
                             setStudents((prev) =>
                                 prev.map((s) => (s.amst_Id === row.original.amst_Id ? { ...s, fmoB_Institution_Due: val } : s))
                             );
@@ -388,7 +469,7 @@ export default function AddFeeOpeningBalanceForm({
                 )
             }
         ],
-        [students]
+        [setStudents] // ✅ ONLY stable deps
     );
 
     return (

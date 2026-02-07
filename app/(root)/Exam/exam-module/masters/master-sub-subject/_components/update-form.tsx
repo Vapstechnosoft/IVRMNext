@@ -72,8 +72,8 @@ export default function UpdateMasterSubSubjectForm({ onSuccess, className = '', 
 
             if (response.success) {
                 toast.success(response.message || 'Sub Subject updated successfully');
-                reset(payload);
                 refetchAll();
+                reset(payload);
                 onSuccess?.();
             } else {
                 toast.error(response.message || 'Failed to update Sub Subject');
