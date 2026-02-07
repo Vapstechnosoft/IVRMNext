@@ -241,6 +241,191 @@ export default function StudentDashboardPage() {
                     </div>
                 </DashboardWidget>
 
+
+  <DashboardWidget
+                    title="SYLLABUS"
+                    icon={<FileText className="h-6 w-6" />}
+                    colorClass="bg-green-500"
+                    footerText="VIEW SYLLABUS"
+                    onViewClick={() => { }}
+                >
+                    <div className="mt-4 flex justify-center">
+                        <p className="text-sm text-muted-foreground italic">Course Curriculum</p>
+                    </div>
+                </DashboardWidget>
+
+                {/* Library */}
+                <DashboardWidget
+                    title="LIBRARY"
+                    icon={<Library className="h-6 w-6" />}
+                    colorClass="bg-orange-500"
+                    footerText="VIEW LIBRARY"
+                    onViewClick={() => { }}
+                >
+                    <div className="mt-4 flex justify-center">
+                        <p className="text-sm text-muted-foreground italic">Books & Returns</p>
+                    </div>
+                </DashboardWidget>
+
+                {/* Sports */}
+                <DashboardWidget
+                    title="SPORTS"
+                    icon={<Trophy className="h-6 w-6" />}
+                    colorClass="bg-blue-500"
+                    footerText="VIEW SPORTS"
+                    onViewClick={() => openModal("SPORTS")}
+                >
+                    <div className="mt-4 flex justify-center">
+                        <p className="text-sm text-muted-foreground italic">Sports Events & Results</p>
+                    </div>
+                </DashboardWidget>
+
+                {/* Inventory */}
+                <DashboardWidget
+                    title="INVENTORY"
+                    icon={<ShoppingCart className="h-6 w-6" />}
+                    colorClass="bg-pink-500"
+                    footerText="VIEW INVENTORY"
+                    onViewClick={() => { }}
+                >
+                    <div className="mt-4 flex justify-center">
+                        <p className="text-sm text-muted-foreground italic">Purchase Items</p>
+                    </div>
+                </DashboardWidget>
+
+                {/* PDA */}
+                <DashboardWidget
+                    title="PDA"
+                    icon={<Briefcase className="h-6 w-6" />}
+                    colorClass="bg-yellow-500"
+                    footerText="VIEW PDA"
+                    onViewClick={() => { }}
+                >
+                    <div className="mt-4 flex justify-center">
+                        <p className="text-sm text-muted-foreground italic">Personal Deposit Account</p>
+                    </div>
+                </DashboardWidget>
+
+                {/* Promotion */}
+                <DashboardWidget
+                    title="PROMOTION"
+                    icon={<GraduationCap className="h-6 w-6" />}
+                    colorClass="bg-yellow-500"
+                // footerText="View Details"
+                >
+                    <div className="mt-2 text-sm">
+                        <p>Remarks: <span className="font-semibold">Promoted to Class XI</span></p>
+                    </div>
+                </DashboardWidget>
+
+                {/* Gallery */}
+                <DashboardWidget
+                    title="GALLERY"
+                    icon={<ImageIcon className="h-6 w-6" />}
+                    colorClass="bg-emerald-400"
+                    footerText="VIEW GALLERY"
+                    onViewClick={() => { }}
+                >
+                    <div className="mt-4 flex justify-center">
+                        <p className="text-sm text-muted-foreground italic">School Photos</p>
+                    </div>
+                </DashboardWidget>
+
+                {/* Book List */}
+                <DashboardWidget
+                    title="BOOK LIST"
+                    icon={<Book className="h-6 w-6" />}
+                    colorClass="bg-blue-500"
+                    footerText="VIEW BOOK LIST"
+                    onViewClick={() => { }}
+                >
+                    <div className="mt-2 text-sm">
+                        <p>Total Books: <span className="font-semibold">0</span></p>
+                    </div>
+                </DashboardWidget>
+
+                {/* Achievements/Complaints */}
+                <DashboardWidget
+                    title="ACHIEVEMENTS"
+                    icon={<Trophy className="h-6 w-6" />}
+                    colorClass="bg-green-500"
+                // Custom footer handling for two links
+                >
+                    <div className="mt-2 space-y-3">
+                        <button className="flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors w-full" onClick={() => openModal("ACHIEVEMENTS")}>
+                            <Trophy className="mr-2 h-4 w-4" /> View Achievements
+                        </button>
+                        <button className="flex items-center text-sm font-semibold text-red-600 hover:text-red-800 transition-colors w-full" onClick={() => openModal("ACHIEVEMENTS")}>
+                            <MessageCircle className="mr-2 h-4 w-4" /> View Complaints
+                        </button>
+                    </div>
+                </DashboardWidget>
+
+                {/* Transaction / Certificates */}
+                <DashboardWidget
+                    title="TRANSACTION"
+                    icon={<FileText className="h-6 w-6" />}
+                    colorClass="bg-purple-500"
+                    footerText="VIEW CERTIFICATES"
+                    onViewClick={() => router.push('/StudentPortal/student-dashboard/EnrolledStudents/Transaction/OnlineTransferCertificate')}
+                >
+                    <div className="mt-4 flex justify-center">
+                        <p className="text-sm text-muted-foreground italic">Apply for Transfer Certificate</p>
+                    </div>
+                </DashboardWidget>
+
+                {/* Interaction */}
+                <DashboardWidget
+                    title="INTERACTION"
+                    icon={<MessageCircle className="h-6 w-6" />}
+                    colorClass="bg-indigo-500"
+                    footerText="VIEW INTERACTIONS"
+                    onViewClick={() => router.push('/StudentPortal/student-dashboard/Interaction/IVRM_Interaction/Interaction')}
+                >
+                    <div className="mt-4 flex justify-center">
+                        <p className="text-sm text-muted-foreground italic">Inbox, Compose & Alerts</p>
+                    </div>
+                </DashboardWidget>
+
+         
+
+            {/* Modals */}
+            <Dialog open={activeModal === "NOTICE"} onOpenChange={(open) => !open && closeModal()}>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Notice Board</DialogTitle>
+                        <DialogDescription>Recent announcements and circulars</DialogDescription>
+                    </DialogHeader>
+                    <GenericDataTable columns={noticeColumns} data={mockNotices} isLoading={false} />
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={activeModal === "HOMEWORK"} onOpenChange={(open) => !open && closeModal()}>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Homework</DialogTitle>
+                    </DialogHeader>
+                    <GenericDataTable columns={homeworkColumns} data={mockHomework} isLoading={false} />
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={activeModal === "SPORTS"} onOpenChange={(open) => !open && closeModal()}>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Sports Events</DialogTitle>
+                    </DialogHeader>
+                    <GenericDataTable columns={sportsColumns} data={mockSports} isLoading={false} />
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={activeModal === "ACHIEVEMENTS"} onOpenChange={(open) => !open && closeModal()}>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Achievements</DialogTitle>
+                    </DialogHeader>
+                    <GenericDataTable columns={achievementColumns} data={mockAchievements} isLoading={false} />
+                </DialogContent>
+            </Dialog>
               
             </div>
 
