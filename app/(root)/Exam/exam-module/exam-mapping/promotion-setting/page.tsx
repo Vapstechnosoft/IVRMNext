@@ -27,6 +27,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function PromotionalSettingPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = usePromotionalSetting(searchParams);
+    useEffect(() => { console.log(response); }, [response]);
 
     return (
         <FormProvider<IPromotionSetting>>

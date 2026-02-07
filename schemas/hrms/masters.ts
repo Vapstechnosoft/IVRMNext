@@ -457,8 +457,8 @@ export const payrollStandardSchema = z.object({
     // Provident Fund
     HRC_PFAccPrefix: z.string().optional(),
     HRC_PFMaxAmt: z.number().min(0, 'Cannot be negative').optional().or(z.literal(undefined)),
-    HRC_FPFPer: z.number().min(0).max(100).optional().or(z.literal(undefined)),
-    HRC_EPFPer: z.number().min(0).max(100).optional().or(z.literal(undefined)),
+    HRC_FPFPer: z.number().min(0).max(100).refine(val => !val || Number.isInteger(val * 100), 'Max 2 decimal places allowed').optional().or(z.literal(undefined)),
+    HRC_EPFPer: z.number().min(0).max(100).refine(val => !val || Number.isInteger(val * 100), 'Max 2 decimal places allowed').optional().or(z.literal(undefined)),
     HRC_EPFPerAfterRetirement: z.number().min(0).max(100).optional(),
     HRC_EPFPerAfterRetirement2: z.number().min(0).max(100).optional(),
     HRC_AccNo2Per: z.number().min(0).optional(), // Account number, not percentage
@@ -474,7 +474,8 @@ export const payrollStandardSchema = z.object({
     HRC_RetirementYrs: z.number().min(1).max(100),
     // ESI
     HRC_ESIAccPrefix: z.string().optional(),
-    HRC_ESIMax: z.number().min(0).optional().or(z.literal(undefined)),
+    HRC_ESIMax: z.number().min(0, 'Must be at least 0').max(100, 'Cannot exceed 100').refine(val => !val || Number.isInteger(val * 100), 'Max 2 decimal places allowed').optional().or(z.literal(undefined)),
+    HRC_ESIMaxAmount: z.number().min(0).optional().or(z.literal(undefined)),
     HRC_ESIEmplrCont: z.number().min(0).max(100).optional().or(z.literal(undefined)),
     // Arrear Details
     HRC_ArrearSalaryReport: z.enum(['Separate', 'OnlyArrearHead']).optional(),

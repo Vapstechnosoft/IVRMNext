@@ -24,7 +24,7 @@ export default function ExamSubjectGroupingDetailsPage({ rowData, onClose }: Exa
         data: response,
         error,
         refetchAll
-    } = useExamSubjectGroupMappingDetails(30, rowData?.esG_CompulsoryFlag ?? 'N', rowData?.asmaY_Id ?? 0, rowData?.esG_Id ?? 0);
+    } = useExamSubjectGroupMappingDetails(rowData?.esG_CompulsoryFlag ?? 'N', rowData?.asmaY_Id ?? 0, rowData?.esG_Id ?? 0);
     //  Handle API response
     useEffect(() => {
         refetchAll();

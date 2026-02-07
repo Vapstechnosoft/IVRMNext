@@ -42,8 +42,6 @@ export default function AddMasterExamPaperForm({ onSuccess, className = '' }: Ad
             // Prepare the payload with form data and fixed values
             const payload = {
                 empatY_Id: 0,
-                mI_Id: 30,
-                user_id: 10,
                 empatY_PaperTypeName: data.empatY_PaperTypeName,
                 empatY_Color: data.empatY_Color,
                 empatY_PaperTypeDescription: data.empatY_PaperTypeDescription

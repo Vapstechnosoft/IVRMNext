@@ -7,12 +7,18 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useInvTItemConsumption } from '@/hooks/inventory/transactions/use-inv-t-item-consumption';
+import {
+    invTItemConsumptionSchema,
+    type InvTItemConsumptionSchema,
+} from '@/schemas/inventory/transactions/inv-t-item-consumption';
 import type { InvTItemConsumption } from '@/types/inventory/transactions/inv-t-item-consumption';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddItemConsumptionForm from './_components/add-form';
 import { invTItemConsumptionColumns } from './_components/columns';
 import { ToggleItemConsumptionModal } from './_components/toggle-modal';
+import { ViewItemsModal } from './_components/view-items-modal';
+import { ViewStaffModal } from './_components/view-staff-modal';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -124,10 +130,7 @@ function InvTItemConsumptionPageContent({
                                     className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
                                     <X className='h-4 w-4 mr-1' /> Close
                                 </Button>
-                                {/* Placeholder for Edit Form - often can reuse AddForm if properly parameterized */}
-                                <div className="p-4 text-center text-muted-foreground">
-                                    Edit functionality implementation pending (can reuse Add Form with initialData)
-                                </div>
+                                <AddItemConsumptionForm onSuccess={closeEditForm} initialData={selectedRow} />
                             </div>
                         </CollapsibleSection>
                     </div>
@@ -135,6 +138,14 @@ function InvTItemConsumptionPageContent({
 
                 {isToggleFormOpen && selectedRow && (
                     <ToggleItemConsumptionModal rowData={selectedRow} onClose={closeToggleForm} />
+                )}
+
+                {isDetailsViewOpen && selectedRow && selectedRow.invmiC_Remarks === 'VIEW_ITEMS' && (
+                    <ViewItemsModal rowData={selectedRow} onClose={closeDetailsView} />
+                )}
+
+                {isDetailsViewOpen && selectedRow && selectedRow.invmiC_Remarks === 'VIEW_STAFF' && (
+                    <ViewStaffModal rowData={selectedRow} onClose={closeDetailsView} />
                 )}
 
                 <CollapsibleSection

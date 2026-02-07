@@ -79,13 +79,12 @@ function SubExamPageContent({
             setIsOrderSaving(true);
             // Map updated data with new order
             const updatedOrderData = updatedData.map((item, index) => ({
-                emsE_Id: item.emsE_Id,
-                emE_ExamOrder: index + 1
+                EMSE_Id: item.emsE_Id,
+                EMSE_SubExamOrder: (index + 1).toString()
             }));
 
             const payload = {
-                mI_Id: 30,
-                sub_exam: updatedOrderData // ✅ correct variable name
+                sub_exam: updatedOrderData
             };
             const response = await UpdatedOrderdSubExams(payload);
 

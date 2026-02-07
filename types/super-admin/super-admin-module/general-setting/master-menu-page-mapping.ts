@@ -1,3 +1,13 @@
+export interface IMasterMenuPageMapping {
+    ivrmmmpM_Id: number;
+    menuname: string;
+    submenuname: string;
+    modulename: string;
+    pagename: string;
+}
+
+// Alias for DTO used in page.tsx
+export type IMasterMenuPageMappingDTO = IMasterMenuPageMapping;
 
 export interface IModuleDropdownItem {
     ivrmM_Id: number;
@@ -7,6 +17,7 @@ export interface IModuleDropdownItem {
 export interface IMainMenuDropdownItem {
     ivrmmM_Id: number;
     ivrmmM_MenuName: string;
+    ivrmM_Id?: number; // For filtering
 }
 
 export interface ISubMenuDropdownItem {
@@ -18,29 +29,15 @@ export interface ISubMenuDropdownItem {
 export interface IMasterPageItem {
     ivrmP_Id: number;
     pagename: string;
-    checked?: boolean;
 }
 
-export interface IMasterMenuPageMappingDTO {
-    ivrmmmpM_Id: number;
-    ivrmM_Id: number;
-    ivrmmM_Id: number;
-    ivrmmS_Id: number;
-    ivrmP_Id: number;
-    modulename?: string;
-    menuname?: string;
-    submenuname?: string;
-    pagename?: string;
-}
-
-// For saving, we likely send:
-// IVRMM_Id, IVRMMM_Id, IVRMMM_Idsubmenu, and a list of pages.
-// Or we save one by one? The HTML implies a "Save" button after selecting pages.
-// "savedata(secondgrid)" suggests saving a list of selected pages.
-
-export interface IMasterMenuPageMappingSaveDTO {
-    ivrmM_Id: number;
-    ivrmmM_Id: number;
-    ivrmmS_Id: number;
-    savetmpdata: IMasterPageItem[]; // or just IDs
+export interface MasterMenuPageMappingResponse {
+    success: boolean;
+    message: string;
+    data: {
+        records: IMasterMenuPageMapping[];
+    };
+    total: number;
+    page: number;
+    page_size: number;
 }

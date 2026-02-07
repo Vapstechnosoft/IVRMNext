@@ -28,7 +28,7 @@ export async function getExamElectivesReport(payload: any) {
     } = payload;
 
     const params = new URLSearchParams({
-        MI_Id: '30',
+        // MI_Id: '30',
         ASMAY_Id: String(ASMAY_Id),
         Type,
         EMCA_Id: String(EMCA_Id),
@@ -48,7 +48,7 @@ export async function getExamElectivesReport(payload: any) {
 }
 
 export async function getCategoryDropDownByYearList(asmaY_Id: number) {
-    const url = `/exam_master_category/exam_category_drop_down_by_academic_year_list/30/${asmaY_Id}`;
+    const url = `/exam_master_category/exam_category_drop_down_by_academic_year_list/${asmaY_Id}`;
     const response = await api.get<{ data: any[] }>('exam', url);
     return response.data || [];
 }

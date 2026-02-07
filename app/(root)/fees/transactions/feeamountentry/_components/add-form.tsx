@@ -525,7 +525,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                                         </td> */}
 
                                         <td>
-                                            <input
+                                            {/* <input
                                                 type='date'
                                                 value={
                                                     row.fmA_DueDate && row.fmA_DueDate.split('T')[0] !== getTodayDateString()
@@ -534,14 +534,33 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                                                 }
                                                 onChange={(e) => handleGridChange(index, 'fmA_DueDate', e.target.value || null)}
                                                 className='rounded border px-2 py-1'
+                                            /> */}
+                                            <input
+                                                type='date'
+                                                value={row.fmA_DueDate ? row.fmA_DueDate.split('T')[0] : ''}
+                                                onChange={(e) => handleGridChange(index, 'fmA_DueDate', e.target.value || null)}
+                                                className='rounded border px-2 py-1'
                                             />
                                         </td>
                                         <td>
-                                            <input
+                                            {/* <input
                                                 type='date'
                                                 value={
                                                     row.fmA_PartialRebateApplicableDate &&
                                                     row.fmA_PartialRebateApplicableDate.split('T')[0] !== getTodayDateString()
+                                                        ? row.fmA_PartialRebateApplicableDate.split('T')[0]
+                                                        : ''
+                                                }
+                                                onChange={(e) =>
+                                                    handleGridChange(index, 'fmA_PartialRebateApplicableDate', e.target.value || null)
+                                                }
+                                                className='rounded border px-2 py-1'
+                                            /> */}
+
+                                            <input
+                                                type='date'
+                                                value={
+                                                    row.fmA_PartialRebateApplicableDate
                                                         ? row.fmA_PartialRebateApplicableDate.split('T')[0]
                                                         : ''
                                                 }

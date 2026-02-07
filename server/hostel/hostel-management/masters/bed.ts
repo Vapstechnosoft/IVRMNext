@@ -6,8 +6,8 @@ import { IBed, IBedDisplay, IFloor, IHostel, IRoom, IRoomCategory } from '@/type
 // --- Mock Data ---
 
 const MOCK_HOSTELS: IHostel[] = [
-    { 
-        hlmH_Id: 1, 
+    {
+        hlmH_Id: 1,
         hlmH_Name: 'Main Hostel - Boys',
         hlmH_ActiveFlag: true,
         hlmH_BoysGirlsFlg: 'Boys',
@@ -25,8 +25,8 @@ const MOCK_HOSTELS: IHostel[] = [
         messes: [],
         documents: []
     },
-    { 
-        hlmH_Id: 2, 
+    {
+        hlmH_Id: 2,
         hlmH_Name: 'Main Hostel - Girls',
         hlmH_ActiveFlag: true,
         hlmH_BoysGirlsFlg: 'Girls',
@@ -43,43 +43,43 @@ const MOCK_HOSTELS: IHostel[] = [
         wardens: [],
         messes: [],
         documents: []
-    },
+    }
 ];
 
 const MOCK_FLOORS: IFloor[] = [
-    { 
-        hlmF_Id: 1, 
-        hrmF_FloorName: 'Ground Floor', 
+    {
+        hlmF_Id: 1,
+        hrmF_FloorName: 'Ground Floor',
         hlmH_Id: 1,
         hrmF_TotalRooms: 10,
         hrmF_FloorDesc: 'Ground Floor Description',
         hrmF_ActiveFlag: true,
         facilities: []
     },
-    { 
-        hlmF_Id: 2, 
-        hrmF_FloorName: 'First Floor', 
+    {
+        hlmF_Id: 2,
+        hrmF_FloorName: 'First Floor',
         hlmH_Id: 1,
         hrmF_TotalRooms: 12,
         hrmF_FloorDesc: 'First Floor Description',
         hrmF_ActiveFlag: true,
         facilities: []
     },
-    { 
-        hlmF_Id: 3, 
-        hrmF_FloorName: 'Ground Floor', 
+    {
+        hlmF_Id: 3,
+        hrmF_FloorName: 'Ground Floor',
         hlmH_Id: 2,
         hrmF_TotalRooms: 10,
         hrmF_FloorDesc: 'Ground Girls Floor',
         hrmF_ActiveFlag: true,
         facilities: []
-    },
+    }
 ];
 
 const MOCK_ROOMS: IRoom[] = [
-    { 
-        hrmrM_Id: 1, 
-        hrmrM_RoomNo: '101', 
+    {
+        hrmrM_Id: 1,
+        hrmrM_RoomNo: '101',
         hlmF_Id: 1,
         hlmH_Id: 1,
         hlmrcA_Id: 1,
@@ -92,9 +92,9 @@ const MOCK_ROOMS: IRoom[] = [
         hrmrM_ActiveFlag: true,
         facilities: []
     },
-    { 
-        hrmrM_Id: 2, 
-        hrmrM_RoomNo: '102', 
+    {
+        hrmrM_Id: 2,
+        hrmrM_RoomNo: '102',
         hlmF_Id: 1,
         hlmH_Id: 1,
         hlmrcA_Id: 1,
@@ -107,9 +107,9 @@ const MOCK_ROOMS: IRoom[] = [
         hrmrM_ActiveFlag: true,
         facilities: []
     },
-    { 
-        hrmrM_Id: 3, 
-        hrmrM_RoomNo: '201', 
+    {
+        hrmrM_Id: 3,
+        hrmrM_RoomNo: '201',
         hlmF_Id: 2,
         hlmH_Id: 1,
         hlmrcA_Id: 2,
@@ -122,9 +122,9 @@ const MOCK_ROOMS: IRoom[] = [
         hrmrM_ActiveFlag: true,
         facilities: []
     },
-    { 
-        hrmrM_Id: 4, 
-        hrmrM_RoomNo: 'G-01', 
+    {
+        hrmrM_Id: 4,
+        hrmrM_RoomNo: 'G-01',
         hlmF_Id: 3,
         hlmH_Id: 2,
         hlmrcA_Id: 3,
@@ -136,7 +136,7 @@ const MOCK_ROOMS: IRoom[] = [
         hrmrM_RoomForGuestFlg: true,
         hrmrM_ActiveFlag: true,
         facilities: []
-    },
+    }
 ];
 
 const MOCK_ROOM_CATEGORIES: IRoomCategory[] = [
@@ -168,7 +168,7 @@ const MOCK_ROOM_CATEGORIES: IRoomCategory[] = [
         hlmrcA_SharingFlg: true,
         hlmrcA_ActiveFlag: true
     },
-     {
+    {
         hlmrcA_Id: 3,
         hlmH_Id: 2,
         hlmF_Id: 3,
@@ -181,10 +181,10 @@ const MOCK_ROOM_CATEGORIES: IRoomCategory[] = [
         hlmrcA_ACFlg: true,
         hlmrcA_SharingFlg: true,
         hlmrcA_ActiveFlag: true
-    },
+    }
 ];
 
-let MOCK_BEDS: IBed[] = [
+const MOCK_BEDS: IBed[] = [
     {
         hlmB_Id: 1,
         hlmH_Id: 1,
@@ -198,7 +198,7 @@ let MOCK_BEDS: IBed[] = [
         hlmB_LampFlg: false,
         hlmB_ActiveFlag: true
     },
-     {
+    {
         hlmB_Id: 2,
         hlmH_Id: 1,
         hlmF_Id: 1,
@@ -216,13 +216,13 @@ let MOCK_BEDS: IBed[] = [
 // --- Actions ---
 
 export async function fetchBedData() {
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-    const gridData: IBedDisplay[] = MOCK_BEDS.map(bed => ({
+    const gridData: IBedDisplay[] = MOCK_BEDS.map((bed) => ({
         ...bed,
-        hlmH_Name: MOCK_HOSTELS.find(h => h.hlmH_Id === bed.hlmH_Id)?.hlmH_Name || 'Unknown',
-        hrmF_FloorName: MOCK_FLOORS.find(f => f.hlmF_Id === bed.hlmF_Id)?.hrmF_FloorName || 'Unknown',
-        hrmrM_RoomNo: MOCK_ROOMS.find(r => r.hrmrM_Id === bed.hrmrM_Id)?.hrmrM_RoomNo || 'Unknown'
+        hlmH_Name: MOCK_HOSTELS.find((h) => h.hlmH_Id === bed.hlmH_Id)?.hlmH_Name || 'Unknown',
+        hrmF_FloorName: MOCK_FLOORS.find((f) => f.hlmF_Id === bed.hlmF_Id)?.hrmF_FloorName || 'Unknown',
+        hrmrM_RoomNo: MOCK_ROOMS.find((r) => r.hrmrM_Id === bed.hrmrM_Id)?.hrmrM_RoomNo || 'Unknown'
     }));
 
     return {
@@ -235,24 +235,24 @@ export async function fetchBedData() {
 }
 
 export async function fetchFloors(hostelId: number) {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const floors = MOCK_FLOORS.filter(f => f.hlmH_Id === hostelId);
-    const categories = MOCK_ROOM_CATEGORIES.filter(c => c.hlmH_Id === hostelId);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const floors = MOCK_FLOORS.filter((f) => f.hlmH_Id === hostelId);
+    const categories = MOCK_ROOM_CATEGORIES.filter((c) => c.hlmH_Id === hostelId);
     return { floors, categories };
 }
 
 export async function fetchRooms(floorId: number) {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const rooms = MOCK_ROOMS.filter(r => r.hlmF_Id === floorId);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const rooms = MOCK_ROOMS.filter((r) => r.hlmF_Id === floorId);
     return { rooms };
 }
 
 export async function saveBed(data: any) {
-    await new Promise(resolve => setTimeout(resolve, 800));
+    await new Promise((resolve) => setTimeout(resolve, 800));
 
     try {
         const isUpdate = !!data.HLMB_Id;
-        
+
         const newBed: IBed = {
             hlmB_Id: data.HLMB_Id || Math.floor(Math.random() * 100000),
             hlmH_Id: Number(data.HLMH_Id),
@@ -268,7 +268,7 @@ export async function saveBed(data: any) {
         };
 
         if (isUpdate) {
-            const index = MOCK_BEDS.findIndex(b => b.hlmB_Id === Number(data.HLMB_Id));
+            const index = MOCK_BEDS.findIndex((b) => b.hlmB_Id === Number(data.HLMB_Id));
             if (index !== -1) {
                 MOCK_BEDS[index] = { ...MOCK_BEDS[index], ...newBed };
                 revalidatePath('/hostel/masters/master-bed');
@@ -287,8 +287,8 @@ export async function saveBed(data: any) {
 }
 
 export async function deleteBed(id: number) {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const index = MOCK_BEDS.findIndex(b => b.hlmB_Id === id);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const index = MOCK_BEDS.findIndex((b) => b.hlmB_Id === id);
     if (index !== -1) {
         const bed = MOCK_BEDS[index];
         bed.hlmB_ActiveFlag = !bed.hlmB_ActiveFlag;

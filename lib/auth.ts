@@ -72,7 +72,7 @@ export const authConfig: NextAuthConfig = {
             name: 'ivrm-session-1.0',
             options: {
                 httpOnly: true,
-                secure: true,
+                secure: process.env.NODE_ENV === 'production',
                 sameSite: 'lax',
                 path: '/'
             }

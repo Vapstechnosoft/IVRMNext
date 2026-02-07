@@ -1,10 +1,20 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
+import {
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogCancel,
+    AlertDialogAction
+} from '@/components/ui/alert-dialog';
 import { useInvOpeningBalance } from '@/hooks/inventory/transactions/use-inv-opening-balance';
 import type { IInvOpeningBalance } from '@/types/inventory/transactions/inv-opening-balance';
-import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { useCallback } from 'react';
 
 interface ToggleOBModalProps {
     rowData: IInvOpeningBalance;
@@ -15,44 +25,47 @@ export function ToggleOBModal({ rowData, onClose }: ToggleOBModalProps) {
     const { toggleActiveMutation } = useInvOpeningBalance();
     const isActive = rowData.invoB_ActiveFlg;
 
-    const {
-        handleSubmit,
-        formState: { isSubmitting }
-    } = useForm();
-
-    const onSubmit = async () => {
+    const handleToggle = useCallback(async () => {
         try {
-            await toggleActiveMutation.mutateAsync(rowData);
-            onClose();
-        } catch (error) {
-            console.error(error);
+            const result: any = await toggleActiveMutation.mutateAsync(rowData);
+            if (result?.success || result?.returnval) {
+                toast.success(result?.message || 'Status updated successfully');
+                onClose();
+            } else {
+                toast.error(result?.message || 'Failed to update status');
+            }
+        } catch (error: any) {
+            toast.error(error.message || 'An error occurred');
         }
-    };
+    }, [rowData, toggleActiveMutation, onClose]);
 
     return (
-        <AdaptiveDialog title='Toggle Opening Balance Status' isOpen={true} onClose={onClose} size="md">
-            <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
-                <AdaptiveBody className='flex flex-col gap-5'>
-                    <div className='space-y-3'>
-                        <p className='text-sm text-warning-foreground'>
-                            Are you sure you want to {isActive ? 'deactivate' : 'activate'} Opening Balance for <strong>{rowData.invmI_ItemName}</strong> (Batch: {rowData.invoB_BatchNo})?
-                        </p>
-                    </div>
-                </AdaptiveBody>
+        <AlertDialog open={true} onOpenChange={onClose}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>
+                        {isActive ? 'Deactivate Record' : 'Activate Record'}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} this opening balance record for <strong>{rowData.invmI_ItemName}</strong>?
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
 
-                <AdaptiveFooter>
-                    <Button variant='secondary' onClick={onClose} type='button' disabled={isSubmitting}>
-                        Cancel
-                    </Button>
-                    <Button
-                        type='submit'
-                        isLoading={isSubmitting}
-                        variant={isActive ? 'destructive' : 'default'}
-                        loadingText={isActive ? 'Deactivating...' : 'Activating...'}>
-                        {isActive ? 'Deactivate' : 'Activate'}
-                    </Button>
-                </AdaptiveFooter>
-            </form>
-        </AdaptiveDialog>
+                <AlertDialogFooter className="flex gap-2">
+                    <AlertDialogCancel asChild>
+                        <Button variant="secondary">Cancel</Button>
+                    </AlertDialogCancel>
+
+                    <AlertDialogAction asChild>
+                        <Button
+                            variant={isActive ? 'destructive' : 'default'}
+                            onClick={handleToggle}
+                        >
+                            Yes, {isActive ? 'Deactivate' : 'Activate'} it
+                        </Button>
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     );
 }

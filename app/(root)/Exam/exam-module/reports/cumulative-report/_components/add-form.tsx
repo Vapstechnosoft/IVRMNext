@@ -24,8 +24,6 @@ import type { z } from 'zod';
 type FormFields = z.infer<typeof cumulativereportSchema.addOrUpdate> & {
     Left_Flag: boolean;
     Deactive_Flag: boolean;
-    applicable: boolean;
-    nonapplicable: boolean;
     classrank: boolean;
     sectionrank: boolean;
     attendancedispaly: boolean;
@@ -43,7 +41,7 @@ export default function CumulativeReportForm({
         resolver: zodResolver(cumulativereportSchema.addOrUpdate),
         mode: 'all',
         defaultValues: {
-            mI_Id: 30,
+            // mI_Id: 30,
             asmaY_Id: 0,
             asmcL_Id: 0,
             asmS_Id: 0,
@@ -51,8 +49,8 @@ export default function CumulativeReportForm({
             studentList: [],
             Left_Flag: false,
             Deactive_Flag: false,
-            applicable: true,
-            nonapplicable: true,
+            applicableFlag: true,
+            nonApplicableFlag: false,
             classrank: false,
             sectionrank: false,
             attendancedispaly: false,
@@ -190,7 +188,7 @@ export default function CumulativeReportForm({
         }
 
         const payload = {
-            mI_Id: 30, // <-- hard-coded as required
+            // mI_Id: 30, // <-- hard-coded as required
             asmaY_Id: data.asmaY_Id,
             asmcL_Id: data.asmcL_Id,
             asmS_Id: data.asmS_Id,
@@ -198,8 +196,8 @@ export default function CumulativeReportForm({
             amsT_Ids: data.studentList.map((s) => s.amsT_Id).join(','),
             Left_Flag: data.Left_Flag,
             Deactive_Flag: data.Deactive_Flag,
-            applicableFlag: data.applicable,
-            nonApplicableFlag: data.nonapplicable,
+            applicableFlag: data.applicableFlag === true ? '1' : '0',
+            nonApplicableFlag: data.nonApplicableFlag === true ? '1' : '0',
             classrank: data.classrank,
             sectionrank: data.sectionrank,
             attendancedispaly: data.attendancedispaly

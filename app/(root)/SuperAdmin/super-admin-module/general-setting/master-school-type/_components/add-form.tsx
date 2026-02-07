@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Spinner as LoadingSpinner } from '@/components/ui/spinner';
 import { masterSchoolTypeSchema, type MasterSchoolTypeSchema } from '@/schemas/super-admin/super-admin-module/general-setting/master-school-type';
-import { saveMasterSchoolType } from '@/server/super-admin/super-admin-module/general-setting/master-school-type';
+import { saveMasterSchoolType, getMasterSchoolTypeDetails } from '@/server/super-admin/super-admin-module/general-setting/master-school-type';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -34,11 +34,27 @@ export default function AddMasterSchoolTypeForm({ onSuccess }: AddMasterSchoolTy
 
     useEffect(() => {
         if (selectedRow) {
-            setValue('ivrmmtyP_Id', selectedRow.ivrmmtyP_Id);
-            setValue('ivrmmtyP_Type', selectedRow.ivrmmtyP_Type);
-            setValue('ivrmmtyP_Description', selectedRow.ivrmmtyP_Description);
+            // Set initial values from selectedRow immediately using reset (better for form re-initialization)
+            reset({
+                ivrmmtyP_Id: selectedRow.ivrmmtyP_Id,
+                ivrmmtyP_Type: selectedRow.ivrmmtyP_Type,
+                ivrmmtyP_Description: selectedRow.ivrmmtyP_Description,
+            });
+
+            setIsLoading(true);
+            getMasterSchoolTypeDetails(selectedRow.ivrmmtyP_Id).then(res => {
+                if (res.success && res.data) {
+                    // Update with fresh data
+                    reset({
+                        ivrmmtyP_Id: res.data.ivrmmtyP_Id,
+                        ivrmmtyP_Type: res.data.ivrmmtyP_Type,
+                        ivrmmtyP_Description: res.data.ivrmmtyP_Description,
+                    });
+                }
+                setIsLoading(false);
+            });
         }
-    }, [selectedRow, setValue]);
+    }, [selectedRow, reset]);
 
     const onSubmit = async (data: MasterSchoolTypeSchema) => {
         setIsLoading(true);

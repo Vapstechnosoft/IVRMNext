@@ -101,7 +101,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const [subSubjectSubExamModalState, setSubSubjectSubExamModalState] = useState<{ open: boolean; subject?: any }>({ open: false });
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const { data: gradeData, error: gradeError } = useMasterGradeDropdownList();
-    const { data: response } = useExamSubjectWizardDetails(30, rowData?.eycE_Id ? rowData?.eycE_Id : 0);
+    const { data: response } = useExamSubjectWizardDetails(rowData?.eycE_Id ? rowData?.eycE_Id : 0);
     const { refetchAll } = useExamSubjectWizard();
     // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { data: masterSubSubject, isLoading: masterSubSubjectLoading } = useMasterSubSubjectDropdownList();
@@ -110,8 +110,24 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const router = useRouter();
     const convertToISO = (dateStr: string) => {
         if (!dateStr) return '';
-        const [day, month, year] = dateStr.split('/');
-        return `${year}-${month}-${day}`; // convert to YYYY-MM-DD
+        if (dateStr.includes('T')) {
+            return dateStr.split('T')[0];
+        }
+        if (dateStr.includes('/')) {
+            const parts = dateStr.split('/');
+            // If already YYYY/MM/DD
+            if (parts[0].length === 4) return `${parts[0]}-${parts[1]}-${parts[2]}`;
+            // If DD/MM/YYYY
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+        if (dateStr.includes('-')) {
+            const parts = dateStr.split('-');
+            // If already YYYY-MM-DD
+            if (parts[0].length === 4) return dateStr;
+            // If DD-MM-YYYY
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+        return dateStr;
     };
     useEffect(() => {
         if (masterSubSubject && Array.isArray(masterSubSubject.data)) {
@@ -169,7 +185,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         async function fetchRelated() {
             try {
                 setCategoriesLoading(true);
-                const { data: cats } = await getCategoryDropDowByExamYearCategoryList(30, Number(watchYear));
+                const { data: cats } = await getCategoryDropDowByExamYearCategoryList(Number(watchYear));
                 setCategories(Array.isArray(cats) ? cats : []);
             } catch (err: any) {
                 toast.error(err?.message ?? 'Failed to load categories');
@@ -277,7 +293,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
         (async () => {
             try {
-                const { data: subj } = await getSubjectsByCategory(30, Number(watchCategory));
+                const { data: subj } = await getSubjectsByCategory(Number(watchCategory));
 
                 const formattedSubjects = Array.isArray(subj)
                     ? subj.map((s: any) => ({
@@ -353,8 +369,8 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                             // ---------------------------
                             // Sub-Subject Mapping
                             if (updated.EYCES_SubSubjectFlg && !updated.EYCES_SubExamFlg) {
-                                console.info(30, updated.EYCES_Id);
-                                const { data: mappedList } = await getSubSubjectsMappedList(30, updated.EYCES_Id);
+                                console.info(updated.EYCES_Id);
+                                const { data: mappedList } = await getSubSubjectsMappedList(updated.EYCES_Id);
                                 if (mappedList?.length) {
                                     console.log('mapped subsubjectData', mappedList);
                                     updated.subSubjectConfig = mappedList.map((item: any) => ({
@@ -369,7 +385,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
                             // Sub-Exam Mapping
                             if (updated.EYCES_SubExamFlg && !updated.EYCES_SubSubjectFlg) {
-                                const { data: mappedList } = await getSubExamsMappedList(30, updated.EYCES_Id);
+                                const { data: mappedList } = await getSubExamsMappedList(updated.EYCES_Id);
                                 if (mappedList?.length) {
                                     updated.subExamConfig = mappedList.map((item: any) => ({
                                         ...mapToSubExamConfig(item),
@@ -384,7 +400,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
                             // Sub-Subject-Sub-Exam Mapping
                             if (updated.EYCES_SubSubjectFlg && updated.EYCES_SubExamFlg) {
-                                const { data: mappedList } = await getSubSubjectsAndSubExamsMappedList(30, updated.EYCES_Id);
+                                const { data: mappedList } = await getSubSubjectsAndSubExamsMappedList(updated.EYCES_Id);
                                 console.info('mapped subsubjectData', mappedList);
                                 if (mappedList?.length) {
                                     updated.subSubjectSubExamConfig = mappedList.map((item: any) => ({
@@ -528,7 +544,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         try {
             setSubSubjectSubExamModalState({ open: true, subject });
 
-            const { data } = await getSubSubjectSubExamList(30);
+            const { data } = await getSubSubjectSubExamList();
             const safeList = Array.isArray(data) ? data : [];
 
             const safeConfigList = Array.isArray(subject?.subSubjectSubExamConfig) ? subject.subSubjectSubExamConfig : [];
@@ -991,7 +1007,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                             label='Attendance From'
                                             placeholder='Select Attendance From Date'
                                             fromDate={today}
-                                            toDate={new Date(watch('EYCE_AttendanceToDate'))}
+                                            toDate={watch('EYCE_AttendanceToDate') ? new Date(watch('EYCE_AttendanceToDate')) : undefined}
                                             restricted_tofieldName='Attendence To-Date'
                                             restricted_fromfieldName='Attendence From-Date'
                                         />
@@ -1007,7 +1023,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                             fieldState={fieldState}
                                             label='Attendance To'
                                             placeholder='Select Attendance To Date'
-                                            fromDate={new Date(watch('EYCE_AttendanceFromDate'))}
+                                            fromDate={watch('EYCE_AttendanceFromDate') ? new Date(watch('EYCE_AttendanceFromDate')) : undefined}
                                         />
                                     )}
                                 />

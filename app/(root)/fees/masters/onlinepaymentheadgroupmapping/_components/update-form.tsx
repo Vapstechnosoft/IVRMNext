@@ -159,20 +159,63 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
         setValue('institutionName', selectedRow.mI_Name);
     }, [setValue]);
 
-    // Refetch heads on group/academic year change
-    useEffect(() => {
-        if (academicYear && groupId) {
-            refetchHeadNames();
-        } else {
-            setHeadOptions([]);
-            setSelectedHeads([]);
-        }
-    }, [academicYear, groupId, refetchHeadNames]);
+    // // Refetch heads on group/academic year change
+    // useEffect(() => {
+    //     if (academicYear && groupId) {
+    //         refetchHeadNames();
+    //     } else {
+    //         setHeadOptions([]);
+    //         setSelectedHeads([]);
+    //     }
+    // }, [academicYear, groupId, refetchHeadNames]);
 
+    // // Fetch installments dynamically when heads change
+    // useEffect(() => {
+    //     const fetchInstallments = async () => {
+    //        //  if (!academicYear || !classId || !groupId || !!selectedHeads) {
+    //         if (!academicYear ) {
+    //             setInstallmentOptions([]);
+    //             return;
+    //         }
+
+    //         try {
+    //             const payload: any = {
+    //                 // mi_Id: Number(getValues('mI_Id') ?? 30),
+    //                 asmaY_Id: academicYear,
+    //                 fmg_Id: groupId ?? classId
+    //             };
+
+    //             const typedSelectedHeads: any[] = selectedHeads || [];
+
+    //             if (typedSelectedHeads.length > 0) {
+    //                 payload.selectedheadList = typedSelectedHeads.map((h) => ({ fmH_Id: h }));
+    //             }
+
+    //             const res = await GetInstallmentMasterDropdown(payload);
+    //             if (res?.data && Array.isArray(res.data)) {
+    //                 const opts = res.data.map((c: any) => ({
+    //                     value: String(c.ftI_Id ?? c.ftI_ID ?? c.fti_id),
+    //                     label: c.ftI_Name ?? c.ftI_NAME ?? c.fti_name ?? c.Name ?? ''
+    //                 }));
+    //                 const unique = opts.filter((o, i, a) => a.findIndex((t) => t.value === o.value) === i);
+    //                 setInstallmentOptions(unique);
+    //             } else {
+    //                 setInstallmentOptions([]);
+    //             }
+    //         } catch (err) {
+    //             console.error('Error fetching installments:', err);
+    //             setInstallmentOptions([]);
+    //         }
+    //     };
+
+    //     fetchInstallments();
+    // }, [academicYearLoading]);
+    // // }, [academicYear, classId, groupId, selectedHeads, getValues]);
     // Fetch installments dynamically when heads change
     useEffect(() => {
         const fetchInstallments = async () => {
-            if (!academicYear || !classId || !groupId || !!selectedHeads) {
+            //  if (!academicYear || !classId || !groupId || !!selectedHeads) {
+            if (!academicYear) {
                 setInstallmentOptions([]);
                 return;
             }
@@ -208,8 +251,8 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
         };
 
         fetchInstallments();
-    }, [academicYear, classId, groupId, selectedHeads, getValues]);
-
+    }, [academicYearLoading]);
+    // }, [academicYear, classId, groupId, selectedHeads, getValues]);
     // Map options
     useEffect(() => {
         if (masterClass?.data && Array.isArray(masterClass.data)) {
@@ -614,34 +657,34 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
                                                                 : selectedHeads.filter((p) => p !== optVal);
                                                             setSelectedHeads(newSelected);
 
-                                                            // Fetch installments immediately
-                                                            if (academicYear && (groupId ?? classId)) {
-                                                                try {
-                                                                    const payload: any = {
-                                                                        // mi_Id: Number(getValues('mI_Id') ?? 30),
-                                                                        asmaY_Id: academicYear,
-                                                                        fmg_Id: groupId ?? classId
-                                                                    };
-                                                                    if (newSelected.length > 0) {
-                                                                        payload.selectedheadList = newSelected.map((h) => ({ fmH_Id: h }));
-                                                                    }
-                                                                    const res = await GetInstallmentMasterDropdown(payload);
-                                                                    if (res?.data && Array.isArray(res.data)) {
-                                                                        const opts = res.data.map((c: any) => ({
-                                                                            value: String(c.ftI_Id ?? c.ftI_ID ?? c.fti_id),
-                                                                            label: c.ftI_Name ?? c.ftI_NAME ?? c.fti_name ?? c.Name ?? ''
-                                                                        }));
-                                                                        const unique = opts.filter(
-                                                                            (o, i, a) => a.findIndex((t) => t.value === o.value) === i
-                                                                        );
-                                                                        setInstallmentOptions(unique);
-                                                                    } else {
-                                                                        setInstallmentOptions([]);
-                                                                    }
-                                                                } catch (err) {
-                                                                    console.error('Error fetching installments on head toggle:', err);
-                                                                }
-                                                            }
+                                                            // // Fetch installments immediately
+                                                            // if (academicYear && (groupId ?? classId)) {
+                                                            //     try {
+                                                            //         const payload: any = {
+                                                            //             // mi_Id: Number(getValues('mI_Id') ?? 30),
+                                                            //             asmaY_Id: academicYear,
+                                                            //             fmg_Id: groupId ?? classId
+                                                            //         };
+                                                            //         if (newSelected.length > 0) {
+                                                            //             payload.selectedheadList = newSelected.map((h) => ({ fmH_Id: h }));
+                                                            //         }
+                                                            //         const res = await GetInstallmentMasterDropdown(payload);
+                                                            //         if (res?.data && Array.isArray(res.data)) {
+                                                            //             const opts = res.data.map((c: any) => ({
+                                                            //                 value: String(c.ftI_Id ?? c.ftI_ID ?? c.fti_id),
+                                                            //                 label: c.ftI_Name ?? c.ftI_NAME ?? c.fti_name ?? c.Name ?? ''
+                                                            //             }));
+                                                            //             const unique = opts.filter(
+                                                            //                 (o, i, a) => a.findIndex((t) => t.value === o.value) === i
+                                                            //             );
+                                                            //             setInstallmentOptions(unique);
+                                                            //         } else {
+                                                            //             setInstallmentOptions([]);
+                                                            //         }
+                                                            //     } catch (err) {
+                                                            //         console.error('Error fetching installments on head toggle:', err);
+                                                            //     }
+                                                            // }
                                                         }}
                                                         className='mr-2 h-4 w-4 accent-blue-600'
                                                     />

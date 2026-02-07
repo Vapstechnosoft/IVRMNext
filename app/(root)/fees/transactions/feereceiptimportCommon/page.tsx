@@ -427,46 +427,100 @@ export default function feeReceiptimportCommon() {
             return;
         }
 
-        const formatDateForAPI = (dateString: string) => {
+        // const formatDateForAPI = (dateString: string) => {
+        //     if (!dateString) return '';
+
+        //     try {
+        //         let date: Date;
+        //         if (dateString.includes('T') && dateString.includes('Z')) {
+        //             date = new Date(dateString);
+        //         } else if (dateString.match(/^\d{1,2}[\/\.]\d{1,2}[\/\.]\d{4}/)) {
+        //             const separator = dateString.includes('/') ? '/' : '.';
+        //             const parts = dateString.split(separator);
+        //             date = new Date(`${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}T00:00:00.000Z`);
+        //         } else if (dateString.match(/^\d{4}\/\d{1,2}\/\d{1,2}/)) {
+        //             const parts = dateString.split('/');
+        //             date = new Date(`${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}T00:00:00.000Z`);
+        //         } else if (dateString.match(/^\d{4}-\d{1,2}-\d{1,2}/)) {
+        //             date = new Date(`${dateString}T00:00:00.000Z`);
+        //         } else if (!Number.isNaN(Number(dateString)) && Number(dateString) > 25569) {
+        //             const excelDate = Number(dateString);
+        //             const dateObj = new Date((excelDate - 25569) * 86400 * 1000);
+        //             if (!Number.isNaN(dateObj.getTime())) {
+        //                 date = dateObj;
+        //             } else {
+        //                 date = new Date(dateString);
+        //             }
+        //         } else {
+        //             date = new Date(dateString);
+        //         }
+
+        //         if (Number.isNaN(date.getTime())) {
+        //             console.warn(`Invalid date format: ${dateString}, using current date`);
+        //             return new Date().toISOString();
+        //         }
+
+        //         return date.toISOString();
+        //     } catch (error) {
+        //         console.error('Error formatting date:', error, dateString);
+        //         return new Date().toISOString();
+        //     }
+        // };
+        const formatDateForAPI = (dateString: string): string => {
             if (!dateString) return '';
 
             try {
-                let date: Date;
-                if (dateString.includes('T') && dateString.includes('Z')) {
-                    date = new Date(dateString);
-                } else if (dateString.match(/^\d{1,2}[\/\.]\d{1,2}[\/\.]\d{4}/)) {
-                    const separator = dateString.includes('/') ? '/' : '.';
-                    const parts = dateString.split(separator);
-                    date = new Date(`${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}T00:00:00.000Z`);
-                } else if (dateString.match(/^\d{4}\/\d{1,2}\/\d{1,2}/)) {
+                // If date is already in YYYY-MM-DD format, return as is
+                if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    return dateString;
+                }
+
+                // If date is in DD/MM/YYYY format, convert to YYYY-MM-DD
+                if (dateString.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
                     const parts = dateString.split('/');
-                    date = new Date(`${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}T00:00:00.000Z`);
-                } else if (dateString.match(/^\d{4}-\d{1,2}-\d{1,2}/)) {
-                    date = new Date(`${dateString}T00:00:00.000Z`);
-                } else if (!Number.isNaN(Number(dateString)) && Number(dateString) > 25569) {
-                    const excelDate = Number(dateString);
-                    const dateObj = new Date((excelDate - 25569) * 86400 * 1000);
-                    if (!Number.isNaN(dateObj.getTime())) {
-                        date = dateObj;
-                    } else {
-                        date = new Date(dateString);
+                    if (parts.length === 3) {
+                        const day = parts[0].padStart(2, '0');
+                        const month = parts[1].padStart(2, '0');
+                        const year = parts[2];
+                        return `${year}-${month}-${day}`;
                     }
-                } else {
-                    date = new Date(dateString);
                 }
 
-                if (Number.isNaN(date.getTime())) {
-                    console.warn(`Invalid date format: ${dateString}, using current date`);
-                    return new Date().toISOString();
+                // If date is in YYYY/MM/DD format, convert to YYYY-MM-DD
+                if (dateString.match(/^\d{4}\/\d{2}\/\d{2}$/)) {
+                    const parts = dateString.split('/');
+                    if (parts.length === 3) {
+                        const year = parts[0];
+                        const month = parts[1];
+                        const day = parts[2];
+                        return `${year}-${month}-${day}`;
+                    }
                 }
 
-                return date.toISOString();
+                // Try to parse as Date object for any other format
+                const date = new Date(dateString);
+                if (!Number.isNaN(date.getTime())) {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                }
+
+                // If all else fails, try to create a date from the string with time component
+                const dateWithTime = new Date(dateString + 'T00:00:00');
+                if (!Number.isNaN(dateWithTime.getTime())) {
+                    const year = dateWithTime.getFullYear();
+                    const month = String(dateWithTime.getMonth() + 1).padStart(2, '0');
+                    const day = String(dateWithTime.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                }
+
+                return ''; // Return empty string if we can't parse it
             } catch (error) {
-                console.error('Error formatting date:', error, dateString);
-                return new Date().toISOString();
+                console.error('Error formatting date:', error);
+                return '';
             }
         };
-
         try {
             const feeReceiptimport = processedData.map((item) => ({
                 amsT_AdmNo: item.AMST_AdmNo,
@@ -481,6 +535,8 @@ export default function feeReceiptimportCommon() {
                 asmaY_Id: selectedAsmayId,
                 feeReceiptimportCommon: feeReceiptimport
             };
+
+            console.log('payload', JSON.stringify(payload));
 
             const response = await savefeeReceiptimportCommon(payload);
 

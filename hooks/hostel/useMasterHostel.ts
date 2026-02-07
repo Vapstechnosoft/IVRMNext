@@ -1,5 +1,6 @@
 import { HOSTEL_QUERY_KEYS } from '@/constants/query-keys';
-import { getCountries, getEmployees, getFacilities, getHostelList, getHostelPhotos, getMessList, getStates } from '@/server/hostel/hostel-management/masters/hostel';
+import { getCountries, getEmployees, getFacilities, getHostelList, getHostelPhotos, getStates, getHostelDropdownList } from '@/server/hostel/hostel-management/masters/hostel';
+import { getMessList } from '@/server/hostel/hostel-management/masters/mess';
 import { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -20,6 +21,15 @@ export const useMasterHostel = (searchParams?: ApiSearchparams) => {
             });
         }
     };
+};
+
+export const useHostelDropdownList = () => {
+    return useQuery({
+        queryKey: ['hostel-dropdown'],
+        queryFn: () => getHostelDropdownList(),
+        select: (data) => data?.data || [],
+        staleTime: Infinity,
+    });
 };
 
 export const useMessDropdownList = () => {

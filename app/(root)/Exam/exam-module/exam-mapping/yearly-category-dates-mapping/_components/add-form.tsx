@@ -73,7 +73,7 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
         }
         async function fetchCategories() {
             try {
-                const { data: cats } = await getCategoryDropDownByAcademicYearlist(orgId, selectedYearId);
+                const { data: cats } = await getCategoryDropDownByAcademicYearlist(selectedYearId);
                 setCategories(Array.isArray(cats) ? cats : []);
                 setValue('emcA_Id', 0);
             } catch (err: any) {

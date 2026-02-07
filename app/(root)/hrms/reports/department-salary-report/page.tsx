@@ -67,6 +67,7 @@ export default function DepartmentSalaryReportPage() {
 
     // Watch for success
     useEffect(() => {
+        // biome-ignore lint/complexity/useOptionalChain: <explanation>
         if (reportResult && reportResult.data && reportResult.data.departmentSalaryDetails) {
             setReportData(reportResult.data);
         } else if (reportResult) {
@@ -89,8 +90,8 @@ export default function DepartmentSalaryReportPage() {
         }
 
         // Prepare IDs
-        let gIds = data.groupType.includes('All') ? groupTypesData?.data?.map((g: any) => g.HRMGT_Id || g.hrmgT_Id).join(',') : data.groupType.join(',');
-        let dIds = data.department.includes('All') ? departmentsData?.data?.map((d: any) => d.HRMD_Id || d.hrmD_Id).join(',') : data.department.join(',');
+        const gIds = data.groupType.includes('All') ? groupTypesData?.data?.map((g: any) => g.HRMGT_Id || g.hrmgT_Id).join(',') : data.groupType.join(',');
+        const dIds = data.department.includes('All') ? departmentsData?.data?.map((d: any) => d.HRMD_Id || d.hrmD_Id).join(',') : data.department.join(',');
         let desIds = '';
         if (data.designation && data.designation.length > 0) {
             desIds = data.designation.includes('All') ? designationsData?.data?.map((d: any) => d.HRMDES_Id || d.hrmdeS_Id).join(',') : data.designation.join(',');

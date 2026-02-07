@@ -565,7 +565,7 @@ export const useMasterSubjectDropdown = (mI_Id?: number) => {
                 if (!mI_Id || mI_Id <= 0) {
                     return { data: [] } as any;
                 }
-                return await getMasterSubjectDropdownList(mI_Id);
+                return await getMasterSubjectDropdownList();
             },
             enabled: Boolean(mI_Id && mI_Id > 0),
             staleTime: 0
