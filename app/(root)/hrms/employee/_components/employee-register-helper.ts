@@ -733,7 +733,7 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
                 console.log('🔴 [HELPER DEBUG] First Qualification Item Keys:', Object.keys(qual));
             }
             // Use exact keys found in JSON
-            const courseVal = numToString(getValue(qual, 'hrmC_Id')) || numToString(getValue(qual, 'hrmeQ_CourseId'));
+            const courseVal = numToString(getValue(qual, 'hrmC_Id')) || numToString(getValue(qual, 'hrmeQ_CourseId')) || numToString(getValue(qual, 'hrmeQ_Course_Id')) || '';
             const countryVal = numToString(getValue(qual, 'hrmeQ_CountryId')) || numToString(getValue(qual, 'hrmE_Country_Id'));
             const stateVal = numToString(getValue(qual, 'hrmeQ_StateId')) || numToString(getValue(qual, 'hrmE_State_Id'));
             const yearVal = numToString(getValue(qual, 'hrmeQ_YearOfPassing')) || String(getValue(qual, 'hrmeQ_YearOfPassing') || '');
@@ -752,7 +752,7 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
                 cgpaOrPercentage: getValue(qual, 'hrmeQ_CGPAOrPerFlag') || 'CGPA',
                 cgpa: String(getValue(qual, 'hrmeQ_CGPAOrPerFlag') === 'Percentage' ? (getValue(qual, 'hrmeQ_Percentage') || getValue(qual, 'hrmeQ_CGPA') || '') : (getValue(qual, 'hrmeQ_CGPA') || getValue(qual, 'hrmeQ_Percentage') || '')),
                 percentage: String(getValue(qual, 'hrmeQ_Percentage') || ''),
-                areaOfSpecialisation: numToString(getValue(qual, 'hrmeQ_AreaOfSpecialisation')) || numToString(getValue(qual, 'hrmeQ_AreaOfSpecialization')) || numToString(getValue(qual, 'specialisation')) || numToString(getValue(qual, 'specialization')) || numToString(getValue(qual, 'hrmeQ_SpecialisationId')) || numToString(getValue(qual, 'hrmeQ_SpecializationId')) || '',
+                areaOfSpecialisation: numToString(getValue(qual, 'hrmeQ_AreaOfSpecialisation')) || numToString(getValue(qual, 'hrmeQ_AreaOfSpecialization')) || numToString(getValue(qual, 'specialisation')) || numToString(getValue(qual, 'specialization')) || numToString(getValue(qual, 'hrmeQ_SpecialisationId')) || numToString(getValue(qual, 'hrmeQ_SpecializationId')) || numToString(getValue(qual, 'hrmspL_Id')) || numToString(getValue(qual, 'HRMSPL_Id')) || '',
                 phdFlag: getValue(qual, 'hrmeQ_PHDFlg') || false,
                 thesisTitle: getValue(qual, 'hrmeQ_ThesisTitle') || '',
                 registrationYear: numToString(getValue(qual, 'hrmeQ_RegistrationYear')),
@@ -1379,7 +1379,7 @@ export function mapApiResponseToTab3Fields(apiData: any): Partial<FormFields> {
             return {
                 hrmeQ_Id: getValue(qual, 'hrmeQ_Id') || getValue(qual, 'HRMEQ_Id') || 0, // Preserve ID for updates - CRITICAL!
                 qualification: getValue(qual, 'hrmeQ_QualificationName') || getValue(qual, 'HRMEQ_QualificationName') || getValue(qual, 'hrmE_QualificationName') || '',
-                course: numToString(getValue(qual, 'hrmC_Id')),
+                course: numToString(getValue(qual, 'hrmeQ_CourseId') || getValue(qual, 'hrmC_Id') || getValue(qual, 'hrmeQ_Course_Id')),
                 college: getValue(qual, 'hrmeQ_CollegeName') || '',
                 university: getValue(qual, 'hrmeQ_UniversityName') || '',
                 yearOfPassing: numToString(getValue(qual, 'hrmeQ_YearOfPassing')),
@@ -1390,7 +1390,7 @@ export function mapApiResponseToTab3Fields(apiData: any): Partial<FormFields> {
                 cgpaOrPercentage: getValue(qual, 'hrmeQ_CGPAOrPerFlag') || 'CGPA',
                 cgpa: (getValue(qual, 'hrmeQ_CGPAOrPerFlag') === 'Percentage' ? (getValue(qual, 'hrmeQ_Percentage') || '') : (getValue(qual, 'hrmeQ_CGPA') || '')) || '',
                 percentage: getValue(qual, 'hrmeQ_Percentage') || '',
-                areaOfSpecialisation: getValue(qual, 'hrmeQ_AreaOfSpecialisation') || getValue(qual, 'specialisation') || '',
+                areaOfSpecialisation: numToString(getValue(qual, 'hrmeQ_AreaOfSpecialisation') || getValue(qual, 'hrmeQ_AreaOfSpecialization') || getValue(qual, 'specialisation') || getValue(qual, 'specialization') || getValue(qual, 'hrmeQ_SpecialisationId') || getValue(qual, 'hrmeQ_SpecializationId') || getValue(qual, 'hrmspL_Id')),
                 phdFlag: getValue(qual, 'hrmeQ_PHDFlg') || false,
                 medicalCouncil: getValue(qual, 'hrmeQ_MedicalCouncil') || '',
                 thesisTitle: getValue(qual, 'hrmeQ_ThesisTitle') || '',
