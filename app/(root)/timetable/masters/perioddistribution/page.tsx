@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, X } from 'lucide-react';
 
 import PeriodDistributionForm from './_components/period-distribution-form';
+import TogglePeriodDistributionForm from './_components/toggle-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -119,15 +120,15 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                     </CollapsibleSection>
                 </div>
             )}
-            {/* {isToggleFormOpen && selectedRow && (
-                <ToggleMasterPerioPeriodDistributionFormdForm
+            {isToggleFormOpen && selectedRow && (
+                <TogglePeriodDistributionForm
                     rowData={selectedRow}
                     onClose={() => {
                         closeToggleForm();
                         onSuccess();
                     }}
                 />
-            )} */}
+            )}
         </>
     );
 }

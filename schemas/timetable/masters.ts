@@ -103,7 +103,7 @@ export const masterPeriodSchema = {
         periodorder: number().min(1, 'Please enter Period Order'),
         categoryids: z.array(z.string()).nonempty('Please select at least one Category'),
         noOfPeriods: z.number().min(1, 'Enter at least 1 period').max(20, 'Max 20 periods allowed'),
-        half: z.string().optional()
+        half: z.string().min(1, 'Please select Half Day')
     })
 };
 
@@ -153,6 +153,9 @@ export const periodDistributionSchema = {
         asmS_Id: z.number().min(1, 'Section is required').optional().or(z.literal(0)),
         ismS_Id: z.number().min(1, 'Subject is required').optional().or(z.literal(0)),
         nop2: z.coerce.number().optional().or(z.literal(0))
+    }),
+    delete: z.object({
+        ttfpD_Id: deleteIdSchema('ttfpD_Id')
     })
 };
 
