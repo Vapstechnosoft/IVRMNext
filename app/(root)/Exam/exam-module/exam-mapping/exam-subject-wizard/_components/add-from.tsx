@@ -451,12 +451,10 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     // ------------------- Modal open/prepare handlers -------------------
     const onOpenSubExamModal = async (subject: any) => {
         try {
-            setSubExamModalState({ open: true, subject });
+            setSubExamModalState({ open: true });
             const configList = Array.isArray(subject.subExamConfig) ? subject.subExamConfig : [];
-
-            console.log('open subexammodel configList', configList);
-            console.log('open subexammodel configList', configList);
-            console.log('open subexammodel subExams (master)', subExams);
+            console.log('config subexams', configList);
+            console.log('subExams', subExams);
             const updatedList = subExams.map((item: any) => {
                 const cfg = configList.find((c: any) => Number(c.EMSE_Id) === Number(item.emsE_Id));
 
@@ -464,7 +462,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     return { ...item, checkedvalue: false };
                 }
 
-                console.log('Found config for', item.emsE_Id, cfg);
+                console.log('Found config for', item, cfg);
                 return {
                     ...item,
                     ...cfg,
@@ -501,6 +499,8 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
             const safeSubSubjectList = Array.isArray(subject.subSubjectConfig) ? subject.subSubjectConfig : [];
             // Merge master list with config list
+            console.log('config subsubjects', safeSubSubjectList);
+            console.log('subSubjects', subSubjects);
             const updatedList = subSubjects.map((item: any) => {
                 const matched = safeSubSubjectList.find((ss: any) => ss.emsS_Id === item.emsS_Id);
 
@@ -515,6 +515,9 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 return {
                     ...item,
                     eycessS_SubSubjectOrder: item.emsS_Order,
+                    eycessS_GradeDisplayFlg: item.emsS_GradeDisplayFlg,
+                    eycessS_MarksDisplayFlg: item.emsS_MarksDisplayFlg,
+                    //eycessS_s
                     checkedvalue: false
                 };
             });
@@ -526,6 +529,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     list: updatedList
                 }
             });
+            console.log('updatedList', updatedList);
         } catch {
             setSubSubjectModalState({
                 open: true,
@@ -816,7 +820,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 ASMAY_Id: Number(values.ASMAY_Id) ?? 0,
                 ASMAY_Year: '',
                 EYCE_BestOfApplicableFlg: values.EYCE_BestOfApplicableFlg ?? true,
-                EYCE_BestOf: values.EYCE_BestOf ?? 5,
+                EYCE_BestOf: values.EYCE_BestOf ?? 0,
                 EYCE_AttendanceFromDate: toBackendDate(values.EYCE_AttendanceFromDate),
                 EYCE_AttendanceToDate: toBackendDate(values.EYCE_AttendanceToDate),
                 exams_list,
@@ -1197,8 +1201,8 @@ const mapToSubSubjectConfig = (l: any) => ({
     EMGR_Id: l.emgR_Id ?? '',
     eycessS_ExemptedFlg: l.eycessS_ExemptedFlg,
     eycessS_ExemptedPer: l.eycessS_ExemptedPer ?? '',
-    eycessS_MarksDisplayFlg: l.eycessS_MarksFlg,
-    eycessS_GradeDisplayFlg: l.eycessS_GradesFlg,
+    eycessS_MarksDisplayFlg: l.eycessS_MarksDisplayFlg,
+    eycessS_GradeDisplayFlg: l.eycessS_GradeDisplayFlg,
     eycessS_AplResultFlg: l.eycessS_AplResultFlg,
     eycessS_SubSubjectOrder: l.eycessS_SubSubjectOrder
 });

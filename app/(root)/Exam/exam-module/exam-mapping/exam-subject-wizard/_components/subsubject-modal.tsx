@@ -99,8 +99,8 @@ export default function SubSubjectModal({
             EMGR_Id: l.EMGR_Id ?? '',
             eycessS_ExemptedFlg: l.eycessS_ExemptedFlg,
             eycessS_ExemptedPer: l.eycessS_ExemptedPer ?? '',
-            eycessS_MarksDisplayFlg: l.eycessS_MarksFlg,
-            eycessS_GradeDisplayFlg: l.eycessS_GradesFlg,
+            eycessS_MarksDisplayFlg: l.eycessS_GradeDisplayFlg,
+            eycessS_GradeDisplayFlg: l.eycessS_MarksDisplayFlg,
             eycessS_AplResultFlg: l.eycessS_AplResultFlg,
             eycessS_SubSubjectOrder: l.eycessS_SubSubjectOrder ?? 0
         }));
@@ -460,7 +460,7 @@ export default function SubSubjectModal({
                 return;
             }
         }
-
+        console.log('subsubjects saved data', selected);
         // All good, save
         onSave(subject.ISMS_Id, selected, list);
         onClose();
