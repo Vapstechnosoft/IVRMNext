@@ -83,11 +83,11 @@ const FIELD_OPTIONS = [
     { id: 'AMST_MotherTongue', label: 'Language', accessor: 'AMST_MotherTongue' },
     { id: 'AMST_MobileNo', label: 'Phone number', accessor: 'AMST_MobileNo' },
     { id: 'AMST_emailId', label: 'Email id', accessor: 'AMST_emailId' },
-    {
-        id: 'AMST_PlaceOfBirth',
-        label: 'Place of Birth',
-        accessor: 'AMST_PlaceOfBirth'
-    },
+    // {
+    //     id: 'AMST_PlaceOfBirth',
+    //     label: 'Place of Birth',
+    //     accessor: 'AMST_PlaceOfBirth'
+    // },
     {
         id: 'AMST_AadharNo',
         label: 'Aadhar Card Number',
@@ -178,8 +178,8 @@ export default function AdmissionReportPage(props: {
                 typeof response.data === 'object' && response.data !== null && 'searchstudentDetails' in response.data
                     ? response.data.searchstudentDetails
                     : Array.isArray(response.data)
-                      ? response.data
-                      : [],
+                        ? response.data
+                        : [],
             total: response.total,
             page: response.page,
             page_size: response.page_size
@@ -197,8 +197,8 @@ export default function AdmissionReportPage(props: {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -269,10 +269,10 @@ export default function AdmissionReportPage(props: {
             const formData = watch();
 
             const payload = {
-                tempararyArrayListclass: formData.selectedClasses.map((classId) => ({
+                TempararyArrayListclass: formData.selectedClasses.map((classId) => ({
                     asmcL_Id: classId
                 })),
-                tempararyArrayListcoloumn: formData.selectedFields.map((fieldId) => ({
+                TempararyArrayListcoloumn: formData.selectedFields.map((fieldId) => ({
                     ivrM_CLM_PAR: fieldId,
                     selected: true
                 }))
