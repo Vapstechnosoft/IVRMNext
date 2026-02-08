@@ -1,5 +1,7 @@
 'use client';
 
+import { useSubjectRestrictionDayPeriodGridData } from '@/hooks/timetable/constraints/subjectrestriction';
+
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -52,7 +54,7 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
 
     const academicList = initialData?.yearlist || [];
     const categoryList = initialData?.categorylist || [];
-    const dayList = initialData?.daylist || [];
+    const dayList = initialData?.daylist || []
     const periodList = initialData?.periodlist || [];
 
     // ... (State and Form Hooks from original component)
@@ -92,6 +94,11 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
     const watchedSection = watch('ASMS_Id');
     const watchedStaff = watch('HRME_Id');
     const watchedSubSelectFlag = watch('TTRDP_SUbSelcFlag' as any);
+
+    const { data: gridData, isLoading } = useSubjectRestrictionDayPeriodGridData({
+        ASMAY_Id: watchedYear,
+        TTMC_Id: watchedCategory
+    });
 
     const { fields, append, remove } = useFieldArray({
         control,
@@ -225,7 +232,19 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                     </Button>
                 </div>
 
-                <DayPeriodList data={initialData?.dayperiodlist || []} />
+                <DayPeriodList
+                    data={
+                        (gridData as any)?.data ||
+                        (gridData as any)?.dayperiodlist ||
+                        (gridData as any)?.dayPeriodList ||
+                        (gridData as any)?.dayperiod_list ||
+                        (Array.isArray(gridData) ? gridData : []) ||
+                        initialData?.dayperiodlist ||
+                        initialData?.dayPeriodList ||
+                        []
+                    }
+                    isLoading={isLoading}
+                />
 
                 {(isAddFormOpen || isEditFormOpen) && (
                     <CollapsibleSection
@@ -462,7 +481,7 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                                     </Button>
                                     <Button
                                         type='button'
-                                        variant='destructive'
+                                        variant='outline'
                                         onClick={() => {
                                             reset();
                                             if (isEditFormOpen) closeEditForm();

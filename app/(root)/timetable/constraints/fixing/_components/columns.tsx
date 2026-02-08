@@ -21,12 +21,12 @@ export interface IFixingDayPeriodList {
 }
 
 export interface IFixingDayStaffList {
-    ttfdS_Id: number;
+    ttrdS_Id: number;
     asmaY_Year: string;
     staffName: string;
     ttmD_DayName: string;
-    ttfdS_SUbSelcFlag: boolean;
-    ttfdS_ActiveFlag: boolean;
+    ttrdS_SUbSelcFlag: boolean;
+    ttrdS_ActiveFlag: boolean;
 }
 
 export interface IFixingDaySubjectList {
@@ -48,12 +48,12 @@ export interface IFixingPeriodStaffList {
 }
 
 export interface IFixingPeriodSubjectList {
-    ttfpsU_Id: number;
+    ttrpsU_Id: number;
     asmaY_Year: string;
     ismS_SubjectName: string;
     ttmP_PeriodName: string;
-    ttfpsU_SUbSelcFlag: boolean;
-    ttfpsU_ActiveFlag: boolean;
+    ttrpsU_SUbSelcFlag: boolean;
+    ttrpsU_ActiveFlag: boolean;
 }
 
 // --- Action Cell Components ---
@@ -189,7 +189,7 @@ export const dayPeriodColumns: ColumnDef<IFixingDayPeriodList>[] = [
 // 2. Day Staff
 export const dayStaffColumns: ColumnDef<IFixingDayStaffList>[] = [
     {
-        accessorKey: 'ttfdS_Id',
+        accessorKey: 'ttrdS_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -203,15 +203,15 @@ export const dayStaffColumns: ColumnDef<IFixingDayStaffList>[] = [
     { accessorKey: 'staffName', header: ({ column }) => <DataTableColumnHeader column={column} title='Staff' /> },
     { accessorKey: 'ttmD_DayName', header: ({ column }) => <DataTableColumnHeader column={column} title='Day' /> },
     {
-        accessorKey: 'ttfdS_SUbSelcFlag',
+        accessorKey: 'ttrdS_SUbSelcFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Class-Section Wise' />,
-        cell: ({ row }) => (row.original.ttfdS_SUbSelcFlag ? 'Yes' : 'No')
+        cell: ({ row }) => (row.original.ttrdS_SUbSelcFlag ? 'Yes' : 'No')
     },
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
         accessorFn: (row) => row,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} idKey='ttfdS_Id' toggleKey='ttfdS_ActiveFlag' showView={true} />
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} idKey='ttrdS_Id' toggleKey='ttrdS_ActiveFlag' showView={true} />
     }
 ];
 
@@ -276,7 +276,7 @@ export const periodStaffColumns: ColumnDef<IFixingPeriodStaffList>[] = [
 // 5. Period Subject
 export const periodSubjectColumns: ColumnDef<IFixingPeriodSubjectList>[] = [
     {
-        accessorKey: 'ttfpsU_Id',
+        accessorKey: 'ttrpsU_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -290,14 +290,14 @@ export const periodSubjectColumns: ColumnDef<IFixingPeriodSubjectList>[] = [
     { accessorKey: 'ismS_SubjectName', header: ({ column }) => <DataTableColumnHeader column={column} title='Subject' /> },
     { accessorKey: 'ttmP_PeriodName', header: ({ column }) => <DataTableColumnHeader column={column} title='Period' /> },
     {
-        accessorKey: 'ttfpsU_SUbSelcFlag',
+        accessorKey: 'ttrpsU_SUbSelcFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Class-Section Wise' />,
-        cell: ({ row }) => (row.original.ttfpsU_SUbSelcFlag ? 'Yes' : 'No')
+        cell: ({ row }) => (row.original.ttrpsU_SUbSelcFlag ? 'Yes' : 'No')
     },
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
         accessorFn: (row) => row,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} idKey='ttfpsU_Id' toggleKey='ttfpsU_ActiveFlag' showView={true} />
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} idKey='ttrpsU_Id' toggleKey='ttrpsU_ActiveFlag' showView={true} />
     }
 ];

@@ -351,7 +351,7 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
                                     </Button>
                                     <Button
                                         type='button'
-                                        variant='destructive'
+                                        variant='outline'
                                         onClick={() => {
                                             reset();
                                             if (isEditFormOpen) closeEditForm();

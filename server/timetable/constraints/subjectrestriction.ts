@@ -12,6 +12,7 @@ export async function getSubjectRestrictionDetails() {
     return await api.get<any>('timetable', url);
 }
 
+
 // --- Tab 1: Day Period ---
 export async function saveDayPeriodDetail(data: any) {
     const url = '/Restriction/savedetail1';
@@ -73,3 +74,42 @@ export async function getCategoryDetails(data: { ASMAY_Id: number }) {
 }
 
 // ... other helpers as needed ...
+
+
+export async function getSubjectRestrictionDayPeriodGridData(searchParams: { ASMAY_Id: number; TTMC_Id: number }) {
+    const url = '/RestrictionFacade/SubjectRestrictionDayPeriodGridData';
+    const response = await api.get<any>('timetable', url, { params: searchParams });
+    console.info('SubjectRestrictionDayPeriodGridData Response:', JSON.stringify(response).substring(0, 300));
+    return response;
+}
+
+export async function getSubjectRestrictionDaySubjectGridData(searchParams: { ASMAY_Id: number; TTMC_Id: number }) {
+    const url = '/RestrictionFacade/SubjectRestrictionDaySubjectGridData';
+    const response = await api.get<any>('timetable', url, { params: searchParams });
+    console.info('SubjectRestrictionDaySubjectGridData Response:', JSON.stringify(response).substring(0, 300));
+    return response;
+}
+
+export async function getSubjectRestrictionDayStaffGridData(searchParams: { ASMAY_Id: number; TTMC_Id: number }) {
+    const url = '/RestrictionFacade/SubjectRestrictionDayStaffGridData';
+    const response = await api.get<any>('timetable', url, { params: searchParams });
+    console.info('SubjectRestrictionDayStaffGridData Response:', JSON.stringify(response).substring(0, 300));
+    return response;
+}
+
+export async function getSubjectRestrictionPeriodStaffGridData(searchParams: { ASMAY_Id: number; TTMC_Id: number }) {
+    const url = '/RestrictionFacade/SubjectRestrictionPeriodStaffGridData';
+    const response = await api.get<any>('timetable', url, { params: searchParams });
+    console.info('SubjectRestrictionPeriodStaffGridData Response:', JSON.stringify(response).substring(0, 300));
+    return response;
+}
+
+export async function getSubjectRestrictionPeriodSubjectGridData(searchParams: { ASMAY_Id: number; TTMC_Id: number }) {
+    const url = '/RestrictionFacade/SubjectRestrictionPeriodSubjectGridData';
+    const response = await api.get<any>('timetable', url, { params: searchParams });
+    console.info('SubjectRestrictionPeriodSubjectGridData Response:', JSON.stringify(response).substring(0, 300));
+    return response;
+}
+
+
+

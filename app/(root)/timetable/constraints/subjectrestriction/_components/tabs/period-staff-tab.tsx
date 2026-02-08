@@ -343,7 +343,7 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                                     </Button>
                                     <Button
                                         type='button'
-                                        variant='destructive'
+                                        variant='outline'
                                         onClick={() => {
                                             reset();
                                             if (isEditFormOpen) closeEditForm();

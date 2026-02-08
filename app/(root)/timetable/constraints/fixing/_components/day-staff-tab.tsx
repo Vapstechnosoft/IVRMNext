@@ -11,6 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type FixingDayStaffSchema, fixingDayStaffSchema } from '@/schemas/timetable/constraints/fixing';
 import {
+    getStaffDropDown
+} from '@/server/timetable/constraints/FixingForm';
+import {
     deactivateFixingDayStaff,
     getClassByCategory,
     getFixingDayStaffDetails,
@@ -26,6 +29,8 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { type IFixingDayStaffList, dayStaffColumns } from './columns';
 import { FixingViewModal } from './fixing-view-modal';
+import { useDayStaffGridData } from '@/hooks/timetable/constraints/fixingData';
+import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
 
 interface DayStaffTabProps {
     initialData: any;
@@ -46,10 +51,29 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
         closeDetailsView
     } = useFormContext();
 
-    const [academicList] = useState<any[]>(initialData?.yearlist || []);
+    const { data: academicData } = usebifurcationAcademicYear();
+    const academicList = (academicData as any)?.data || [];
+
     const [dayList] = useState<any[]>(initialData?.daylist || []);
-    const [staffList, setStaffList] = useState<any[]>(initialData?.stafflist || []);
-    const [gridData, setGridData] = useState<IFixingDayStaffList[]>(initialData?.fix_day_staff_list || []);
+    const [staffList, setStaffList] = useState<any[]>([]);
+
+    const { data: gridResponse, isLoading: isGridLoading } = useDayStaffGridData();
+
+    // Robust data extraction
+    let gridData: IFixingDayStaffList[] = [];
+    if (gridResponse) {
+        if (Array.isArray(gridResponse)) {
+            gridData = gridResponse;
+        } else if (Array.isArray((gridResponse as any)?.data)) {
+            gridData = (gridResponse as any).data;
+        } else if (Array.isArray((gridResponse as any)?.fix_day_staff_list)) {
+            gridData = (gridResponse as any).fix_day_staff_list;
+        }
+    }
+
+    if (gridData.length === 0 && initialData?.fix_day_staff_list) {
+        gridData = initialData.fix_day_staff_list;
+    }
 
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
@@ -86,6 +110,23 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
         control,
         name: 'TempararyArrayList'
     });
+
+    useEffect(() => {
+        const loadDropdowns = async () => {
+            try {
+                const [staff] = await Promise.all([
+                    getStaffDropDown()
+                ]);
+
+                setStaffList(staff || []);
+            } catch (error) {
+                console.error("Failed to load dropdowns:", error);
+                toast.error("Failed to load dropdown options");
+            }
+        };
+
+        loadDropdowns();
+    }, []);
 
     // Effect to populate form on Edit
     useEffect(() => {
@@ -220,20 +261,20 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
 
     const onEdit = async (item: any) => {
         try {
-            const res = await getFixingDayStaffDetails(item.ttfdS_Id);
+            const res = await getFixingDayStaffDetails(item.ttrdS_Id);
             if (res?.fix_day_staff_edit && (res.fix_day_staff_edit as any[]).length > 0) {
                 const d = (res.fix_day_staff_edit as any[])[0];
 
                 reset({
-                    TTFDS_Id: d.ttfdS_Id,
+                    TTFDS_Id: d.ttrdS_Id,
                     ASMAY_Id: d.asmaY_Id,
                     TTMD_Id: d.ttmD_Id,
                     HRME_Id: d.hrmE_Id,
-                    TTFDS_SUbSelcFlag: d.ttfdS_SUbSelcFlag,
+                    TTFDS_SUbSelcFlag: d.ttrdS_SUbSelcFlag,
                     TempararyArrayList: []
                 });
 
-                if (d.ttfdS_SUbSelcFlag && res.fix_day_staff__classecedit) {
+                if (d.ttrdS_SUbSelcFlag && res.fix_day_staff__classecedit) {
                     (res.fix_day_staff__classecedit as any[]).forEach((sub: any) => {
                         append({
                             ASMCL_Id: sub.asmcL_Id,
@@ -256,7 +297,7 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
         try {
             setIsLoadingView(true);
             setViewDetails([]);
-            const res = await getFixingDayStaffDetails(item.ttfdS_Id);
+            const res = await getFixingDayStaffDetails(item.ttrdS_Id);
             if (res?.fix_day_staff__classecedit) {
                 const details = (res.fix_day_staff__classecedit as any[]).map((sub: any) => ({
                     clsDisplay: sub.asmcL_ClassName,
@@ -275,7 +316,7 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
 
     const onToggle = async (item: any) => {
         try {
-            const payload = { TTFDS_Id: item.ttfdS_Id, TTFDS_ActiveFlag: !item.ttfdS_ActiveFlag };
+            const payload = { TTFDS_Id: item.ttrdS_Id, TTFDS_ActiveFlag: !item.ttrdS_ActiveFlag };
             const res = await deactivateFixingDayStaff(payload);
             if (res?.returnval === true) {
                 toast.success('Status Updated');
@@ -329,7 +370,7 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
                 variant='default'
                 size='lg'
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <GenericDataTable data={gridData} columns={dayStaffColumns} totalItems={gridData.length} isLoading={false} />
+                <GenericDataTable data={gridData} columns={dayStaffColumns} totalItems={gridData.length} isLoading={isGridLoading} />
             </CollapsibleSection>
 
             {(isAddFormOpen || isEditFormOpen) && (
@@ -365,7 +406,7 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {academicList.map((item: any) => (
+                                                        {academicList.filter((item: any) => item.asmaY_Id).map((item: any) => (
                                                             <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                                 {item.asmaY_Year}
                                                             </SelectItem>
@@ -415,9 +456,9 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {staffList.map((item: any) => (
+                                                        {staffList.filter((item: any) => item.hrmE_Id).map((item: any) => (
                                                             <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
-                                                                {item.hrmE_EmployeeCode} - {item.hrmE_EmployeeFirstName}
+                                                                {item.staffName}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>

@@ -38,5 +38,21 @@ export const TIMETABLE_QUERY_KEYS = {
     STAFF_REPLACEMENT_PERIOD_DETAILS: 'staff_replacement_period_details',
 
     STAFF_REPLACEMENT_IN_THIER_TIMETABLE: 'staff_replacement_staff',
-    TT_GENERATION_MASTERS: 'tt_generation_masters'
+    TT_GENERATION_MASTERS: 'tt_generation_masters',
+    STAFF_REPLACEMENT_GRID_DATA: 'STAFF_REPLACEMENT_GRID_DATA',
+
+    BIFURCATION_CONSTRAINTS: 'Bifurcation_constraints',
+    SECTION_DROPDOWN_MASTERDAYCLASSWISE: 'section_dropdown_masterdayclasswise',
+
+    FIXING_DAY_PERIOD_GRID: 'fixing_day_period_grid',
+    FIXING_DAY_STAFF_GRID: 'fixing_day_staff_grid',
+    FIXING_DAY_SUBJECT_GRID: 'fixing_day_subject_grid',
+    FIXING_PERIOD_SUBJECT_GRID: 'fixing_period_subject_grid',
+    FIXING_PERIOD_STAFF_GRID: 'fixing_period_staff_grid',
+
+    SUBJECT_RESTRICTION_DAY_PERIOD_GRID: 'subject_restriction_day_period_grid',
+    SUBJECT_RESTRICTION_DAY_STAFF_GRID: 'subject_restriction_day_staff_grid',
+    SUBJECT_RESTRICTION_DAY_SUBJECT_GRID: 'subject_restriction_day_subject_grid',
+    SUBJECT_RESTRICTION_PERIOD_STAFF_GRID: 'subject_restriction_period_staff_grid',
+    SUBJECT_RESTRICTION_PERIOD_SUBJECT_GRID: 'subject_restriction_period_subject_grid'
 };
