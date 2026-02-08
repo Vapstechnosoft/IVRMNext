@@ -39,6 +39,7 @@ export interface IInvRSalesEntity {
 }
 
 export interface IInvRSalesReportData {
+    // Existing fields
     rowNumber?: number;
     invmsL_SalesNo?: string;
     invmsL_SalesDate?: string;
@@ -58,6 +59,17 @@ export interface IInvRSalesReportData {
     saleDiscount?: number;
     saleTax?: number;
     saleAmount?: number;
+
+    // New API Fields
+    item_Name?: string;
+    sales_Date?: string;
+    sales_Qty?: number;
+    sales_Price?: number;
+    discount_Amt?: number;
+    tax_Amt?: number;
+    total_Amount?: number;
+    invmsL_Id?: number;
+    invmI_Id?: number;
 }
 
 export interface IInvRSalesPayload {

@@ -150,7 +150,7 @@ export default function AddFeeAdjustmentForm({
                     fillSecCls: sectionId ? String(sectionId) : '0',
                     filterInitialData: nameType === 'Name:Adm.No' ? 'NameRegNo' : 'RegNoName'
                 };
-
+                console.log('payload', JSON.stringify(payload));
                 const res = await studentNameDropdown(payload);
                 if (!isMounted) return;
 
@@ -349,6 +349,30 @@ export default function AddFeeAdjustmentForm({
                 header: 'Balance',
                 cell: ({ row }) => <div className='font-medium text-red-600'>{row.original.tobepaid ?? 0}</div>
             },
+            // {
+            //     id: 'adjustAmount',
+            //     header: 'Adjust Amount',
+            //     cell: ({ row }) => {
+            //         const headId = row.original.fmH_Id;
+            //         const value = adjustAmounts[headId] ?? 0;
+
+            //         return (
+            //             <Input
+            //                 type='number'
+            //                 min='0'
+            //                 className='w-28'
+            //                 value={value}
+            //                 onChange={(e) => {
+            //                     const newValue = Number(e.target.value) || 0;
+            //                     setAdjustAmounts((prev) => ({
+            //                         ...prev,
+            //                         [headId]: newValue
+            //                     }));
+            //                 }}
+            //             />
+            //         );
+            //     }
+            // }
             {
                 id: 'adjustAmount',
                 header: 'Adjust Amount',
@@ -361,12 +385,12 @@ export default function AddFeeAdjustmentForm({
                             type='number'
                             min='0'
                             className='w-28'
-                            value={value}
-                            onChange={(e) => {
-                                const newValue = Number(e.target.value) || 0;
+                            defaultValue={value}
+                            onBlur={(e) => {
+                                const num = Number(e.target.value) || 0;
                                 setAdjustAmounts((prev) => ({
                                     ...prev,
-                                    [headId]: newValue
+                                    [headId]: num
                                 }));
                             }}
                         />

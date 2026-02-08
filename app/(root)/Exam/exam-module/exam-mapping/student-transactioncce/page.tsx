@@ -290,7 +290,7 @@ function StudentTransactionContent() {
             setLoadingNames(true);
             try {
                 if (watchSkillActivity === 'Skills') {
-                    const response = await getMasterLifeSkillDrpdownList(30);
+                    const response = await getMasterLifeSkillDrpdownList();
                     const skillsList = Array.isArray(response.data) ? response.data : [];
                     setSkillNames(skillsList);
                     console.log('skillsList', skillsList);

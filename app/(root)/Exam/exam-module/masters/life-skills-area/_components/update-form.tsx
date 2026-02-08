@@ -35,7 +35,6 @@ export default function UpdateLifeSkillAreaForm({ selectedRow, onSuccess, classN
         mode: 'onChange',
         defaultValues: {
             ecS_Id: 0,
-            mI_Id: 30,
             ecS_SkillName: 'Life Skill', // hidden default value
             ecS_SkillCode: 'LS001', // hidden default value
             subexamDTO: [
@@ -59,7 +58,6 @@ export default function UpdateLifeSkillAreaForm({ selectedRow, onSuccess, classN
         if (selectedRow) {
             reset({
                 ecS_Id: 0,
-                mI_Id: selectedRow.mI_Id ?? 30,
                 ecS_SkillName: 'Life Skill',
                 ecS_SkillCode: 'LS001',
                 subexamDTO: [
@@ -77,8 +75,7 @@ export default function UpdateLifeSkillAreaForm({ selectedRow, onSuccess, classN
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
-                ...data,
-                mI_Id: 30
+                ...data
             };
 
             const response = await addOrUpdateMasterLifeSkillArea(payload);
@@ -99,7 +96,6 @@ export default function UpdateLifeSkillAreaForm({ selectedRow, onSuccess, classN
         if (selectedRow) {
             reset({
                 ecS_Id: 0,
-                mI_Id: selectedRow.mI_Id ?? 30,
                 ecS_SkillName: 'Life Skill',
                 ecS_SkillCode: 'LS001',
                 subexamDTO: [

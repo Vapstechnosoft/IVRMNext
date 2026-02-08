@@ -174,7 +174,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
 
                 // Fetch Students
                 setIsLoading(true);
-                const studentRes = await getStudentDetails(rowData.asmaY_Id, rowData.asmcL_Id, rowData.asmS_Id, rowData.emE_Id, 30);
+                const studentRes = await getStudentDetails(rowData.asmaY_Id, rowData.asmcL_Id, rowData.asmS_Id, rowData.emE_Id);
                 const studentList = Array.isArray(studentRes.data) ? studentRes.data.map((s: any) => ({ ...s, emeR_Remarks: s.emeR_Remarks || '' })) : [];
 
                 const preSelected = studentList.reduce<string[]>((acc, s, ind) => {
@@ -347,7 +347,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
         setIsLoading(true);
         setIsStudentsGridOpen(true);
         try {
-            const { data } = await getStudentDetails(asmaY_Id, asmcL_Id, asmS_Id, emE_Id, 30);
+            const { data } = await getStudentDetails(asmaY_Id, asmcL_Id, asmS_Id, emE_Id);
             const studentList = Array.isArray(data) ? data.map((s: any) => ({ ...s, emeR_Remarks: s.emeR_Remarks || '' })) : [];
 
             const preSelectedStudentIds = studentList.reduce<string[]>((acc, s, ind) => {

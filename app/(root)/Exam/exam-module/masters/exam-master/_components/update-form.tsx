@@ -37,7 +37,6 @@ export default function UpdateMasterExamForm({ onSuccess, className = '', select
         mode: 'onChange',
         defaultValues: {
             emE_Id: 0,
-            mI_Id: 30,
             emE_ExamName: '',
             emE_ExamCode: '',
             emE_ExamDescription: '',
@@ -52,7 +51,6 @@ export default function UpdateMasterExamForm({ onSuccess, className = '', select
         if (row) {
             reset({
                 emE_Id: row.emE_Id,
-                mI_Id: row.mI_Id ?? 30,
                 emE_ExamName: row.emE_ExamName ?? '',
                 emE_IVRSExamName: row.emE_IVRSExamName ?? '',
                 emE_ExamDescription: row.emE_ExamDescription ?? '',
@@ -68,7 +66,6 @@ export default function UpdateMasterExamForm({ onSuccess, className = '', select
         try {
             const payload = {
                 ...data,
-                mI_Id: 30,
                 emE_FinalExamFlag: Boolean(data.emE_FinalExamFlag),
                 emE_SujectwiseMarksPublishFlg: Boolean(data.emE_SujectwiseMarksPublishFlg)
             };
@@ -93,7 +90,6 @@ export default function UpdateMasterExamForm({ onSuccess, className = '', select
         if (row) {
             reset({
                 emE_Id: row.emE_Id,
-                mI_Id: row.mI_Id ?? 30,
                 emE_ExamName: row.emE_ExamName ?? '',
                 emE_IVRSExamName: row.emE_IVRSExamName ?? '',
                 emE_ExamDescription: row.emE_ExamDescription ?? '',

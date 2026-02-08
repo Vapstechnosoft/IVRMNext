@@ -417,27 +417,53 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
             size: 140,
             cell: ({ row }) => <div className='pr-3 text-right font-medium'>{row.original.fmA_Amount.toLocaleString()}</div>
         },
+        // {
+        //     id: 'concession',
+        //     header: 'Concession',
+        //     size: 200,
+        //     cell: ({ row }) => (
+        //         <Input
+        //             type='number'
+        //             min='0'
+        //             max={row.original.type === 'Percentage' ? 100 : undefined}
+        //             placeholder={row.original.type === 'Percentage' ? '0-100' : '0'}
+        //             className='text-right'
+        //             value={row.original.concessionValue ?? ''}
+        //             onChange={(e) => {
+        //                 const inputVal = e.target.value;
+        //                 const val = inputVal === '' ? 0 : Number(inputVal);
+
+        //                 setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, concessionValue: val } : item)));
+        //             }}
+        //         />
+        //     )
+        // },
         {
             id: 'concession',
             header: 'Concession',
             size: 200,
-            cell: ({ row }) => (
-                <Input
-                    type='number'
-                    min='0'
-                    max={row.original.type === 'Percentage' ? 100 : undefined}
-                    placeholder={row.original.type === 'Percentage' ? '0-100' : '0'}
-                    className='text-right'
-                    value={row.original.concessionValue ?? ''}
-                    onChange={(e) => {
-                        const inputVal = e.target.value;
-                        const val = inputVal === '' ? 0 : Number(inputVal);
+            cell: ({ row }) => {
+                const isPercentage = row.original.type === 'Percentage';
 
-                        setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, concessionValue: val } : item)));
-                    }}
-                />
-            )
+                return (
+                    <Input
+                        type='number'
+                        min='0'
+                        max={isPercentage ? 100 : undefined}
+                        placeholder={isPercentage ? '0-100' : '0'}
+                        className='text-right'
+                        defaultValue={row.original.concessionValue ?? ''}
+                        onBlur={(e) => {
+                            const raw = e.target.value;
+                            const val = raw === '' ? 0 : Number(raw);
+
+                            setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, concessionValue: val } : item)));
+                        }}
+                    />
+                );
+            }
         },
+
         {
             id: 'remarks',
             header: 'Remarks',

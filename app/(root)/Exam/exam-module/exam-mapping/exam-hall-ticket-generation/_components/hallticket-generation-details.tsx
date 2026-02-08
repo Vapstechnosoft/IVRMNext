@@ -24,7 +24,7 @@ export default function HallTicketGeneratedDetailsPage({ rowData, onClose }: Pro
 
     const [selectedRows, setSelectedRows] = useState<any[]>([]);
     const { data: studentsData, isLoading: studentsLoading, error: studentsError, refetchAll } = usegetHallTicketStudentList({
-        MI_Id: 30,
+        // MI_Id: 30,
         ASMAY_Id: rowData.asmaY_Id,
         ASMCL_Id: rowData.asmcL_Id,
         ASMS_Id: rowData.asmS_Id,

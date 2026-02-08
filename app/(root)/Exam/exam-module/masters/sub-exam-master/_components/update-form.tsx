@@ -41,8 +41,7 @@ export default function UpdateMasterSubExamForm({ onSuccess, className = '', sel
             reset({
                 emsE_Id: row.emsE_Id,
                 emsE_SubExamName: row.emsE_SubExamName,
-                emsE_SubExamCode: row.emsE_SubExamCode,
-                mI_Id: 30 // ✅ Default institute ID (update as needed)
+                emsE_SubExamCode: row.emsE_SubExamCode
             });
         }
     }, [row, reset, setValue]);
@@ -50,7 +49,6 @@ export default function UpdateMasterSubExamForm({ onSuccess, className = '', sel
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
-                mI_Id: data.mI_Id,
                 emsE_Id: data.emsE_Id,
                 emsE_SubExamName: data.emsE_SubExamName,
                 emsE_SubExamCode: data.emsE_SubExamCode

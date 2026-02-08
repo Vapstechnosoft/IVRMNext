@@ -111,9 +111,6 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
         name: 'HRMED_AmountPercentFlag',
         defaultValue: 'Amount'
     });
-    useEffect(() => {
-        trigger('HRMED_AmountPercent');
-    }, [calculationType, trigger]);
     const onSubmit = async (data: MasterEarningsDeductionsInput) => {
         try {
             // Build the request body - map to lowercase field names as per API
