@@ -29,7 +29,6 @@ export default function AddMasterSubSubjectForm({ onSuccess, className = '' }: A
         resolver: zodResolver(masterSubSubjectSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            mI_Id: 30,
             emsS_SubSubjectName: '',
             emsS_SubSubjectCode: '',
             emsS_Order: 0,

@@ -207,7 +207,7 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
         setLoading(true);
         try {
             const payload = {
-                mI_Id: 30, // or from context/store if dynamic
+                // mI_Id: 30, // or from context/store if dynamic
                 asmaY_Id: formData.asmaY_Id,
                 asmcL_Id: formData.asmcL_Id,
                 asmS_Id: formData.asmS_Id,
@@ -276,21 +276,19 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                             <>
                                 <button
                                     type='button'
-                                    className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
-                                        field.value === 'Exam'
+                                    className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'Exam'
                                             ? 'bg-purple-600 text-white'
                                             : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                    }`}
+                                        }`}
                                     onClick={() => field.onChange('Exam')}>
                                     Exam Wise
                                 </button>
                                 <button
                                     type='button'
-                                    className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
-                                        field.value === 'Promotion'
+                                    className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'Promotion'
                                             ? 'bg-purple-600 text-white'
                                             : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                    }`}
+                                        }`}
                                     onClick={() => {
                                         field.onChange('Promotion');
                                         setValue('emE_Id', 0);

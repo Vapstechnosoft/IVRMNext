@@ -41,7 +41,7 @@ export default function CumulativeReportForm({
         resolver: zodResolver(cumulativereportSchema.addOrUpdate),
         mode: 'all',
         defaultValues: {
-            mI_Id: 30,
+            // mI_Id: 30,
             asmaY_Id: 0,
             asmcL_Id: 0,
             asmS_Id: 0,
@@ -188,7 +188,7 @@ export default function CumulativeReportForm({
         }
 
         const payload = {
-            mI_Id: 30, // <-- hard-coded as required
+            // mI_Id: 30, // <-- hard-coded as required
             asmaY_Id: data.asmaY_Id,
             asmcL_Id: data.asmcL_Id,
             asmS_Id: data.asmS_Id,

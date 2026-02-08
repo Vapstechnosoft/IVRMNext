@@ -19,7 +19,7 @@ interface ToggleExamSubjectGroupingFormProps {
 }
 
 export default function ToggleExamSubjectGroupingForm({ rowData, onClose }: ToggleExamSubjectGroupingFormProps) {
-    const { refetchAll } = useExamSubjectGroupMappingDetails(30, rowData.esG_CompulsoryFlag, rowData.asmaY_Id, rowData.esG_Id); // Custom hook to refetch table data after toggle
+    const { refetchAll } = useExamSubjectGroupMappingDetails(rowData.esG_CompulsoryFlag, rowData.asmaY_Id, rowData.esG_Id); // Custom hook to refetch table data after toggle
     const isActive = rowData.esgS_ActiveFlag;
 
     const {
@@ -39,7 +39,7 @@ export default function ToggleExamSubjectGroupingForm({ rowData, onClose }: Togg
     const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
             // Call your backend API here
-            const response = await toggleExamSubjectGroupMappingSubject(30, Number(rowData.esgS_Id));
+            const response = await toggleExamSubjectGroupMappingSubject(Number(rowData.esgS_Id));
 
             if (response.success) {
                 toast.success(response.message);

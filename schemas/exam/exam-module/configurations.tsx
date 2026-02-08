@@ -8,7 +8,7 @@ export const examStandardSchema = {
     Update: z
         .object({
             ExmConfig_Id: z.number().nullable().optional(),
-            mI_Id: z.number(),
+            mI_Id: z.number().optional(),
 
             // ENUM FIELDS
             ExmConfig_RankingMethod: z.enum(['Dense', 'Standard'], {

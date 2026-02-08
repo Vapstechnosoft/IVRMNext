@@ -102,10 +102,10 @@ export const ReportList = ({ data }: ReportListProps) => {
                                 return (
                                     <TableRow key={index}>
                                         <TableCell className='text-center'>{index + 1}</TableCell>
-                                        <TableCell>{item.ASMCL_ClassName}</TableCell>
-                                        <TableCell>{item.ASMC_SectionName}</TableCell>
-                                        <TableCell>{item.Employeename}</TableCell>
-                                        <TableCell>-</TableCell>
+                                        <TableCell>{item.asmcL_ClassName}</TableCell>
+                                        <TableCell>{item.asmC_SectionName}</TableCell>
+                                        <TableCell>{item.hrmE_EmployeeName}</TableCell>
+                                        <TableCell>{item.ismS_SubjectName}</TableCell>
                                     </TableRow>
                                 );
                             }

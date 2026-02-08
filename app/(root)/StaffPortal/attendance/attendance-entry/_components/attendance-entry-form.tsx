@@ -81,6 +81,9 @@ const AttendanceEntryForm = () => {
 
     const initialData = rawInitialData as IAttendanceEntryInitialData | undefined;
 
+  
+    
+
     const [studentList, setStudentList] = useState<any[]>([]);
     const [entryFlag, setEntryFlag] = useState(false);
     const [studentGrid, setStudentGrid] = useState(false);
@@ -90,6 +93,8 @@ const AttendanceEntryForm = () => {
     const [attEntryTypeFlag, setAttEntryTypeFlag] = useState("");
     const [updateId, setUpdateId] = useState(0);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
+
 
     // Initial Year Load
     useEffect(() => {
@@ -102,10 +107,13 @@ const AttendanceEntryForm = () => {
     useEffect(() => {
         if (Number(currentYear) > 0 && Number(currentClass) > 0) {
             const data = {
+              
                 ASMAY_Id: Number(currentYear),
                 ASMCL_Id: Number(currentClass),
                 classsecflag: '1'
             };
+           
+
             getStudentData.mutate(data, {
                 onSuccess: (res: any) => {
                     if (res) {
@@ -131,7 +139,15 @@ const AttendanceEntryForm = () => {
 
     // Load Student List for Daily Once/Twice
     useEffect(() => {
-        if (Number(currentYear) > 0 && Number(currentClass) > 0 && Number(currentSection) > 0 && currentDate && (currentEntry === 'Dailyonce' || currentEntry === 'Dailytwice')) {
+        if (
+            
+            Number(currentYear) > 0 && Number(currentClass) > 0 && Number(currentSection) > 0 && currentDate && (currentEntry === 'Dailyonce' || currentEntry === 'Dailytwice')
+        
+        
+        ) 
+            
+       
+            {
             const entry = currentEntry === 'Dailyonce' ? 'D' : 'H';
             const data = {
                 ASMAY_Id: Number(currentYear),
@@ -222,7 +238,7 @@ const AttendanceEntryForm = () => {
             }));
         } else if (res.asA_Att_EntryType === 'H') {
             finalStudents = finalStudents.map(s => {
-                let f = false, sc = false;
+                let f = false; let sc = false;
                 if (res.attendanceentryflag === 'A') {
                     if (s.pdays === 0.5) {
                         if (s.asA_Dailytwice_Flag === "firsthalf") sc = true;
@@ -251,6 +267,7 @@ const AttendanceEntryForm = () => {
     };
 
     const onSave = (values: AttendanceEntryValues) => {
+            console.log("Save Clicked");
         let ASA_ClassHeld = '1.00';
         let fromDateStr = currentDate ? format(new Date(currentDate), 'yyyy-MM-dd') : "";
         let toDateStr = currentDate ? format(new Date(currentDate), 'yyyy-MM-dd') : "";
@@ -261,6 +278,11 @@ const AttendanceEntryForm = () => {
             toDateStr = watch('ASA_ToDate') ? format(new Date(watch('ASA_ToDate')!), 'yyyy-MM-dd') : "";
         }
 
+        const updatedStdList = studentList.map(student => ({
+  ...student,
+  asA_Dailytwice_Flag: student.asA_Dailytwice_Flag ?? ' '
+}));
+
         const payload = {
             ASA_Id: updateId,
             ismS_Id: Number(currentSubject) || 0,
@@ -269,16 +291,22 @@ const AttendanceEntryForm = () => {
             ASMCL_Id: Number(currentClass),
             ASMS_Id: Number(currentSection) || 0,
             TTMP_Id: Number(currentPeriod) || 0,
-            ASA_Entry_DateTime: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
+            ASA_Entry_DateTime: new Date().toISOString(),
             ASA_FromDate: fromDateStr,
             ASA_ToDate: toDateStr,
             ASA_ClassHeld: ASA_ClassHeld,
             ASA_Regular_Extra: watch('ASA_Regular_Extra') || 'Regular',
             asasB_Id: Number(currentBatch) || 0,
-            stdList: studentList
+            //stdList: studentList,
+           stdList: updatedStdList
         };
 
+        console.log("Save payload",payload);
+
+            console.log(JSON.stringify(payload));
         saveAttendance.mutate(payload, {
+
+            
             onSuccess: (res) => {
                 if (res.returnval) {
                     window.location.reload();

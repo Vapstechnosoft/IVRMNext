@@ -19,7 +19,7 @@ interface ToggleFormFields {
 }
 
 export default function ToggleExamSubjectWizardDetailsForm({ rowData, onClose }: ToggleExamSubjectWizardDetailsFormProps) {
-    const { refetchAll } = useExamSubjectWizardDetails(30, rowData.eycE_Id);
+    const { refetchAll } = useExamSubjectWizardDetails(rowData.eycE_Id);
     const isActive = rowData.eyceS_ActiveFlg;
 
     const {

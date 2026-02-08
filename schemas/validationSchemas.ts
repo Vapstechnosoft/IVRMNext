@@ -11,8 +11,8 @@ import { z } from 'zod';
 
 export function createStringSchema(field: string, min: number, max: number) {
     return z
-        .string({ message: `${field} is required` })
-        .min(min, { message: `Minimum ${min} characters required for ${field}` })
+        .string({ message: `${field} Required` })
+        .min(min, { message: min === 1 ? `${field} Required` : `Minimum ${min} characters required for ${field}` })
         .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
         .refine((value) => value.trim() === value, {
             message: `${field} cannot have leading or trailing spaces`
@@ -76,7 +76,7 @@ export function createNumberOnlyStringSchema(field: string, min: number, max: nu
     return z
         .string()
         .regex(/^\d+$/, { message: `${field} must contain only numbers` }) // at least 1 digit
-        .min(min, { message: `${field} must have at least ${min} digits` })
+        .min(min, { message: min === 1 ? `${field} Required` : `${field} must have at least ${min} digits` })
         .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
         .refine((value) => value.trim() === value, {
             message: `${field} cannot have leading or trailing spaces`
@@ -86,12 +86,12 @@ export function createNumberOnlyStringSchema(field: string, min: number, max: nu
 export function createNumberOnlyStringSchemaRequired(field: string, min: number, max: number) {
     return z
         .string({
-            required_error: `${field} is required`,
+            required_error: `${field} Required`,
             invalid_type_error: `${field} must be a string`
         })
         .trim() // removes leading/trailing spaces before validation
         .regex(/^\d+$/, { message: `${field} must contain only numbers` }) // only digits, not optional
-        .min(min, { message: `${field} must have at least ${min} digits` })
+        .min(min, { message: min === 1 ? `${field} Required` : `${field} must have at least ${min} digits` })
         .max(max, { message: `Maximum ${max} characters allowed for ${field}` });
 }
 
@@ -139,10 +139,10 @@ export function createOptionalStringSchemaNotAllowNumbersOnly(field: string, min
 export function createStringSchemaNotAllowNumbersOnly(field: string, min: number, max: number) {
     return (
         z
-            .string({ message: `${field} is required` })
+            .string({ message: `${field} Required` })
 
             // 👉 Apply min & max early (before refine), so no TS error
-            .min(min, { message: `${field} must have at least ${min} characters` })
+            .min(min, { message: min === 1 ? `${field} Required` : `${field} must have at least ${min} characters` })
             .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
 
             // ❗ No special characters allowed — only letters, numbers, spaces
@@ -164,8 +164,8 @@ export function createStringSchemaNotAllowNumbersOnly(field: string, min: number
 
 export function createStringOnlySchema(field: string, min: number, max: number) {
     return z
-        .string({ message: `${field} is required` })
-        .min(min, { message: `Minimum ${min} characters required for ${field}` })
+        .string({ message: `${field} Required` })
+        .min(min, { message: min === 1 ? `${field} Required` : `Minimum ${min} characters required for ${field}` })
         .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
         .regex(/^[A-Za-z\s]+$/, { message: `${field} must contain only letters` })
         .refine((value) => value.trim() === value, {
@@ -220,8 +220,8 @@ export function createAlphaNumericWithCommaTrailingSpaceOptional(field: string, 
 
 export function createAlphanumericSchema(field: string, min: number, max: number, optional = false) {
     const baseSchema = z
-        .string({ message: `${field} is required` })
-        .min(min, { message: `Minimum ${min} characters required for ${field}` })
+        .string({ message: `${field} Required` })
+        .min(min, { message: min === 1 ? `${field} Required` : `Minimum ${min} characters required for ${field}` })
         .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
         .regex(/^[a-zA-Z0-9]*$/, {
             message: `${field} must contain only alphanumeric characters`

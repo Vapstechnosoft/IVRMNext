@@ -49,7 +49,7 @@ function MasterSubjectPageContent({
     const handleSetOrder = async () => {
         try {
             setOrderModalOpen(true);
-            const response = await getMasterSubjectOrderData(30);
+            const response = await getMasterSubjectOrderData();
 
             if (response.success && response.data) {
                 const subjects: IMasterSubjectOrder[] = Array.isArray(response.data) ? response.data : [];

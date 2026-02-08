@@ -10,13 +10,13 @@ import type { IExamTermAndExamMapping, IExamTermAndExamMappingDetails } from '@/
 // --------------------------------------------
 export async function getExamTermAndExamMapping(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/exam_term_and_exam_mapping/30?${urlParams}`;
+    const url = `/exam_term_and_exam_mapping/?${urlParams}`;
     const response = await api.get<IExamTermAndExamMapping>('exam', url);
     return { ...response };
 }
-export async function getExamTermAndExamMappingDetails(mi_id: number, asmay_id: number, emca_id: number, ect_id: number) {
+export async function getExamTermAndExamMappingDetails(asmay_id: number, emca_id: number, ect_id: number) {
     if (!ect_id) throw new Error('Term ID is required');
-    const url = `/exam_term_and_exam_mapping/term_and_exam_mapping_details_view_by_ids/${mi_id}/${asmay_id}/${emca_id}/${ect_id}`;
+    const url = `/exam_term_and_exam_mapping/term_and_exam_mapping_details_view_by_ids/${asmay_id}/${emca_id}/${ect_id}`;
     return await api.get<IExamTermAndExamMappingDetails>('exam', url);
 }
 
@@ -25,18 +25,18 @@ export async function addOrUpdateExamTermAndExamMapping(data: any) {
     return await api.post<any>('exam', url, data);
 }
 
-export async function getMappedExamsByTerm(orgId: number, asmay_id: number, termId: number) {
+export async function getMappedExamsByTerm(asmay_id: number, termId: number) {
     if (!termId) throw new Error('Term ID is required');
-    const url = `/exam_term_exam_mapping/exam_term_mapping_details/${orgId}/${asmay_id}/${termId}`;
+    const url = `/exam_term_exam_mapping/exam_term_mapping_details/${asmay_id}/${termId}`;
     return await api.get<IExamTermAndExamMapping>('exam', url);
 }
 
-export async function toggleExamTermAndExamMapping(orgId: number, asmay_id: number, emca_id: number, ect_id: number) {
-    const url = `/exam_term_and_exam_mapping/toggle_term_and_exam_mapping/${orgId}/${asmay_id}/${emca_id}/${ect_id}`;
+export async function toggleExamTermAndExamMapping(asmay_id: number, emca_id: number, ect_id: number) {
+    const url = `/exam_term_and_exam_mapping/toggle_term_and_exam_mapping/${asmay_id}/${emca_id}/${ect_id}`;
     return await api.put('exam', url);
 }
 
-export async function toggleExamTermAndExamMappingDetails(orgId: number, etem_id: number) {
-    const url = `/exam_term_and_exam_mapping/toggle_exam_term_mapping/${orgId}/${etem_id}`;
+export async function toggleExamTermAndExamMappingDetails(etem_id: number) {
+    const url = `/exam_term_and_exam_mapping/toggle_exam_term_mapping/${etem_id}`;
     return await api.put('exam', url);
 } // Not use

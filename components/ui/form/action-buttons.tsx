@@ -35,7 +35,7 @@ export function ActionButtons({
     onEdit,
     onDelete,
     onToggle,
-  
+
     toggleConditionKey = 'active_flag',
     className = '',
     size = 'sm',
@@ -63,12 +63,12 @@ export function ActionButtons({
         }
     };
 
-    
+
 
     return (
         <TooltipProvider>
             <div className={`flex items-center gap-3 ${className}`}>
-                
+
 
                 {/* Edit Button */}
                 {buttons.edit && (
