@@ -1,6 +1,12 @@
 import { EXAM_QUERY_KEYS } from '@/constants/query-keys';
 import { getCoScholasticActivityAreaMapping } from '@/server/exam/exam-module/exam-mapping/co-scholastic-activitiy-area-mapping';
-import { getExamLoginPrivileges, getLoginPrivilegesDetails } from '@/server/exam/exam-module/exam-mapping/exam-login-privilages';
+import {
+    getClassTeacherDropdwonList,
+    getEmployeeDropdwonList,
+    getExamLoginPrivileges,
+    getLoginPrivilegesDetails,
+    getUserDropdwonList
+} from '@/server/exam/exam-module/exam-mapping/exam-login-privilages';
 import { getExamMarksProcessCondition } from '@/server/exam/exam-module/exam-mapping/exam-marks-process-condition';
 import {
     getExamSubjectGroupMapping,
@@ -18,7 +24,13 @@ import {
     getExamTermAndExamMappingDetails
 } from '@/server/exam/exam-module/exam-mapping/examTerm-and-exam-mappiong';
 import { getHallTicketGeneratedList, getHallTicketStudentList } from '@/server/exam/exam-module/exam-mapping/hallTicket-generation';
-import { getPromotionalSettings } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
+import {
+    getPromotionalSettingDetails,
+    getPromotionalSettings,
+    viewIndividualSubjectGroups,
+    viewSubjectsGroupExams
+} from '@/server/exam/exam-module/exam-mapping/promotional-setting';
+
 import { getYearlyCategoryDatesMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
 import { getYearlyCategorySubjectMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-subject-mapping';
 import type { ApiSearchparams } from '@/types';
@@ -329,13 +341,13 @@ export const usegetHallTicketStudentList = (params: any, searchParams?: ApiSearc
     };
 };
 
-export const usePromotionalSetting = (params: any, searchParams?: ApiSearchparams) => {
+export const usePromotionalSetting = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_SETTING_GRID, searchParams ?? {}],
-            queryFn: async () => getPromotionalSettings(params),
+            queryFn: async () => getPromotionalSettings(searchParams),
             staleTime: 0
         }),
 
@@ -347,21 +359,112 @@ export const usePromotionalSetting = (params: any, searchParams?: ApiSearchparam
     };
 };
 
-// export const usePromotionalSettingDetails = (subjectId: number, searchParams?: ApiSearchparams) => {
-//     const queryClient = useQueryClient();
+export const usePromotionalSettingDetails = (emp_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
 
-//     return {
-//         ...useQuery({
-//             queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_SETTING_DETAILS, subjectId, searchParams ?? {}],
-//             queryFn: async () => getGroupMappings(subjectId),
-//             enabled: !!subjectId,
-//             staleTime: 0
-//         }),
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_SETTING_DETAILS, emp_Id, searchParams ?? {}],
+            queryFn: async () => getPromotionalSettingDetails(emp_Id),
+            enabled: !!emp_Id,
+            staleTime: 0
+        }),
 
-//         refetchAll: () => {
-//             return queryClient.invalidateQueries({
-//                 queryKey: [EXAM_QUERY_KEYS.GROUP_MAPPING_LIST]
-//             });
-//         }
-//     };
-// };
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_SETTING_DETAILS]
+            });
+        }
+    };
+};
+
+export const usePromotionalGroupMappings = (subjectId: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_GROUP_DETAILS, subjectId, searchParams ?? {}],
+            queryFn: async () => viewIndividualSubjectGroups(subjectId),
+            enabled: !!subjectId,
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_GROUP_DETAILS]
+            });
+        }
+    };
+};
+
+export const usePromotionalGroupMappedExams = (groupId: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_GROUP_MAPPED_EXAMS_DETAILS, groupId, searchParams ?? {}],
+            queryFn: async () => viewSubjectsGroupExams(groupId),
+            enabled: !!groupId,
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_GROUP_MAPPED_EXAMS_DETAILS]
+            });
+        }
+    };
+};
+
+export const useClassTeacherDropdownList = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.CLASS_TEACHER_DROPDOWN_LIST],
+            queryFn: async () => getClassTeacherDropdwonList(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.CLASS_TEACHER_DROPDOWN_LIST]
+            });
+        }
+    };
+};
+
+export const useUserDropdownList = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.USER_DROPDOWN_LIST_KEY],
+            queryFn: async () => getUserDropdwonList(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.USER_DROPDOWN_LIST_KEY]
+            });
+        }
+    };
+};
+export const useEmployeeDropdownList = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.EMPLOYEE_DROPDOWN_LIST],
+            queryFn: async () => getEmployeeDropdwonList(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.EMPLOYEE_DROPDOWN_LIST]
+            });
+        }
+    };
+};

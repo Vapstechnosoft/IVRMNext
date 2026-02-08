@@ -10,6 +10,11 @@ export async function getExamMasterCategory(searchParams?: ApiSearchparams) {
     return await api.get<IMasterCategory>('exam', url);
 }
 
+export async function getExamMasterCategoryDropdownList() {
+    const url = 'exam_master_category/exam_master_category_drop_down_list/30';
+    return await api.get<IMasterCategory[]>('exam', url);
+}
+
 export async function addOrUpdateExamMasterCategory(data: any) {
     const url = '/exam_master_category';
     return await api.post<any>('exam', url, data);

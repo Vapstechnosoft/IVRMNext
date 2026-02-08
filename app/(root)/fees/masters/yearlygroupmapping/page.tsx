@@ -13,7 +13,7 @@ import { tableSearchVariables } from '@/lib/data-table.config';
 import type { IFeeGroupMapping } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
 import { parseAsString, useQueryState } from 'nuqs';
-import { useRef, useState } from 'react';
+import { use, useRef, useState } from 'react';
 import YearlyFeeGroupMapping from './_components/add-form';
 import { yearlyGroupMappingColumns } from './_components/columns';
 import DeleteMasterYearlyGroupForm from './_components/delete-form';
@@ -25,12 +25,18 @@ interface AcademicYearOption {
     asmaY_Year: string;
 }
 
-function FeeGroupMappingContent() {
+function FeeGroupMappingContent({
+    searchParams: _searchParams
+}: {
+    searchParams: Promise<SearchParams>;
+}) {
     const { openAddForm } = useFormContext<IFeeGroupMapping>();
     const tableRef = useRef<DataTableRef>(null);
 
+    const searchParams = use(_searchParams);
+
     const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
-    const [academicYearId, setAcademicYearId] = useState<number>(0);
+    const [academicYearIdNew, setacademicYearIdNew] = useState<number>(0);
 
     const { data: academicYearData, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
@@ -41,9 +47,9 @@ function FeeGroupMappingContent() {
         error: feeHeadError,
         isFetching,
         refetch // ⬅️ IMPORTANT
-    } = useMasterAllFeeHead(academicYearId > 0 ? academicYearId : 0, searchQuery ? { search_query: searchQuery } : undefined);
+    } = useMasterAllFeeHead(academicYearIdNew > 0 ? academicYearIdNew : 0, searchParams);
 
-    const feeGroupData = academicYearId > 0 && Array.isArray(feeHeadResponse?.data) ? feeHeadResponse.data : [];
+    const feeGroupData = academicYearIdNew > 0 && Array.isArray(feeHeadResponse?.data) ? feeHeadResponse.data : [];
 
     const tableProps = useDataTableProps({
         ...feeHeadResponse,
@@ -60,8 +66,8 @@ function FeeGroupMappingContent() {
                             Academic Year
                         </Label>
                         <Select
-                            value={String(academicYearId)}
-                            onValueChange={(val) => setAcademicYearId(Number(val) || 0)}
+                            value={String(academicYearIdNew)}
+                            onValueChange={(val) => setacademicYearIdNew(Number(val) || 0)}
                             disabled={academicYearLoading}>
                             <SelectTrigger id='academic-year' className='w-full'>
                                 <SelectValue placeholder='Select Academic Year' />
@@ -120,7 +126,7 @@ function FeeGroupMappingContent() {
                         loadingMessage='Loading fee group mappings...'
                         noDataTitle='No Records Found'
                         noDataDescription={
-                            academicYearId === 0
+                            academicYearIdNew === 0
                                 ? 'Please select an Academic Year to view fee group mappings.'
                                 : 'No records found for the selected academic year.'
                         }
@@ -142,7 +148,7 @@ export default function FeeGroupMappingView({
 }) {
     return (
         <FormProvider<IFeeGroupMapping>>
-            <FeeGroupMappingContent />
+            <FeeGroupMappingContent searchParams={_searchParams} />
         </FormProvider>
     );
 }
@@ -179,6 +185,7 @@ function FormSections({ refetchTable }: { refetchTable: () => void }) {
                                     closeAddForm();
                                     refetchTable(); // 🔥 IMPORTANT: refresh table
                                 }}
+                                //onSuccess={closeAddForm}
                             />
                         </div>
                     </CollapsibleSection>

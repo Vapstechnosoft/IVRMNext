@@ -41,12 +41,15 @@ export default function AddMasterClassCategoryForm({ onSuccess, className = '' }
             const { fmcC_ClassCategoryName, fmcC_ClassCategoryCode } = data;
 
             const payload = {
-                mI_Id: 30,
+                // mI_Id: 30,
                 fmcC_Id: 0,
                 fmcC_ClassCategoryName,
                 fmcC_ClassCategoryCode,
                 fmcC_ActiveFlag: true
             };
+
+            const js = JSON.stringify(payload);
+            console.log('Payload JSON:', js);
 
             const response = await addOrUpdateMasterClassCategory(payload);
 
@@ -77,7 +80,7 @@ export default function AddMasterClassCategoryForm({ onSuccess, className = '' }
                             {...register('fmcC_ClassCategoryName')}
                             error={errors.fmcC_ClassCategoryName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        /> 
+                        />
 
                         <InputText
                             label='Class Category Code'

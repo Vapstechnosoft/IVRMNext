@@ -84,26 +84,72 @@ const Select = ({ children, searchable = true, onOpenChange, ...props }: SelectP
         return values;
     }, []);
 
-    // Filter items when search query changes
+    // Filter items when search query changes ( PREVIOUS CODE)
+    // React.useEffect(() => {
+    //     if (!searchable || !searchQuery) {
+    //         setFilteredItems(new Set());
+    //         return;
+    //     }
+
+    //     const allItems = collectItemValues(children);
+    //     const lowerQuery = searchQuery.toLowerCase();
+
+    //     const filtered = new Set(
+    //         allItems
+    //             .filter((item) => {
+    //                 const [value, text] = item.split(':::');
+    //                 return text.toLowerCase().includes(lowerQuery) || value.toLowerCase().includes(lowerQuery);
+    //             })
+    //             .map((item) => item.split(':::')[0])
+    //     );
+
+    //     setFilteredItems(filtered);
+    // }, [children, searchable, searchQuery, collectItemValues]);
+
+    //Update filtered items for fixing search isses in  academic year and trailing Spaces error.
     React.useEffect(() => {
         if (!searchable || !searchQuery) {
             setFilteredItems(new Set());
             return;
         }
 
+        const query = searchQuery.trimEnd().toLowerCase();
+        const isNumericQuery = /^\d+$/.test(query);
+
         const allItems = collectItemValues(children);
-        const lowerQuery = searchQuery.toLowerCase();
 
-        const filtered = new Set(
-            allItems
-                .filter((item) => {
-                    const [value, text] = item.split(':::');
-                    return text.toLowerCase().includes(lowerQuery) || value.toLowerCase().includes(lowerQuery);
-                })
-                .map((item) => item.split(':::')[0])
-        );
+        const startsWithMatches: string[] = [];
+        const containsMatches: string[] = [];
 
-        setFilteredItems(filtered);
+        allItems.forEach((item) => {
+            const [value, text] = item.split(':::');
+            const lowerText = text.toLowerCase();
+            const lowerValue = value.toLowerCase();
+
+            // ✅ Detect academic year (YYYY-YYYY)
+            const isAcademicYear = /^\d{4}-\d{4}$/.test(text);
+
+            if (isAcademicYear && isNumericQuery) {
+                const [startYear, endYear] = text.split('-');
+
+                // ✅ STRICT: match ONLY from start of full year
+                if (startYear.startsWith(query) || endYear.startsWith(query)) {
+                    startsWithMatches.push(value);
+                }
+
+                return; // 🚫 do NOT fall into normal string logic
+            }
+
+            // ✅ Normal string logic
+            if (lowerText.startsWith(query) || lowerValue.startsWith(query)) {
+                startsWithMatches.push(value);
+            } else if (lowerText.includes(query) || lowerValue.includes(query)) {
+                containsMatches.push(value);
+            }
+        });
+
+        // ✅ Starts-with items come first
+        setFilteredItems(new Set([...startsWithMatches, ...containsMatches]));
     }, [children, searchable, searchQuery, collectItemValues]);
 
     // Normalize common "empty" values to undefined so Radix shows placeholder.
@@ -111,15 +157,19 @@ const Select = ({ children, searchable = true, onOpenChange, ...props }: SelectP
     const { value, ...restProps } = props as any;
     const normalizedValue = value === '' || value === null || value === 0 || value === '0' ? undefined : value;
 
+    const contextValue = React.useMemo(
+        () => ({
+            searchable,
+            searchQuery,
+            setSearchQuery,
+            filteredItems,
+            isMobile
+        }),
+        [searchable, searchQuery, filteredItems, isMobile]
+    );
+
     return (
-        <SelectSearchContext.Provider
-            value={{
-                searchable: searchable, // Now always enabled when searchable prop is true
-                searchQuery,
-                setSearchQuery,
-                filteredItems,
-                isMobile
-            }}>
+        <SelectSearchContext.Provider value={contextValue}>
             <SelectPrimitive.Root value={normalizedValue} {...restProps} onOpenChange={handleOpenChange}>
                 {children}
             </SelectPrimitive.Root>
@@ -185,21 +235,46 @@ const SelectSearch = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
     // Merge refs
     React.useImperativeHandle(ref, () => inputRef.current!);
 
-    // Focus input when it appears, but only on desktop for better UX
-    React.useEffect(() => {
-        if (inputRef.current && !isMobile) {
-            // Use a longer timeout to ensure the dropdown is fully rendered
-            const timer = setTimeout(() => {
-                inputRef.current?.focus();
-            }, 100);
-            return () => clearTimeout(timer);
+    // Focus maintenance logic to handle Radix UI focus interference using useLayoutEffect for sync execution
+    React.useLayoutEffect(() => {
+        if (!isMobile && inputRef.current) {
+            // Checks focus on mount and updates
+            const checkFocus = () => {
+                if (inputRef.current && document.activeElement !== inputRef.current) {
+                    inputRef.current.focus();
+                }
+            };
+
+            // Immediate check
+            checkFocus();
+
+            // Retrying after a tick to beat Radix's focus management (e.g. when items change)
+            const timeoutId = setTimeout(checkFocus, 20);
+
+            return () => clearTimeout(timeoutId);
         }
-    }, [isMobile]);
+    }); // Run on every render
+
+    const [localValue, setLocalValue] = React.useState(searchQuery);
+
+    React.useEffect(() => {
+        setLocalValue(searchQuery);
+    }, [searchQuery]);
+
+    const debounceTimeout = React.useRef<NodeJS.Timeout | null>(null);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        e.preventDefault();
         e.stopPropagation();
-        setSearchQuery(e.target.value);
+        const newValue = e.target.value.replace(/^\s+/, '');
+        setLocalValue(newValue);
+
+        if (debounceTimeout.current) {
+            clearTimeout(debounceTimeout.current);
+        }
+
+        debounceTimeout.current = setTimeout(() => {
+            setSearchQuery(newValue);
+        }, 300);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -216,7 +291,6 @@ const SelectSearch = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
     };
 
     const handleClick = (e: React.MouseEvent<HTMLInputElement>) => {
-        e.preventDefault();
         e.stopPropagation();
         // Ensure input maintains focus
         if (inputRef.current) {
@@ -240,7 +314,7 @@ const SelectSearch = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
                 <input
                     ref={inputRef}
                     className={cn('flex-1 bg-transparent text-sm outline-none', className)}
-                    value={searchQuery}
+                    value={localValue}
                     onChange={handleInputChange}
                     onClick={handleClick}
                     onKeyDown={handleKeyDown}
@@ -267,6 +341,15 @@ const SelectContent = React.forwardRef<
     // Check if we should show "No Data Found" - only when actively searching and no matches
     const showNoResults = !!searchQuery && filteredItems.size === 0;
 
+    const [isPointerEventsEnabled, setIsPointerEventsEnabled] = React.useState(true);
+
+    // Prevent focus stealing by mouse hover during filtering updates
+    React.useEffect(() => {
+        setIsPointerEventsEnabled(false);
+        const timer = setTimeout(() => setIsPointerEventsEnabled(true), 100);
+        return () => clearTimeout(timer);
+    }, [filteredItems]); // Re-enable pointer events after list updates
+
     return (
         <SelectPrimitive.Portal>
             <SelectPrimitive.Content
@@ -275,12 +358,15 @@ const SelectContent = React.forwardRef<
                     'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-56 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=closed]:animate-out data-[state=open]:animate-in',
                     position === 'popper' &&
                         'data-[side=left]:-translate-x-1 data-[side=top]:-translate-y-1 data-[side=right]:translate-x-1 data-[side=bottom]:translate-y-1',
+                    !isPointerEventsEnabled && 'pointer-events-none', // Disable pointer events during updates
                     className
                 )}
                 position={position}
                 onCloseAutoFocus={(e) => {
                     // Prevent auto-focus behavior that might interfere with search input
-                    e.preventDefault();
+                    if (searchable) {
+                        e.preventDefault();
+                    }
                 }}
                 onPointerDownOutside={(e) => {
                     // Don't close when interacting with search input
@@ -320,18 +406,22 @@ const SelectItem = React.forwardRef<
     const { filteredItems, searchQuery } = React.useContext(SelectSearchContext);
 
     // If filtering is active and this item is not in filtered set, hide it
-    if (searchQuery && !filteredItems.has(props.value as string)) {
-        return null;
-    }
+    // We use display: none instead of returning null to keep the component mounted
+    // This helps maintain focus stability in Radix UI
+    const isHidden = searchQuery && !filteredItems.has(props.value as string);
 
     return (
         <SelectPrimitive.Item
             ref={ref}
             className={cn(
                 'relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pr-8 pl-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[state=checked]:bg-accent data-[state=checked]:text-accent-foreground data-[disabled]:opacity-50',
+                isHidden && 'hidden',
                 className
             )}
-            {...props}>
+            {...props}
+            // Ensure functionality is disabled when hidden
+            disabled={isHidden || props.disabled}
+            data-hidden={isHidden}>
             <span className='absolute right-2 flex h-3.5 w-3.5 items-center justify-center'>
                 <SelectPrimitive.ItemIndicator>
                     <CheckIcon className='h-4 w-4' />

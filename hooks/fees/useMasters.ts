@@ -6,7 +6,11 @@ import { getClassCategory, getMasterClassYearlyCategory } from '@/server/fees/ma
 import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
 
 import { getFeeTermHeadList, getheadsdropdown, getinstallmentsdropdown, gettermsdropdown } from '@/server/fees/masters/fee-term-heads';
-import { getpaymentgateway_dropdown, getpaymentgatewaydetails } from '@/server/fees/masters/fee_payment_gateway_details';
+import {
+    getpaymentgatewayInstitutionName,
+    getpaymentgateway_dropdown,
+    getpaymentgatewaydetails
+} from '@/server/fees/masters/fee_payment_gateway_details';
 import {
     getFeePrevilegeList,
     getGroupsDropdown,
@@ -18,7 +22,7 @@ import { getfeehead } from '@/server/fees/masters/feehead';
 import { getfeeInstallment, getfeeInstallmentyId } from '@/server/fees/masters/feeinstallment';
 
 import { getMasterConcession } from '@/server/fees/masters/feemasterconcession';
-import { getFeeTermList } from '@/server/fees/masters/feemasterterms';
+import { getFeeTermList, getmasterFeeTermDropList } from '@/server/fees/masters/feemasterterms';
 import { getMasterAllFeeHead, getMasterfeeInstallment, getMasterfeehead } from '@/server/fees/masters/yearly_group_mapping';
 
 import { getGroupListCategory, getMasterYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
@@ -36,6 +40,11 @@ import {
     getcategorygroupdropdown,
     getcategoryheadsdropdown
 } from '@/server/fees/masters/concession_category_head_group_mapping';
+import {
+    getFeeCompanyGroupMappingCompanyDropdown,
+    getFeesGroupDropDown,
+    getfeecompanygroupmappingList
+} from '@/server/fees/masters/fee_companygroupmapping';
 import { getFeeOtherStudent } from '@/server/fees/masters/fee_other_student';
 import { getMasterTermsPeriod } from '@/server/fees/masters/fee_terms_period';
 import { getInstallmentDropDown, getfeeInstallmentDueDateList } from '@/server/fees/masters/feeinstallmentduedate';
@@ -50,7 +59,7 @@ import {
     getFeeOnlinePaymentHeadGroupTable,
     getGroupNameDropDownList,
     getHeadNameDropDownList,
-    getInstituteDropDownList,
+    getInstitutionDetails,
     getOnlinePaymentHeadGroupInstallment,
     getSubMerchantDropDownList
 } from '@/server/fees/masters/online_payment_head_group';
@@ -298,7 +307,7 @@ export const useMasterFeeInstallment = (searchParams?: ApiSearchparams) => {
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_INSTALLMENT, searchParams ?? {}],
-            queryFn: async () => getfeeInstallment(30, searchParams),
+            queryFn: async () => getfeeInstallment(searchParams),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -466,13 +475,30 @@ export const useMasterTerms = (searchParams?: ApiSearchparams) => {
     };
 };
 
+export const useMasterTermsDropdowndataOnlinegroupheadmapping = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_TERMS_DROPDOWN_GROUPHEADMAPPING, searchParams ?? {}],
+            queryFn: async () => getmasterFeeTermDropList(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_MASTER_TERMS_DROPDOWN_GROUPHEADMAPPING]
+            });
+        }
+    };
+};
+
 export const useInstituteDropDown = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_INSTITUTE_DROPDOWN],
-            queryFn: async () => getInstituteDropDownList(),
+            queryFn: async () => getInstitutionDetails(),
 
             staleTime: 0
         }),
@@ -1308,6 +1334,90 @@ export const useStudentFeeBusAreaDropDown = (enabled = true) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_GROUP_MAPPING_BUS_AREA_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useFeeCompanyGroupMapping = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_COMPANY_GROUP_MAPPING, searchParams ?? {}],
+            queryFn: async () => getfeecompanygroupmappingList(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_COMPANY_GROUP_MAPPING]
+            });
+        }
+    };
+};
+
+export const feeCompanyFeeGroupMappingCompanyDropdown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_COMPANY_GROUP_MAPPING_COMPANY_DROPDOWN],
+            queryFn: async () => getFeeCompanyGroupMappingCompanyDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_COMPANY_GROUP_MAPPING_COMPANY_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const feeCompanyFeeGroupMappingGroupDropdown = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_COMPANY_GROUPMAPPING_GROUP_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getFeesGroupDropDown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_COMPANY_GROUPMAPPING_GROUP_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const feeCompanyFeeGroupMappingCompanyCompanyDropdown = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_COMPANY_GROUP_MAPPING, searchParams ?? {}],
+            queryFn: async () => getFeesGroupDropDown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_COMPANY_GROUP_MAPPING]
+            });
+        }
+    };
+};
+export const useMasterPaymentInstitutionName = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_PAYMENTGATEWAY_INSTITUTION_NAME],
+            queryFn: async () => getpaymentgatewayInstitutionName(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_PAYMENTGATEWAY_INSTITUTION_NAME]
             });
         }
     };

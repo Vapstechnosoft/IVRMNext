@@ -24,6 +24,8 @@ import {
 import {
     getFeeAdjustmentFromHeadDropDown,
     getFeeAdjustmentGroupDropDown,
+    getFeeAdjustmentToGroup,
+    getFeeAdjustmentToHeadDropDown,
     getFeeAdjutmentGridList
 } from '@/server/fees/trasactions/fee_adjustment';
 import {
@@ -39,7 +41,12 @@ import {
     getOpeningSectionDropdownData
 } from '@/server/fees/trasactions/fee_opening_balance';
 import { getFeeRefundableDetails } from '@/server/fees/trasactions/fee_refundable';
-import { getFeeStudentTransactionDetails } from '@/server/fees/trasactions/fee_student_transaction';
+import {
+    getFeeStudentTransactionDetails,
+    masterconfiguration,
+    updateFeeStudentCurrentAcademicDetails,
+    updateFeeStudentTransactionDetails
+} from '@/server/fees/trasactions/fee_student_transaction';
 import {
     getFeePreadmissionTransactionList,
     getFeeProspectusTransactionList,
@@ -349,13 +356,13 @@ export const useFeePreadmissionTransactionList = (
     };
 };
 
-export const usePreadmissionStudentDropdownData = (searchText: string, radiovalue: string) => {
+export const usePreadmissionStudentDropdownData = (searchText: string, radiovalue: string, asmayId: number) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_PREADMISSION_STUDENT_DROPDOWN, {}],
-            queryFn: async () => getPreadmissionStudentDropdownData(searchText, radiovalue),
+            queryFn: async () => getPreadmissionStudentDropdownData(searchText, radiovalue, asmayId),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -935,3 +942,105 @@ export const useFeeAdjustmentHeadDropDown = (
         }
     };
 };
+
+export const useFeeAdjustmentToGroupDropDown = (asmaY_Id: number, amsT_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_ADJUSTMENT_TO_GROUP_DROPDOWN, asmaY_Id, amsT_Id, searchParams ?? {}],
+            queryFn: async () => getFeeAdjustmentToGroup(asmaY_Id, amsT_Id),
+
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_ADJUSTMENT_TO_GROUP_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useFeeAdjustmentToHead = (asmaY_Id: number, amsT_Id: number, fmG_id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_ADJUSTMENT_TO_HEAD_DROPDOWN, asmaY_Id, amsT_Id, fmG_id, searchParams ?? {}],
+            queryFn: async () => getFeeAdjustmentToHeadDropDown(asmaY_Id, amsT_Id, fmG_id),
+
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_ADJUSTMENT_TO_HEAD_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useFeeMasterConfiguration = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_CONFIGURATION],
+            queryFn: async () => masterconfiguration(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_MASTER_CONFIGURATION]
+            });
+        }
+    };
+};
+
+export const useUpdateFeeTransactionList = (payload: any) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_UPDATE_TRANSACTION],
+            queryFn: async () => updateFeeStudentTransactionDetails(payload)
+        }),
+
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_UPDATE_TRANSACTION]
+            })
+    };
+};
+
+export const useFeeStudentCurrentAcademicDetails = (amst_Id: number, asmay_Id: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_CURRENT_ACADEMIC_DETAILS],
+            queryFn: async () => updateFeeStudentCurrentAcademicDetails(amst_Id, asmay_Id)
+        }),
+
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_CURRENT_ACADEMIC_DETAILS]
+            })
+    };
+};
+
+// export const useThirdPartyTrasactionfeeReceiptNoflg = (searchParams?: ApiSearchparams) => {
+//     const queryClient = useQueryClient();
+
+//     return {
+//         ...useQuery({
+//             queryKey: [FEES_QUERY_KEYS.THIRD_PARTY_AUTORECEIPT_FLG, searchParams ?? {}],
+//             queryFn: async () => ThirdPartyTrasactionfeeReceiptNoflg(),
+//             staleTime: 0
+//         }),
+//         refetchAll: () => {
+//             return queryClient.invalidateQueries({
+//                 queryKey: [FEES_QUERY_KEYS.THIRD_PARTY_AUTORECEIPT_FLG]
+//             });
+//         }
+//     };
+// };

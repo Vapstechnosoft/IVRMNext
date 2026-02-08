@@ -239,6 +239,25 @@ export interface IFeeTransactionApiResponse {
     };
 }
 
+// export interface Ifeetransaction {
+//     amsT_FirstName: string;
+//     amsT_MiddleName: string | null;
+//     amsT_LastName: string | null;
+
+//     classname: string;
+//     sectionname: string;
+//     amsT_AdmNo: string;
+
+//     fyP_Receipt_No: string;
+//     fyP_Date: string; // or Date
+//     fyP_Tot_Amount: number;
+//     fyP_Bank_Or_Cash: string; // example: 'C', 'O'
+//     fyP_Chq_Bounce: string | null; // 'CL', 'CB', null
+
+//     fyP_Id: number;
+//     amst_Id: number;
+// }
+
 export interface Ifeetransaction {
     amsT_FirstName: string;
     amsT_MiddleName: string | null;
@@ -256,6 +275,8 @@ export interface Ifeetransaction {
 
     fyP_Id: number;
     amst_Id: number;
+    asmaY_ID: number;
+    asmaY_Year: string;
 }
 
 export interface IStudentDropdown {
@@ -313,11 +334,11 @@ export interface INarration {
 
 export interface IFeeThirdPartyTransactionStudentDetails {
     mI_Id: number;
-    amsT_Id: number;
+    amsT_Id?: number;
     asmaY_Id: number;
-    amsT_FirstName: string;
-    amsT_MiddleName: string;
-    amsT_LastName: string;
+    amsT_FirstName?: string;
+    amsT_MiddleName?: string;
+    amsT_LastName?: string;
     returnval: boolean;
     fmH_Id: number;
     fyptP_Towards: string;
@@ -666,6 +687,9 @@ export interface IFeeTDetails {
     fmG_Id: number;
     fsS_RunningExcessAmount: number;
     fsS_FineAmount: number;
+    portalusername: string;
+    ftP_Paid_Amt: number;
+    ftP_Concession_Amt: number;
 }
 
 export interface IFeeRefundableList {
@@ -894,6 +918,7 @@ export interface IFeeConcessionStudentData {
 }
 
 export interface IFeeAdjustmentGroupDropDown {
+    fmG_Id: number;
     fsA_From_FMG_Id: number;
     fmG_GroupNameF: string;
 }
@@ -906,4 +931,165 @@ export interface IFeeAdjustmentHeadDropDown {
     fsA_From_FMG_Id: number;
     fsA_From_FMA_Id: number;
     fsS_RunningExcessAmount: number;
+}
+
+export interface IFeeAdjustmentGroupToDropDown {
+    fsA_To_FMG_Id: number;
+    fmG_GroupNameT: string;
+}
+
+export interface IFeeAdjustmentToHead {
+    fsA_To_FMH_Id: number;
+    fmH_FeeNameT: string;
+    fsA_TO_FTI_Id: number;
+    ftI_NameT: string;
+    fsA_To_FMG_Id: number;
+    fsA_To_FMA_Id: number;
+    tobepaid: number;
+}
+
+export interface IFeeTermDetails {
+    fmA_Id: number;
+    fmH_FeeName: string;
+    fmH_Flag: string;
+    ftI_Name: string;
+    fmH_Id: number;
+    ftI_Id: number;
+    totalamount: number;
+    fsS_ToBePaid: number;
+    fsS_ConcessionAmount: number;
+    fsS_FineAmount: number;
+    fsS_CurrentYrCharges: number;
+    fsS_TotalToBePaid: number;
+    fmG_Id: number;
+    fmG_GroupName: string;
+    fsS_OBArrearAmount: number;
+    fmT_Id: number;
+    fsS_RebateAmount: number;
+    fsS_WaivedAmount: number;
+    fsS_OBAsPerFY: number;
+    fsS_AdjustedAmount: number;
+}
+export interface MasterNarration {
+    fmnaR_Id: number;
+    fmnaR_Narration: string;
+}
+export interface MasterModeofPayment {
+    ivrmmoD_Id: number;
+    ivrmmoD_ModeOfPayment: string;
+    ivrmmoD_Flag: string;
+    ivrmmoD_ModeOfPayment_Code: string;
+    bank_Date: string;
+    bank_No: string;
+    bank_Amount: string;
+    bank_Name: string;
+    fyppM_Id: number;
+}
+
+export interface StudentPrintDetails {
+    amst_id: number;
+    fyp_id: number;
+    student_name: string;
+    fmh_id: number;
+    fmh_feename: string;
+    fti_id: number;
+    fti_name: string;
+    paid_amount: number;
+    concession_amount: number;
+    fine_amount: number;
+    to_be_paid: number;
+    fyp_date: string;
+    feeAmount: number;
+    asmay_Year: string;
+}
+
+export interface CurrentPaymentDetails {
+    ftP_Paid_Amt: number;
+    ftP_Concession_Amt: number;
+    fyP_Date: string;
+    fyP_Bank_Or_Cash: string;
+    fyP_DD_Cheque_No: string;
+    fyP_DD_Cheque_Date: string;
+    fyP_Bank_Name: string;
+    fyP_Remarks: string;
+    fyppM_TotalPaidAmount: number;
+    fyP_TransactionTypeFlag: string;
+    fyppM_BankName: string;
+    fyppM_DDChequeNo: string;
+    fyppM_DDChequeDate: string;
+    fyppM_TransactionId: string;
+    fyppM_PaymentReferenceId: string;
+    ivrmmoD_ModeOfPayment: string;
+    ivrmmoD_Flag: string;
+}
+
+export interface masterBankList {
+    fmbanK_Id: number;
+    fmbanK_BankName: string;
+}
+
+export interface IFeeReceiptImportDelate {
+    studentname: string;
+    admissionnumber: string;
+    date: string;
+    receiptno: string;
+    amount: number;
+    fyP_Id: number;
+}
+
+export interface IStudentDisableList {
+    paid: number;
+    netAmount: number;
+    balance: number;
+    fmtId: number;
+    fmtOrder: number;
+}
+
+// types/fees/transactions/transactions.ts
+export interface IAmountEntryFineSlabDetails {
+    success: boolean;
+    message: string;
+    data: {
+        fillslab: FineSlabItem[];
+        fillslabecs: FineSlabItem[];
+    };
+    total: number | null;
+    page: number | null;
+    page_size: number | null;
+}
+
+export interface FineSlabItem {
+    fmfS_Id: number;
+    mI_Id: number;
+    fmfS_FineType: string;
+    fmfS_FromDay: number;
+    fmfS_ToDay: number;
+    fmfS_ECSFlag: string;
+    fmfS_ActiveFlag: boolean;
+    fmfS_CreatedBy: number | null;
+    fmfS_UpdatedBy: number;
+    createdDate: string;
+    updatedDate: string;
+}
+
+export interface IThirdPartyReceiptFlag {
+    imN_Id: number;
+    mI_Id: number;
+    imN_AutoManualFlag: string;
+    imN_DuplicatesFlag: string;
+    imN_StartingNo: string;
+    imN_WidthNumeric: string;
+    imN_ZeroPrefixFlag: 'Y' | 'N';
+    imN_PrefixAcadYearCode: boolean;
+    imN_PrefixParticular: string;
+    imN_SuffixAcadYearCode: boolean;
+    imN_SuffixParticular: string;
+    imN_RestartNumFlag: 'Y' | 'N';
+    imN_Flag: string;
+    imN_PrefixFinYearCode: boolean;
+    imN_PrefixCalYearCode: boolean;
+    imN_SuffixFinYearCode: boolean;
+    imN_SuffixCalYearCode: boolean;
+    createdDate: string; // ISO Date string
+    updatedDate: string; // ISO Date string
 }

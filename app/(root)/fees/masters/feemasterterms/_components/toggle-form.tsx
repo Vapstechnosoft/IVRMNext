@@ -40,7 +40,7 @@ export default function ToggleFeeTermsForm({ rowData, onClose }: ToggleMasterFee
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleFeeTerm(30, Number(rowData.fmT_Id));
+            const response = await toggleFeeTerm(Number(rowData.fmT_Id));
 
             if (response.success) {
                 toast.success(response.message);

@@ -21,23 +21,23 @@ export const LoginPrivilegesDetailsColumns: ColumnDef<ILoginPrivilegeDetails>[] 
     },
 
     {
-        accessorKey: 'className',
+        accessorKey: 'asmcL_ClassName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' />,
-        cell: ({ row }) => <div>{row.getValue('className')}</div>,
+        cell: ({ row }) => <div>{row.getValue('asmcL_ClassName')}</div>,
         enableSorting: true
     },
 
     {
-        accessorKey: 'sectionName',
+        accessorKey: 'asmC_SectionName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Section Name' />,
-        cell: ({ row }) => <div>{row.getValue('sectionName')}</div>,
+        cell: ({ row }) => <div>{row.getValue('asmC_SectionName')}</div>,
         enableSorting: true
     },
 
     {
-        accessorKey: 'subjectName',
+        accessorKey: 'ismS_SubjectName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Name' />,
-        cell: ({ row }) => <div>{row.getValue('subjectName')}</div>,
+        cell: ({ row }) => <div>{row.getValue('ismS_SubjectName')}</div>,
         enableSorting: true
     },
 
@@ -67,7 +67,7 @@ function ActionButtonsCell({ rowData }: { rowData: ILoginPrivilegeDetails }) {
             <ActionButtons
                 rowData={rowData}
                 buttons={{ edit: false, delete: false, toggle: true }}
-                toggleConditionKey='isActive'
+                toggleConditionKey='activeFlg'
                 onToggle={handleToggle}
             />
         </div>

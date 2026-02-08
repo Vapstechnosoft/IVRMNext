@@ -15,7 +15,7 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-t
 import { useAcademicYearDropdown, useMasterFeeInstallmentDropDown, useMasterFeeInstallmentDueDateList } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
 import { masterInstallmentDueDateSchema } from '@/schemas/fees/masters';
-import { getInstallmentDueDateList, saveInstallmentDueDate } from '@/server/fees/masters/feeinstallmentduedate';
+import { getAcademicYearDetailsData, getInstallmentDueDateList, saveInstallmentDueDate } from '@/server/fees/masters/feeinstallmentduedate';
 import type { IMasterFeesInstallmentDueDateList, IMasterFeesInstallmentDuedateList } from '@/types/fees/masters';
 import type { IMasterFeeInstallmentDropDown } from '@/types/fees/masters/masters';
 import { masterFeeInstallmentDueDateUpdateColumn } from './fee_due_date_columnupdate';
@@ -82,7 +82,7 @@ export default function UpdtaeMasterInstallmentDueDateForm({ onSuccess, selected
         try {
             setMasterInstallmentDueDataLoading(true);
             setMasterInstallmentDueDataError(null);
-            const res = await getInstallmentDueDateList(Number(asmayId || 231), Number(fmiId || 0));
+            const res = await getInstallmentDueDateList(Number(asmayId || 0), Number(fmiId || 0));
             setMasterInstallmentDueData(res.data);
             setTableProps(useDataTableProps(res || []));
         } catch (error) {
@@ -92,6 +92,50 @@ export default function UpdtaeMasterInstallmentDueDateForm({ onSuccess, selected
             setMasterInstallmentDueDataLoading(false);
         }
     };
+
+    const asmay_Id = watch('asmay_Id');
+
+    const [academicYearRange, setAcademicYearRange] = useState<{
+        minDate: Date | null;
+        maxDate: Date | null;
+    }>({ minDate: null, maxDate: null });
+    useEffect(() => {
+        const fetchAcademicYearDetails = async () => {
+            console.log('setting min and max dates', asmay_Id);
+            if (!asmay_Id) {
+                setAcademicYearRange({ minDate: null, maxDate: null });
+                return;
+            }
+            try {
+                const response = await getAcademicYearDetailsData(Number(asmay_Id));
+                console.log('Response:', response);
+
+                // Assuming response has startDate and endDate
+                // Adjust based on your actual API response structure
+                if (response.data) {
+                    const academicYear = response.data[0]; // Or use response.data.find(...) if selecting by criteria
+
+                    const minDateStr = academicYear.asmaY_From_Date ? new Date(academicYear.asmaY_From_Date) : '';
+                    const maxDateStr = academicYear.asmaY_To_Date ? new Date(academicYear.asmaY_To_Date) : '';
+                    // const minDateStr = '2025-01-01';
+                    // const maxDateStr = '2025-12-31';
+
+                    // Convert strings to Date objects
+                    const minDate = new Date(minDateStr);
+                    const maxDate = new Date(maxDateStr);
+
+                    console.log('mindate', minDate);
+                    console.log('mindate', minDate);
+                    setAcademicYearRange({ minDate, maxDate });
+                }
+            } catch (error) {
+                console.error('Error fetching academic year details:', error);
+                setAcademicYearRange({ minDate: null, maxDate: null });
+            }
+        };
+
+        fetchAcademicYearDetails();
+    }, [asmay_Id]);
 
     function formatDateToYMD(date: any) {
         if (!date) return null;
@@ -144,6 +188,45 @@ export default function UpdtaeMasterInstallmentDueDateForm({ onSuccess, selected
     const handleReset = () => {
         reset();
     };
+
+    // const handleReset = () => {
+    //     reset();
+
+    //     // Reset to the original selected row data
+    //     setAcademicYear(selectedRow?.asmaY_Id || null);
+    //     setInstallment(selectedRow?.ftI_Id || null);
+
+    //     // Re-fetch the original data
+    //     if (selectedRow?.asmaY_Id && selectedRow?.ftI_Id) {
+    //         fetchInstallmentDueData(selectedRow.asmaY_Id, selectedRow.ftI_Id);
+    //     } else {
+    //         // Clear the table data
+    //         setMasterInstallmentDueData([]);
+    //     }
+    // };
+
+    // // Separate the data fetching logic into a reusable function
+    // const fetchInstallmentDueData = async (academicYearId: number, installmentId: number) => {
+    //     try {
+    //         setMasterInstallmentDueDataLoading(true);
+    //         setMasterInstallmentDueDataError(null);
+    //         const res = await getInstallmentDueDateList(academicYearId, installmentId);
+    //         setMasterInstallmentDueData(res.data);
+    //         setTableProps(useDataTableProps(res || []));
+    //     } catch (error) {
+    //         console.error('Error fetching installment due date data', error);
+    //         setMasterInstallmentDueDataError(error);
+    //     } finally {
+    //         setMasterInstallmentDueDataLoading(false);
+    //     }
+    // };
+
+    // // Update your existing useEffect to use this function
+    // useEffect(() => {
+    //     if (asmayId && fmiId) {
+    //         fetchInstallmentDueData(Number(asmayId), Number(fmiId));
+    //     }
+    // }, [asmayId, fmiId]);
 
     return (
         <div className='p-4'>
@@ -228,7 +311,7 @@ export default function UpdtaeMasterInstallmentDueDateForm({ onSuccess, selected
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IMasterFeesInstallmentDueDateList>
                         {...tableProps}
-                        columns={masterFeeInstallmentDueDateUpdateColumn}
+                        columns={masterFeeInstallmentDueDateUpdateColumn(academicYearRange.minDate, academicYearRange.maxDate)}
                         isLoading={masterInstallmentDueDataLoading}
                         error={masterInstallmentDueDataError}
                         // onRowSelectionChange={handleSelectStudent}

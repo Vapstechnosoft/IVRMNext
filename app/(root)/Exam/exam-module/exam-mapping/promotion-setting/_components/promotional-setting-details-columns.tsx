@@ -1,53 +1,56 @@
 'use client';
 
+import { getStatusBadge } from '@/components/extras/helpers/helper';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import type { IPromotionalSubjectDetails } from '@/types/exam/exam-module/exam-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
 import { useCallback } from 'react';
 
-export interface IPromotionalSubjectDetails {
-    slNo: number;
-    subjectName: string;
-    gradeName: string;
-    maxMarks: number;
-    minMarks: number;
-    convertedMarks: number;
-    aplResult: boolean;
-}
-
 export const PromotionalSettingDetailsColumns: ColumnDef<IPromotionalSubjectDetails>[] = [
-
     {
         accessorKey: 'slNo',
         header: ({ column }) => <DataTableColumnHeader title='SLNO' column={column} />,
-        cell: ({ row }) => row.index + 1
+        cell: ({ row }) => row.index + 1,
+        enableSorting: false
     },
     {
-        accessorKey: 'subjectName',
-        header: ({ column }) => <DataTableColumnHeader title='Subject Name' column={column} />
+        accessorKey: 'ismS_SubjectName',
+        header: ({ column }) => <DataTableColumnHeader title='Subject Name' column={column} />,
+        enableSorting: false,
+        cell: ({ row }) => row.getValue('ismS_SubjectName')
     },
     {
-        accessorKey: 'gradeName',
-        header: ({ column }) => <DataTableColumnHeader title='Grade Name' column={column} />
+        accessorKey: 'emgR_GradeName',
+        header: ({ column }) => <DataTableColumnHeader title='Grade Name' column={column} />,
+        enableSorting: false,
+        cell: ({ row }) => row.getValue('emgR_GradeName')
     },
     {
-        accessorKey: 'maxMarks',
-        header: ({ column }) => <DataTableColumnHeader title='Max. Marks' column={column} />
+        accessorKey: 'empS_MaxMarks',
+        header: ({ column }) => <DataTableColumnHeader title='Max. Marks' column={column} />,
+        enableSorting: false,
+        cell: ({ row }) => row.getValue('empS_MaxMarks')
     },
     {
-        accessorKey: 'minMarks',
-        header: ({ column }) => <DataTableColumnHeader title='Min. Marks' column={column} />
+        accessorKey: 'empS_MinMarks',
+        header: ({ column }) => <DataTableColumnHeader title='Min. Marks' column={column} />,
+        enableSorting: false,
+        cell: ({ row }) => row.getValue('empS_MinMarks')
     },
     {
-        accessorKey: 'convertedMarks',
-        header: ({ column }) => <DataTableColumnHeader title='Converted Marks For' column={column} />
+        accessorKey: 'empS_ConvertForMarks',
+        header: ({ column }) => <DataTableColumnHeader title='Converted Marks For' column={column} />,
+        enableSorting: false,
+        cell: ({ row }) => row.getValue('empS_ConvertForMarks')
     },
     {
-        accessorKey: 'aplResult',
+        accessorKey: 'empS_AppToResultFlg',
         header: ({ column }) => <DataTableColumnHeader title='Apl. Result' column={column} />,
-        cell: ({ row }) => <span className="text-green-600 font-bold">✔</span>
+        cell: ({ row }) => getStatusBadge((row.getValue('empS_AppToResultFlg') as boolean) === true ? 'yes' : 'no'),
+        enableSorting: false
     },
     {
         id: 'actions',
@@ -58,15 +61,11 @@ export const PromotionalSettingDetailsColumns: ColumnDef<IPromotionalSubjectDeta
     }
 ];
 
-
-
-
-
 // -------------------------
 // MAPPING CELL
 // -------------------------
 function MappingCell({ rowData }: { rowData: IPromotionalSubjectDetails }) {
-    const showEye = rowData.aplResult || rowData.convertedMarks;
+    const showEye = rowData.empS_AppToResultFlg || rowData.empS_ConvertForMarks;
     const { openMappedview } = useFormContext<IPromotionalSubjectDetails>();
     const handleOpenView = useCallback(() => openMappedview(rowData), [openMappedview, rowData]);
     if (!showEye) return <div>-</div>;
@@ -88,7 +87,7 @@ function ActionButtonsCell({ rowData }: { rowData: IPromotionalSubjectDetails })
     return (
         <div className='flex justify-center'>
             <MappingCell rowData={rowData} />
-            <ActionButtons rowData={rowData} buttons={{ toggle: true }} onToggle={handleToggle} toggleConditionKey='eyceS_ActiveFlg' />
+            <ActionButtons rowData={rowData} buttons={{ toggle: true }} onToggle={handleToggle} toggleConditionKey='empS_ActiveFlag' />
         </div>
     );
 }

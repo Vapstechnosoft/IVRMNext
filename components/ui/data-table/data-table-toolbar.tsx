@@ -43,7 +43,7 @@ export function DataTableToolbar<TData, TValue>({
 
     const isUserInputRef = useRef(false);
 
-    // Sync URL → local input
+    // Sync URL → local input on initial load
     useEffect(() => {
         if (!isUserInputRef.current) {
             setLocalSearchQuery(searchQuery || '');
@@ -241,18 +241,6 @@ export function DataTableToolbar<TData, TValue>({
                         className='h-9 w-64 pr-12'
                     />
 
-                    {/* Clear button */}
-                    {localSearchQuery && (
-                        // biome-ignore lint/a11y/useButtonType: <explanation>
-                        <button
-                            onClick={handleReset}
-                            className='-translate-y-1/2 absolute top-1/2 right-9 p-1 text-muted-foreground hover:text-foreground'
-                            aria-label='Clear search'
-                        >
-                            <X className='h-4 w-4' />
-                        </button>
-                    )}
-
                     {/* Mic button - hold to speak */}
                     <button
                         type='button'
@@ -271,7 +259,12 @@ export function DataTableToolbar<TData, TValue>({
                         )}
                     </button>
                 </div>
-
+                {localSearchQuery && (
+                    <Button variant='ghost' size='sm' onClick={handleReset} className='h-9 px-2' aria-label='Reset search'>
+                        <X className='mr-1 h-4 w-4' />
+                        Reset
+                    </Button>
+                )}
                 {isTranscribing && <span className='text-blue-600 text-sm'>Transcribing...</span>}
             </div>
 

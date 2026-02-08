@@ -16,11 +16,11 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function ExamLoginPrivilegesPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data, isLoading, error } = useExamLoginPrivileges(searchParams);
+    const { data: response, isLoading, error } = useExamLoginPrivileges(searchParams);
     return (
         <FormProvider<IExamLoginPrivileges>>
             <ExamLoginPrivilegesPageContent
-                data={Array.isArray(data?.data) ? data.data : []} // always array
+                response={response} // always array
                 isLoading={isLoading}
                 error={error}
             />
@@ -29,16 +29,16 @@ export default function ExamLoginPrivilegesPage(props: { searchParams: SearchPar
 }
 
 function ExamLoginPrivilegesPageContent({
-    data,
+    response,
     isLoading,
     error
 }: {
-    data: any[];
+    response: any;
     isLoading: boolean;
     error: any;
 }) {
     const { openAddForm } = useFormContext<IExamLoginPrivileges>();
-    const tableProps = useDataTableProps(data ?? []);
+    const tableProps = useDataTableProps(response);
 
     return (
         <div className='min-h-screen'>
@@ -61,7 +61,6 @@ function ExamLoginPrivilegesPageContent({
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IExamLoginPrivileges>
                         {...tableProps}
-                        data={data}
                         columns={ExamLoginPrivilegesColumns}
                         isLoading={isLoading}
                         error={error}
@@ -139,6 +138,7 @@ function FormSections() {
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                         </div>
+                        <AddExamLoginPrivileges rowData={selectedRow} />
                     </CollapsibleSection>
                 </div>
             )}

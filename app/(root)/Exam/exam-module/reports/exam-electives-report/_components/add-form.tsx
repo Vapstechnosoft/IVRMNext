@@ -1,6 +1,6 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -38,7 +38,7 @@ interface Props {
 }
 
 export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
-    const { data: academicData } = useAcademicYearDropdown();
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const {
         control,
         handleSubmit,
@@ -49,7 +49,7 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
         defaultValues: {
             Type: 'All',
             asmaY_Id: 0,
-            emcA_Id: 'All',
+            emcA_Id: 0,
             emG_Id: 0,
             ismS_Id: 0,
             asmcL_Id: 0,
@@ -70,28 +70,21 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
     const asmcL_Id = useWatch({ control, name: 'asmcL_Id' });
 
     // Dropdown state
-    const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
     const [groups, setGroups] = useState<{ emG_Id: number; emG_GroupName: string }[]>([]);
     const [subjects, setSubjects] = useState<{ ismS_Id: number; ismS_SubjectName: string }[]>([]);
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
 
-    // Load Academic Years
-    useEffect(() => {
-        if (academicData?.data) {
-            setAcademicYears(
-                academicData.data.map((item: any) => ({
-                    asmaY_Id: item.asmaY_Id,
-                    asmaY_Year: item.asmaY_Year
-                }))
-            );
-        }
-    }, [academicData]);
+    const [loadingCategories, setLoadingCategories] = useState(false);
+    const [loadingGroups, setLoadingGroups] = useState(false);
+    const [loadingSubjects, setLoadingSubjects] = useState(false);
+    const [loadingClasses, setLoadingClasses] = useState(false);
+    const [loadingSections, setLoadingSections] = useState(false);
 
     // Reset dependent fields when Type changes
     useEffect(() => {
-        setValue('emcA_Id', 'All');
+        setValue('emcA_Id', 0);
         setValue('emG_Id', 0);
         setValue('ismS_Id', 0);
         setValue('asmcL_Id', 0);
@@ -111,11 +104,17 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
         }
         const fetchCategories = async () => {
             try {
+                setLoadingCategories(true);
                 const res = await getCategoryDropDownByYearList(asmaY_Id);
                 setCategories(Array.isArray(res) ? res : []);
+                if (Array.isArray(res) && res.length === 0) {
+                    toast.info('No Categories are mapped');
+                }
             } catch (err: any) {
                 toast.error(err.message || 'Failed to load categories');
                 setCategories([]);
+            } finally {
+                setLoadingCategories(false);
             }
         };
         fetchCategories();
@@ -130,6 +129,8 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
         }
         const fetchData = async () => {
             try {
+                setLoadingGroups(true);
+                setLoadingClasses(true);
                 const categoryId = emcA_Id === 'All' ? 'All' : emcA_Id;
                 const [groupRes, classRes] = await Promise.all([
                     getSubjectGroupDropDownByYearCategoryList(asmaY_Id, categoryId),
@@ -139,6 +140,9 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                 setClasses(Array.isArray(classRes) ? classRes : []);
             } catch {
                 toast.error('Failed to load groups or classes');
+            } finally {
+                setLoadingGroups(false);
+                setLoadingClasses(false);
             }
         };
         fetchData();
@@ -152,11 +156,14 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
         }
         const fetchSubjects = async () => {
             try {
+                setLoadingSubjects(true);
                 const categoryId = emcA_Id === 'All' ? 'All' : emcA_Id;
                 const res = await getSubjectDropDownByYearCategorySubjectGroupList(asmaY_Id, categoryId, emG_Id);
                 setSubjects(Array.isArray(res) ? res : []);
             } catch {
                 toast.error('Failed to load subjects');
+            } finally {
+                setLoadingSubjects(false);
             }
         };
         fetchSubjects();
@@ -170,10 +177,13 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
         }
         const fetchSections = async () => {
             try {
+                setLoadingSections(true);
                 const res = await getSectionDropDownByYearCategoryClassList(asmaY_Id, Number(emcA_Id), asmcL_Id);
                 setSections(Array.isArray(res) ? res : []);
             } catch {
                 toast.error('Failed to load sections');
+            } finally {
+                setLoadingSections(false);
             }
         };
         fetchSections();
@@ -218,7 +228,19 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
     };
 
     const handleClear = () => {
-        reset();
+        reset({
+            Type: type,
+            asmaY_Id: 0,
+            emcA_Id: 0,
+            emG_Id: 0,
+            ismS_Id: 0,
+            asmcL_Id: 0,
+            asmS_Id: 0,
+            mob_flg: false,
+            mail_flg: false,
+            Left_Flag: false,
+            Deactive_Flag: false
+        });
         setCategories([]);
         setGroups([]);
         setSubjects([]);
@@ -228,9 +250,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
 
     return (
         <Card>
-            <CardHeader>
-                <CardTitle>Elective Subjects Report</CardTitle>
-            </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-8'>
                     {/* biome-ignore lint/nursery/useSortedClasses: <explanation> */}
@@ -291,26 +310,36 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                         <div className='space-y-6'>
                             {/* Academic Year */}
                             <Controller
-                                name='asmaY_Id'
                                 control={control}
-                                rules={{ required: 'Academic Year is required' }}
+                                name='asmaY_Id'
                                 render={({ field, fieldState }) => (
                                     <div>
                                         <Label>
                                             Academic Year <span className='text-red-500'>*</span>
                                         </Label>
                                         <Select
-                                            value={field.value ? String(field.value) : ''}
-                                            onValueChange={(v) => field.onChange(Number(v))}>
+                                            key={field.value}
+                                            value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                            onValueChange={(val) => field.onChange(Number(val))}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Academic Year' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {academicYears.map((y) => (
-                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                        {y.asmaY_Year}
+                                                {academicYearLoading ? (
+                                                    <SelectItem value='0' disabled>
+                                                        Academic Years are loading...
                                                     </SelectItem>
-                                                ))}
+                                                ) : academicYear?.data?.length === 0 ? (
+                                                    <SelectItem value='0' disabled>
+                                                        No Academic Years found
+                                                    </SelectItem>
+                                                ) : (
+                                                    academicYear?.data?.map((item) => (
+                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                            {item.asmaY_Year}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -330,18 +359,39 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                                 Category <span className='text-red-500'>*</span>
                                             </Label>
                                             <Select
-                                                value={field.value === 'All' ? 'All' : field.value ? String(field.value) : ''}
+                                                key={field.value}
+                                                value={
+                                                    field.value === 'All'
+                                                        ? 'All'
+                                                        : field.value && field.value !== 0
+                                                          ? String(field.value)
+                                                          : undefined
+                                                }
                                                 onValueChange={(v) => field.onChange(v === 'All' ? 'All' : Number(v))}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Category' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {type === 'subj' && <SelectItem value='All'>All Categories</SelectItem>}
-                                                    {categories.map((c) => (
-                                                        <SelectItem key={c.emcA_Id} value={String(c.emcA_Id)}>
-                                                            {c.emcA_CategoryName}
+                                                    {loadingCategories ? (
+                                                        <SelectItem value='0' disabled>
+                                                            Categories are loading...
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : (
+                                                        <>
+                                                            {type === 'subj' && <SelectItem value='All'>All Categories</SelectItem>}
+                                                            {categories.length === 0 ? (
+                                                                <SelectItem value='0' disabled>
+                                                                    No Categories found
+                                                                </SelectItem>
+                                                            ) : (
+                                                                categories.map((c) => (
+                                                                    <SelectItem key={c.emcA_Id} value={String(c.emcA_Id)}>
+                                                                        {c.emcA_CategoryName}
+                                                                    </SelectItem>
+                                                                ))
+                                                            )}
+                                                        </>
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -362,17 +412,28 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                                     Subject Group <span className='text-red-500'>*</span>
                                                 </Label>
                                                 <Select
-                                                    value={field.value ? String(field.value) : ''}
+                                                    key={field.value}
+                                                    value={field.value && field.value !== 0 ? String(field.value) : ''}
                                                     onValueChange={(v) => field.onChange(Number(v))}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='Select Subject Group' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {groups.map((g) => (
-                                                            <SelectItem key={g.emG_Id} value={String(g.emG_Id)}>
-                                                                {g.emG_GroupName}
+                                                        {loadingGroups ? (
+                                                            <SelectItem value='0' disabled>
+                                                                Subject Groups are loading...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : groups.length === 0 ? (
+                                                            <SelectItem value='0' disabled>
+                                                                No Subject Groups found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            groups.map((g) => (
+                                                                <SelectItem key={g.emG_Id} value={String(g.emG_Id)}>
+                                                                    {g.emG_GroupName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -389,17 +450,28 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                                     Subject <span className='text-red-500'>*</span>
                                                 </Label>
                                                 <Select
+                                                    key={field.value}
                                                     value={field.value ? String(field.value) : ''}
                                                     onValueChange={(v) => field.onChange(Number(v))}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='Select Subject' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {subjects.map((s) => (
-                                                            <SelectItem key={s.ismS_Id} value={String(s.ismS_Id)}>
-                                                                {s.ismS_SubjectName}
+                                                        {loadingSubjects ? (
+                                                            <SelectItem value='0' disabled>
+                                                                Subjects are loading...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : subjects.length === 0 ? (
+                                                            <SelectItem value='0' disabled>
+                                                                No Subjects found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            subjects.map((s) => (
+                                                                <SelectItem key={s.ismS_Id} value={String(s.ismS_Id)}>
+                                                                    {s.ismS_SubjectName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -421,17 +493,28 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                                     Class <span className='text-red-500'>*</span>
                                                 </Label>
                                                 <Select
+                                                    key={field.value}
                                                     value={field.value ? String(field.value) : ''}
                                                     onValueChange={(v) => field.onChange(Number(v))}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='Select Class' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {classes.map((c) => (
-                                                            <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
-                                                                {c.asmcL_ClassName}
+                                                        {loadingClasses ? (
+                                                            <SelectItem value='0' disabled>
+                                                                Classes are loading...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : classes.length === 0 ? (
+                                                            <SelectItem value='0' disabled>
+                                                                No Classes found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            classes.map((c) => (
+                                                                <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                                    {c.asmcL_ClassName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -448,17 +531,28 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                                     Section <span className='text-red-500'>*</span>
                                                 </Label>
                                                 <Select
+                                                    key={field.value}
                                                     value={field.value ? String(field.value) : ''}
                                                     onValueChange={(v) => field.onChange(Number(v))}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='Select Section' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {sections.map((s) => (
-                                                            <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
-                                                                {s.asmC_SectionName}
+                                                        {loadingSections ? (
+                                                            <SelectItem value='0' disabled>
+                                                                Sections are loading...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : sections.length === 0 ? (
+                                                            <SelectItem value='0' disabled>
+                                                                No Sections found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            sections.map((s) => (
+                                                                <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                                                    {s.asmC_SectionName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}

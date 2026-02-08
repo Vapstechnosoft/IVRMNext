@@ -31,7 +31,7 @@ export const feeInstallmentColumns: ColumnDef<IMasterFeesInstallmentList>[] = [
     {
         accessorKey: 'fmI_No_Of_Installments',
         header: ({ column }) => <DataTableColumnHeader column={column} title='No. of Installments' />,
-        cell: ({ row }) => <div className='text-center'>{row.getValue('fmI_No_Of_Installments')}</div>,
+        cell: ({ row }) => <div>{row.getValue('fmI_No_Of_Installments')}</div>,
         enableSorting: true,
         enableHiding: true
     },
@@ -48,7 +48,7 @@ export const feeInstallmentColumns: ColumnDef<IMasterFeesInstallmentList>[] = [
 
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         enableHiding: false,

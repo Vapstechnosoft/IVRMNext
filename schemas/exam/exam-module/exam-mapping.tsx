@@ -13,7 +13,8 @@ export const examLoginPrivilegesSchema = {
 
             ivrmulF_Id: z.number({ required_error: 'User Login is required' }).min(1, { message: 'Please select a User Login' }),
 
-            asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select a Class' }),
+            // Make asmcL_Id optional since we're using classList
+            asmcL_Id: z.number().optional(),
 
             /**
              * ✔ Added support for multi-select classList
@@ -45,10 +46,11 @@ export const examLoginPrivilegesSchema = {
                 )
                 .min(1, { message: 'At least one subject must be selected' }),
 
+            // FIXED: Changed from issS_Id to emsS_Id
             subSubjectList: z
                 .array(
                     z.object({
-                        issS_Id: z.number({ required_error: 'Sub-subject is required' }).min(1, { message: 'Please select a Sub-subject' })
+                        emsS_Id: z.number({ required_error: 'Sub-subject is required' }).min(1, { message: 'Please select a Sub-subject' })
                     })
                 )
                 .optional(),
@@ -64,6 +66,15 @@ export const examLoginPrivilegesSchema = {
         .superRefine((data, ctx) => {
             // Cross validation rules
 
+            // Must have at least one class (either via asmcL_Id or classList)
+            if (!data.asmcL_Id && (!data.classList || data.classList.length === 0)) {
+                ctx.addIssue({
+                    path: ['asmcL_Id'],
+                    code: z.ZodIssueCode.custom,
+                    message: 'Please select at least one Class'
+                });
+            }
+
             // Must have at least one section or subject
             if ((!data.sectionList || data.sectionList.length === 0) && (!data.subjectList || data.subjectList.length === 0)) {
                 ctx.addIssue({
@@ -71,6 +82,18 @@ export const examLoginPrivilegesSchema = {
                     code: z.ZodIssueCode.custom,
                     message: 'At least one Section or Subject must be selected'
                 });
+            }
+
+            // Disallow duplicate classes in classList
+            if (data.classList) {
+                const classIds = data.classList.map((c) => c.asmcL_Id);
+                if (new Set(classIds).size !== classIds.length) {
+                    ctx.addIssue({
+                        path: ['classList'],
+                        code: z.ZodIssueCode.custom,
+                        message: 'Duplicate classes are not allowed'
+                    });
+                }
             }
 
             // Disallow duplicate sections
@@ -93,8 +116,9 @@ export const examLoginPrivilegesSchema = {
                 });
             }
 
+            // FIXED: Changed from issS_Id to emsS_Id
             // Disallow duplicate sub-subjects (if present)
-            const subIds = data.subSubjectList?.map((s) => s.issS_Id) || [];
+            const subIds = data.subSubjectList?.map((s) => s.emsS_Id) || [];
             if (subIds.length > 0 && new Set(subIds).size !== subIds.length) {
                 ctx.addIssue({
                     path: ['subSubjectList'],
@@ -316,7 +340,8 @@ export const ExamTermAndExamMappingSchema = {
 
 const isoDateString = z.string().refine(
     (s) => {
-        // allow empty? no — require proper ISO-like string
+        // allow empty? YES — require proper ISO-like string only if present
+        if (!s || s.trim() === '') return true;
         const d = new Date(s);
         return !Number.isNaN(d.getTime());
     },
@@ -332,6 +357,7 @@ const ExamItemSchema = z.object({
     EME_ActiveFlag: z.boolean().optional()
 });
 
+// biome-ignore lint/correctness/noUnusedVariables: <explanation>
 const YearlyCategoryExamSubjectSchema = z.object({
     EYCES_Id: z.number().int().nonnegative().optional(),
     EYCE_Id: z.number().int().nonnegative().optional(),
@@ -410,8 +436,14 @@ export const ExamSubjectWizardSchema = {
             EYCE_SubSubjectFlg: z.boolean().optional(),
             EYCE_ActiveFlg: z.boolean().optional(),
 
-            EYCE_AttendanceFromDate: isoDateString,
-            EYCE_AttendanceToDate: isoDateString,
+            EYCE_AttendanceFromDate: z
+                .string()
+                .min(1, { message: 'Attendance From Date is required' })
+                .refine((s) => !Number.isNaN(new Date(s).getTime()), { message: 'Invalid Date Format' }),
+            EYCE_AttendanceToDate: z
+                .string()
+                .min(1, { message: 'Attendance To Date is required' })
+                .refine((s) => !Number.isNaN(new Date(s).getTime()), { message: 'Invalid Date Format' }),
 
             UserId: z.number().int().nonnegative().optional().default(0),
             MI_Id: z.number().int().nonnegative().optional().default(0),
@@ -434,12 +466,14 @@ export const ExamSubjectWizardSchema = {
         })
         .refine(
             (data) => {
+                if (!data.EYCE_AttendanceFromDate || !data.EYCE_AttendanceToDate) return true;
                 try {
                     const from = new Date(data.EYCE_AttendanceFromDate).getTime();
                     const to = new Date(data.EYCE_AttendanceToDate).getTime();
-                    return !Number.isNaN(from) && !Number.isNaN(to) && to >= from;
+                    if (Number.isNaN(from) || Number.isNaN(to)) return true;
+                    return to >= from;
                 } catch {
-                    return false;
+                    return true;
                 }
             },
             { message: 'Attendance To must be after From Date', path: ['EYCE_AttendanceToDate'] }
@@ -642,6 +676,8 @@ export const examMarksProcessConditionSchema = {
     addOrUpdate: z
         .object({
             mI_Id: z.number().min(1).default(30),
+            eyC_Id: z.number().min(1, { message: 'Mapping is required' }),
+            eycE_Id: z.number().min(1, { message: 'Mapping is required' }),
 
             asmaY_Id: z.number().min(1, { message: 'Academic Year is required' }),
 
@@ -746,78 +782,73 @@ export const hallTicketGenerationSchema = z
             }
         }
     });
-
 export const StudentTransactionSchema = {
     search: z
         .object({
-            academicYearId: z
-                .number({
-                    required_error: 'Academic Year is required'
-                })
-                .min(1, 'Select Academic Year'),
-
-            classId: z
-                .number({
-                    required_error: 'Class is required'
-                })
-                .min(1, 'Select Class'),
-
-            sectionId: z
-                .number({
-                    required_error: 'Section is required'
-                })
-                .min(1, 'Select Section'),
-
-            examTermId: z
-                .number({
-                    required_error: 'Exam Term is required'
-                })
-                .min(1, 'Select Exam Term'),
-
-            // Use .optional() after enum - this makes type: 'skill' | 'activity' | undefined
-            skillActivityType: z.enum(['skill', 'activity']).optional(),
-
-            nameId: z.number().min(1).optional(),
-
-            areaId: z.number().min(1).optional()
+            academicYearId: z.coerce
+                .number()
+                .min(1, 'Academic Year is required')
+                .refine((val) => val !== 0, 'Select Academic Year'),
+            classId: z.coerce
+                .number()
+                .min(1, 'Class is required')
+                .refine((val) => val !== 0, 'Select Class'),
+            sectionId: z.coerce
+                .number()
+                .min(1, 'Section is required')
+                .refine((val) => val !== 0, 'Select Section'),
+            examTermId: z.coerce.number().optional(),
+            emE_Id: z.coerce.number().optional(),
+            skillActivityType: z.enum(['Skills', 'Activities']).optional(),
+            nameId: z.coerce.number().optional(),
+            areaId: z.coerce.number().optional(),
+            exam_termwise_flag: z.enum(['TermWise', 'ExamWise']).default('TermWise')
         })
         .superRefine((data, ctx) => {
-            // Conditional validation: If examTermId is selected, then skillActivityType is required
-            if (data.examTermId && data.examTermId > 0) {
-                if (!data.skillActivityType) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: 'Select Skill/Activities type',
-                        path: ['skillActivityType']
-                    });
-                }
-
-                // If skillActivityType is selected, then nameId is required
-                if (data.skillActivityType && (!data.nameId || data.nameId === 0)) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: data.skillActivityType === 'skill' ? 'Select Skill Name' : 'Select Activities Name',
-                        path: ['nameId']
-                    });
-                }
-
-                // If nameId is selected, then areaId is required
-                if (data.nameId && data.nameId > 0 && (!data.areaId || data.areaId === 0)) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: data.skillActivityType === 'skill' ? 'Select Skill Area' : 'Select Activities Area',
-                        path: ['areaId']
-                    });
-                }
+            // Conditional validation for exam term/exam
+            if (data.exam_termwise_flag === 'TermWise' && (!data.examTermId || data.examTermId === 0)) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Exam Term is required',
+                    path: ['examTermId']
+                });
             }
-        }),
 
-    score: z.object({
-        studentId: z.number().positive(),
-        score: z.number().min(0).max(100, 'Score must be between 0-100')
-    })
+            if (data.exam_termwise_flag === 'ExamWise' && (!data.emE_Id || data.emE_Id === 0)) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Exam is required',
+                    path: ['emE_Id']
+                });
+            }
+
+            // Conditional validation for skill/activity type
+            if (!data.skillActivityType) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Skill/Activities type is required',
+                    path: ['skillActivityType']
+                });
+            }
+
+            // Conditional validation for name
+            if (data.skillActivityType && (!data.nameId || data.nameId === 0)) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: data.skillActivityType === 'Skills' ? 'Skills Name is required' : 'Activities Name is required',
+                    path: ['nameId']
+                });
+            }
+
+            // Conditional validation for area
+            if (data.skillActivityType && data.nameId && data.nameId !== 0 && (!data.areaId || data.areaId === 0)) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: data.skillActivityType === 'Skills' ? 'Skill Area is required' : 'Activities Area is required',
+                    path: ['areaId']
+                });
+            }
+        })
 };
-
-// The inferred type will now be:
 
 export type StudentTransactionFormData = z.infer<typeof StudentTransactionSchema.search>;

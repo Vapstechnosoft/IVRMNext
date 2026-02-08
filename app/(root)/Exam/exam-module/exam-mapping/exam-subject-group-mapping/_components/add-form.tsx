@@ -130,6 +130,12 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
             toast.error(err?.message ?? 'Failed to save');
         }
     };
+    const handleReset = () => {
+        reset();
+        setSubjects([]);
+        setExams([]);
+        setCategories([]);
+    };
 
     return (
         <div className='flex w-full flex-col gap-6'>
@@ -269,7 +275,7 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                                         render={({ field, fieldState }) => (
                                             <div>
                                                 <Label>
-                                                    Min Marks <span className='text-red-500'>*</span>
+                                                    Percentage <span className='text-red-500'>*</span>
                                                 </Label>
                                                 <input
                                                     type='number'
@@ -364,9 +370,7 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                         {/* Promotional Exam Tab */}
                         <TabsContent value='PE'>
                             <div className='grid grid-cols-2 gap-6'>
-                                {/* Left Side */}
                                 <div className='space-y-4'>
-                                    {/* Academic Year */}
                                     <Controller
                                         control={control}
                                         name='asmaY_Id'
@@ -460,7 +464,18 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                                                     type='number'
                                                     className='w-full rounded-md border px-3 py-2'
                                                     value={field.value}
-                                                    onChange={(e) => field.onChange(Number(e.target.value))} // convert string to number
+                                                    onChange={(e) => {
+                                                        let val = e.target.value;
+
+                                                        // Remove all leading zeros except for "0"
+                                                        if (val.length > 1) {
+                                                            val = val.replace(/^0+/, '');
+                                                        }
+
+                                                        // Update UI immediately
+                                                        e.target.value = val;
+                                                        field.onChange(val === '' ? 0 : Number(val));
+                                                    }}
                                                 />
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>
@@ -480,7 +495,18 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                                                     type='number'
                                                     className='w-full rounded-md border px-3 py-2'
                                                     value={field.value}
-                                                    onChange={(e) => field.onChange(Number(e.target.value))} // convert string to number
+                                                    onChange={(e) => {
+                                                        let val = e.target.value;
+
+                                                        // Remove all leading zeros except for "0"
+                                                        if (val.length > 1) {
+                                                            val = val.replace(/^0+/, '');
+                                                        }
+
+                                                        // Update UI immediately
+                                                        e.target.value = val;
+                                                        field.onChange(val === '' ? 0 : Number(val));
+                                                    }}
                                                 />
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>
@@ -530,7 +556,7 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                         <Button type='submit' disabled={isSubmitting}>
                             {isSubmitting ? 'Saving...' : 'Save'}
                         </Button>
-                        <Button type='button' variant='outline' onClick={() => reset()}>
+                        <Button type='button' variant='outline' onClick={() => handleReset()}>
                             Reset
                         </Button>
                     </div>

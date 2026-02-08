@@ -1,6 +1,4 @@
 'use client';
-
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -9,29 +7,6 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
 export const ExamWiseStudentRemarksColumns: ColumnDef<IExamWiseRemarksGrid>[] = [
-    // -----------------------------------------
-    // SELECT CHECKBOX
-    // -----------------------------------------
-    {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        size: 24
-    },
-
-    // -----------------------------------------
-    // Sl.No
-    // -----------------------------------------
     {
         accessorKey: 'slNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
@@ -43,10 +18,6 @@ export const ExamWiseStudentRemarksColumns: ColumnDef<IExamWiseRemarksGrid>[] = 
         },
         enableSorting: false
     },
-
-    // -----------------------------------------
-    // Academic Year
-    // -----------------------------------------
     {
         accessorKey: 'asmaY_Year',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,

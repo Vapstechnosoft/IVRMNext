@@ -37,12 +37,12 @@ export const YearlyCategorySubjectMappingColumns: ColumnDef<IYearlyCategorySubje
     {
         accessorKey: 'emG_ElectiveFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Elective Subjects' />,
-        cell: ({ row }) => getStatusBadge((row.getValue('emG_ElectiveFlg') as number) === 1 ? 'yes' : 'no')
+        cell: ({ row }) => getStatusBadge((row.getValue('emG_ElectiveFlg') as boolean) === true ? 'yes' : 'no')
     },
     {
         accessorKey: 'eyC_BasedOnPaperTypeFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Based On Paper Type' />,
-        cell: ({ row }) => getStatusBadge((row.getValue('eyC_BasedOnPaperTypeFlg') as number) === 1 ? 'yes' : 'no')
+        cell: ({ row }) => getStatusBadge((row.getValue('eyC_BasedOnPaperTypeFlg') as boolean) === true ? 'yes' : 'no')
     },
     {
         id: 'actions',

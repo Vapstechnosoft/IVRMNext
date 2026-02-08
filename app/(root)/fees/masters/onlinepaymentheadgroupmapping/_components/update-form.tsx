@@ -12,7 +12,7 @@ import {
     useMasterOnlinePaymentHeadGroupHeadName,
     useMasterOnlinePaymentHeadGroupInstallment,
     useMasterOnlinePaymentHeadGroupSubMerchant,
-    useMasterTerms
+    useMasterTermsDropdowndataOnlinegroupheadmapping
 } from '@/hooks/fees/useMasters';
 import { masterOnlinePaymentHeadGroupSchema } from '@/schemas/fees/masters';
 import { GetInstallmentMasterDropdown, addMasterOnlinePaymentHeadGroup } from '@/server/fees/masters/online_payment_head_group';
@@ -65,7 +65,7 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
     const [selectedAsmayId, setSelectedAsmayId] = useState<number | undefined>(undefined);
 
     // Data hooks
-    const { data: instituteData, isLoading: instituteLoading } = useInstituteDropDown();
+    const { data: instituteData, isLoading: instituteLoading, error: instituteError } = useInstituteDropDown();
     const { data: academicYearData, isLoading: academicYearLoading, error: academicYearError } = useMasterOnlinePaymentHeadGroup();
     const { data: masterClass, isLoading: masterClassLoading } = useMasterOnlinePaymentHeadGroupClass(academicYear ?? undefined);
     const { data: masterSubMerchant, isLoading: masterSubMerchantLoading } = useMasterOnlinePaymentHeadGroupSubMerchant(
@@ -82,7 +82,7 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
     const { data: masterInstallment, isLoading: masterInstallmentLoading } = useMasterOnlinePaymentHeadGroupInstallment(
         academicYear ?? undefined
     );
-    const { data: masterTerms, isLoading: masterTermsLoading } = useMasterTerms();
+    const { data: masterTerms, isLoading: masterTermsLoading } = useMasterTermsDropdowndataOnlinegroupheadmapping();
 
     // useEffect(() => {
     //     if ( academicYearData?.data?.length && academicYear === null) {
@@ -172,20 +172,22 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
     // Fetch installments dynamically when heads change
     useEffect(() => {
         const fetchInstallments = async () => {
-            if (!academicYear || (!groupId && !classId)) {
+            if (!academicYear || !classId || !groupId || !!selectedHeads) {
                 setInstallmentOptions([]);
                 return;
             }
 
             try {
                 const payload: any = {
-                    mi_Id: Number(getValues('mI_Id') ?? 30),
+                    // mi_Id: Number(getValues('mI_Id') ?? 30),
                     asmaY_Id: academicYear,
                     fmg_Id: groupId ?? classId
                 };
 
-                if (selectedHeads.length > 0) {
-                    payload.selectedheadList = selectedHeads.map((h) => ({ fmH_Id: h }));
+                const typedSelectedHeads: any[] = selectedHeads || [];
+
+                if (typedSelectedHeads.length > 0) {
+                    payload.selectedheadList = typedSelectedHeads.map((h) => ({ fmH_Id: h }));
                 }
 
                 const res = await GetInstallmentMasterDropdown(payload);
@@ -320,15 +322,15 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
 
         const payload = {
             fopM_Id: selectedRow.fopM_Id,
-            mI_Id: Number(getValues('mI_Id')),
+            // mI_Id: Number(getValues('mI_Id')),
             asmaY_Id: academicYear,
             asmcL_ID: classId,
             fpgd_id: subMerchantId,
             fmg_id: groupId,
             selectedheadList: selectedHeads.map((headId) => ({ fmH_Id: headId })),
             fmt_id: termId,
-            fti_id: installmentId,
-            user_id: 1001
+            fti_id: installmentId
+            // user_id: 1001
         };
 
         try {
@@ -359,8 +361,8 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
         setHeadSearchTerm('');
 
         reset({
-            mI_Id: '30',
-            institutionName: 'vidya_vikas_vidya_samste',
+            mI_Id: String(selectedRow.mI_Id),
+            institutionName: selectedRow.institutionName,
             asmaY_Id: selectedRow.asmaY_Id,
             classCategory: selectedRow.asmcL_ID?.toString() || '',
             subMerchantId: selectedRow.fpgd_id?.toString() || '',
@@ -384,16 +386,21 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
                             <Controller
                                 name='institutionName'
                                 control={control}
-                                render={({ field }) => (
-                                    <Select value={field.value || 'vidya_vikas_vidya_samste'} disabled>
-                                        <SelectTrigger className='w-full'>
-                                            <SelectValue placeholder='Vidya Vikas Vidya Samste (R)' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value='vidya_vikas_vidya_samste'>Vidya Vikas Vidya Samste (R)</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                )}
+                                render={({ field }) => {
+                                    const displayValue = selectedRow?.institutionName || selectedRow?.mI_Name || field.value || '';
+                                    const selectValue = selectedRow?.mI_Id?.toString() || field.value || '';
+
+                                    return (
+                                        <Select value={selectValue} disabled>
+                                            <SelectTrigger className='w-full'>
+                                                <SelectValue placeholder={displayValue || ''} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value={selectValue}>{displayValue}</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    );
+                                }}
                             />
                         </div>
 
@@ -611,7 +618,7 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
                                                             if (academicYear && (groupId ?? classId)) {
                                                                 try {
                                                                     const payload: any = {
-                                                                        mi_Id: Number(getValues('mI_Id') ?? 30),
+                                                                        // mi_Id: Number(getValues('mI_Id') ?? 30),
                                                                         asmaY_Id: academicYear,
                                                                         fmg_Id: groupId ?? classId
                                                                     };

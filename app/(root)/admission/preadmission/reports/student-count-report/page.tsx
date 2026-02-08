@@ -8,7 +8,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useStudentCountReport } from '@/hooks/admission/preadmission/useReports';
 import type { IMasterStudentCountReportList } from '@/types/admission/preadmission/reports';
 import { X } from 'lucide-react';
-import { use } from 'react';
+import { use, useState } from 'react';
 import PreadmissionStatusCountReport from '../../transactions/application-form/_components/preadmission-status-count-report';
 import AddStudentCountReportForm from './_components/add-from';
 import { masterStudentCountReportColumns } from './_components/columns';
@@ -19,16 +19,31 @@ export default function StudentCountReportPage(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useStudentCountReport(searchParams);
+    const [filterPayload, setFilterPayload] = useState<any>({
+        report_type: 1,
+        type: 'between',
+        from_date: new Date().toISOString(),
+        to_date: new Date().toISOString(),
+        asmay_id: 0,
+        asmcl_id: 0
+    });
+
+    const { data: response, isLoading, error } = useStudentCountReport(filterPayload, searchParams);
 
     return (
         <FormProvider<IMasterStudentCountReportList>>
-            <StudentCountReportPageContent response={response} isLoading={isLoading} error={error} searchParams={searchParams} />
+            <StudentCountReportPageContent
+                response={response}
+                isLoading={isLoading}
+                error={error}
+                searchParams={searchParams}
+                onFilterChange={setFilterPayload}
+            />
         </FormProvider>
     );
 }
 
-function FormSections({ searchParams }: { searchParams?: any }) {
+function FormSections({ searchParams, onFilterChange }: { searchParams?: any; onFilterChange?: (payload: any) => void }) {
     const { closeAddForm, addFormRef } = useFormContext<IMasterStudentCountReportList>();
 
     return (
@@ -50,7 +65,7 @@ function FormSections({ searchParams }: { searchParams?: any }) {
                             className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                             <X className='h-4 w-4 text-destructive' /> Close
                         </Button>
-                        <AddStudentCountReportForm onSuccess={closeAddForm} searchParams={searchParams} />
+                        <AddStudentCountReportForm onSuccess={closeAddForm} searchParams={searchParams} onFilterChange={onFilterChange} />
                     </div>
                 </CollapsibleSection>
             </div>
@@ -62,12 +77,14 @@ function StudentCountReportPageContent({
     response,
     isLoading,
     error,
-    searchParams
+    searchParams,
+    onFilterChange
 }: {
     response: any;
     isLoading: boolean;
     error: any;
     searchParams?: any;
+    onFilterChange?: (payload: any) => void;
 }) {
     const tableProps = useDataTableProps(response);
 
@@ -78,7 +95,7 @@ function StudentCountReportPageContent({
                 <PreadmissionStatusCountReport />
 
                 {/* Add Form Section (shown first) */}
-                <FormSections searchParams={searchParams} />
+                <FormSections searchParams={searchParams} onFilterChange={onFilterChange} />
 
                 {/* Data Table Section */}
                 <CollapsibleSection
@@ -92,6 +109,8 @@ function StudentCountReportPageContent({
                         isLoading={isLoading}
                         error={error}
                         showViewOptions={false}
+                        isSearchRequired={true}
+                        // showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         isPaginationRequired={true}
                         loadingMessage='Loading  Student Count Reports...'

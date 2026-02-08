@@ -90,8 +90,8 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Yearly Group'
-                        description='Fill in the details below to create a new yearly group'
+                        title='Add New Yearly Rebate Settings'
+                        description='Fill in the details below to create a new Yearly Rebate Settings'
                         defaultOpen
                         variant='outline'
                         size='md'

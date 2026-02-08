@@ -7,9 +7,9 @@ import {
     useFeeClassListDefaulterreport,
     useFeeCustomGroupDefaulterreport,
     useFeeGroupDefaulterreport,
-    useFeeInstallmentYearlyfeecollectionreport,
     useFeeSectionListDefaulterreport,
-    useFeeTermDefaulterreport
+    useFeeTermDefaulterreport,
+    useFeeTransInstallmentYearlyfeecollectionreport
 } from '@/hooks/fees/useReports';
 
 import { Button } from '@/components/ui/button';
@@ -26,9 +26,9 @@ import type {
     IFeeClassDropdownList,
     IFeeCustomGroupDropdownList,
     IFeeGroupDropdownList,
-    IFeeInstallmentDropdownList,
     IFeeSectionDropdownList,
     IFeeTermDropdownList,
+    IFeeTrasactionInstallmentDropdownList,
     IFeeYearlyCollectionReportRow
 } from '@/types/fees/reports/reports';
 import { format } from 'date-fns';
@@ -36,6 +36,7 @@ import { CalendarIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
+import { exportToExcel } from '@/lib/utils';
 import { yearlyFeeCollectionSchema } from '@/schemas/fees/reports';
 import { getFeeYearlyCollectionReport } from '@/server/fees/reports/fee_yearlyCollectionReport';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -72,7 +73,7 @@ interface IAcademicYear {
     asmaY_Order?: number;
 }
 
-export default function FeeDefaulterReport() {
+export default function FeeYearlyCollectionReport() {
     // ---------------------------- FORM ----------------------------
     const {
         control,
@@ -148,7 +149,8 @@ export default function FeeDefaulterReport() {
 
     const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
     const [showReport, setShowReport] = useState(false);
-    const [feeInstallments, setfeeInstallments] = useState<IFeeInstallmentDropdownList[]>([]);
+    //const [feeInstallments, setfeeInstallments] = useState<IFeeInstallmentDropdownList[]>([]);
+    const [feeInstallments, setfeeInstallments] = useState<IFeeTrasactionInstallmentDropdownList[]>([]);
 
     const [wiseType, setWiseType] = useState<'Yearly Wise' | 'Date Wise'>('Date Wise');
 
@@ -166,11 +168,17 @@ export default function FeeDefaulterReport() {
     const { data: busRouteResponse, isLoading: loadingBusRoutes, error: busRouteError } = useFeeBusRouteDefaulterreport();
     const { data: customGroupResponse, isLoading: loadingCustomGroup, error: customGroupError } = useFeeCustomGroupDefaulterreport();
 
+    // const {
+    //     data: feeInstallmentData,
+    //     isLoading: feeInstallmentLoading,
+    //     error: feeInstallmentError
+    // } = useFeeInstallmentYearlyfeecollectionreport();
+
     const {
         data: feeInstallmentData,
         isLoading: feeInstallmentLoading,
         error: feeInstallmentError
-    } = useFeeInstallmentYearlyfeecollectionreport();
+    } = useFeeTransInstallmentYearlyfeecollectionreport();
 
     console.log('feeInstallmentData', feeInstallmentData);
 
@@ -187,7 +195,7 @@ export default function FeeDefaulterReport() {
                 asmaY_Year: item.asmaY_Year ?? 'Unknown Year',
                 asmaY_Order: item.asmaY_Order ?? 0
             }));
-            formatted.sort((a, b) => (b.asmaY_Order || 0) - (a.asmaY_Order || 0));
+            // formatted.sort((a, b) => (b.asmaY_Order || 0) - (a.asmaY_Order || 0));
             setAcademicYears(formatted);
         }
     }, [academicData, academicError]);
@@ -308,7 +316,7 @@ export default function FeeDefaulterReport() {
     };
 
     const selectAllInstallments = (checked: boolean) => {
-        setFilters((prev) => ({ ...prev, installmentIds: checked ? feeInstallments.map((t) => t.fmI_Id) : [] }));
+        setFilters((prev) => ({ ...prev, installmentIds: checked ? feeInstallments.map((t) => t.ftI_Id) : [] }));
     };
 
     const selectAllBusRoutes = (checked: boolean) => {
@@ -324,6 +332,7 @@ export default function FeeDefaulterReport() {
 
     const handleReset = () => {
         reset();
+        window.location.reload();
     };
 
     const totalRow = createTotalRow(reportData.filter((r): r is IFeeYearlyCollectionReportRow => !('__isTotal' in r)));
@@ -334,7 +343,15 @@ export default function FeeDefaulterReport() {
         // Optional: Keep validation
         if (!filters.academicYearId) return toast.error('Please select an Academic Year');
         if (filters.feeGroupIds.length === 0) return toast.error('Please select at least one Fee Group');
-        // if (filters.termIds.length === 0) return toast.error('Please select at least one Term');
+        if (filters.breakdown === 'TRMW') {
+            if (filters.termIds.length === 0) return toast.error('Please select at least one Term');
+        }
+
+        if (filters.breakdown === 'FSW' || filters.breakdown === 'SWTPC' || filters.breakdown === 'CWTPC') {
+            if (filters.classId === 0) return toast.error('Please select Class');
+
+            if (filters.sectionId === 0) return toast.error('Please select Section');
+        }
 
         setReportLoading(true);
         setShowReport(false);
@@ -342,19 +359,19 @@ export default function FeeDefaulterReport() {
         const { fromDate, toDate } = data;
         const today = new Date();
 
+        const effectiveFromDate = fromDate || today;
+        const effectiveToDate = toDate || today;
+
         try {
             const payload = {
                 // // Fee Group Ids
-                // FMG_Ids: filters.feeGroupIds,
+                FMG_Ids: filters.feeGroupIds,
 
-                // // Term OR Installment Ids
-                // FTI_ids:
-                //     filters.breakdown === 'INMW'
-                //         ? filters.installmentIds
-                //         : filters.termIds,
+                // Term OR Installment Ids
+                FTI_ids: filters.breakdown === 'INMW' ? filters.installmentIds : filters.termIds,
 
-                FMG_Ids: [385, 385, 377, 378],
-                FTI_ids: [83],
+                // FMG_Ids: [385, 385, 377, 378],
+                //FTI_ids: [83],
 
                 // Academic Year
                 ASMAY_Id: Number(filters.academicYearId),
@@ -369,8 +386,8 @@ export default function FeeDefaulterReport() {
                 active: filters.status.active ? 1 : 0,
                 deactive: filters.status.deactive ? 1 : 0,
                 left: filters.status.left ? 1 : 0,
-                From_Date: '2025-12-15',
-                To_Date: '2025-12-15',
+                //  From_Date: '2025-12-18',
+                //  To_Date: '2025-12-18',
 
                 // // Date filters
                 // From_Date:
@@ -382,6 +399,10 @@ export default function FeeDefaulterReport() {
                 //     filters.viewMode === 'date'
                 //         ? format(toDate ?? today, 'yyyy-MM-dd')
                 //         : null,
+
+                From_Date: filters.viewMode === 'date' ? format(effectiveFromDate, 'yyyy-MM-dd') : format(today, 'yyyy-MM-dd'),
+
+                To_Date: filters.viewMode === 'date' ? format(effectiveToDate, 'yyyy-MM-dd') : format(today, 'yyyy-MM-dd'),
 
                 // Term Group (Hardcoded / configurable)
                 term_group: 'T',
@@ -401,11 +422,19 @@ export default function FeeDefaulterReport() {
             // const response = await fetchFeeDefaulterReport(payload);
             const response = await getFeeYearlyCollectionReport(payload);
 
+            console.log('Fee yearly collection response 👉', response);
+
             const apiList = response?.data?.list ?? [];
 
             const tableData = mapYearlyCollectionReport(apiList, filters.breakdown as BreakdownType);
 
             setReportData(tableData);
+
+            if (apiList.length === 0) {
+                setShowReport(false);
+                toast.info('No records found for selected criteria');
+                return;
+            }
             setShowReport(true);
 
             toast.success(`Report generated (${tableData.length} records)`);
@@ -617,7 +646,9 @@ export default function FeeDefaulterReport() {
                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
                                     {/* Column 1: Custom Group */}
                                     <div className='space-y-3'>
-                                        <Label className='font-semibold text-lg'>Custom Group</Label>
+                                        <Label className='font-semibold text-lg'>
+                                            Custom Group <span className='text-red-500'>*</span>
+                                        </Label>
                                         <Card className='border bg-gray-50 p-4'>
                                             <div className='max-h-64 space-y-3 overflow-y-auto'>
                                                 <Label
@@ -781,15 +812,15 @@ export default function FeeDefaulterReport() {
                                                         ) : feeInstallments.length > 0 ? (
                                                             feeInstallments.map((installment) => (
                                                                 <Label
-                                                                    key={installment.fmI_Id}
-                                                                    htmlFor={`installment-${installment.fmI_Id}`}
+                                                                    key={installment.ftI_Id}
+                                                                    htmlFor={`installment-${installment.ftI_Id}`}
                                                                     className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
                                                                     <Checkbox
-                                                                        id={`installment-${installment.fmI_Id}`}
-                                                                        checked={filters.installmentIds.includes(installment.fmI_Id)}
-                                                                        onCheckedChange={() => toggleInstallment(installment.fmI_Id)}
+                                                                        id={`installment-${installment.ftI_Id}`}
+                                                                        checked={filters.installmentIds.includes(installment.ftI_Id)}
+                                                                        onCheckedChange={() => toggleInstallment(installment.ftI_Id)}
                                                                     />
-                                                                    <span className='text-sm'>{installment.fmI_Name}</span>
+                                                                    <span className='text-sm'>{installment.ftI_InstallmentName}</span>
                                                                 </Label>
                                                             ))
                                                         ) : (
@@ -840,7 +871,7 @@ export default function FeeDefaulterReport() {
                                                 {/* Class */}
                                                 <div className='flex min-w-[220px] flex-grow items-center gap-3'>
                                                     <Label htmlFor='includeClass' className='whitespace-nowrap font-medium'>
-                                                        Class:
+                                                        Class <span className='text-red-500'>*</span>:
                                                     </Label>
                                                     <Select
                                                         value={filters.classId === 0 ? '' : String(filters.classId)}
@@ -1093,25 +1124,42 @@ export default function FeeDefaulterReport() {
                                                     variant='default'
                                                     size='lg'
                                                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                                                    <div className='border-b bg-primary/5 px-8 py-6'>
+                                                    <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
                                                         <h2 className='font-bold text-2xl text-primary'>Yearly Fee Collection Report</h2>
-                                                    </div>
-
-                                                    <div className='flex items-center justify-between border-b bg-muted/40 px-8 py-4'>
-                                                        {/* <div className="font-semibold text-lg text-primary">
-                                                            Report Actions
-                                                        </div> */}
 
                                                         <div className='flex gap-3'>
-                                                            <Button variant='outline' onClick={handlePrint}>
-                                                                🖨 Print
-                                                            </Button>
+                                                            <div className='mb-4 flex justify-end gap-2'>
+                                                                <Button
+                                                                    size='sm'
+                                                                    className='h-8 w-auto px-3 text-xs'
+                                                                    onClick={exportToExcel}>
+                                                                    Export Excel
+                                                                </Button>
 
-                                                            <Button variant='outline' onClick={handleExportExcel}>
-                                                                📊 Export Excel
-                                                            </Button>
+                                                                <Button
+                                                                    size='sm'
+                                                                    variant='outline'
+                                                                    className='h-8 w-auto px-3 text-xs'
+                                                                    onClick={handlePrint}>
+                                                                    Print
+                                                                </Button>
+                                                            </div>
                                                         </div>
                                                     </div>
+
+                                                    {/* <div className='flex items-center justify-between border-b bg-muted/40 px-8 py-4'>
+
+
+                                                            <div className='flex gap-3'>
+                                                                <Button variant='outline' onClick={handlePrint}>
+                                                                    🖨 Print
+                                                                </Button>
+
+                                                                <Button variant='outline' onClick={handleExportExcel}>
+                                                                    📊 Export Excel
+                                                                </Button>
+                                                            </div>
+                                                        </div> */}
                                                     <GenericDataTable
                                                         data={tableData}
                                                         columns={getDynamicColumns(filters.breakdown as 'FGW' | 'INMW')}

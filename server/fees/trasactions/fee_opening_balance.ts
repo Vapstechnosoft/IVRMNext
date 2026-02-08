@@ -17,7 +17,7 @@ import type {
 
 export async function getFeeOpeningBalance(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/FeeOpeningBalanceFacade/30?${urlParams}`;
+    const url = `/FeeOpeningBalanceFacade?${urlParams}`;
     return await api.get<IFeeOpeningBalanceList[]>('fees', url);
 }
 
@@ -53,7 +53,8 @@ export async function getOpeningSectionDropdownData(asmaY_Id: number, asmcL_Id: 
     return await api.get<IFeeOpeningSectionDropdownList[]>('fees', url);
 }
 export async function getOpeningRefundable(asmaY_Id: number, filterrefund: string) {
-    const url = `FeeOpeningBalance/refundable?filterrefund=${filterrefund}&asmay_Id=${asmaY_Id || 0}`;
+    const url = `FeeOpeningBalance/refundable?filterrefund=${filterrefund}&asmay_Id=${asmaY_Id}`;
+    console.info('FeeOpeningBalance/refundable?filterrefund', url);
     return await api.get<IFeeOpeningRefundable[]>('fees', url);
 }
 export async function getOpeningBalanceList(asmaY_Id: number, searchParams?: ApiSearchparams) {
@@ -111,10 +112,15 @@ export async function getOpeningGroupDropdownData(fmH_Id: number) {
 
 export async function getOpeningInstallmentDropdownData(asmaY_Id: number, fmG_id: number, fmH_Id: number) {
     const url = `FeeOpeningBalance/installment-dropdown-by-group?asmay_Id=${asmaY_Id}&fmg_id=${fmG_id}&fmh_Id=${fmH_Id}`;
+
+    console.info('installment-dropdown-by-group', url);
+
     return await api.get<IFeeOpeningInstallmentDropdownList[]>('fees', url);
 }
 
 export async function deleteOpeningBalance(fillbusroutestudents: string, fmoB_Id: number) {
     const url = `FeeOpeningBalance/delete?fillbusroutestudents=${fillbusroutestudents}&FMOB_Id=${fmoB_Id}`;
+
+    console.info('deleteOpeningBalance', url);
     return await api.delete<any>('fees', url);
 }

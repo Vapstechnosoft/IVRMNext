@@ -5,7 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterPaymentgateway_dropdown, useMasterPaymentgatewaydetails } from '@/hooks/fees/useMasters';
+import { useMasterPaymentInstitutionName, useMasterPaymentgateway_dropdown, useMasterPaymentgatewaydetails } from '@/hooks/fees/useMasters';
 import { paymentgatewaydetailsSchema } from '@/schemas/fees/masters';
 import { addOrUpdatepaymentgatewaydetails } from '@/server/fees/masters/fee_payment_gateway_details';
 import type { IMasterPaymentGatewayList } from '@/types/fees/masters/masters';
@@ -26,12 +26,15 @@ interface UpdateFormProps {
 export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow }: UpdateFormProps) {
     const { refetchAll } = useMasterPaymentgatewaydetails();
     const { data: gatewaydata, isLoading: gatewayLoading, error: gatewayError } = useMasterPaymentgateway_dropdown();
+    const { data: response } = useMasterPaymentInstitutionName();
+    const institutionName = response?.data?.[0].mI_Name;
 
     const {
         control,
         register,
         handleSubmit,
         reset,
+        setValue,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(paymentgatewaydetailsSchema.addOrUpdate),
@@ -46,6 +49,12 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
         control,
         name: 'submerchantIds'
     });
+
+    useEffect(() => {
+        if (institutionName) {
+            setValue('institution_Name', institutionName);
+        }
+    }, [institutionName]);
 
     const getSubmerchantIds = () => {
         if (selectedRow.submerchantIds) {
@@ -84,8 +93,8 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         const payload = {
-            user_id: 20612,
-            mi_id: 30,
+            // user_id: 20612,
+            // mi_id: 30,
             fpgD_Id: selectedRow.fpgD_Id,
             fpgD_SaltKey: data.fpgD_SaltKey,
             fpgD_MerchantId: data.fpgD_MerchantId,
@@ -122,6 +131,14 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+            <InputText
+                label='Institution Name'
+                id='institution_Name'
+                disabled
+                {...register('institution_Name')}
+                error={errors.institution_Name?.message}
+                className='transition-colors focus:ring-2 focus:ring-primary/20'
+            />
             <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                 <div className='flex flex-col gap-1.5'>
                     <label htmlFor='fpgD_MerchantId'>
@@ -224,7 +241,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                         error={errors.fpgD_AccNo?.message}
                         onKeyDown={(e) => {
                             // Block minus, plus, special chars used in number inputs
-                            if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                            if (['-', '+', ' '].includes(e.key)) {
                                 e.preventDefault();
                             }
 
@@ -251,7 +268,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                         error={errors.fpgD_MerchantKey?.message}
                         onKeyDown={(e) => {
                             // Block minus, plus, special chars used in number inputs
-                            if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                            if (['-', '+', ' '].includes(e.key)) {
                                 e.preventDefault();
                             }
 
@@ -310,12 +327,12 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
 
             <div className='col-span-6'>
                 {fields.map((field, index) => (
-                    <div key={field.id} className='mb-4 flex flex-col gap-2 md:flex-row md:items-center'>
-                        <label htmlFor={`submerchantIds.${index}.id`} className='font-medium text-gray-700 text-sm md:w-1/4'>
+                    <div key={field.id} className='mb-4 flex flex-col gap-1 md:flex-row md:items-center md:gap-4'>
+                        <label htmlFor={`submerchantIds.${index}.id`} className='gap-3 whitespace-nowrap font-medium text-gray-700 text-sm'>
                             Sub Merchant Id<span className='ml-1 text-red-500'>*</span>
                         </label>
 
-                        <div className='flex w-full items-center gap-2 md:w-3/4'>
+                        <div className='flex w-full items-center gap-1 md:w-3/2'>
                             <input
                                 id={`submerchantIds.${index}.id`}
                                 type='text'
@@ -323,7 +340,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                                 className='w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary'
                                 onKeyDown={(e) => {
                                     // Block minus, plus, special chars used in number inputs
-                                    if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                    if (['-', '+', ' '].includes(e.key)) {
                                         e.preventDefault();
                                     }
 

@@ -6,29 +6,42 @@ import type { IMasterCourseList, IMasterCourseSetOrderList } from '@/types/hrms/
 
 export async function getMasterCourse(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'hrmC_QulaificationName,hrmC_QualificationDesc');
-    const url = `/api/MasterCourseFacade/onloadgetdetails?${urlParams}`;
-    return await api.get<IMasterCourseList[]>('hrms', url);
+    const url = `/api/MasterCourse?${urlParams}`;
+    try {
+        const response = await api.get<IMasterCourseList[]>('hrms', url);
+        return response;
+    } catch (error: any) {
+        console.error('🔴 [MasterCourse] Error:', error);
+        return {
+            success: false,
+            message: error?.message || 'Failed to load course details',
+            data: [],
+            total: 0,
+            page: searchParams?.page || 1,
+            page_size: searchParams?.page_size || 10
+        };
+    }
 }
 export async function addOrUpdateMasterCourse(data: any) {
-    const url = '/api/MasterCourseFacade/SaveUpdate';
+    const url = '/api/MasterCourse';
     return await api.post<any>('hrms', url, data);
 }
 
 export async function toggleMasterCourse(id: number) {
-    const url = `/api/MasterCourseFacade/toggle/${id}`;
+    const url = `/api/MasterCourse/toggle_master_course/${id}`;
     return await api.put('hrms', url);
 }
 
 export async function getMasterCourseDetails(id: number) {
-    const url = `/api/MasterCourseFacade/getRecordById/${id}`;
+    const url = `/api/MasterCourse/course_details_by_id/${id}`;
     return await api.get<any>('hrms', url);
 }
 export async function getCourseSetOrder() {
-    const url = '/api/MasterCourseFacade/set_order_list';
+    const url = '/api/MasterCourse/set_order_list';
     return await api.get<IMasterCourseSetOrderList[]>('hrms', url);
 }
 
 export async function updateCourseSetorder(data: any) {
-    const url = '/api/MasterCourseFacade/set_order';
+    const url = '/api/MasterCourse/update_course_order_number';
     return await api.put<any>('hrms', url, data);
 }

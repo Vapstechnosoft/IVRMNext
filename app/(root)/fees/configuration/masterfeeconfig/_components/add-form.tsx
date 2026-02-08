@@ -40,7 +40,7 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
             const defaultString = (value: any): string => (value === null || value === undefined ? '' : String(value));
 
             const payload = {
-                mi_id: 30,
+                // mi_id: 30,
                 FMC_id: 0,
                 FMC_AutoRecieptPrintFlag: defaultNumber(data.fmC_AutoRecieptPrintFlag),
                 FMC_RebateTypeFlag: data.FMC_RebateTypeFlag,
@@ -99,11 +99,13 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
                 rolenme: 't',
                 FMC_Receipt_SignatoryImage: '',
                 finemapping: false,
-                fineenabledisable: false,
-                userid: 22
+                fineenabledisable: false
+                // userid: 22
             };
 
             const jsondata = JSON.stringify(payload);
+
+            console.log('Payload to be sent:', jsondata);
 
             const response = await addOrUpdatefeeconfig(payload);
             if (response.success) {

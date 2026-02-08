@@ -22,11 +22,6 @@ export async function getAcademicYearDropdown() {
     return await api.get<IAcademicYearDropDown[]>('admission', url);
 }
 
-export async function getMasterCategoryDropdown() {
-    const url = '/master_class_category/master_category_drop_down_list';
-    return await api.get<IMasterCategoryDropDown[]>('admission', url);
-}
-
 export async function getMasterClassDropdown() {
     const url = '/master_class_category/master_class_drop_down_list';
     return await api.get<IMasterClassDropDown[]>('admission', url);
@@ -58,4 +53,8 @@ export async function getClassCategorySection(id: number) {
 export async function toggleMasterClassCategorySection(id: number) {
     const url = `/master_class_category/toggle_section/${id}`;
     return await api.put('admission', url);
+}
+export async function getMasterCategoryDropdown() {
+    const url = '/master_class_category/master_category_drop_down_list';
+    return await api.get<IMasterCategoryDropDown[]>('admission', url);
 }

@@ -38,7 +38,7 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
         mode: 'onChange',
         defaultValues: {
             FMC_Id: row.fmC_Id ? String(row.fmC_Id) : '',
-            MI_Id: 30,
+            //  MI_Id: 30,
             FMC_GroupOrTermFlg: row.fmC_GroupOrTermFlg ? String(row.fmC_GroupOrTermFlg) : 'T',
             FMC_StudentwiseJVFlag: row.fmC_StudentwiseJVFlag ? String(row.fmC_StudentwiseJVFlag) : 'S',
 
@@ -86,7 +86,8 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
 
             reset({
                 FMC_Id: String(row.fmC_Id ?? ''),
-                MI_Id: 30,
+                //MI_Id: 30,
+
                 FMC_GroupOrTermFlg: String(row.fmC_GroupOrTermFlg ?? 'T'),
                 FMC_StudentwiseJVFlag: String(row.fmC_StudentwiseJVFlag ?? 'S'),
 
@@ -133,7 +134,7 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
             const defaultString = (value: any): string => (value === null || value === undefined ? '' : String(value));
 
             const payload = {
-                mi_id: 30,
+                //mi_id: 30,
                 FMC_id: Number(data.FMC_Id),
                 FMC_AutoRecieptPrintFlag: defaultNumber(data.fmC_AutoRecieptPrintFlag),
                 FMC_RebateTypeFlag: data.FMC_RebateTypeFlag,
@@ -192,8 +193,8 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
                 rolenme: 't',
                 FMC_Receipt_SignatoryImage: '',
                 finemapping: false,
-                fineenabledisable: false,
-                userid: 22
+                fineenabledisable: false
+                // userid: 22
             };
 
             const jsondata = JSON.stringify(payload);

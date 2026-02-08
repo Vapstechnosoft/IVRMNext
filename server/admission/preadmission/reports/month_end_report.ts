@@ -382,7 +382,7 @@ export async function getExcelRegistrationReport(
     const urlParams = getSearchParamsUrl(searchParams ?? {});
 
     const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
-    let url = `${baseUrl}/StudentAttendanceReport/ExportAttendanceMonthwiseToExcel?${urlParams}`;
+    let url = `${baseUrl}/RegistrationReport/ExportRegistrationReportToExcel?${urlParams}`;
 
     // YEAR WISE
     if (academicIdParam) {

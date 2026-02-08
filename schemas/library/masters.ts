@@ -1,0 +1,269 @@
+import { z } from 'zod';
+import { createStringSchema, deleteIdSchema } from '../validationSchemas';
+
+export const loginSchema = z.object({
+    email: z.string({ message: 'Email is required' }),
+    password: createStringSchema('Password', 6, 50)
+});
+
+export const masterLibrarySchema = {
+    addOrUpdate: z.object({
+        lmaL_Id: z.number().nonnegative().optional(), // optional when creating new record
+        lmaL_LibraryName: z.string({ message: 'Library Name is required' }).min(2).max(100)
+    }),
+    delete: z.object({
+        lmaL_Id: deleteIdSchema('lmaL_Id')
+    })
+};
+
+// export const masterVendorSchema = {
+//     addOrUpdate: z.object({
+//         lmV_Id: z.number().nonnegative().optional(), // optional when creating new record
+//         lmV_VendorName: z.string({ message: 'Vendor Name is required' }).min(2).max(100),
+//         lmV_MobileNo: z.string({ message: 'Mobile No is required' }).min(10).max(15),
+//         lmV_Address: z.string({ message: 'Address is required' }).min(2).max(200),
+//         lmV_EMailId: z.string({ message: 'Email is required' }).email(),
+//         lmV_PhoneNo: z.string({ message: 'Phone No is required' }).min(10).max(15)
+//     }),
+//     delete: z.object({
+//         lmaL_Id: deleteIdSchema('lmV_Id')
+//     })
+// };
+
+export const masterVendorSchema = {
+    addOrUpdate: z.object({
+        lmV_Id: z.number().nonnegative().optional(),
+
+        lmV_VendorName: z
+            .string({ required_error: 'Vendor Name is required' })
+            .trim()
+            .min(2, 'Vendor Name must be at least 2 characters')
+            .max(100, 'Vendor Name cannot exceed 100 characters')
+            .regex(/^[A-Za-z\s.&]+$/, 'Only letters, spaces, . and & allowed'),
+
+        lmV_MobileNo: z
+            .string()
+            .trim()
+            .regex(/^[6-9]\d{9}$/, 'Invalid Indian mobile number'),
+
+        lmV_Address: z
+            .string()
+            .trim()
+            .refine(
+                (val) => val === '' || (val.length >= 5 && val.length <= 200 && /^[A-Za-z0-9\s#]+$/.test(val)),
+                'Address must be 5–200 characters and can contain letters, numbers, spaces and # only'
+            ),
+
+        lmV_EMailId: z
+            .string()
+            .trim()
+            .refine((val) => val === '' || z.string().email().safeParse(val).success, 'Invalid email address'),
+
+        lmV_PhoneNo: z
+            .string()
+            .trim()
+            .refine(
+                (val) =>
+                    val === '' ||
+                    z
+                        .string()
+                        .regex(/^\d{10,15}$/)
+                        .safeParse(val).success,
+                'Phone Number must contain 10–15 digits'
+            )
+    }),
+
+    delete: z.object({
+        lmV_Id: deleteIdSchema('lmV_Id')
+    })
+};
+
+export const masterCategorySchema = {
+    addOrUpdate: z.object({
+        lmC_Id: z.number().nonnegative().optional(), // optional when creating new record
+        lmC_CategoryName: z.string({ message: 'Category Name is required' }).min(2).max(100),
+        lmC_CategoryCode: z.string({ message: 'Category Code is required' }).min(2).max(100),
+        lmC_BNBFlg: z.string({ message: 'Category Type is required' }).min(2).max(100)
+    }),
+    delete: z.object({
+        lmC_Id: deleteIdSchema('lmC_Id')
+    })
+};
+
+export const masterPublisherSchema = {
+    addOrUpdate: z.object({
+        lmP_Id: z.number().nonnegative().optional(), // optional when creating new record
+        lmP_PublisherName: z.string({ message: 'Publisher Name is required' }).min(2).max(100),
+        lmP_MobileNo: z.string({ message: 'Mobile No is required' }).min(10).max(15),
+        lmP_Address: z.string({ message: 'Address is required' }).min(2).max(200),
+        lmP_EMailId: z.string({ message: 'Email is required' }).email(),
+        lmP_PhoneNo: z.string({ message: 'Phone No is required' }).min(10).max(15)
+    }),
+    delete: z.object({
+        lmP_Id: deleteIdSchema('lmP_Id')
+    })
+};
+
+export const masterAuthorSchema = {
+    addOrUpdate: z.object({
+        lmaU_Id: z.number().nonnegative().optional(),
+
+        lmaU_AuthorFirstName: z.string({ message: 'Author Name is required' }).min(2).max(100),
+
+        lmaU_AuthorMiddleName: z.string().optional(),
+        lmaU_AuthorLastName: z.string().optional(),
+
+        lmaU_MobileNo: z
+            .string()
+            .trim()
+            .refine((val) => val === '' || /^[6-9]\d{9}$/.test(val), 'Invalid Indian mobile number'),
+
+        lmaU_Address: z
+            .string()
+            .trim()
+            .refine(
+                (val) => val === '' || (val.length >= 5 && val.length <= 200 && /^[A-Za-z0-9\s#]+$/.test(val)),
+                'Address must be 5–200 characters and can contain letters, numbers, spaces and # only'
+            ),
+
+        lmaU_EmailId: z
+            .string()
+            .trim()
+            .refine((val) => val === '' || z.string().email().safeParse(val).success, 'Invalid email address'),
+
+        lmaU_PhoneNo: z
+            .string()
+            .trim()
+            .refine((val) => val === '' || /^\d{10,15}$/.test(val), 'Phone Number must contain 10–15 digits'),
+
+        lmaU_ActiveFlg: z.boolean().optional()
+    }),
+
+    delete: z.object({
+        lmaU_Id: deleteIdSchema('lmaU_Id')
+    })
+};
+
+export const masterLanguageSchema = {
+    addOrUpdate: z.object({
+        lmL_Id: z.number().nonnegative().optional(), // optional when creating new record
+        lmL_LanguageName: z.string({ message: 'Language Name is required' }).min(2).max(100)
+    }),
+    delete: z.object({
+        lmL_Id: deleteIdSchema('lmL_Id')
+    })
+};
+
+export const masterDepartmentSchema = {
+    addOrUpdate: z.object({
+        lmD_Id: z.number().optional(),
+        mI_Id: z.number().optional(),
+        lmD_DepartmentName: z.string().min(1, 'Department Name is required'),
+        lmD_DepartmentCode: z.string().min(1, 'Department Code is required'),
+        lmD_ActiveFlg: z.boolean().optional()
+    }),
+    delete: z.object({
+        lmD_Id: z.number()
+    })
+};
+
+export const masterAccessoriesSchema = {
+    addOrUpdate: z.object({
+        lmaC_Id: z.number().optional(),
+        mI_Id: z.number().optional(),
+        lmaC_AccessoriesName: z.string().min(1, 'Accessories Name is required'),
+        lmaC_AccessoriesDesc: z.string().min(1, 'Accessories Description is required'),
+        lmaC_ActiveFlg: z.boolean().optional()
+    }),
+    delete: z.object({
+        lmaC_Id: z.number()
+    })
+};
+
+export const masterTimeSlabSchema = {
+    addOrUpdate: z
+        .object({
+            lfsE_Id: z.number().optional(),
+            mI_Id: z.number().optional(),
+            lfsE_UserType: z.string().min(1, 'User Type is required'),
+            lfsE_SlabTypeFlg: z.string().min(1, 'Slab Type is required'),
+            lfsE_PerDayFlg: z.number().optional().default(0),
+            lfsE_FromDay: z.coerce.number().min(0, 'From Day must be at least 0'),
+            lfsE_ToDay: z.coerce.number().optional(),
+            lfsE_Amount: z.coerce.number().min(0, 'Amount must be at least 0'),
+            lfsE_ActiveFlg: z.boolean().optional()
+        })
+        .refine(
+            (data) => {
+                if (data.lfsE_SlabTypeFlg === 'BETWEEN') {
+                    return data.lfsE_ToDay !== undefined && data.lfsE_ToDay > data.lfsE_FromDay;
+                }
+                return true;
+            },
+            {
+                message: 'To Day must be greater than From Day',
+                path: ['lfsE_ToDay']
+            }
+        ),
+    delete: z.object({
+        lfsE_Id: z.number()
+    })
+};
+
+export const masterRackDetailsSchema = {
+    addOrUpdate: z.object({
+        lmrA_Id: z.number().optional(),
+        lmraS_Id: z.number().optional(),
+        mI_Id: z.number().optional(),
+        lmrA_BuildingName: z.string().min(1, 'Building Name is required'),
+        lmrA_RackName: z.string().min(1, 'Rack Name is required'),
+        lmS_Id: z.coerce.number().min(1, 'Subject Name is required'),
+        lmrA_FloorName: z.string().min(1, 'Floor Name is required'),
+        lmrA_DisplayColour: z.string().optional(),
+        lmrA_Location: z.string().min(1, 'Location is required'),
+        lmrA_ActiveFlag: z.boolean().optional()
+    }),
+    delete: z.object({
+        lmrA_Id: z.number()
+    })
+};
+
+export const masterClassCategorySchema = {
+    addOrUpdate: z.object({
+        lmcC_Id: z.number().optional(),
+        ivrmuL_Id: z.coerce.number().min(1, 'Staff Name is required'),
+        lmcC_CategoryName: z.string().min(1, 'Class Category Name is required').max(50, 'Class Category Name cannot exceed 50 characters'),
+        lmcC_ActiveFlag: z.boolean().optional()
+    }),
+    delete: z.object({
+        lmcC_Id: z.number()
+    })
+};
+
+export const masterSubjectSchema = {
+    addOrUpdate: z.object({
+        lmS_SubjectName: z.string().optional(),
+        ismS_Id: z.string().min(1, 'Please Select Parent Subject'),
+        lmS_Level: z.string().regex(/^\d{1,25}$/, 'Enter only numeric value'),
+        lmS_ClassNo: z
+            .string()
+            .max(27, 'Maximum 27 characters')
+            .regex(/^[a-zA-Z0-9\s-]*$/, 'Invalid Class No'),
+        ismS_SubjectName: z
+            .string()
+            .min(1, 'Enter the Subject Name')
+            .max(50)
+            .regex(/^[a-zA-Z\s]*$/, 'Only letters allowed'),
+        lmS_SubjectNo: z
+            .string()
+            .max(50)
+            .regex(/^[a-zA-Z0-9\s-]*$/, 'Invalid Subject No'),
+        lmS_Id: z.number().nonnegative().optional(), // optional when creating new record
+        lmS_ParentId: z.number().optional(),
+        lmS_ActiveFlg: z.boolean().optional()
+        // lmS_SubjectName: z.string()
+    }),
+    delete: z.object({
+        lmS_Id: deleteIdSchema('lmS_Id')
+    })
+};

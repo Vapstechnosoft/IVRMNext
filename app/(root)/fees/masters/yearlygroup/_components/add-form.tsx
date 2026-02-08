@@ -17,7 +17,7 @@ import { addOrUpdateMasterGroupYearlyCategory } from '@/server/fees/masters/fees
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { CheckSquare, ChevronsUpDown, Save, Search, Square } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -28,9 +28,9 @@ interface FeeGroup {
 }
 
 interface Payload {
-    mI_Id: number;
+    //mI_Id: number;
     fyG_Id: number;
-    user_id: number;
+    // user_id: number;
     asmaY_Id: number;
     grouplist: number[];
     fyG_RebateTypeFlg: string;
@@ -46,9 +46,13 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
     const [search, setSearch] = useState('');
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
     const { data: academicYearOptions } = useAcademicYearDropdown();
-    const { data: groupData } = useMasterGroupListDropDown();
+    const { data: groupData, refetch: refetchGroups } = useMasterGroupListDropDown();
     const { refetchAll } = useMasterFeeYearlyGroup();
     const { refetchAll: refetchCategory } = useMasterGetYearlyCategory();
+
+    useEffect(() => {
+        refetchGroups();
+    }, [refetchGroups]);
 
     const feeGroups: FeeGroup[] =
         groupData?.success && Array.isArray(groupData.data)
@@ -79,6 +83,14 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
     const rebateApplicable = watch('rebateApplicable');
     const rebateType = watch('rebateType');
 
+    const selectedGroupIds = watch('feeGroupIds') || [];
+
+    // Get filtered groups based on search
+    const filteredGroups = feeGroups.filter((fg) => fg.fmgg_GroupName.toLowerCase().includes(search.toLowerCase().trim()));
+
+    // Check if all filtered groups are selected
+    const allFilteredSelected = filteredGroups.length > 0 && filteredGroups.every((group) => selectedGroupIds.includes(group.fmgg_Id));
+
     const onSubmit = async (data: FormFields) => {
         const selectedAcademicYear = academicYearOptions?.data?.find((year) => year && year.asmaY_Id.toString() === data.academicYear);
 
@@ -94,9 +106,9 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
         }
 
         const payload: Payload = {
-            mI_Id: 30,
+            // mI_Id: 30,
             fyG_Id: 0,
-            user_id: 21602,
+            // user_id: 21602,
             asmaY_Id,
             grouplist: data.feeGroupIds || [],
             fyG_RebateTypeFlg: data.rebateApplicable && data.rebateType ? data.rebateType : '',
@@ -172,7 +184,7 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
                         )}
                     />
                     {/* Fee Group Multi-select Dropdown */}
-                    <Controller
+                    {/* <Controller
                         name='feeGroupIds'
                         control={control}
                         render={({ field }) => (
@@ -205,7 +217,7 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
                                         className='w-[var(--radix-popover-trigger-width)] rounded-md border border-gray-200 bg-white p-2 shadow-lg sm:w-[300px]'
                                         align='start'
                                         sideOffset={6}>
-                                        {/* Search bar */}
+                                        
                                         <div className='relative mb-2'>
                                             <Search className='absolute top-2.5 left-2 h-4 w-4 text-gray-400' />
                                             <Input
@@ -216,9 +228,9 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
                                             />
                                         </div>
 
-                                        {/* Fee Group list */}
+                                        
                                         <div className='max-h-[260px] overflow-y-auto rounded-md border border-gray-200 p-1'>
-                                            {/* Select All */}
+                                          
                                             <div
                                                 onClick={() => {
                                                     const allIds = feeGroups.map((f) => f.fmgg_Id);
@@ -239,7 +251,7 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
                                                 <span>Select All</span>
                                             </div>
 
-                                            {/* Individual Fee Groups */}
+                                            
                                             {feeGroups
                                                 .filter((fg) => fg.fmgg_GroupName.toLowerCase().includes(search.toLowerCase().trim()))
                                                 .map((fg) => {
@@ -267,6 +279,128 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
                                                         </div>
                                                     );
                                                 })}
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+
+                                {errors.feeGroupIds && <FormError>{errors.feeGroupIds.message}</FormError>}
+                            </div>
+                        )}
+                    /> */}
+                    {/* Fee Group Multi-select Dropdown */}
+                    <Controller
+                        name='feeGroupIds'
+                        control={control}
+                        render={({ field }) => (
+                            <div className='flex flex-col'>
+                                <label htmlFor='feeGroupsTrigger' className='mb-1 font-medium text-gray-700 text-sm'>
+                                    Fee Groups <span className='text-red-500'>*</span>
+                                </label>
+
+                                <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            id='feeGroupsTrigger'
+                                            type='button'
+                                            variant='outline'
+                                            onClick={() => setIsPopoverOpen(!isPopoverOpen)}
+                                            className={cn(
+                                                'h-10 w-full select-none justify-between rounded-md border font-normal text-sm transition-none',
+                                                'bg-white',
+                                                errors.feeGroupIds ? 'border-red-500' : 'border-gray-300',
+                                                '!focus:border-gray-300 !hover:border-gray-300 !hover:bg-white !focus:ring-0 active:scale-100'
+                                            )}>
+                                            <span className='truncate text-gray-700'>
+                                                {/* {field.value?.length ? `${field.value.length} selected` : 'Select Fee Groups'} */}
+                                                Select Fee Groups
+                                            </span>
+                                            <ChevronsUpDown className='ml-2 h-4 w-4 opacity-50' />
+                                        </Button>
+                                    </PopoverTrigger>
+
+                                    <PopoverContent
+                                        className='w-[var(--radix-popover-trigger-width)] rounded-md border border-gray-200 bg-white p-2 shadow-lg sm:w-[300px]'
+                                        align='start'
+                                        sideOffset={6}>
+                                        {/* Search bar */}
+                                        <div className='relative mb-2'>
+                                            <Search className='absolute top-2.5 left-2 h-4 w-4 text-gray-400' />
+                                            <Input
+                                                placeholder='Search groups...'
+                                                value={search}
+                                                onChange={(e) => setSearch(e.target.value)}
+                                                className='h-8 border-gray-300 pl-8 text-sm focus:border-gray-400 focus:ring-0'
+                                            />
+                                        </div>
+
+                                        {/* Fee Group list */}
+                                        <div className='max-h-[260px] overflow-y-auto rounded-md border border-gray-200 p-1'>
+                                            {/* Select All - only selects filtered items */}
+                                            <div
+                                                onClick={() => {
+                                                    const filteredIds = filteredGroups.map((fg) => fg.fmgg_Id);
+                                                    if (allFilteredSelected) {
+                                                        // Deselect only filtered items
+                                                        const newSelected = selectedGroupIds.filter((id) => !filteredIds.includes(id));
+                                                        field.onChange(newSelected);
+                                                    } else {
+                                                        // Select only filtered items (add to existing selection)
+                                                        const newSelected = [...selectedGroupIds];
+                                                        filteredIds.forEach((id) => {
+                                                            if (!newSelected.includes(id)) {
+                                                                newSelected.push(id);
+                                                            }
+                                                        });
+                                                        field.onChange(newSelected);
+                                                    }
+                                                }}
+                                                className={cn(
+                                                    'mb-2 flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 font-medium text-sm',
+                                                    allFilteredSelected ? 'bg-gray-100 text-gray-800' : 'hover:bg-gray-50'
+                                                )}>
+                                                {allFilteredSelected ? (
+                                                    <CheckSquare className='h-4 w-4 text-primary' />
+                                                ) : (
+                                                    <Square className='h-4 w-4 text-gray-400' />
+                                                )}
+                                                <span>
+                                                    {/* {allFilteredSelected ? 'Deselect All' : 'Select All'} 
+                                                    {search && ` (${filteredGroups.length} filtered)`} */}
+                                                    Select All
+                                                </span>
+                                            </div>
+
+                                            {/* Individual Fee Groups - only show filtered */}
+                                            {filteredGroups.length > 0 ? (
+                                                filteredGroups.map((fg) => {
+                                                    const selected = selectedGroupIds.includes(fg.fmgg_Id);
+                                                    return (
+                                                        <div
+                                                            key={fg.fmgg_Id}
+                                                            onClick={() => {
+                                                                const newValue = selected
+                                                                    ? selectedGroupIds.filter((v) => v !== fg.fmgg_Id)
+                                                                    : [...selectedGroupIds, fg.fmgg_Id];
+                                                                field.onChange(newValue);
+                                                            }}
+                                                            className={cn(
+                                                                'mb-1 flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm',
+                                                                selected ? 'bg-gray-100 text-gray-800' : 'hover:bg-gray-50'
+                                                            )}>
+                                                            {selected ? (
+                                                                <CheckSquare className='h-4 w-4 text-primary' />
+                                                            ) : (
+                                                                <Square className='h-4 w-4 text-gray-400' />
+                                                            )}
+                                                            <span>{fg.fmgg_GroupName}</span>
+                                                        </div>
+                                                    );
+                                                })
+                                            ) : (
+                                                <div className='px-2 py-4 text-center text-gray-500 text-sm'>
+                                                    No groups found for "{search}"
+                                                </div>
+                                            )}
                                         </div>
                                     </PopoverContent>
                                 </Popover>
