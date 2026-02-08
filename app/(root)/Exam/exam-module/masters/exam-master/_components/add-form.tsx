@@ -34,7 +34,6 @@ export default function AddMasterExamForm({ onSuccess, className = '' }: AddMast
         mode: 'onChange',
         defaultValues: {
             emE_Id: 0,
-            mI_Id: 30,
             emE_ExamName: '',
             emE_ExamCode: '',
             emE_ExamDescription: '',
@@ -48,7 +47,6 @@ export default function AddMasterExamForm({ onSuccess, className = '' }: AddMast
         try {
             const payload = {
                 ...data,
-                mI_Id: 30,
                 emE_FinalExamFlag: Boolean(data.emE_FinalExamFlag),
                 emE_SujectwiseMarksPublishFlg: Boolean(data.emE_SujectwiseMarksPublishFlg)
             };

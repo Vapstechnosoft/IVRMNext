@@ -53,7 +53,6 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                         </h3>
                                     </div>
                                 </div>
-                                <div className="w-24"></div> {/* Spacer to center the title */}
                             </div>
                         )}
 
@@ -166,7 +165,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                             );
                                         })}
                                         {params.superAverage && (
-                                            <td colSpan={2} className="border border-gray-400 p-1 text-center bg-gray-50"></td>
+                                            <td colSpan={2} className="border border-gray-400 p-1 text-center bg-gray-50">.</td>
                                         )}
                                     </tr>
 

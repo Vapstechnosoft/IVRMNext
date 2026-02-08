@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { RoomCategorySchema, RoomCategorySchemaType } from '@/schemas/hostel/room-category.schema';
 import { IFeeGroup, IHostel, IRoomCategory } from '@/types/hostel/hostel-management/masters';
 import { saveRoomCategory } from '@/server/hostel/hostel-management/masters/room-category';
+import { useRoomCategory } from '@/hooks/hostel/useRoomCategory';
 
 interface UpdateRoomCategoryFormProps {
     initialData: IRoomCategory;
@@ -57,6 +58,7 @@ export default function UpdateRoomCategoryForm({
     });
 
     const sharingFlag = watch('hlmrcA_SharingFlg');
+    const { refetchAll } = useRoomCategory();
 
     // Reset form when initialData changes
     useEffect(() => {
@@ -85,12 +87,13 @@ export default function UpdateRoomCategoryForm({
         try {
             const result = await saveRoomCategory(data);
 
-            if (result?.returnval) {
+            if (result?.success) {
                 toast.success('Room Category updated successfully');
                 onSuccess?.();
+                refetchAll();
             } else {
-                if (result?.duplicate) {
-                    toast.error('Record already exists');
+                if (result?.message) {
+                    toast.error(result?.message);
                 } else {
                     toast.error('Failed to update Room Category');
                 }

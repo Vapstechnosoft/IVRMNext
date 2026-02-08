@@ -52,6 +52,28 @@ export interface IStudentAttendance {
     asA_Dailytwice_Flag?: string;
 }
 
+
+// export interface IStudentList {
+//     amsT_Id: number;
+  
+//       amaY_RollNo: number,
+//       amsT_AdmNo: string,     
+//       studentname: string,
+//      // pday: null,
+//      // selected: null,
+//      // asaS_Id: null,
+//      // firstHalfflag: null,
+//      // secondHalfflag: null,
+//     //  asA_Dailytwice_Flag: null,
+//       asA_Id: number,
+//      // ttmP_Id: null,
+//       ismS_Id: number,
+//       asasB_Id: number,
+//       amsT_RegistrationNo: string
+// }
+
+
+
 export interface IAttendanceConfig {
     asC_Att_Default_OrderFlag: number;
 }
@@ -72,6 +94,7 @@ export interface IAttendanceEntryInitialData {
     batchList: IBatch[];
     periodlist: IPeriod[];
     message: string | null;
+     //studentList: IStudentList[];
 }
 
 export interface IStudentDataResponse {

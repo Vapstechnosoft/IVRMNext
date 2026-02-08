@@ -87,7 +87,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
             const fetchData = async () => {
                 setLoadingCategories(true);
                 try {
-                    const { data: cats } = await getCategoryDropDownByAcademicYearlist(30, selectedYear);
+                    const { data: cats } = await getCategoryDropDownByAcademicYearlist(selectedYear);
                     const validCats = Array.isArray(cats) ? cats : [];
                     if (validCats.length === 0) {
                         toast.info('No categories found for this academic year');

@@ -32,11 +32,8 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterSubjectSchema.addOrUpdate),
-        mode: 'onChange',
+        mode: 'onTouched',
         defaultValues: {
-            mI_Id: 30,
-            ismS_Max_Marks: 0,
-            ismS_Min_Marks: 0,
             ismS_PreadmFlag: 0,
             ismS_AttendanceFlag: true, // boolean
             ismS_BatchAppl: 0,
@@ -108,45 +105,6 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                             error={errors.ismS_SubjectNameNew?.message}
                         />
                     </div>
-
-                    {/* Row 2 - Marks */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <div className='group flex flex-col gap-1.5'>
-                            <Controller
-                                name='ismS_Max_Marks'
-                                control={control}
-                                render={({ field }) => (
-                                    <InputNumber
-                                        label='Max Marks'
-                                        required
-                                        id='ismS_Max_Marks'
-                                        value={field.value ?? 0}
-                                        onChange={field.onChange}
-                                        minValue={0}
-                                    />
-                                )}
-                            />
-                            {errors.ismS_Max_Marks && <FormError>{errors.ismS_Max_Marks.message}</FormError>}
-                        </div>
-                        <div className='group flex flex-col gap-1.5'>
-                            <Controller
-                                name='ismS_Min_Marks'
-                                control={control}
-                                render={({ field }) => (
-                                    <InputNumber
-                                        label='Min Marks'
-                                        required
-                                        id='ismS_Min_Marks'
-                                        value={field.value ?? 0}
-                                        onChange={field.onChange}
-                                        minValue={0}
-                                    />
-                                )}
-                            />
-                            {errors.ismS_Min_Marks && <FormError>{errors.ismS_Min_Marks.message}</FormError>}
-                        </div>
-                    </div>
-
                     {/* Row 3 - Flags */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         {[

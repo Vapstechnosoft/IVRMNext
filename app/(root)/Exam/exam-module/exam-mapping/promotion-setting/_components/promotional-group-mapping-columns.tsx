@@ -20,37 +20,45 @@ export const PromotionalGroupMappingColumns: ColumnDef<IPromotionalGroupDetails>
         enableSorting: false
     },
     {
-        accessorKey: 'emcA_CategoryName',
+        accessorKey: 'empsG_GroupName',
         header: ({ column }) => <DataTableColumnHeader title='Group Name' column={column} />,
+        cell: ({ row }) => row.getValue('empsG_GroupName'),
         enableSorting: false
     },
     {
-        accessorKey: 'emgR_GradeName',
-        header: ({ column }) => <DataTableColumnHeader title='Grade Name' column={column} />,
+        accessorKey: 'empsG_DisplayName',
+        header: ({ column }) => <DataTableColumnHeader title='Display Name' column={column} />,
+        cell: ({ row }) => row.getValue('empsG_DisplayName'),
         enableSorting: false
     },
     {
-        accessorKey: 'emP_MarksPerFlg',
-        header: ({ column }) => <DataTableColumnHeader title='Type' column={column} />,
-        cell: ({ row }) => getStatusBadge(row.original.emP_MarksPerFlg === 'M' ? 'marks' : 'percentage'),
+        accessorKey: 'empsG_MarksValue',
+        header: ({ column }) => <DataTableColumnHeader title='Marks' column={column} />,
+        cell: ({ row }) => row.getValue('empsG_MarksValue'),
         enableSorting: false
     },
     {
-        accessorKey: 'emP_BestOf',
-        header: ({ column }) => <DataTableColumnHeader title='Best Of' column={column} />,
-        cell: ({ row }) => row.original.emP_BestOf ?? '-',
+        accessorKey: 'empsG_PercentValue',
+        header: ({ column }) => <DataTableColumnHeader title='Percentage' column={column} />,
+        cell: ({ row }) => row.getValue('empsG_PercentValue'),
         enableSorting: false
     },
     {
-        accessorKey: 'emP_PassToIndSubjectFlg',
-        header: ({ column }) => <DataTableColumnHeader title='Pass to Individual' column={column} />,
-        cell: ({ row }) => getStatusBadge(row.original.emP_PassToIndSubjectFlg === true ? 'yes' : 'no'),
+        accessorKey: 'empsG_MaxOff',
+        header: ({ column }) => <DataTableColumnHeader title='Max off' column={column} />,
+        cell: ({ row }) => row.getValue('empsG_MaxOff'),
         enableSorting: false
     },
     {
-        accessorKey: 'emP_PassToOverallFlag',
-        header: ({ column }) => <DataTableColumnHeader title='Pass to Overall' column={column} />,
-        cell: ({ row }) => getStatusBadge(row.original.emP_PassToOverallFlag === true ? 'yes' : 'no'),
+        accessorKey: 'empsG_BestOff',
+        header: ({ column }) => <DataTableColumnHeader title='Best Off' column={column} />,
+        cell: ({ row }) => row.getValue('empsG_BestOff') ?? '-',
+        enableSorting: false
+    },
+    {
+        accessorKey: 'empsG_RoundOffFlag',
+        header: ({ column }) => <DataTableColumnHeader title='Round Off flag' column={column} />,
+        cell: ({ row }) => getStatusBadge(row.original.empsG_RoundOffFlag === true ? 'yes' : 'no'),
         enableSorting: false
     },
     {
@@ -92,7 +100,7 @@ function ActionButtonsCell({ rowData }: { rowData: IPromotionalGroupDetails }) {
     return (
         <div className='flex justify-center gap-1'>
             <MappingCell rowData={rowData} />
-            <ActionButtons rowData={rowData} buttons={{ toggle: true }} onToggle={handleToggle} toggleConditionKey='emP_ActiveFlag' />
+            <ActionButtons rowData={rowData} buttons={{ toggle: true }} onToggle={handleToggle} toggleConditionKey='empsG_ActiveFlag' />
         </div>
     );
 }

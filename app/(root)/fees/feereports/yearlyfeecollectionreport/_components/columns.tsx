@@ -1,19 +1,13 @@
 'use client';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { IFeeYearlyCollectionReportRow } from '@/types/fees/reports/reports';
+import type { IFeeYearlyCollectionReport, IFeeYearlyCollectionReportRow } from '@/types/fees/reports/reports';
 import type { ColumnDef, HeaderContext } from '@tanstack/react-table';
-
-/* ======================================================
-
-
-   COLUMN CONFIG (IMAGE MATCHING)
-====================================================== */
 
 export type BreakdownType = keyof typeof REPORT_COLUMN_MAP;
 
 export const REPORT_COLUMN_MAP = {
     FGW: [
-        { key: 'groupName', label: 'Group Name' },
+        { key: 'fmg_groupname', label: 'Group Name' },
 
         { key: 'paidAmount', label: 'Paid Amount', align: 'right', sum: true },
         { key: 'balance', label: 'Balance', align: 'right', sum: true },
@@ -41,14 +35,6 @@ export const REPORT_COLUMN_MAP = {
         { key: 'charge', label: 'Charge', align: 'right', sum: true },
         { key: 'adjustment', label: 'Adjustment', align: 'right', sum: true }
     ]
-    //,
-
-    //   INW: [
-    //     { key: 'Head Name', label: 'Student Name' },
-    //     { key: 'classSection', label: 'Class/Section' },
-    //     { key: 'admissionNo', label: 'Admission No' },
-    //     { key: 'installmentName', label: 'Installment name' }
-    //   ]
 } as const;
 
 export const getDynamicColumns = (breakdown: BreakdownType): ColumnDef<FeeYearlyTableRow>[] => {
@@ -228,22 +214,910 @@ export const mapYearlyCollectionReport = (list: any[], breakdown: BreakdownType)
 
 const NUMERIC_COLUMNS = ['totalPayable', 'paidAmount', 'balance', 'concession', 'arrear', 'excess', 'charge', 'adjustment'];
 
-export function createTotalRow(rows: IFeeYearlyCollectionReportRow[]): FeeYearlyTableRow {
-    return {
-        __isTotal: true,
-        slNo: 0,
-        studentName: 'TOTAL',
-        classSection: '',
-        admissionNo: '',
-        installmentName: '',
+// export function createTotalRow(rows: IFeeYearlyCollectionReportRow[]): FeeYearlyTableRow {
+//     return {
+//         __isTotal: true,
+//         slNo: 0,
+//         studentName: 'TOTAL',
+//         classSection: '',
+//         admissionNo: '',
+//         installmentName: '',
 
-        totalPayable: rows.reduce((s, r) => s + r.totalPayable, 0),
-        paidAmount: rows.reduce((s, r) => s + r.paidAmount, 0),
-        balance: rows.reduce((s, r) => s + r.balance, 0),
-        concession: rows.reduce((s, r) => s + r.concession, 0),
-        arrear: rows.reduce((s, r) => s + r.arrear, 0),
-        excess: rows.reduce((s, r) => s + r.excess, 0),
-        charge: rows.reduce((s, r) => s + r.charge, 0),
-        adjustment: rows.reduce((s, r) => s + r.adjustment, 0)
+//         totalPayable: rows.reduce((s, r) => s + r.totalPayable, 0),
+//         paidAmount: rows.reduce((s, r) => s + r.paidAmount, 0),
+//         balance: rows.reduce((s, r) => s + r.balance, 0),
+//         concession: rows.reduce((s, r) => s + r.concession, 0),
+//         arrear: rows.reduce((s, r) => s + r.arrear, 0),
+//         excess: rows.reduce((s, r) => s + r.excess, 0),
+//         charge: rows.reduce((s, r) => s + r.charge, 0),
+//         adjustment: rows.reduce((s, r) => s + r.adjustment, 0)
+//     };
+// }
+
+export function exportToExcelforFeeGroupWise(rows: IFeeYearlyCollectionReport[], fileName: string) {
+    if (!rows || rows.length === 0) return;
+
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        'Fee Group': row.fmg_groupname,
+        'Paid Amount': row.fss_paidamount || 0,
+        Balance: row.balance || 0,
+        Concession: row.concession || 0,
+        Waived: row.waived || 0,
+        Rebate: row.rebate || 0,
+        Fine: row.fine || 0,
+        'Total Payable': row.totalpayable || 0,
+        Adjusted: row.adjusted || 0,
+        Excess: row.excess || 0,
+        'Running Excess': row.runningexcess || 0
+    }));
+
+    // Add totals row
+    const totalsRow = {
+        'Sl No': 'TOTAL',
+        'Fee Group': '',
+        'Paid Amount': rows.reduce((sum, row) => sum + (row.fss_paidamount || 0), 0),
+        Balance: rows.reduce((sum, row) => sum + (row.balance || 0), 0),
+        Concession: rows.reduce((sum, row) => sum + (row.concession || 0), 0),
+        Waived: rows.reduce((sum, row) => sum + (row.waived || 0), 0),
+        Rebate: rows.reduce((sum, row) => sum + (row.rebate || 0), 0),
+        Fine: rows.reduce((sum, row) => sum + (row.fine || 0), 0),
+        'Total Payable': rows.reduce((sum, row) => sum + (row.totalpayable || 0), 0),
+        Adjusted: rows.reduce((sum, row) => sum + (row.adjusted || 0), 0),
+        Excess: rows.reduce((sum, row) => sum + (row.excess || 0), 0),
+        'Running Excess': rows.reduce((sum, row) => sum + (row.runningexcess || 0), 0)
     };
+
+    // Combine data and totals
+    const allData = [...dataForExcel, totalsRow];
+
+    const worksheet = XLSX.utils.json_to_sheet(allData);
+    const workbook = XLSX.utils.book_new();
+
+    // Auto-size columns
+    const maxWidth = Object.keys(dataForExcel[0] || {}).reduce((acc, key) => {
+        const maxLength = Math.max(key.length, ...allData.map((row: any) => String(row[key] || '').length));
+        // biome-ignore lint/performance/noAccumulatingSpread: <explanation>
+        return { ...acc, [key]: { wch: Math.min(maxLength + 2, 50) } };
+    }, {});
+
+    worksheet['!cols'] = Object.values(maxWidth);
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Fee Group Report');
+
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
 }
+
+export function exportToExcelforFeeHeadWise(rows: IFeeYearlyCollectionReport[], fileName: string) {
+    if (!rows || rows.length === 0) return;
+
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        'Fee Head': row.fmh_feename,
+        'Paid Amount': row.fss_paidamount || 0,
+        Balance: row.balance || 0,
+        Concession: row.concession || 0,
+        Waived: row.waived || 0,
+        Rebate: row.rebate || 0,
+        Fine: row.fine || 0,
+        'Total Payable': row.totalpayable || 0,
+        Adjusted: row.adjusted || 0,
+        Excess: row.excess || 0,
+        'Running Excess': row.runningexcess || 0
+    }));
+
+    // Add totals row
+    const totalsRow = {
+        'Sl No': 'TOTAL',
+        'Fee Head': '',
+        'Paid Amount': rows.reduce((sum, row) => sum + (row.fss_paidamount || 0), 0),
+        Balance: rows.reduce((sum, row) => sum + (row.balance || 0), 0),
+        Concession: rows.reduce((sum, row) => sum + (row.concession || 0), 0),
+        Waived: rows.reduce((sum, row) => sum + (row.waived || 0), 0),
+        Rebate: rows.reduce((sum, row) => sum + (row.rebate || 0), 0),
+        Fine: rows.reduce((sum, row) => sum + (row.fine || 0), 0),
+        'Total Payable': rows.reduce((sum, row) => sum + (row.totalpayable || 0), 0),
+        Adjusted: rows.reduce((sum, row) => sum + (row.adjusted || 0), 0),
+        Excess: rows.reduce((sum, row) => sum + (row.excess || 0), 0),
+        'Running Excess': rows.reduce((sum, row) => sum + (row.runningexcess || 0), 0)
+    };
+
+    // Combine data and totals
+    const allData = [...dataForExcel, totalsRow];
+
+    const worksheet = XLSX.utils.json_to_sheet(allData);
+    const workbook = XLSX.utils.book_new();
+
+    // Auto-size columns
+    const maxWidth = Object.keys(dataForExcel[0] || {}).reduce((acc, key) => {
+        const maxLength = Math.max(key.length, ...allData.map((row: any) => String(row[key] || '').length));
+        // biome-ignore lint/performance/noAccumulatingSpread: <explanation>
+        return { ...acc, [key]: { wch: Math.min(maxLength + 2, 50) } };
+    }, {});
+
+    worksheet['!cols'] = Object.values(maxWidth);
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Fee Group Report');
+
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export function exportToExcelforFeeClassWise(rows: IFeeYearlyCollectionReport[], fileName: string) {
+    if (!rows || rows.length === 0) return;
+
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        'Class Name': row.asmcl_classname,
+        'Total Charges': row.charges,
+        'Paid Amount': row.fss_paidamount || 0,
+        Balance: row.balance || 0,
+        Concession: row.concession || 0,
+        Fine: row.fine || 0,
+        Rebate: row.rebate || 0,
+        Waived: row.waived || 0,
+        Excess: row.excess || 0,
+        'Opening Balance': row.openingbalance || 0
+    }));
+
+    // Add totals row
+    const totalsRow = {
+        'Sl No': 'TOTAL',
+        'Class Name': '',
+        'Total Charges': rows.reduce((sum, row) => sum + (row.charges || 0), 0),
+        'Paid Amount': rows.reduce((sum, row) => sum + (row.fss_paidamount || 0), 0),
+        Balance: rows.reduce((sum, row) => sum + (row.balance || 0), 0),
+        Concession: rows.reduce((sum, row) => sum + (row.concession || 0), 0),
+        Fine: rows.reduce((sum, row) => sum + (row.fine || 0), 0),
+        Rebate: rows.reduce((sum, row) => sum + (row.rebate || 0), 0),
+        Waived: rows.reduce((sum, row) => sum + (row.waived || 0), 0),
+        Excess: rows.reduce((sum, row) => sum + (row.excess || 0), 0),
+        'Opening Balance': rows.reduce((sum, row) => sum + (row.openingbalance || 0), 0)
+    };
+
+    // Combine data and totals
+    const allData = [...dataForExcel, totalsRow];
+
+    const worksheet = XLSX.utils.json_to_sheet(allData);
+    const workbook = XLSX.utils.book_new();
+
+    // Auto-size columns
+    const maxWidth = Object.keys(dataForExcel[0] || {}).reduce((acc, key) => {
+        const maxLength = Math.max(key.length, ...allData.map((row: any) => String(row[key] || '').length));
+        // biome-ignore lint/performance/noAccumulatingSpread: <explanation>
+        return { ...acc, [key]: { wch: Math.min(maxLength + 2, 50) } };
+    }, {});
+
+    worksheet['!cols'] = Object.values(maxWidth);
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Fee Group Report');
+
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export function exportToExcelforStudentWise(rows: IFeeYearlyCollectionReport[], fileName: string) {
+    if (!rows || rows.length === 0) return;
+
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        'Student Name': row.studentname,
+        'Admission No': row.amst_admno,
+        'Class Name': row.asmcl_classname,
+        'Mobile No': row.mobileNo,
+        'Total Payable': row.totalpayable,
+        'Paid Amount': row.fss_paidamount || 0,
+        Balance: row.balance || 0,
+        Concession: row.concession || 0,
+        Fine: row.fine || 0,
+        Rebate: row.rebate || 0,
+        Waived: row.waived || 0,
+        Adjusted: row.adjusted || 0,
+        'Opening Balance': row.openingbalance || 0,
+        Excess: row.excess || 0
+    }));
+
+    // Add totals row
+    const totalsRow = {
+        'Sl No': 'TOTAL',
+        'Student Name': '',
+        'Admission No': '',
+        'Class Name': '',
+        'Mobile No': '',
+        'Total Payable': rows.reduce((sum, row) => sum + (row.totalpayable || 0), 0),
+        'Paid Amount': rows.reduce((sum, row) => sum + (row.fss_paidamount || 0), 0),
+        Balance: rows.reduce((sum, row) => sum + (row.balance || 0), 0),
+        Concession: rows.reduce((sum, row) => sum + (row.concession || 0), 0),
+        Fine: rows.reduce((sum, row) => sum + (row.fine || 0), 0),
+        Rebate: rows.reduce((sum, row) => sum + (row.rebate || 0), 0),
+        Waived: rows.reduce((sum, row) => sum + (row.waived || 0), 0),
+        Adjusted: rows.reduce((sum, row) => sum + (row.adjusted || 0), 0),
+        'Opening Balance': rows.reduce((sum, row) => sum + (row.openingbalance || 0), 0),
+        Excess: rows.reduce((sum, row) => sum + (row.excess || 0), 0)
+    };
+
+    // Combine data and totals
+    const allData = [...dataForExcel, totalsRow];
+
+    const worksheet = XLSX.utils.json_to_sheet(allData);
+    const workbook = XLSX.utils.book_new();
+
+    // Auto-size columns
+    const maxWidth = Object.keys(dataForExcel[0] || {}).reduce((acc, key) => {
+        const maxLength = Math.max(key.length, ...allData.map((row: any) => String(row[key] || '').length));
+        // biome-ignore lint/performance/noAccumulatingSpread: <explanation>
+        return { ...acc, [key]: { wch: Math.min(maxLength + 2, 50) } };
+    }, {});
+
+    worksheet['!cols'] = Object.values(maxWidth);
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Fee Group Report');
+
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export function exportToExcelforTermWise(
+  rows: IFeeYearlyCollectionReport[],
+  fileName: string,
+  selectedTerms: any[]
+) {
+  if (!rows || rows.length === 0) return;
+
+  const feeHeads = Array.from(
+    new Map(rows.map(r => [r.fmh_id, r])).values()
+  );
+
+  const wsData: any[][] = [];
+  const headerRow1: any[] = ['Sl No', 'Fee Head'];
+  selectedTerms.forEach(term => {
+    headerRow1.push(term.fmT_Name);
+    for (let i = 0; i < 6; i++) headerRow1.push('');
+  });
+  wsData.push(headerRow1);
+  const headerRow2: any[] = ['', ''];
+  selectedTerms.forEach(() => {
+    headerRow2.push(
+      'Paid',
+      'Balance',
+      'Concession',
+      'Arrear',
+      'Excess',
+      'Charges',
+      'Payable'
+    );
+  });
+  wsData.push(headerRow2);
+  feeHeads.forEach((feeHead, index) => {
+    const row: any[] = [index + 1, feeHead.fmh_feename];
+
+    selectedTerms.forEach(term => {
+      const data = rows.find(
+        r => r.fmh_id === feeHead.fmh_id && r.fmt_id === term.fmT_Id
+      );
+
+      row.push(
+        data?.paid || 0,
+        data?.balance || 0,
+        data?.concession || 0,
+        data?.arrear || 0,
+        data?.excess || 0,
+        data?.charges || 0,
+        data?.payable || 0
+      );
+    });
+
+    wsData.push(row);
+  });
+  const totalRow: any[] = ['Total', ''];
+
+  selectedTerms.forEach(term => {
+    const termRows = rows.filter(r => r.fmt_id === term.fmT_Id);
+
+    totalRow.push(
+      termRows.reduce((s, r) => s + (r.paid || 0), 0),
+      termRows.reduce((s, r) => s + (r.balance || 0), 0),
+      termRows.reduce((s, r) => s + (r.concession || 0), 0),
+      termRows.reduce((s, r) => s + (r.arrear || 0), 0),
+      termRows.reduce((s, r) => s + (r.excess || 0), 0),
+      termRows.reduce((s, r) => s + (r.charges || 0), 0),
+      termRows.reduce((s, r) => s + (r.payable || 0), 0)
+    );
+  });
+
+  wsData.push(totalRow);
+  const worksheet = XLSX.utils.aoa_to_sheet(wsData);
+   worksheet['!merges'] = worksheet['!merges'] ?? [];
+
+  selectedTerms.forEach((_, index) => {
+    const startCol = 2 + index * 7;
+    worksheet['!merges']!.push({
+      s: { r: 0, c: startCol },
+      e: { r: 0, c: startCol + 6 }
+    });
+  });
+  worksheet['!cols'] = [
+    { wch: 8 },
+    { wch: 20 },
+    ...Array(selectedTerms.length * 7).fill({ wch: 14 })
+  ];
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Term Wise Report');
+  XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export function exportToExcelforStudentTermWise(
+  rows: IFeeYearlyCollectionReport[],
+  fileName: string,
+  selectedTerms: any[]
+) {
+  if (!rows || rows.length === 0) return;
+
+  const feeHeads = Array.from(
+    new Map(rows.map(r => [r.fmh_id, r])).values()
+  );
+
+  const wsData: any[][] = [];
+  const headerRow1: any[] = ['Sl No', 'Fee Head'];
+  selectedTerms.forEach(term => {
+    headerRow1.push(term.fmT_Name);
+    for (let i = 0; i < 6; i++) headerRow1.push('');
+  });
+  wsData.push(headerRow1);
+  const headerRow2: any[] = ['', ''];
+  selectedTerms.forEach(() => {
+    headerRow2.push(
+      'Paid',
+      'Balance',
+      'Concession',
+      'Arrear',
+      'Excess',
+      'Charges',
+      'Payable'
+    );
+  });
+  wsData.push(headerRow2);
+  feeHeads.forEach((feeHead, index) => {
+    const row: any[] = [index + 1, feeHead.fmh_feename];
+
+    selectedTerms.forEach(term => {
+      const data = rows.find(
+        r => r.fmh_id === feeHead.fmh_id && r.fmt_id === term.fmT_Id
+      );
+
+      row.push(
+        data?.paid || 0,
+        data?.balance || 0,
+        data?.concession || 0,
+        data?.arrear || 0,
+        data?.excess || 0,
+        data?.charges || 0,
+        data?.payable || 0
+      );
+    });
+
+    wsData.push(row);
+  });
+  const totalRow: any[] = ['Total', ''];
+
+  selectedTerms.forEach(term => {
+    const termRows = rows.filter(r => r.fmt_id === term.fmT_Id);
+
+    totalRow.push(
+      termRows.reduce((s, r) => s + (r.paid || 0), 0),
+      termRows.reduce((s, r) => s + (r.balance || 0), 0),
+      termRows.reduce((s, r) => s + (r.concession || 0), 0),
+      termRows.reduce((s, r) => s + (r.arrear || 0), 0),
+      termRows.reduce((s, r) => s + (r.excess || 0), 0),
+      termRows.reduce((s, r) => s + (r.charges || 0), 0),
+      termRows.reduce((s, r) => s + (r.payable || 0), 0)
+    );
+  });
+
+  wsData.push(totalRow);
+  const worksheet = XLSX.utils.aoa_to_sheet(wsData);
+   worksheet['!merges'] = worksheet['!merges'] ?? [];
+
+  selectedTerms.forEach((_, index) => {
+    const startCol = 2 + index * 7;
+    worksheet['!merges']!.push({
+      s: { r: 0, c: startCol },
+      e: { r: 0, c: startCol + 6 }
+    });
+  });
+  worksheet['!cols'] = [
+    { wch: 8 },
+    { wch: 20 },
+    ...Array(selectedTerms.length * 7).fill({ wch: 14 })
+  ];
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Term Wise Report');
+  XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+
+export function exportToExcelforInstallmentWise(rows: IFeeYearlyCollectionReport[], fileName: string) {
+    if (!rows || rows.length === 0) return;
+
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        'Student Name': row.studentName,
+        'Class/Section': row.asmcL_ClassName,
+        'Admission No': row.amsT_AdmNo,
+        'Installment name': row.ftI_Name,
+        'Total Payable': row.totalpayable,
+        'Paid Amount': row.fss_paidamount || 0,
+        Balance: row.balance || 0,
+        Concession: row.concession || 0,
+        Arrear: row.arrear || 0,
+        Excess: row.excess || 0,
+        Charge: row.charge || 0,
+        Adjustment: row.adjusted || 0
+    }));
+
+    // Add totals row
+    const totalsRow = {
+        'Sl No': 'TOTAL',
+        'Student Name': '',
+        'Class/Section': '',
+        'Admission No': '',
+        'Installment name': '',
+        'Total Payable': rows.reduce((sum, row) => sum + (row.totalpayable || 0), 0),
+        'Paid Amount': rows.reduce((sum, row) => sum + (row.fss_paidamount || 0), 0),
+        Balance: rows.reduce((sum, row) => sum + (row.balance || 0), 0),
+        Concession: rows.reduce((sum, row) => sum + (row.concession || 0), 0),
+        Arrear: rows.reduce((sum, row) => sum + (row.arrear || 0), 0),
+        Excess: rows.reduce((sum, row) => sum + (row.excess || 0), 0),
+        Charge: rows.reduce((sum, row) => sum + (row.charge || 0), 0),
+        Adjustment: rows.reduce((sum, row) => sum + (row.adjusted || 0), 0)
+    };
+
+    // Combine data and totals
+    const allData = [...dataForExcel, totalsRow];
+
+    const worksheet = XLSX.utils.json_to_sheet(allData);
+    const workbook = XLSX.utils.book_new();
+
+    // Auto-size columns
+    const maxWidth = Object.keys(dataForExcel[0] || {}).reduce((acc, key) => {
+        const maxLength = Math.max(key.length, ...allData.map((row: any) => String(row[key] || '').length));
+        // biome-ignore lint/performance/noAccumulatingSpread: <explanation>
+        return { ...acc, [key]: { wch: Math.min(maxLength + 2, 50) } };
+    }, {});
+
+    worksheet['!cols'] = Object.values(maxWidth);
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Fee Group Report');
+
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export function exportToExcelforCategoryWise(rows: IFeeYearlyCollectionReport[], fileName: string) {
+    if (!rows || rows.length === 0) return;
+
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        'Fee Class Category': row.fmcc_classcategoryname,
+        'Fee Head': row.fmh_feename || 0,
+        'By Bank': row.bybank || 0,
+        'By Cash': row.bycash || 0,
+        'By Online': row.byonline || 0,
+        'By Card': row.bycard || 0,
+        'By ECS	': row.byecs || 0,
+        'By RTGS': row.byrtgs || 0
+    }));
+
+    // Add totals row
+    const totalsRow = {
+        'Sl No': 'TOTAL',
+        'Fee Class Category': '',
+        'Fee Head': '',
+        'By Bank': rows.reduce((sum, row) => sum + (row.bybank || 0), 0),
+        'By Cash': rows.reduce((sum, row) => sum + (row.bycash || 0), 0),
+        'By Online': rows.reduce((sum, row) => sum + (row.byonline || 0), 0),
+        'By Card': rows.reduce((sum, row) => sum + (row.bycard || 0), 0),
+        'By ECS': rows.reduce((sum, row) => sum + (row.byecs || 0), 0),
+        'By RTGS': rows.reduce((sum, row) => sum + (row.byrtgs || 0), 0)
+    };
+
+    // Combine data and totals
+    const allData = [...dataForExcel, totalsRow];
+
+    const worksheet = XLSX.utils.json_to_sheet(allData);
+    const workbook = XLSX.utils.book_new();
+
+    // Auto-size columns
+    const maxWidth = Object.keys(dataForExcel[0] || {}).reduce((acc, key) => {
+        const maxLength = Math.max(key.length, ...allData.map((row: any) => String(row[key] || '').length));
+        // biome-ignore lint/performance/noAccumulatingSpread: <explanation>
+        return { ...acc, [key]: { wch: Math.min(maxLength + 2, 50) } };
+    }, {});
+
+    worksheet['!cols'] = Object.values(maxWidth);
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Fee Group Report');
+
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export function exportToExcelforClassSectionInstallmentWiseConslidated(rows: IFeeYearlyCollectionReport[], fileName: string) {
+    if (!rows || rows.length === 0) return;
+
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        'Class Name': row.asmcl_classname,
+        Section: row.asmc_sectionname,
+        Term: row.fmt_name,
+        'Total Charges': row.totalcharges || 0,
+        'Balance Amount': row.totalbalance || 0,
+        'Paid Amount': row.totalpaid || 0,
+        Concession: row.totalconcession || 0,
+        'Waived Off': row.totalwaivedoff || 0,
+        Adjusted: row.adjustment || 0,
+        'Excess Paid': row.excess || 0,
+        'Refund Amount': row.totalrefund || 0,
+        'Running Excess': row.runningexcess || 0
+    }));
+
+    // Add totals row
+    const totalsRow = {
+        'Sl No': 'TOTAL',
+        'Class Name': '',
+        Section: '',
+        Term: '',
+        'Total Charges': rows.reduce((sum, row) => sum + (row.totalcharges || 0), 0),
+        'Balance Amount': rows.reduce((sum, row) => sum + (row.totalbalance || 0), 0),
+        'Paid Amount': rows.reduce((sum, row) => sum + (row.totalpaid || 0), 0),
+        Concession: rows.reduce((sum, row) => sum + (row.totalconcession || 0), 0),
+        'Waived Off	': rows.reduce((sum, row) => sum + (row.totalwaivedoff || 0), 0),
+        Adjusted: rows.reduce((sum, row) => sum + (row.adjustment || 0), 0),
+        'Excess Paid': rows.reduce((sum, row) => sum + (row.excess || 0), 0),
+        'Refund Amount': rows.reduce((sum, row) => sum + (row.totalrefund || 0), 0),
+        'Running Excess': rows.reduce((sum, row) => sum + (row.runningexcess || 0), 0)
+    };
+
+    // Combine data and totals
+    const allData = [...dataForExcel, totalsRow];
+
+    const worksheet = XLSX.utils.json_to_sheet(allData);
+    const workbook = XLSX.utils.book_new();
+
+    // Auto-size columns
+    const maxWidth = Object.keys(dataForExcel[0] || {}).reduce((acc, key) => {
+        const maxLength = Math.max(key.length, ...allData.map((row: any) => String(row[key] || '').length));
+        // biome-ignore lint/performance/noAccumulatingSpread: <explanation>
+        return { ...acc, [key]: { wch: Math.min(maxLength + 2, 50) } };
+    }, {});
+
+    worksheet['!cols'] = Object.values(maxWidth);
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Fee Group Report');
+
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export function exportToExcelforClassInstallmentWiseConslidated(rows: IFeeYearlyCollectionReport[], fileName: string) {
+    if (!rows || rows.length === 0) return;
+
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        'Class Name': row.asmcl_classname,
+        Term: row.fmt_name,
+        'Total Charges': row.totalcharges || 0,
+        'Balance Amount': row.totalbalance || 0,
+        'Paid Amount': row.totalpaid || 0,
+        Concession: row.totalconcession || 0,
+        'Waived Off': row.totalwaivedoff || 0,
+        Adjusted: row.adjustment || 0,
+        'Excess Paid': row.excess || 0,
+        'Refund Amount': row.totalrefund || 0,
+        'Running Excess': row.runningexcess || 0
+    }));
+
+    // Add totals row
+    const totalsRow = {
+        'Sl No': 'TOTAL',
+        'Class Name': '',
+        Term: '',
+        'Total Charges': rows.reduce((sum, row) => sum + (row.totalcharges || 0), 0),
+        'Balance Amount': rows.reduce((sum, row) => sum + (row.totalbalance || 0), 0),
+        'Paid Amount': rows.reduce((sum, row) => sum + (row.totalpaid || 0), 0),
+        Concession: rows.reduce((sum, row) => sum + (row.totalconcession || 0), 0),
+        'Waived Off	': rows.reduce((sum, row) => sum + (row.totalwaivedoff || 0), 0),
+        Adjusted: rows.reduce((sum, row) => sum + (row.adjustment || 0), 0),
+        'Excess Paid': rows.reduce((sum, row) => sum + (row.excess || 0), 0),
+        'Refund Amount': rows.reduce((sum, row) => sum + (row.totalrefund || 0), 0),
+        'Running Excess': rows.reduce((sum, row) => sum + (row.runningexcess || 0), 0)
+    };
+
+    // Combine data and totals
+    const allData = [...dataForExcel, totalsRow];
+
+    const worksheet = XLSX.utils.json_to_sheet(allData);
+    const workbook = XLSX.utils.book_new();
+
+    // Auto-size columns
+    const maxWidth = Object.keys(dataForExcel[0] || {}).reduce((acc, key) => {
+        const maxLength = Math.max(key.length, ...allData.map((row: any) => String(row[key] || '').length));
+        // biome-ignore lint/performance/noAccumulatingSpread: <explanation>
+        return { ...acc, [key]: { wch: Math.min(maxLength + 2, 50) } };
+    }, {});
+
+    worksheet['!cols'] = Object.values(maxWidth);
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Fee Group Report');
+
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export function exportToExcelforStudentWiseTotalPaidCount(rows: IFeeYearlyCollectionReport[], fileName: string) {
+    if (!rows || rows.length === 0) return;
+
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        'Student Name': row.studentname,
+        'Admission No': row.amst_admno,
+        'Total Payable': row.totalpayable,
+        'Paid Amount': row.fss_paidamount || 0,
+        Balance: row.balance || 0,
+        Concession: row.concession || 0,
+        Fine: row.fine || 0,
+        Rebate: row.rebate || 0,
+        WaivedOff: row.waived || 0,
+        Adjustment: row.adjusted || 0,
+        'Opening Balance': row.openingbalance || 0
+    }));
+
+    // Add totals row
+    const totalsRow = {
+        'Sl No': 'TOTAL',
+        'Student Name': '',
+        'Admission No': '',
+        'Total Payable': rows.reduce((sum, row) => sum + (row.totalpayable || 0), 0),
+        'Paid Amount': rows.reduce((sum, row) => sum + (row.fss_paidamount || 0), 0),
+        Balance: rows.reduce((sum, row) => sum + (row.balance || 0), 0),
+        Concession: rows.reduce((sum, row) => sum + (row.concession || 0), 0),
+        Fine: rows.reduce((sum, row) => sum + (row.fine || 0), 0),
+        Rebate: rows.reduce((sum, row) => sum + (row.rebate || 0), 0),
+        WaivedOff: rows.reduce((sum, row) => sum + (row.waived || 0), 0),
+        Adjustment: rows.reduce((sum, row) => sum + (row.adjusted || 0), 0),
+        'Opening Balance': rows.reduce((sum, row) => sum + (row.openingbalance || 0), 0)
+    };
+
+    // Combine data and totals
+    const allData = [...dataForExcel, totalsRow];
+
+    const worksheet = XLSX.utils.json_to_sheet(allData);
+    const workbook = XLSX.utils.book_new();
+
+    // Auto-size columns
+    const maxWidth = Object.keys(dataForExcel[0] || {}).reduce((acc, key) => {
+        const maxLength = Math.max(key.length, ...allData.map((row: any) => String(row[key] || '').length));
+        // biome-ignore lint/performance/noAccumulatingSpread: <explanation>
+        return { ...acc, [key]: { wch: Math.min(maxLength + 2, 50) } };
+    }, {});
+
+    worksheet['!cols'] = Object.values(maxWidth);
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Fee Group Report');
+
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export function exportToExcelforClassSectionWiseTotalPaidCount(rows: IFeeYearlyCollectionReport[], fileName: string) {
+    if (!rows || rows.length === 0) return;
+
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        'Student Name': row.studentname,
+        'Class/Section': row.asmcl_classname,
+        'Admission No': row.amst_admno,
+        'Total Payable': row.totalpayable,
+        'Paid Amount': row.fss_paidamount || 0,
+        Balance: row.balance || 0,
+        Concession: row.concession || 0,
+        Fine: row.fine || 0,
+        Rebate: row.rebate || 0,
+        WaivedOff: row.waived || 0,
+        Adjustment: row.adjusted || 0,
+        'Opening Balance': row.openingbalance || 0
+    }));
+
+    // Add totals row
+    const totalsRow = {
+        'Sl No': 'TOTAL',
+        'Student Name': '',
+        'Class/Section': '',
+        'Admission No': '',
+        'Total Payable': rows.reduce((sum, row) => sum + (row.totalpayable || 0), 0),
+        'Paid Amount': rows.reduce((sum, row) => sum + (row.fss_paidamount || 0), 0),
+        Balance: rows.reduce((sum, row) => sum + (row.balance || 0), 0),
+        Concession: rows.reduce((sum, row) => sum + (row.concession || 0), 0),
+        Fine: rows.reduce((sum, row) => sum + (row.fine || 0), 0),
+        Rebate: rows.reduce((sum, row) => sum + (row.rebate || 0), 0),
+        WaivedOff: rows.reduce((sum, row) => sum + (row.waived || 0), 0),
+        Adjustment: rows.reduce((sum, row) => sum + (row.adjusted || 0), 0),
+        'Opening Balance': rows.reduce((sum, row) => sum + (row.openingbalance || 0), 0)
+    };
+
+    // Combine data and totals
+    const allData = [...dataForExcel, totalsRow];
+
+    const worksheet = XLSX.utils.json_to_sheet(allData);
+    const workbook = XLSX.utils.book_new();
+
+    // Auto-size columns
+    const maxWidth = Object.keys(dataForExcel[0] || {}).reduce((acc, key) => {
+        const maxLength = Math.max(key.length, ...allData.map((row: any) => String(row[key] || '').length));
+        // biome-ignore lint/performance/noAccumulatingSpread: <explanation>
+        return { ...acc, [key]: { wch: Math.min(maxLength + 2, 50) } };
+    }, {});
+
+    worksheet['!cols'] = Object.values(maxWidth);
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Fee Group Report');
+
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export function printTable(columns: string[], rows: any[], sumRow?: any) {
+    const printWindow = window.open('', '', 'width=1200,height=800');
+    if (!printWindow) return;
+
+    const tableHead = columns.map((col) => `<th>${col}</th>`).join('');
+
+    const tableRows = rows.map((row) => `<tr>${columns.map((col) => `<td>${row[col] ?? ''}</td>`).join('')}</tr>`).join('');
+
+    const totalRow = sumRow
+        ? `<tr style="font-weight:bold;background:#f3f3f3">
+            ${columns.map((col) => `<td>${sumRow[col] ?? ''}</td>`).join('')}
+           </tr>`
+        : '';
+
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Yearly Fee Collection</title>
+            <style>
+                body { font-family: Arial; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { border: 1px solid #333; padding: 6px; font-size: 12px; }
+                th { background: #eaeaea; }
+            </style>
+        </head>
+        <body>
+            <h3>Yearly Fee Collection</h3>
+            <table> 
+                <thead><tr>${tableHead}</tr></thead>
+                <tbody>
+                    ${tableRows}
+                    ${totalRow}
+                </tbody>
+            </table>
+        </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.print();
+}
+
+export function printTermWiseTable(
+  rows: IFeeYearlyCollectionReport[],
+  selectedTerms: any[]
+) {
+  const printWindow = window.open('', '', 'width=1400,height=800');
+  if (!printWindow) return;
+  const feeHeads = Array.from(
+    new Map(rows.map(r => [r.fmh_id, r])).values()
+  );
+
+  let headerRow1 = `<tr>
+      <th rowspan="2">Sl No</th>
+      <th rowspan="2">Fee Head</th>`;
+
+  selectedTerms.forEach(term => {
+    headerRow1 += `<th colspan="7">${term.fmT_Name}</th>`;
+  });
+
+  headerRow1 += `</tr>`;
+  let headerRow2 = `<tr>`;
+
+  selectedTerms.forEach(() => {
+    headerRow2 += `
+      <th>Paid</th>
+      <th>Balance</th>
+      <th>Concession</th>
+      <th>Arrear</th>
+      <th>Excess</th>
+      <th>Charges</th>
+      <th>Payable</th>
+    `;
+  });
+
+  headerRow2 += `</tr>`;
+  let bodyRows = '';
+
+  feeHeads.forEach((feeHead, index) => {
+    bodyRows += `<tr>
+      <td>${index + 1}</td>
+      <td>${feeHead.fmh_feename}</td>`;
+
+    selectedTerms.forEach(term => {
+      const data = rows.find(
+        r => r.fmh_id === feeHead.fmh_id && r.fmt_id === term.fmT_Id
+      );
+      const formatCurrency = (value?: number) =>
+  `₹${(value || 0).toLocaleString('en-IN')}`;
+      
+
+      bodyRows += `
+        <td>${formatCurrency(data?.paid)}</td>
+        <td>${formatCurrency(data?.balance)}</td>
+        <td>${formatCurrency(data?.concession)}</td>
+        <td>${formatCurrency(data?.arrear)}</td>
+        <td>${formatCurrency(data?.excess)}</td>
+        <td>${formatCurrency(data?.charges)}</td>
+        <td>${formatCurrency(data?.payable)}</td>
+      `;
+    });
+
+    bodyRows += `</tr>`;
+  });
+  let totalRow = `<tr style="font-weight:bold;background:#f3f3f3">
+      <td colspan="2">TOTAL</td>`;
+
+  selectedTerms.forEach(term => {
+    const termRows = rows.filter(r => r.fmt_id === term.fmT_Id);
+const formatCurrency = (value?: number) =>
+  `₹${(value || 0).toLocaleString('en-IN')}`;
+const sum = (rows: any[], key: string) =>
+  rows.reduce((s, r) => s + (r[key] || 0), 0);
+    totalRow += `
+      <td>${formatCurrency(sum(termRows, 'paid'))}</td>
+      <td>${formatCurrency(sum(termRows, 'balance'))}</td>
+      <td>${formatCurrency(sum(termRows, 'concession'))}</td>
+      <td>${formatCurrency(sum(termRows, 'arrear'))}</td>
+      <td>${formatCurrency(sum(termRows, 'excess'))}</td>
+      <td>${formatCurrency(sum(termRows, 'charges'))}</td>
+      <td>${formatCurrency(sum(termRows, 'payable'))}</td>
+    `;
+  });
+
+  totalRow += `</tr>`;
+  printWindow.document.write(`
+    <html>
+    <head>
+      <title>Yearly Fee Collection (Term Wise)</title>
+      <style>
+        body { font-family: Arial; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { 
+          border: 1px solid #333; 
+          padding: 6px; 
+          font-size: 12px; 
+          text-align: right;
+        }
+        th { background: #eaeaea; text-align: center; }
+        td:nth-child(1), td:nth-child(2) { text-align: left; }
+      </style>
+    </head>
+    <body>
+      <h3 style="text-align:center">Yearly Fee Collection – Term Wise</h3>
+      <table>
+        <thead>
+          ${headerRow1}
+          ${headerRow2}
+        </thead>
+        <tbody>
+          ${bodyRows}
+          ${totalRow}
+        </tbody>
+      </table>
+    </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.print();
+}
+

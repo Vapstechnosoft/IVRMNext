@@ -50,7 +50,7 @@ function ExamSubjectWizardPageContent({
         (async () => {
             if (isOrderDetailsOpen && selectedRow?.eycE_Id) {
                 try {
-                    const response = await getExamSubjectWizardDetails(30, selectedRow.eycE_Id);
+                    const response = await getExamSubjectWizardDetails(selectedRow.eycE_Id);
 
                     if (response.success && response.data) {
                         const subjects: IExamSubjectOrder[] = Array.isArray(response.data) ? response.data : [];

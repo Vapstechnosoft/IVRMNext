@@ -53,7 +53,7 @@ interface AddStudentFeeGroupMappingFilter {
     onSuccess?: () => void;
 }
 
-export default function MasterStudentGroupMappingPage({ onSuccess }: AddStudentFeeGroupMappingFilter) {
+export default function AddMasterStudentFeeGroupMapping({ onSuccess }: AddStudentFeeGroupMappingFilter) {
     const [isEditFormOpen, setIsEditFormOpen] = useState(false);
     const [selectedRow, setSelectedRow] = useState<any>(null);
 
@@ -112,7 +112,7 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
     const [heads, setHeads] = useState<Record<number, IMasterFeeHeadList[]>>({});
     const [installment, setInstallment] = useState<Record<number, Record<number, IMasterFeeInstallmentList[]>>>({});
     const [selectedStudents, setSelectedStudents] = useState<IMasterStudentClassMappingList[]>([]);
-
+    const { data: academicYearData, isLoading: academicYearLoading, error: academicYearError } = useMasterStudentFeeGrouMappingAcademic();
     const {
         control,
         handleSubmit,
@@ -126,14 +126,14 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
         mode: 'onChange',
         defaultValues: {
             // asmaY_Id: academicYear,
-            //  asmaY_Id: 0,
+            asmaY_Id: academicYearData?.data?.[0]?.asmaY_Id || 0,
             mI_Id: '',
             institutionName: ''
         }
     });
 
     //-------------Academic Year---------------
-    const { data: academicYearData, isLoading: academicYearLoading, error: academicYearError } = useMasterStudentFeeGrouMappingAcademic();
+
     const [academicYearOptions, setAcademicYearOptions] = useState<DropdownOption[]>([]);
     // useEffect(() => {
     //     if (academicYearError) {
@@ -161,7 +161,7 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
                 asmaY_Id: Number(firstId)
             }));
         }
-    }, [academicYearData]);
+    }, [academicYearData, setValue]);
 
     const asmaY_Id = watch('asmaY_Id');
     const classId = watch('class');
@@ -422,16 +422,33 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
         const instKeys = instList.map((i) => makeInstKey(groupId, headId, i.ftI_Id));
 
         setSelectedInstallments((prev) => {
-            const newSelected = checked
-                ? [...new Set([...prev, ...instKeys])]
-                : prev.filter((k) => !instKeys.some((key) => prev.includes(key)));
+            const newSelected = checked ? [...new Set([...prev, ...instKeys])] : prev.filter((k) => !instKeys.includes(k));
 
+            // Update selected heads
             setSelectedHeads((p) => (checked ? [...new Set([...p, headKey])] : p.filter((k) => k !== headKey)));
-            const hasAnyInGroup = Object.values(installment[groupId] || {})
-                .flat()
-                .some((i) => newSelected.includes(makeInstKey(groupId, i.fmH_Id, i.ftI_Id)));
 
-            setSelectedGroups((p) => (hasAnyInGroup ? [...new Set([...p, groupId])] : p.filter((g) => g !== groupId)));
+            // Check if group should be selected
+            const otherHeadsInGroup = Object.keys(installment[groupId] || {})
+                .filter((hid) => Number(hid) !== headId) // Other heads in this group
+                .flatMap((hid: any) => installment[groupId][hid] || []);
+
+            // Check if any installment from other heads in this group is selected
+            const otherInstallmentsSelected = otherHeadsInGroup.some((inst) =>
+                prev.includes(makeInstKey(groupId, inst.fmH_Id, inst.ftI_Id))
+            );
+
+            // If checking the head, always select the group
+            // If unchecking, only keep group selected if other heads/installments are selected
+            const shouldGroupBeSelected = checked || otherInstallmentsSelected;
+
+            setSelectedGroups((p) => {
+                if (shouldGroupBeSelected && !p.includes(groupId)) {
+                    return [...p, groupId];
+                } else if (!shouldGroupBeSelected && p.includes(groupId)) {
+                    return p.filter((g) => g !== groupId);
+                }
+                return p;
+            });
 
             return newSelected;
         });

@@ -15,7 +15,7 @@ import {
     viewAttendanceHistory,
     deleteRecordWise
 } from '@/server/staff-portal/attendance-entry';
-import { STAFF_PORTAL_QUERY_KEYS } from '@/constants/query-keys';
+
 
 export const useAttendanceEntry = (asmaY_Id: number) => {
     const queryClient = useQueryClient();
@@ -24,7 +24,7 @@ export const useAttendanceEntry = (asmaY_Id: number) => {
     const initialDataQuery = useQuery({
         queryKey: ['staff-attendance-entry-initial', asmaY_Id],
         queryFn: () => getInitialData(asmaY_Id),
-        enabled: asmaY_Id > 0 || asmaY_Id === 0,
+       enabled: asmaY_Id !== undefined && asmaY_Id !== null,
     });
 
     // Mutation to get student data (initial settings for class/year)
@@ -105,6 +105,7 @@ export const useAttendanceEntry = (asmaY_Id: number) => {
         saveAttendance: saveMutation,
         deleteAttendance: deleteMutation,
         viewHistory: viewHistoryMutation,
-        deleteRecordWise: deleteRecordMutation
+        deleteRecordWise: deleteRecordMutation,
+        queryClient
     };
 };

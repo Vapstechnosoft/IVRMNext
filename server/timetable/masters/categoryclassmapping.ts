@@ -17,7 +17,7 @@ export async function getCategoryClassMappingDetails(searchParams?: ApiSearchpar
 }
 
 export async function addOrUpdateCategoryClassMapping(data: any) {
-    const url = '/MasterBuildingFacade/AddorUpdateMasterBuilding';
+    const url = '/CategoryClassMappFacade/AddOrUpdateCategoryClassMapping';
     return await api.post<any>('timetable', url, data);
 }
 

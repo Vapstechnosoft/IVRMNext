@@ -54,7 +54,6 @@ export default function UpdateMasterCategoryForm({ initialData, onSuccess, class
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
-                mI_Id: 30,
                 emcA_Id: data.emcA_Id ?? 0,
                 emcA_CategoryName: data.emcA_CategoryName.trim(),
                 emcA_CCECheckingFlg: data.emcA_CCECheckingFlg

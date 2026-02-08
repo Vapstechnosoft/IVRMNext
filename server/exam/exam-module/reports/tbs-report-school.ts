@@ -38,13 +38,13 @@ export async function getClassDropDownByAcademicYearlist(asmaY_Id: number) {
 
 // 🔹 Section Dropdown
 export async function getSectionsDropDownByAcademicYearandClasslist(asmaY_Id: number, asmcL_Id: number) {
-    const url = `/exam_master_category/sections_drop_down_by_class_list/30/${asmcL_Id}/${asmaY_Id}`;
+    const url = `/exam_master_category/sections_drop_down_by_class_list/${asmcL_Id}/${asmaY_Id}`;
     return await api.get<any>('exam', url);
 }
 
 // 🔹 Exam Dropdown
 export async function getExamsDropDownByAcademicYearandClassandSectionlist(asmaY_Id: number, asmcL_Id: number, asmS_Id: number) {
-    const url = `/exam_master/exam_drop_down_by_year_class_section_list/30/${asmaY_Id}/${asmcL_Id}/${asmS_Id}`;
+    const url = `/exam_master/exam_drop_down_by_year_class_section_list/${asmaY_Id}/${asmcL_Id}/${asmS_Id}`;
     return await api.get<any>('exam', url);
 }
 

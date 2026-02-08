@@ -44,6 +44,8 @@ import {
     AchievementData
 } from "./_components/columns";
 
+import {useStudentPortalInformation} from "@/hooks/staff-portal/useFeeOnlinePayment";
+
 // Sample Data for Tables
 const mockNotices: NoticeBoardData[] = [
     { INTB_Id: 1, INTB_Title: "Sports Day", INTB_Description: "Annual Sports Day", INTB_StartDate: "2024-01-20", INTB_EndDate: "2024-01-21" },
@@ -73,15 +75,27 @@ export default function StudentDashboardPage() {
     const openModal = (modalName: string) => setActiveModal(modalName);
     const closeModal = () => setActiveModal(null);
 
-    // Mock Data
-    const student = {
-        name: "John Doe",
-        class: "X",
-        section: "A",
-        admNo: "ADM12345",
-        dob: "2008-01-15",
-        email: "john.doe@example.com",
-        mobile: "9876543210"
+    const { data: studentInfoDetails, isLoading, error } = useStudentPortalInformation();
+
+    console.log("studentInfoDetails", studentInfoDetails);
+
+    // Use real API data or fallback to mock data
+    const student = studentInfoDetails?.data && Array.isArray(studentInfoDetails.data) && studentInfoDetails.data.length > 0 ? {
+        name: `${studentInfoDetails.data[0].amsT_FirstName} ${studentInfoDetails.data[0].amsT_LastName}`,
+        class: studentInfoDetails.data[0].classname || "N/A",
+        section: studentInfoDetails.data[0].sectionname || "N/A",
+        admNo: studentInfoDetails.data[0].amsT_AdmNo || "N/A",
+        dob: studentInfoDetails.data[0].amsT_DOB || "N/A",
+        email: studentInfoDetails.data[0].amst_email_id || "N/A",
+        mobile: studentInfoDetails.data[0].amst_mobile?.toString() || "N/A"
+    } : {
+        name: "",
+        class: "",
+        section: "",
+        admNo: "",
+        dob: "",
+        email: "",
+        mobile: ""
     };
 
     const fees = {
@@ -117,8 +131,22 @@ export default function StudentDashboardPage() {
                     onViewClick={() => { }}
                 >
                     <div className="mt-2 text-slate-700 dark:text-slate-300">
-                        <h4 className="font-semibold text-lg truncate">{student.name}</h4>
-                        <p className="text-sm">{student.class} : {student.section}</p>
+                        {isLoading ? (
+                            <div className="space-y-2">
+                                <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                                <div className="h-3 bg-gray-200 rounded animate-pulse w-3/4"></div>
+                            </div>
+                        ) : error ? (
+                            <div className="text-red-500 text-sm">
+                                Error loading student data
+                            </div>
+                        ) : (
+                            <>
+                                <h4 className="font-semibold text-lg truncate">{student.name}</h4>
+                                <p className="text-sm">{student.class} : {student.section}</p>
+                                <p className="text-xs text-gray-500">Adm No: {student.admNo}</p>
+                            </>
+                        )}
                     </div>
                 </DashboardWidget>
 
@@ -241,8 +269,8 @@ export default function StudentDashboardPage() {
                     </div>
                 </DashboardWidget>
 
-                {/* Syllabus */}
-                <DashboardWidget
+
+  <DashboardWidget
                     title="SYLLABUS"
                     icon={<FileText className="h-6 w-6" />}
                     colorClass="bg-green-500"
@@ -387,7 +415,7 @@ export default function StudentDashboardPage() {
                     </div>
                 </DashboardWidget>
 
-            </div>
+         
 
             {/* Modals */}
             <Dialog open={activeModal === "NOTICE"} onOpenChange={(open) => !open && closeModal()}>
@@ -426,6 +454,13 @@ export default function StudentDashboardPage() {
                     <GenericDataTable columns={achievementColumns} data={mockAchievements} isLoading={false} />
                 </DialogContent>
             </Dialog>
+              
+            </div>
+
+       
+          
+
+          
 
             {/* Calendar and Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">

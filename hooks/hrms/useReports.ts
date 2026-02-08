@@ -31,7 +31,8 @@ import {
     getMasterGroupTypes,
     getMasterMonths,
     getMasterPaymentModeList,
-    getMasterYears
+    getMasterYears,
+    type MasterDropdown
 } from '@/server/hrms/master';
 import {
     getEmployeeStrengthReportOnload,

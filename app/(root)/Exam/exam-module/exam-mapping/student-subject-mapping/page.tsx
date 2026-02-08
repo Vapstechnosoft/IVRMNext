@@ -58,7 +58,7 @@ interface Student {
 
 interface Payload {
     estsU_Id: number;
-    mI_Id: number;
+    // mI_Id: number;
     asmaY_Id: number;
     asmcL_Id: number;
     asmS_Id: number;
@@ -121,7 +121,7 @@ function StudentSubjectMappingContent() {
     const [userId] = useState<number>(1); // You should get this from auth context
     const tableRef = useRef<StudentMappingTableHandle>(null);
 
-    const MI_Id = 30;
+    // const MI_Id = 30;
 
     // Set default academic year
     useEffect(() => {
@@ -171,7 +171,7 @@ function StudentSubjectMappingContent() {
         const fetchCategories = async () => {
             setLoadingCategories(true);
             try {
-                const { data: response } = await getCategoryDropDowByExamYearCategoryList(MI_Id, watchedAcademicYear);
+                const { data: response } = await getCategoryDropDowByExamYearCategoryList(watchedAcademicYear);
                 const cats: any[] = Array.isArray(response) ? response : [];
                 console.info('cats', cats);
                 const normalized = cats.map((c) => ({
@@ -246,7 +246,7 @@ function StudentSubjectMappingContent() {
 
         try {
             const params = {
-                MI_Id,
+                // MI_Id,
                 ASMAY_Id: form.asmaY_Id,
                 ASMCL_Id: form.asmcL_Id,
                 ASMS_Id: form.asmS_Id,
@@ -339,6 +339,17 @@ function StudentSubjectMappingContent() {
             const response = await addOrUpdateStudentSubjectMappings(payload);
             if (response.success) {
                 toast.success(response.message || 'Mapping saved successfully');
+
+                // Close the grid and reset all related state
+                setIsGridOpen(false);
+                setStudents([]);
+                setSubjects([]);
+                setPayload(null);
+
+                // Reset the table if ref is available
+                if (tableRef.current) {
+                    tableRef.current.reset();
+                }
             } else {
                 toast.error(response.message || 'Failed to save mapping');
             }
@@ -636,6 +647,8 @@ function StudentSubjectMappingContent() {
                                     setClasses([]);
                                     setCategories([]);
                                     setSections([]);
+                                    setSubjectGroups([]);
+                                    setStudents([]);
                                 }}>
                                 CANCEL
                             </Button>
@@ -656,7 +669,7 @@ function StudentSubjectMappingContent() {
                                 isloading={isLoading}
                                 // Pass required metadata
                                 estsU_Id={0}
-                                mI_Id={MI_Id}
+                                // mI_Id={MI_Id}
                                 asmaY_Id={getValues('asmaY_Id') || 0}
                                 asmcL_Id={getValues('asmcL_Id') || 0}
                                 asmS_Id={getValues('asmS_Id') || 0}
@@ -667,14 +680,14 @@ function StudentSubjectMappingContent() {
                                 deactive_Flag={getValues('Deactive_Flag') ?? true}
                             />
 
-                            <div className='flex w-fit justify-end gap-3 border-t p-4'>
+                            {payload !== null && <div className='flex w-fit justify-end gap-3 border-t p-4'>
                                 <Button variant='outline' onClick={() => tableRef.current?.reset()}>
                                     Cancel
                                 </Button>
                                 <Button type='submit' onClick={handleSave}>
                                     Save Mapping
                                 </Button>
-                            </div>
+                            </div>}
                         </CollapsibleSection>
                     )}
                 </div>

@@ -109,7 +109,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                     setLoadingCategories(true);
                     // Convert string to number for API call
                     const yearId = Number.parseInt(watchYear, 10);
-                    const { data: cats } = await getCategoryDropDownByAcademicYearlist(30, yearId);
+                    const { data: cats } = await getCategoryDropDownByAcademicYearlist(yearId);
                     const validCats = Array.isArray(cats) ? cats : [];
                     setCategories(validCats);
 
@@ -287,7 +287,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
         try {
             // Prepare payload according to the required structure
             const payload = {
-                mI_Id: 30, // Institution ID - using 30 as per reference
+                // mI_Id: 30, // Institution ID - using 30 as per reference
                 asmaY_Id: Number.parseInt(formValues.ASMAY_Id) || 0,
                 asmcL_Id: formValues.type === '1' ? 0 : Number.parseInt(formValues.ASMCL_Id) || 0,
                 asmS_Id: formValues.type === '1' ? 0 : Number.parseInt(formValues.ASMS_Id || '') || 0,

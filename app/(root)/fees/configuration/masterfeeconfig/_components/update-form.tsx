@@ -24,7 +24,9 @@ interface UpdateMasterFeeConfigFormProps {
 export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '', selectedRow: row }: UpdateMasterFeeConfigFormProps) {
     const { refetchAll } = useFeeconfiguration();
     const isInitialized = useRef(false);
-
+    if (row.fmC_AutoRecieptPrintFlag === true) {
+        row.fmC_AutoRecieptPrintFlag = '1';
+    }
     const {
         control,
         setValue,
@@ -68,7 +70,31 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
             FMC_RAmountReceivedFlag: String(row.fmC_RAmountReceivedFlag ?? '0'),
             FMC_RCurrentDateFlag: String(row.fmC_RCurrentDateFlag ?? '0'),
             FMC_Fine_Column: String(row.fmC_Fine_Column ?? '0'),
-            FMC_ArrearColumn: String(row.fmC_ArrearColumn ?? '0')
+            FMC_ArrearColumn: String(row.fmC_ArrearColumn ?? '0'),
+            FMC_AutoReceiptFeeGroupFlag: String(row.fmC_AutoReceiptFeeGroupFlag ?? '0'),
+            FMC_Receipt_Format: String(row.fmC_Receipt_Format ?? '0'),
+            FMC_EableStaffTrans: String(row.fmC_EableStaffTrans ?? '0'),
+            FMC_EableOtherStudentTrans: String(row.fmC_EableOtherStudentTrans ?? '0'),
+            FMC_FineEnableDisable: String(row.fmC_FineEnableDisable ?? '0'),
+            FMC_USER_PREVILEDGE: String(row.fmC_USER_PREVILEDGE ?? '0'),
+            FMC_StaffConcessionCheck: String(row.fmC_StaffConcessionCheck ?? '0'),
+            FMC_ShowPreviousFeeFisrtFlg: String(row.fmC_ShowPreviousFeeFisrtFlg ?? '0'),
+            FMC_MakerCheckerReqdFlg: String(row.fmC_MakerCheckerReqdFlg ?? '0'),
+            FMC_RebateAplicableFlg: String(row.fmC_RebateAplicableFlg ?? '0'),
+            FMC_RebateAgainstFullPaymentFlg: String(row.fmC_RebateAgainstFullPaymentFlg ?? '0'),
+            FMC_RebateAgainstPartialPaymentFlg: String(row.fmC_RebateAgainstPartialPaymentFlg ?? '0'),
+            FMC_RConcessionFlag: String(row.fmC_RConcessionFlag ?? '0'),
+            FMC_Receipt_Signatory: String(row.fmC_Receipt_Signatory),
+            FMC_No_Receipt: String(row.fmC_No_Receipt),
+            FMC_FeeSearchNoOfDigits: String(row.fmC_FeeSearchNoOfDigits),
+            FMC_Online_Payment_Aca_Yr_Flag: String(row.fmC_Online_Payment_Aca_Yr_Flag),
+            FMC_EnablePartialPaymentFlg: String(row.fmC_EnablePartialPaymentFlg),
+            FMC_RUserNameFlag: String(row.fmC_RUserNameFlag),
+            FMC_RFeeGroupFeeHeadFlag: String(row.fmC_RFeeGroupFeeHeadFlag),
+            FMC_RSplFeeHeadFlag: String(row.fmC_RSplFeeHeadFlag),
+            //   fmC_AutoRecieptPrintFlag: String(row.fmC_AutoRecieptPrintFlag)
+
+            fmC_AutoRecieptPrintFlag: String(row.fmC_AutoRecieptPrintFlag)
         }
     });
 
@@ -120,7 +146,26 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
                 FMC_RSplFeeHeadFlag: toStr(row.fmC_RSplFeeHeadFlag),
                 FMC_AutoReceiptFeeGroupFlag: toStr(row.fmC_AutoReceiptFeeGroupFlag),
                 FMC_ShowPreviousFeeFisrtFlg: toStr(row.fmC_ShowPreviousFeeFisrtFlg),
-                FMC_StaffConcessionCheck: toStr(row.fmC_StaffConcessionCheck)
+                FMC_StaffConcessionCheck: toStr(row.fmC_StaffConcessionCheck),
+                FMC_Receipt_Format: toStr(row.fmC_Receipt_Format),
+                FMC_EableStaffTrans: toStr(row.fmC_EableStaffTrans),
+                FMC_EableOtherStudentTrans: toStr(row.fmC_EableOtherStudentTrans),
+                FMC_FineEnableDisable: toStr(row.fmC_FineEnableDisable),
+                FMC_USER_PREVILEDGE: toStr(row.fmC_USER_PREVILEDGE),
+                FMC_MakerCheckerReqdFlg: toStr(row.fmC_MakerCheckerReqdFlg),
+                FMC_RebateAplicableFlg: toStr(row.fmC_RebateAplicableFlg),
+                FMC_RebateAgainstFullPaymentFlg: toStr(row.fmC_RebateAgainstFullPaymentFlg),
+                FMC_RebateAgainstPartialPaymentFlg: toStr(row.fmC_RebateAgainstPartialPaymentFlg),
+                FMC_ChallanOptionFlag: toStr(row.fmC_ChallanOptionFlag),
+                FMC_Receipt_Signatory: toStr(row.fmC_Receipt_Signatory),
+                FMC_No_Receipt: toStr(row.fmC_No_Receipt),
+                FMC_FeeSearchNoOfDigits: toStr(row.fmC_FeeSearchNoOfDigits),
+                FMC_Online_Payment_Aca_Yr_Flag: toStr(row.fmC_Online_Payment_Aca_Yr_Flag),
+                FMC_EnablePartialPaymentFlg: toStr(row.fmC_EnablePartialPaymentFlg),
+                FMC_RCurrentDateFlag: toStr(row.fmC_RCurrentDateFlag),
+                FMC_Fine_Column: toStr(row.fmC_Fine_Column),
+                FMC_ArrearColumn: toStr(row.fmC_ArrearColumn),
+                fmC_AutoRecieptPrintFlag: toStr(row.fmC_AutoRecieptPrintFlag)
             });
 
             console.log('✅ Form data after binding:', getValues());
@@ -132,11 +177,16 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
         try {
             const defaultNumber = (value: any): number => (value === null || value === undefined ? 0 : Number(value));
             const defaultString = (value: any): string => (value === null || value === undefined ? '' : String(value));
+            let AutoRecieptPrintFlag = false;
 
+            if (data.fmC_AutoRecieptPrintFlag === '1') {
+                AutoRecieptPrintFlag = true;
+            }
             const payload = {
                 //mi_id: 30,
                 FMC_id: Number(data.FMC_Id),
-                FMC_AutoRecieptPrintFlag: defaultNumber(data.fmC_AutoRecieptPrintFlag),
+                //FMC_AutoRecieptPrintFlag: defaultNumber(data.fmC_AutoRecieptPrintFlag),
+                FMC_AutoRecieptPrintFlag: AutoRecieptPrintFlag,
                 FMC_RebateTypeFlag: data.FMC_RebateTypeFlag,
                 FMC_EnablePartialPaymentFlg: defaultNumber(data.FMC_EnablePartialPaymentFlg),
                 FMC_Receipt_Signatory: defaultString(data.FMC_Receipt_Signatory),

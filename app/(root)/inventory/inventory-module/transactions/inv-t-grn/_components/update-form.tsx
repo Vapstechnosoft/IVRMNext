@@ -21,7 +21,7 @@ import { useInvTGRN } from '@/hooks/inventory/transactions/use-inv-t-grn';
 import { Plus, Minus, Save, X, Calculator, Package, ReceiptIndianRupee, Info } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { getInvTGRNItemTax, getInvTGRNEditDetails } from '@/server/inventory/transactions/inv-t-grn';
+import { getInvTGRNItemTax, getInvTGRNEditDetails, getInvItemDetail } from '@/server/inventory/transactions/inv-t-grn';
 import type { IInvTGRN } from '@/types/inventory/transactions/inv-t-grn';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Card } from '@/components/ui/card';
@@ -76,42 +76,56 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
             try {
                 const res = await getInvTGRNEditDetails(selectedRow.invmgrN_Id);
                 if (res.success && res.data) {
-                    const master = res.data.edit_GRN_Master_Details?.[0];
-                    const items = res.data.edit_GRN_Details_List || [];
+                    // keys are mapped to 'edit_GRN', 'get_GRNItem', etc. in the server action
+                    const master = res.data.edit_GRN?.[0];
+                    const items = res.data.get_GRNItem || [];
 
                     if (master) {
+                        // Ensure all dates are properly parsed or undefined
+                        const poDate = master.invmgrN_PODate ? new Date(master.invmgrN_PODate) : undefined;
+                        const challanDate = master.invmgrN_Challandate ? new Date(master.invmgrN_Challandate) : undefined;
+
                         reset({
-                            ...form.getValues(),
-                            invmgrN_PurchaseDate: new Date(master.invmgrN_PurchaseDate),
+                            invmgrN_Id: master.invmgrN_Id,
+                            invmgrN_PurchaseDate: master.invmgrN_PurchaseDate ? new Date(master.invmgrN_PurchaseDate) : new Date(),
                             invmS_Id: master.invmS_Id,
                             invmsT_Id: master.invmsT_Id,
                             invmgrN_InvoiceNo: master.invmgrN_InvoiceNo || '',
+
+                            // Explicitly Map Optional Fields to handle UI rendering
                             invmgrN_POReference: master.invmgrN_POReference || '',
+                            invmgrN_PODate: poDate, // React Hook Form handles Date | undefined
                             invmgrN_TowardsProjects: master.invmgrN_TowardsProjects || '',
                             invmgrN_EWayBillRef: master.invmgrN_EWayBillRef || '',
                             invmgrN_Prepared: master.invmgrN_Prepared || '',
                             invmgrN_SignedBy: master.invmgrN_SignedBy || '',
                             invmgrN_ChallanNo: master.invmgrN_ChallanNo || '',
+                            invmgrN_Challandate: challanDate,
+                            invmgrN_Challanverfied: master.invmgrN_Challanverfied || '',
                             invmgrN_KitNo: master.invmgrN_KitNo || '',
                             invmgrN_Remarks: master.invmgrN_Remarks || '',
-                            invmgrN_TotalAmount: master.invmgrN_TotalAmount,
-                            invmgrN_TotDiscount: master.invmgrN_TotDiscount,
-                            invmgrN_TotTaxAmt: master.invmgrN_TotTaxAmt,
-                            invmgrN_PurchaseValue: master.invmgrN_PurchaseValue,
+
+                            // Amounts
+                            invmgrN_TotalAmount: Number(master.invmgrN_TotalAmount || 0),
+                            invmgrN_TotDiscount: Number(master.invmgrN_TotDiscount || 0),
+                            invmgrN_TotTaxAmt: Number(master.invmgrN_TotTaxAmt || 0),
+                            invmgrN_PurchaseValue: Number(master.invmgrN_PurchaseValue || 0),
+
+                            // Items
                             GRNItem: items.map((item: any) => ({
                                 invtgrN_Id: item.invtgrN_Id,
                                 invmgrN_Id: item.invmgrN_Id,
                                 invmI_Id: item.invmI_Id,
                                 invmuoM_Id: item.invmuoM_Id,
                                 invtgrN_BatchNo: item.invtgrN_BatchNo || '',
-                                invtgrN_Qty: item.invtgrN_Qty || 0,
-                                invtgrN_PurchaseRate: item.invtgrN_PurchaseRate || 0,
-                                invtgrN_MRP: item.invtgrN_MRP || 0,
-                                invtgrN_DiscountAmt: item.invtgrN_DiscountAmt || 0,
-                                invtgrN_SalesPrice: item.invtgrN_SalesPrice || 0,
-                                invtgrN_Amount: item.invtgrN_Amount || 0,
-                                invtgrN_TaxAmt: item.invtgrN_TaxAmt || 0,
-                                GRNItemTax: []
+                                invtgrN_Qty: Number(item.invtgrN_Qty || 0),
+                                invtgrN_PurchaseRate: Number(item.invtgrN_PurchaseRate || 0),
+                                invtgrN_MRP: Number(item.invtgrN_MRP || 0),
+                                invtgrN_DiscountAmt: Number(item.invtgrN_DiscountAmt || 0),
+                                invtgrN_SalesPrice: Number(item.invtgrN_SalesPrice || 0),
+                                invtgrN_Amount: Number(item.invtgrN_Amount || 0),
+                                invtgrN_TaxAmt: Number(item.invtgrN_TaxAmt || 0),
+                                GRNItemTax: [] // Tax logic handles separately
                             }))
                         });
                     }
@@ -147,21 +161,32 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
     const handleItemChange = async (index: number, itemId: number) => {
         const item = loadData?.data?.get_item.find((i: any) => i.invmI_Id === itemId);
         if (item) {
-            setValue(`GRNItem.${index}.invmuoM_Id`, item.invmuoM_Id);
             try {
-                const taxRes = await getInvTGRNItemTax(item.invmI_Id);
-                if (taxRes.success && taxRes.data) {
-                    const taxes = taxRes.data.get_itemTax || [];
-                    setValue(`GRNItem.${index}.GRNItemTax`, taxes.map((t: any) => ({
-                        invmT_Id: t.invmT_Id,
-                        invtgrnT_TaxPer: t.invmiT_TaxValue,
-                        invtgrnT_TaxAmt: 0
-                    })));
-                    // Trigger recalculation
-                    calculateTax(index);
+                const res = await getInvItemDetail(item.invmI_Id);
+                if (res.success && res.data) {
+                    const detail = res.data.get_itemDetail?.[0];
+                    const taxes = res.data.get_itemTax || [];
+
+                    if (detail) {
+                        // Optional: update UOM from detail (though we have it from item list locally usually)
+                    }
+                    setValue(`GRNItem.${index}.invmuoM_Id`, item.invmuoM_Id);
+
+                    if (taxes.length > 0) {
+                        const mappedTaxes = taxes.map((t: any) => ({
+                            invmT_Id: t.invmT_Id,
+                            invtgrnT_TaxPer: t.invmiT_TaxValue,
+                            invtgrnT_TaxAmt: 0
+                        }));
+                        setValue(`GRNItem.${index}.GRNItemTax`, mappedTaxes);
+                        calculateTax(index, mappedTaxes);
+                    } else {
+                        setValue(`GRNItem.${index}.GRNItemTax`, []);
+                        calculateTax(index, []);
+                    }
                 }
             } catch (error) {
-                console.error('Error fetching item tax:', error);
+                console.error('Error fetching item details:', error);
             }
         }
     };
@@ -187,15 +212,15 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
         calculateTax(index);
     };
 
-    const calculateTax = (index: number) => {
+    const calculateTax = (index: number, currentItemTaxes?: any[]) => {
         const basicAmt = watch(`GRNItem.${index}.invtgrN_Amount`) || 0;
         const discountAmt = watch(`GRNItem.${index}.invtgrN_DiscountAmt`) || 0;
         const taxableAmt = basicAmt - discountAmt;
 
-        const itemTaxes = watch(`GRNItem.${index}.GRNItemTax`) || [];
+        const itemTaxes = currentItemTaxes || watch(`GRNItem.${index}.GRNItemTax`) || [];
         let totalItemTax = 0;
 
-        itemTaxes.forEach((tax, taxIdx) => {
+        itemTaxes.forEach((tax: any, taxIdx: number) => {
             const taxAmt = (taxableAmt * tax.invtgrnT_TaxPer) / 100;
             setValue(`GRNItem.${index}.GRNItemTax.${taxIdx}.invtgrnT_TaxAmt`, taxAmt);
             totalItemTax += taxAmt;
@@ -223,7 +248,7 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
             {/* Header Details */}
             <CollapsibleSection
                 title={`GRN Header Details - ${selectedRow.invmgrN_GRNNo}`}
-               
+
                 defaultOpen={true}
                 className="shadow-sm border-primary/10"
             >
@@ -300,10 +325,10 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
             {/* Items Collection */}
             <CollapsibleSection
                 title="GRN Items Collection"
-           
+
                 defaultOpen={true}
                 className="shadow-sm border-primary/10"
-              
+
             >
                 <div className='overflow-x-auto -mx-1 p-1'>
                     <table className='w-full border-collapse text-xs min-w-[1300px]'>
@@ -454,7 +479,7 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
                 <div className='lg:col-span-2'>
                     <CollapsibleSection
                         title="Additional Information"
-                        
+
                         defaultOpen={true}
                         className="h-full shadow-sm border-primary/10"
                     >

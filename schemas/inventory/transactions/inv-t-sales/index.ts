@@ -17,6 +17,7 @@ export const invTSalesItemSchema = z.object({
     // Tax list for item
     SalesItemTax: z.array(z.object({
         invmT_Id: z.number(),
+        invmT_TaxName: z.string().optional(),
         invtslT_TaxPer: z.number(),
         invtslT_TaxAmt: z.number()
     })).optional()
@@ -43,7 +44,7 @@ export const invTSalesSchema = z.object({
     invmC_Id: z.number().optional(), // Customer
 
     // Sub items
-    SalesItem: z.array(invTSalesItemSchema).min(1, "At least one item is required"),
+    SaleItem: z.array(invTSalesItemSchema).min(1, "At least one item is required"),
 
     // UI Helpers
     stu_Flag: z.enum(['I', 'C', 'CS']).optional() // Individual, Class, Class/Section
