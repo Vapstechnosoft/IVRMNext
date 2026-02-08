@@ -578,7 +578,10 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                 <Label>
                                     Exam <span className='text-red-500'>*</span>
                                 </Label>
-                                <Select value={entryExamId ? String(entryExamId) : ''} onValueChange={(val) => setEntryExamId(Number(val))}>
+                                <Select
+                                    key={entryExamId}
+                                    value={entryExamId && entryExamId !== 0 ? String(entryExamId) : undefined}
+                                    onValueChange={(val) => setEntryExamId(Number(val))}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='Select Exam' />
                                     </SelectTrigger>

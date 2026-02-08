@@ -463,7 +463,7 @@ export default function FeeYearlyCollectionReport() {
                 ASMCL_Id: filters.classId ?? 0,
                 AMSC_Id: filters.sectionId ?? 0
             };
-            //   console.log("payload", payload);
+            console.log('payload', payload);
             const response = await getFeeYearlyCollectionReport(payload);
             const apiList = response?.data ?? [];
             //   const tableData = mapYearlyCollectionReport(
@@ -942,12 +942,20 @@ export default function FeeYearlyCollectionReport() {
     };
 
     const handlePrintforTermWise = () => {
-        if (!reportData || reportData.length === 0) {
+        const rowsToPrint = reportData.filter((row) => selectedIds.includes(row.id));
+
+        // Debug: Log what we're sending to print
+        console.log('Rows to print:', rowsToPrint);
+        console.log('First row data:', rowsToPrint[0]);
+        console.log('Available properties in first row:', rowsToPrint[0] ? Object.keys(rowsToPrint[0]) : []);
+        console.log('Selected terms:', selectedTerms);
+
+        if (!rowsToPrint || rowsToPrint.length === 0) {
             toast.error('No data to print');
             return;
         }
 
-        printTermWiseTable(reportData, selectedTerms);
+        printTermWiseTable(rowsToPrint, selectedTerms);
     };
 
     const handlePrintforInstallmentWise = () => {
@@ -980,7 +988,7 @@ export default function FeeYearlyCollectionReport() {
             'Class/Section': row.asmcL_ClassName || '',
             'Admission No': row.amsT_AdmNo || '',
             'Installment name': row.ftI_Name || '',
-            'Total Payable': `₹${(row.totalpayable || 0).toLocaleString('en-IN')}`,
+            'Total Payable': `₹${(row.payable || 0).toLocaleString('en-IN')}`,
             'Paid Amount': `₹${(row.fss_paidamount || 0).toLocaleString('en-IN')}`,
             Balance: `₹${(row.balance || 0).toLocaleString('en-IN')}`,
             Concession: `₹${(row.concession || 0).toLocaleString('en-IN')}`,
@@ -3011,10 +3019,8 @@ export default function FeeYearlyCollectionReport() {
                                                                                             {row.amsT_AdmNo}
                                                                                         </td>
                                                                                         <td className='p-2 text-center'>{row.ftI_Name}</td>
-                                                                                        <td className='p-2 text-center'>
-                                                                                            {(row.totalpayable || 0).toLocaleString(
-                                                                                                'en-IN'
-                                                                                            )}
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            {(row.payable || 0).toLocaleString('en-IN')}
                                                                                         </td>
                                                                                         <td className='p-2 text-center font-bold'>
                                                                                             ₹

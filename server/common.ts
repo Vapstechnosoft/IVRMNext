@@ -6310,7 +6310,7 @@ export async function getUserAccessibleModules() {
             data: [
                 {
                     id: 1,
-                    name: 'Admission',
+                    name: 'Preadmission',
                     icon: 'UserRoundPlus',
                     menu: [
                         {
@@ -6325,11 +6325,11 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 1,
-                                            name: 'Admission Form',
+                                            name: 'Pre Admission Form',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/transactions/application-form',
-                                            title: 'Admission Form',
-                                            description: 'Apply for Admission'
+                                            title: 'Pre Admission Form',
+                                            description: 'Apply for Pre Admission'
                                         }
                                     ]
                                 }

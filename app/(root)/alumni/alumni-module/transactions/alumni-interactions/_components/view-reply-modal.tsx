@@ -19,96 +19,12 @@ interface ViewReplyModalProps {
     onSuccess: () => void;
 }
 
-// Static reply thread data
-const staticReplyThreads: Record<number, IAlumniInteractionReply[]> = {
-    1: [
-        {
-            ALSTINT_Id: 1011,
-            ALSTINT_Interaction: "Great idea! I'm available on December 10th and 11th.",
-            ALSTINT_Attachment: '',
-            ALSTINT_DateTime: '2024-10-16T10:15:00.000Z',
-            Sender: 'Sarah Johnson',
-            Receiver: 'John Smith',
-            ALSTINT_ComposedById: 1002
-        },
-        {
-            ALSTINT_Id: 1012,
-            ALSTINT_Interaction: 'Thanks Sarah! December 10th works for me too.',
-            ALSTINT_Attachment: '/documents/venue-options.pdf',
-            ALSTINT_DateTime: '2024-10-16T14:30:00.000Z',
-            Sender: 'John Smith',
-            Receiver: 'Sarah Johnson',
-            ALSTINT_ComposedById: 1001
-        },
-        {
-            ALSTINT_Id: 1013,
-            ALSTINT_Interaction: 'I can join on December 11th. Looking forward to it!',
-            ALSTINT_Attachment: '',
-            ALSTINT_DateTime: '2024-10-17T09:45:00.000Z',
-            Sender: 'Michael Chen',
-            Receiver: 'John Smith',
-            ALSTINT_ComposedById: 1003
-        }
-    ],
-    2: [
-        {
-            ALSTINT_Id: 1021,
-            ALSTINT_Interaction: "Thanks Michael! I'll definitely check it out.",
-            ALSTINT_Attachment: '',
-            ALSTINT_DateTime: '2024-10-18T11:30:00.000Z',
-            Sender: 'Sarah Johnson',
-            Receiver: 'Michael Chen',
-            ALSTINT_ComposedById: 1002
-        }
-    ],
-    3: [
-        {
-            ALSTINT_Id: 1031,
-            ALSTINT_Interaction: "This sounds interesting! What's the exact date?",
-            ALSTINT_Attachment: '',
-            ALSTINT_DateTime: '2024-10-21T15:20:00.000Z',
-            Sender: 'David Wilson',
-            Receiver: 'Alumni Association',
-            ALSTINT_ComposedById: 1005
-        }
-    ]
-};
-
-// Mock API functions
-// biome-ignore lint/correctness/noUnusedVariables: <explanation>
-const mockGetInteractionThread = async ({ alsminT_Id, alsminT_ComposedById }: { alsminT_Id: number; alsminT_ComposedById: number }) => {
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    return {
-        success: true,
-        data: {
-            viewmessage: staticReplyThreads[alsminT_Id] || []
-        }
-    };
-};
-
-const mockSaveInteractionReply = async (payload: any) => {
-    console.info('Saving reply:', payload);
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    return { success: true, message: 'Reply sent successfully' };
-};
-
-const mockDeleteInteractionMessage = async (id: number) => {
-    console.info('Deleting message:', id);
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return { success: true, message: 'Message deleted from thread' };
-};
-
-const mockUploadDocument = async (formData: FormData) => {
-    const file = formData.get('File');
-    console.info('Uploading file:', file);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    const timestamp = Date.now();
-    const fileName = file?.toString() || 'file';
-    return {
-        path: `/uploads/interactions/${timestamp}-${fileName}`
-    };
-};
+import {
+    deleteAlumniInteraction,
+    replyAlumniInteraction,
+    searchAlumniForInteraction
+} from '@/server/alumni/alumni-interactions';
+import { uploadDocument } from '@/server/document_upload';
 
 // biome-ignore lint/correctness/noUnusedVariables: <explanation>
 export default function ViewReplyModal({ message, userHrmeId, onClose, onSuccess }: ViewReplyModalProps) {
@@ -140,7 +56,7 @@ export default function ViewReplyModal({ message, userHrmeId, onClose, onSuccess
     const fetchThread = async () => {
         setIsLoading(true);
         try {
-            const res = await mockGetInteractionThread({
+            const res = await searchAlumniForInteraction({
                 alsminT_Id: message.ALSMINT_Id,
                 alsminT_ComposedById: message.ALSMINT_ComposedById
             });
@@ -174,10 +90,11 @@ export default function ViewReplyModal({ message, userHrmeId, onClose, onSuccess
             formData.append('folder', 'Alumni_Interaction');
 
             try {
-                const response = await mockUploadDocument(formData);
-                const res: any = response;
+                const res = await uploadDocument(formData);
                 let path = '';
-                if (res?.path) path = res.path;
+                if (res?.success && res.data) {
+                    path = res.data;
+                }
 
                 if (path) {
                     setValue('images_paths', [...images_paths, { path, name: file.name }]);
@@ -196,7 +113,7 @@ export default function ViewReplyModal({ message, userHrmeId, onClose, onSuccess
     const handleDeleteReply = async (id: number) => {
         if (!confirm('Are you sure you want to delete this specific message?')) return;
         try {
-            const res = await mockDeleteInteractionMessage(id);
+            const res = await deleteAlumniInteraction(id);
             if (res.success) {
                 toast.success('Message deleted from thread');
                 fetchThread();
@@ -227,7 +144,7 @@ export default function ViewReplyModal({ message, userHrmeId, onClose, onSuccess
                 alsminT_ActiveFlag: true
             };
 
-            const res = await mockSaveInteractionReply(payload);
+            const res = await replyAlumniInteraction(payload);
             if (res.success) {
                 toast.success('Reply sent successfully');
                 reset();
@@ -315,11 +232,10 @@ export default function ViewReplyModal({ message, userHrmeId, onClose, onSuccess
                                 return (
                                     <div key={idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                                         <div
-                                            className={`group relative max-w-[85%] rounded-2xl px-5 py-3 shadow-md ${
-                                                isMe
+                                            className={`group relative max-w-[85%] rounded-2xl px-5 py-3 shadow-md ${isMe
                                                     ? 'rounded-br-none bg-gradient-to-r from-blue-600 to-blue-700 text-white'
                                                     : 'rounded-bl-none border border-gray-200 bg-white shadow-sm'
-                                            }`}>
+                                                }`}>
                                             <div className='mb-2 flex items-center justify-between'>
                                                 <span className={`font-bold text-xs ${isMe ? 'text-blue-100' : 'text-blue-600'}`}>
                                                     {isMe ? 'You' : reply.Sender}

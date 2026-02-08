@@ -230,14 +230,6 @@ export default function AddAmountEntryFormStThomas({ onSuccess, headname = '' }:
                 const savedSlabs = savedFineSlabs[fineKey] || { regular: [], ecs: [] };
 
                 const fineSlabDetails = [
-                    ...savedSlabs.regular.map((slab) => ({
-                        fmH_Id: slab.fmH_Id || row.fmH_Id,
-                        ftI_Id: slab.ftI_Id || row.ftI_Id,
-                        ftfS_FineType: slab.FTFS_FineType || slab.fmfS_FineType || 'Regular',
-                        ftfS_Amount: slab.ftfS_Amount || '0',
-                        fmfS_Duedate: getTodayDateString(),
-                        ftfS_ID: slab.ftfS_Id || 0
-                    })),
                     ...savedSlabs.ecs.map((slab) => ({
                         fmH_Id: slab.fmH_Id || row.fmH_Id,
                         ftI_Id: slab.ftI_Id || row.ftI_Id,
@@ -256,7 +248,6 @@ export default function AddAmountEntryFormStThomas({ onSuccess, headname = '' }:
                     fmA_DueDate: row.fmA_DueDate || getTodayDateString(),
                     ftddE_DueDate: row.ftddE_DueDate || getTodayDateString(),
                     fmA_PartialRebateApplicableDate: row.fmA_PartialRebateApplicableDate || getTodayDateString(),
-                    fyghM_FineApplicableFlag: row.fyghM_FineApplicableFlag,
                     fineSlabDetails: fineSlabDetails.length > 0 ? fineSlabDetails : []
                 };
             });
