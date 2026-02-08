@@ -169,7 +169,6 @@ class ApiService {
                 if (error.response?.status === 401) {
                     try {
                         await signOut();
-                        // Only redirect in browser environment
                         if (typeof window !== 'undefined') {
                             window.location.href = '/sign-in';
                         }
@@ -177,13 +176,14 @@ class ApiService {
                         console.error('Error refreshing session:', refreshError);
                     }
                 }
-                return Promise.reject(this.handleError(error));
+                // Do not call handleError here, let the caller handle it so we don't lose the original error object properties
+                return Promise.reject(error);
             }
         );
     }
 
     // ... rest of the class remains the same
-    private handleError(error: any): string {
+    private handleError(error: any): Error {
         // Check for SSL certificate errors
         if (
             error.code === 'DEPTH_ZERO_SELF_SIGNED_CERT' ||
@@ -192,17 +192,25 @@ class ApiService {
         ) {
             console.error('🔴 SSL Certificate Error detected');
             console.error('🔴 If this is a local development server, ensure SSL bypass is enabled');
-            console.error('🔴 For production, use valid SSL certificates');
+            console.info('🔴 Current URL attempted:', error.config?.url);
 
-            // Return a more helpful error message
-            return (
-                // biome-ignore lint/style/useTemplate: <explanation>
+            return new Error(
                 `SSL Certificate Error: ${error.message}. ` +
                 'For local development, make sure the ApiService is configured to bypass SSL validation.'
             );
         }
 
-        return error?.response?.data?.message || error?.message || 'An unknown error occurred.';
+        const message = error?.response?.data?.message || error?.message || 'An unknown error occurred.';
+        const apiError = new Error(message);
+
+        // Attach extra info to the error object for better logging in the request catch block
+        (apiError as any).status = error?.response?.status;
+        (apiError as any).statusText = error?.response?.statusText;
+        (apiError as any).data = error?.response?.data;
+        (apiError as any).code = error?.code;
+        (apiError as any).config = error?.config;
+
+        return apiError;
     }
 
     public async request<T>(
@@ -270,15 +278,19 @@ class ApiService {
             return response.data;
         } catch (error: any) {
             console.warn('❌ [API SERVICE] Request failed');
+
+            // If it's not yet handled (e.g. from Axios directly)
+            const handledError = error instanceof Error && (error as any).config ? error : this.handleError(error);
+
             console.warn('💥 [API SERVICE] Error details:', {
-                message: error?.message,
-                code: error?.code,
-                status: error?.response?.status,
-                statusText: error?.response?.statusText,
-                data: error?.response?.data,
-                url: error?.config?.url
+                message: handledError.message,
+                code: (handledError as any).code,
+                status: (handledError as any).status,
+                statusText: (handledError as any).statusText,
+                data: (handledError as any).data,
+                url: (handledError as any).config?.url
             });
-            throw this.handleError(error);
+            throw handledError;
         }
     }
 
