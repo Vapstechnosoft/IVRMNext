@@ -4,13 +4,15 @@ import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import { Button } from '@/components/ui/button';
+import { Eye, PackageOpen } from 'lucide-react';
 import { useInvTSales } from '@/hooks/inventory/transactions/use-inv-t-sales';
 import type { IInvTSales } from '@/types/inventory/transactions/inv-t-sales';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { useCallback } from 'react';
 
-export const invTSalesColumns: ColumnDef<IInvTSales>[] = [
+export const getInvTSalesColumns = (onViewItem: (row: IInvTSales) => void): ColumnDef<IInvTSales>[] => [
     {
         accessorKey: 'sno',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No.' />,
@@ -64,11 +66,7 @@ export const invTSalesColumns: ColumnDef<IInvTSales>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
         cell: ({ row }) => {
             const status = row.original.invmsL_ActiveFlg;
-            return (
-                <Badge className={status ? 'bg-purple-600 hover:bg-purple-700' : 'bg-red-600 hover:bg-red-700'}>
-                    {status ? 'Active' : 'Inactive'}
-                </Badge>
-            );
+            return <Badge variant={status ? 'default' : 'destructive'}>{status ? 'Active' : 'Inactive'}</Badge>;
         }
     },
     {
@@ -76,15 +74,18 @@ export const invTSalesColumns: ColumnDef<IInvTSales>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
         accessorFn: (row) => row,
         enableSorting: false,
-        cell: ({ row }) => <InvTSalesActionButtons rowData={row.original} />
+        cell: ({ row }) => <InvTSalesActionButtons rowData={row.original} onViewItem={onViewItem} />
     }
 ];
 
-function InvTSalesActionButtons({ rowData }: { rowData: IInvTSales }) {
+function InvTSalesActionButtons({ rowData, onViewItem }: { rowData: IInvTSales, onViewItem: (row: IInvTSales) => void }) {
     const { openEditForm, openDetailsView, openToggleForm } = useFormContext<IInvTSales>();
 
     const handleEdit = useCallback(() => openEditForm(rowData), [openEditForm, rowData]);
     const handleView = useCallback(() => openDetailsView(rowData), [openDetailsView, rowData]);
+    const handleViewItem = useCallback(() => {
+        onViewItem(rowData);
+    }, [onViewItem, rowData]);
 
     const handleToggle = useCallback(() => {
         openToggleForm(rowData);
@@ -92,12 +93,34 @@ function InvTSalesActionButtons({ rowData }: { rowData: IInvTSales }) {
 
     return (
         <div className='flex justify-center gap-2'>
+            {/* View Details */}
+            <Button
+                variant='ghost'
+                size='icon'
+                onClick={handleView}
+                title='View Receipt'
+                className='h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50'
+            >
+                <Eye className='h-4 w-4' />
+            </Button>
+
+            {/* View Item Details */}
+            <Button
+                variant='ghost'
+                size='icon'
+                onClick={handleViewItem}
+                title='View Items'
+                className='h-8 w-8 p-0 text-orange-600 hover:text-orange-700 hover:bg-orange-50'
+            >
+                <PackageOpen className='h-4 w-4' />
+            </Button>
+
             <ActionButtons
                 rowData={rowData}
-                buttons={{ edit: true, delete: false, toggle: true, view: true }}
+                buttons={{ edit: true, delete: false, toggle: true, view: false }}
                 onEdit={handleEdit}
+
                 onToggle={handleToggle}
-                // onView={handleView}
                 toggleConditionKey='invmsL_ActiveFlg'
             />
         </div>

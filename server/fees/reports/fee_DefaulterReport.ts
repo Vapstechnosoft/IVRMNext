@@ -27,6 +27,11 @@ export async function getFeesTermDropDown() {
     return await api.get<IFeeTermDropdownList[]>('fees', url);
 }
 
+export async function FeesTermDropDownForReports() {
+    const url = '/FeeMasterTerms/fee_term_Dropdown';
+    return await api.get<IFeeTermDropdownList[]>('fees', url);
+}
+
 export async function getFeesBusRoutesDropDown() {
     const url = '/FeesCommon/fee-bus-route';
     return await api.get<IFeeBusRouteDropdownList[]>('fees', url);
@@ -61,6 +66,7 @@ export async function feedefaluerreportdata(asmaY_Id: number, asmcl_Id: number) 
 
 export async function getfeedefaluerreport(payload: any) {
     const url = '/FeeDefaulterReportFacade/fee-defaulter-report';
+    console.info('getfeedefaluerreport url:', url);
     return await api.post<any[]>('fees', url, payload);
 }
 

@@ -148,7 +148,7 @@ export const yearlyCategoryDatesMappingSchema = {
             eyC_Id: z.number().optional().default(0),
             asmaY_Id: z.number().min(1, { message: 'Academic Year is required' }),
             emcA_Id: z.number().min(1, { message: 'Category is required' }),
-            mI_Id: z.number().min(1, { message: 'Organization ID is required' }).default(30),
+            mI_Id: z.number().optional(),
             eyC_ExamStartDate: z
                 .string()
                 .nonempty({ message: 'Exam start date is required' })
@@ -268,8 +268,7 @@ export const ExamTermAndExamMappingSchema = {
         .object({
             // Core IDs
             ecT_Id: z.preprocess(toNumber, z.number().int().min(0).optional().default(0)),
-            mI_Id: z.preprocess(toNumber, z.number().int().min(1).default(30)),
-
+            mI_Id: z.preprocess(toNumber, z.number().int().min(1).optional()),
             asmaY_Id: z.preprocess(toNumber, z.number().int().min(1, 'Select Academic Year')),
             emcA_Id: z.preprocess(toNumber, z.number().int().min(1, 'Select Category')),
             emgR_Id: z.preprocess(toNumber, z.number().int().min(1, 'Select Grade')),
@@ -631,7 +630,7 @@ export const categorySubjectMappingSchema = {
 export const lifeSkillAreaMappingSchema = {
     addOrUpdate: z.object({
         ecS_Id: z.number().default(0),
-        mI_Id: z.number().default(30),
+        mI_Id: z.number().default(30).optional(),
         ecS_SkillName: createCustomStringSchema('Skill Name', 1, 100),
         ecS_SkillCode: createStringSchema('Skill Code', 1, 50),
 
@@ -656,7 +655,7 @@ export const lifeSkillAreaMappingSchema = {
                 z.object({
                     ecsaM_Id: z.number().default(0),
                     asmaY_Id: z.number({ required_error: 'Academic Year is required' }).int({ message: 'Academic Year must be integer' }),
-                    mI_Id: z.number({ required_error: 'MI ID is required' }).int(),
+                    mI_Id: z.number().optional(),
                     ecS_Id: z.number({ required_error: 'Life Skill ID is required' }).int(),
                     ecsA_Id: z.number({ required_error: 'Skill Area ID is required' }).int(),
                     ecsaM_IndicatorDescription: createCustomStringSchema('Indicator Description', 1, 300),
@@ -675,7 +674,7 @@ export const lifeSkillAreaMappingSchema = {
 export const examMarksProcessConditionSchema = {
     addOrUpdate: z
         .object({
-            mI_Id: z.number().min(1).default(30),
+            mI_Id: z.number().min(1).optional(),
             eyC_Id: z.number().min(1, { message: 'Mapping is required' }),
             eycE_Id: z.number().min(1, { message: 'Mapping is required' }),
 

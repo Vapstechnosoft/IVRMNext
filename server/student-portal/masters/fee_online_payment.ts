@@ -9,12 +9,12 @@ export async function geStudentInformation(): Promise<IOnlinePaymentStudenyInfor
 
   const res = await api.get<any>('portal', url);
 
-return res.data;                         
+  return res.data || {} as IOnlinePaymentStudenyInformationList;                         
 }
 
 
 export async function getGroupList() {
     const url = '/OnlinePayment/group-list';
     const response = await api.get<any>('portal', url);
-      return response.data.data;
+    return response.data?.data || [];
 }

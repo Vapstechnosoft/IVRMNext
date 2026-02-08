@@ -28,87 +28,85 @@ export const invOpeningBalanceColumns: ColumnDef<IInvOpeningBalance>[] = [
     {
         accessorKey: 'invmI_ItemName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Item' />,
-        cell: ({ row }) => <div>{row.getValue('invmI_ItemName')}</div>
-    },
-    {
-        accessorKey: 'invmuoM_UOMName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='UOM' />,
-        cell: ({ row }) => <div>{row.getValue('invmuoM_UOMName')}</div>
+        cell: ({ row }) => (
+            <div className="flex flex-col">
+                <span className="font-medium">{row.getValue('invmI_ItemName')}</span>
+                <span className="text-[10px] text-muted-foreground">{row.original.invmuoM_UOMName}</span>
+            </div>
+        )
     },
     {
         accessorKey: 'invoB_BatchNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Batch No' />,
-        cell: ({ row }) => <div>{row.getValue('invoB_BatchNo')}</div>
+        cell: ({ row }) => <div>{row.getValue('invoB_BatchNo') || 'N/A'}</div>
     },
     {
         accessorKey: 'invoB_Qty',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Quantity' className='text-right' />,
-        cell: ({ row }) => <div className='text-right'>{Number(row.getValue('invoB_Qty')).toFixed(2)}</div>
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Quantity' className='justify-end' />,
+        cell: ({ row }) => (
+            <div className='text-right'>
+                {Number(row.getValue('invoB_Qty')).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            </div>
+        )
     },
     {
         accessorKey: 'invoB_PurchaseDate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Purchase Date' />,
         cell: ({ row }) => {
             const date = row.original.invoB_PurchaseDate;
-            return <div>{date ? format(new Date(date), 'dd/MM/yyyy') : '-'}</div>;
+            return <div>{date ? format(new Date(date), 'dd-MM-yyyy') : '-'}</div>;
         }
     },
     {
         accessorKey: 'invoB_PurchaseRate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Purchase Rate' className='text-right' />,
-        cell: ({ row }) => <div className='text-right'>{Number(row.getValue('invoB_PurchaseRate')).toFixed(2)}</div>
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Rate' className='justify-end' />,
+        cell: ({ row }) => (
+            <div className='text-right'>
+                {Number(row.getValue('invoB_PurchaseRate')).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            </div>
+        )
     },
     {
         accessorKey: 'invoB_TAmount',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Amount' className='text-right' />,
-        cell: ({ row }) => <div className='text-right'>{Number(row.getValue('invoB_TAmount')).toFixed(2)}</div>
-    },
-    {
-        accessorKey: 'invoB_SaleRate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sale Rate' className='text-right' />,
-        cell: ({ row }) => <div className='text-right'>{Number(row.getValue('invoB_SaleRate')).toFixed(2)}</div>
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total' className='justify-end' />,
+        cell: ({ row }) => (
+            <div className='text-right font-medium'>
+                {Number(row.getValue('invoB_TAmount')).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            </div>
+        )
     },
     {
         accessorKey: 'invoB_ActiveFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
         cell: ({ row }) => {
             const status = row.original.invoB_ActiveFlg;
-            return (
-                <Badge className={status ? 'bg-purple-600 hover:bg-purple-700' : 'bg-red-600 hover:bg-red-700'}>
-                    {status ? 'Active' : 'Inactive'}
-                </Badge>
-            );
+            return <Badge variant={status ? 'default' : 'destructive'}>{status ? 'Active' : 'Inactive'}</Badge>;
         }
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='justify-center' />,
         accessorFn: (row) => row,
-        enableSorting: false,
         cell: ({ row }) => <InvOpeningBalanceActionButtons rowData={row.original} />
     }
 ];
 
 function InvOpeningBalanceActionButtons({ rowData }: { rowData: IInvOpeningBalance }) {
-    const { openEditForm, openDetailsView, openToggleForm } = useFormContext<IInvOpeningBalance>();
+    const { openEditForm, openToggleForm } = useFormContext<IInvOpeningBalance>();
 
     const handleEdit = useCallback(() => openEditForm(rowData), [openEditForm, rowData]);
-    const handleView = useCallback(() => openDetailsView(rowData), [openDetailsView, rowData]);
-
-    const handleToggle = useCallback(() => {
-        openToggleForm(rowData);
-    }, [openToggleForm, rowData]);
+    const handleToggle = useCallback(() => openToggleForm(rowData), [openToggleForm, rowData]);
 
     return (
-        <div className='flex justify-center gap-2'>
+        <div className='flex justify-center'>
             <ActionButtons
                 rowData={rowData}
-                buttons={{ edit: true, delete: false, toggle: true, view: true }}
+                buttons={{ edit: true, delete: false, toggle: true }}
                 onEdit={handleEdit}
                 onToggle={handleToggle}
-                //onView={handleView}
                 toggleConditionKey='invoB_ActiveFlg'
             />
         </div>
     );
 }
+

@@ -4,100 +4,12 @@ import AddInteractionForm from '@/app/(root)/alumni/alumni-module/transactions/a
 import InboxList from '@/app/(root)/alumni/alumni-module/transactions/alumni-interactions/_components/inbox-list';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+    getAlumniInteractionLoadData
+} from '@/server/alumni/alumni-interactions';
 import type { IAlumniInteraction } from '@/types/alumni/alumni-interactions';
 import { Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-
-// Static interaction data
-const staticInteractions: IAlumniInteraction[] = [
-    {
-        ALSMINT_Id: 1,
-        ALSTINT_Id: 101,
-        ALSMINT_InteractionId: 'INT001',
-        ALSMINT_Subject: 'Annual Reunion Planning',
-        ALSMINT_Interaction:
-            "Hello everyone! Let's start planning for our annual alumni reunion. Please share your availability for December.",
-        ALSMINT_ComposedByFlg: 'AlumniCoordinator',
-        Sender: 'John Smith',
-        Receiver: 'Batch of 2015',
-        ALSMINT_DateTime: '2024-10-15T14:30:00.000Z',
-        ALSTINT_Attachment: '/documents/reunion-plan.pdf',
-        ALSMINT_ComposedById: 1001,
-        ALSMINT_GroupOrIndFlg: 'Group'
-    },
-    {
-        ALSMINT_Id: 2,
-        ALSTINT_Id: 102,
-        ALSMINT_InteractionId: 'INT002',
-        ALSMINT_Subject: 'Job Opportunity at TechCorp',
-        ALSMINT_Interaction:
-            'Hi Sarah, I saw that TechCorp is hiring for senior developer positions. Thought this might interest you based on your profile.',
-        ALSMINT_ComposedByFlg: 'Alumni',
-        Sender: 'Michael Chen',
-        Receiver: 'Sarah Johnson',
-        ALSMINT_DateTime: '2024-10-18T09:15:00.000Z',
-        ALSTINT_Attachment: '',
-        ALSMINT_ComposedById: 1002,
-        ALSMINT_GroupOrIndFlg: 'Individual'
-    },
-    {
-        ALSMINT_Id: 3,
-        ALSTINT_Id: 103,
-        ALSMINT_InteractionId: 'INT003',
-        ALSMINT_Subject: 'Workshop Invitation: AI & ML',
-        ALSMINT_Interaction:
-            "Dear Alumni, We're organizing a free workshop on AI and Machine Learning trends. All alumni are invited to attend.",
-        ALSMINT_ComposedByFlg: 'AlumniCoordinator',
-        Sender: 'Alumni Association',
-        Receiver: 'All Alumni',
-        ALSMINT_DateTime: '2024-10-20T11:00:00.000Z',
-        ALSTINT_Attachment: '/documents/workshop-schedule.pdf',
-        ALSMINT_ComposedById: 1003,
-        ALSMINT_GroupOrIndFlg: 'Group'
-    },
-    {
-        ALSMINT_Id: 4,
-        ALSTINT_Id: 104,
-        ALSMINT_InteractionId: 'INT004',
-        ALSMINT_Subject: 'Catch up over coffee?',
-        ALSMINT_Interaction: "Hey David, long time! Would love to catch up over coffee sometime next week. Let me know when you're free.",
-        ALSMINT_ComposedByFlg: 'Alumni',
-        Sender: 'Priya Sharma',
-        Receiver: 'David Wilson',
-        ALSMINT_DateTime: '2024-10-22T16:45:00.000Z',
-        ALSTINT_Attachment: '',
-        ALSMINT_ComposedById: 1004,
-        ALSMINT_GroupOrIndFlg: 'Individual'
-    },
-    {
-        ALSMINT_Id: 5,
-        ALSTINT_Id: 105,
-        ALSMINT_InteractionId: 'INT005',
-        ALSMINT_Subject: 'Alumni Mentorship Program',
-        ALSMINT_Interaction:
-            "We're launching a mentorship program connecting senior alumni with recent graduates. Please sign up if interested.",
-        ALSMINT_ComposedByFlg: 'AlumniCoordinator',
-        Sender: 'Alumni Office',
-        Receiver: 'All Alumni',
-        ALSMINT_DateTime: '2024-10-25T10:00:00.000Z',
-        ALSTINT_Attachment: '/documents/mentorship-form.pdf',
-        ALSMINT_ComposedById: 1005,
-        ALSMINT_GroupOrIndFlg: 'Group'
-    }
-];
-
-// Mock API function
-const mockGetAlumniInteractionLoadData = async () => {
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    return {
-        success: true,
-        data: {
-            getinboxmsg: staticInteractions,
-            roletype: [{ ivrmrT_Role: 'Alumni' }],
-            userhrmE_Id: 1001 // Current user ID
-        }
-    };
-};
 
 export default function AlumniInteractionsPage() {
     const [activeTab, setActiveTab] = useState('inbox');
@@ -110,7 +22,7 @@ export default function AlumniInteractionsPage() {
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const res = await mockGetAlumniInteractionLoadData();
+            const res = await getAlumniInteractionLoadData();
             if (res.success && res.data) {
                 // Legacy logic: filter unique ALSMINT_Id for initial list
                 const msgList: IAlumniInteraction[] = [];

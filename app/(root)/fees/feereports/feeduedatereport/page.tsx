@@ -159,7 +159,43 @@ export default function FeeDueDateReportForm() {
             return;
         }
 
-        printTable(tableColumns, selectedRows, tableSumRow);
+        const columnHeaders = [
+            'slno',
+            'feeGroup',
+            'feeHead',
+            'Installment Name',
+            'Sub-Installment Name',
+            'Due Date',
+            'Fine Slab',
+            'Fine Type',
+            'Fine Amount'
+        ];
+
+        const printableRows = selectedRows.map((row, index) => ({
+            slno: index + 1,
+            feeGroup: row.feeGroup,
+            feeHead: row.feeHead,
+            'Installment Name': `${row.active ? 'true' : 'false'}`,
+            'Sub-Installment Name': `${(row.fine || 0).toLocaleString('en-IN')}`,
+            'Due Date': `₹${(row.installment || 0).toLocaleString('en-IN')}`,
+            'Fine Slab': `₹${(row.amount || 0).toLocaleString('en-IN')}`,
+            'Fine Type': `₹${(row.amount || 0).toLocaleString('en-IN')}`,
+            'Fine Amount': `₹${(row.amount || 0).toLocaleString('en-IN')}`
+        }));
+
+        // Calculate totals for each column
+        const sumRow = {
+            slno: '',
+            feeGroup: 'TOTAL',
+            feeHead: '',
+            'Installment Name': '',
+            'Sub-Installment Name': `${selectedRows.reduce((sum, r) => sum + (r.fine || 0), 0).toLocaleString('en-IN')}`,
+            'Due Date': '',
+            'Fine Slab': `₹${selectedRows.reduce((sum, r) => sum + (r.amount || 0), 0).toLocaleString('en-IN')}`,
+            'Fine Type': `₹${selectedRows.reduce((sum, r) => sum + (r.amount || 0), 0).toLocaleString('en-IN')}`,
+            'Fine Amount': `₹${selectedRows.reduce((sum, r) => sum + (r.amount || 0), 0).toLocaleString('en-IN')}`
+        };
+        printTable(columnHeaders, printableRows, sumRow);
     };
 
     const handleExportExcel = () => {
@@ -223,7 +259,7 @@ export default function FeeDueDateReportForm() {
                 slno: index + 1,
                 feeGroup: item.fmG_GroupName,
                 feeHead: item.fmH_FeeName,
-                active: item.fmG_ActiveFlag,
+                active: item.fmG_ActiceFlag,
                 fine: item.fyg_FineApplicableFlag || '--',
                 installment: item.ftI_Name,
                 amount: item.amount

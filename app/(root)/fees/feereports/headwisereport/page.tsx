@@ -89,6 +89,9 @@ export default function FeeHeadWiseReportForm() {
             setClassCategoryLoading(true);
             const res = await feeHeadwiseReportClassCategoryGropDown(yearId);
             setClassCategory(res.data ?? []);
+            if (res?.data?.length === 0) {
+                toast.error('No Class Category Data Found for selected Academic Year');
+            }
         } catch {
             toast.error('Failed to load Class Category Data');
         } finally {
@@ -193,14 +196,24 @@ export default function FeeHeadWiseReportForm() {
     }, [showTable]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        setSubmitClicked(true);
+        // setSubmitClicked(true);
+
+        if (!data.asmaY_Id) {
+            return toast.error('Please select Academic Year ');
+        }
+
+        if (!data.classcategoryid) {
+            return toast.error('Please select Class Category ');
+        }
         try {
             setLoading(true);
 
             const { asmaY_Id, classcategoryid } = data;
 
             const response = await getHeadWiseReportData(Number(asmaY_Id), Number(classcategoryid));
-
+            if ((response as any)?.data?.length > 0) {
+                toast.success('Report Genarated Successfully');
+            }
             //const response = await getHeadWiseReportData(231, 170);
 
             console.log('response', response);
@@ -215,7 +228,7 @@ export default function FeeHeadWiseReportForm() {
                 slno: index + 1,
                 feeGroup: item.fmG_GroupName,
                 feeHead: item.fmH_FeeName,
-                active: item.fmG_ActiveFlag,
+                active: item.fmG_ActiceFlag,
                 fine: item.fyg_FineApplicableFlag || '--',
                 installment: item.ftI_Name,
                 amount: item.amount
@@ -231,7 +244,7 @@ export default function FeeHeadWiseReportForm() {
             //     return;
             // }
 
-            toast.success('Report Data Fetched Successfully');
+            //  toast.success('Report Data Fetched Successfully');
 
             // setTableRows(mappedRows);
             setShowTable(true);

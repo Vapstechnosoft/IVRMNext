@@ -1,19 +1,13 @@
 'use server';
 
-import { api } from '@/lib/apiService';
-import { RoomTariffSchemaType } from '@/schemas/hostel/room-tariff.schema';
+import { api, ApiResponse } from '@/lib/apiService';
 import { revalidatePath } from 'next/cache';
 
-const URL_GET_DATA = 'Room_Tariff/loaddata';
-const URL_SAVE_DATA = 'Room_Tariff/savedata';
-const URL_DELETE_DATA = 'Room_Tariff/Ydeactive';
-const URL_GET_BED_COUNT = 'Room_Tariff/get_bedcount';
-
-export interface RoomTariffDataResponse {
-  gridlistdata: IRoomTariff[];
-  yeralist: IAcademicYear[];
-  room_list: IRoom[];
-}
+const URL_GET_DATA = '/Room_Tariff/get_tariff_grid_data';
+const URL_SAVE_DATA = '/Room_Tariff/save_room_tariff';
+const URL_EDIT_DATA = '/Room_Tariff/editdata';
+const URL_DEACTIVATE = '/Room_Tariff/ydeactivate';
+const URL_GET_BED_COUNT = '/Room_Tariff/get_bedcount';
 
 export interface IRoomTariff {
   hlmrtF_Id: number;
@@ -24,68 +18,112 @@ export interface IRoomTariff {
   hlmrtF_ActiveFlag: boolean;
   asmaY_Year?: string;
   hrmrM_RoomNo?: string;
+  hrmrM_BedCapacity?: number;
 }
 
-export interface IAcademicYear {
-  asmaY_Id: number;
-  asmaY_Year: string;
+export interface IRoomTariffEditData {
+  editlist: IRoomTariff[];
 }
 
-export interface IRoom {
-  hrmrM_Id: number;
-  hrmrM_RoomNo: string;
-}
-
-export const getRoomTariffData = async () => {
+/**
+ * Get Room Tariff grid data
+ * GET /Room_Tariff/get_tariff_grid_data
+ */
+export const getRoomTariffData = async (): Promise<ApiResponse<IRoomTariff[]>> => {
     try {
-        const response = await api.post<RoomTariffDataResponse>('default', URL_GET_DATA, {
-             pageid: 2 
-        });
-        return response.data;
+        const response = await api.get<IRoomTariff[]>('hostel', URL_GET_DATA);
+        return response;
     } catch (error) {
         console.error('Error fetching room tariff data:', error);
-        return { gridlistdata: [], yeralist: [], room_list: [] };
+        return {
+            success: false,
+            message: 'Failed to fetch room tariff data',
+            data: []
+        };
     }
 };
 
-export const saveRoomTariff = async (data: RoomTariffSchemaType) => {
+/**
+ * Get Room Tariff edit data by ID
+ * GET /Room_Tariff/editdata/{tariff_id}
+ */
+export const getRoomTariffEditData = async (tariffId: number): Promise<ApiResponse<IRoomTariffEditData>> => {
     try {
-        const response = await api.post<{ returnval: boolean; duplicate?: boolean }>('default', URL_SAVE_DATA, data);
-        
-        if (response && response.data && response.data.returnval) {
-            revalidatePath('/hostel/masters/room-tariff');
+        const response = await api.get<IRoomTariffEditData>('hostel', `${URL_EDIT_DATA}/${tariffId}`);
+        return response;
+    } catch (error) {
+        console.error('Error fetching room tariff edit data:', error);
+        return {
+            success: false,
+            message: 'Failed to fetch room tariff edit data',
+            data: { editlist: [] }
+        };
+    }
+};
+
+/**
+ * Save Room Tariff
+ * POST /Room_Tariff/save_room_tariff
+ */
+export const saveRoomTariff = async (data: {
+    hlmrtF_Id: number;
+    asmaY_Id: number;
+    hrmrM_Id: number;
+    hlmrtF_SORate: number;
+    hlmrtF_RoomRate: number;
+}): Promise<ApiResponse<null>> => {
+    try {
+        const response = await api.post<null>('hostel', URL_SAVE_DATA, data);
+        if (response.success) {
+            revalidatePath('/hostel/hostel-management/masters/room-tariff');
         }
-        return response.data;
+        return response;
     } catch (error) {
         console.error('Error saving room tariff:', error);
-        return { returnval: false };
+        return {
+            success: false,
+            message: 'Failed to save room tariff',
+            data: null
+        };
     }
 };
 
-export const deleteRoomTariff = async (data: IRoomTariff) => {
+/**
+ * Deactivate/Activate Room Tariff
+ * PUT /Room_Tariff/ydeactivate/{tariff_id}
+ */
+export const deactivateTariff = async (tariffId: number): Promise<ApiResponse<null>> => {
     try {
-        // AngularJS sends the entire object
-        const response = await api.post<{ returnval: boolean }>('default', URL_DELETE_DATA, data);
-        if ( response && response.data && response.data.returnval) {
-             revalidatePath('/hostel/masters/room-tariff');
-        }
-        return response.data;
+        const response = await api.put<null>('hostel', `${URL_DEACTIVATE}/${tariffId}`, {});
+        return response;
     } catch (error) {
-        console.error('Error deleting room tariff:', error);
-        return { returnval: false };
+        console.error('Error toggling room tariff status:', error);
+        return {
+            success: false,
+            message: 'Failed to toggle room tariff status',
+            data: null
+        };
     }
 };
 
-export const getBedCount = async (roomId: number, singleRate: number) => {
+/**
+ * Get Bed Count for Room
+ * POST /Room_Tariff/get_bedcount
+ */
+export const getBedCount = async (roomId: number, singleRate: number): Promise<ApiResponse<{ hrmrM_BedCapacity: number }>> => {
     try {
         const payload = {
             HRMRM_Id: roomId,
             HLMRTF_SORate: singleRate
         };
-        const response = await api.post<{ hrmrM_BedCapacity: number }>('default', URL_GET_BED_COUNT, payload);
-        return response.data;
+        const response = await api.post<{ hrmrM_BedCapacity: number }>('hostel', URL_GET_BED_COUNT, payload);
+        return response;
     } catch (error) {
         console.error('Error fetching bed count:', error);
-        return { hrmrM_BedCapacity: 0 };
+        return {
+            success: false,
+            message: 'Failed to fetch bed count',
+            data: { hrmrM_BedCapacity: 0 }
+        };
     }
-}
+};

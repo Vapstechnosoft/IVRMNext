@@ -32,9 +32,8 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterSubjectSchema.addOrUpdate),
-        mode: 'onChange',
+        mode: 'onTouched',
         defaultValues: {
-            mI_Id: 30,
             ismS_PreadmFlag: 0,
             ismS_AttendanceFlag: true, // boolean
             ismS_BatchAppl: 0,

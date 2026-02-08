@@ -3,10 +3,12 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
+import { Eye, Loader2 } from 'lucide-react';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { IFacility, IEmployee, IHostelDocument, IHostel } from '@/types/hostel/hostel-management/masters';
+import { useEffect, useState } from 'react';
+import { getMappedEmployees, getMappedFacilities, getHostelPhotos } from '@/server/hostel/hostel-management/masters/hostel';
 
 // --- View Facilities Modal ---
 
@@ -17,7 +19,33 @@ interface ViewFacilitiesModalProps {
 }
 
 export function ViewFacilitiesModal({ isOpen, onClose, hostel }: ViewFacilitiesModalProps) {
-    const data = hostel?.mappedFacilities || [];
+    const [data, setData] = useState<IFacility[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (isOpen && hostel?.hlmH_Id) {
+            const fetchData = async () => {
+                setIsLoading(true);
+                try {
+                    const res = await getMappedFacilities(hostel.hlmH_Id);
+                    if (res.data) {
+                        setData(res.data);
+                    } else {
+                        setData([]);
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch facilities", error);
+                    setData([]);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            fetchData();
+        } else {
+            setData([]);
+        }
+    }, [isOpen, hostel]);
+
     const tableProps = useDataTableProps({ data, total: data.length });
 
     const columns: ColumnDef<IFacility>[] = [
@@ -43,7 +71,7 @@ export function ViewFacilitiesModal({ isOpen, onClose, hostel }: ViewFacilitiesM
                         showViewOptions={false}
                         showPagination={false}
                         showSearch={false}
-                        isLoading={false}
+                        isLoading={isLoading}
                         noDataTitle='No Facilities'
                     />
                 </div>
@@ -61,14 +89,42 @@ interface ViewWardensModalProps {
 }
 
 export function ViewWardensModal({ isOpen, onClose, hostel }: ViewWardensModalProps) {
-    const data = hostel?.mappedWardens || [];
+    const [data, setData] = useState<IEmployee[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (isOpen && hostel?.hlmH_Id) {
+            const fetchData = async () => {
+                setIsLoading(true);
+                try {
+                    const res = await getMappedEmployees(hostel.hlmH_Id);
+                    // The API returns employees, but let's check the structure.
+                    // Assuming the API returns data in res.data
+                    if (res.data) {
+                        setData(res.data);
+                    } else {
+                        setData([]);
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch wardens", error);
+                    setData([]);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            fetchData();
+        } else {
+            setData([]);
+        }
+    }, [isOpen, hostel]);
+
     const tableProps = useDataTableProps({ data, total: data.length });
 
     const columns: ColumnDef<IEmployee>[] = [
         {
             accessorKey: 'hrmE_EmployeeFirstName',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Warden Name' />,
-            cell: ({ row }) => <div>{row.original.hrmE_EmployeeFirstName} : {row.original.hrmE_EmployeeCode}</div>,
+            cell: ({ row }) => <div>{row.original.hrmE_EmployeeFullName || row.original.hrmE_EmployeeFirstName} : {row.original.hrmE_EmployeeCode}</div>,
         }
     ];
 
@@ -87,7 +143,7 @@ export function ViewWardensModal({ isOpen, onClose, hostel }: ViewWardensModalPr
                         showViewOptions={false}
                         showPagination={false}
                         showSearch={false}
-                        isLoading={false}
+                        isLoading={isLoading}
                         noDataTitle='No Wardens'
                     />
                 </div>
@@ -105,7 +161,33 @@ interface ViewDocumentsModalProps {
 }
 
 export function ViewDocumentsModal({ isOpen, onClose, hostel }: ViewDocumentsModalProps) {
-    const data = hostel?.documents || [];
+    const [data, setData] = useState<IHostelDocument[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (isOpen && hostel?.hlmH_Id) {
+            const fetchData = async () => {
+                setIsLoading(true);
+                try {
+                    const res = await getHostelPhotos(hostel.hlmH_Id);
+                    if (res.data) {
+                        setData(res.data);
+                    } else {
+                        setData([]);
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch documents", error);
+                    setData([]);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            fetchData();
+        } else {
+            setData([]);
+        }
+    }, [isOpen, hostel]);
+
     const tableProps = useDataTableProps({ data, total: data.length });
 
     const columns: ColumnDef<IHostelDocument>[] = [
@@ -140,7 +222,7 @@ export function ViewDocumentsModal({ isOpen, onClose, hostel }: ViewDocumentsMod
                         showViewOptions={false}
                         showPagination={false}
                         showSearch={false}
-                        isLoading={false}
+                        isLoading={isLoading}
                         noDataTitle='No Documents'
                     />
                 </div>

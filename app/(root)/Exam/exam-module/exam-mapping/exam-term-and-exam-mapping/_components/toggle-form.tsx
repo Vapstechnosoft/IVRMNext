@@ -48,7 +48,7 @@ export default function ToggleExamTermAndExamMappingForm({ rowData, onClose }: T
 
     const onSubmit = async (values: ToggleFormFields) => {
         try {
-            const response = await toggleExamTermAndExamMapping(30, values.asmaY_Id, values.emcA_Id, values.ecT_Id);
+            const response = await toggleExamTermAndExamMapping(values.asmaY_Id, values.emcA_Id, values.ecT_Id);
 
             if (response.success) {
                 toast.success(response.message || 'Status updated successfully');

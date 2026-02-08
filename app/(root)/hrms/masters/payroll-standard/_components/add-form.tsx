@@ -77,6 +77,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                 // ESI
                 HRC_ESIAccPrefix: existingData.hrC_ECodePrefix,
                 HRC_ESIMax: existingData.hrC_ESIMax,
+                HRC_ESIMaxAmount: existingData.hrC_ESIMaxAmount,
                 HRC_ESIEmplrCont: existingData.hrC_ESIEmplrCont,
                 // Arrear Details
                 HRC_ArrearSalaryReport: existingData.hrC_ArrSalaryFlag ? 'Separate' : 'OnlyArrearHead',
@@ -131,7 +132,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
             // ESI
             HRC_ECodePrefix: data.HRC_ESIAccPrefix,
             HRC_ESIMax: data.HRC_ESIMax,
-            HRC_ESIMaxAmount: data.HRC_ESIMax,
+            HRC_ESIMaxAmount: data.HRC_ESIMaxAmount,
             HRC_ESIEmplrCont: data.HRC_ESIEmplrCont,
             // Arrear Details
             HRC_ArrSalaryFlag: data.HRC_ArrearSalaryReport === 'Separate',
@@ -286,6 +287,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                             required
                                             id='HRC_FPFPer'
                                             step={0.01}
+                                            formatOptions={{ minimumFractionDigits: 0, maximumFractionDigits: 2 }}
                                             value={field.value}
                                             onChange={(value) => {
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
@@ -339,6 +341,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                             required
                                             id='HRC_EPFPer'
                                             step={0.01}
+                                            formatOptions={{ minimumFractionDigits: 0, maximumFractionDigits: 2 }}
                                             value={field.value}
                                             onChange={(value) => {
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
@@ -394,6 +397,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                             label='EPF % After Retirement'
                                             id='HRC_EPFPerAfterRetirement'
                                             step={0.01}
+                                            formatOptions={{ minimumFractionDigits: 0, maximumFractionDigits: 2 }}
                                             value={field.value}
                                             onChange={(value) => {
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
@@ -452,6 +456,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                             label='EPF % After Retirement (2)'
                                             id='HRC_EPFPerAfterRetirement2'
                                             step={0.01}
+                                            formatOptions={{ minimumFractionDigits: 0, maximumFractionDigits: 2 }}
                                             value={field.value}
                                             onChange={(value) => {
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
@@ -507,6 +512,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                             label='Acc No. 2 %'
                                             id='HRC_AccNo2Per'
                                             step={0.01}
+                                            formatOptions={{ minimumFractionDigits: 0, maximumFractionDigits: 2 }}
                                             value={field.value}
                                             onChange={(value) => {
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
@@ -1045,9 +1051,11 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 return (
                                     <div ref={containerRefCallback}>
                                         <InputNumber
-                                            label='ESI Max (₹)'
+                                            label='ESI Max (%)'
                                             required
                                             id='HRC_ESIMax'
+                                            step={0.01}
+                                            formatOptions={{ minimumFractionDigits: 0, maximumFractionDigits: 2 }}
                                             value={field.value}
                                             onChange={(value) => {
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
@@ -1063,7 +1071,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             }}
                         />
                         <Controller
-                            name='HRC_ESIMax'
+                            name='HRC_ESIMaxAmount'
                             control={control}
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
@@ -1085,7 +1093,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
                                                     field.onChange(numValue);
-                                                    setValue('HRC_ESIMax', numValue, { shouldDirty: true, shouldValidate: true });
+                                                    setValue('HRC_ESIMaxAmount', numValue, { shouldDirty: true, shouldValidate: true });
                                                 }
                                             }
                                         };
@@ -1098,15 +1106,15 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     <div ref={containerRefCallback}>
                                         <InputNumber
                                             label='ESI Max Amount'
-                                            id='HRC_ESIMax2'
+                                            id='HRC_ESIMaxAmount'
                                             value={field.value}
                                             onChange={(value) => {
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
                                                 field.onChange(numValue);
-                                                setValue('HRC_ESIMax', numValue, { shouldDirty: true, shouldValidate: true });
+                                                setValue('HRC_ESIMaxAmount', numValue, { shouldDirty: true, shouldValidate: true });
                                             }}
                                             onBlur={field.onBlur}
-                                            error={errors.HRC_ESIMax?.message}
+                                            error={errors.HRC_ESIMaxAmount?.message}
                                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                                         />
                                     </div>
@@ -1152,6 +1160,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                             required
                                             id='HRC_ESIEmplrCont'
                                             step={0.01}
+                                            formatOptions={{ minimumFractionDigits: 0, maximumFractionDigits: 2 }}
                                             value={field.value}
                                             onChange={(value) => {
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;

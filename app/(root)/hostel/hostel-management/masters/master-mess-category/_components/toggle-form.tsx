@@ -5,7 +5,7 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { useMasterMessCategory } from '@/hooks/hostel/useMasterMessCategory';
 import { masterMessCategoryMappingDeleteSchema, IMasterMessCategoryMappingDisplay } from '@/schemas/hostel/mess-category-mapping.schema';
-import { deleteMessCategoryMapping } from '@/server/hostel/hostel-management/masters/mess-category';
+import { deactivateMessCategory } from '@/server/hostel/hostel-management/masters/mess-category';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -37,7 +37,7 @@ export default function ToggleMasterMessCategoryForm({ rowData, onClose }: Toggl
 
     const onSubmit: SubmitHandler<FormFields> = async (formData) => {
         try {
-            const response = await deleteMessCategoryMapping(Number(formData.hlmmmC_Id));
+            const response = await deactivateMessCategory(Number(formData.hlmmmC_Id));
             if (response.success) {
                 toast.success(response.message);
                 refetchAll();

@@ -6,7 +6,7 @@ import type { ICoScholasticArea } from '@/types/exam/exam-module/masters';
 
 export async function getCoScholasticArea(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/coscholastic_activity/co_scholastic_area_list/30?${urlParams}`;
+    const url = `/coscholastic_activity/co_scholastic_area_list?${urlParams}`;
     return await api.get<ICoScholasticArea>('exam', url);
 }
 export async function addOrUpdatecoScholasticArea(data: any) {
@@ -14,8 +14,8 @@ export async function addOrUpdatecoScholasticArea(data: any) {
     const url = '/coscholastic_activity/addOrupdate_co_scholastic_area';
     return await api.post<any>('exam', url, data);
 }
-export async function toggleCoScholasticArea(mi_id: number, id: number) {
-    const url = `/coscholastic_activity/active_deactive_area/${mi_id}/${id}`;
+export async function toggleCoScholasticArea(id: number) {
+    const url = `/coscholastic_activity/active_deactive_area/${id}`;
     return await api.put('exam', url);
 }
 export async function getCoScholasticAreaOrderData(searchParams?: ApiSearchparams) {
@@ -29,15 +29,15 @@ export async function UpdatedOrderdCoScholasticArea(data: any) {
 }
 
 export async function getCoScholasticActivity(data: any) {
-    const url = '/coscholastic_activity/co_scholastic_activity_drop_down_list/30';
+    const url = '/coscholastic_activity/co_scholastic_activity_drop_down_list';
     return await api.get<any>('exam', url, data);
 }
 export async function getCoScholasticActivityArea(data: any) {
-    const url = '/coscholastic_activity/co_scholastic_area_drop_down_list/30';
+    const url = '/coscholastic_activity/co_scholastic_area_drop_down_list';
     return await api.get<any>('exam', url, data);
 }
 
-export async function toggleCoScholasticActivityArea(mi_id: number, id: number) {
-    const url = `/coscholastic_activity/active_deactive_area_activity/${mi_id}/${id}`;
+export async function toggleCoScholasticActivityArea(id: number) {
+    const url = `/coscholastic_activity/active_deactive_area_activity/${id}`;
     return await api.put('exam', url);
 }

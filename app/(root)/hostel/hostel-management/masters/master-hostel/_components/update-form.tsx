@@ -28,34 +28,40 @@ export default function UpdateMasterHostelForm({
 
     useEffect(() => {
         const fetchDetails = async () => {
+            if (!rowData?.hlmH_Id) {
+                setInitialData({
+                    ...rowData,
+                    ivrmmC_Id: rowData.ivrmmC_Id?.toString(),
+                    ivrmmS_Id: rowData.ivrmmS_Id?.toString()
+                });
+                setIsLoading(false);
+                return;
+            }
+
             try {
                 const hostelId = rowData.hlmH_Id;
 
-                // Fetch mapped details in parallel
+                // Fetch mapped details using the specific API functions
                 const [facilitiesRes, wardensRes, messesRes, photosRes] = await Promise.all([
-                    getMappedFacilities(hostelId),
-                    getMappedEmployees(hostelId),
-                    getMappedMesses(hostelId),
-                    getHostelPhotos(hostelId)
+                    getMappedFacilities(hostelId).catch(e => ({ data: [] })),
+                    getMappedEmployees(hostelId).catch(e => ({ data: [] })),
+                    getMappedMesses(hostelId).catch(e => ({ data: [] })),
+                    getHostelPhotos(hostelId).catch(e => ({ data: [] }))
                 ]);
 
-                // Map Facility IDs (fallback to name match if ID missing in mapped response)
-                const mapFacilityId = (mappedItem: any) => {
-                    if (mappedItem.hlmftY_Id) return mappedItem.hlmftY_Id;
-                    const found = facilities.find(f => f.hlmftY_FacilityName === mappedItem.hlmftY_FacilityName);
-                    return found ? found.hlmftY_Id : null;
-                };
 
-                // Map Warden IDs
-                const mapWardenId = (mappedItem: any) => {
-                    return mappedItem.hrmE_Id || null;
-                };
+                // Extract IDs for multi-selects
+                // Facilities
+                const selectedFacilityIds = (facilitiesRes?.data || []).map((item: any) => item.hlmftY_Id).filter(Boolean);
 
-                const selectedFacilityIds = (facilitiesRes.data || []).map(mapFacilityId).filter(Boolean);
-                const selectedWardenIds = (wardensRes.data || []).map(mapWardenId).filter(Boolean);
-                const selectedMessIds = (messesRes.data || []).map((m: any) => m.hlmM_Id).filter(Boolean);
+                // Wardens
+                const selectedWardenIds = (wardensRes?.data || []).map((item: any) => item.hrmE_Id).filter(Boolean);
 
-                const hostelPhotos = (photosRes.data || []).map((p: any) => ({
+                // Messes
+                const selectedMessIds = (messesRes?.data || []).map((item: any) => item.hlmM_Id).filter(Boolean);
+
+                // Photos
+                const hostelPhotos = (photosRes?.data || []).map((p: any) => ({
                     hlmhP_FileName: p.hlmhP_FileName,
                     hlmhP_FilePath: p.hlmhP_FilePath,
                     filetype: p.hlmhP_FileName?.split('.').pop()
@@ -63,12 +69,17 @@ export default function UpdateMasterHostelForm({
 
                 setInitialData({
                     ...rowData,
+                    // Ensure Country and State are strings for the Select components
                     ivrmmC_Id: rowData.ivrmmC_Id?.toString(),
                     ivrmmS_Id: rowData.ivrmmS_Id?.toString(),
+
+                    // Simple fields (ensure they are passed if not in rowData/undefined)
                     hlmH_TotalCapacity: rowData.hlmH_TotalCapacity,
                     hlmH_Pincode: rowData.hlmH_Pincode,
                     hlmH_TotalFloor: rowData.hlmH_TotalFloor,
                     hlmH_TotalRoom: rowData.hlmH_TotalRoom,
+
+                    // Mapped Arrays
                     selectedFacilityIds,
                     selectedWardenIds,
                     selectedMessIds,
@@ -76,23 +87,20 @@ export default function UpdateMasterHostelForm({
                 });
             } catch (error) {
                 console.error("Failed to fetch hostel details", error);
-                toast.error("Failed to load some hostel details. Please verify connections.");
+                toast.error("Failed to load some hostel details.");
+                // Fallback to basic data
                 setInitialData({
                     ...rowData,
-                    ivrmmC_Id: rowData.ivrmmC_Id?.toString()
+                    ivrmmC_Id: rowData.ivrmmC_Id?.toString(),
+                    ivrmmS_Id: rowData.ivrmmS_Id?.toString()
                 });
             } finally {
                 setIsLoading(false);
             }
         };
 
-        if (rowData?.hlmH_Id) {
-            fetchDetails();
-        } else {
-            setInitialData(rowData);
-            setIsLoading(false);
-        }
-    }, [rowData, facilities]);
+        fetchDetails();
+    }, [rowData]);
 
     if (isLoading) return <div>Loading details...</div>;
 
