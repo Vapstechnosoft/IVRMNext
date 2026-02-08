@@ -6,7 +6,6 @@ import { api } from '@/lib/apiService';
 // Get All Exam Subject Wizard Records
 // --------------------------------------------
 export async function getStudentsForSubjectMapping(params: {
-    MI_Id: number;
     ASMAY_Id: number;
     ASMCL_Id: number;
     ASMS_Id: number;
@@ -17,7 +16,6 @@ export async function getStudentsForSubjectMapping(params: {
     EMG_Id: number;
 }) {
     const query = new URLSearchParams({
-        MI_Id: String(params.MI_Id),
         ASMAY_Id: String(params.ASMAY_Id),
         ASMCL_Id: String(params.ASMCL_Id),
         ASMS_Id: String(params.ASMS_Id),

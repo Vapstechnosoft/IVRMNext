@@ -29,7 +29,6 @@ export async function toggleConcessionCategoryGroupHeadMapping(fmaccG_Id: number
 }
 
 export async function getconcessioncategorydropdown() {
-    //const url = 'FeeConcessionFacade/getfeeconcessioncategories/30';
     const url = 'FeeMasterConcession/concession_dropdown_list';
     return await api.get<IConcessionCategoryDropdownList[]>('fees', url);
 }

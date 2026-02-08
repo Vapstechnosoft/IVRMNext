@@ -125,13 +125,13 @@ export const useExamSubjectGroupMapping = (searchParams?: ApiSearchparams) => {
         }
     };
 };
-export const useExamSubjectGroupMappingDetails = (sorgId: number, compulsary_flag: string, asmay_id: number, esG_Id: number) => {
+export const useExamSubjectGroupMappingDetails = (compulsary_flag: string, asmay_id: number, esG_Id: number) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.EXAM_SUBJECT_GROUP_MAPPING_DETAILS],
-            queryFn: async () => getExamSubjectGroupMappingDetails(sorgId, compulsary_flag, asmay_id, esG_Id),
+            queryFn: async () => getExamSubjectGroupMappingDetails(compulsary_flag, asmay_id, esG_Id),
             staleTime: 0
         }),
 
@@ -161,13 +161,13 @@ export const useExamTermAndExamMapping = (searchParams?: ApiSearchparams) => {
     };
 };
 
-export const useExamTermAndExamMappingDetails = (mi_id: number, asmay_id: number, emca_id: number, ect_id: number) => {
+export const useExamTermAndExamMappingDetails = (asmay_id: number, emca_id: number, ect_id: number) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.EXAM_TERM_AND_EXAM_MAPPING_DETAILS],
-            queryFn: async () => getExamTermAndExamMappingDetails(mi_id, asmay_id, emca_id, ect_id),
+            queryFn: async () => getExamTermAndExamMappingDetails(asmay_id, emca_id, ect_id),
             staleTime: 0
         }),
 
@@ -197,13 +197,13 @@ export const useExamSubjectWizard = (searchParams?: ApiSearchparams) => {
     };
 };
 
-export const useExamSubjectWizardDetails = (org_Id: number, ecycE_Id: number) => {
+export const useExamSubjectWizardDetails = (ecycE_Id: number) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.EXAM_SUBJECT_WIZARD_DETAILS],
-            queryFn: async () => getExamSubjectWizardDetails(org_Id, ecycE_Id),
+            queryFn: async () => getExamSubjectWizardDetails(ecycE_Id),
             staleTime: 0
         }),
 
@@ -215,13 +215,13 @@ export const useExamSubjectWizardDetails = (org_Id: number, ecycE_Id: number) =>
     };
 };
 
-export const useSubExamsMappedList = (org_Id: number, eyceS_Id: number) => {
+export const useSubExamsMappedList = (eyceS_Id: number) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [EXAM_QUERY_KEYS.SUB_EXAMS_MAPPED_VIEW, org_Id, eyceS_Id],
-            queryFn: async () => getSubExamsMappedList(org_Id, eyceS_Id),
+            queryKey: [EXAM_QUERY_KEYS.SUB_EXAMS_MAPPED_VIEW, eyceS_Id],
+            queryFn: async () => getSubExamsMappedList(eyceS_Id),
             staleTime: 0
         }),
 
@@ -233,13 +233,13 @@ export const useSubExamsMappedList = (org_Id: number, eyceS_Id: number) => {
     };
 };
 
-export const useSubSubjectsMappedList = (org_Id: number, eyceS_Id: number) => {
+export const useSubSubjectsMappedList = (eyceS_Id: number) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [EXAM_QUERY_KEYS.SUB_SUBJECTS_MAPPED_VIEW, org_Id, eyceS_Id],
-            queryFn: async () => getSubSubjectsMappedList(org_Id, eyceS_Id),
+            queryKey: [EXAM_QUERY_KEYS.SUB_SUBJECTS_MAPPED_VIEW, eyceS_Id],
+            queryFn: async () => getSubSubjectsMappedList(eyceS_Id),
             staleTime: 0
         }),
 
@@ -251,13 +251,13 @@ export const useSubSubjectsMappedList = (org_Id: number, eyceS_Id: number) => {
     };
 };
 
-export const useSubSubjectsAndSubExamsMappedList = (org_Id: number, eyceS_Id: number) => {
+export const useSubSubjectsAndSubExamsMappedList = (eyceS_Id: number) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [EXAM_QUERY_KEYS.SUB_BOTH_MAPPED_VIEW, org_Id, eyceS_Id],
-            queryFn: async () => getSubSubjectsAndSubExamsMappedList(org_Id, eyceS_Id),
+            queryKey: [EXAM_QUERY_KEYS.SUB_BOTH_MAPPED_VIEW, eyceS_Id],
+            queryFn: async () => getSubSubjectsAndSubExamsMappedList(eyceS_Id),
             staleTime: 0
         }),
 

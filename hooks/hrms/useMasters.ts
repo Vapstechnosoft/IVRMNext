@@ -11,7 +11,8 @@ import {
     getCourseSetOrder,
     getMasterCourse,
     getMasterCourseDetails,
-    toggleMasterCourse
+    toggleMasterCourse,
+    updateCourseSetorder
 } from '@/server/hrms/hrmsConfig/master/course';
 import { getDepartmentSetOrder, getMasterDepartment, getMasterDepartmentById } from '@/server/hrms/hrmsConfig/master/department';
 import { getDesignationSetOrder, getMasterDesignation, getMasterDesignationById } from '@/server/hrms/hrmsConfig/master/designation';
@@ -319,7 +320,18 @@ export function useCourseSetOrder() {
             return queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_COURSE_SET_ORDER]
             });
-        }
+        },
+        saveOrderMutation: useMutation({
+            mutationFn: (data: any) => updateCourseSetorder(data),
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.MASTER_COURSE]
+                });
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.MASTER_COURSE_SET_ORDER]
+                });
+            }
+        })
     };
 }
 // ============================================================================

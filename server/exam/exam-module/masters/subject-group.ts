@@ -7,7 +7,7 @@ import type { IMasterSubjectGroup, IMasterSubjectGroupDetails } from '@/types/ex
 // 1️⃣ Get all Master Subject Groups
 export async function getMasterSubjectGroup(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/master_subject_group/30?${urlParams}`;
+    const url = `/master_subject_group?${urlParams}`;
     return await api.get<IMasterSubjectGroup>('exam', url);
 }
 
@@ -24,14 +24,14 @@ export async function addOrUpdateMasterSubjectGroup(data: any) {
 }
 
 // 4️⃣ Toggle Master Subject Group Status
-export async function toggleMasterSubjectGroup(mi_id: number, id: number) {
-    const url = `/master_subject_group/toggle/${mi_id}/${id}`;
+export async function toggleMasterSubjectGroup(id: number) {
+    const url = `/master_subject_group/toggle/${id}`;
     return await api.put('exam', url);
 }
 
 export async function getAllMasterSubjectDetails(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/master_subject_group/master_subject_active_list/30?${urlParams}`;
+    const url = `/master_subject_group/master_subject_active_list?${urlParams}`;
     return await api.get<IMasterSubjectGroupDetails>('exam', url);
 }
 
@@ -40,7 +40,7 @@ export async function getMasterSubjectGroupDetailsById(groupId: number) {
     return await api.get<IMasterSubjectGroupDetails>('exam', url);
 }
 
-export async function getSubjectsGroupDropDownByList(mI_Id: number) {
-    const url = `/master_subject_group/subjects_group_drop_down_by_list/${mI_Id}`;
+export async function getSubjectsGroupDropDownByList() {
+    const url = '/master_subject_group/subjects_group_drop_down_by_list';
     return await api.get<IMasterSubjectGroupDetails>('exam', url);
 }

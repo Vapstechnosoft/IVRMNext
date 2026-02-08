@@ -9,7 +9,7 @@ import type { ICategory, ICategoryClassMappingDetails, ICategoryMapping, IClass,
 -------------------------------------------------- */
 export async function getExamMasterCategoryMapping(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `exam_master_category/exam_category_class_list/30?${urlParams}`;
+    const url = `exam_master_category/exam_category_class_list/?${urlParams}`;
     const response = await api.get<ICategoryMapping>('exam', url);
 
     return {
@@ -28,8 +28,8 @@ export async function addOrUpdateExamMasterCategory(data: ICategoryMapping) {
 /* -------------------------------------------------
    TOGGLE MASTER CATEGORY
 -------------------------------------------------- */
-export async function toggleMasterExamCategory(mi_id: number, id: number) {
-    const url = `/master_category/toggle/${mi_id}/${id}`;
+export async function toggleMasterExamCategory(id: number) {
+    const url = `/master_category/toggle/${id}`;
     return await api.put('exam', url);
 }
 
@@ -37,26 +37,26 @@ export async function toggleMasterExamCategory(mi_id: number, id: number) {
    GET CATEGORIES
 -------------------------------------------------- */
 export async function getCategories() {
-    const res = await api.get<ICategory>('exam', '/exam_master_category/exam_master_category_drop_down_list/30');
+    const res = await api.get<ICategory>('exam', '/exam_master_category/exam_master_category_drop_down_list/');
     return res;
 }
 /* -------------------------------------------------
    GET CLASSES
 -------------------------------------------------- */
 export async function getClasses() {
-    const url = 'student_application_form/master_class_drop_down_list?mi_id=30';
+    const url = 'student_application_form/master_class_drop_down_list';
     return await api.get<IClass>('preadmission', url);
 }
 
 export async function getCategoryMappedSections(academicYear: number, category: number, className: number) {
-    const url = `/exam_master_category/exam_category_class_details_by_ids/30/${category}/${academicYear}/${className}`;
+    const url = `/exam_master_category/exam_category_class_details_by_ids/${category}/${academicYear}/${className}`;
     return await api.get<ICategoryClassMappingDetails>('exam', url);
 }
 
 // Getting Assigned sections for Particular AcademicYear and Class
 
 export async function getClassMappedSections(academicYear_Id: number, class_Id: number) {
-    const url = `/exam_master_category/sections_drop_down_by_class_list/30/${class_Id}/${academicYear_Id}`;
+    const url = `/exam_master_category/sections_drop_down_by_class_list/${class_Id}/${academicYear_Id}`;
     return await api.get<ISection>('exam', url);
 }
 
@@ -78,6 +78,6 @@ export async function addOrUpdateCategoryClassMapping(data: any) {
 }
 
 export async function toggleMasterExamCategoryClassSection(ecaC_Id: number) {
-    const url = `/exam_master_category/toggle_exam_category_class_section/30/${ecaC_Id}`;
+    const url = `/exam_master_category/toggle_exam_category_class_section/${ecaC_Id}`;
     return await api.put('exam', url);
 }

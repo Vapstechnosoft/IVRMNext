@@ -63,8 +63,8 @@ export async function saveInvTItemConsumption(data: any) {
 }
 
 export async function deactiveInvTItemConsumption(data: any) {
-    const url = `/INV_ItemConsumption/deactive`;
-    return await api.post<any>('inventory', url, data);
+    const url = `/INV_ItemConsumptionFacade/deactive?INVMIC_Id=${data.invmiC_Id}&INVMIC_StuOtherFlg=${data.invmiC_StuOtherFlg}`;
+    return await api.post<any>('inventory', url, {});
 }
 
 export async function getItemConsumptionDetails(data: any) {

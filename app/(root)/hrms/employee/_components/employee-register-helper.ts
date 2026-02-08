@@ -265,6 +265,7 @@ export const tabFieldMap: Record<string, (keyof FormFields)[]> = {
         'nationalSSN',
         'aadharNo',
         'panCardNo',
+        'employeePhoto',
         'mobileDetails',
         'emailDetails',
         'bankDetails'
@@ -751,7 +752,7 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
                 cgpaOrPercentage: getValue(qual, 'hrmeQ_CGPAOrPerFlag') || 'CGPA',
                 cgpa: String(getValue(qual, 'hrmeQ_CGPAOrPerFlag') === 'Percentage' ? (getValue(qual, 'hrmeQ_Percentage') || getValue(qual, 'hrmeQ_CGPA') || '') : (getValue(qual, 'hrmeQ_CGPA') || getValue(qual, 'hrmeQ_Percentage') || '')),
                 percentage: String(getValue(qual, 'hrmeQ_Percentage') || ''),
-                areaOfSpecialisation: getValue(qual, 'hrmeQ_AreaOfSpecialisation') || '',
+                areaOfSpecialisation: numToString(getValue(qual, 'hrmeQ_AreaOfSpecialisation')) || numToString(getValue(qual, 'hrmeQ_AreaOfSpecialization')) || numToString(getValue(qual, 'specialisation')) || numToString(getValue(qual, 'specialization')) || numToString(getValue(qual, 'hrmeQ_SpecialisationId')) || numToString(getValue(qual, 'hrmeQ_SpecializationId')) || '',
                 phdFlag: getValue(qual, 'hrmeQ_PHDFlg') || false,
                 thesisTitle: getValue(qual, 'hrmeQ_ThesisTitle') || '',
                 registrationYear: numToString(getValue(qual, 'hrmeQ_RegistrationYear')),
@@ -925,7 +926,15 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
         middleName: v('hrmE_EmployeeMiddleName') || '',
         lastName: v('hrmE_EmployeeLastName') || '',
         employeeCode: v('hrmE_EmployeeCode') || '',
-        typeOfEmployment: numToString(v('hrmeT_Id') || v('HRMET_Id')),
+        typeOfEmployment: numToString(
+            v('hrmeT_Id') ||
+            v('HRMET_Id') ||
+            v('employeeTypeId') ||
+            v('EmployeeTypeId') ||
+            v('hrmet_id') ||
+            (apiData && apiData.HRMET_Id) ||
+            (data && data.HRMET_Id)
+        ),
         employeeGroup: numToString(v('hrmgT_Id') || v('HRMGT_Id')),
         department: numToString(v('hrmD_Id') || v('HRMD_Id') || v('mI_Id') || v('MI_Id')),
         designation: numToString(v('hrmdeS_Id') || v('HRMDES_Id')),

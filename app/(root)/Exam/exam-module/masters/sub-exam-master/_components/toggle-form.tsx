@@ -41,7 +41,7 @@ export default function ToggleSubExamForm({ rowData, onClose }: ToggleSubExamFor
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
             // ✅ use emsE_Id from schema
-            const response = await toggleMasterSubExam(30, Number(rowData.emsE_Id));
+            const response = await toggleMasterSubExam(Number(rowData.emsE_Id));
 
             if (response.success) {
                 toast.success(response.message);

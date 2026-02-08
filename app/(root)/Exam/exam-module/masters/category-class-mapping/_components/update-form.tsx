@@ -45,7 +45,6 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
     } = useForm<FormFields>({
         resolver: zodResolver(categoryClassMappingSchema.addOrUpdate),
         defaultValues: {
-            mI_Id: 30,
             ecaC_Id: selectedRow?.ecaC_Id ?? 0,
             asmaY_Id: selectedRow?.asmaY_Id ?? undefined,
             emcA_Id: selectedRow?.emcA_Id ?? 0,
@@ -415,7 +414,6 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
         }
 
         const payload: any = {
-            MI_Id: 30,
             ECAC_Id: selectedRow?.ecaC_Id ?? 0,
             YearClassCategory: mappingList.map((m) => ({
                 ASMAY_Id: Number(m.asmaY_Id),
