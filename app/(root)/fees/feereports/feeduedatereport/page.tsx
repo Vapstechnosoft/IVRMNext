@@ -223,7 +223,7 @@ export default function FeeDueDateReportForm() {
                 slno: index + 1,
                 feeGroup: item.fmG_GroupName,
                 feeHead: item.fmH_FeeName,
-                active: item.fmG_ActiveFlag,
+                active: item.fmG_ActiceFlag,
                 fine: item.fyg_FineApplicableFlag || '--',
                 installment: item.ftI_Name,
                 amount: item.amount

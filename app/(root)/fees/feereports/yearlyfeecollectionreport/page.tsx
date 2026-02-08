@@ -35,6 +35,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -53,7 +54,6 @@ import {
     printTable,
     printTermWiseTable
 } from './_components/columns';
-import React from 'react';
 
 const Checkbox = ({ checked, indeterminate, onCheckedChange, ...props }: any) => {
     const ref = useRef<HTMLButtonElement>(null);
@@ -119,6 +119,8 @@ export default function FeeYearlyCollectionReport() {
         busRouteIds: [] as number[],
         formatI: false,
         dueDate: new Date(),
+        fromDate: new Date(),
+        toDate: new Date(),
         dueDateType: 'Due Date' as 'Due Date' | 'Till Due Date',
         bulkDownload: false,
         dateFilter: '1' as '1' | '2' | '3' | '4'
@@ -346,9 +348,7 @@ export default function FeeYearlyCollectionReport() {
         }));
     };
 
-    const selectedTerms = feeTerms.filter(term => 
-            filters.termIds.includes(term.fmT_Id)
-        );
+    const selectedTerms = feeTerms.filter((term) => filters.termIds.includes(term.fmT_Id));
 
     const handleReset = () => {
         reset();
@@ -400,11 +400,7 @@ export default function FeeYearlyCollectionReport() {
         setReportLoading(true);
         setShowReport(false);
 
-        const { fromDate, toDate } = data;
         const today = new Date();
-
-        const effectiveFromDate = fromDate || today;
-        const effectiveToDate = toDate || today;
 
         try {
             const payload = {
@@ -454,9 +450,9 @@ export default function FeeYearlyCollectionReport() {
                 //         ? format(toDate ?? today, 'yyyy-MM-dd')
                 //         : null,
 
-                From_Date: filters.viewMode === 'date' ? format(effectiveFromDate, 'yyyy-MM-dd') : format(today, 'yyyy-MM-dd'),
+                From_Date: filters.viewMode === 'date' ? format(filters.fromDate, 'yyyy-MM-dd') : format(today, 'yyyy-MM-dd'),
 
-                To_Date: filters.viewMode === 'date' ? format(effectiveToDate, 'yyyy-MM-dd') : format(today, 'yyyy-MM-dd'),
+                To_Date: filters.viewMode === 'date' ? format(filters.toDate, 'yyyy-MM-dd') : format(today, 'yyyy-MM-dd'),
 
                 // Term Group (Hardcoded / configurable)
                 term_group: 'T',
@@ -637,7 +633,7 @@ export default function FeeYearlyCollectionReport() {
         exportToExcelforStudentWise(rowsToExport, 'yearly_Fee_Collection_Report');
     };
 
-        const handleExportExcelforTermWise = () => {
+    const handleExportExcelforTermWise = () => {
         const rowsToExport = reportData.filter((r) => selectedIds.includes(r.id));
 
         if (!rowsToExport || rowsToExport.length === 0) {
@@ -645,7 +641,7 @@ export default function FeeYearlyCollectionReport() {
             return;
         }
 
-        exportToExcelforTermWise(rowsToExport, 'yearly_Fee_Collection_Report',selectedTerms);
+        exportToExcelforTermWise(rowsToExport, 'yearly_Fee_Collection_Report', selectedTerms);
     };
 
     const handleExportExcelforInstallmentWise = () => {
@@ -946,14 +942,13 @@ export default function FeeYearlyCollectionReport() {
     };
 
     const handlePrintforTermWise = () => {
-  if (!reportData || reportData.length === 0) {
-    toast.error('No data to print');
-    return;
-  }
+        if (!reportData || reportData.length === 0) {
+            toast.error('No data to print');
+            return;
+        }
 
-  printTermWiseTable(reportData, selectedTerms);
-};
-
+        printTermWiseTable(reportData, selectedTerms);
+    };
 
     const handlePrintforInstallmentWise = () => {
         const rowsToPrint = reportData.filter((row) => selectedIds.includes(row.id));
@@ -1825,10 +1820,11 @@ export default function FeeYearlyCollectionReport() {
                                                 <input
                                                     id='fromDate'
                                                     type='date'
+                                                    value={filters.fromDate ? format(filters.fromDate, 'yyyy-MM-dd') : ''}
                                                     onChange={(e) =>
                                                         setFilters((prev) => ({
                                                             ...prev,
-                                                            fromDate: e.target.value ? new Date(e.target.value) : null
+                                                            fromDate: new Date(e.target.value)
                                                         }))
                                                     }
                                                     className='rounded border px-3 py-1'
@@ -1842,10 +1838,11 @@ export default function FeeYearlyCollectionReport() {
                                                 <input
                                                     id='toDate'
                                                     type='date'
+                                                    value={filters.toDate ? format(filters.toDate, 'yyyy-MM-dd') : ''}
                                                     onChange={(e) =>
                                                         setFilters((prev) => ({
                                                             ...prev,
-                                                            toDate: e.target.value ? new Date(e.target.value) : null
+                                                            toDate: new Date(e.target.value)
                                                         }))
                                                     }
                                                     className='rounded border px-3 py-1'
@@ -2721,181 +2718,241 @@ export default function FeeYearlyCollectionReport() {
                                                                 </div>
                                                             )}
 
-                                                           {filters.breakdown === 'TRMW' && (
-                                                            <div className='overflow-x-auto border'>
-                                                                <table className='w-full table-auto border-collapse'>
-                                                                    <thead className='bg-primary text-white'>
-                                                                        <tr>
-                                                                            <th className='p-2 text-center border'>
-                                                                                <Checkbox
-                                                                                    checked={
-                                                                                        selectedIds.length === reportData.length &&
-                                                                                        reportData.length > 0
-                                                                                    }
-                                                                                    indeterminate={
-                                                                                        selectedIds.length > 0 &&
-                                                                                        selectedIds.length < reportData.length
-                                                                                    }
-                                                                                    onCheckedChange={toggleAllstudents}
-                                                                                />
-                                                                            </th>
-                                                                            <th className='p-2 text-center border'>Sl No</th>
-                                                                            <th className='p-2 text-center border'>Fee Head</th>
-                                                                            
-                                                                            {/* For EACH selected term, render 7 columns */}
-                                                                            {selectedTerms.map(term => (
-                                                                                <React.Fragment key={term.fmT_Id}>
-                                                                                    <th colSpan={7} className='p-2 text-center border-x border-y'>
-                                                                                        {term.fmT_Name}
-                                                                                    </th>
-                                                                                </React.Fragment>
-                                                                            ))}
-                                                                            
-                                                                        </tr>
-                                                                        
-                                                                        {/* Sub-header row for term columns */}
-                                                                        <tr className='bg-primary/90 text-white'>
-                                                                            <th className='p-2 text-center border'></th>
-                                                                            <th className='p-2 text-center border'></th>
-                                                                            <th className='p-2 text-center border'></th>
-                                                                            
-                                                                            {selectedTerms.map(term => (
-                                                                                <React.Fragment key={term.fmT_Id}>
-                                                                                    <th className='p-2 text-center border'>Paid</th>
-                                                                                    <th className='p-2 text-center border'>Balance</th>
-                                                                                    <th className='p-2 text-center border'>Concession</th>
-                                                                                    <th className='p-2 text-center border'>Arrear</th>
-                                                                                    <th className='p-2 text-center border'>Excess</th>
-                                                                                    <th className='p-2 text-center border'>Charges</th>
-                                                                                    <th className='p-2 text-center border border-r-2'>Payable</th>
-                                                                                </React.Fragment>
-                                                                            ))}
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        {reportData
-                                                                            .filter(row => 
-                                                                                // Filter by selected fee heads if needed
-                                                                                true // or your filter logic
-                                                                            )
-                                                                            .map((row, index) => (
-                                                                            <tr key={row.id} className='border-b hover:bg-gray-50'>
-                                                                                <td className='p-2 text-center border'>
+                                                            {filters.breakdown === 'TRMW' && (
+                                                                <div className='overflow-x-auto border'>
+                                                                    <table className='w-full table-auto border-collapse'>
+                                                                        <thead className='bg-primary text-white'>
+                                                                            <tr>
+                                                                                <th className='border p-2 text-center'>
                                                                                     <Checkbox
-                                                                                        checked={selectedIds.includes(row.id)}
-                                                                                        onCheckedChange={() => toggleRow(row.id)}
+                                                                                        checked={
+                                                                                            selectedIds.length === reportData.length &&
+                                                                                            reportData.length > 0
+                                                                                        }
+                                                                                        indeterminate={
+                                                                                            selectedIds.length > 0 &&
+                                                                                            selectedIds.length < reportData.length
+                                                                                        }
+                                                                                        onCheckedChange={toggleAllstudents}
                                                                                     />
+                                                                                </th>
+                                                                                <th className='border p-2 text-center'>Sl No</th>
+                                                                                <th className='border p-2 text-center'>Fee Head</th>
+
+                                                                                {/* For EACH selected term, render 7 columns */}
+                                                                                {selectedTerms.map((term) => (
+                                                                                    <React.Fragment key={term.fmT_Id}>
+                                                                                        <th
+                                                                                            colSpan={7}
+                                                                                            className='border-x border-y p-2 text-center'>
+                                                                                            {term.fmT_Name}
+                                                                                        </th>
+                                                                                    </React.Fragment>
+                                                                                ))}
+                                                                            </tr>
+
+                                                                            {/* Sub-header row for term columns */}
+                                                                            <tr className='bg-primary/90 text-white'>
+                                                                                <th className='border p-2 text-center'>{''}</th>
+                                                                                <th className='border p-2 text-center'> {''}</th>
+                                                                                <th className='border p-2 text-center'>{''}</th>
+
+                                                                                {selectedTerms.map((term) => (
+                                                                                    <React.Fragment key={term.fmT_Id}>
+                                                                                        <th className='border p-2 text-center'>Paid</th>
+                                                                                        <th className='border p-2 text-center'>Balance</th>
+                                                                                        <th className='border p-2 text-center'>
+                                                                                            Concession
+                                                                                        </th>
+                                                                                        <th className='border p-2 text-center'>Arrear</th>
+                                                                                        <th className='border p-2 text-center'>Excess</th>
+                                                                                        <th className='border p-2 text-center'>Charges</th>
+                                                                                        <th className='border border-r-2 p-2 text-center'>
+                                                                                            Payable
+                                                                                        </th>
+                                                                                    </React.Fragment>
+                                                                                ))}
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            {reportData
+                                                                                .filter((row) => true)
+                                                                                .map((row, index) => (
+                                                                                    <tr key={row.id} className='border-b hover:bg-gray-50'>
+                                                                                        <td className='border p-2 text-center'>
+                                                                                            <Checkbox
+                                                                                                checked={selectedIds.includes(row.id)}
+                                                                                                onCheckedChange={() => toggleRow(row.id)}
+                                                                                            />
+                                                                                        </td>
+                                                                                        <td className='border p-2 text-center font-medium'>
+                                                                                            {index + 1}
+                                                                                        </td>
+                                                                                        <td className='border p-2 text-center'>
+                                                                                            {row.fmh_feename}
+                                                                                        </td>
+
+                                                                                        {selectedTerms.map((term, termIndex) => {
+                                                                                            const termData = reportData.find(
+                                                                                                (item) =>
+                                                                                                    item.fmh_id === row.fmh_id &&
+                                                                                                    item.fmt_id === term.fmT_Id
+                                                                                            );
+
+                                                                                            const isLastColumnInTermGroup =
+                                                                                                termIndex === selectedTerms.length - 1;
+
+                                                                                            return (
+                                                                                                <React.Fragment key={term.fmT_Id}>
+                                                                                                    <td className='border p-2 text-center font-bold'>
+                                                                                                        {termData?.paid?.toLocaleString(
+                                                                                                            'en-IN'
+                                                                                                        ) || '0'}
+                                                                                                    </td>
+                                                                                                    <td className='border p-2 text-center font-bold'>
+                                                                                                        {termData?.balance?.toLocaleString(
+                                                                                                            'en-IN'
+                                                                                                        ) || '0'}
+                                                                                                    </td>
+                                                                                                    <td className='border p-2 text-center font-bold'>
+                                                                                                        {termData?.concession?.toLocaleString(
+                                                                                                            'en-IN'
+                                                                                                        ) || '0'}
+                                                                                                    </td>
+                                                                                                    <td className='border p-2 text-center font-bold'>
+                                                                                                        {termData?.arrear?.toLocaleString(
+                                                                                                            'en-IN'
+                                                                                                        ) || '0'}
+                                                                                                    </td>
+                                                                                                    <td className='border p-2 text-center font-bold'>
+                                                                                                        ₹
+                                                                                                        {termData?.excess?.toLocaleString(
+                                                                                                            'en-IN'
+                                                                                                        ) || '0'}
+                                                                                                    </td>
+                                                                                                    <td className='border p-2 text-center font-bold'>
+                                                                                                        ₹
+                                                                                                        {termData?.charges?.toLocaleString(
+                                                                                                            'en-IN'
+                                                                                                        ) || '0'}
+                                                                                                    </td>
+                                                                                                    <td
+                                                                                                        className={`border p-2 text-center font-bold ${isLastColumnInTermGroup ? 'border-r-2' : ''}`}>
+                                                                                                        ₹
+                                                                                                        {termData?.payable?.toLocaleString(
+                                                                                                            'en-IN'
+                                                                                                        ) || '0'}
+                                                                                                    </td>
+                                                                                                </React.Fragment>
+                                                                                            );
+                                                                                        })}
+                                                                                    </tr>
+                                                                                ))}
+
+                                                                            {/* Totals Row */}
+                                                                            <tr className='bg-gray-100 font-bold'>
+                                                                                <td colSpan={3} className='border p-2 text-right'>
+                                                                                    Total:
                                                                                 </td>
-                                                                                <td className='p-2 text-center font-medium border'>
-                                                                                    {index + 1}
-                                                                                </td>
-                                                                                <td className='p-2 text-center border'>
-                                                                                    {row.fmh_feename}
-                                                                                </td>
-                                                                                
+
+                                                                                {/* Term-wise totals */}
                                                                                 {selectedTerms.map((term, termIndex) => {
-                                                                                    const termData = reportData.find(item => 
-                                                                                        item.fmh_id === row.fmh_id && 
-                                                                                        item.fmt_id === term.fmT_Id
+                                                                                    const isLastColumnInTermGroup =
+                                                                                        termIndex === selectedTerms.length - 1;
+
+                                                                                    // Filter data for this specific term
+                                                                                    const termDataForTotal = reportData.filter(
+                                                                                        (item) => item.fmt_id === term.fmT_Id
                                                                                     );
-                                                                                    
-                                                                                    const isLastColumnInTermGroup = termIndex === selectedTerms.length - 1;
-                                                                                    
+
                                                                                     return (
                                                                                         <React.Fragment key={term.fmT_Id}>
-                                                                                            <td className='p-2 text-center font-bold border'>
-                                                                                                {termData?.paid?.toLocaleString('en-IN') || '0'}
+                                                                                            <td className='border p-2 text-center font-bold text-blue-700'>
+                                                                                                ₹
+                                                                                                {termDataForTotal
+                                                                                                    .reduce(
+                                                                                                        (sum, row) => sum + (row.paid || 0),
+                                                                                                        0
+                                                                                                    )
+                                                                                                    .toLocaleString('en-IN')}
                                                                                             </td>
-                                                                                            <td className='p-2 text-center font-bold border'>
-                                                                                                {termData?.balance?.toLocaleString('en-IN') || '0'}
+                                                                                            <td className='border p-2 text-center font-bold text-blue-700'>
+                                                                                                ₹
+                                                                                                {termDataForTotal
+                                                                                                    .reduce(
+                                                                                                        (sum, row) =>
+                                                                                                            sum + (row.balance || 0),
+                                                                                                        0
+                                                                                                    )
+                                                                                                    .toLocaleString('en-IN')}
                                                                                             </td>
-                                                                                            <td className='p-2 text-center font-bold border'>
-                                                                                                {termData?.concession?.toLocaleString('en-IN') || '0'}
+                                                                                            <td className='border p-2 text-center font-bold text-blue-700'>
+                                                                                                ₹
+                                                                                                {termDataForTotal
+                                                                                                    .reduce(
+                                                                                                        (sum, row) =>
+                                                                                                            sum + (row.concession || 0),
+                                                                                                        0
+                                                                                                    )
+                                                                                                    .toLocaleString('en-IN')}
                                                                                             </td>
-                                                                                            <td className='p-2 text-center font-bold border'>
-                                                                                                {termData?.arrear?.toLocaleString('en-IN') || '0'}
+                                                                                            <td className='border p-2 text-center font-bold text-blue-700'>
+                                                                                                ₹
+                                                                                                {termDataForTotal
+                                                                                                    .reduce(
+                                                                                                        (sum, row) =>
+                                                                                                            sum + (row.arrear || 0),
+                                                                                                        0
+                                                                                                    )
+                                                                                                    .toLocaleString('en-IN')}
                                                                                             </td>
-                                                                                            <td className='p-2 text-center font-bold border'>
-                                                                                                ₹{termData?.excess?.toLocaleString('en-IN') || '0'}
+                                                                                            <td className='border p-2 text-center font-bold text-blue-700'>
+                                                                                                ₹
+                                                                                                {termDataForTotal
+                                                                                                    .reduce(
+                                                                                                        (sum, row) =>
+                                                                                                            sum + (row.excess || 0),
+                                                                                                        0
+                                                                                                    )
+                                                                                                    .toLocaleString('en-IN')}
                                                                                             </td>
-                                                                                            <td className='p-2 text-center font-bold border'>
-                                                                                                ₹{termData?.charges?.toLocaleString('en-IN') || '0'}
+                                                                                            <td className='border p-2 text-center font-bold text-blue-700'>
+                                                                                                ₹
+                                                                                                {termDataForTotal
+                                                                                                    .reduce(
+                                                                                                        (sum, row) =>
+                                                                                                            sum + (row.charges || 0),
+                                                                                                        0
+                                                                                                    )
+                                                                                                    .toLocaleString('en-IN')}
                                                                                             </td>
-                                                                                            <td className={`p-2 text-center font-bold border ${isLastColumnInTermGroup ? 'border-r-2' : ''}`}>
-                                                                                                ₹{termData?.payable?.toLocaleString('en-IN') || '0'}
+                                                                                            <td
+                                                                                                className={`border p-2 text-center font-bold text-blue-700 ${isLastColumnInTermGroup ? 'border-r-2' : ''}`}>
+                                                                                                ₹
+                                                                                                {termDataForTotal
+                                                                                                    .reduce(
+                                                                                                        (sum, row) =>
+                                                                                                            sum + (row.payable || 0),
+                                                                                                        0
+                                                                                                    )
+                                                                                                    .toLocaleString('en-IN')}
                                                                                             </td>
                                                                                         </React.Fragment>
                                                                                     );
                                                                                 })}
-                                                                                
                                                                             </tr>
-                                                                        ))}
-
-                                                                        {/* Totals Row */}
-                                                                        <tr className='bg-gray-100 font-bold'>
-                                                                            <td colSpan={3} className='p-2 text-right border'>
-                                                                                Total:
-                                                                            </td>
-                                                                            
-                                                                            {/* Term-wise totals */}
-                                                                            {selectedTerms.map((term, termIndex) => {
-                                                                                const isLastColumnInTermGroup = termIndex === selectedTerms.length - 1;
-                                                                                
-                                                                                // Filter data for this specific term
-                                                                                const termDataForTotal = reportData.filter(item => 
-                                                                                    item.fmt_id === term.fmT_Id
-                                                                                );
-                                                                                
-                                                                                return (
-                                                                                    <React.Fragment key={term.fmT_Id}>
-                                                                                        <td className='p-2 text-center font-bold text-blue-700 border'>
-                                                                                            ₹{termDataForTotal.reduce((sum, row) => 
-                                                                                                sum + (row.paid || 0), 0
-                                                                                            ).toLocaleString('en-IN')}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center font-bold text-blue-700 border'>
-                                                                                            ₹{termDataForTotal.reduce((sum, row) => 
-                                                                                                sum + (row.balance || 0), 0
-                                                                                            ).toLocaleString('en-IN')}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center font-bold text-blue-700 border'>
-                                                                                            ₹{termDataForTotal.reduce((sum, row) => 
-                                                                                                sum + (row.concession || 0), 0
-                                                                                            ).toLocaleString('en-IN')}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center font-bold text-blue-700 border'>
-                                                                                            ₹{termDataForTotal.reduce((sum, row) => 
-                                                                                                sum + (row.arrear || 0), 0
-                                                                                            ).toLocaleString('en-IN')}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center font-bold text-blue-700 border'>
-                                                                                            ₹{termDataForTotal.reduce((sum, row) => 
-                                                                                                sum + (row.excess || 0), 0
-                                                                                            ).toLocaleString('en-IN')}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center font-bold text-blue-700 border'>
-                                                                                            ₹{termDataForTotal.reduce((sum, row) => 
-                                                                                                sum + (row.charges || 0), 0
-                                                                                            ).toLocaleString('en-IN')}
-                                                                                        </td>
-                                                                                        <td className={`p-2 text-center font-bold text-blue-700 border ${isLastColumnInTermGroup ? 'border-r-2' : ''}`}>
-                                                                                            ₹{termDataForTotal.reduce((sum, row) => 
-                                                                                                sum + (row.payable || 0), 0
-                                                                                            ).toLocaleString('en-IN')}
-                                                                                        </td>
-                                                                                    </React.Fragment>
-                                                                                );
-                                                                            })}
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                                <div className='p-2 font-medium text-sm'>
-                                                                    Total Records: {reportData.filter(row => 
-                                                                        selectedTerms.some(term => term.fmT_Id === row.fmt_id)
-                                                                    ).length}
+                                                                        </tbody>
+                                                                    </table>
+                                                                    <div className='p-2 font-medium text-sm'>
+                                                                        Total Records:{' '}
+                                                                        {
+                                                                            reportData.filter((row) =>
+                                                                                selectedTerms.some((term) => term.fmT_Id === row.fmt_id)
+                                                                            ).length
+                                                                        }
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-)}
+                                                            )}
                                                             {filters.breakdown === 'INMW' && (
                                                                 <div className='overflow-x-auto border'>
                                                                     <div className='overflow-x-auto border'>
@@ -3073,209 +3130,326 @@ export default function FeeYearlyCollectionReport() {
                                                                     </div>
                                                                 </div>
                                                             )}
-                                                           {filters.breakdown === 'STRMW' && (
-                                                            <div className='overflow-x-auto border'>
-                                                                <table className='w-full table-auto border-collapse'>
-                                                                    <thead className='bg-primary text-white'>
-                                                                        <tr>
-                                                                            <th className='p-2 text-center border' rowSpan={2}>
-                                                                                <Checkbox
-                                                                                    checked={
-                                                                                        selectedIds.length === reportData.length &&
-                                                                                        reportData.length > 0
-                                                                                    }
-                                                                                    indeterminate={
-                                                                                        selectedIds.length > 0 &&
-                                                                                        selectedIds.length < reportData.length
-                                                                                    }
-                                                                                    onCheckedChange={toggleAllstudents}
-                                                                                />
-                                                                            </th>
-                                                                            <th className='p-2 text-center border' rowSpan={2}>Sl No</th>
-                                                                            <th className='p-2 text-center border' rowSpan={2}>Student Name</th>
-                                                                            <th className='p-2 text-center border' rowSpan={2}>Class:Section</th>
-                                                                            <th className='p-2 text-center border' rowSpan={2}>CD Net Amount</th>
-                                                                            <th className='p-2 text-center border' rowSpan={2}>CD Paid Amount</th>
-                                                                            <th className='p-2 text-center border' rowSpan={2}>CD Balance Amount</th>
-                                                                            {selectedTerms.map(term => (
-                                                                                <React.Fragment key={term.fmT_Id}>
-                                                                                    <th colSpan={11} className='p-2 text-center border-x border-y'>
-                                                                                        {term.fmT_Name}
-                                                                                    </th>
-                                                                                </React.Fragment>
-                                                                            ))}
-                                                                        </tr>
-                                                                        <tr className='bg-primary/90 text-white'>
-                                                                            {selectedTerms.map(term => (
-                                                                                <React.Fragment key={term.fmT_Id}>
-                                                                                    <th className='p-2 text-center border'>Total Charges</th>
-                                                                            <th className='p-2 text-center border'>Total Arrear</th>
-                                                                            <th className='p-2 text-center border'>Total Concession</th>
-                                                                            <th className='p-2 text-center border'>Total WaivedOff</th>
-                                                                            <th className='p-2 text-center border'>Total AdjustedAmount</th>
-                                                                            <th className='p-2 text-center border'>Total Payable</th>
-                                                                            <th className='p-2 text-center border'>Total Paid</th>
-                                                                            <th className='p-2 text-center border'>Total Balance</th>
-                                                                            <th className='p-2 text-center border'>Total Excess</th>
-                                                                            <th className='p-2 text-center border'>Total Refund</th>
-                                                                            <th className='p-2 text-center border'>Total Adjusted</th>
-                                                                                </React.Fragment>
-                                                                            ))}
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        {reportData.map((row, index) => (
-                                                                            <tr key={row.id} className='border-b hover:bg-gray-50'>
-                                                                                <td className='p-2 text-center border'>
+                                                            {filters.breakdown === 'STRMW' && (
+                                                                <div className='overflow-x-auto border'>
+                                                                    <table className='w-full table-auto border-collapse'>
+                                                                        <thead className='bg-primary text-white'>
+                                                                            <tr>
+                                                                                <th className='border p-2 text-center' rowSpan={2}>
                                                                                     <Checkbox
-                                                                                        checked={selectedIds.includes(row.id)}
-                                                                                        onCheckedChange={() => toggleRow(row.id)}
+                                                                                        checked={
+                                                                                            selectedIds.length === reportData.length &&
+                                                                                            reportData.length > 0
+                                                                                        }
+                                                                                        indeterminate={
+                                                                                            selectedIds.length > 0 &&
+                                                                                            selectedIds.length < reportData.length
+                                                                                        }
+                                                                                        onCheckedChange={toggleAllstudents}
                                                                                     />
+                                                                                </th>
+                                                                                <th className='border p-2 text-center' rowSpan={2}>
+                                                                                    Sl No
+                                                                                </th>
+                                                                                <th className='border p-2 text-center' rowSpan={2}>
+                                                                                    Student Name
+                                                                                </th>
+                                                                                <th className='border p-2 text-center' rowSpan={2}>
+                                                                                    Class:Section
+                                                                                </th>
+                                                                                <th className='border p-2 text-center' rowSpan={2}>
+                                                                                    CD Net Amount
+                                                                                </th>
+                                                                                <th className='border p-2 text-center' rowSpan={2}>
+                                                                                    CD Paid Amount
+                                                                                </th>
+                                                                                <th className='border p-2 text-center' rowSpan={2}>
+                                                                                    CD Balance Amount
+                                                                                </th>
+                                                                                {selectedTerms.map((term) => (
+                                                                                    <React.Fragment key={term.fmT_Id}>
+                                                                                        <th
+                                                                                            colSpan={11}
+                                                                                            className='border-x border-y p-2 text-center'>
+                                                                                            {term.fmT_Name}
+                                                                                        </th>
+                                                                                    </React.Fragment>
+                                                                                ))}
+                                                                            </tr>
+                                                                            <tr className='bg-primary/90 text-white'>
+                                                                                {selectedTerms.map((term) => (
+                                                                                    <React.Fragment key={term.fmT_Id}>
+                                                                                        <th className='border p-2 text-center'>
+                                                                                            Total Charges
+                                                                                        </th>
+                                                                                        <th className='border p-2 text-center'>
+                                                                                            Total Arrear
+                                                                                        </th>
+                                                                                        <th className='border p-2 text-center'>
+                                                                                            Total Concession
+                                                                                        </th>
+                                                                                        <th className='border p-2 text-center'>
+                                                                                            Total WaivedOff
+                                                                                        </th>
+                                                                                        <th className='border p-2 text-center'>
+                                                                                            Total AdjustedAmount
+                                                                                        </th>
+                                                                                        <th className='border p-2 text-center'>
+                                                                                            Total Payable
+                                                                                        </th>
+                                                                                        <th className='border p-2 text-center'>
+                                                                                            Total Paid
+                                                                                        </th>
+                                                                                        <th className='border p-2 text-center'>
+                                                                                            Total Balance
+                                                                                        </th>
+                                                                                        <th className='border p-2 text-center'>
+                                                                                            Total Excess
+                                                                                        </th>
+                                                                                        <th className='border p-2 text-center'>
+                                                                                            Total Refund
+                                                                                        </th>
+                                                                                        <th className='border p-2 text-center'>
+                                                                                            Total Adjusted
+                                                                                        </th>
+                                                                                    </React.Fragment>
+                                                                                ))}
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            {reportData.map((row, index) => (
+                                                                                <tr key={row.id} className='border-b hover:bg-gray-50'>
+                                                                                    <td className='border p-2 text-center'>
+                                                                                        <Checkbox
+                                                                                            checked={selectedIds.includes(row.id)}
+                                                                                            onCheckedChange={() => toggleRow(row.id)}
+                                                                                        />
+                                                                                    </td>
+                                                                                    <td className='border p-2 text-center font-medium'>
+                                                                                        {index + 1}
+                                                                                    </td>
+                                                                                    <td className='border p-2 text-center'>
+                                                                                        {row.studentName}
+                                                                                    </td>
+                                                                                    <td className='border p-2 text-center'>
+                                                                                        {row.asmcl_ClassName}
+                                                                                    </td>
+                                                                                    <td className='border p-2 text-center'>
+                                                                                        {row.cdNetAmount?.toLocaleString('en-IN') || '0'}
+                                                                                    </td>
+                                                                                    <td className='border p-2 text-center'>
+                                                                                        {row.cdPaidAmount?.toLocaleString('en-IN') || '0'}
+                                                                                    </td>
+                                                                                    <td className='border p-2 text-center'>
+                                                                                        {row.cdBalanceAmount?.toLocaleString('en-IN') ||
+                                                                                            '0'}
+                                                                                    </td>
+                                                                                    {selectedTerms.map((term, termIndex) => {
+                                                                                        const termData = reportData.find(
+                                                                                            (item) => item.fmt_Id === term.fmT_Id
+                                                                                        );
+                                                                                        const isLastColumnInTermGroup =
+                                                                                            termIndex === selectedTerms.length - 1;
+
+                                                                                        return (
+                                                                                            <React.Fragment key={term.fmT_Id}>
+                                                                                                <td className='border p-2 text-center font-bold'>
+                                                                                                    {termData?.charges?.toLocaleString(
+                                                                                                        'en-IN'
+                                                                                                    ) || '0'}
+                                                                                                </td>
+                                                                                                <td className='border p-2 text-center font-bold'>
+                                                                                                    {termData?.arrear?.toLocaleString(
+                                                                                                        'en-IN'
+                                                                                                    ) || '0'}
+                                                                                                </td>
+                                                                                                <td className='border p-2 text-center font-bold'>
+                                                                                                    {termData?.concession?.toLocaleString(
+                                                                                                        'en-IN'
+                                                                                                    ) || '0'}
+                                                                                                </td>
+                                                                                                <td className='border p-2 text-center font-bold'>
+                                                                                                    {termData?.waived?.toLocaleString(
+                                                                                                        'en-IN'
+                                                                                                    ) || '0'}
+                                                                                                </td>
+                                                                                                <td className='border p-2 text-center font-bold'>
+                                                                                                    {termData?.adjusted?.toLocaleString(
+                                                                                                        'en-IN'
+                                                                                                    ) || '0'}
+                                                                                                </td>
+                                                                                                <td className='border p-2 text-center font-bold'>
+                                                                                                    {termData?.payable?.toLocaleString(
+                                                                                                        'en-IN'
+                                                                                                    ) || '0'}
+                                                                                                </td>
+                                                                                                <td className='border p-2 text-center font-bold'>
+                                                                                                    {termData?.paid?.toLocaleString(
+                                                                                                        'en-IN'
+                                                                                                    ) || '0'}
+                                                                                                </td>
+                                                                                                <td className='border p-2 text-center font-bold'>
+                                                                                                    {termData?.balance?.toLocaleString(
+                                                                                                        'en-IN'
+                                                                                                    ) || '0'}
+                                                                                                </td>
+                                                                                                <td className='border p-2 text-center font-bold'>
+                                                                                                    {termData?.excess?.toLocaleString(
+                                                                                                        'en-IN'
+                                                                                                    ) || '0'}
+                                                                                                </td>
+                                                                                                <td className='border p-2 text-center font-bold'>
+                                                                                                    {termData?.refund?.toLocaleString(
+                                                                                                        'en-IN'
+                                                                                                    ) || '0'}
+                                                                                                </td>
+                                                                                                <td
+                                                                                                    className={`border p-2 text-center font-bold ${isLastColumnInTermGroup ? 'border-r-2' : ''}`}>
+                                                                                                    {termData?.adjusted?.toLocaleString(
+                                                                                                        'en-IN'
+                                                                                                    ) || '0'}
+                                                                                                </td>
+                                                                                            </React.Fragment>
+                                                                                        );
+                                                                                    })}
+                                                                                </tr>
+                                                                            ))}
+                                                                            <tr className='bg-gray-100 font-bold'>
+                                                                                <td colSpan={7} className='border p-2 text-right'>
+                                                                                    Total:
                                                                                 </td>
-                                                                                <td className='p-2 text-center font-medium border'>
-                                                                                    {index + 1}
-                                                                                </td>
-                                                                                <td className='p-2 text-center border'>
-                                                                                    {row.studentName}
-                                                                                </td>
-                                                                                <td className='p-2 text-center border'>
-                                                                                    {row.asmcl_ClassName}
-                                                                                </td>
-                                                                                <td className='p-2 text-center border'>
-                                                                                    {row.cdNetAmount?.toLocaleString('en-IN') || '0'}
-                                                                                </td>
-                                                                                <td className='p-2 text-center border'>
-                                                                                    {row.cdPaidAmount?.toLocaleString('en-IN') || '0'}
-                                                                                </td>
-                                                                                <td className='p-2 text-center border'>
-                                                                                    {row.cdBalanceAmount?.toLocaleString('en-IN') || '0'}
-                                                                                </td>
+
+                                                                                {/* Term-wise totals */}
                                                                                 {selectedTerms.map((term, termIndex) => {
-                                                                                    const termData = reportData.find(item =>  
-                                                                                        item.fmt_Id === term.fmT_Id
+                                                                                    const isLastColumnInTermGroup =
+                                                                                        termIndex === selectedTerms.length - 1;
+                                                                                    const termDataForTotal = reportData.filter(
+                                                                                        (item) => item.fmt_Id === term.fmT_Id
                                                                                     );
-                                                                                    const isLastColumnInTermGroup = termIndex === selectedTerms.length - 1;
-                                                                                    
+
                                                                                     return (
                                                                                         <React.Fragment key={term.fmT_Id}>
-                                                                                            <td className='p-2 text-center font-bold border'>
-                                                                                                {termData?.charges?.toLocaleString('en-IN') || '0'}
+                                                                                            <td className='border p-2 text-center font-bold text-blue-700'>
+                                                                                                ₹
+                                                                                                {termDataForTotal
+                                                                                                    .reduce(
+                                                                                                        (sum, row) =>
+                                                                                                            sum + (row.charges || 0),
+                                                                                                        0
+                                                                                                    )
+                                                                                                    .toLocaleString('en-IN')}
                                                                                             </td>
-                                                                                            <td className='p-2 text-center font-bold border'>
-                                                                                                {termData?.arrear?.toLocaleString('en-IN') || '0'}
+                                                                                            <td className='border p-2 text-center font-bold text-blue-700'>
+                                                                                                ₹
+                                                                                                {termDataForTotal
+                                                                                                    .reduce(
+                                                                                                        (sum, row) =>
+                                                                                                            sum + (row.arrear || 0),
+                                                                                                        0
+                                                                                                    )
+                                                                                                    .toLocaleString('en-IN')}
                                                                                             </td>
-                                                                                            <td className='p-2 text-center font-bold border'>
-                                                                                                {termData?.concession?.toLocaleString('en-IN') || '0'}
+                                                                                            <td className='border p-2 text-center font-bold text-blue-700'>
+                                                                                                ₹
+                                                                                                {termDataForTotal
+                                                                                                    .reduce(
+                                                                                                        (sum, row) =>
+                                                                                                            sum + (row.concession || 0),
+                                                                                                        0
+                                                                                                    )
+                                                                                                    .toLocaleString('en-IN')}
                                                                                             </td>
-                                                                                            <td className='p-2 text-center border font-bold'>
-                                                                                                {termData?.waived?.toLocaleString('en-IN') || '0'}
+                                                                                            <td className='border p-2 text-center font-bold text-blue-700'>
+                                                                                                ₹
+                                                                                                {termDataForTotal
+                                                                                                    .reduce(
+                                                                                                        (sum, row) =>
+                                                                                                            sum + (row.waived || 0),
+                                                                                                        0
+                                                                                                    )
+                                                                                                    .toLocaleString('en-IN')}
                                                                                             </td>
-                                                                                            <td className='p-2 text-center font-bold border'>
-                                                                                                {termData?.adjusted?.toLocaleString('en-IN') || '0'}
+                                                                                            <td className='border p-2 text-center font-bold text-blue-700'>
+                                                                                                ₹
+                                                                                                {termDataForTotal
+                                                                                                    .reduce(
+                                                                                                        (sum, row) =>
+                                                                                                            sum + (row.adjusted || 0),
+                                                                                                        0
+                                                                                                    )
+                                                                                                    .toLocaleString('en-IN')}
                                                                                             </td>
-                                                                                            <td className='p-2 text-center font-bold border'>
-                                                                                                {termData?.payable?.toLocaleString('en-IN') || '0'}
+                                                                                            <td className='border p-2 text-center font-bold text-blue-700'>
+                                                                                                ₹
+                                                                                                {termDataForTotal
+                                                                                                    .reduce(
+                                                                                                        (sum, row) =>
+                                                                                                            sum + (row.payable || 0),
+                                                                                                        0
+                                                                                                    )
+                                                                                                    .toLocaleString('en-IN')}
                                                                                             </td>
-                                                                                            <td className='p-2 text-center font-bold border'>
-                                                                                                {termData?.paid?.toLocaleString('en-IN') || '0'}
+                                                                                            <td className='border p-2 text-center font-bold text-blue-700'>
+                                                                                                ₹
+                                                                                                {termDataForTotal
+                                                                                                    .reduce(
+                                                                                                        (sum, row) => sum + (row.paid || 0),
+                                                                                                        0
+                                                                                                    )
+                                                                                                    .toLocaleString('en-IN')}
                                                                                             </td>
-                                                                                            <td className='p-2 text-center font-bold border'>
-                                                                                                {termData?.balance?.toLocaleString('en-IN') || '0'}
+                                                                                            <td className='border p-2 text-center font-bold text-blue-700'>
+                                                                                                ₹
+                                                                                                {termDataForTotal
+                                                                                                    .reduce(
+                                                                                                        (sum, row) =>
+                                                                                                            sum + (row.balance || 0),
+                                                                                                        0
+                                                                                                    )
+                                                                                                    .toLocaleString('en-IN')}
                                                                                             </td>
-                                                                                            <td className='p-2 text-center font-bold border'>
-                                                                                                {termData?.excess?.toLocaleString('en-IN') || '0'}
+                                                                                            <td className='border p-2 text-center font-bold text-blue-700'>
+                                                                                                ₹
+                                                                                                {termDataForTotal
+                                                                                                    .reduce(
+                                                                                                        (sum, row) =>
+                                                                                                            sum + (row.excess || 0),
+                                                                                                        0
+                                                                                                    )
+                                                                                                    .toLocaleString('en-IN')}
                                                                                             </td>
-                                                                                            <td className='p-2 text-center font-bold border'>
-                                                                                                {termData?.refund?.toLocaleString('en-IN') || '0'}
+                                                                                            <td className='border p-2 text-center font-bold text-blue-700'>
+                                                                                                ₹
+                                                                                                {termDataForTotal
+                                                                                                    .reduce(
+                                                                                                        (sum, row) =>
+                                                                                                            sum + (row.refund || 0),
+                                                                                                        0
+                                                                                                    )
+                                                                                                    .toLocaleString('en-IN')}
                                                                                             </td>
-                                                                                            <td className={`p-2 text-center font-bold border ${isLastColumnInTermGroup ? 'border-r-2' : ''}`}>
-                                                                                                {termData?.adjusted?.toLocaleString('en-IN') || '0'}
+                                                                                            <td
+                                                                                                className={`border p-2 text-center font-bold text-blue-700 ${isLastColumnInTermGroup ? 'border-r-2' : ''}`}>
+                                                                                                ₹
+                                                                                                {termDataForTotal
+                                                                                                    .reduce(
+                                                                                                        (sum, row) =>
+                                                                                                            sum + (row.adjusted || 0),
+                                                                                                        0
+                                                                                                    )
+                                                                                                    .toLocaleString('en-IN')}
                                                                                             </td>
                                                                                         </React.Fragment>
                                                                                     );
                                                                                 })}
                                                                             </tr>
-                                                                        ))}
-                                                                        <tr className='bg-gray-100 font-bold'>
-                                                                            <td colSpan={7} className='p-2 text-right border'>
-                                                                                Total:
-                                                                            </td>
-                                                                            
-                                                                            {/* Term-wise totals */}
-                                                                            {selectedTerms.map((term, termIndex) => {
-                                                                                const isLastColumnInTermGroup = termIndex === selectedTerms.length - 1;
-                                                                                const termDataForTotal = reportData.filter(item => 
-                                                                                    item.fmt_Id === term.fmT_Id
-                                                                                );
-                                                                                
-                                                                                return (
-                                                                                    <React.Fragment key={term.fmT_Id}>
-                                                                                        <td className='p-2 text-center font-bold text-blue-700 border'>
-                                                                                            ₹{termDataForTotal.reduce((sum, row) => 
-                                                                                                sum + (row.charges || 0), 0
-                                                                                            ).toLocaleString('en-IN')}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center font-bold text-blue-700 border'>
-                                                                                            ₹{termDataForTotal.reduce((sum, row) => 
-                                                                                                sum + (row.arrear || 0), 0
-                                                                                            ).toLocaleString('en-IN')}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center font-bold text-blue-700 border'>
-                                                                                            ₹{termDataForTotal.reduce((sum, row) => 
-                                                                                                sum + (row.concession || 0), 0
-                                                                                            ).toLocaleString('en-IN')}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center font-bold text-blue-700 border'>
-                                                                                            ₹{termDataForTotal.reduce((sum, row) => 
-                                                                                                sum + (row.waived || 0), 0
-                                                                                            ).toLocaleString('en-IN')}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center font-bold text-blue-700 border'>
-                                                                                            ₹{termDataForTotal.reduce((sum, row) => 
-                                                                                                sum + (row.adjusted || 0), 0
-                                                                                            ).toLocaleString('en-IN')}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center font-bold text-blue-700 border'>
-                                                                                            ₹{termDataForTotal.reduce((sum, row) => 
-                                                                                                sum + (row.payable || 0), 0
-                                                                                            ).toLocaleString('en-IN')}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center font-bold text-blue-700 border'>
-                                                                                            ₹{termDataForTotal.reduce((sum, row) => 
-                                                                                                sum + (row.paid || 0), 0
-                                                                                            ).toLocaleString('en-IN')}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center font-bold text-blue-700 border'>
-                                                                                            ₹{termDataForTotal.reduce((sum, row) => 
-                                                                                                sum + (row.balance || 0), 0
-                                                                                            ).toLocaleString('en-IN')}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center font-bold text-blue-700 border'>
-                                                                                            ₹{termDataForTotal.reduce((sum, row) => 
-                                                                                                sum + (row.excess || 0), 0
-                                                                                            ).toLocaleString('en-IN')}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center font-bold text-blue-700 border'>
-                                                                                            ₹{termDataForTotal.reduce((sum, row) => 
-                                                                                                sum + (row.refund || 0), 0
-                                                                                            ).toLocaleString('en-IN')}
-                                                                                        </td>
-                                                                                        <td className={`p-2 text-center font-bold text-blue-700 border ${isLastColumnInTermGroup ? 'border-r-2' : ''}`}>
-                                                                                            ₹{termDataForTotal.reduce((sum, row) => 
-                                                                                                sum + (row.adjusted || 0), 0
-                                                                                            ).toLocaleString('en-IN')}
-                                                                                        </td>
-                                                                                    </React.Fragment>
-                                                                                );
-                                                                            })}
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                                <div className='p-2 font-medium text-sm'>
-                                                                    Total Records: {reportData.length}
+                                                                        </tbody>
+                                                                    </table>
+                                                                    <div className='p-2 font-medium text-sm'>
+                                                                        Total Records: {reportData.length}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-)}
+                                                            )}
                                                             {filters.breakdown === 'CW' && (
                                                                 <div className='overflow-x-auto border'>
                                                                     <div className='overflow-x-auto border'>
