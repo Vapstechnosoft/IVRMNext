@@ -21,7 +21,7 @@ export async function getExcelAdmissionRegistrationReport(
     const urlParams = getSearchParamsUrl(searchParams ?? {});
 
     const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
-    const url = `${baseUrl}/AdmissionRegister/ExportAdmissionRegisterReportToExcel?ASMAY_Id=${ASMAY_Id}&AttendanceType=${AttendanceType}&TempararyArrayListclass=${encodeURIComponent(JSON.stringify(payload.tempararyArrayListclass))}&TempararyArrayListcoloumn=${encodeURIComponent(JSON.stringify(payload.tempararyArrayListcoloumn))}&${urlParams}`;
+    const url = `${baseUrl}/AdmissionRegister/ExportAdmissionRegisterReportToExcel?ASMAY_Id=${ASMAY_Id}&AttendanceType=${AttendanceType}&TempararyArrayListclass=${encodeURIComponent(JSON.stringify(payload.TempararyArrayListclass))}&TempararyArrayListcoloumn=${encodeURIComponent(JSON.stringify(payload.TempararyArrayListcoloumn))}&${urlParams}`;
 
     try {
         const session = await auth();
