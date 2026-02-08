@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useSectionDropDown } from '@/hooks/timetable/reports';
+import { useTimeTableAcademicYear, useTimeTableCategoryDropDownData } from '@/hooks/timetable/useMasters';
 import { classWiseReportSchema } from '@/schemas/timetable/reports';
 import { getClassByCategory } from '@/server/timetable/reports/classwisett';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,9 +25,25 @@ interface ClassWiseFormProps {
 export default function ClassWiseForm({ initialData, onSubmit, onCancel }: ClassWiseFormProps) {
     const [classList, setClassList] = useState<any[]>([]);
 
-    const academicList = initialData?.acayear || [];
-    const categoryList = initialData?.categorylist || [];
-    const sectionList = initialData?.sectionlist || [];
+    const {
+        data: academicyeardata,
+        isLoading: academicyearloading,
+    } = useTimeTableAcademicYear();
+
+    const {
+        data: categorydropdowndata,
+        isLoading: categorydropdownloading,
+    } = useTimeTableCategoryDropDownData();
+
+    // Using new hook for sections
+    const {
+        data: sectiondata,
+        isLoading: sectionloading,
+    } = useSectionDropDown();
+
+    const academicList = academicyeardata?.data || [];
+    const categoryList = categorydropdowndata?.data || [];
+    const sectionList = sectiondata?.data || [];
 
     const {
         control,
@@ -71,12 +89,7 @@ export default function ClassWiseForm({ initialData, onSubmit, onCancel }: Class
     }, [watchedAcademicYear, watchedCategory, setValue]);
 
     const onFormSubmit = (data: FormFields) => {
-        // Construct payload matching AngularJS requirement
-        // "ASMAY_Id": $scope.asmaY_Id,
-        // "TTMC_Id": $scope.ttmC_Id,
-        // classarray: $scope.albumNameArray1, (selected classes)
-        // sectionarray: $scope.albumNameArray2, (selected sections)
-
+        // Construct payload
         const selectedClasses = classList.filter((c: any) => data.classId?.includes(c.asmcL_Id));
         const selectedSections = sectionList.filter((s: any) => data.sectionId?.includes(s.asmS_Id));
 

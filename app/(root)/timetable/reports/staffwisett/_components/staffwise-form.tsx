@@ -1,14 +1,21 @@
 'use client';
 
+import {
+    useTimeTableAcademicYear
+} from '@/hooks/timetable/useMasters';
+import { useMemo } from 'react';
+
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { staffWiseReportSchema } from '@/schemas/timetable/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Search, X } from 'lucide-react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof staffWiseReportSchema.search>;
@@ -17,11 +24,52 @@ interface StaffWiseFormProps {
     initialData: any;
     onSubmit: (data: any) => void;
     onCancel: () => void;
+    onSuccess?: () => void;
 }
 
-export default function StaffWiseForm({ initialData, onSubmit, onCancel }: StaffWiseFormProps) {
-    const academicList = initialData?.acayear || [];
+export default function StaffWiseForm({ initialData, onSubmit, onSuccess, onCancel }: StaffWiseFormProps) {
+    const {
+        data: academicyeardata,
+        isLoading: academicyearloading,
+        error: academicyearerror,
+        refetchAll: refetchAllAcademicYear
+    } = useTimeTableAcademicYear();
+
+    const academicList = academicyeardata?.data || [];
+
+    // Use initialData for these lists
     const staffList = initialData?.stafflist || [];
+    const periodList = initialData?.periodslst || [];
+    const daysList = initialData?.dayslst_fix || [];
+
+    const staffOptions = useMemo(() => {
+        let dataArray: any[] = [];
+        // handle various response structures
+        if (Array.isArray(staffList)) {
+            dataArray = staffList;
+        } else if (Array.isArray((staffList as any)?.data)) {
+            dataArray = (staffList as any).data;
+        } else if (Array.isArray((staffList as any)?.data?.$values)) {
+            dataArray = (staffList as any).data.$values;
+        }
+
+        if (!dataArray || dataArray.length === 0) return [];
+
+        const uniqueMap = new Map();
+        dataArray.forEach((s: any) => {
+            // Fallback for ID and Name properties
+            const id = s.hrmE_Id || s.HRME_Id;
+            if (id && !uniqueMap.has(id)) {
+                uniqueMap.set(id, s);
+            }
+        });
+
+        return Array.from(uniqueMap.values()).map((s: any) => ({
+            label: s.staffName || s.empName || s.hrmE_EmployeeName || "",
+            value: (s.hrmE_Id || s.HRME_Id).toString()
+        }));
+    }, [staffList]);
+
 
     const {
         control,
@@ -36,12 +84,24 @@ export default function StaffWiseForm({ initialData, onSubmit, onCancel }: Staff
     });
 
     const onFormSubmit = (data: FormFields) => {
-        const selectedStaff = staffList.filter((s: any) => data.staffId?.includes(s.hrmE_Id));
+        // We need to pass the full staff objects for selected IDs
+
+        // Re-derive staff array for filtering
+        let dataArray: any[] = [];
+        if (Array.isArray(staffList)) {
+            dataArray = staffList;
+        } else if (Array.isArray((staffList as any)?.data)) {
+            dataArray = (staffList as any).data;
+        } else if (Array.isArray((staffList as any)?.data?.$values)) {
+            dataArray = (staffList as any).data.$values;
+        }
+
+        const selectedStaff = dataArray.filter((s: any) => data.staffId?.includes(s.hrmE_Id || s.HRME_Id));
 
         const payload = {
             ASMAY_Id: data.asmaY_Id,
             staffarray: selectedStaff,
-            rpttyp: data.rpttyp // Useful for frontend display logic primarily
+            rpttyp: data.rpttyp
         };
         onSubmit(payload);
     };
@@ -85,9 +145,9 @@ export default function StaffWiseForm({ initialData, onSubmit, onCancel }: Staff
                         name='staffId'
                         render={({ field }) => (
                             <MultiSelect
-                                options={staffList.map((s: any) => ({ label: s.staffName, value: s.hrmE_Id.toString() }))}
+                                options={staffOptions}
                                 defaultValue={(field.value || []).map(String)}
-                                onValueChange={(val) => field.onChange(val.map(Number))}
+                                onValueChange={(val) => field.onChange(val.map((item: string) => Number(item)))}
                                 placeholder='Select Staff'
                             />
                         )}

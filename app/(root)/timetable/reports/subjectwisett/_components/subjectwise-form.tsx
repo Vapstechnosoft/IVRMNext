@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTimeTableAcademicYear, useTimeTableClassDropdownData, useSubjectDropDown } from '@/hooks/timetable/useMasters';
 import { subjectWiseReportSchema } from '@/schemas/timetable/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Search, X } from 'lucide-react';
@@ -19,9 +20,24 @@ interface SubjectWiseFormProps {
 }
 
 export default function SubjectWiseForm({ initialData, onSubmit, onCancel }: SubjectWiseFormProps) {
-    const academicList = initialData?.acaYear || [];
-    const classList = initialData?.classDrp || [];
-    const subjectList = initialData?.subjectDrp || [];
+    const {
+        data: academicyeardata,
+        isLoading: academicyearloading,
+    } = useTimeTableAcademicYear();
+
+    const {
+        data: classdropdowndata,
+        isLoading: classloading,
+    } = useTimeTableClassDropdownData();
+
+    const {
+        data: subjectdropdowndata,
+        isLoading: subjectloading,
+    } = useSubjectDropDown();
+
+    const academicList = academicyeardata?.data || [];
+    const classList = classdropdowndata?.data || [];
+    const subjectList = subjectdropdowndata?.data || [];
 
     const {
         control,
@@ -36,12 +52,8 @@ export default function SubjectWiseForm({ initialData, onSubmit, onCancel }: Sub
     });
 
     const onFormSubmit = (data: FormFields) => {
-        // Construct payload
-        // "ASMAY_Id": $scope.asmaY_Id,
-        // classarray: $scope.albumNameArray1, (selected classes objects)
-        // subarray: $scope.albumNameArray2, (selected subjects objects)
-
         const selectedClasses = classList.filter((c: any) => data.classId?.includes(c.asmcL_Id));
+        // Ensure property name matches API response. Usually ismS_Id for subjects.
         const selectedSubjects = subjectList.filter((s: any) => data.subjectId?.includes(s.ismS_Id));
 
         const payload = {

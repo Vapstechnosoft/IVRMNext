@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { getStaffWiseDetails, getStaffWiseReport } from '@/server/timetable/reports/staffwisett';
+
 import { Download, Printer } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
@@ -20,15 +20,15 @@ export default function StaffWiseReportPage() {
     useEffect(() => {
         const fetchDetails = async () => {
             try {
-                const data = await getStaffWiseDetails({});
-                if (data) {
-                    setInitialData({
-                        acayear: data.acayear,
-                        stafflist: data.stafflist
-                    });
-                } else {
-                    setError('No data received from server.');
-                }
+                // const data = await getStaffWiseDetails({});
+                // if (data) {
+                //     setInitialData({
+                //         acayear: data.acayear,
+                //         stafflist: data.stafflist
+                //     });
+                // } else {
+                //     setError('No data received from server.');
+                // }
             } catch (error: any) {
                 //console.error('Error fetching initial details', error);
                 setError(error.message || 'Failed to fetch report details.');
@@ -42,8 +42,8 @@ export default function StaffWiseReportPage() {
         setError(null);
         setRptTyp(payload.rpttyp);
         try {
-            const response = await getStaffWiseReport(payload);
-            processReportData(response, payload.staffarray, payload.rpttyp);
+            // const response = await getStaffWiseReport(payload);
+            // processReportData(response, payload.staffarray, payload.rpttyp);
         } catch (error: any) {
             //console.error('Error generating report', error);
             setError(error.message || 'Failed to generate report.');

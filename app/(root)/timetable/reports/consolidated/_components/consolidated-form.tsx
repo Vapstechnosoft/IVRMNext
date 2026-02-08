@@ -7,7 +7,10 @@ import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useSectionDropDown } from '@/hooks/timetable/reports';
+import { useTimeTableAcademicYear, useTimeTableCategoryDropDownData } from '@/hooks/timetable/useMasters';
 import { consolidatedReportSchema } from '@/schemas/timetable/reports';
+import { ClassDropDownDataOnchnGeYrAndCategory } from '@/server/timetable/masters/masterdayclasswise';
 import { getClassByCategory } from '@/server/timetable/masters/perioddistribution';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Search } from 'lucide-react';
@@ -25,9 +28,33 @@ interface ConsolidatedFormProps {
 export default function ConsolidatedForm({ initialData, onSubmit }: ConsolidatedFormProps) {
     const [classList, setClassList] = useState<any[]>([]);
 
+
+
+    const {
+        data: academicyeardata,
+        isLoading: academicyearloading,
+        error: academicyearerror,
+        refetchAll: refetchAllAcademicYear
+    } = useTimeTableAcademicYear();
+
+
+    const {
+        data: categorydropdowndata,
+        isLoading: categorydropdownloading,
+        error: categorydropdownerror,
+        refetchAll: refetchAllCategory
+    } = useTimeTableCategoryDropDownData();
+
+
+    const {
+        data: sectiondropdowndata,
+        isLoading: sectiondropdownloading,
+        error: sectiondropdownerror,
+        refetchAll: refetchAllSection
+    } = useSectionDropDown();
     // Initial lists from props
-    const academicList = initialData?.acayear || [];
-    const categoryList = initialData?.cateoglst || [];
+    const academicList = academicyeardata?.data || [];
+    const categoryList = categorydropdowndata?.data || [];
     const staffList = initialData?.stafflst || [];
     const periodList = initialData?.periodslst || [];
     const daysList = initialData?.dayslst_fix || [];
@@ -59,12 +86,11 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
             setValue('classId', []); // Reset classes
             if (watchedAcademicYear && watchedCategory) {
                 try {
-                    const res = await getClassByCategory({
-                        ASMAY_Id: watchedAcademicYear,
-                        TTMC_Id: watchedCategory
-                    });
-                    if (res && (res as any).classbycategory) {
-                        setClassList((res as any).classbycategory);
+
+                    const res = await ClassDropDownDataOnchnGeYrAndCategory(watchedAcademicYear, watchedCategory);
+                    console.log("ClassDropDownDataOnchnGeYrAndCategory", res)
+                    if (res && Array.isArray(res.data)) {
+                        setClassList(res.data);
                     } else {
                         setClassList([]);
                     }
@@ -160,19 +186,34 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                         Academic Year <span className='text-red-500'>*</span>
                     </Label>
                     <Controller
-                        control={control}
                         name='asmaY_Id'
+                        control={control}
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='--Select--' />
+                            <Select
+                                key={field.value?.toString() || 'empty'}
+                                onValueChange={(value) => {
+                                    field.onChange(value ? Number(value) : '');
+                                }}
+                                value={field.value?.toString() || undefined}>
+                                <SelectTrigger className='w-full'>
+                                    <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {academicList.map((item: any) => (
-                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                            {item.asmaY_Year}
+                                    {academicyearloading ? (
+                                        <SelectItem value='loading' disabled>
+                                            Loading Academic Years...
                                         </SelectItem>
-                                    ))}
+                                    ) : academicyearerror ? (
+                                        <SelectItem value='error' disabled>
+                                            Error loading Academic Years
+                                        </SelectItem>
+                                    ) : (
+                                        academicyeardata?.data?.map((item) => (
+                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                {item.asmaY_Year}
+                                            </SelectItem>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
                         )}

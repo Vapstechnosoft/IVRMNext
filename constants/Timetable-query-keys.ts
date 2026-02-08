@@ -60,4 +60,5 @@ export const TIMETABLE_QUERY_KEYS = {
   MASTER_TT_PERIODSDROPDOWNDATA: 'master_tt_periodsdropdowndata',
   MASTER_TT_DAYSDROPDOWNDATA: 'master_tt_daysdropdowndata',
   MASTER_TT_SECTIONREPORT: 'master_tt_sectionreport',
+  SECTION_DROPDOWN: 'section_dropdown',
 };
