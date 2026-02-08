@@ -119,6 +119,8 @@ export default function FeeYearlyCollectionReport() {
         busRouteIds: [] as number[],
         formatI: false,
         dueDate: new Date(),
+        fromDate: new Date(),
+        toDate: new Date(),
         dueDateType: 'Due Date' as 'Due Date' | 'Till Due Date',
         bulkDownload: false,
         dateFilter: '1' as '1' | '2' | '3' | '4'
@@ -398,11 +400,7 @@ export default function FeeYearlyCollectionReport() {
         setReportLoading(true);
         setShowReport(false);
 
-        const { fromDate, toDate } = data;
         const today = new Date();
-
-        const effectiveFromDate = fromDate || today;
-        const effectiveToDate = toDate || today;
 
         try {
             const payload = {
@@ -452,9 +450,9 @@ export default function FeeYearlyCollectionReport() {
                 //         ? format(toDate ?? today, 'yyyy-MM-dd')
                 //         : null,
 
-                From_Date: filters.viewMode === 'date' ? format(effectiveFromDate, 'yyyy-MM-dd') : format(today, 'yyyy-MM-dd'),
+                From_Date: filters.viewMode === 'date' ? format(filters.fromDate, 'yyyy-MM-dd') : format(today, 'yyyy-MM-dd'),
 
-                To_Date: filters.viewMode === 'date' ? format(effectiveToDate, 'yyyy-MM-dd') : format(today, 'yyyy-MM-dd'),
+                To_Date: filters.viewMode === 'date' ? format(filters.toDate, 'yyyy-MM-dd') : format(today, 'yyyy-MM-dd'),
 
                 // Term Group (Hardcoded / configurable)
                 term_group: 'T',
@@ -1822,10 +1820,11 @@ export default function FeeYearlyCollectionReport() {
                                                 <input
                                                     id='fromDate'
                                                     type='date'
+                                                    value={filters.fromDate ? format(filters.fromDate, 'yyyy-MM-dd') : ''}
                                                     onChange={(e) =>
                                                         setFilters((prev) => ({
                                                             ...prev,
-                                                            fromDate: e.target.value ? new Date(e.target.value) : null
+                                                            fromDate: new Date(e.target.value)
                                                         }))
                                                     }
                                                     className='rounded border px-3 py-1'
@@ -1839,10 +1838,11 @@ export default function FeeYearlyCollectionReport() {
                                                 <input
                                                     id='toDate'
                                                     type='date'
+                                                    value={filters.toDate ? format(filters.toDate, 'yyyy-MM-dd') : ''}
                                                     onChange={(e) =>
                                                         setFilters((prev) => ({
                                                             ...prev,
-                                                            toDate: e.target.value ? new Date(e.target.value) : null
+                                                            toDate: new Date(e.target.value)
                                                         }))
                                                     }
                                                     className='rounded border px-3 py-1'
@@ -2753,9 +2753,9 @@ export default function FeeYearlyCollectionReport() {
 
                                                                             {/* Sub-header row for term columns */}
                                                                             <tr className='bg-primary/90 text-white'>
-                                                                                {/* <th className='p-2 text-center border'></th>
-                                                                            <th className='p-2 text-center border'></th>
-                                                                            <th className='p-2 text-center border'></th> */}
+                                                                                <th className='border p-2 text-center'>{''}</th>
+                                                                                <th className='border p-2 text-center'> {''}</th>
+                                                                                <th className='border p-2 text-center'>{''}</th>
 
                                                                                 {selectedTerms.map((term) => (
                                                                                     <React.Fragment key={term.fmT_Id}>
@@ -2776,11 +2776,7 @@ export default function FeeYearlyCollectionReport() {
                                                                         </thead>
                                                                         <tbody>
                                                                             {reportData
-                                                                                .filter(
-                                                                                    (row) =>
-                                                                                        // Filter by selected fee heads if needed
-                                                                                        true // or your filter logic
-                                                                                )
+                                                                                .filter((row) => true)
                                                                                 .map((row, index) => (
                                                                                     <tr key={row.id} className='border-b hover:bg-gray-50'>
                                                                                         <td className='border p-2 text-center'>
