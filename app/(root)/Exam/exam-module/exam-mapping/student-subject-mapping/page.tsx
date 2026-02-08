@@ -14,6 +14,7 @@ import {
     getStudentsForSubjectMapping,
     getSubjectlistByCatGroupClass
 } from '@/server/exam/exam-module/exam-mapping/student-subject-mapping';
+import { X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -359,6 +360,14 @@ function StudentSubjectMappingContent() {
         }
     };
 
+    // Close grid
+    const handleCloseGrid = () => {
+        setIsGridOpen(false);
+        setStudents([]);
+        setSubjects([]);
+        setPayload(null);
+    };
+
     return (
         <FormProvider {...methods}>
             <div className='min-h-screen bg-gray-50 p-4'>
@@ -650,7 +659,7 @@ function StudentSubjectMappingContent() {
                                     setSubjectGroups([]);
                                     setStudents([]);
                                 }}>
-                                CANCEL
+                                Cancel
                             </Button>
                             <Button type='button' className='px-8 py-2 shadow-lg' onClick={handleSearch} disabled={isLoading}>
                                 {isLoading ? 'Searching...' : 'Search'}
@@ -660,35 +669,47 @@ function StudentSubjectMappingContent() {
 
                     {/* Grid */}
                     {isGridOpen && (
-                        <CollapsibleSection defaultOpen variant='default' size='lg' className='shadow-lg'>
-                            <StudentSubjectMappingTable
-                                ref={tableRef}
-                                students={students}
-                                subjects={subjects}
-                                onUpdateMapping={handleUpdateMapping}
-                                isloading={isLoading}
-                                // Pass required metadata
-                                estsU_Id={0}
-                                // mI_Id={MI_Id}
-                                asmaY_Id={getValues('asmaY_Id') || 0}
-                                asmcL_Id={getValues('asmcL_Id') || 0}
-                                asmS_Id={getValues('asmS_Id') || 0}
-                                emG_Id={getValues('subject_group_id') || 0}
-                                emE_Id={getValues('eme_Id') || 0}
-                                userId={userId}
-                                left_Flag={getValues('Left_Flag') ?? true}
-                                deactive_Flag={getValues('Deactive_Flag') ?? true}
-                            />
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={handleCloseGrid}
+                                variant='ghost'
+                                size='sm'
+                                className='absolute top-[10px] right-2 z-10 flex w-fit border bg-white shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <CollapsibleSection defaultOpen variant='default' size='lg' className='shadow-lg'>
+                                <StudentSubjectMappingTable
+                                    ref={tableRef}
+                                    students={students}
+                                    subjects={subjects}
+                                    onUpdateMapping={handleUpdateMapping}
+                                    isloading={isLoading}
+                                    // Pass required metadata
+                                    estsU_Id={0}
+                                    // mI_Id={MI_Id}
+                                    asmaY_Id={getValues('asmaY_Id') || 0}
+                                    asmcL_Id={getValues('asmcL_Id') || 0}
+                                    asmS_Id={getValues('asmS_Id') || 0}
+                                    emG_Id={getValues('subject_group_id') || 0}
+                                    emE_Id={getValues('eme_Id') || 0}
+                                    userId={userId}
+                                    left_Flag={getValues('Left_Flag') ?? true}
+                                    deactive_Flag={getValues('Deactive_Flag') ?? true}
+                                />
 
-                            {payload !== null && <div className='flex w-fit justify-end gap-3 border-t p-4'>
-                                <Button variant='outline' onClick={() => tableRef.current?.reset()}>
-                                    Cancel
-                                </Button>
-                                <Button type='submit' onClick={handleSave}>
-                                    Save Mapping
-                                </Button>
-                            </div>}
-                        </CollapsibleSection>
+                                {payload !== null && (
+                                    <div className='flex w-fit justify-end gap-3 border-t p-4'>
+                                        <Button variant='outline' onClick={() => tableRef.current?.reset()}>
+                                            Reset
+                                        </Button>
+                                        <Button type='submit' onClick={handleSave}>
+                                            Save Mapping
+                                        </Button>
+                                    </div>
+                                )}
+                            </CollapsibleSection>
+                        </div>
                     )}
                 </div>
             </div>
