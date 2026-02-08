@@ -23,8 +23,8 @@
         "build-uat1": "cp .env.uat1 .env.local && next build",
         "build-uat2": "cp .env.uat2 .env.local && next build",
         "build-uat3": "cp .env.uat3 .env.local && next build",
-        "build-delite-beta-test": "cp .env.delite-beta-test.env.local && next build",
-        "build-elite-beta-test": "cp .env.elite-beta-test.env.local && next build",
+        "build-delite-beta-test": "cp .env.delite-beta-test.env.local .env.local && next build",
+        "build-elite-beta-test": "cp .env.elite-beta-test.env.local .env.local && next build",
         "test:production": "next build && next start -p 3001",
         "test:build": "next build",
         "lint-fix": "biome check --fix --unsafe",
@@ -126,8 +126,6 @@
         "typescript": "^5.7.2"
     },
     "lint-staged": {
-        "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
-            "biome check --write --no-errors-on-unmatched"
-        ]
+        "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": ["biome check --write --no-errors-on-unmatched"]
     }
 }
