@@ -1,7 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { ISectionDropdown, IStaffDropdownListStaffWiseTTReport } from '@/types/timetable/reports';
+import type { ISectionDropdown } from '@/types/timetable/TTreports';
 
 // Class Wise TimeTable Report
 export const getClassWiseReportDetails = async (data: any) => {
@@ -16,9 +16,8 @@ export const getClassByCategory = async (data: any) => {
     return await api.post<any>('timetable', 'ClassWiseTT/getclass_catg', data);
 };
 
-
 export async function getSectionDetailsTT() {
-    console.log("Fetching section details for TT");
+    console.log('Fetching section details for TT');
     const url = '/TimeTableCommon/section-details';
     return await api.get<ISectionDropdown[]>('timetable', url);
 }
