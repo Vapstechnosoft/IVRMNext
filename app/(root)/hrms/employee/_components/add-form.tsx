@@ -296,7 +296,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         ? designationDropdownResponse
         : (designationDropdownResponse as any)?.data || [];
 
-    // Department dropdown - API: /api/MasterDepartment
+    // Department dropdown - API: /api/MasterDropDown/GetDepartments
     const { data: departmentDropdownResponse, isLoading: isLoadingDepartments } = useDepartmentDropdown();
     const departmentDropdown: IDepartmentDropdown[] = useMemo(() => {
         const rawData = Array.isArray(departmentDropdownResponse) ? departmentDropdownResponse : (departmentDropdownResponse as any)?.data || [];

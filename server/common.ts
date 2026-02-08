@@ -1777,15 +1777,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Mass Updation',
                                             description: 'Bulk Update Employee Data'
                                         },
-                                        // ,
-                                        // {
-                                        //     id: 5,
-                                        //     name: 'Mass Updation',
-                                        //     icon: 'RefreshCw',
-                                        //     url: '/hrms/transactions/mass-updation',
-                                        //     title: 'Mass Updation',
-                                        //     description: 'Bulk Update Employee Data'
-                                        // },
                                         // {
                                         //     id: 6,
                                         //     name: 'Salary Advance',

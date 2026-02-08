@@ -265,7 +265,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         Array.isArray(designationDropdownResponse) ? designationDropdownResponse : (designationDropdownResponse as any)?.data || [],
         [designationDropdownResponse]);
 
-    // Department dropdown (for School field) - API: /api/MasterDepartment
+    // Department dropdown (for School field) - API: /api/MasterDropDown/GetDepartments
     const { data: departmentDropdownResponse, isLoading: isLoadingDepartments } = useDepartmentDropdown();
 
     const departmentDropdown: any[] = useMemo(() => {
