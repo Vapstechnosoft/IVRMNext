@@ -556,6 +556,7 @@ export const STAFF_PORTAL_QUERY_KEYS = {
     STAFF_ATTENDANCE_ENTRY_INITIAL: 'staff_attendance_entry_initial',
     FEE_ACADEMIC_YEARS: 'fee_academic_years',
     FEE_STUDENT_INFORMATION: 'fee_student_information',
+     FEE_PORTAL_STUDENT_INFORMATION: 'fee_portal_student_information',
     FEE_DETAILS: 'fee_details',
     FEE_PAYMENT_ORDER: 'fee_payment_order',
     FEE_RAZORPAY_PAYMENT: 'fee_razorpay_payment',

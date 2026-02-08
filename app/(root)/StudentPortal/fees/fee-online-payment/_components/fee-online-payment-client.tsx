@@ -52,7 +52,7 @@ export default function FeeOnlinePaymentClient({ initialData }: FeeOnlinePayment
     }
   }, [initialData]);
 
-    console.log("fee details", initialData?.filonlinepaymentgrid);
+   
 
   // Handler for group selection (similar to firstfnc in AngularJS)
   const handleGroupSelection = (groupId: number) => {
@@ -242,15 +242,7 @@ export default function FeeOnlinePaymentClient({ initialData }: FeeOnlinePayment
   };
 
   const initializeRazorpayPayment = (amount: number, gateway: any) => {
-    console.log('Initializing Razorpay payment...');
-    console.log('Amount:', amount);
-    console.log('Gateway:', gateway);
-    
-    // TODO: Initialize Razorpay with actual key and options
-    // This would typically involve:
-    // 1. Loading Razorpay script
-    // 2. Creating Razorpay instance with key
-    // 3. Opening payment modal with order details
+
     
     alert(`Initializing Razorpay payment for ₹${amount.toLocaleString()}...`);
     
@@ -276,15 +268,7 @@ export default function FeeOnlinePaymentClient({ initialData }: FeeOnlinePayment
   };
 
   const initializeEasebuzzPayment = (amount: number, gateway: any) => {
-    console.log('Initializing Easebuzz payment...');
-    console.log('Amount:', amount);
-    console.log('Gateway:', gateway);
-    
-    // TODO: Initialize Easebuzz payment
-    // This would typically involve:
-    // 1. Redirecting to Easebuzz payment page
-    // 2. Or opening Easebuzz payment modal
-    // 3. Handling payment response
+   
     
     alert(`Initializing Easebuzz payment for ₹${amount.toLocaleString()}...`);
     
@@ -296,8 +280,7 @@ export default function FeeOnlinePaymentClient({ initialData }: FeeOnlinePayment
     setShowChargesModal(true);
   };
 
-  console.log("customgrplist", initialData?.customgrplist);
-  console.log("termlist", initialData?.termlst);
+  
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Fee Online Payment</h1>
@@ -341,7 +324,7 @@ export default function FeeOnlinePaymentClient({ initialData }: FeeOnlinePayment
       </Card>
 
       {showPaymentDetails && initialData?.fillstudent && (
-        <>
+       
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -419,7 +402,7 @@ export default function FeeOnlinePaymentClient({ initialData }: FeeOnlinePayment
               </CardContent>
             </Card>
           </div>
-        </>
+       
       )}
 
 

@@ -326,7 +326,7 @@ export async function getOnlinePaymentAmountDetails(
     if (classId) requestData.ASMCL_Id = classId;
     
     const response = await api.post<any>('portal', url, requestData);
-    
+    console.log('response.data', response.data);
     const feeStructures: FeeStructure[] = response.data?.fillstudentviewdetails?.map((item: any) => ({
       fmH_FeeName: item.fmH_FeeName,
       ftI_Name: item.ftI_Name,

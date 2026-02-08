@@ -134,6 +134,16 @@ export async function getStudentInformation(academicYearId: number): Promise<{
   }
 }
 
+
+
+
+export async function getStudentPortalInformation() {
+    const url = '/OnlinePayment/getStudentportalInformation';
+    return await api.post<any>('portal', url);
+}
+
+
+
 export async function getFeeDetails(selectedList: GroupTermMapping[], academicYearId: number, classId: number): Promise<{
   feeStructures: FeeStructure[];
   paymentGateways: PaymentGateway[];
@@ -147,7 +157,7 @@ export async function getFeeDetails(selectedList: GroupTermMapping[], academicYe
       ASMAY_Id: academicYearId,
       ASMCL_Id: classId
     });
-    
+   
     const feeStructures: FeeStructure[] = response.data?.fillstudentviewdetails?.map((item: any) => ({
       fmH_FeeName: item.fmH_FeeName,
       ftI_Name: item.ftI_Name,
@@ -168,8 +178,10 @@ export async function getFeeDetails(selectedList: GroupTermMapping[], academicYe
     return {
       feeStructures,
       paymentGateways,
+      
       totalRebate: response.data?.fsS_RebateAmount || 0,
       feeConfig: response.data?.feeconfiglist?.[0] || null
+
     };
   } catch (error) {
     console.error('Error fetching fee details:', error);

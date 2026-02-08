@@ -8,7 +8,7 @@ export default async function FeeOnlinePaymentPage() {
 
     return (
         <div className="container mx-auto p-6 space-y-6">
-            <FeeOnlinePaymentClient initialData={response.data} />
+            <FeeOnlinePaymentClient initialData={response} />
         </div>
     );
 }

@@ -6,7 +6,7 @@ import {
   getFeeDetails,
   generatePaymentOrder,
   processRazorpayPayment,
-  getPaymentCharges
+  getPaymentCharges,getStudentPortalInformation
 } from '@/server/staff-portal/fee-online-payment';
 import type {
   AcademicYear,
@@ -51,6 +51,26 @@ export const useStudentInformation = (academicYearId: number | null) => {
     refetchAll: () =>
       queryClient.invalidateQueries({
         queryKey: [STAFF_PORTAL_QUERY_KEYS.FEE_STUDENT_INFORMATION]
+      })
+  };
+};
+
+export const useStudentPortalInformation = () => {
+  const queryClient = useQueryClient();
+
+  return {
+    ...useQuery({
+      queryKey: [STAFF_PORTAL_QUERY_KEYS.FEE_PORTAL_STUDENT_INFORMATION],
+      queryFn: async () => {
+        
+        return getStudentPortalInformation();
+      },
+     
+    }),
+
+    refetchAll: () =>
+      queryClient.invalidateQueries({
+        queryKey: [STAFF_PORTAL_QUERY_KEYS.FEE_PORTAL_STUDENT_INFORMATION]
       })
   };
 };

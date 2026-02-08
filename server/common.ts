@@ -5277,17 +5277,17 @@ export async function getUserAccessibleModules() {
                                             title: 'Portal Fee Receipt',
                                             description: 'View and Download Fee Receipts'
                                         },
+                                        // {
+                                        //     id: 40005,
+                                        //     name: 'Online Payment',
+                                        //     icon: 'CreditCard',
+                                        //     url: '/StudentPortal/masters/feeonlinpayment',
+                                        //     title: 'Fee Online Payment testing',
+                                        //     description: 'Pay Fees Online testing new'
+                                        // },
                                         {
                                             id: 40005,
                                             name: 'Online Payment',
-                                            icon: 'CreditCard',
-                                            url: '/StudentPortal/masters/feeonlinpayment',
-                                            title: 'Fee Online Payment testing',
-                                            description: 'Pay Fees Online testing new'
-                                        },
-                                        {
-                                            id: 40005444,
-                                            name: 'Online Payment Staff',
                                             icon: 'CreditCard',
                                             url: '/StudentPortal/fees/fee-online-payment',
                                             title: 'Fee Online Payment',
