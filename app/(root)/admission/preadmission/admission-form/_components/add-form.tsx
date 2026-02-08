@@ -955,6 +955,17 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         }
                     }
                 }
+            } else if (currentStep === 4) {
+                fieldsToValidate = [
+                    'amsT_PlaceOfBirthCountry',
+                    'amsT_PlaceOfBirthState',
+                    'amsT_Distirct',
+                    'amsT_Taluk',
+                    'amsT_Town',
+                    'amsT_Village',
+                    'achievements',
+                    'amsT_OtherInformations'
+                ];
             }
 
             const isValid = await trigger(fieldsToValidate.length > 0 ? fieldsToValidate : []);
@@ -1612,6 +1623,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                             userId: 0,
                             activities: activities,
                             achievements: formData.achievements || '',
+                            amsT_OtherInformations: formData.amsT_OtherInformations || '',
                             sourceDetails: sourceDetails,
                             guardian: guardians,
                             siblings: siblingsList,
