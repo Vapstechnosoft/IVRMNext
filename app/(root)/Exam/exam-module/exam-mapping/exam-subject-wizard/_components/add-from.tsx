@@ -699,8 +699,8 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     EYCESSE_ExemptedFlg: !!(se.EYCESSE_ExemptedFlg ?? se.eycessS_ExemptedFlg),
                     EYCESSE_ExemptedPer: Number(se.EYCESSE_ExemptedPer ?? se.eycessS_ExemptedPer ?? 0) || 0,
                     EYCESSE_ActiveFlg: se.EYCESSE_ActiveFlg ?? true,
-                    EYCESSE_MarksFlg: se.EYCESSS_MarksFlg ?? true,
-                    EYCESSE_GradeFlg: se.EYCESSS_GradeFlg ?? true,
+                    EYCESSS_MarksFlg: se.EYCESSS_MarksFlg ?? true,
+                    EYCESSS_GradesFlg: se.EYCESSS_GradesFlg ?? true,
                     EYCESSS_AplResultFlg: se.EYCESSS_AplResultFlg ?? true,
                     EYCESSS_MarksEntryMax: Number(se.EYCESSS_MarksEntryMax ?? se.eycessS_MarksEntryMax ?? 0) || 0,
                     // Standardized payload format
@@ -727,8 +727,8 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     EYCESSS_MarksEntryMax: Number(ss.EYCESSS_MarksEntryMax ?? ss.eycessS_MarksEntryMax ?? 0) || 0,
                     EYCESSS_ExemptedFlg: !!(ss.EYCESSS_ExemptedFlg ?? ss.eycessS_ExemptedFlg),
                     EYCESSS_ExemptedPer: Number(ss.EYCESSS_ExemptedPer ?? ss.eycessS_ExemptedPer ?? 0) || 0,
-                    EYCESSS_MarksFlg: !!(ss.EYCESSS_MarksFlg ?? ss.eycessS_MarksFlg),
-                    EYCESSS_GradesFlg: !!(ss.EYCESSS_GradesFlg ?? ss.eycessS_GradesFlg),
+                    EYCESSS_MarksFlg: !!(ss.eycessS_MarksDisplayFlg ?? false),
+                    EYCESSS_GradesFlg: !!(ss.eycessS_GradeDisplayFlg ?? false),
                     EYCESSS_AplResultFlg: !!(ss.EYCESSS_AplResultFlg ?? ss.eycessS_AplResultFlg),
                     EYCESSS_ActiveFlg: ss.EYCESSS_ActiveFlg ?? true,
                     EYCESSS_SubSubjectOrder: ss.EYCESSS_SubSubjectOrder ?? idx + 1
