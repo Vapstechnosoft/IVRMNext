@@ -11,6 +11,8 @@ export interface IPeriodStaffList {
     asmaY_Year: string;
     ttmP_PeriodName: string;
     staffName: string;
+    ttrpS_ActiveFlag: boolean;
+    ttrpS_SUbSelcFlag: boolean;
 }
 
 export const columns: ColumnDef<IPeriodStaffList>[] = [

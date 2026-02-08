@@ -2,20 +2,32 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { InputText } from '@/components/ui/extension/input-text';
 import { daySubjectSchema } from '@/schemas/timetable/constraints/subjectrestriction';
-import { saveDaySubjectDetail } from '@/server/timetable/constraints/subjectrestriction';
+import {
+    getDaySubjectEditDetails,
+    saveDaySubjectDetail,
+} from '@/server/timetable/constraints/subjectrestriction';
+import {
+    getCategoryDropDown,
+    getClassDropdown,
+    getSectionDropDown,
+    getStaffDropDown,
+    getSubjectDropDown
+} from '@/server/timetable/constraints/FixingForm';
+import { useSubjectRestrictionDaySubjectGridData } from '@/hooks/timetable/constraints/subjectrestriction';
+import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Save, Trash, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import type { z } from 'zod';
+import { z } from 'zod';
 import DaySubjectList from './day-subject-list';
 
 type DaySubjectSchema = z.infer<typeof daySubjectSchema>;
@@ -33,17 +45,27 @@ export default function DaySubjectTab({ initialData }: DaySubjectTabProps) {
 }
 
 function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
-    const { isAddFormOpen, isEditFormOpen, openAddForm, closeAddForm, closeEditForm } = useFormContext();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        openAddForm,
+        closeAddForm,
+        closeEditForm,
+        selectedRow,
+        closeToggleForm,
+        isToggleFormOpen
+    } = useFormContext();
 
-    const academicList = initialData?.yearlist || [];
-    const dayList = initialData?.daylist || [];
-    const subjectListInitial = initialData?.subjectlist || [];
+    const { data: academicData } = usebifurcationAcademicYear();
+    const academicList = (academicData as any)?.data || [];
 
-    const [subjectList, setSubjectList] = useState<any[]>(subjectListInitial);
+    const [categoryList, setCategoryList] = useState<any[]>([]);
+    const [dayList, setDayList] = useState<any[]>(initialData?.daylist || []);
 
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [staffList, setStaffList] = useState<any[]>([]);
+    const [subjectList, setSubjectList] = useState<any[]>([]);
 
     const form = useForm<DaySubjectSchema>({
         resolver: zodResolver(daySubjectSchema),
@@ -51,6 +73,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         defaultValues: {
             TTRDSU_Id: 0,
             ASMAY_Id: 0,
+            TTMC_Id: 0,
             TTMD_Id: 0,
             ISMS_Id: 0,
             TTRDSU_SUbSelcFlag: false,
@@ -59,36 +82,36 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
     });
 
     const {
-        control,
         handleSubmit,
+        control,
         watch,
         reset,
         formState: { isSubmitting }
     } = form;
+
+    const watchedYear = watch('ASMAY_Id');
+    const watchedCategory = watch('TTMC_Id');
+    const watchedSubSelectFlag = watch('TTRDSU_SUbSelcFlag');
+
+    const { data: gridData, isLoading } = useSubjectRestrictionDaySubjectGridData({
+        ASMAY_Id: watchedYear,
+        TTMC_Id: watchedCategory
+    });
 
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'combinationlist'
     });
 
-    const watchedYear = watch('ASMAY_Id');
-    const watchedSubSelectFlag = watch('TTRDSU_SUbSelcFlag');
-
     const [tempInput, setTempInput] = useState({
         ASMCL_Id: 0,
         ASMS_Id: 0,
         HRME_Id: 0,
-        NOP: ''
+        TTRDSUCC_Periods: 0
     });
 
-    useEffect(() => {
-        if (watchedYear && watchedSubSelectFlag) {
-            // Mock fetch logic or actual fetch
-        }
-    }, [watchedYear, watchedSubSelectFlag]);
-
     const handleAdd = () => {
-        if (!tempInput.ASMCL_Id || !tempInput.ASMS_Id || !tempInput.HRME_Id || !tempInput.NOP) {
+        if (!tempInput.ASMCL_Id || !tempInput.ASMS_Id || !tempInput.HRME_Id || !tempInput.TTRDSUCC_Periods) {
             toast.error('Please fill all fields');
             return;
         }
@@ -96,19 +119,78 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
             ASMCL_Id: tempInput.ASMCL_Id,
             ASMS_Id: tempInput.ASMS_Id,
             HRME_Id: tempInput.HRME_Id,
-            TTRDSUCC_Periods: Number(tempInput.NOP)
+            TTRDSUCC_Periods: tempInput.TTRDSUCC_Periods
         });
-        setTempInput({ ASMCL_Id: 0, ASMS_Id: 0, HRME_Id: 0, NOP: '' });
+        setTempInput({ ASMCL_Id: 0, ASMS_Id: 0, HRME_Id: 0, TTRDSUCC_Periods: 0 });
     };
+
+    // Load Dropdowns Generically as requested
+    useEffect(() => {
+        const loadDropdowns = async () => {
+            try {
+                const [category, classes, sections, staff, subjects] = await Promise.all([
+                    getCategoryDropDown(),
+                    getClassDropdown(),
+                    getSectionDropDown(),
+                    getStaffDropDown(),
+                    getSubjectDropDown()
+                ]);
+                setCategoryList(category || []);
+                setClassList(classes || []);
+                setSectionList(sections || []);
+                setStaffList(staff || []);
+                setSubjectList(subjects || []);
+            } catch (error) {
+                console.error('Failed to load dropdowns:', error);
+                toast.error('Failed to load dropdown options');
+            }
+        };
+        loadDropdowns();
+    }, []);
+
+    // Effect to populate form on Edit
+    useEffect(() => {
+        if (isEditFormOpen && selectedRow) {
+            onEdit(selectedRow);
+        }
+    }, [isEditFormOpen, selectedRow]);
+
+    // Effect to handle Toggle (Active/Deactive)
+
+
+    const onEdit = async (item: any) => {
+        try {
+            const res = await getDaySubjectEditDetails(item.ttrdsU_Id);
+            const details = (res as any)?.editdetails || (res as any)?.data || (Array.isArray(res) ? res : []);
+            if (details && details.length > 0) {
+                const d = details[0];
+                reset({
+                    TTRDSU_Id: d.ttrdsU_Id,
+                    ASMAY_Id: d.asmaY_Id,
+                    TTMC_Id: d.ttmC_Id,
+                    TTMD_Id: d.ttmD_Id,
+                    ISMS_Id: d.ismS_Id,
+                    TTRDSU_SUbSelcFlag: d.ttrdsU_SUbSelcFlag,
+                    combinationlist: d.combinationlist || []
+                });
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error('Failed to load edit details');
+        }
+    };
+
 
     const onSubmit: SubmitHandler<DaySubjectSchema> = async (data) => {
         try {
             const res = await saveDaySubjectDetail(data);
             if (res.returnval === true) {
                 toast.success('Saved Successfully');
-                reset();
-                closeAddForm();
-                closeEditForm();
+                window.location.reload();
+            } else if (res.returnfixstatus === 'Fixed') {
+                toast.warning('Selected Staff And Subject Is Fixed For Selected Details !');
+            } else if (res.returnduplicatestatus === 'Duplicate') {
+                toast.warning('Records Already Exist !');
             } else {
                 toast.error('Failed to Save');
             }
@@ -131,7 +213,19 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                     </Button>
                 </div>
 
-                <DaySubjectList data={initialData?.daysubjectlist || []} />
+                <DaySubjectList
+                    data={
+                        (gridData as any)?.data ||
+                        (gridData as any)?.daysubjectlist ||
+                        (gridData as any)?.daySubjectList ||
+                        (gridData as any)?.daysubject_list ||
+                        (Array.isArray(gridData) ? gridData : []) ||
+                        initialData?.daysubjectlist ||
+                        initialData?.daySubjectList ||
+                        []
+                    }
+                    isLoading={isLoading}
+                />
 
                 {(isAddFormOpen || isEditFormOpen) && (
                     <CollapsibleSection
@@ -151,8 +245,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                             </Button>
 
                             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 bg-white p-6'>
-                                {/* Existing form content */}
-                                <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
+                                <div className='grid grid-cols-1 gap-6 md:grid-cols-4'>
                                     <div className='space-y-2'>
                                         <Label>
                                             Academic Year <span className='text-red-500'>*</span>
@@ -171,6 +264,31 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                                                         {academicList.map((item: any) => (
                                                             <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                                 {item.asmaY_Year}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        />
+                                    </div>
+                                    <div className='space-y-2'>
+                                        <Label>
+                                            Category <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Controller
+                                            control={control}
+                                            name='TTMC_Id'
+                                            render={({ field }) => (
+                                                <Select
+                                                    onValueChange={(val) => field.onChange(Number(val))}
+                                                    value={field.value?.toString()}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='--Select--' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {categoryList.map((item: any) => (
+                                                            <SelectItem key={item.ttmC_Id} value={item.ttmC_Id.toString()}>
+                                                                {item.ttmC_CategoryName}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -236,10 +354,10 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                                             control={control}
                                             name='TTRDSU_SUbSelcFlag'
                                             render={({ field }) => (
-                                                <Checkbox checked={field.value} onCheckedChange={field.onChange} id='cs_flag_sub' />
+                                                <Checkbox checked={field.value} onCheckedChange={field.onChange} id='cs_flag' />
                                             )}
                                         />
-                                        <Label htmlFor='cs_flag_sub' className='font-semibold'>
+                                        <Label htmlFor='cs_flag' className='font-semibold'>
                                             Restriction Class-Section Wise
                                         </Label>
                                     </div>
@@ -290,21 +408,21 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {staffList.map((item: any) => (
-                                                            <SelectItem
-                                                                key={item.hrmE_Id}
-                                                                value={item.staffName ? item.staffName : item.hrmE_EmployeeFirstName}>
-                                                                {item.staffName ? item.staffName : item.hrmE_EmployeeFirstName}
+                                                            <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
+                                                                {item.staffName}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
                                             <div className='space-y-2'>
-                                                <Label>Periods</Label>
+                                                <Label>Period Count</Label>
                                                 <InputText
-                                                    value={tempInput.NOP}
-                                                    onChange={(e) => setTempInput((prev) => ({ ...prev, NOP: e.target.value }))}
                                                     type='number'
+                                                    value={tempInput.TTRDSUCC_Periods.toString()}
+                                                    onChange={(e) =>
+                                                        setTempInput((prev: any) => ({ ...prev, TTRDSUCC_Periods: Number(e.target.value) }))
+                                                    }
                                                 />
                                             </div>
                                             <Button type='button' onClick={handleAdd} variant='secondary'>
@@ -325,11 +443,17 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
-                                                {fields.map((field, index) => (
+                                                {fields.map((field: any, index) => (
                                                     <TableRow key={field.id}>
-                                                        <TableCell>{field.ASMCL_Id}</TableCell>
-                                                        <TableCell>{field.ASMS_Id}</TableCell>
-                                                        <TableCell>{field.HRME_Id}</TableCell>
+                                                        <TableCell>
+                                                            {classList.find((c) => c.asmcL_Id === field.ASMCL_Id)?.asmcL_ClassName || field.ASMCL_Id}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {sectionList.find((s) => s.asmS_Id === field.ASMS_Id)?.asmC_SectionName || field.ASMS_Id}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {staffList.find((st) => st.hrmE_Id === field.HRME_Id)?.staffName || field.HRME_Id}
+                                                        </TableCell>
                                                         <TableCell>{field.TTRDSUCC_Periods}</TableCell>
                                                         <TableCell>
                                                             <Button type='button' variant='ghost' size='icon' onClick={() => remove(index)}>
@@ -349,7 +473,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                                     </Button>
                                     <Button
                                         type='button'
-                                        variant='destructive'
+                                        variant='outline'
                                         onClick={() => {
                                             reset();
                                             if (isEditFormOpen) closeEditForm();

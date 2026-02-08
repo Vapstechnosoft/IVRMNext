@@ -10,6 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type FixingPeriodStaffSchema, fixingPeriodStaffSchema } from '@/schemas/timetable/constraints/fixing';
 import {
+    getStaffDropDown
+} from '@/server/timetable/constraints/FixingForm';
+import {
     deactivateFixingPeriodStaff,
     getClassByCategory,
     getFixingPeriodStaffDetails,
@@ -25,6 +28,8 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { type IFixingPeriodStaffList, periodStaffColumns } from './columns';
 import { FixingViewModal } from './fixing-view-modal';
+import { usePeriodStaffGridData } from '@/hooks/timetable/constraints/fixingData';
+import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
 
 interface PeriodStaffTabProps {
     initialData: any;
@@ -45,10 +50,31 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         closeDetailsView
     } = useFormContext();
 
-    const [academicList] = useState<any[]>(initialData?.yearlist || []);
+    const { data: academicData } = usebifurcationAcademicYear();
+    const academicList = (academicData as any)?.data || [];
+
     const [periodList] = useState<any[]>(initialData?.periodlist || []);
-    const [staffList, setStaffList] = useState<any[]>(initialData?.stafflist || []);
-    const [gridData, setGridData] = useState<IFixingPeriodStaffList[]>(initialData?.fix_period_staff_list || []);
+    const [staffList, setStaffList] = useState<any[]>([]);
+
+    const { data: gridResponse, isLoading: isGridLoading } = usePeriodStaffGridData();
+
+    // Robust data extraction
+    let gridData: IFixingPeriodStaffList[] = [];
+    if (gridResponse) {
+        if (Array.isArray(gridResponse)) {
+            gridData = gridResponse;
+        }
+        else if (Array.isArray((gridResponse as any)?.data)) {
+            gridData = (gridResponse as any).data;
+        }
+        else if (Array.isArray((gridResponse as any)?.fix_period_staff_list)) {
+            gridData = (gridResponse as any).fix_period_staff_list;
+        }
+    }
+
+    if (gridData.length === 0 && initialData?.fix_period_staff_list) {
+        gridData = initialData.fix_period_staff_list;
+    }
 
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
@@ -87,6 +113,23 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         name: 'TempararyArrayList'
     });
 
+    useEffect(() => {
+        const loadDropdowns = async () => {
+            try {
+                const [staff] = await Promise.all([
+                    getStaffDropDown()
+                ]);
+
+                setStaffList(staff || []);
+            } catch (error) {
+                console.error("Failed to load dropdowns:", error);
+                toast.error("Failed to load dropdown options");
+            }
+        };
+
+        loadDropdowns();
+    }, []);
+
     // Effect to populate form on Edit
     useEffect(() => {
         if (isEditFormOpen && selectedRow) {
@@ -120,7 +163,7 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         if (ASMAY_Id && categoryId) {
             try {
                 const res = await getClassByCategory({ ASMAY_Id, TTMC_Id: categoryId });
-                if (Array.isArray(res) && res && res.classbycategory) setClassList(res.classbycategory as any[]);
+                if (res && res.classbycategory) setClassList(res.classbycategory as any[]);
             } catch (e) {
                 console.error(e);
             }
@@ -136,7 +179,7 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         if (ASMAY_Id && selectedCategory && classId) {
             try {
                 const res = await getSectionByClass({ ASMAY_Id, ASMCL_Id: classId, TTMC_Id: selectedCategory });
-                if (Array.isArray(res) && res && res.sectionlist) setSectionList(res.sectionlist as any[]);
+                if (res && res.sectionlist) setSectionList(res.sectionlist as any[]);
             } catch (e) {
                 console.error(e);
             }
@@ -150,7 +193,7 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         if (ASMAY_Id && selectedClass && sectionId && HRME_Id) {
             try {
                 const res = await getSubjectByStaff({ ASMAY_Id, ASMCL_Id: selectedClass, ASMS_Id: sectionId, HRME_Id });
-                if (Array.isArray(res) && res && res.subjectbystaff) setSubSubjectList(res.subjectbystaff as any[]);
+                if (res && res.subjectbystaff) setSubSubjectList(res.subjectbystaff as any[]);
             } catch (e) {
                 console.error(e);
             }
@@ -324,7 +367,7 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                 variant='default'
                 size='lg'
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <GenericDataTable data={gridData} columns={periodStaffColumns} totalItems={gridData.length} isLoading={false} />
+                <GenericDataTable data={gridData} columns={periodStaffColumns} totalItems={gridData.length} isLoading={isGridLoading} />
             </CollapsibleSection>
 
             {(isAddFormOpen || isEditFormOpen) && (
@@ -360,7 +403,7 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {academicList.map((item: any) => (
+                                                        {academicList.filter((item: any) => item.asmaY_Id).map((item: any) => (
                                                             <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                                 {item.asmaY_Year}
                                                             </SelectItem>
@@ -410,9 +453,9 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {staffList.map((item: any) => (
+                                                        {staffList.filter((item: any) => item.hrmE_Id).map((item: any) => (
                                                             <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
-                                                                {item.hrmE_EmployeeCode} - {item.hrmE_EmployeeFirstName}
+                                                                {item.staffName}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>

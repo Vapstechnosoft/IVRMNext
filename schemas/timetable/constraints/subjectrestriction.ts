@@ -45,6 +45,7 @@ export const dayStaffSchema = z.object({
 export const daySubjectSchema = z.object({
     TTRDSU_Id: z.number().optional(),
     ASMAY_Id: z.number().min(1, 'Academic Year is required'),
+    TTMC_Id: z.number().min(1, 'Category is required'),
     TTMD_Id: z.number().min(1, 'Day is required'),
     ISMS_Id: z.number().min(1, 'Subject is required'),
     TTRDSU_SUbSelcFlag: z.boolean().optional(),

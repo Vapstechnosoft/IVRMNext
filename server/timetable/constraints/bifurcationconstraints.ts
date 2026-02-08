@@ -1,10 +1,25 @@
 'use server';
 
 import { api } from '@/lib/apiService';
+import { ApiSearchparams } from '@/types';
+import { bifurcationconstraints } from '@/types/timetable/constraints/bifurcationconstraints';
 
 // Load initial data (Grid and Dropdowns)
 export async function getBifurcationConstraintsDetails() {
     const url = '/BifurcationFacade/BifurcationConstraintsGridData';
+    return await api.get<any>('timetable', url);
+}
+
+// Get Class details based on Academic Year and Category
+export async function getTimeTableCategoryDropDownDetails(searchParams: ApiSearchparams | undefined) {
+    const url = '/TimeTableCommon/GetCategoryDetails';
+    console.info('BifurcationConstraints', url);
+    return await api.get<bifurcationconstraints[]>('timetable', url);
+}
+
+export async function getAcademicYear(searchParams: ApiSearchparams | undefined) {
+    const url = '/TimeTableCommon/GetAcademicYearData';
+    console.info('BifurcationConstratins-AcademicYear', url)
     return await api.get<any>('timetable', url);
 }
 

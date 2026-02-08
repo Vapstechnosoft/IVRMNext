@@ -10,7 +10,9 @@ export interface IDaySubjectList {
     ttrdsU_Id: number;
     asmaY_Year: string;
     ttmD_DayName: string;
-    ismS_SubjectName: string; // or subjectName
+    ismS_SubjectName: string;
+    ttrdsU_ActiveFlag: boolean;
+    ttrdsU_SUbSelcFlag: boolean; // Added from your backend data
 }
 
 export const columns: ColumnDef<IDaySubjectList>[] = [
@@ -42,7 +44,16 @@ export const columns: ColumnDef<IDaySubjectList>[] = [
         cell: ({ row }) => <div>{row.getValue('ismS_SubjectName')}</div>
     },
     {
-        id: 'actions',
+        accessorKey: 'ttrdsU_SUbSelcFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Restriction Level' />,
+        cell: ({ row }) => (
+            <div className={`font-medium ${row.original.ttrdsU_SUbSelcFlag ? 'text-blue-600' : 'text-green-600'}`}>
+                {row.original.ttrdsU_SUbSelcFlag ? 'Class-Section Wise' : 'General'}
+            </div>
+        )
+    },
+    {
+        id: 'actions', // Changed ID to 'actions' for clearer pinning
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
         accessorFn: (row) => row,
         enableSorting: false,
@@ -51,13 +62,20 @@ export const columns: ColumnDef<IDaySubjectList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IDaySubjectList }) {
-    const { openEditForm, openDeleteForm } = useFormContext<IDaySubjectList>();
+    const { openEditForm, openToggleForm, openDeleteForm } = useFormContext<IDaySubjectList>();
 
     const handleEdit = useCallback(
         (data: IDaySubjectList) => {
             openEditForm(data);
         },
         [openEditForm]
+    );
+
+    const handleToggle = useCallback(
+        (data: IDaySubjectList) => {
+            if (openToggleForm) openToggleForm(data);
+        },
+        [openToggleForm]
     );
 
     const handleDelete = useCallback(
@@ -67,5 +85,14 @@ function ActionButtonsCell({ rowData }: { rowData: IDaySubjectList }) {
         [openDeleteForm]
     );
 
-    return <ActionButtons rowData={rowData} buttons={{ edit: true, delete: true }} onEdit={handleEdit} onDelete={handleDelete} />;
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: true, delete: true }}
+            onEdit={handleEdit}
+            onToggle={handleToggle}
+            onDelete={handleDelete}
+            toggleConditionKey='ttrdsU_ActiveFlag'
+        />
+    );
 }

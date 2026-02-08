@@ -11,6 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type FixingDaySubjectSchema, fixingDaySubjectSchema } from '@/schemas/timetable/constraints/fixing';
 import {
+    getSubjectDropDown
+} from '@/server/timetable/constraints/FixingForm';
+import {
     deactivateFixingDaySubject,
     getClassByCategory,
     getFixingDaySubjectDetails,
@@ -21,11 +24,13 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Plus, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { type IFixingDaySubjectList, daySubjectColumns } from './columns';
 import { FixingViewModal } from './fixing-view-modal';
+import { useDaySubjectGridData } from '@/hooks/timetable/constraints/fixingData';
+import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
 
 interface DaySubjectTabProps {
     initialData: any;
@@ -46,10 +51,15 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         closeDetailsView
     } = useFormContext();
 
-    const [academicList] = useState<any[]>(initialData?.yearlist || []);
+    const { data: academicData } = usebifurcationAcademicYear();
+    const academicList = (academicData as any)?.data || [];
+
     const [dayList] = useState<any[]>(initialData?.daylist || []);
-    const [subjectList, setSubjectList] = useState<any[]>(initialData?.subjectlist || []);
-    const [gridData, setGridData] = useState<IFixingDaySubjectList[]>(initialData?.fix_day_subject_list || []);
+    const [subjectList, setSubjectList] = useState<any[]>([]);
+
+    // Fetch Grid Data
+    const { data: gridResponse } = useDaySubjectGridData();
+    const gridData = (gridResponse as any)?.data || (gridResponse as any)?.fix_day_subject_list || initialData?.fix_day_subject_list || [];
 
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
@@ -87,6 +97,23 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         name: 'TempararyArrayList'
     });
 
+    useEffect(() => {
+        const loadDropdowns = async () => {
+            try {
+                const [subject] = await Promise.all([
+                    getSubjectDropDown()
+                ]);
+
+                setSubjectList(subject || []);
+            } catch (error) {
+                console.error("Failed to load dropdowns:", error);
+                toast.error("Failed to load dropdown options");
+            }
+        };
+
+        loadDropdowns();
+    }, []);
+
     // Effect to populate form on Edit
     useEffect(() => {
         if (isEditFormOpen && selectedRow) {
@@ -120,7 +147,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         if (ASMAY_Id && categoryId) {
             try {
                 const res = await getClassByCategory({ ASMAY_Id, TTMC_Id: categoryId });
-                if (Array.isArray(res) && res && res.classbycategory) setClassList(res.classbycategory as any[]);
+                if (res && res.classbycategory) setClassList(res.classbycategory as any[]);
             } catch (e) {
                 console.error(e);
             }
@@ -136,7 +163,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         if (ASMAY_Id && selectedCategory && classId) {
             try {
                 const res = await getSectionByClass({ ASMAY_Id, ASMCL_Id: classId, TTMC_Id: selectedCategory });
-                if (Array.isArray(res) && res && res.sectionlist) setSectionList(res.sectionlist as any[]);
+                if (res && res.sectionlist) setSectionList(res.sectionlist as any[]);
             } catch (e) {
                 console.error(e);
             }
@@ -155,7 +182,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                     ASMCL_Id: selectedClass,
                     ASMS_Id: sectionId
                 });
-                if (Array.isArray(res) && res && res.staffbyall) setSubStaffList(res.staffbyall as any[]);
+                if (res && res.staffbyall) setSubStaffList(res.staffbyall as any[]);
             } catch (e) {
                 console.error(e);
             }
@@ -366,7 +393,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {academicList.map((item: any) => (
+                                                        {academicList.filter((item: any) => item.asmaY_Id).map((item: any) => (
                                                             <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                                 {item.asmaY_Year}
                                                             </SelectItem>
@@ -416,7 +443,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {subjectList.map((item: any) => (
+                                                        {subjectList.filter((item: any) => item.ismS_Id).map((item: any) => (
                                                             <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
                                                                 {item.ismS_SubjectName}
                                                             </SelectItem>

@@ -10,6 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type FixingPeriodSubjectSchema, fixingPeriodSubjectSchema } from '@/schemas/timetable/constraints/fixing';
 import {
+    getSubjectDropDown
+} from '@/server/timetable/constraints/FixingForm';
+import {
     deactivateFixingPeriodSubject,
     getClassByCategory,
     getFixingPeriodSubjectDetails,
@@ -20,15 +23,71 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Plus, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { type IFixingPeriodSubjectList, periodSubjectColumns } from './columns';
 import { FixingViewModal } from './fixing-view-modal';
+import { TTPeriodSubjectGridData } from '@/types/timetable/constraints/fixing';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { usePeriodSubjectGridData } from '@/hooks/timetable/constraints/fixingData';
+import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
+// import ToggleFixingPeriodSubject from './toggle-period-subject';
 
 interface PeriodSubjectTabProps {
     initialData: any;
 }
+
+
+export const TTGeneration: ColumnDef<TTPeriodSubjectGridData>[] = [
+    {
+        id: 'actions',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
+        accessorFn: (row: any) => row,
+        enableSorting: false,
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
+    }
+];
+function ActionButtonsCell({ rowData }: { rowData: TTPeriodSubjectGridData }) {
+    // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
+    let formContext;
+
+    try {
+        formContext = useFormContext<TTPeriodSubjectGridData>();
+    } catch {
+        // Component rendered outside FormProvider
+        return null;
+    }
+
+    const { openEditForm, openToggleForm } = formContext;
+
+    const handleEdit = useCallback(
+        (data: TTPeriodSubjectGridData) => {
+            openEditForm(data);
+        },
+        [openEditForm]
+    );
+
+    const handleToggle = useCallback(
+        (data: TTPeriodSubjectGridData) => {
+            openToggleForm(data);
+        },
+        [openToggleForm]
+    );
+
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: true, delete: false }}
+            onEdit={handleEdit}
+            onToggle={handleToggle}
+            toggleConditionKey='ttrpsU_ActiveFlag'
+        />
+    );
+}
+
 
 function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
     const {
@@ -45,10 +104,29 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
         closeDetailsView
     } = useFormContext();
 
-    const [academicList] = useState<any[]>(initialData?.yearlist || []);
+    const { data: academicData } = usebifurcationAcademicYear();
+    const academicList = (academicData as any)?.data || [];
+
     const [periodList] = useState<any[]>(initialData?.periodlist || []);
-    const [subjectList, setSubjectList] = useState<any[]>(initialData?.subjectlist || []);
-    const [gridData, setGridData] = useState<IFixingPeriodSubjectList[]>(initialData?.fix_period_subject_list || []);
+    const [subjectList, setSubjectList] = useState<any[]>([]);
+
+    const { data: gridResponse, isLoading: isGridLoading } = usePeriodSubjectGridData();
+
+    // Robust data extraction
+    let gridData: IFixingPeriodSubjectList[] = [];
+    if (gridResponse) {
+        if (Array.isArray(gridResponse)) {
+            gridData = gridResponse;
+        } else if (Array.isArray((gridResponse as any)?.data)) {
+            gridData = (gridResponse as any).data;
+        } else if (Array.isArray((gridResponse as any)?.fix_period_subject_list)) {
+            gridData = (gridResponse as any).fix_period_subject_list;
+        }
+    }
+
+    if (gridData.length === 0 && initialData?.fix_period_subject_list) {
+        gridData = initialData.fix_period_subject_list;
+    }
 
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
@@ -86,6 +164,23 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
         control,
         name: 'TempararyArrayList'
     });
+
+    useEffect(() => {
+        const loadDropdowns = async () => {
+            try {
+                const [subject] = await Promise.all([
+                    getSubjectDropDown()
+                ]);
+
+                setSubjectList(subject || []);
+            } catch (error) {
+                console.error("Failed to load dropdowns:", error);
+                toast.error("Failed to load dropdown options");
+            }
+        };
+
+        loadDropdowns();
+    }, []);
 
     // Effect to populate form on Edit
     useEffect(() => {
@@ -224,18 +319,18 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
 
     const onEdit = async (item: any) => {
         try {
-            const res = await getFixingPeriodSubjectDetails(item.ttfpsU_Id);
+            const res = await getFixingPeriodSubjectDetails(item.ttrpsU_Id);
             if (res?.fix_period_subject_edit && (res.fix_period_subject_edit as any[]).length > 0) {
                 const d = (res.fix_period_subject_edit as any[])[0];
                 reset({
-                    TTFPSU_Id: d.ttfpsU_Id,
+                    TTFPSU_Id: d.ttrpsU_Id,
                     ASMAY_Id: d.asmaY_Id,
                     TTMP_Id: d.ttmP_Id,
                     ISMS_Id: d.ismS_Id,
-                    TTFPSU_SUbSelcFlag: d.ttfpsU_SUbSelcFlag,
+                    TTFPSU_SUbSelcFlag: d.ttrpsU_SUbSelcFlag,
                     TempararyArrayList: []
                 });
-                if (d.ttfpsU_SUbSelcFlag && res.fix_period_subject__classecedit) {
+                if (d.ttrpsU_SUbSelcFlag && res.fix_period_subject__classecedit) {
                     (res.fix_period_subject__classecedit as any[]).forEach((sub: any) => {
                         append({
                             ASMCL_Id: sub.asmcL_Id,
@@ -258,7 +353,7 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
         try {
             setIsLoadingView(true);
             setViewDetails([]);
-            const res = await getFixingPeriodSubjectDetails(item.ttfpsU_Id);
+            const res = await getFixingPeriodSubjectDetails(item.ttrpsU_Id);
             if (res?.fix_period_subject__classecedit) {
                 const details = (res.fix_period_subject__classecedit as any[]).map((sub: any) => ({
                     clsDisplay: sub.asmcL_ClassName,
@@ -277,7 +372,7 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
 
     const onToggle = async (item: any) => {
         try {
-            const payload = { TTFPSU_Id: item.ttfpsU_Id, TTFPSU_ActiveFlag: !item.ttfpsU_ActiveFlag };
+            const payload = { TTFPSU_Id: item.ttrpsU_Id, TTFPSU_ActiveFlag: !item.ttrpsU_ActiveFlag };
             const res = await deactivateFixingPeriodSubject(payload);
             if (res?.returnval === true) {
                 toast.success('Status Updated');
@@ -329,7 +424,7 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                 variant='default'
                 size='lg'
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <GenericDataTable data={gridData} columns={periodSubjectColumns} totalItems={gridData.length} isLoading={false} />
+                <GenericDataTable data={gridData} columns={periodSubjectColumns} totalItems={gridData.length} isLoading={isGridLoading} />
             </CollapsibleSection>
 
             {(isAddFormOpen || isEditFormOpen) && (
@@ -365,7 +460,7 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {academicList.map((item: any) => (
+                                                        {academicList.filter((item: any) => item.asmaY_Id).map((item: any) => (
                                                             <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                                 {item.asmaY_Year}
                                                             </SelectItem>
@@ -415,7 +510,7 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {subjectList.map((item: any) => (
+                                                        {subjectList.filter((item: any) => item.ismS_Id).map((item: any) => (
                                                             <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
                                                                 {item.ismS_SubjectName}
                                                             </SelectItem>
