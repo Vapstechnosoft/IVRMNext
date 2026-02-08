@@ -20,7 +20,7 @@ export interface ApiArrayResponse<T> extends Partial<PaginationData> {
     } | null;
     [key: string]: unknown;
 }
-// biome-ignore lint/style/useNodejsImportProtocol: <explanation>
+
 // import https from 'https'; // Removed to avoid client-side bundling errors
 import { signOut } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
@@ -121,8 +121,6 @@ class ApiService {
                     rejectUnauthorized: false // Bypass SSL certificate validation
                 });
 
-
-                console.info('🔵 [API SERVICE] SSL bypass enabled for:', baseURL);
             }
 
             const instance = axios.create(config);
@@ -162,7 +160,7 @@ class ApiService {
                     return config;
                 }
             },
-            (error) => Promise.reject(this.handleError(error))
+            (error) => Promise.reject(error)
         );
 
         // Response Interceptor
@@ -180,7 +178,7 @@ class ApiService {
                         console.error('Error refreshing session:', refreshError);
                     }
                 }
-                return Promise.reject(this.handleError(error));
+                return Promise.reject(error);
             }
         );
     }
@@ -217,8 +215,10 @@ class ApiService {
     ): Promise<ApiResponse<T>> {
         try {
             const instance = this.getOrCreateInstance(baseUrlKey);
-            const baseURL = instance.defaults.baseURL;
-            const fullUrl = `${baseURL}${url}`;
+            const baseURL = instance.defaults.baseURL || '';
+            const cleanBaseURL = baseURL.endsWith('/') ? baseURL.slice(0, -1) : baseURL;
+            const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+            const fullUrl = `${cleanBaseURL}${cleanUrl}`;
 
             console.info('🌐 [API SERVICE] Request initiated');
             console.info('📤 [API SERVICE] Request details:', {

@@ -23,27 +23,16 @@ export default function AlumniSearchPage() {
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const [initialRes, cityRes, occupationRes] = await Promise.all([
-                getAlumniSearchDropdownData({}),
-                getAlumniSearchDropdownData({ type: 'City' }),
-                getAlumniSearchDropdownData({ type: 'Occupation' })
-            ]);
+            // Fetch initial dropdown data (Years, Classes)
+            const initialRes = await getAlumniSearchDropdownData({});
 
             if (initialRes.success && initialRes.data) {
                 setYears(initialRes.data.yearList || []);
                 setClasses(initialRes.data.classList || []);
-            }
 
-            if (cityRes.success && cityRes.data) {
-                const cityList = cityRes.data.citylist || cityRes.data.searchResult || [];
-                setCities(cityList.map((c: any) => c.almsT_PerCity || c.cityName || c).filter(Boolean));
+                // Legacy code also shows loading cities/occupations might not be needed initially 
+                // or were handled differently. For now, we restore base dropdowns.
             }
-
-            if (occupationRes.success && occupationRes.data) {
-                const occupationList = occupationRes.data.occupationlist || occupationRes.data.searchResult || [];
-                setOccupations(occupationList.map((o: any) => o.alspR_Designation || o.designation || o).filter(Boolean));
-            }
-
         } catch (error) {
             toast.error('Failed to load search preferences');
         } finally {
