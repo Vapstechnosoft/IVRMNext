@@ -5,25 +5,35 @@ import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useFeeTransactionList, useopeningacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
+import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
+import { useFeeTransactionList } from '@/hooks/fees/useTrasactions';
+import type { IFeeAcademicYearDropdownList } from '@/types/fees/reports/reports';
 import type { Ifeetransaction } from '@/types/fees/transactions/transactions';
 import { Plus, X } from 'lucide-react';
 import { use, useEffect, useState } from 'react';
 import StudentFeeTransaction from './_components/add-form';
 import { feeTransactionColumns } from './_components/columns';
+import DeleteFeeTransactionForm from './_components/delete-form';
 import ReceiptViewPage from './_components/receiptview';
+import UpdateStudentFeeTransaction from './_components/update-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function FeeTransactionPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
-
-    const { data: academicYearData, isLoading: loadingYears } = useopeningacademicyerdropdowndatafee();
+    const [selectedAcademicYear, setSelectedAcademicYear] = useState('');
+    const { data: academicYearData, isLoading: loadingYears } = useFeeDefaulterReport();
     const { data: response, isLoading, error } = useFeeTransactionList(selectedAsmayId ?? 0, searchParams);
 
     useEffect(() => {
         if (!loadingYears && academicYearData?.data && academicYearData.data.length > 0) {
             const firstId = academicYearData.data[0].asmaY_Id;
+            if (selectedAsmayId && academicYearData?.data) {
+                const selectedItem = academicYearData.data.find((item) => item.asmaY_Id === selectedAsmayId);
+                if (selectedItem) {
+                    setSelectedAcademicYear(selectedItem.asmaY_Year);
+                }
+            }
             setSelectedAsmayId((prev) => prev ?? firstId);
         }
     }, [loadingYears, academicYearData]);
@@ -33,11 +43,13 @@ export default function FeeTransactionPage(props: { searchParams: SearchParams }
             <FeeTransactionContent
                 selectedAsmayId={selectedAsmayId}
                 setSelectedAsmayId={setSelectedAsmayId}
+                setSelectedAcademicYear={setSelectedAcademicYear}
                 academicYearData={academicYearData}
                 loadingYears={loadingYears}
                 isLoading={isLoading}
                 response={response}
                 error={error}
+                selectedasmayYear={selectedAcademicYear}
             />
         </FormProvider>
     );
@@ -48,12 +60,16 @@ function FeeTransactionContent({
     isLoading,
     error,
     selectedAsmayId,
+    selectedasmayYear,
     setSelectedAsmayId,
+    setSelectedAcademicYear,
     loadingYears,
     academicYearData
 }: {
+    selectedasmayYear: string;
     selectedAsmayId: number | null;
     setSelectedAsmayId: (id: number | null) => void;
+    setSelectedAcademicYear: (year: string) => void;
     response: any;
     isLoading: boolean;
     error: any;
@@ -73,7 +89,13 @@ function FeeTransactionContent({
                         </Label>
                         <Select
                             value={selectedAsmayId?.toString() || ''}
-                            onValueChange={(v) => setSelectedAsmayId(Number(v))}
+                            onValueChange={(v) => {
+                                setSelectedAsmayId(Number(v));
+                                const selectedItem = academicYearData?.data?.find(
+                                    (item: IFeeAcademicYearDropdownList) => item.asmaY_Id === Number(v)
+                                );
+                                setSelectedAcademicYear(selectedItem.asmaY_Year);
+                            }}
                             disabled={loadingYears}>
                             <SelectTrigger className='w-64'>
                                 <SelectValue placeholder='Select Academic Year' />
@@ -118,14 +140,26 @@ function FeeTransactionContent({
                     />
                 </CollapsibleSection>
 
-                <FormSections />
+                <FormSections asmayId={Number(selectedAsmayId ?? 0)} asmayYear={selectedasmayYear} />
             </div>
         </div>
     );
 }
 
-function FormSections() {
-    const { isAddFormOpen, closeAddForm, isDetailsViewOpen, closeDetailsView, addFormRef, selectedRow } = useFormContext<Ifeetransaction>();
+function FormSections({ asmayId, asmayYear }: { asmayId: number; asmayYear: string }) {
+    const {
+        isAddFormOpen,
+        closeAddForm,
+        isDetailsViewOpen,
+        closeDetailsView,
+        addFormRef,
+        selectedRow,
+        isDeleteFormOpen,
+        closeDeleteForm,
+        isEditFormOpen,
+        closeEditForm,
+        editFormRef
+    } = useFormContext<Ifeetransaction>();
 
     return (
         <>
@@ -147,13 +181,54 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <StudentFeeTransaction onSuccess={closeAddForm} />
+                            <StudentFeeTransaction onSuccess={closeAddForm} asmayId={asmayId} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
 
-            {isDetailsViewOpen && selectedRow && <ReceiptViewPage rowData={selectedRow} onClose={closeDetailsView} />}
+            {isDetailsViewOpen && selectedRow && (
+                <ReceiptViewPage rowData={selectedRow} onClose={closeDetailsView} asmayId={asmayId} asmayYear={asmayYear} />
+            )}
+            {isDeleteFormOpen && selectedRow && (
+                <DeleteFeeTransactionForm
+                    rowData={selectedRow}
+                    asmayId={asmayId}
+                    onClose={closeDeleteForm}
+                    onSuccess={() => {
+                        closeDeleteForm();
+                    }}
+                />
+            )}
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Update Fee Transaction Waived Off'
+                        description='Updtae a Fee Transaction Waived Off record'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <UpdateStudentFeeTransaction
+                                selectedRow={selectedRow}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                }}
+                                asmayId={asmayId}
+                            />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
         </>
     );
 }

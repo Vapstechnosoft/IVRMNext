@@ -13,6 +13,8 @@
         "uat": "env-cmd -f .env.uat next dev",
         "uat1": "env-cmd -f .env.uat1 next dev",
         "uat3": "env-cmd -f .env.uat3 next dev",
+        "delite-beta-test": "env-cmd -f .env.delite-beta-test next dev",
+        "elite-beta-test": "env-cmd -f .env.elite-beta-test next dev",
         "build-local": "next build",
         "build-dev": "cp .env.dev .env.local && next build",
         "build-qa": "cp .env.qa .env.local && next build",
@@ -21,6 +23,8 @@
         "build-uat1": "cp .env.uat1 .env.local && next build",
         "build-uat2": "cp .env.uat2 .env.local && next build",
         "build-uat3": "cp .env.uat3 .env.local && next build",
+        "build-delite-beta-test": "cp .env.delite-beta-test.env.local && next build",
+        "build-elite-beta-test": "cp .env.elite-beta-test.env.local && next build",
         "test:production": "next build && next start -p 3001",
         "test:build": "next build",
         "lint-fix": "biome check --fix --unsafe",
@@ -66,12 +70,14 @@
         "@tanstack/react-query-devtools": "^5.62.11",
         "@tanstack/react-table": "^8.20.6",
         "axios": "^1.7.9",
+        "chart.js": "^4.5.1",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "cmdk": "1.0.4",
         "date-fns": "^3.6.0",
         "file-saver": "^2.0.5",
         "framer-motion": "^11.15.0",
+        "html2canvas": "^1.4.1",
         "json-as-xlsx": "^2.5.6",
         "jspdf": "^2.5.2",
         "jspdf-autotable": "^3.8.4",
@@ -83,15 +89,18 @@
         "nuqs": "^2.2.3",
         "react": "18.3.1",
         "react-aria-components": "^1.5.0",
+        "react-chartjs-2": "^5.3.1",
         "react-countup": "^6.5.3",
         "react-day-picker": "^8.10.1",
         "react-dom": "18.3.1",
         "react-hook-form": "^7.54.2",
         "react-phone-input-2": "^2.15.1",
+        "react-to-print": "^3.2.0",
         "react-webcam": "^7.2.0",
         "recharts": "^2.15.1",
         "server-only": "^0.0.1",
         "sonner": "^1.7.1",
+        "sweetalert2": "^11.26.18",
         "tailwind-merge": "^2.6.0",
         "tailwindcss-animate": "^1.0.7",
         "xlsx": "^0.18.5",
@@ -101,6 +110,7 @@
     "devDependencies": {
         "@biomejs/biome": "^1.9.4",
         "@tanstack/eslint-plugin-query": "^5.62.9",
+        "@types/file-saver": "^2.0.7",
         "@types/jest": "^29.5.14",
         "@types/node": "^22.10.2",
         "@types/react": "^18.3.1",
@@ -116,6 +126,8 @@
         "typescript": "^5.7.2"
     },
     "lint-staged": {
-        "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": ["biome check --write --no-errors-on-unmatched"]
+        "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
+            "biome check --write --no-errors-on-unmatched"
+        ]
     }
 }

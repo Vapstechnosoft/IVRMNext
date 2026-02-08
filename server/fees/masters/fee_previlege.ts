@@ -12,16 +12,16 @@ import type {
 } from '@/types/fees/masters/masters';
 
 export async function getGroupsDropdown() {
-    const url = '/fee_class_category/academicyearlist/30';
+    const url = '/fee_class_category/academicyearlist';
     return await api.get<IMasterGroupDropdown[]>('fees', url);
 }
 export async function getRolesDropdown() {
-    const url = '/FeePrevilege/GetRoleTypeDropdown?mi_Id=30';
+    const url = '/FeePrevilege/GetRoleTypeDropdown';
     return await api.get<IMasterRoleDropdown[]>('fees', url);
 }
 
 export async function getUserNameDropdown(ivrtmt_Id: number) {
-    const url = `/FeePrevilege/GetUserNameDropdown?mi_Id=30&ivrmrt_Id=${ivrtmt_Id}`;
+    const url = `/FeePrevilege/GetUserNameDropdown?ivrmrt_Id=${ivrtmt_Id}`;
     return await api.get<IMasterGetUserNameDropdown[]>('fees', url);
 }
 
@@ -37,7 +37,8 @@ export async function getFeePrevilegeList(searchParams?: ApiSearchparams) {
 }
 
 export async function getHeadDropDown(asmay_Id: number, fmg_Id: number) {
-    const url = `/FeePrevilege/heads-by-group-and-academic-year?mi_Id=30&asmay_Id=${asmay_Id}&fmg_Id=${fmg_Id}`;
+    const url = `/FeePrevilege/heads-by-group-and-academic-year?asmay_Id=${asmay_Id}&fmg_Id=${fmg_Id}`;
+    console.info('url', url);
     return await api.get<IMasterGetHeadDropdown[]>('fees', url);
 }
 

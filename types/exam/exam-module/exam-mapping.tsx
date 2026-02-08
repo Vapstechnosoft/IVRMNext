@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 // EXAM MAPPING
 export interface IYearlyCategorySubjectMapping {
     eyC_Id: number;
@@ -56,36 +58,29 @@ export interface IExamLoginPrivilegesForm {
     subSubjectIds?: number[];
 }
 export interface ILoginPrivilegeDetails {
-    slno: number;
-    classId: number;
-    className: string;
-
-    sectionId: number;
-    sectionName: string;
-
-    subjectId: number;
-    subjectName: string;
-
-    subSubjectId: number;
-    subSubjectName: string; // Allow backend extra fields safely
+    ismS_SubjectName: string;
+    emsS_SubSubjectName: string;
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+    asmS_Id: number;
+    asmC_SectionName: string;
+    activeFlg: boolean;
+    elpS_Id: number;
+    elpsS_Id: number;
+    elP_Id: number;
 }
 
-export interface IExamLoginPrivilegesView {
-    elp_Id: number;
-    asmaY_Year: string;
-    userName: string;
-    employeeName: string;
-    className: string;
-    sectionName: string;
-    subjectName: string;
-    subSubjectName?: string;
-    activeStatus: boolean;
-}
-
-export interface IExamLoginPrivilegesTableProps {
-    data: IExamLoginPrivilegesView[];
-    onEdit: (row: IExamLoginPrivilegesView) => void;
-    onDelete: (row: IExamLoginPrivilegesView) => void;
+export interface IExamLoginPrivilegesEditDetails {
+    asmaY_Id: number;
+    login_Id: number;
+    elP_Flg: string;
+    ivrmulF_Id: number;
+    asmcL_Id: number;
+    asmS_Id: number;
+    ismS_Id: number;
+    emp_Code: number;
+    hrmE_Id: number;
+    emsS_Id: number;
 }
 
 export interface IYearlyCategorySubjectMappingView {
@@ -343,36 +338,32 @@ export interface ExamDetail {
 
 export interface IExamMarksProcessCondition {
     eycE_Id: number;
-    eamY_Year: string;
-    eypE_Flag: boolean;
-    eypE_SeviourFlg: boolean;
-    examName: string;
-    emgr_ExamGroup?: string;
-    estT_Description?: string;
+    eyC_Id: number;
 
-    eypdT_MonthDayFlg: boolean;
-    eypdT_CountFlg: boolean;
-    eypdT_WeekDayFlg: boolean;
-    eypdT_SpecifcDateFlg: boolean;
-    eypdT_Count: number;
-    eypdT_CountOfDays: number;
+    asmaY_Id: number;
+    asmaY_Year: string;
 
-    eycD_DaysFlg: boolean;
-    eycD_HoursFlg: boolean;
-    eycD_Count: number;
-    eycD_CountOfTime: number;
+    emcA_Id: number;
+    emcA_CategoryName: string;
 
-    eycE_AttendanceFlg: boolean;
-    eycE_HomeWorkFlg: boolean;
-    eycE_DisciplineFlg: boolean;
+    emE_Id: number;
+    emE_ExamName: string;
+    emE_ExamCode: string;
 
-    eyp_CTFlg: boolean;
+    emgR_GradeName?: string;
 
-    eycE_CategoryFlg: boolean;
-    categoryDetails: CategoryDetail[];
+    eycE_AttendanceFromDate?: string | null;
+    eycE_AttendanceToDate?: string | null;
 
-    eycE_ExamFlg: boolean;
-    examDetails: ExamDetail[];
+    eycE_SubExamFlg: boolean;
+    eycE_SubSubjectFlg: boolean;
+    eycE_ActiveFlg: boolean;
+
+    eycE_ExamStartDate?: string | null;
+    eycE_ExamEndDate?: string | null;
+    eycE_MarksEntryLastDate?: string | null;
+    eycE_MarksProcessLastDate?: string | null;
+    eycE_MarksPublishDate?: string | null;
 }
 
 export interface IExamWiseRemarksGrid {
@@ -426,23 +417,42 @@ export interface IHallTicketStudentItem {
 }
 
 export interface IPromotionRemarksGrid {
-    slNo: number; // Serial number
-    admNo: string; // Admission number
-    studentName: string; // Student's full name
-    studentId: number; // Student ID
-    remarks?: string; // Remarks for the student
+    slNo: number;
+    admNo: string;
+    studentName: string;
+    studentId: number;
+    remarks: string; // Changed from string?
+    estmP_Id?: number;
+    ecT_Id?: number;
 }
 
 export interface IPromotionSetting {
-    id: number;
+    emP_Id: number;
+    eyC_Id: number;
+    emcA_Id: number;
     asmaY_Id: number;
-    emcA_CategoryName?: string;
-    emgR_GradeName?: string;
-    promotion_type: string;
-    pass_to_individual: boolean;
-    pass_to_overall: boolean;
-    best_applicable: boolean;
-    best_off: number;
+    emgR_Id: number;
+
+    asmaY_Year: string;
+    asmaY_Order: number;
+
+    emcA_CategoryName: string;
+    emgR_GradeName: string;
+
+    emP_PassToIndSubjectFlg: boolean;
+    emP_PassToOverallFlag: boolean;
+
+    emP_MarksPerFlg: 'M' | 'P'; // M = Marks, P = Percentage
+
+    emP_ActiveFlag: boolean;
+
+    emP_BestOf: number | null;
+    emP_BestOfApplicableFlg: boolean;
+}
+
+export interface IPromotionCategory {
+    eyC_Id: number;
+    emcA_CategoryName: string;
 }
 
 export interface IExamPromotionalSettingDetails {
@@ -454,9 +464,6 @@ export interface IExamPromotionalSettingDetails {
     minMarks: number;
     passPercentage?: number;
     isActive: boolean;
-
-    // Navigation Forward → Page-2
-    groups?: IExamSubjectGroupingDetails[];
 }
 
 export interface IExamSubjectGroupDetails {
@@ -470,10 +477,10 @@ export interface IExamSubjectGroupDetails {
 
 export interface IStudentTransactionGrid {
     slNo: number;
-    studentId: number;
+    amsT_Id: number;
     studentName: string;
-    regNo: string;
-    rollNo: number;
+    regNumber: string;
+    rollNumber: number;
     score: number;
     checked?: boolean;
 }
@@ -505,8 +512,8 @@ export interface ISkillActivity {
 }
 
 export interface ISkillName {
-    id: number;
-    name: string;
+    ecactA_Id: number;
+    ecactA_SkillArea: string;
 }
 
 export interface ISkillArea {
@@ -516,12 +523,422 @@ export interface ISkillArea {
 }
 
 export interface IActivityName {
+    ecactA_SkillArea: ReactNode;
     id: number;
     name: string;
 }
 
 export interface IActivityArea {
+    ecactA_SkillArea: ReactNode;
     id: number;
     name: string;
     activityNameId: number;
+}
+
+export interface IPromotionalSubjectDetails {
+    empS_Id: number;
+    emP_Id: number;
+    ismS_Id: number;
+
+    emcA_CategoryName: string;
+    emgR_GradeName: string;
+    emgR_Id: number;
+
+    ismS_SubjectName: string;
+    ismS_SubjectCode: string;
+
+    empS_MaxMarks: number;
+    empS_MinMarks: number;
+    empS_ConvertForMarks: number;
+
+    empS_AppToResultFlg: boolean;
+    empS_ActiveFlag: boolean;
+
+    empS_SubjOrder: number;
+}
+
+export interface IPromotionalGroupDetails {
+    empsG_Id: number;
+    emps_Id: number;
+
+    isms_Id: number;
+    isms_SubjectName: string;
+    isms_SubjectCode: string;
+
+    empsG_GroupName: string;
+    empsG_DisplayName: string;
+
+    empsG_PercentValue: number;
+    empsG_MarksValue: number;
+    empsG_MaxOff: number;
+    empsG_BestOff: number | null;
+
+    empsG_ActiveFlag: boolean;
+    empsG_RoundOffFlag: boolean;
+
+    empsG_Order: number;
+}
+
+
+export interface IPromotionalGroupMappedExamDetails {
+    empsgE_Id: number;
+
+    emE_Id: number;
+    emE_ExamName: string;
+    emE_ExamCode: string;
+
+    empsG_Id: number;
+    empsG_GroupName: string;
+    empsG_DisplayName: string;
+
+    empsgE_ForMaxMarkrs: number;
+    empsgE_ConvertionReqOrNot: boolean;
+    empsgE_ActiveFlg: boolean;
+}
+
+export interface ISearchMarksEntryParams {
+    ASMS_Id: number;
+    ASMCL_Id: number;
+    ASMAY_Id: number;
+    EME_Id: number;
+    ISMS_Id: number;
+}
+
+export interface IBackendSubjectDetail {
+    eyceS_Id: number;
+    eycE_Id: number;
+    ismS_Id: number;
+    emgR_Id: number;
+    eyceS_MarksEntryMax: number;
+    eyceS_MaxMarks: number;
+    eyceS_MinMarks: number;
+    eyceS_SubExamFlg: boolean;
+    eyceS_SubSubjectFlg: boolean;
+    eyceS_MarksGradeEntryFlg: 'M' | 'G';
+    eyceS_MarksDisplayFlg: boolean;
+    eyceS_GradeDisplayFlg: boolean;
+    eyceS_AplResultFlg: boolean;
+    eyceS_ActiveFlg: boolean;
+    eyceS_SubjectOrder: number;
+    createdDate: string;
+    updatedDate: string;
+}
+
+export interface IBackendStudent {
+    amsT_Id: number;
+    amsT_FirstName: string;
+    amsT_AdmNo: string;
+    amsT_RegistrationNo: string;
+    amaY_RollNo: number;
+    ismS_Id: number;
+    ismS_SubjectName: string;
+    eyceS_MaxMarks: number;
+    eyceS_MinMarks: number;
+    eyceS_MarksEntryMax: number;
+    estM_Marks: number | null;
+    estM_Grade: string | null;
+    estM_Flg: string | null;
+    estM_Id: number;
+    param: any;
+    amsT_Sex: string | null;
+    estmanssH_Id: number;
+    estmanssH_AnswerSheet: string | null;
+    estmanssH_FileLocation: string | null;
+    papertype?: string;
+    papertypeid?: number;
+}
+
+export interface IBackendSubSubject {
+    emsS_Id: number;
+    emsS_Name: string;
+    emsS_SubSubjectCode?: string;
+    eycessS_MaxMarks: number;
+    eycessS_MinMarks: number;
+    eycessS_MarksEntryMax: number;
+}
+
+export interface IBackendSubExam {
+    emsE_Id: number;
+    emsE_Name: string;
+    eycessE_MaxMarks: number;
+    eycessE_MinMarks: number;
+    eycessE_MarksEntryMax: number;
+}
+
+export interface IBackendGradeDetail {
+    emgD_Id: number;
+    emgD_Name: string;
+    emgD_MinMarks?: number;
+    emgD_MaxMarks?: number;
+    emgD_AddFlg?: boolean;
+}
+
+export interface IBackendSearchResponse {
+    saved_sub_subject_list: any;
+    saved_sub_subject_exam_list: any;
+    emsS_Id: number;
+    asmaY_Id: number;
+    asmcL_Id: number;
+    asmS_Id: number;
+    emE_Id: number;
+    ismS_Id: number;
+    subject_details: IBackendSubjectDetail[];
+    eyceS_MarksGradeEntryFlg: 'M' | 'G';
+    eyceS_SubSubjectFlg: boolean;
+    subject_subsubjects: IBackendSubSubject[];
+    eyceS_SubExamFlg: boolean;
+    subject_subexams: IBackendSubExam[];
+    emgR_Id: number;
+    grade_details: IBackendGradeDetail[];
+    studentList: IBackendStudent[];
+    get_student_wise_papertype_list: any[];
+    subsubject_gradedetails: IBackendGradeDetail[];
+    subexam_gradedetails: IBackendGradeDetail[];
+    saved_studentList: IBackendStudent[] | null;
+    marksdeleteflag: boolean;
+    configuration: Array<{
+        exmConfig_RegnoColumnDisplay: boolean;
+        exmConfig_AdmnoColumnDisplay: boolean;
+        exmConfig_RollnoColumnDisplay: boolean;
+        exmConfig_Recordsearchtype: 'Name' | 'AdmNo' | 'RollNo' | 'RegNo';
+    }>;
+    subsubjectlist: any[];
+    subexamlist: any[];
+    savedMarksCount: number;
+    lastDateEntry: number;
+    lastDateEntryFlag: boolean;
+    lastDateExam: number;
+    lastDateExamFlag: boolean;
+    marksEntryStateDate: string | null;
+    get_papertype_grade_details: any[];
+    answer_sheet: any[];
+}
+
+// types/marks-entry.ts
+export type SubSub = {
+    subsubId: number;
+    subsubName: string;
+    maxMarks: number;
+    minMarks?: number;
+    marksEntryMax: number;
+    gradeDetails?: IBackendGradeDetail[];
+};
+
+export type SubExam = {
+    subexamId: number;
+    subexamName: string;
+    maxMarks: number;
+    minMarks?: number;
+    marksEntryMax: number;
+    gradeDetails?: IBackendGradeDetail[];
+};
+
+export type ISubjectMeta = {
+    subjectId: number;
+    subjectName: string;
+    subsubFlag: boolean;
+    subexamFlag: boolean;
+    maxMarks: number;
+    minMarks?: number;
+    marksEntryMax: number;
+    marksGradeEntryFlg: 'M' | 'G';
+    gradeDetails: IBackendGradeDetail[];
+    subsubData: SubSub[];
+    subexamData: SubExam[];
+    paperTypeGrades?: any[];
+    allowPattern: string;
+    placeholder: string;
+    config: {
+        showRegNo: boolean;
+        showAdmNo: boolean;
+        showRollNo: boolean;
+        sortKey: 'studentName' | 'amaY_RollNo' | 'amsT_AdmNo' | 'amsT_RegistrationNo';
+    };
+};
+
+export type IStudentMarksRow = {
+    studentID: number;
+    studentName: string;
+    RegNo: string;
+    AdmissionNo: string;
+    RollNo: number;
+    ismS_Id: number;
+    marksEntryMax: number;
+    maxMarks: number;
+    minMarks?: number;
+    // simple subject marks
+    marks?: number | '' | string;
+    marksFlag?: string; // 'AB', 'L', 'M', 'OD'
+    grade?: string;
+    // arrays for sub-subject and sub-exam marks
+    subSubMarks?: Array<{
+        subsubId: number;
+        marks: number | '' | string;
+        flag?: string;
+        grade?: string;
+    }>;
+    subExamMarks?: Array<{
+        subexamId: number;
+        marks: number | '' | string;
+        flag?: string;
+        grade?: string;
+    }>;
+    // file upload
+    answerSheet?: string;
+    fileLocation?: string;
+    // paper type
+    papertype?: string;
+    papertypeid?: number;
+    // selection
+    selected?: boolean;
+};
+
+// types/exam/exam-module/exam-mapping.ts
+export interface IStudentTransaction {
+    amsT_Id: number;
+    studentName: string;
+    regNumber: string;
+    rollNumber: string;
+    emgR_Id: number;
+    ecsactT_Score?: string;
+    ecsT_Id?: number;
+    ecsactT_Id?: number;
+    checked?: boolean;
+    areaName?: string;
+}
+
+export interface IExamTerm {
+    ecT_Id: number;
+    ecT_TermName: string;
+    Selected?: boolean;
+}
+
+export interface IExamMaster {
+    emE_Id: number;
+    emE_ExamName: string;
+    Selected?: boolean;
+    TotalMarksCount?: number;
+}
+
+export interface ITerm {
+    ecT_Id: number;
+    ecT_TermName: string;
+    Selected?: boolean;
+}
+
+export interface IClass {
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+    Selected?: boolean;
+}
+
+export interface ISection {
+    asmS_Id: number;
+    asmC_SectionName: string;
+    Selected?: boolean;
+}
+
+export interface ISkillName {
+    ecS_Id: number;
+    ecS_SkillName: string;
+    Selected?: boolean;
+}
+
+export interface IActivityName {
+    ecacT_Id: number;
+    ecacT_SkillName: string;
+    Selected?: boolean;
+}
+
+export interface ISkillArea {
+    ecsA_Id: number;
+    areaName: string;
+    Selected?: boolean;
+}
+
+export interface IActivityArea {
+    ecactA_Id: number;
+    areaName: string;
+    Selected?: boolean;
+}
+
+export interface ISavedScore {
+    amsT_Id: number;
+    ecsT_Score?: string;
+    ecsactT_Score?: string;
+    ecsT_Id?: number;
+    ecsactT_Id?: number;
+    ecsA_Id?: number;
+    ecactA_Id?: number;
+}
+
+export interface GetStudentDetailsParams {
+    MI_Id: number;
+    ASMAY_Id: number;
+    ASMCL_Id: number;
+    ASMS_Id: number;
+    Skills: string;
+    exam_termwise_flag: string;
+    ECACT_Id?: number;
+    ECACTA_Id?: number;
+    ECS_Id?: number;
+    ECSA_Id?: number;
+    EME_Id?: number;
+    ECT_Id?: number;
+}
+
+export interface SaveCCEMarksParams {
+    skills: string;
+    selectedStudentScore: {
+        amsT_Id: number;
+        ecsT_Id?: number;
+        ecsactT_Score: string;
+        areaName: string;
+        emgR_Id: number;
+        ecsactT_Id?: number;
+    }[];
+    asmcL_Id: number;
+    asmS_Id: number;
+    ecS_Id?: number;
+    ecsA_Id?: number;
+    exam_termwise_flag: string;
+    emE_Id?: number;
+    ecT_Id?: number;
+    asmaY_Id: number;
+    ecacT_Id?: number;
+    ecactA_Id?: number;
+    admno: string;
+}
+
+export interface IPromotionalSubGroupDetails {
+    empsG_Id: number;
+    empS_Id: number;
+    empsG_GroupName: string;
+    empsG_DisplayName: string;
+    empsG_PercentValue: number;
+    empsG_MarksValue: number;
+    empsG_MaxOff: number;
+    empsG_BestOff: number;
+    empsG_Order: number;
+    empsG_RoundOffFlag: boolean;
+    empsG_ActiveFlag: boolean;
+}
+
+export interface IPromotionalSubGroupExamDetails {
+    empsgE_Id: number;
+    empsG_Id: number;
+    emE_Id: number;
+    emE_ExamName: string;
+    empsgE_ForMaxMarkrs: number;
+    empsgE_ConvertionReqOrNot: boolean;
+    empsgE_ActiveFlag: boolean;
+}
+
+export interface IPromotionDetailsByIdResponse {
+    categoryDetails: IPromotionSetting;
+    promotionSubjects: {
+        promotion_Subject_List: IPromotionalSubjectDetails[];
+        promotion_SubGroup_List: IPromotionalSubGroupDetails[];
+        group_Exam_List: IPromotionalSubGroupExamDetails[];
+    };
 }

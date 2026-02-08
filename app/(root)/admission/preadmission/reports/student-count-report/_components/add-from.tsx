@@ -28,9 +28,15 @@ interface AddStudentCountReportFormProps {
     onSuccess?: () => void;
     className?: string;
     searchParams?: any;
+    onFilterChange?: (payload: any) => void;
 }
 
-export default function AddStudentCountReportForm({ onSuccess, className = '', searchParams }: AddStudentCountReportFormProps) {
+export default function AddStudentCountReportForm({
+    onSuccess,
+    className = '',
+    searchParams,
+    onFilterChange
+}: AddStudentCountReportFormProps) {
     const [reportType, setReportType] = useState<string>('');
     const [rangeType, setRangeType] = useState<string>('between');
     const [fromDate, setFromDate] = useState<string>('');
@@ -71,7 +77,12 @@ export default function AddStudentCountReportForm({ onSuccess, className = '', s
                 asmcl_id: data.asmcL_Id || 0
             };
 
-            const response = await addOrUpdateStudentCountReport(payload);
+            const response = await addOrUpdateStudentCountReport(payload, searchParams);
+
+            // Update parent state with the current filter payload
+            if (onFilterChange) {
+                onFilterChange(payload);
+            }
 
             if (response.success) {
                 toast.success(response.message);

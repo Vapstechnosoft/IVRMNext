@@ -43,7 +43,6 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
     const { isSubmitting } = formState;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
     const {
         data: academicYear,
@@ -58,8 +57,6 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
             toast.error(academicYearError.message || 'Error fetching academic years');
         } else if (academicYear?.data && Array.isArray(academicYear.data)) {
             setValue('asmaY_Id', methods.watch('asmaY_Id') || 0);
-        } else {
-            setAcademicYears([]);
         }
     }, [academicYear, academicYearError, setValue, methods.watch('asmaY_Id')]);
     // Watch selected Academic Year
@@ -76,7 +73,7 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
         }
         async function fetchCategories() {
             try {
-                const { data: cats } = await getCategoryDropDownByAcademicYearlist(orgId, selectedYearId);
+                const { data: cats } = await getCategoryDropDownByAcademicYearlist(selectedYearId);
                 setCategories(Array.isArray(cats) ? cats : []);
                 setValue('emcA_Id', 0);
             } catch (err: any) {

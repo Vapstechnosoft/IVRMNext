@@ -1,546 +1,350 @@
 'use client';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useFilterEmployeesByYearMonth, useGenerateSalarySlip, useSalarySlipOnload } from '@/hooks/hrms/useReports';
-import { useEffect, useMemo, useState } from 'react';
+
+import { useState, useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
-import type { EmployeeSalarySlipDisplay } from './_components/columns';
+import {
+    useReportGroupTypes,
+    useReportDepartments,
+    useReportDesignations,
+    useSalarySlipOnload,
+    useFilterEmployeesByYearMonth,
+    useGenerateSalarySlip
+} from '@/hooks/hrms/useReports';
+import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
 import { SalarySlipFilters, type SalarySlipFilters as SalarySlipFiltersType } from './_components/filters';
 import { SalarySlipTemplate } from './_components/salary-slip-template';
-export default function SalarySlipReportPage() {
-    const roleId = HRMS_MI_ID;
-    const LogInUserId = 0;
-    // React Query hooks
-    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useSalarySlipOnload(roleId, LogInUserId);
-    const filterMutation = useFilterEmployeesByYearMonth();
-    const generateMutation = useGenerateSalarySlip();
-    // Memoize arrays to prevent unnecessary re-renders
-    const groupTypes = useMemo(() => onloadData?.data?.groupTypedropdownlist || [], [onloadData?.data?.groupTypedropdownlist]);
-    const departments = useMemo(() => onloadData?.data?.departmentdropdownlist || [], [onloadData?.data?.departmentdropdownlist]);
-    const designations = useMemo(() => onloadData?.data?.designationdropdownlist || [], [onloadData?.data?.designationdropdownlist]);
-    const months = useMemo(() => onloadData?.data?.monthdropdown || [], [onloadData?.data?.monthdropdown]);
-    const years = useMemo(() => onloadData?.data?.leaveyeardropdown || [], [onloadData?.data?.leaveyeardropdown]);
-    // State
-    const [employees, setEmployees] = useState<EmployeeSalarySlipDisplay[]>([]);
-    const [filteredEmployees, setFilteredEmployees] = useState<EmployeeSalarySlipDisplay[]>([]);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [showReport, setShowReport] = useState(false);
-    const [salarySlips, setSalarySlips] = useState<
-        Array<{
-            employeeId: number;
-            employeeName: string;
-            designation: string;
-            payLevel?: string;
-            bankName?: string;
-            bankAccountNo?: string;
-            pfNo?: string;
-            esiNo?: string;
-            lopDays: number;
-            earnings: Array<{ name: string; amount: number }>;
-            deductions: Array<{ name: string; amount: number }>;
-            grossPay: number;
-            totalDeduction: number;
-            netPayable: number;
-            amountInWords: string;
-            leaveDetails: Array<{
-                serialNo: number;
-                leaveName: string;
-                totalLeaves: number;
-                availedLeaves: number;
-                balanceLeaves: number;
-            }>;
-        }>
-    >([]);
-    const [filters, setFilters] = useState<SalarySlipFilters>({
+import { printSalarySlips } from './_components/print-utils';
+import type { EmployeeSalarySlipDisplay } from './_components/columns';
+import { Loader2, Printer, Mail, MessageSquare, X, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+const MONTH_LIST = [
+    { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
+    { id: 4, name: 'April' }, { id: 5, name: 'May' }, { id: 6, name: 'June' },
+    { id: 7, name: 'July' }, { id: 8, name: 'August' }, { id: 9, name: 'September' },
+    { id: 10, name: 'October' }, { id: 11, name: 'November' }, { id: 12, name: 'December' }
+];
+
+export default function SalarySlipPage() {
+    const [filters, setFilters] = useState<SalarySlipFiltersType>({
         groupType: [],
         department: [],
         designation: [],
         month: '',
         year: '',
-        slipPerPage: '',
+        slipPerPage: '1',
         options: {
             lopDays: false,
             leaveDetails: false,
             panCardNo: false,
-            bankDetails: false
+            bankDetails: false,
         }
     });
-    // Load employees when year/month changes
+
+    const [employees, setEmployees] = useState<EmployeeSalarySlipDisplay[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [reportData, setReportData] = useState<any>(null);
+    const [showReport, setShowReport] = useState(false);
+    const [institutionDetails, setInstitutionDetails] = useState({
+        name: '',
+        address: '',
+        logo: ''
+    });
+
+    // Cascading Dropdown Hooks
+    const { data: yearsData } = useLeaveYearDropdown();
+    const { data: groupTypesData } = useReportGroupTypes();
+
+    const groupTypeIds = filters.groupType?.join(',') || '';
+    const { data: departmentsData } = useReportDepartments(groupTypeIds);
+
+    const deptIds = filters.department?.join(',') || '';
+    const { data: designationsData } = useReportDesignations(groupTypeIds, deptIds);
+
+    const { data: onloadData, isLoading: isOnloadLoading } = useSalarySlipOnload(30, 0);
+    const { mutate: filterEmployees, isPending: isFiltering } = useFilterEmployeesByYearMonth();
+    const { mutate: generateSlip, isPending: isGenerating } = useGenerateSalarySlip();
+
     useEffect(() => {
-        if (filters.year && filters.month) {
-            const request = {
-                MI_Id: roleId,
-                LogInUserId: 0,
-                HRES_Year: filters.year,
-                HRES_Month: filters.month
-            };
-            filterMutation.mutate(request, {
-                onSuccess: (response) => {
-                    if (response.success && response.data?.employeedropdown) {
-                        const employeeList: EmployeeSalarySlipDisplay[] = (response.data.employeedropdown || []).map(
-                            (emp: any, index: number) => ({
-                                id: emp.HRME_Id || index + 1, // Use HRME_Id as unique identifier, fallback to index if missing
-                                employeeCode: emp.HRME_EmployeeCode,
-                                employeeName:
-                                    `${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim(),
-                                groupTypeId: emp.HRMGT_Id || 0,
-                                departmentId: emp.HRMD_Id || 0,
-                                designationId: emp.HRMDES_Id || 0,
-                                HRME_Id: emp.HRME_Id,
-                                isSelected: false
-                            })
-                        );
-                        setEmployees(employeeList);
-                        setFilteredEmployees(employeeList);
-                    } else {
-                        toast.error(response.message || 'No employees found for the selected month and year');
-                    }
-                },
-                onError: (error) => {
-                    toast.error(error.message || 'Failed to load employees. Please check if the API endpoint is available.');
-                }
+        if (onloadData?.data?.institutionDetails?.[0]) {
+            const inst = onloadData.data.institutionDetails[0];
+            setInstitutionDetails({
+                name: inst.mI_Name || '',
+                address: inst.mI_Address1 || '',
+                logo: inst.mI_Logo || ''
             });
-        } else {
-            setEmployees([]);
-            setFilteredEmployees([]);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filters.year, filters.month]);
-    // Filter employees based on selected criteria and search term
-    useEffect(() => {
-        let filtered = employees;
-        // Apply dropdown filters
-        if (filters.groupType.length > 0) {
-            filtered = filtered.filter((emp) => filters.groupType.includes(emp.groupTypeId));
-        }
-        if (filters.department.length > 0) {
-            filtered = filtered.filter((emp) => filters.department.includes(emp.departmentId));
-        }
-        if (filters.designation.length > 0) {
-            filtered = filtered.filter((emp) => filters.designation.includes(emp.designationId));
-        }
-        // Apply search filter
-        if (searchTerm) {
-            filtered = filtered.filter(
-                (emp) =>
-                    emp.employeeCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    emp.employeeName.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
-        setFilteredEmployees(filtered);
-    }, [filters, employees, searchTerm]);
-    const handleOptionChange = (option: keyof SalarySlipFiltersType['options'], checked: boolean) => {
-        setFilters((prev) => ({
-            ...prev,
-            options: {
-                ...prev.options,
-                [option]: checked
-            }
-        }));
-    };
+    }, [onloadData]);
+
     const handleFilterChange = (newFilters: SalarySlipFiltersType) => {
         setFilters(newFilters);
-    };
-    const handleSelectEmployee = (employeeId: number, checked: boolean) => {
-        const updatedEmployees = employees.map((emp) => (emp.id === employeeId ? { ...emp, isSelected: checked } : emp));
-        setEmployees(updatedEmployees);
-    };
-    const handleSelectAll = (checked: boolean) => {
-        const updatedEmployees = employees.map((emp) => ({ ...emp, isSelected: checked }));
-        setEmployees(updatedEmployees);
-    };
-    const handleGenerateSlip = () => {
-        // Always show report template when generate is clicked
-        setShowReport(true);
-        const selectedEmployees = filteredEmployees.filter((emp) => emp.isSelected);
-        if (selectedEmployees.length === 0) {
-            toast.warning('Please select at least one employee. Showing empty salary slip template.');
-            return;
-        }
-        if (!filters.month || !filters.year) {
-            toast.warning('Please select month and year. Showing empty salary slip template.');
-            return;
-        }
-        const request = {
-            MI_Id: roleId,
-            HRES_Year: filters.year,
-            HRES_Month: filters.month,
-            empid: selectedEmployees.map((emp) => emp.HRME_Id),
-            hrmdeS_IdList: filters.designation.length > 0 ? filters.designation : [],
-            hrmD_IdList: filters.department.length > 0 ? filters.department : [],
-            groupTypeIdList: filters.groupType.length > 0 ? filters.groupType : []
-        };
-        generateMutation.mutate(request, {
-            onSuccess: (response) => {
-                if (response.success && response.data) {
-                    // Parse salary slip data from API response
-                    const slips: typeof salarySlips = [];
-                    // The API might return data in different formats
-                    const responseData = response.data;
-                    const employeeList = responseData.employeedropdown || [];
-                    const _employeeSalaryslipDetails = responseData.employeeSalaryslipDetails || [];
-                    const earningdeductiondetails = responseData.earningdeductiondetails || [];
-                    const employeeLeaveDetails = responseData.employeeLeaveDetails || [];
-                    const mainList = responseData.main_list || [];
-                    const reportData = responseData.ReportData || [];
-                    // Try to get employee details - could be in different locations
-                    let currentemployeeDetails: any = {};
-                    if (responseData.currentemployeeDetails) {
-                        if (
-                            typeof responseData.currentemployeeDetails === 'object' &&
-                            !Array.isArray(responseData.currentemployeeDetails)
-                        ) {
-                            currentemployeeDetails = responseData.currentemployeeDetails;
-                        } else if (Array.isArray(responseData.currentemployeeDetails)) {
-                            // If it's an array, create a map by HRME_Id
-                            currentemployeeDetails = {};
-                            responseData.currentemployeeDetails.forEach((emp: any) => {
-                                if (emp.HRME_Id) {
-                                    currentemployeeDetails[emp.HRME_Id] = emp;
-                                }
-                            });
-                        }
+
+        if (newFilters.year && newFilters.month) {
+            filterEmployees({
+                MI_Id: 30,
+                LogInUserId: 0,
+                hreS_Year: newFilters.year,
+                hreS_Month: newFilters.month,
+                hrmgt_ids: newFilters.groupType.join(','),
+                hrmd_ids: newFilters.department.join(','),
+                hrmdes_ids: newFilters.designation.join(',')
+            }, {
+                onSuccess: (res) => {
+                    if (res.success && res.data) {
+                        const empList = Array.isArray(res.data) ? res.data : (res.data as any).data || [];
+                        const mapped = empList.map((emp: any, index: number) => ({
+                            id: index + 1,
+                            employeeCode: emp.hrmE_EmployeeCode || emp.HRME_EmployeeCode,
+                            employeeName: `${emp.hrmE_EmployeeFirstName || emp.HRME_EmployeeFirstName} ${emp.hrmE_EmployeeMiddleName || emp.HRME_EmployeeMiddleName || ''} ${emp.hrmE_EmployeeLastName || emp.HRME_EmployeeLastName || ''}`.trim(),
+                            groupTypeId: emp.hrmgT_Id || emp.HRMGT_Id,
+                            departmentId: emp.hrmD_Id || emp.HRMD_Id,
+                            designationId: emp.hrmdeS_Id || emp.HRMDES_Id,
+                            HRME_Id: emp.hrmE_Id || emp.HRME_Id,
+                            isSelected: false
+                        }));
+                        setEmployees(mapped);
+                    } else {
+                        setEmployees([]);
                     }
-                    // Process each selected employee
-                    selectedEmployees.forEach((selectedEmp) => {
-                        const empData = employeeList.find((e: any) => e.HRME_Id === selectedEmp.HRME_Id) || {};
-                        const empDetails = currentemployeeDetails[selectedEmp.HRME_Id] || currentemployeeDetails || empData || {};
-                        // Extract earnings and deductions
-                        const earnings: Array<{ name: string; amount: number }> = [];
-                        const deductions: Array<{ name: string; amount: number }> = [];
-                        // Process earningdeductiondetails - could be array or object
-                        let earningDeductionList: any[] = [];
-                        if (Array.isArray(earningdeductiondetails)) {
-                            earningDeductionList = earningdeductiondetails;
-                        } else if (earningdeductiondetails && typeof earningdeductiondetails === 'object') {
-                            // If it's an object, try to find arrays within it
-                            earningDeductionList = Object.values(earningdeductiondetails).filter(Array.isArray).flat() as any[];
-                        }
-                        earningDeductionList.forEach((item: any) => {
-                            if (!item || typeof item !== 'object') return;
-                            // Check if this item belongs to the current employee
-                            const belongsToEmployee = !item.HRME_Id || item.HRME_Id === selectedEmp.HRME_Id;
-                            if (!belongsToEmployee) return;
-                            const earnDedFlag = item.HRMED_EarnDedFlag || item.EarnDedFlag || item.flag || '';
-                            const name = item.HRMED_Name || item.Name || item.name || '';
-                            const amount = item.HREED_Amount || item.Amount || item.amount || 0;
-                            if (earnDedFlag === 'Earning' || earnDedFlag === 'E' || name.toLowerCase().includes('earning')) {
-                                if (name && amount) {
-                                    earnings.push({ name, amount: Number(amount) || 0 });
-                                }
-                            } else if (earnDedFlag === 'Deduction' || earnDedFlag === 'D' || name.toLowerCase().includes('deduction')) {
-                                if (name && amount) {
-                                    deductions.push({ name, amount: Number(amount) || 0 });
-                                }
-                            }
-                        });
-                        // If no earnings/deductions found, try main_list or ReportData
-                        if (earnings.length === 0 && deductions.length === 0) {
-                            const dataSource = mainList.length > 0 ? mainList : Array.isArray(reportData) ? reportData : [];
-                            dataSource.forEach((item: any) => {
-                                if (item && item.HRME_Id === selectedEmp.HRME_Id) {
-                                    // Try to extract from various possible structures
-                                    if (item.earnings) {
-                                        earnings.push(...(Array.isArray(item.earnings) ? item.earnings : []));
-                                    }
-                                    if (item.deductions) {
-                                        deductions.push(...(Array.isArray(item.deductions) ? item.deductions : []));
-                                    }
-                                }
-                            });
-                        }
-                        // Calculate totals - use from API if available, otherwise calculate
-                        const grossPay = responseData.empGrossSal || earnings.reduce((sum, e) => sum + (e.amount || 0), 0);
-                        const totalDeduction = deductions.reduce((sum, d) => sum + (d.amount || 0), 0);
-                        const netPayable = responseData.HRESD_Amount || grossPay - totalDeduction;
-                        // Extract leave details
-                        const leaveDetails: Array<{
-                            serialNo: number;
-                            leaveName: string;
-                            totalLeaves: number;
-                            availedLeaves: number;
-                            balanceLeaves: number;
-                        }> = [];
-                        if (Array.isArray(employeeLeaveDetails)) {
-                            employeeLeaveDetails.forEach((leave: any, index: number) => {
-                                if (!leave || typeof leave !== 'object') return;
-                                if (leave.HRME_Id && leave.HRME_Id !== selectedEmp.HRME_Id) return;
-                                leaveDetails.push({
-                                    serialNo: index + 1,
-                                    leaveName: leave.HRML_LeaveName || leave.LeaveName || leave.leaveName || '-',
-                                    totalLeaves: leave.TotalLeaves || leave.HRELT_TotDays || leave.totalLeaves || 0,
-                                    availedLeaves: leave.AvailedLeaves || leave.HRELT_AvailedDays || leave.availedLeaves || 0,
-                                    balanceLeaves: leave.BalanceLeaves || leave.HRELT_BalanceDays || leave.balanceLeaves || 0
-                                });
-                            });
-                        }
-                        // Get employee designation from various sources
-                        const empDesigId = (empDetails as any).HRMDES_Id || (empData as any).HRMDES_Id;
-                        const designation =
-                            empDetails.DesignationName ||
-                            empDetails.HRMDES_DesignationName ||
-                            responseData.DesignationName ||
-                            designations.find((d: any) => d.HRMDES_Id === empDesigId)?.HRMDES_DesignationName ||
-                            '-';
-                        slips.push({
-                            employeeId: selectedEmp.HRME_Id,
-                            employeeName: selectedEmp.employeeName,
-                            designation,
-                            payLevel: empDetails.PayLevel || empDetails.payLevel || '-',
-                            bankName: empDetails.BankName || empDetails.bankName || responseData.HRES_BankCode || '-',
-                            bankAccountNo: empDetails.BankAccountNo || empDetails.bankAccountNo || responseData.HRES_AccountNo || '-',
-                            pfNo: empDetails.PFNo || empDetails.pfNo || empDetails.HRME_PFAccNo || responseData.HRES_EPF?.toString() || '-',
-                            esiNo:
-                                empDetails.ESINo ||
-                                empDetails.esiNo ||
-                                empDetails.HRME_ESIAccNo ||
-                                responseData.HRES_ESIEmplr?.toString() ||
-                                '-',
-                            lopDays: responseData.Lopdays || 0,
-                            earnings:
-                                earnings.length > 0
-                                    ? earnings
-                                    : [
-                                          { name: 'Provident Fund', amount: responseData.HRES_EPF || 0 },
-                                          { name: 'Basic Pay', amount: responseData.basicamount || grossPay || 0 }
-                                      ],
-                            deductions:
-                                deductions.length > 0
-                                    ? deductions
-                                    : [
-                                          { name: 'ESI', amount: 0 },
-                                          { name: 'PT', amount: 0 }
-                                      ],
-                            grossPay,
-                            totalDeduction,
-                            netPayable,
-                            amountInWords: responseData.NetAmountInwords || '',
-                            leaveDetails
-                        });
-                    });
-                    setSalarySlips(slips);
-                    setShowReport(true);
-                    toast.success(`Salary slips generated successfully for ${selectedEmployees.length} employee(s)`);
-                } else {
-                    // Still show template even on unsuccessful response
-                    setSalarySlips([]);
-                    setShowReport(true);
-                    toast.error(response.message || 'Failed to generate salary slips. Showing empty template.');
                 }
-            },
-            onError: (error) => {
-                toast.error(error.message || 'Failed to generate salary slips. Please check if the API endpoint is available.');
-                // Still show template even on error
-                setSalarySlips([]);
-                setShowReport(true);
+            });
+        }
+    };
+
+    const filteredEmployeesList = useMemo(() => {
+        return employees.filter(emp => {
+            const matchGroup = filters.groupType.length === 0 || filters.groupType.includes(emp.groupTypeId);
+            const matchDept = filters.department.length === 0 || filters.department.includes(emp.departmentId);
+            const matchDesig = filters.designation.length === 0 || filters.designation.includes(emp.designationId);
+            const matchSearch = searchTerm === '' ||
+                emp.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                emp.employeeCode.toLowerCase().includes(searchTerm.toLowerCase());
+            return matchGroup && matchDept && matchDesig && matchSearch;
+        });
+    }, [employees, filters.groupType, filters.department, filters.designation, searchTerm]);
+
+    const selectedCount = filteredEmployeesList.filter(e => e.isSelected).length;
+
+    const handleSelectAll = (checked: boolean) => {
+        setEmployees(prev => prev.map(emp => {
+            const isVisible = filteredEmployeesList.some(fe => fe.HRME_Id === emp.HRME_Id);
+            if (isVisible) {
+                return { ...emp, isSelected: checked };
+            }
+            return emp;
+        }));
+    };
+
+    const handleSelectEmployee = (id: number, checked: boolean) => {
+        setEmployees(prev => prev.map(emp => emp.id === id ? { ...emp, isSelected: checked } : emp));
+    };
+
+    const handleOptionChange = (option: keyof SalarySlipFiltersType['options'], checked: boolean) => {
+        setFilters(prev => ({
+            ...prev,
+            options: { ...prev.options, [option]: checked }
+        }));
+    };
+
+    const handleGenerateSlip = () => {
+        const selectedEmpIds = employees.filter(e => e.isSelected).map(e => e.HRME_Id);
+        if (selectedEmpIds.length === 0) {
+            toast.error('Please select at least one employee');
+            return;
+        }
+
+        generateSlip({
+            MI_Id: 30,
+            hreS_Year: filters.year,
+            hreS_Month: filters.month,
+            empid: selectedEmpIds,
+            hrmdeS_IdList: filters.designation,
+            hrmD_IdList: filters.department,
+            groupTypeIdList: filters.groupType
+        }, {
+            onSuccess: (res) => {
+                if (res.success && res.data?.salarySlipList && res.data.salarySlipList.length > 0) {
+                    // Update institution details from the first slip if available
+                    const firstSlip = res.data.salarySlipList[0];
+                    const inst = firstSlip.institutionDetails;
+                    if (inst) {
+                        setInstitutionDetails({
+                            name: inst.mI_Name || inst.institutionname || institutionDetails.name,
+                            address: inst.mI_Address1 || institutionDetails.address,
+                            logo: inst.mI_Logo || institutionDetails.logo
+                        });
+                    }
+
+                    const mappedReports = res.data.salarySlipList.map((rawData: any) => {
+                        const empDetails = rawData.currentemployeeDetails;
+                        const earningsDeductions = rawData.employeeSalaryslipDetails || rawData.earningdeductiondetails || [];
+
+                        const earningsList = earningsDeductions.filter((item: any) =>
+                            item.hrmeD_EarnDedFlag === 'Earning' || item.hrmeD_EarnDedFlag === 'E'
+                        );
+                        const deductionsList = earningsDeductions.filter((item: any) =>
+                            item.hrmeD_EarnDedFlag === 'Deduction' || item.hrmeD_EarnDedFlag === 'D'
+                        );
+
+                        const totalEarnings = earningsList.reduce((acc: number, curr: any) => acc + (curr.amount || curr.hreeD_Amount || 0), 0);
+                        const totalDeductions = deductionsList.reduce((acc: number, curr: any) => acc + (curr.amount || curr.hreeD_Amount || 0), 0);
+
+                        return {
+                            employeeName: `${empDetails?.hrmE_EmployeeFirstName || ''} ${empDetails?.hrmE_EmployeeMiddleName || ''} ${empDetails?.hrmE_EmployeeLastName || ''}`.trim(),
+                            employeeCode: empDetails?.hrmE_EmployeeCode || '-',
+                            designation: rawData.designationName || empDetails?.hrmdeS_DesignationName,
+                            payLevel: empDetails?.hrmP_SalaryType || '-',
+                            bankName: empDetails?.hrmE_PaymentType || '-',
+                            bankAccountNo: empDetails?.hrmE_BankAccountNo || '-',
+                            pfNo: empDetails?.hrmE_PFAccNo || '-',
+                            esiNo: empDetails?.hrmE_ESIAccNo || '-',
+                            panNo: empDetails?.hrmE_PANCardNo || '-',
+                            lopDays: rawData.lopdays || 0,
+                            earnings: earningsList.map((e: any) => ({
+                                name: e.hrmeD_Name || e.hreeD_EarnDedName,
+                                amount: e.amount || e.hreeD_Amount
+                            })),
+                            deductions: deductionsList.map((d: any) => ({
+                                name: d.hrmeD_Name || d.hreeD_EarnDedName,
+                                amount: d.amount || d.hreeD_Amount
+                            })),
+                            grossPay: totalEarnings || rawData.empGrossSal || 0,
+                            totalDeduction: totalDeductions,
+                            netPayable: (totalEarnings || rawData.empGrossSal || 0) - totalDeductions,
+                            amountInWords: rawData.NetAmountInwords || '',
+                            leaveDetails: (rawData.employeeLeaveDetails || []).map((l: any, idx: number) => ({
+                                serialNo: idx + 1,
+                                leaveName: l.hrmL_LeaveName,
+                                totalLeaves: l.hrelS_TotalLeaves,
+                                availedLeaves: l.hrelS_TransLeaves,
+                                balanceLeaves: l.hrelS_CBLeaves
+                            }))
+                        };
+                    });
+
+                    setReportData(mappedReports);
+                    setShowReport(true);
+                    toast.success(`Successfully generated ${mappedReports.length} salary slip(s)`);
+                } else {
+                    toast.error(res.message || 'No salary slip data found for the selected criteria');
+                }
             }
         });
     };
-    const handleCancel = () => {
-        setFilters({
-            groupType: [],
-            department: [],
-            designation: [],
-            month: '',
-            year: '',
-            slipPerPage: '',
-            options: {
-                lopDays: false,
-                leaveDetails: false,
-                panCardNo: false,
-                bankDetails: false
-            }
-        });
-        setSearchTerm('');
-        setShowReport(false);
-        setSalarySlips([]);
-        // Clear all selections
-        const updatedEmployees = employees.map((emp) => ({ ...emp, isSelected: false }));
-        setEmployees(updatedEmployees);
-        toast.info('Filters and selections cleared');
-    };
+
     const handlePrint = () => {
-        window.print();
-        toast.success('Print dialog opened');
+        if (!reportData) return;
+        const slips = Array.isArray(reportData) ? reportData : [reportData];
+        const monthName = MONTH_LIST.find(m => m.id.toString() === filters.month.toString())?.name || filters.month;
+        printSalarySlips(slips, institutionDetails, monthName, filters.year);
     };
-    const handleSendMail = () => {
-        toast.success('Salary slip email sent successfully');
-    };
-    const handleSendSMS = () => {
-        toast.success('Salary slip SMS sent successfully');
-    };
-    // Get institution details
-    const institutionDetails = useMemo(() => {
-        const generateResponse = generateMutation.data?.data;
-        if (generateResponse?.institutionDetails) {
-            return generateResponse.institutionDetails;
-        }
-        // Try to get from onload data
-        if (onloadData?.data?.institutionDetails) {
-            return onloadData.data.institutionDetails;
-        }
-        return null;
-    }, [generateMutation.data, onloadData]);
-    // Build school name and address
-    const schoolName = institutionDetails?.MI_Name || '';
-    const schoolAddress = useMemo(() => {
-        if (!institutionDetails) return '';
-        const addressParts = [];
-        if (institutionDetails.MI_Address1) addressParts.push(institutionDetails.MI_Address1);
-        if (institutionDetails.MI_Address2) addressParts.push(institutionDetails.MI_Address2);
-        if (institutionDetails.MI_Address3) addressParts.push(institutionDetails.MI_Address3);
-        if (institutionDetails.MI_AddressArea) addressParts.push(institutionDetails.MI_AddressArea);
-        if (institutionDetails.MI_Pincode) {
-            addressParts.push(`${institutionDetails.MI_Pincode}`);
-        }
-        return addressParts.join(', ');
-    }, [institutionDetails]);
-    const schoolLogo = institutionDetails?.MI_Logo;
-    const selectedCount = filteredEmployees.filter((emp) => emp.isSelected).length;
-    const isLoading = isLoadingOnload || filterMutation.isPending || generateMutation.isPending;
-    // Handle onload errors
-    useEffect(() => {
-        if (onloadError) {
-            toast.error('Failed to load filter options. Please check if the API endpoint is available.');
-        } else if (onloadData && !onloadData.success) {
-            toast.error(onloadData.message || 'Failed to load filter options');
-        }
-    }, [onloadError, onloadData]);
-    // Show error message if onload fails
-    if (onloadError || (onloadData && !onloadData.success)) {
+
+    if (isOnloadLoading) {
         return (
-            <div className='min-h-screen'>
-                <div className='container space-y-4 p-1'>
-                    <div className='rounded-lg border border-destructive bg-destructive/10 p-4 text-center'>
-                        <p className='font-semibold text-destructive'>
-                            {onloadError
-                                ? 'Failed to load filter options. Please check if the API endpoint is available.'
-                                : onloadData?.message || 'Failed to load filter options'}
-                        </p>
-                    </div>
-                </div>
+            <div className="flex h-screen items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <span className="ml-2">Loading Page...</span>
             </div>
         );
     }
-    // Show error message if onload fails
-    if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
-        return (
-            <div className='min-h-screen'>
-                <div className='container space-y-4 p-1'>
-                    <div className='flex flex-col items-center justify-center space-y-4 rounded-lg bg-destructive/10 py-12'>
-                        <div className='text-center'>
-                            <h3 className='font-semibold text-destructive text-lg'>Error Loading Filter Options</h3>
-                            <p className='mt-2 text-muted-foreground text-sm'>
-                                {(onloadError as any)?.message ||
-                                    (onloadData as any)?.message ||
-                                    'Failed to load filter options. Please check if the API endpoint is available.'}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+
     return (
-        <div className='min-h-screen'>
-            <div className='container space-y-4 p-1'>
-                {/* Generate Employee Salary Slip Section */}
+        <div className="container mx-auto p-4 space-y-6">
+            <div className="flex items-center justify-between">
+                <h1 className="text-2xl font-bold">Salary Slip</h1>
+            </div>
+
+            {!showReport ? (
                 <SalarySlipFilters
                     filters={filters}
-                    groupTypes={groupTypes}
-                    departments={departments}
-                    designations={designations}
-                    months={months}
-                    years={years}
+                    groupTypes={groupTypesData?.data || []}
+                    departments={departmentsData?.data || []}
+                    designations={designationsData?.data || []}
+                    months={MONTH_LIST}
+                    years={yearsData?.data || []}
                     employees={employees}
-                    filteredEmployees={filteredEmployees}
+                    filteredEmployees={filteredEmployeesList}
                     searchTerm={searchTerm}
                     selectedCount={selectedCount}
-                    isLoading={isLoading || isLoadingOnload}
+                    isLoading={isFiltering || isGenerating}
                     onFilterChange={handleFilterChange}
                     onSearchChange={setSearchTerm}
                     onOptionChange={handleOptionChange}
                     onSelectAll={handleSelectAll}
                     onSelectEmployee={handleSelectEmployee}
                     onGenerateSlip={handleGenerateSlip}
-                    onCancel={handleCancel}
+                    onCancel={() => { }}
                 />
-                {/* Salary Slip Reports Section - Show template even when no data */}
-                {showReport && (
-                    <div className='space-y-6'>
-                        {salarySlips.length > 0 ? (
-                            // Render each salary slip
-                            salarySlips.map((slip, index) => (
-                                <CollapsibleSection
-                                    key={slip.employeeId || index}
-                                    defaultOpen={true}
-                                    variant='default'
-                                    size='lg'
-                                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+            ) : (
+                <div className="space-y-6">
+                    {/* Global Action Bar */}
+                    <div className="flex flex-wrap items-center justify-between gap-4 bg-card p-4 rounded-xl border shadow-sm print:hidden">
+                        <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="sm" onClick={() => setShowReport(false)}>
+                                <ArrowLeft className="h-4 w-4 mr-2" />
+                                Back to Filters
+                            </Button>
+                            <div className="h-6 w-px bg-border mx-2" />
+                            <h3 className="font-semibold">Salary Slips ({Array.isArray(reportData) ? reportData.length : 0})</h3>
+                        </div>
+                        <div className="flex flex-wrap gap-3">
+                            <Button variant="outline" onClick={() => setShowReport(false)}>
+                                <X className="h-4 w-4 mr-2" />
+                                CANCEL
+                            </Button>
+
+                            <Button variant="default" onClick={handlePrint}>
+                                <Printer className="h-4 w-4 mr-2" />
+                                PRINT ALL
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div className="space-y-8 print:space-y-0">
+                        {Array.isArray(reportData) ? (
+                            reportData.map((data, index) => (
+                                <div key={index} className={index > 0 ? "print:break-before-page pt-8 print:pt-0" : ""}>
                                     <SalarySlipTemplate
-                                        schoolName={schoolName}
-                                        schoolAddress={schoolAddress}
-                                        schoolLogo={schoolLogo}
+                                        schoolName={institutionDetails.name}
+                                        schoolAddress={institutionDetails.address}
+                                        schoolLogo={institutionDetails.logo}
                                         month={filters.month}
                                         year={filters.year}
-                                        salarySlipData={{
-                                            employeeName: slip.employeeName,
-                                            designation: slip.designation,
-                                            payLevel: slip.payLevel,
-                                            bankName: slip.bankName,
-                                            bankAccountNo: slip.bankAccountNo,
-                                            pfNo: slip.pfNo,
-                                            esiNo: slip.esiNo,
-                                            lopDays: slip.lopDays,
-                                            earnings: slip.earnings,
-                                            deductions: slip.deductions,
-                                            grossPay: slip.grossPay,
-                                            totalDeduction: slip.totalDeduction,
-                                            netPayable: slip.netPayable,
-                                            amountInWords: slip.amountInWords,
-                                            leaveDetails: slip.leaveDetails
-                                        }}
+                                        salarySlipData={data}
                                         showLopDays={filters.options.lopDays}
                                         showLeaveDetails={filters.options.leaveDetails}
                                         showPanCardNo={filters.options.panCardNo}
                                         showBankDetails={filters.options.bankDetails}
-                                        isLoading={generateMutation.isPending}
-                                        onPrint={handlePrint}
-                                        onSendMail={handleSendMail}
-                                        onSendSMS={handleSendSMS}
-                                        onCancel={handleCancel}
+                                        showActions={false}
+                                        onPrint={() => window.print()}
+                                        onSendMail={() => { }}
+                                        onSendSMS={() => { }}
+                                        onCancel={() => setShowReport(false)}
                                     />
-                                </CollapsibleSection>
+                                </div>
                             ))
                         ) : (
-                            // Show empty template when no data
-                            <CollapsibleSection
-                                defaultOpen={true}
-                                variant='default'
-                                size='lg'
-                                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                                <SalarySlipTemplate
-                                    schoolName={schoolName}
-                                    schoolAddress={schoolAddress}
-                                    schoolLogo={schoolLogo}
-                                    month={filters.month}
-                                    year={filters.year}
-                                    salarySlipData={null}
-                                    showLopDays={filters.options.lopDays}
-                                    showLeaveDetails={filters.options.leaveDetails}
-                                    showPanCardNo={filters.options.panCardNo}
-                                    showBankDetails={filters.options.bankDetails}
-                                    isLoading={generateMutation.isPending}
-                                    onPrint={handlePrint}
-                                    onSendMail={handleSendMail}
-                                    onSendSMS={handleSendSMS}
-                                    onCancel={handleCancel}
-                                />
-                            </CollapsibleSection>
+                            <SalarySlipTemplate
+                                schoolName={institutionDetails.name}
+                                schoolAddress={institutionDetails.address}
+                                schoolLogo={institutionDetails.logo}
+                                month={filters.month}
+                                year={filters.year}
+                                salarySlipData={reportData}
+                                showLopDays={filters.options.lopDays}
+                                showLeaveDetails={filters.options.leaveDetails}
+                                showPanCardNo={filters.options.panCardNo}
+                                showBankDetails={filters.options.bankDetails}
+                                showActions={false}
+                                onPrint={() => window.print()}
+                                onSendMail={() => { }}
+                                onSendSMS={() => { }}
+                                onCancel={() => setShowReport(false)}
+                            />
                         )}
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -6,7 +6,7 @@ import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useYearlyCategorySubjectMapping } from '@/hooks/exam/exammodule/exam-mapping';
-import { useMasterSubjectGroup } from '@/hooks/exam/exammodule/usemasters';
+import { useMasterSubjectGroup, useMasterSubjectGroupDropdownList } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { categorySubjectMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
@@ -36,7 +36,7 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
         defaultValues: {
             userId: 0,
             eycG_Id: rowData?.eycG_Id || 0,
-            mI_Id: 30,
+            // mI_Id: 30,
             asmaY_Id: rowData?.asmaY_Id || 0,
             emcA_Id: rowData?.emcA_Id || 0,
             emG_Id: rowData?.emG_Id || 0,
@@ -54,7 +54,7 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
     const [subjects, setSubjects] = useState<{ ismS_Id: number; ismS_SubjectName: string }[]>([]);
 
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
-    const { data: subjectGroupList, error: subjectGroupError } = useMasterSubjectGroup();
+    const { data: subjectGroupList, error: subjectGroupError } = useMasterSubjectGroupDropdownList();
     const academicYears = academicYear?.data ? academicYear.data : [];
 
     useEffect(() => {
@@ -77,7 +77,7 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
         if (!selectedYearId) return;
         async function fetchCategories() {
             try {
-                const { data: cats } = await getCategoryDropDownByAcademicYearlist(30, selectedYearId);
+                const { data: cats } = await getCategoryDropDownByAcademicYearlist(selectedYearId);
                 setCategories(Array.isArray(cats) ? cats : []);
             } catch (err: any) {
                 toast.error(err?.message ?? 'Failed to load categories');
@@ -107,7 +107,7 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
         reset({
             userId: 1,
             eycG_Id: rowData.eycG_Id ?? 0,
-            mI_Id: 30,
+            // mI_Id: 30,
             asmaY_Id: rowData.asmaY_Id ?? 0,
             emcA_Id: rowData.emcA_Id ?? 0,
             emG_Id: rowData.emG_Id ?? 0,
@@ -178,7 +178,7 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
         reset({
             userId: 1,
             eycG_Id: rowData.eycG_Id ?? 0,
-            mI_Id: 30,
+            // mI_Id: 30,
             asmaY_Id: rowData.asmaY_Id ?? 0,
             emcA_Id: rowData.emcA_Id ?? 0,
             emG_Id: rowData.emG_Id ?? 0,

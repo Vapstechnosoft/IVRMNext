@@ -2332,8 +2332,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 <Select
                                                                     key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || ''}
-                                                                    disabled={!perConuntryId || String(perConuntryId) === '0'}>
+                                                                    value={field.value?.toString() || ''}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select nationality' />
                                                                     </SelectTrigger>

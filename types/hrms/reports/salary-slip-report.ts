@@ -51,16 +51,19 @@ export interface SalarySlipOnloadRequest {
 }
 
 export interface SalarySlipFilterRequest {
-    MI_Id: number;
-    LogInUserId: number;
-    HRES_Year: string;
-    HRES_Month: string;
+    MI_Id?: number;
+    LogInUserId?: number;
+    hreS_Year: string;
+    hreS_Month: string;
+    hrmdes_ids: string;
+    hrmd_ids: string;
+    hrmgt_ids: string;
 }
 
 export interface SalarySlipGenerateRequest {
-    MI_Id: number;
-    HRES_Year: string;
-    HRES_Month: string;
+    MI_Id?: number;
+    hreS_Year: string;
+    hreS_Month: string;
     empid: number[];
     hrmdeS_IdList: number[];
     hrmD_IdList: number[];
@@ -155,6 +158,10 @@ export interface SalarySlipResponse {
     filldata: any;
     MonthList: any;
     PensionFund: any;
+    salarySlipList?: any[] | null;
+    totalEmployees?: number | null;
+    month?: string | null;
+    year?: string | null;
 }
 
 // Type exports

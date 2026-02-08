@@ -8,7 +8,6 @@ import type { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -16,6 +15,8 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 
 import { toast } from 'sonner';
 
+import { FeesCustomMultiSelectBox } from '@/components/ui/feesmultiselect';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useClassDropdownDropdown } from '@/hooks/fees/useReports';
 import { dailyFeeCollectionSchema } from '@/schemas/fees/reports';
 import { getDailyFeeCollectionReport, getGroupsDropdown } from '@/server/fees/reports/daily_fee_collection_report';
@@ -39,7 +40,7 @@ export default function DailyFeeCollectionReportForm() {
         reset,
         register,
         setValue,
-
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(dailyFeeCollectionSchema),
@@ -58,7 +59,7 @@ export default function DailyFeeCollectionReportForm() {
             fromDate: today,
             toDate: today,
             enableAllClasses: false,
-            Fmc_allorsudentorother: 'All',
+            Fmc_allorsudentorother: 'all',
             Fmc_allorcorddorop: 'All'
         }
     });
@@ -94,6 +95,8 @@ export default function DailyFeeCollectionReportForm() {
     const [groupManualLoading, setGroupManualLoading] = useState(false);
     const [classes, setClasses] = useState<any[]>([]);
 
+    const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
+
     const {
         data: academicData,
         error: academicError,
@@ -101,6 +104,12 @@ export default function DailyFeeCollectionReportForm() {
         refetch: refetchAcademicYears
     } = useAcademicYearDropdown();
     const { data: classData, error: classError } = useClassDropdownDropdown();
+
+    // useEffect(() => {
+    //     if (!loadingAcademic && academicData?.data?.length && selectedAsmayId === null) {
+    //         setSelectedAsmayId(Number(academicData.data[0].asmaY_Id));
+    //     }
+    // }, [loadingAcademic, academicData, selectedAsmayId]);
 
     // useEffect(() => {
     //     if (academicError) toast.error('Failed to load academic years');
@@ -138,7 +147,7 @@ export default function DailyFeeCollectionReportForm() {
     useEffect(() => {
         if (academicError) toast.error('Failed to load academic years');
 
-        if (academicData?.data) {
+        if (!loadingAcademic && academicData?.data?.length && selectedAsmayId === null) {
             const years = academicData.data.map((i: any) => ({
                 asmaY_Id: i.asmaY_Id,
                 asmaY_Year: i.asmaY_Year
@@ -152,15 +161,15 @@ export default function DailyFeeCollectionReportForm() {
                 shouldDirty: false
             });
 
-            // if (years.length > 0) {
-            //     const firstYearId = years[0].asmaY_Id;
+            if (years.length > 0) {
+                const firstYearId = years[0].asmaY_Id;
 
-            //     // ⭐ ALWAYS PICK FIRST YEAR
-            //     setValue('asmaY_Id', firstYearId, { shouldValidate: true });
+                // ⭐ ALWAYS PICK FIRST YEAR
+                setValue('asmaY_Id', firstYearId, { shouldValidate: true });
 
-            //     // ⭐ ALWAYS reload groups for first year
-            //     onYearChange(firstYearId);
-            // }
+                // ⭐ ALWAYS reload groups for first year
+                onYearChange(firstYearId);
+            }
         }
     }, [academicData, academicError, refreshAY]);
 
@@ -276,6 +285,11 @@ export default function DailyFeeCollectionReportForm() {
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         setSubmitClicked(true);
 
+        if (!isClassRequired && (data.asmcL_Id === 0 || data.asmcL_Id === null || data.asmcL_Id === undefined)) {
+            toast.error('Please select Class');
+            return;
+        }
+
         // if (isClassRequired && !data.asmcL_Id) {
         //     toast.error('Please select Class');
         //     return;
@@ -290,39 +304,6 @@ export default function DailyFeeCollectionReportForm() {
             ToDate: data.toDate,
             All_List: [{ columnID: '1' }]
         };
-
-        // // ===================================================
-        // // REPORT 1 → HEADWISE
-        // // ===================================================
-        // if (data.headwise === true && data.paymentwise === false) {
-        //     params.Headwise = true;
-        //     params.Paymentwise = false;
-
-        //     console.log('REPORT 1 (HEADWISE) PARAMS', params);
-        // }
-
-        // // ===================================================
-        // // REPORT 2 → PAYMENTWISE
-        // // ===================================================
-        // if (data.paymentwise === true) {
-        //     params.Paymentwise = true;
-        //     params.Headwise = false;
-
-        //     console.log('REPORT 2 (PAYMENTWISE) PARAMS', params);
-        // }
-
-        // // ===================================================
-        // // REPORT 3 → MULTIPLE PAYMENT (students only)
-        // // Trigger:
-        // // Fmc_allorsudentorother === "stud"
-        // // Fmc_allorcorddorop === "multiplepaymentmode"
-        // // ===================================================
-        // if (data.Fmc_allorsudentorother === 'stud' && data.Fmc_allorcorddorop === 'All') {
-        //     params.regornamedetails = 'students';
-        //     params.allorstdorothersflag = 'multiplepaymentmode';
-
-        //     console.log('REPORT 3 (MULTIPLE PAYMENT STUDENTS) PARAMS', params);
-        // }
 
         // // ===================================================
         // // REPORT 4 → STUDENTS / ALL (NOT multiplepaymentmode)
@@ -361,8 +342,14 @@ export default function DailyFeeCollectionReportForm() {
         // ===================================================
         // API CALL
         // ===================================================
+
+        if (data.Fmc_allorsudentorother === 'all') {
+            data.Fmc_allorsudentorother = 'multiplepaymentmode';
+        }
         try {
+            setShowTable(false);
             setLoading(true);
+            setTableRows([]);
             // const tempParams: IDailyFeeCollectionRequest = {
             //     AsmayId: 176,
             //     FromDate: '2025-01-01',
@@ -394,8 +381,9 @@ export default function DailyFeeCollectionReportForm() {
                     Paymentwise: true
                 };
             } else if (
-                ((data.Fmc_allorsudentorother === 'multiplepaymentmode' || data.Fmc_allorsudentorother === 'All') &&
-                    data.Fmc_allorcorddorop === 'All') ||
+                // ((data.Fmc_allorsudentorother === 'multiplepaymentmode' || data.Fmc_allorsudentorother === 'all') &&
+                //     data.Fmc_allorcorddorop === 'All')
+                data.Fmc_allorsudentorother === 'multiplepaymentmode' &&
                 report === 'students'
             ) {
                 const allList = selectedGroupIds.map((id) => ({
@@ -408,6 +396,24 @@ export default function DailyFeeCollectionReportForm() {
                     regornamedetails: report,
                     allorstdorothersflag: Fmc_allorsudentorother,
                     All_List: allList
+                };
+            } else if (report === 'students' && data.Fmc_allorsudentorother !== 'multiplepaymentmode') {
+                const allList = selectedGroupIds.map((id) => ({
+                    columnID: String(id)
+                }));
+                payload = {
+                    AsmayId: asmaY_Id,
+                    FromDate: formatDate(fromDate),
+                    ToDate: formatDate(toDate),
+                    regornamedetails: report,
+                    allorstdorothersflag: Fmc_allorsudentorother,
+                    All_List: allList,
+                    ClassFlag: data.enableAllClasses ? '0' : '1',
+                    allorindivflag: data.rpttyp === 'All' ? 'all' : 'individual',
+                    allorcorchoronlineflag: Fmc_allorcorddorop,
+                    TempararyArrayListstring: 'all',
+                    Cheque: data.chequeDate ? '1' : '0',
+                    GroupFlag: selectedGroupIds.length > 0 ? '1' : '0'
                 };
             } else if (report === 'All' && data.Fmc_allorsudentorother !== 'multiplepaymentmode') {
                 const allList = selectedGroupIds.map((id) => ({
@@ -424,11 +430,12 @@ export default function DailyFeeCollectionReportForm() {
                     allorindivflag: data.rpttyp === 'All' ? 'all' : 'individual',
                     allorcorchoronlineflag: Fmc_allorcorddorop,
                     TempararyArrayListstring: 'all',
-                    Cheque: data.chequeDate ? '1' : '0'
+                    Cheque: data.chequeDate ? '1' : '0',
+                    GroupFlag: selectedGroupIds.length > 0 ? '1' : '0'
                 };
             }
 
-            console.log('payload', payload);
+            console.log('payload', JSON.stringify(payload));
             const response = await getDailyFeeCollectionReport(payload);
 
             console.log('response', response);
@@ -438,10 +445,9 @@ export default function DailyFeeCollectionReportForm() {
             if (!Array.isArray(rawData?.list) || rawData.list.length === 0) {
                 toast.error('No data found');
                 setShowTable(false);
+                setTableRows([]);
                 return;
             }
-
-            toast.success('Report Data Fetched Successfully');
 
             console.log('rawData', rawData);
 
@@ -450,6 +456,8 @@ export default function DailyFeeCollectionReportForm() {
 
             if (currentReportType === 'Headwise') {
                 const list = Array.isArray(rawData?.list) ? rawData.list : [];
+
+                toast.success('Report Data Fetched Successfully');
 
                 console.log('list', list);
 
@@ -508,7 +516,7 @@ export default function DailyFeeCollectionReportForm() {
                 setTableSumRow(sumRow);
             } else if (currentReportType === 'Paymentwise') {
                 const list = Array.isArray(rawData?.list) ? rawData.list : [];
-
+                toast.success('Report Data Fetched Successfully');
                 // 🔹 Collect payment modes
                 const paymentModeSet = new Set<string>();
                 list.forEach((item: any) => {
@@ -581,7 +589,7 @@ export default function DailyFeeCollectionReportForm() {
                 setTableSumRow(sumRow);
             } else if (currentReportType === 'Student') {
                 const list = Array.isArray(rawData?.list) ? rawData.list : [];
-
+                toast.success('Report Data Fetched Successfully');
                 const rows = list.map((item: any, index: number) => ({
                     SLNO: index + 1,
                     StudentName: item.name ?? '',
@@ -698,6 +706,7 @@ export default function DailyFeeCollectionReportForm() {
     };
 
     const asmcL_Id = useWatch({ control, name: 'asmcL_Id' });
+    const fromDateValue = watch('fromDate');
 
     // ===================================================
     // MAIN UI
@@ -775,13 +784,17 @@ export default function DailyFeeCollectionReportForm() {
                                             const num = Number(v);
                                             field.onChange(num);
                                             onYearChange(num);
-                                        }}>
+                                        }}
+
+                                        // value={selectedAsmayId?.toString() || ''}
+                                        // onValueChange={(v) => setSelectedAsmayId(v ? Number(v) : null)}
+                                    >
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder={loadingAcademic ? 'Loading...' : 'Select Academic Year'} />
                                         </SelectTrigger>
 
                                         <SelectContent>
-                                            <SelectItem value='all'>All</SelectItem>
+                                            {/* <SelectItem value='all'>All</SelectItem> */}
                                             {loadingAcademic ? (
                                                 <SelectItem value='loading' disabled>
                                                     Loading...
@@ -813,7 +826,7 @@ export default function DailyFeeCollectionReportForm() {
 
                             {/* MULTI SELECT */}
                             <div className='flex-1'>
-                                <CustomMultiSelectBox
+                                <FeesCustomMultiSelectBox
                                     options={feeGroups.map((g) => ({
                                         label: g.fmG_GroupName,
                                         value: String(g.fmG_Id)
@@ -839,7 +852,7 @@ export default function DailyFeeCollectionReportForm() {
 
                             <div className='flex items-center gap-2'>
                                 <Checkbox id='acdmyr-2' checked={acdmyr} onCheckedChange={(v) => setValue('acdmyr', !!v)} />
-                                <Label htmlFor='acdmyr-2'>Acd Year Wise Report</Label>
+                                <Label htmlFor='acdmyr-2'>Add Year Wise Report</Label>
                             </div>
 
                             {showHeadPaymentBlock && (
@@ -883,11 +896,11 @@ export default function DailyFeeCollectionReportForm() {
                                 {/* <Label className='font-semibold'>Details For</Label> */}
 
                                 <div className='flex flex-wrap gap-4 text-sm'>
-                                    {['All', 'stud', 'preadm', 'other', 'Trpt', 'thirdparty', 'multiplepaymentmode'].map((val) => (
+                                    {['all', 'stud', 'preadm', 'other', 'Trpt', 'thirdparty', 'multiplepaymentmode'].map((val) => (
                                         <Label key={val} className='flex items-center gap-2'>
                                             <input type='radio' value={val} {...register('Fmc_allorsudentorother')} />
                                             <span>
-                                                {val === 'All'
+                                                {val === 'all'
                                                     ? 'All'
                                                     : val === 'stud'
                                                       ? 'Student'
@@ -924,7 +937,7 @@ export default function DailyFeeCollectionReportForm() {
                                                       : val === 'B'
                                                         ? 'Cheque/DD'
                                                         : val === 'O'
-                                                          ? 'Online'
+                                                          ? 'Online Paid'
                                                           : val === 'Ecs'
                                                             ? 'ECS'
                                                             : val === 'S'
@@ -969,11 +982,29 @@ export default function DailyFeeCollectionReportForm() {
                                         From Date <span className='text-red-500'>*</span>
                                     </Label>
 
-                                    <input
+                                    {/* <input
                                         type='date'
                                         className='flex-1 rounded-md border px-3 py-2'
                                         onKeyDown={(e) => e.preventDefault()} // 🔒 blocks typing
                                         {...register('fromDate')}
+                                    /> */}
+
+                                    <input
+                                        type='date'
+                                        className='flex-1 rounded-md border px-3 py-2'
+                                        onKeyDown={(e) => e.preventDefault()} // 🔒 blocks typing
+                                        {...register('fromDate', {
+                                            required: 'From Date is required',
+                                            onChange: (e) => {
+                                                const newFromDate = e.target.value;
+                                                const currentToDate = watch('toDate');
+
+                                                // Clear toDate if it's before new fromDate
+                                                if (currentToDate && newFromDate > currentToDate) {
+                                                    setValue('toDate', '');
+                                                }
+                                            }
+                                        })}
                                     />
                                 </div>
 
@@ -986,12 +1017,27 @@ export default function DailyFeeCollectionReportForm() {
                                     <Label className='w-32'>
                                         To Date <span className='text-red-500'>*</span>
                                     </Label>
-
+                                    {/* 
                                     <input
                                         type='date'
                                         className='flex-1 rounded-md border px-3 py-2'
                                         onKeyDown={(e) => e.preventDefault()} // 🔒 blocks typing
                                         {...register('toDate')}
+                                    /> */}
+
+                                    <input
+                                        type='date'
+                                        className='flex-1 rounded-md border px-3 py-2'
+                                        onKeyDown={(e) => e.preventDefault()} // 🔒 blocks typing
+                                        {...register('toDate', {
+                                            required: 'To Date is required',
+                                            validate: (value) => {
+                                                if (!fromDateValue) return 'Please select From Date first';
+                                                return true;
+                                            }
+                                        })}
+                                        min={fromDateValue || ''} // 👈 THIS BLOCKS DATES BEFORE FROM DATE
+                                        disabled={!fromDateValue} // 👈 OPTIONAL: Disable until fromDate is selected
                                     />
                                 </div>
 
@@ -1016,7 +1062,7 @@ export default function DailyFeeCollectionReportForm() {
                                                 }
                                             }}
                                         />
-                                        <span>Class {isClassRequired && <span className='text-red-500'>*</span>}</span>
+                                        <span>Class {!isClassRequired && <span className='text-red-500'>*</span>}</span>
                                     </Label>
 
                                     {/* Dropdown controlled by checkbox */}
@@ -1058,81 +1104,68 @@ export default function DailyFeeCollectionReportForm() {
             <div className='my-6 border-gray-300 border-t' />
 
             {!loading && tableRows.length > 0 && (
-                <div className='mt-10'>
-                    {/* 🔹 REPORT HEADER */}
-                    <div className='mb-6 text-center'>
-                        <h2 className='font-bold text-lg uppercase tracking-wide'>Daily Fee Collection Report</h2>
-                        {/* <div className="mt-1 text-sm text-gray-600">
+                <CollapsibleSection defaultOpen={true}>
+                    <div className='mt-10'>
+                        {/* 🔹 REPORT HEADER */}
+                        <div className='mb-6 text-center'>
+                            <h2 className='font-bold text-2xl text-primary'>Daily Fee Collection Report</h2>
+                            {/* <div className="mt-1 text-sm text-gray-600">
                 From {formatDate(fromDate)} To {formatDate(toDate)}
             </div> */}
-                    </div>
-                    <div className='my-6 border-gray-300 border-t' />
+                        </div>
+                        <div className='my-6 border-gray-300 border-t' />
 
-                    {/* 🔹 ACTION BUTTONS */}
-                    {/* <div className='mb-4 flex justify-end gap-2'>
-                        <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExportExcel}>
-                            Export Excel
-                        </Button>
+                        <div className='flex items-center justify-between border-b bg-muted/40 px-8 py-4'>
+                            <div className='flex gap-3'>
+                                <Button variant='outline' onClick={handlePrint}>
+                                    🖨 Print
+                                </Button>
 
-                        <Button size='sm' variant='outline' className='h-8 w-auto px-3 text-xs' onClick={handlePrint}>
-                            Print
-                        </Button>
-                    </div> */}
+                                <Button variant='outline' onClick={handleExportExcel}>
+                                    📊 Export Excel
+                                </Button>
+                            </div>
+                        </div>
 
-                    <div className='flex items-center justify-between border-b bg-muted/40 px-8 py-4'>
-                        {/* <div className="font-semibold text-lg text-primary">
-                                                            Report Actions
-                                                        </div> */}
+                        {/* 🔹 TABLE */}
+                        <div className='overflow-auto rounded-md border'>
+                            <table className='w-full border-collapse text-sm'>
+                                <thead className='bg-primary text-white'>
+                                    <tr>
+                                        {tableColumns.map((col) => (
+                                            <th key={col} className='border px-3 py-2 text-left'>
+                                                {col}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
 
-                        <div className='flex gap-3'>
-                            <Button variant='outline' onClick={handlePrint}>
-                                🖨 Print
-                            </Button>
+                                <tbody>
+                                    {tableRows.map((row, rowIndex) => (
+                                        <tr key={rowIndex}>
+                                            {tableColumns.map((col) => (
+                                                <td key={col} className='border px-3 py-2 text-right'>
+                                                    {row[col]}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
 
-                            <Button variant='outline' onClick={handleExportExcel}>
-                                📊 Export Excel
-                            </Button>
+                                    {/* 🔹 SUM ROW */}
+                                    {tableSumRow && (
+                                        <tr className='bg-gray-100 font-semibold'>
+                                            {tableColumns.map((col) => (
+                                                <td key={col} className='border px-3 py-2 text-right'>
+                                                    {col === 'SLNO' ? '' : col === 'Date' ? 'Total' : `Sum: ${tableSumRow[col] ?? 0}`}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-
-                    {/* 🔹 TABLE */}
-                    <div className='overflow-auto rounded-md border'>
-                        <table className='w-full border-collapse text-sm'>
-                            <thead className='bg-gray-200'>
-                                <tr>
-                                    {tableColumns.map((col) => (
-                                        <th key={col} className='border px-3 py-2 text-left'>
-                                            {col}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {tableRows.map((row, rowIndex) => (
-                                    <tr key={rowIndex}>
-                                        {tableColumns.map((col) => (
-                                            <td key={col} className='border px-3 py-2 text-right'>
-                                                {row[col]}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                ))}
-
-                                {/* 🔹 SUM ROW */}
-                                {tableSumRow && (
-                                    <tr className='bg-gray-100 font-semibold'>
-                                        {tableColumns.map((col) => (
-                                            <td key={col} className='border px-3 py-2 text-right'>
-                                                {col === 'SLNO' ? '' : col === 'Date' ? 'Total' : `Sum: ${tableSumRow[col] ?? 0}`}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                </CollapsibleSection>
             )}
         </div>
     );

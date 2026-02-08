@@ -5,9 +5,14 @@ import type { ApiSearchparams } from '@/types';
 import type { ILifeSkill, ILifeSkillArea, IMasterLifeSkillMapping } from '@/types/exam/exam-module/masters';
 
 // fetch all life skills
-export async function getMasterLifeSkills(mi_id: number, searchParams?: ApiSearchparams) {
+export async function getMasterLifeSkills(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/MasterLifeSkillFacade/${mi_id}?${urlParams}`;
+    const url = `/MasterLifeSkillFacade?${urlParams}`;
+    return await api.get<ILifeSkill>('exam', url);
+}
+
+export async function getMasterLifeSkillDrpdownList() {
+    const url = '/MasterLifeSkillFacade/get_master_life_skill_dropdown_list';
     return await api.get<ILifeSkill>('exam', url);
 }
 
@@ -36,10 +41,19 @@ export async function addOrUpdateMasterLifeSkillArea(data: any) {
 }
 
 // fetch all life skill areas
-export async function getMasterLifeSkillAreas(mi_id: number, searchParams?: ApiSearchparams) {
+export async function getMasterLifeSkillAreas(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/MasterLifeSkillFacade/get_master_life_skill_Area_details/${mi_id}?${urlParams}`;
+    const url = `/MasterLifeSkillFacade/get_master_life_skill_Area_details?${urlParams}`;
     return await api.get<ILifeSkillArea>('exam', url);
+}
+
+export async function getMasterLifeSkillAreaOrderList() {
+    const url = '/MasterLifeSkillFacade/get_master_life_skill_Area_Order_List';
+    return await api.get<ILifeSkillArea>('exam', url);
+}
+export async function setMasterLifeSkillAreaOrderList(data: any) {
+    const url = '/MasterLifeSkillFacade/set_order_master_life_skill_areas';
+    return await api.post<any>('exam', url, data);
 }
 
 // fetch edit details of a life skill area
@@ -54,8 +68,6 @@ export async function toggleMasterLifeSkillArea(id: number) {
     return await api.put('exam', url);
 }
 
-
-
 // add or update life skill area mapping
 export async function addOrUpdateMasterLifeSkillMapping(data: any) {
     const url = '/MasterLifeSkillFacade/add_or_update_master_life_skill_Area_mapping';
@@ -63,15 +75,15 @@ export async function addOrUpdateMasterLifeSkillMapping(data: any) {
 }
 
 // fetch all life skill area mappings
-export async function getMasterLifeSkillMappings(mi_id: number, searchParams?: ApiSearchparams) {
+export async function getMasterLifeSkillMappings(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/MasterLifeSkillFacade/get_skill_area_mapping_details/${mi_id}?${urlParams}`;
+    const url = `/MasterLifeSkillFacade/get_skill_area_mapping_details?${urlParams}`;
     return await api.get<IMasterLifeSkillMapping>('exam', url);
 }
 
 // fetch edit details of a life skill area mapping
-export async function getMasterLifeSkillMappingEditDetails(mi_id: number, ecsam_id: number) {
-    const url = `/MasterLifeSkillFacade/get_skill_area_mapping_edit_details/${mi_id}/${ecsam_id}`;
+export async function getMasterLifeSkillMappingEditDetails(ecsam_id: number) {
+    const url = `/MasterLifeSkillFacade/get_skill_area_mapping_edit_details/${ecsam_id}`;
     return await api.get<IMasterLifeSkillMapping>('exam', url);
 }
 

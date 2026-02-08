@@ -13,11 +13,10 @@ import { getExamGroupsByCategory } from '@/server/exam/exam-module/exam-mapping/
 import { addOrUpdateExamTermAndExamMapping } from '@/server/exam/exam-module/exam-mapping/examTerm-and-exam-mappiong';
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
 import { getMasterGrade } from '@/server/exam/exam-module/masters/grade';
-import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { IExamTermAndExamMapping, IExamTermAndExamMappingDetails } from '@/types/exam/exam-module/exam-mapping';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Trash2 } from 'lucide-react';
+import { AlertTriangle, Pencil, RefreshCw, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -86,11 +85,9 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
     const [entryRoundOff, setEntryRoundOff] = useState<boolean>(false);
     const [entryConversion, setEntryConversion] = useState<boolean>(false);
     const [entryNotApplicable, setEntryNotApplicable] = useState<boolean>(false);
-    const {
-        data: academicYear,
-        isLoading: academicYearLoading,
-        error: academicYearError,
-    } = useAcademicYearDropdown();
+    const [rowToDelete, setRowToDelete] = useState<number | null>(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const academicYears = academicYear?.data ? academicYear.data : [];
 
     // lock top-level when there is at least one added row (same behavior)
@@ -115,7 +112,7 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
         if (!asmaY_Id) return;
         async function fetchRelated() {
             try {
-                const { data: cats } = await getCategoryDropDownByAcademicYearlist(orgId, asmaY_Id);
+                const { data: cats } = await getCategoryDropDownByAcademicYearlist(asmaY_Id);
                 const validCats = Array.isArray(cats) ? cats : [];
                 setCategories(validCats);
                 if (rowData?.emcA_Id && validCats.length > 0) {
@@ -165,9 +162,12 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
     const {
         data: detailsResponse,
         error: detailsError,
-        isLoading: detailsLoading
-    } = useExamTermAndExamMappingDetails(orgId, rowData?.asmaY_Id ?? 0, rowData?.emcA_Id ?? 0, rowData?.ecT_Id ?? 0);
-
+        isLoading: detailsLoading,
+        refetch: refetchDetails
+    } = useExamTermAndExamMappingDetails(rowData?.asmaY_Id ?? 0, rowData?.emcA_Id ?? 0, rowData?.ecT_Id ?? 0);
+    useEffect(() => {
+        refetchDetails();
+    }, [rowData]);
     // populate form top-level fields from rowData when component mounts and academicYears are loaded
     useEffect(() => {
         if (!rowData || academicYears.length === 0) return;
@@ -303,6 +303,22 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
         replace(updated as any);
     }
 
+    function handleEditRow(index: number) {
+        const row = addedRows[index];
+
+        // Populate entry fields with row data
+        setEntryExamId(row.emE_Id);
+        setEntryMarksFlag(row.ecteX_MarksPerFlag);
+        setEntryValue(row.ecteX_MarksPercentValue);
+        setEntryRoundOff(row.ecteX_RoundOffReqFlg);
+        setEntryConversion(row.ecteX_ConversionReqFlg);
+        setEntryNotApplicable(row.ecteX_NotApplicableToTotal);
+
+        // Remove from list so it can be re-added
+        handleDeleteRow(index);
+        toast.info('Exam loaded for editing');
+    }
+
     // On final submit - update call (keeps same payload mapping you used in Add)
     const onSubmit = async (data: FormFields) => {
         if (!addedRows.length) {
@@ -377,7 +393,7 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
         setEntryRoundOff(false);
         setEntryConversion(false);
         setEntryNotApplicable(false);
-        setAddedRows(initialAddedRows)
+        setAddedRows(initialAddedRows);
         toast.info('Form reset to loaded values');
     }
 
@@ -419,9 +435,36 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
         setGrades([]);
         toast.info('Form cleared');
     }
+    function handleConfirmDelete() {
+        if (rowToDelete !== null) {
+            // Get the exam name before deleting for toast message
+            const examName = addedRows[rowToDelete]?.emE_ExamName || 'the exam';
+
+            // Call the existing delete function
+            handleDeleteRow(rowToDelete);
+
+            // Show success message
+            toast.success(`"${examName}" deleted successfully`);
+
+            // Close the modal
+            setShowDeleteConfirm(false);
+            setRowToDelete(null);
+        }
+    }
+
+    const isLoading = academicYearLoading || detailsLoading;
+
+    if (isLoading) {
+        return (
+            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
+                <RefreshCw className='h-8 w-8 animate-spin text-secondary' />
+                <p className='text-muted-foreground text-sm'>Loading data...</p>
+            </div>
+        );
+    }
 
     return (
-        <div className='flex w-full flex-col gap-6'>
+        <div className='relative flex w-full flex-col gap-6'>
             <FormProvider {...methods}>
                 <form
                     onSubmit={handleSubmit(onSubmit, (errs) => {
@@ -703,33 +746,40 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
 
                             <div className='col-span-2'>
                                 <div className='flex flex-wrap items-center gap-4'>
-                                    <label className='flex items-center gap-2'>
-                                        <input
-                                            type='checkbox'
+                                    <div className='flex items-center gap-2'>
+                                        <Checkbox
+                                            id='roundoff'
                                             checked={entryRoundOff}
-                                            onChange={(e) => setEntryRoundOff(e.target.checked)}
+                                            onCheckedChange={(checked) => setEntryRoundOff(checked === true)}
                                         />
-                                        <span className='text-sm'>Roundoff</span>
-                                    </label>
-                                    <label className='flex items-center gap-2'>
-                                        <input
-                                            type='checkbox'
+                                        <label htmlFor='roundoff' className='cursor-pointer text-sm'>
+                                            Roundoff
+                                        </label>
+                                    </div>
+
+                                    <div className='flex items-center gap-2'>
+                                        <Checkbox
+                                            id='conversion'
                                             checked={entryConversion}
-                                            onChange={(e) => setEntryConversion(e.target.checked)}
+                                            onCheckedChange={(checked) => setEntryConversion(checked === true)}
                                         />
-                                        <span className='text-sm'>Conversion</span>
-                                    </label>
-                                    <label className='flex items-center gap-2'>
-                                        <input
-                                            type='checkbox'
+                                        <label htmlFor='conversion' className='cursor-pointer text-sm'>
+                                            Conversion
+                                        </label>
+                                    </div>
+
+                                    <div className='flex items-center gap-2'>
+                                        <Checkbox
+                                            id='not-applicable'
                                             checked={entryNotApplicable}
-                                            onChange={(e) => setEntryNotApplicable(e.target.checked)}
+                                            onCheckedChange={(checked) => setEntryNotApplicable(checked === true)}
                                         />
-                                        <span className='text-sm'>Not Applicable</span>
-                                    </label>
+                                        <label htmlFor='not-applicable' className='cursor-pointer text-sm'>
+                                            Not Applicable
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
-
                             <div className='col-span-5 mt-3 flex justify-center gap-4'>
                                 <Button type='button' onClick={handleAddExamRow} className='w-fit' disabled={!currentEntryValid}>
                                     Add Exam
@@ -766,10 +816,7 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
                                             {addedRows.map((r, idx) => (
                                                 <tr
                                                     key={idx}
-                                                    className='border-gray-300 border-t transition-colors hover:bg-accent/90 duration-200 
-               text-sm [&>*]:py-1 [&>*]:px-2'>
-
-
+                                                    className='border-gray-300 border-t text-sm transition-colors duration-200 hover:bg-accent/90 [&>*]:px-2 [&>*]:py-1'>
                                                     <td className='border-gray-300 border-r px-3 '>{idx + 1}</td>
                                                     <td className='border-gray-300 border-r px-3'>{r.emE_ExamName}</td>
                                                     <td className='border-gray-300 border-r px-3'>
@@ -789,9 +836,19 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
                                                         <Button
                                                             variant='ghost'
                                                             size='sm'
-                                                            onClick={() => handleDeleteRow(idx)}
+                                                            onClick={() => {
+                                                                setRowToDelete(idx);
+                                                                setShowDeleteConfirm(true);
+                                                            }}
                                                             className='group h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:bg-red-50 hover:text-red-600'>
                                                             <Trash2 className='h-4 w-4 transition-transform duration-200 group-hover:rotate-12' />
+                                                        </Button>
+                                                        <Button
+                                                            variant='ghost'
+                                                            size='sm'
+                                                            onClick={() => handleEditRow(idx)}
+                                                            className='group h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:bg-blue-50 hover:text-blue-600'>
+                                                            <Pencil className='h-4 w-4 transition-transform duration-200 group-hover:rotate-12' />
                                                         </Button>
                                                     </td>
                                                 </tr>
@@ -815,10 +872,81 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
                     </div>
                 </form>
             </FormProvider>
+            {/* Add this just before the closing </div> of the main container */}
+            {showDeleteConfirm && (
+                <div className='fixed inset-0 z-[9999] flex items-center justify-center p-6'>
+                    {/* Backdrop */}
+                    <div
+                        className='absolute inset-0 bg-black/60'
+                        onClick={() => {
+                            setShowDeleteConfirm(false);
+                            setRowToDelete(null);
+                        }}
+                    />
+
+                    {/* Confirmation Popup */}
+                    <div className='relative z-[10000] w-[90%] max-w-md overflow-hidden rounded-xl border bg-white shadow-2xl'>
+                        <div className='p-6'>
+                            <div className='mb-4 flex items-center gap-3'>
+                                <div className='rounded-full bg-destructive/20 p-2'>
+                                    <AlertTriangle className='h-6 w-6 text-destructive' />
+                                </div>
+                                <div>
+                                    <h3 className='font-semibold text-lg'>Delete Exam</h3>
+                                    <p className='text-muted-foreground text-sm'>This action cannot be undone</p>
+                                </div>
+                            </div>
+
+                            <p className='mb-4'>
+                                Are you sure you want to delete{' '}
+                                <strong className='text-destructive'>
+                                    "{rowToDelete !== null ? addedRows[rowToDelete]?.emE_ExamName : ''}"
+                                </strong>
+                                ?
+                            </p>
+
+                            <div className='space-y-2 text-muted-foreground text-sm'>
+                                <div className='flex justify-between'>
+                                    <span>Type:</span>
+                                    <span className='font-medium'>
+                                        {rowToDelete !== null && addedRows[rowToDelete]?.ecteX_MarksPerFlag === 'M'
+                                            ? 'Marks'
+                                            : 'Percentage'}
+                                    </span>
+                                </div>
+                                <div className='flex justify-between'>
+                                    <span>Value:</span>
+                                    <span className='font-medium'>
+                                        {rowToDelete !== null ? addedRows[rowToDelete]?.ecteX_MarksPercentValue : ''}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className='flex justify-end gap-3 border-t p-4'>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={() => {
+                                    setShowDeleteConfirm(false);
+                                    setRowToDelete(null);
+                                }}
+                                className='min-w-[100px]'>
+                                Cancel
+                            </Button>
+                            <Button type='button' variant='destructive' onClick={handleConfirmDelete} className='min-w-[100px]'>
+                                <Trash2 className='mr-2 h-4 w-4' />
+                                Delete
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
 
+import { Checkbox } from '@/components/ui/checkbox';
 import type { FieldErrors } from 'react-hook-form';
 
 function getFirstErrorMessage(errors: FieldErrors | undefined): string | null {

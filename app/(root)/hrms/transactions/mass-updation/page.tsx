@@ -1,568 +1,596 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { DataTable } from '@/components/ui/data-table/data-table';
-import { FormError, Label } from '@/components/ui/extension/field';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useGetEmployeeDetailsBySelection, useMassUpdationOnload, useSearchMassUpdationEmployees } from '@/hooks/hrms/useTransactions';
-import { hrmsTransactionSchemas } from '@/schemas/hrms/transaction';
-import type { EmployeeDropdown } from '@/types/hrms/mass-updation';
-import { zodResolver } from '@hookform/resolvers/zod';
-import type { ColumnDef } from '@tanstack/react-table';
-import { Search, Users, X } from 'lucide-react';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
+import {
+    useMassUpdationOnload,
+    useSaveMassUpdation,
+    useSearchMassUpdationEmployees
+} from '@/hooks/hrms/useTransactions';
+import {
+    getDepartmentDropdownByGroupType,
+    getDesignationDropdownByGroupTypeAndDesignation,
+    getGroupTypeDropdown,
+    getHeadDropdown
+} from '@/server/hrms/hrmsConfig/transaction/mass-updation';
+import { RefreshCw, Search, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
-interface Employee extends EmployeeDropdown {
-    selected?: boolean;
-}
-type MassUpdateForm = z.infer<typeof hrmsTransactionSchemas.massUpdation.form>;
+
 export default function MassUpdationPage() {
-    const [employees, setEmployees] = useState<Employee[]>([]);
-    const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
-    const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
+    const [isClient, setIsClient] = useState(false);
+    useEffect(() => setIsClient(true), []);
+
+    // ------------------------------------------------------------------------
+    // Hooks & State
+    // ------------------------------------------------------------------------
+    // Onload Data
+    const { data: onloadData, isLoading: isLoadingOnload } = useMassUpdationOnload({
+        MI_Id: HRMS_MI_ID,
+        roleId: 0, // Should come from context
+        LogInUserId: 0 // Should come from context
+    });
+
+    // Dropdown Data States
+    const [groupTypes, setGroupTypes] = useState<any[]>([]);
+    const [departments, setDepartments] = useState<any[]>([]);
+    const [designations, setDesignations] = useState<any[]>([]);
+    const [heads, setHeads] = useState<any[]>([]);
+
+    // Grid Data
+    const [employees, setEmployees] = useState<any[]>([]);
     const [hasSearched, setHasSearched] = useState(false);
-    const _formRef = useRef<HTMLDivElement>(null);
-    const {
-        register,
-        handleSubmit,
-        reset,
-        watch,
-        control,
-        getValues,
-        formState: { errors }
-    } = useForm<MassUpdateForm>({
-        resolver: zodResolver(hrmsTransactionSchemas.massUpdation.form),
-        mode: 'onChange',
+    const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<number[]>([]);
+
+    // Mutations
+
+    const { mutate: searchEmployees, isPending: isSearching } = useSearchMassUpdationEmployees();
+    const { mutate: saveMassUpdate, isPending: isSaving } = useSaveMassUpdation();
+
+    // Form Control
+    const { control, handleSubmit, watch, setValue, reset, getValues } = useForm({
         defaultValues: {
+            groupType: [] as string[],
+            department: [] as string[],
+            designation: [] as string[],
+
+            // Action Section
+            earningDeduction: '',
+            amountType: '',
+            selectedHead: '',
+            amountValue: '',
+            addRemove: ''
+        }
+    });
+
+    const watchedGroupType = watch('groupType');
+    const watchedDepartment = watch('department');
+    const watchedEarningDeduction = watch('earningDeduction');
+    const watchedAmountType = watch('amountType');
+
+    // ------------------------------------------------------------------------
+    // Effects
+    // ------------------------------------------------------------------------
+    // Initialize Master Data
+    useEffect(() => {
+        // Fetch Group Types
+        async function fetchGroupTypes() {
+            try {
+                const { groupTypedropdown } = await getGroupTypeDropdown();
+                setGroupTypes(groupTypedropdown || []);
+            } catch (err) {
+                console.error("Failed to load group types", err);
+            }
+        }
+        fetchGroupTypes();
+
+        // Fetch Heads
+        async function fetchHeads() {
+            try {
+                const { headdropdown } = await getHeadDropdown();
+                setHeads(headdropdown || []);
+            } catch (err) {
+                console.error("Failed to load heads", err);
+            }
+        }
+        fetchHeads();
+    }, []);
+
+    // Cascading: Group Type -> Department
+    useEffect(() => {
+        if (!isClient) return;
+        async function fetchDepartments() {
+            let activeGroupIds: string[] = [];
+            if (watchedGroupType && watchedGroupType.length > 0) {
+                if (watchedGroupType.includes('All')) {
+                    activeGroupIds = groupTypes.map((gt: any) => gt.HRMGT_Id?.toString() || '');
+                } else {
+                    activeGroupIds = watchedGroupType;
+                }
+            }
+
+            if (activeGroupIds.length > 0) {
+                const ids = activeGroupIds.join(',');
+                try {
+                    const { departmentdropdown } = await getDepartmentDropdownByGroupType(ids);
+                    setDepartments(departmentdropdown || []);
+                } catch (error) {
+                    console.error("Error fetching departments", error);
+                    setDepartments([]);
+                }
+            } else {
+                setDepartments([]);
+            }
+        }
+        fetchDepartments();
+    }, [watchedGroupType, groupTypes, isClient]);
+
+    // Cascading: Department -> Designation
+    useEffect(() => {
+        if (!isClient) return;
+        async function fetchDesignations() {
+            let activeGroupIds: string[] = [];
+            if (watchedGroupType && watchedGroupType.length > 0) {
+                if (watchedGroupType.includes('All')) {
+                    activeGroupIds = groupTypes.map((gt: any) => gt.HRMGT_Id?.toString() || '');
+                } else {
+                    activeGroupIds = watchedGroupType;
+                }
+            }
+
+            let activeDeptIds: string[] = [];
+            if (watchedDepartment && watchedDepartment.length > 0) {
+                if (watchedDepartment.includes('All')) {
+                    activeDeptIds = departments.map((d: any) => d.HRMD_Id?.toString() || '');
+                } else {
+                    activeDeptIds = watchedDepartment;
+                }
+            }
+
+            if (activeGroupIds.length > 0 && activeDeptIds.length > 0) {
+                const gIds = activeGroupIds.join(',');
+                const dIds = activeDeptIds.join(',');
+                try {
+                    const { designationdropdown } = await getDesignationDropdownByGroupTypeAndDesignation(gIds, dIds);
+                    setDesignations(designationdropdown || []);
+                } catch (error) {
+                    console.error("Error fetching designations", error);
+                    setDesignations([]);
+                }
+            } else {
+                setDesignations([]);
+            }
+        }
+        fetchDesignations();
+    }, [watchedDepartment, watchedGroupType, groupTypes, departments, isClient]);
+
+
+    // ------------------------------------------------------------------------
+    // Actions
+    // ------------------------------------------------------------------------
+    const onSearch = (formData: any) => {
+        const groupTypeIds = formData.groupType.filter((x: string) => x !== 'All').map(Number);
+        const departmentIds = formData.department.filter((x: string) => x !== 'All').map(Number);
+        const designationIds = formData.designation.filter((x: string) => x !== 'All').map(Number);
+
+        if (groupTypeIds.length === 0 && departmentIds.length === 0 && designationIds.length === 0) {
+            toast.error('Please select at least one filter criterion');
+            return;
+        }
+
+        searchEmployees(
+            {
+                MI_Id: HRMS_MI_ID,
+                groupTypeIdList: groupTypeIds,
+                hrmD_IdList: departmentIds,
+                hrmdeS_IdList: designationIds,
+                LogInUserId: 0,
+                roleId: 0
+            },
+            {
+                onSuccess: (data) => {
+                    if (data.employeedropdown && data.employeedropdown.length > 0) {
+                        setEmployees(data.employeedropdown);
+                        setHasSearched(true);
+                        toast.success(`Found ${data.employeedropdown.length} employees`);
+                    } else {
+                        setEmployees([]);
+                        setHasSearched(true);
+                        toast.info('No employees found matching criteria');
+                    }
+                },
+                onError: (err) => toast.error(err.message || 'Search failed')
+            }
+        );
+    };
+
+    const onSave = () => {
+        const formData = getValues();
+
+        if (selectedEmployeeIds.length === 0) {
+            toast.error('Please select at least one employee from the list');
+            return;
+        }
+
+        if (!formData.earningDeduction) {
+            toast.error('Please select Earning or Deduction');
+            return;
+        }
+        if (!formData.amountType) {
+            toast.error('Please select Amount or Percentage');
+            return;
+        }
+        if (!formData.selectedHead) {
+            toast.error('Please select a Head');
+            return;
+        }
+        if (formData.addRemove !== 'Remove' && (!formData.amountValue || Number(formData.amountValue) <= 0)) {
+            toast.error('Please enter a valid amount/percentage');
+            return;
+        }
+        if (!formData.addRemove) {
+            toast.error('Please select Add or Remove');
+            return;
+        }
+
+        saveMassUpdate(
+            {
+                MI_Id: HRMS_MI_ID,
+                roleId: 0,
+                LogInUserId: 0,
+
+                // selections
+                employeeselected: selectedEmployeeIds,
+                // Logic
+                Type: formData.earningDeduction,
+                EarningDeduction: formData.earningDeduction,
+                AmountPercentage: formData.amountType,
+                HRMED_Id: Number(formData.selectedHead),
+                HREED_Amount: formData.amountType === 'Amount' ? Number(formData.amountValue) : 0,
+                HREED_Percentage: formData.amountType === 'Percentage' ? formData.amountValue.toString() : '0',
+                AddRemove: formData.addRemove,
+
+                // Metadata to satisfy API (reuse search params)
+                groupTypeIdList: formData.groupType.filter((x: string) => x !== 'All').map(Number),
+                hrmD_IdList: formData.department.filter((x: string) => x !== 'All').map(Number),
+                hrmdeS_IdList: formData.designation.filter((x: string) => x !== 'All').map(Number)
+            },
+            {
+                onSuccess: () => {
+                    // Reset action fields but keep grid? Or reset everything?
+                    // Legacy clears data. Let's keep grid but clear action fields for better UX, or just clear selection.
+                    setSelectedEmployeeIds([]);
+                    setValue('amountValue', '');
+                    setValue('selectedHead', '');
+                    setValue('addRemove', '');
+                    // We might need to refresh grid if "Add/Remove" changes data that is visible, 
+                    // but here the grid just shows names. So no refresh needed.
+                }
+            }
+        );
+    };
+
+    const handleCancel = () => {
+        setHasSearched(false);
+        setEmployees([]);
+        setSelectedEmployeeIds([]);
+        reset({
             groupType: [],
             department: [],
             designation: [],
+            earningDeduction: '',
+            amountType: '',
             selectedHead: '',
-            updateType: 'Percentage',
-            updateValue: 0,
-            effectiveDate: '',
-            earningDeduction: 'Earning',
-            addRemove: 'Add'
-        }
-    });
-    const watchedGroupType = watch('groupType');
-    const watchedDepartment = watch('department');
-    const watchedDesignation = watch('designation');
-    const watchedEarningDeduction = watch('earningDeduction');
-    const watchedUpdateType = watch('updateType');
-    const { data: onloadData, isLoading } = useMassUpdationOnload({
-        MI_Id: 30,
-        roleId: 2
-    });
-    const searchMutation = useSearchMassUpdationEmployees();
-    const saveMutation = useGetEmployeeDetailsBySelection();
-    // Debug logging - onloadData handled by data loading logic
-    // Handle both field name variants (with and without 'list' suffix)
-    // Memoize arrays to prevent unnecessary re-renders
-    const groupTypes = useMemo(() => {
-        return onloadData?.groupTypedropdownlist && onloadData.groupTypedropdownlist.length > 0
-            ? onloadData.groupTypedropdownlist
-            : onloadData?.groupTypedropdown || [];
-    }, [onloadData?.groupTypedropdownlist, onloadData?.groupTypedropdown]);
-    const departments = useMemo(() => {
-        return onloadData?.departmentdropdownlist && onloadData.departmentdropdownlist.length > 0
-            ? onloadData.departmentdropdownlist
-            : onloadData?.departmentdropdown || [];
-    }, [onloadData?.departmentdropdownlist, onloadData?.departmentdropdown]);
-    const designations = useMemo(() => {
-        return onloadData?.designationdropdownlist && onloadData.designationdropdownlist.length > 0
-            ? onloadData.designationdropdownlist
-            : onloadData?.designationdropdown || [];
-    }, [onloadData?.designationdropdownlist, onloadData?.designationdropdown]);
-    const heads = useMemo(() => onloadData?.headdropdown || [], [onloadData?.headdropdown]);
-    // Debug log the final values - dependencies tracked for memoization
-    const filteredHeads = React.useMemo(() => {
-        if (!heads || heads.length === 0) return [];
-        const filtered = heads.filter((head: any) => {
-            const earnDedMatch = head.HRMED_EarnDedFlag === watchedEarningDeduction;
-            const amountPercentMatch = head.HRMED_AmountPercentFlag === watchedUpdateType;
-            return earnDedMatch && amountPercentMatch;
+            amountValue: '',
+            addRemove: ''
         });
-        return filtered;
-    }, [heads, watchedEarningDeduction, watchedUpdateType]);
-    // Memoize filterEmployees to prevent infinite loops
-    const filterEmployees = useCallback(() => {
-        let filtered = employees;
-        if (watchedGroupType && watchedGroupType.length > 0) {
-            const groupTypeIds = new Set(watchedGroupType.map((v) => Number(v)));
-            filtered = filtered.filter((emp: any) => groupTypeIds.has(emp.HRMGT_Id));
-        }
-        if (watchedDepartment && watchedDepartment.length > 0) {
-            const departmentIds = new Set(watchedDepartment.map((v) => Number(v)));
-            filtered = filtered.filter((emp: any) => departmentIds.has(emp.HRMD_Id));
-        }
-        if (watchedDesignation && watchedDesignation.length > 0) {
-            const designationIds = new Set(watchedDesignation.map((v) => Number(v)));
-            filtered = filtered.filter((emp: any) => designationIds.has(emp.HRMDES_Id));
-        }
-        setFilteredEmployees(filtered);
-    }, [watchedGroupType, watchedDepartment, watchedDesignation, employees]);
-    useEffect(() => {
-        if (hasSearched) {
-            filterEmployees();
-        }
-    }, [hasSearched, filterEmployees]);
-    const onSubmit: SubmitHandler<MassUpdateForm> = async (data: MassUpdateForm) => {
-        // Validate search criteria
-        const searchValidation = hrmsTransactionSchemas.massUpdation.search.safeParse({
-            groupType: data.groupType,
-            department: data.department,
-            designation: data.designation
-        });
-        if (!searchValidation.success) {
-            const firstError = searchValidation.error.errors[0];
-            toast.error(firstError.message);
-            return;
-        }
-        const searchPayload = {
-            MI_Id: 30,
-            roleId: 2,
-            Type: '',
-            HRME_Id: 0,
-            groupTypeselected: data.groupType.map((v) => Number(v)),
-            departmentselected: data.department.map((v) => Number(v)),
-            designationselected: data.designation.map((v) => Number(v)),
-            employeeselected: [0],
-            EarningDeduction: '',
-            AmountPercentage: '',
-            HREED_Amount: 0,
-            HREED_Percentage: '',
-            HRMED_Id: 0,
-            AddRemove: '',
-            LogInUserId: 0,
-            hrmgT_IdList: data.groupType.map((v) => Number(v)),
-            employeeTypeIdList: [0],
-            hrmD_IdList: data.department.map((v) => Number(v)),
-            hrmdeS_IdList: data.designation.map((v) => Number(v)),
-            groupTypeIdList: data.groupType.map((v) => Number(v))
-        };
-        searchMutation.mutate(searchPayload, {
-            onSuccess: (responseData) => {
-                const hasEmployeeData = responseData.employeedropdown && responseData.employeedropdown.length > 0;
-                if (hasEmployeeData) {
-                    const mappedEmployees: Employee[] = responseData.employeedropdown.map((emp: any) => ({
-                        ...emp,
-                        selected: false
-                    }));
-                    setEmployees(mappedEmployees);
-                    setFilteredEmployees(mappedEmployees);
-                    setHasSearched(true);
-                    toast.success(`Found ${mappedEmployees.length} employee records`);
-                } else {
-                    setEmployees([]);
-                    setFilteredEmployees([]);
-                    setHasSearched(true);
-                    const errorMsg = responseData.retrunMsg || 'No employees found matching the criteria';
-                    if (errorMsg.toLowerCase().includes('error') || errorMsg.toLowerCase().includes('no data')) {
-                        toast.warning(errorMsg);
-                    } else {
-                        toast.info(errorMsg);
-                    }
-                }
+    };
+
+    // ------------------------------------------------------------------------
+    // Derived Data
+    // ------------------------------------------------------------------------
+    const filteredHeads = useMemo(() => {
+        if (!watchedEarningDeduction && !watchedAmountType) return heads;
+
+        return heads.filter((h: any) => {
+            let matchesType = true;
+            if (watchedEarningDeduction) {
+                matchesType = h.HRMED_EarnDedFlag === watchedEarningDeduction;
             }
-        });
-    };
-    const handleSelectAll = (selected: boolean) => {
-        if (selected) {
-            setSelectedEmployees(filteredEmployees.map((emp) => emp.HRME_Id));
-        } else {
-            setSelectedEmployees([]);
-        }
-    };
-    const handleEmployeeSelect = (employeeId: number, selected: boolean) => {
-        if (selected) {
-            setSelectedEmployees((prev) => [...prev, employeeId]);
-        } else {
-            setSelectedEmployees((prev) => prev.filter((id) => id !== employeeId));
-        }
-    };
-    const handleMassUpdate = async () => {
-        if (selectedEmployees.length === 0) {
-            toast.error('Please select at least one employee');
-            return;
-        }
-        const values = getValues();
-        // Validate employee records section - use a partial schema for validation
-        const updateFieldsSchema = z.object({
-            selectedHead: z.string().min(1, 'Head is required'),
-            updateType: z.enum(['Percentage', 'Amount'], {
-                required_error: 'Please select Amount or Percentage'
-            }),
-            updateValue: z.number().min(0, 'Value must be greater than or equal to 0'),
-            earningDeduction: z.enum(['Earning', 'Deduction'], {
-                required_error: 'Please select Earning or Deduction'
-            }),
-            addRemove: z.enum(['Add', 'Remove'], {
-                required_error: 'Please select an Action'
-            })
-        });
-        const updateValidation = updateFieldsSchema.safeParse({
-            selectedHead: values.selectedHead,
-            updateType: values.updateType,
-            updateValue: values.updateValue,
-            earningDeduction: values.earningDeduction,
-            addRemove: values.addRemove
-        });
-        if (!updateValidation.success) {
-            const firstError = updateValidation.error.errors[0];
-            toast.error(firstError.message);
-            return;
-        }
-        const payload = {
-            MI_Id: 30,
-            roleId: 2,
-            Type: '',
-            HRME_Id: 0,
-            employeeselected: selectedEmployees,
-            EarningDeduction: values.earningDeduction,
-            AmountPercentage: values.updateType,
-            HREED_Amount: values.updateType === 'Amount' ? Number(values.updateValue) : 0,
-            HREED_Percentage: values.updateType === 'Percentage' ? String(values.updateValue) : '0',
-            HRMED_Id: Number(values.selectedHead),
-            AddRemove: values.addRemove,
-            LogInUserId: 0,
-            groupTypeselected: values.groupType.map((v) => Number(v)),
-            departmentselected: values.department.map((v) => Number(v)),
-            designationselected: values.designation.map((v) => Number(v)),
-            hrmgT_IdList: values.groupType.map((v) => Number(v)),
-            hrmD_IdList: values.department.map((v) => Number(v)),
-            hrmdeS_IdList: values.designation.map((v) => Number(v)),
-            groupTypeIdList: values.groupType.map((v) => Number(v))
-        } as any;
-        saveMutation.mutate(payload, {
-            onSuccess: (responseData) => {
-                toast.success('Mass update applied successfully');
-                if (responseData?.employeedropdown) {
-                    const updatedEmployees: Employee[] = responseData.employeedropdown.map((emp: any) => ({
-                        ...emp,
-                        selected: false
-                    }));
-                    setEmployees(updatedEmployees);
-                    setFilteredEmployees(updatedEmployees);
-                }
+
+            let matchesAmount = true;
+            if (watchedAmountType) {
+                matchesAmount = h.HRMED_AmountPercentFlag === watchedAmountType;
             }
+
+            return matchesType && matchesAmount;
         });
-    };
-    const EmployeeTable = ({
-        employees,
-        isLoading,
-        onSelectAll,
-        onEmployeeSelect
-    }: {
-        employees: Employee[];
-        isLoading: boolean;
-        onSelectAll: (selected: boolean) => void;
-        onEmployeeSelect: (employeeId: number, selected: boolean) => void;
-    }) => {
-        const columns: ColumnDef<Employee>[] = [
-            {
-                id: 'select',
-                header: () => (
-                    <Checkbox
-                        checked={employees.length > 0 && selectedEmployees.length === employees.length}
-                        onCheckedChange={(value) => onSelectAll(!!value)}
-                        aria-label='Select all'
-                    />
-                ),
-                cell: ({ row }) => (
-                    <Checkbox
-                        checked={selectedEmployees.includes(row.original.HRME_Id)}
-                        onCheckedChange={(value) => onEmployeeSelect(row.original.HRME_Id, !!value)}
-                        aria-label='Select row'
-                    />
-                ),
-                enableSorting: false,
-                enableHiding: false
-            },
-            {
-                accessorKey: 'HRME_EmployeeCode',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-                cell: ({ row }) => <div>{row.getValue('HRME_EmployeeCode')}</div>,
-                enableSorting: true,
-                enableHiding: true
-            },
-            {
-                accessorKey: 'HRME_EmployeeFirstName',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-                cell: ({ row }) => {
-                    const emp = row.original;
-                    return (
-                        <div>
-                            {`${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim()}
-                        </div>
-                    );
-                },
-                enableSorting: true,
-                enableHiding: true
-            }
-        ];
-        return (
-            <div className='overflow-hidden rounded-lg bg-card'>
-                <DataTable<Employee, any> columns={columns} data={employees} totalItems={employees.length} isLoading={isLoading} />
-            </div>
+    }, [heads, watchedEarningDeduction, watchedAmountType]);
+
+    // client side search for grid
+    const [localSearch, setLocalSearch] = useState('');
+
+    const processedGridData = useMemo(() => {
+        if (!localSearch) return employees;
+        const lower = localSearch.toLowerCase();
+        return employees.filter(e =>
+            (e.HRME_EmployeeFirstName + ' ' + (e.HRME_EmployeeMiddleName || '') + ' ' + (e.HRME_EmployeeLastName || '')).toLowerCase().includes(lower) ||
+            (e.HRME_EmployeeCode || '').toLowerCase().includes(lower)
         );
-    };
+    }, [employees, localSearch]);
+
+    // Grid Columns
+    const columns = [
+        {
+            header: 'SNO',
+            cell: ({ row }: any) => <div>{row.index + 1}</div>,
+        },
+        {
+            accessorKey: 'HRME_EmployeeCode',
+            header: 'Employee Code',
+        },
+        {
+            accessorKey: 'HRME_EmployeeFirstName',
+            header: 'Employee Name',
+            cell: ({ row }: any) => (
+                <div>
+                    {row.original.HRME_EmployeeFirstName} {row.original.HRME_EmployeeMiddleName} {row.original.HRME_EmployeeLastName}
+                </div>
+            )
+        },
+        {
+            id: 'select',
+            header: ({ table }: any) => (
+                <Checkbox
+                    checked={table.getIsAllPageRowsSelected()}
+                    onCheckedChange={(value) => {
+                        table.toggleAllPageRowsSelected(!!value);
+                        if (value) {
+                            setSelectedEmployeeIds(employees.map(e => e.HRME_Id));
+                        } else {
+                            setSelectedEmployeeIds([]);
+                        }
+                    }}
+                    aria-label="Select all"
+                />
+            ),
+            cell: ({ row }: any) => (
+                <Checkbox
+                    checked={selectedEmployeeIds.includes(row.original.HRME_Id)}
+                    onCheckedChange={(value) => {
+                        row.toggleSelected(!!value);
+                        if (value) {
+                            setSelectedEmployeeIds(prev => [...prev, row.original.HRME_Id]);
+                        } else {
+                            setSelectedEmployeeIds(prev => prev.filter(id => id !== row.original.HRME_Id));
+                        }
+                    }}
+                    aria-label="Select row"
+                />
+            ),
+            enableSorting: false,
+            enableHiding: false,
+        }
+    ];
+
+    if (!isClient) return null;
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <CollapsibleSection
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                        <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                            <div className='space-y-2'>
-                                <Label>Group Type *</Label>
-                                <Controller
-                                    name='groupType'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <MultiSelect
-                                            options={groupTypes.map((gt) => ({
-                                                value: gt.HRMGT_Id.toString(),
-                                                label: gt.HRMGT_EmployeeGroupType
-                                            }))}
-                                            defaultValue={field.value}
-                                            onValueChange={field.onChange}
-                                            placeholder='Select Group Types'
-                                            className='w-full'
-                                        />
-                                    )}
-                                />
-                                {errors.groupType && <FormError>{errors.groupType.message}</FormError>}
+                <h2 className="text-2xl font-bold tracking-tight">Mass Updation</h2>
+
+                {/* Filters */}
+                <CollapsibleSection defaultOpen={true} variant='outline' size='lg' className='shadow-lg'>
+                    <form onSubmit={handleSubmit(onSearch)} className='space-y-6'>
+                        <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
+                            <div className='space-y-3'>
+                                <Label className='font-semibold'>Group Type <span className='text-destructive'>*</span></Label>
+                                <Controller name='groupType' control={control} render={({ field }) => (
+                                    <MultiSelect
+                                        options={[{ label: 'All', value: 'All' }, ...groupTypes.map((gt: any) => ({ label: gt.HRMGT_EmployeeGroupType, value: gt.HRMGT_Id?.toString() || '' }))]}
+                                        defaultValue={Array.isArray(field.value) ? field.value : []}
+                                        onValueChange={field.onChange}
+                                        placeholder='Select Group Types'
+                                        className='w-full'
+                                    />
+                                )} />
                             </div>
-                            <div className='space-y-2'>
-                                <Label>Department *</Label>
-                                <Controller
-                                    name='department'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <MultiSelect
-                                            options={departments.map((d) => ({
-                                                value: d.HRMD_Id.toString(),
-                                                label: d.HRMD_DepartmentName
-                                            }))}
-                                            defaultValue={field.value}
-                                            onValueChange={field.onChange}
-                                            placeholder='Select Departments'
-                                            className='w-full'
-                                        />
-                                    )}
-                                />
-                                {errors.department && <FormError>{errors.department.message}</FormError>}
+                            <div className='space-y-3'>
+                                <Label className='font-semibold'>Department <span className='text-destructive'>*</span></Label>
+                                <Controller name='department' control={control} render={({ field }) => (
+                                    <MultiSelect
+                                        options={[{ label: 'All', value: 'All' }, ...departments.map((d: any) => ({ label: d.HRMD_DepartmentName, value: d.HRMD_Id?.toString() || '' }))]}
+                                        defaultValue={Array.isArray(field.value) ? field.value : []}
+                                        onValueChange={field.onChange}
+                                        placeholder='Select Departments'
+                                        className='w-full'
+                                    />
+                                )} />
                             </div>
-                            <div className='space-y-2'>
-                                <Label>Designation *</Label>
-                                <Controller
-                                    name='designation'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <MultiSelect
-                                            options={designations.map((d) => ({
-                                                value: d.HRMDES_Id.toString(),
-                                                label: d.HRMDES_DesignationName
-                                            }))}
-                                            defaultValue={field.value}
-                                            onValueChange={field.onChange}
-                                            placeholder='Select Designations'
-                                            className='w-full'
-                                        />
-                                    )}
-                                />
-                                {errors.designation && <FormError>{errors.designation.message}</FormError>}
+                            <div className='space-y-3'>
+                                <Label className='font-semibold'>Designation <span className='text-destructive'>*</span></Label>
+                                <Controller name='designation' control={control} render={({ field }) => (
+                                    <MultiSelect
+                                        options={[{ label: 'All', value: 'All' }, ...designations.map((d: any) => ({ label: d.HRMDES_DesignationName, value: d.HRMDES_Id?.toString() || '' }))]}
+                                        defaultValue={Array.isArray(field.value) ? field.value : []}
+                                        onValueChange={field.onChange}
+                                        placeholder='Select Designations'
+                                        className='w-full'
+                                    />
+                                )} />
                             </div>
                         </div>
-                        <div className='flex gap-4'>
-                            <Button type='submit' disabled={searchMutation.isPending} className='flex items-center gap-2'>
-                                <Search className='h-4 w-4' />
+                        <div className='flex justify-end'>
+                            <Button type='submit' className='w-32' disabled={isSearching}>
+                                {isSearching ? <RefreshCw className='h-4 w-4 animate-spin mr-2' /> : <Search className='h-4 w-4 mr-2' />}
                                 Search
-                            </Button>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                onClick={() => {
-                                    reset();
-                                    setEmployees([]);
-                                    setFilteredEmployees([]);
-                                    setSelectedEmployees([]);
-                                    setHasSearched(false);
-                                }}
-                                className='flex items-center gap-2'>
-                                <X className='h-4 w-4' />
-                                Cancel
                             </Button>
                         </div>
                     </form>
                 </CollapsibleSection>
+
+                {/* Action & Grid Area */}
                 {hasSearched && (
-                    <CollapsibleSection
-                        defaultOpen={true}
-                        variant='default'
-                        size='lg'
-                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                        <div className='space-y-4'>
-                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                <div className='space-y-4 rounded-md border p-4'>
-                                    <div className='flex items-center gap-6'>
-                                        <span className='font-medium'>Earning</span>
-                                        <Controller
-                                            name='earningDeduction'
-                                            control={control}
-                                            render={({ field }) => (
-                                                <RadioGroup
-                                                    className='flex items-center gap-6'
-                                                    value={field.value}
-                                                    onValueChange={field.onChange}>
-                                                    <div className='flex items-center gap-2'>
-                                                        <RadioGroupItem value='Earning' id='rd-earn' />
-                                                        <Label htmlFor='rd-earn'>Earning</Label>
-                                                    </div>
-                                                    <div className='flex items-center gap-2'>
-                                                        <RadioGroupItem value='Deduction' id='rd-ded' />
-                                                        <Label htmlFor='rd-ded'>Deduction</Label>
-                                                    </div>
-                                                </RadioGroup>
-                                            )}
-                                        />
+                    <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+                        {/* Left: Actions */}
+                        <div className='lg:col-span-1 space-y-4'>
+                            <CollapsibleSection defaultOpen={true} title="Update Settings" variant='default' className='shadow-md border h-full'>
+                                <div className='space-y-6 pt-2'>
+                                    <div className='space-y-2'>
+                                        <Label>Earning / Deduction <span className='text-destructive'>*</span></Label>
+                                        <Controller name="earningDeduction" control={control} render={({ field }) => (
+                                            <RadioGroup
+                                                value={field.value}
+                                                onValueChange={(val) => {
+                                                    field.onChange(val);
+                                                    setValue('selectedHead', ''); // Reset head on type change
+                                                }}
+                                                className="flex flex-col space-y-1"
+                                            >
+                                                <div className="flex items-center space-x-2">
+                                                    <RadioGroupItem value="Earning" id="r-earning" />
+                                                    <Label htmlFor="r-earning" className='font-normal cursor-pointer'>Earning</Label>
+                                                </div>
+                                                <div className="flex items-center space-x-2">
+                                                    <RadioGroupItem value="Deduction" id="r-deduction" />
+                                                    <Label htmlFor="r-deduction" className='font-normal cursor-pointer'>Deduction</Label>
+                                                </div>
+                                            </RadioGroup>
+                                        )} />
                                     </div>
-                                    <div className='flex items-center gap-6'>
-                                        <span className='font-medium'>Amount</span>
-                                        <Controller
-                                            name='updateType'
-                                            control={control}
-                                            render={({ field }) => (
-                                                <RadioGroup
-                                                    className='flex items-center gap-6'
-                                                    value={field.value}
-                                                    onValueChange={field.onChange}>
-                                                    <div className='flex items-center gap-2'>
-                                                        <RadioGroupItem value='Amount' id='rd-amt' />
-                                                        <Label htmlFor='rd-amt'>Amount</Label>
-                                                    </div>
-                                                    <div className='flex items-center gap-2'>
-                                                        <RadioGroupItem value='Percentage' id='rd-per' />
-                                                        <Label htmlFor='rd-per'>Percentage</Label>
-                                                    </div>
-                                                </RadioGroup>
-                                            )}
-                                        />
+
+                                    <div className='space-y-2'>
+                                        <Label>Amount / Percentage <span className='text-destructive'>*</span></Label>
+                                        <Controller name="amountType" control={control} render={({ field }) => (
+                                            <RadioGroup
+                                                value={field.value}
+                                                onValueChange={(val) => {
+                                                    field.onChange(val);
+                                                    setValue('selectedHead', ''); // Reset head on type change
+                                                }}
+                                                className="flex flex-col space-y-1"
+                                            >
+                                                <div className="flex items-center space-x-2">
+                                                    <RadioGroupItem value="Amount" id="r-amount" />
+                                                    <Label htmlFor="r-amount" className='font-normal cursor-pointer'>Amount</Label>
+                                                </div>
+                                                <div className="flex items-center space-x-2">
+                                                    <RadioGroupItem value="Percentage" id="r-percentage" />
+                                                    <Label htmlFor="r-percentage" className='font-normal cursor-pointer'>Percentage</Label>
+                                                </div>
+                                            </RadioGroup>
+                                        )} />
                                     </div>
-                                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                        <div className='space-y-2'>
-                                            <Label>Head *</Label>
-                                            <Controller
-                                                name='selectedHead'
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <Select value={field.value} onValueChange={field.onChange}>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder='Select Head' />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {filteredHeads.length === 0 ? (
-                                                                <div className='p-2 text-center text-muted-foreground text-sm'>
-                                                                    No heads available for selected Earning/Deduction and Amount/Percentage
-                                                                </div>
-                                                            ) : (
-                                                                filteredHeads.map((h) => (
-                                                                    <SelectItem key={h.HRMED_Id} value={h.HRMED_Id.toString()}>
-                                                                        {h.HRMED_Name}
-                                                                    </SelectItem>
-                                                                ))
-                                                            )}
-                                                        </SelectContent>
-                                                    </Select>
-                                                )}
-                                            />
-                                            {errors.selectedHead && <FormError>{errors.selectedHead.message}</FormError>}
-                                        </div>
-                                        <div className='space-y-2'>
-                                            <Label>{watch('updateType') === 'Amount' ? 'Amount' : 'Percentage'} *</Label>
+
+                                    <div className='space-y-2'>
+                                        <Label>Head <span className='text-destructive'>*</span></Label>
+                                        <Controller name="selectedHead" control={control} render={({ field }) => (
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select Head" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {filteredHeads.map((h: any) => (
+                                                        <SelectItem key={h.HRMED_Id} value={h.HRMED_Id.toString()}>
+                                                            {h.HRMED_Name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        )} />
+                                    </div>
+
+                                    <div className='space-y-2'>
+                                        <Label>
+                                            {watchedAmountType === 'Percentage' ? 'Percentage' : 'Amount'}
+                                            {watch('addRemove') !== 'Remove' && <span className='text-destructive'> *</span>}
+                                        </Label>
+                                        <Controller name="amountValue" control={control} render={({ field }) => (
                                             <InputText
+                                                {...field}
                                                 type='number'
-                                                step='any'
-                                                placeholder={`Enter ${watch('updateType') === 'Amount' ? 'amount' : 'percentage'}`}
-                                                {...register('updateValue', { valueAsNumber: true })}
-                                                error={errors.updateValue?.message as string | undefined}
+                                                step='0.01'
+                                                placeholder={watchedAmountType === 'Percentage' ? 'Enter %' : 'Enter Amount'}
+                                                disabled={watch('addRemove') === 'Remove'}
+                                            />
+                                        )} />
+                                    </div>
+
+                                    <div className='space-y-2 border-t pt-4'>
+                                        <Label>Action <span className='text-destructive'>*</span></Label>
+                                        <Controller name="addRemove" control={control} render={({ field }) => (
+                                            <RadioGroup
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                                className="flex flex-row space-x-4"
+                                            >
+                                                <div className="flex items-center space-x-2">
+                                                    <RadioGroupItem value="Add" id="r-add" />
+                                                    <Label htmlFor="r-add" className='font-normal cursor-pointer'>Add / Update</Label>
+                                                </div>
+                                                <div className="flex items-center space-x-2">
+                                                    <RadioGroupItem value="Remove" id="r-remove" />
+                                                    <Label htmlFor="r-remove" className='font-normal cursor-pointer'>Remove</Label>
+                                                </div>
+                                            </RadioGroup>
+                                        )} />
+                                    </div>
+                                </div>
+                            </CollapsibleSection>
+                        </div>
+
+                        {/* Right: Grid */}
+                        <div className='lg:col-span-2 space-y-4'>
+                            <CollapsibleSection defaultOpen={true} title="Employee List" variant='default' className='shadow-md border'>
+                                <div className='p-2 space-y-4'>
+                                    <div className='flex justify-between items-center'>
+                                        <div className='text-sm text-muted-foreground'>
+                                            Selected: <span className='font-bold text-primary'>{selectedEmployeeIds.length}</span> / {employees.length}
+                                        </div>
+                                        <div className='w-64'>
+                                            <InputText
+                                                name='localSearch'
+                                                value={localSearch}
+                                                onChange={(e) => setLocalSearch(e.target.value)}
+                                                placeholder='Search by name or code...'
                                             />
                                         </div>
                                     </div>
-                                </div>
-                                <div className='space-y-4 rounded-md border p-4'>
-                                    <div className='flex items-center gap-6'>
-                                        <span className='font-medium'>Action</span>
-                                        <Controller
-                                            name='addRemove'
-                                            control={control}
-                                            render={({ field }) => (
-                                                <RadioGroup
-                                                    className='flex items-center gap-6'
-                                                    value={field.value}
-                                                    onValueChange={field.onChange}>
-                                                    <div className='flex items-center gap-2'>
-                                                        <RadioGroupItem value='Add' id='rd-add' />
-                                                        <Label htmlFor='rd-add'>Add</Label>
-                                                    </div>
-                                                    <div className='flex items-center gap-2'>
-                                                        <RadioGroupItem value='Remove' id='rd-rem' />
-                                                        <Label htmlFor='rd-rem'>Remove</Label>
-                                                    </div>
-                                                </RadioGroup>
-                                            )}
+                                    <div className="h-[400px] overflow-y-auto border rounded-md">
+                                        <GenericDataTable
+                                            data={processedGridData}
+                                            columns={columns}
+                                            totalItems={employees.length}
+                                            isPaginationRequired={false}
+                                            isSearchRequired={false}
+                                            isLoading={isSearching}
                                         />
                                     </div>
-                                    <div className='flex items-center gap-4 pt-6'>
-                                        <Button
-                                            type='button'
-                                            variant='outline'
-                                            onClick={() => {
-                                                reset({
-                                                    ...getValues(),
-                                                    earningDeduction: 'Earning',
-                                                    updateType: 'Percentage',
-                                                    updateValue: 0,
-                                                    selectedHead: '',
-                                                    addRemove: 'Add'
-                                                });
-                                            }}>
-                                            Cancel
-                                        </Button>
-                                    </div>
                                 </div>
+                            </CollapsibleSection>
+
+                            <div className='flex justify-end gap-2 p-4 bg-muted/20 rounded-lg border'>
+                                <Button onClick={onSave} disabled={isSaving} className='bg-blue-600 hover:bg-blue-700 w-32'>
+                                    <RefreshCw className={`mr-2 h-4 w-4 ${isSaving ? 'animate-spin' : ''}`} />
+                                    {isSaving ? 'Saving...' : 'Save'}
+                                </Button>
+                                <Button variant='outline' onClick={handleCancel} className='border-orange-500 text-orange-600 hover:bg-orange-50'>
+                                    <X className='mr-2 h-4 w-4' />
+                                    Cancel
+                                </Button>
                             </div>
-                            {selectedEmployees.length > 0 && (
-                                <div className='flex items-center gap-4 rounded-lg bg-blue-50 p-4'>
-                                    <span className='font-medium text-sm'>{selectedEmployees.length} employee(s) selected</span>
-                                    <Button
-                                        onClick={handleMassUpdate}
-                                        disabled={saveMutation.isPending}
-                                        className='flex items-center gap-2'>
-                                        <Users className='h-4 w-4' />
-                                        {saveMutation.isPending ? 'Saving...' : 'Save'}
-                                    </Button>
-                                </div>
-                            )}
-                            <EmployeeTable
-                                employees={filteredEmployees}
-                                isLoading={isLoading || searchMutation.isPending}
-                                onSelectAll={handleSelectAll}
-                                onEmployeeSelect={handleEmployeeSelect}
-                            />
                         </div>
-                    </CollapsibleSection>
+                    </div>
                 )}
             </div>
         </div>

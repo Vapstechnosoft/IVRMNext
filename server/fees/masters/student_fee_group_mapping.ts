@@ -18,19 +18,29 @@ import type {
     StudentFeeGroupSummaryById
 } from '@/types/fees/masters/masters';
 
+// export async function getStudentFeeGroupMapping(searchParams?: ApiSearchparams) {
+//     const urlParams = getSearchParamsUrl(searchParams ?? {});
+//     const url = `/StudentFeeGroupMappingFacade/getalldetails?${urlParams}`;
+//     return await api.get<IMasterStudentFeeGroupMappingList[]>('fees', url);
+// }
+
 export async function getStudentFeeGroupMapping(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'amsT_FirstName,amsT_MiddleName,amsT_LastName,asmcL_ClassName,asmC_SectionName,amsT_Mobile,fmG_GroupName'
+    );
     const url = `/StudentFeeGroupMappingFacade/getalldetails?${urlParams}`;
     return await api.get<IMasterStudentFeeGroupMappingList[]>('fees', url);
 }
 
 export async function deleteStudentFeeGroupMapping(AMST_Id: number, FMG_Id: number, FMSG_Id: number, asmay_Id: number, mi_Id: number) {
     const url = `/StudentFeeGroupMappingFacade/deleteStudentFeeGroupMapping?MI_Id=${mi_Id}&AMST_Id=${AMST_Id}&ASMAY_Id=${asmay_Id}&FMG_Id=${FMG_Id}&FMSG_Id=${FMSG_Id}`;
+    console.info('deleteStudentFeeGroupMapping', url);
     return await api.delete('fees', url);
 }
 
 export async function getStudentFeeGroupMappingAcademicYearDropdown() {
-    const url = '/fee_class_category/academicyearlist/30';
+    const url = '/fee_class_category/academicyearlist';
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 
@@ -104,6 +114,8 @@ export async function getStudentFeeInstallmentList(groupId: any, academicYear: n
 
 export async function getStudentFeeSummaryById(academicId: number, studentId: number): Promise<StudentFeeGroupSummaryById[]> {
     const url = `/StudentFeeGroupMappingFacade/getFeeMappingSummaryById?ASMAY_Id=${academicId}&AMST_Id=${studentId}`;
+
+    console.info('getStudentFeeSummaryById URL:', url);
     const response = await api.get<any>('fees', url);
     return response.data?.feeGroups ?? [];
 }

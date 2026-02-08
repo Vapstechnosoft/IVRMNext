@@ -7,12 +7,12 @@ import type { IMasterSubject } from '@/types/exam/exam-module/masters';
 export async function getMasterSubject(searchParams?: ApiSearchparams) {
     console.info('searchParams', searchParams);
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/master_subject/30?${urlParams}`;
+    const url = `/master_subject?${urlParams}`;
     const res = await api.get<IMasterSubject[]>('exam', url);
     return res;
 }
-export async function getMasterSubjectDropdownList(mI_id: number) {
-    const url = `/master_subject/master_subject_drop_down_list${mI_id}`;
+export async function getMasterSubjectDropdownList() {
+    const url = '/master_subject/master_subject_drop_down_list';
     const res = await api.get<IMasterSubject[]>('exam', url);
     return res;
 }
@@ -22,13 +22,13 @@ export async function addOrUpdateMasterSubject(data: any) {
     return await api.post<any>('exam', url, data);
 }
 
-export async function toggleMasterSubject(mi_id: number, id: number) {
-    const url = `/master_subject/toggle/${mi_id}/${id}`;
+export async function toggleMasterSubject(id: number) {
+    const url = `/master_subject/toggle/${id}`;
     return await api.put('exam', url);
 }
 
-export async function getMasterSubjectOrderData(mi_id: number) {
-    const url = `/master_subject/master_subject_order_list/${mi_id}`;
+export async function getMasterSubjectOrderData() {
+    const url = '/master_subject/master_subject_order_list';
     return await api.get('exam', url);
 }
 

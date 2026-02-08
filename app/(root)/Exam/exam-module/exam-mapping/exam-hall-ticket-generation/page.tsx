@@ -11,7 +11,7 @@ import { HallTicketGeneratedColumns } from './_components/columns';
 import AddHallTicketGenerated from './_components/add-form';
 import { useHallTicketGeneratedList } from '@/hooks/exam/exammodule/exam-mapping';
 import AddExamHallTicketGeneration from './_components/add-form';
-import HallTicketGeneratedDetailsPage from './_components/category-class-mapping-details';
+import HallTicketGeneratedDetailsPage from './_components/hallticket-generation-details';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 

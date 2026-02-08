@@ -13,12 +13,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox as BaseCheckbox } from '@/components/ui/checkbox';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type {
-    IFeeAuditReport,
     IFeeBusRouteDropdownList,
     IFeeClassDropdownList,
     IFeeCustomGroupDropdownList,
@@ -29,7 +27,7 @@ import type {
 } from '@/types/fees/reports/reports';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { FeeConcessionReportColumns } from './_components/columns';
+import { exportToExcel, printTable } from './_components/columns';
 
 // Checkbox with full indeterminate support
 const Checkbox = ({ checked, indeterminate, onCheckedChange, ...props }: any) => {
@@ -57,13 +55,13 @@ export default function FeeConcessionReport() {
         userType: 'Students' as 'Students' | 'Staff' | 'Others',
         viewMode: 'year' as 'year' | 'date',
 
-        breakdown: 'Fee Group Wise',
+        breakdown: 'FGW',
         academicYearId: '',
         classId: 0,
         sectionId: 0,
         includeClassSection: false,
         status: {
-            active: false,
+            active: true,
             deactive: false,
             left: false,
             balance: false
@@ -77,7 +75,9 @@ export default function FeeConcessionReport() {
         dueDate: new Date(),
         dueDateType: 'Due Date' as 'Due Date' | 'Till Due Date',
         bulkDownload: false,
-        dateFilter: '1' as '1' | '2' | '3' | '4'
+        dateFilter: '1' as '1' | '2' | '3' | '4',
+        fromDate: null as Date | null,
+        toDate: null as Date | null
     });
 
     const [academicYears, setAcademicYears] = useState<IAcademicYear[]>([]);
@@ -88,10 +88,13 @@ export default function FeeConcessionReport() {
     const [feeBusRoutes, setFeeBusRoutes] = useState<IFeeBusRouteDropdownList[]>([]);
     const [customGroups, setCustomGroups] = useState<IFeeCustomGroupDropdownList[]>([]);
 
-    const [reportData, setReportData] = useState<IFeeAuditReport[]>([]);
+    //const [reportData, setReportData] = useState<IFeeAuditReport[]>([]);
+    const [reportData, setReportData] = useState<any[]>([]);
     const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
     const [showReport, setShowReport] = useState(false);
     const [feeInstallments, setfeeInstallments] = useState<IFeeInstallmentDropdownList[]>([]);
+
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
     const [wiseType, setWiseType] = useState<'Yearly Wise' | 'Date Wise'>('Date Wise');
 
@@ -122,7 +125,7 @@ export default function FeeConcessionReport() {
                 asmaY_Year: item.asmaY_Year ?? 'Unknown Year',
                 asmaY_Order: item.asmaY_Order ?? 0
             }));
-            formatted.sort((a, b) => (b.asmaY_Order || 0) - (a.asmaY_Order || 0));
+            //formatted.sort((a, b) => (b.asmaY_Order || 0) - (a.asmaY_Order || 0));
             setAcademicYears(formatted);
         }
     }, [academicData, academicError]);
@@ -229,6 +232,21 @@ export default function FeeConcessionReport() {
             status: { ...prev.status, [status]: !prev.status[status] }
         }));
     };
+
+    const toggleRow = (slNo: number) => {
+        setSelectedIds((prev) => (prev.includes(slNo) ? prev.filter((x) => x !== slNo) : [...prev, slNo]));
+    };
+
+    const toggleAll = () => {
+        if (selectedIds.length === reportData.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(reportData.map((r) => r.slNo));
+        }
+    };
+
+    const selectedRows = reportData.filter((r) => selectedIds.includes(r.slNo));
+
     // const handleSubmit = async () => {
 
     //   if (!filters.academicYearId) return toast.error('Please select an Academic Year');
@@ -268,10 +286,133 @@ export default function FeeConcessionReport() {
     //     setLoading(false);
     //   }
     // };
+    const mockReportData = [
+        { slNo: 1, groupName: 'HS BOOKS FEES', concessionAmount: 46875 },
+        { slNo: 2, groupName: 'HS ILM & OTHER FEES', concessionAmount: 227600 },
+        { slNo: 3, groupName: 'HS TUTION FEES', concessionAmount: 236000 },
+        { slNo: 4, groupName: 'HS TRANSPORT FEES', concessionAmount: 152000 },
+        { slNo: 5, groupName: 'HS LAB FEES', concessionAmount: 98500 },
 
-    const handleSubmit = async () => {
-        // STATIC MOCK DATA - Looks 100% real!
-        const mockData: IFeeAuditReport[] = [];
+        { slNo: 6, groupName: 'IC BOOKS FEES', concessionAmount: 135000 },
+        { slNo: 7, groupName: 'IC ILM & OTHER FEES', concessionAmount: 98500 },
+        { slNo: 8, groupName: 'IC TUTION FEES', concessionAmount: 194000 },
+        { slNo: 9, groupName: 'IC TRANSPORT FEES', concessionAmount: 168000 },
+        { slNo: 10, groupName: 'IC LAB FEES', concessionAmount: 72500 },
+
+        { slNo: 11, groupName: 'PUC BOOKS FEES', concessionAmount: 112500 },
+        { slNo: 12, groupName: 'PUC ILM & OTHER FEES', concessionAmount: 143000 },
+        { slNo: 13, groupName: 'PUC TUTION FEES', concessionAmount: 265000 },
+        { slNo: 14, groupName: 'PUC TRANSPORT FEES', concessionAmount: 98000 },
+        { slNo: 15, groupName: 'PUC LAB FEES', concessionAmount: 86500 },
+
+        { slNo: 16, groupName: 'CBSE BOOKS FEES', concessionAmount: 155000 },
+        { slNo: 17, groupName: 'CBSE ILM & OTHER FEES', concessionAmount: 172000 },
+        { slNo: 18, groupName: 'CBSE TUTION FEES', concessionAmount: 318000 },
+        { slNo: 19, groupName: 'CBSE TRANSPORT FEES', concessionAmount: 142000 },
+        { slNo: 20, groupName: 'CBSE LAB FEES', concessionAmount: 91000 }
+    ];
+
+    const handleSubmit = () => {
+        //      let data: any;
+        // if (filters.viewMode === "year") {
+        //   data = {
+        //     FMG_Id: filters.classId || 0,
+        //     FMGG_Id: 0, // You need to get this from your state
+        //     "FMT_Id": 0, // You need to get this from your state
+        //     "ASMAY_Id": filters.academicYearId,
+        //     "radioval": filters.breakdown, // FGW, FHW, FCW, FSW
+        //     "reporttype": filters.viewMode,
+        //     "studenttype": filters.userType,
+        //     "customflag": '0',
+        //     "groupflag": '0',
+        //     active: filters.status.active,
+        //     deactive: filters.status.deactive,
+        //     left: filters.status.deactive,
+
+        //     TempararyArrayhEADListnew1: TempararyArrayhEADListnew1,
+        //     TempararyArrayhEADListnew2: TempararyArrayhEADListnew2,
+        //     TempararyArrayhEADListnew3: TempararyArrayhEADListnew3,
+        //     FMG_Ids: FMG_Ids,
+        //     FMT_Ids: FMT_Ids,
+
+        //   };
+        // } else if (filters.viewMode === "date") {
+        //   data = {
+        //     "FMG_Id": 0,
+        //     "FMGG_Id": 0, // You need to get this from your state
+        //     "FMT_Id": 0, // You need to get this from your state
+        //       active: filters.status.active,
+        //     deactive: filters.status.deactive,
+        //     left: filters.status.deactive,
+        //     "ASMAY_Id": filters.academicYearId,
+        //     "From_Date": filters.fromDate ? new Date(filters.fromDate).toDateString() : "",
+        //     "To_Date": filters.toDate ? new Date(filters.toDate).toDateString() : "",
+        //     "radioval": filters.breakdown,
+        //     "reporttype": filters.viewMode,
+        //     "studenttype": filters.userType,
+        //     "customflag": '0',
+        //     "groupflag": '0',
+        //     TempararyArrayhEADListnew1: TempararyArrayhEADListnew1,
+        //     TempararyArrayhEADListnew2: TempararyArrayhEADListnew2,
+        //     TempararyArrayhEADListnew3: TempararyArrayhEADListnew3,
+        //     FMG_Ids: FMG_Ids,
+        //     FMT_Ids: FMT_Ids
+
+        //   };
+        // }
+
+        if (filters.status.active === false && filters.status.deactive === false && filters.status.left === false) {
+            setShowReport(false);
+            return toast.error('Please select at least one Status Active or Deactive or Left');
+        }
+        if (filters.viewMode === 'date') {
+            if (!filters.fromDate || !filters.toDate) {
+                setShowReport(false);
+                return toast.error('Please select From Date and To Date');
+            }
+        }
+
+        setReportLoading(true);
+
+        setTimeout(() => {
+            setReportData(mockReportData);
+            setShowReport(true);
+            setReportLoading(false);
+        }, 500);
+    };
+
+    const handleExport = () => {
+        if (!selectedRows.length) {
+            toast.error('Please select at least one record');
+            return;
+        }
+        exportToExcel(selectedRows, 'Fee Concession-Report');
+    };
+
+    const handlePrint = () => {
+        if (!selectedRows.length) {
+            toast.error('Please select at least one record');
+            return;
+        }
+
+        const columns = ['Sl No', 'groupName', 'concessionAmount'];
+
+        const rowsToPrint = selectedRows.map((row, index) => ({
+            'Sl No': index + 1,
+            groupName: row.groupName, // ✅ FIXED
+            concessionAmount: `₹ ${row.concessionAmount.toLocaleString('en-IN')}`
+        }));
+
+        // ✅ TOTAL ROW
+        const totalAmount = selectedRows.reduce((sum, row) => sum + row.concessionAmount, 0);
+
+        const totalRow = {
+            'Sl No': '',
+            groupName: 'TOTAL',
+            concessionAmount: `₹ ${totalAmount.toLocaleString('en-IN')}`
+        };
+
+        printTable(columns, rowsToPrint, totalRow);
     };
 
     const showBalancecheckbox = filters.userType === 'Students' && filters.breakdown === 'Student/Staff Wise';
@@ -534,9 +675,9 @@ export default function FeeConcessionReport() {
                                 <div className='mt-4 flex items-center justify-center rounded border bg-gray-50 p-4 shadow-sm'>
                                     <div className='flex items-center gap-6'>
                                         <div className='flex flex-col'>
-                                            <label htmlFor='fromDate' className='font-medium'>
+                                            <Label htmlFor='fromDate' className='font-medium'>
                                                 From Date:
-                                            </label>
+                                            </Label>
                                             <input
                                                 id='fromDate'
                                                 type='date'
@@ -551,9 +692,9 @@ export default function FeeConcessionReport() {
                                         </div>
 
                                         <div className='flex flex-col'>
-                                            <label htmlFor='toDate' className='font-medium'>
+                                            <Label htmlFor='toDate' className='font-medium'>
                                                 To Date:
-                                            </label>
+                                            </Label>
                                             <input
                                                 id='toDate'
                                                 type='date'
@@ -600,16 +741,16 @@ export default function FeeConcessionReport() {
 
                                 {/* ==================== REPORT SECTION ==================== */}
                                 {/* ==================== REPORT SECTION ==================== */}
-                                {showReport && (
+                                {/* {showReport && (
                                     <div className='-mx-8 mt-12 overflow-hidden rounded-lg bg-white shadow-xl'>
-                                        {/* Loading State */}
+                                     
                                         {reportLoading ? (
                                             <div className='p-24 text-center'>
                                                 <div className='inline-block h-14 w-14 animate-spin rounded-full border-4 border-primary border-t-transparent' />
                                                 <p className='mt-6 text-lg text-muted-foreground'>Generating report, please wait...</p>
                                             </div>
                                         ) : (
-                                            /* Table Inside CollapsibleSection */
+                                           
                                             <CollapsibleSection
                                                 defaultOpen={true}
                                                 variant='default'
@@ -626,6 +767,99 @@ export default function FeeConcessionReport() {
                                             </CollapsibleSection>
                                         )}
                                     </div>
+                                )} */}
+
+                                {showReport && (
+                                    <CollapsibleSection defaultOpen={true}>
+                                        <div className='mt-10 overflow-hidden rounded-lg border bg-white shadow-lg'>
+                                            {/* <div className='border-b bg-primary/5 px-6 py-4'>
+                                                <h2 className='font-bold text-primary text-xl'>Yearly Fee Concession Report</h2>
+                                            </div> */}
+                                            <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
+                                                <div className='mb-6 text-center'>
+                                                    <h2 className='font-bold text-2xl text-primary'>Fee Concession Report</h2>
+                                                </div>
+                                                <div className='flex gap-3'>
+                                                    <div className='mb-4 flex justify-end gap-2'>
+                                                        <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExport}>
+                                                            Export Excel
+                                                        </Button>
+
+                                                        <Button
+                                                            size='sm'
+                                                            variant='outline'
+                                                            className='h-8 w-auto px-3 text-xs'
+                                                            onClick={handlePrint}>
+                                                            Print
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className='overflow-x-auto'>
+                                                <table className='w-full border-collapse text-sm'>
+                                                    <thead className='bg-primary text-white'>
+                                                        <tr>
+                                                            <th className='border px-2 py-2 text-center'>
+                                                                <input
+                                                                    type='checkbox'
+                                                                    checked={
+                                                                        selectedIds.length === reportData.length && reportData.length > 0
+                                                                    }
+                                                                    onChange={toggleAll}
+                                                                />
+                                                            </th>
+                                                            <th className='w-20 border px-4 py-2 text-center'>Sl No</th>
+                                                            <th className='border px-4 py-2 text-left'>Group Name</th>
+                                                            <th className='w-56 border px-4 py-2 text-right'>Concession Amount</th>
+                                                        </tr>
+                                                    </thead>
+
+                                                    <tbody>
+                                                        {mockReportData.map((row, index) => (
+                                                            <tr
+                                                                key={row.slNo}
+                                                                className={
+                                                                    selectedIds.includes(row.slNo)
+                                                                        ? 'bg-blue-100'
+                                                                        : index % 2 === 0
+                                                                          ? 'bg-white'
+                                                                          : 'bg-gray-50'
+                                                                }>
+                                                                <td className='border px-2 py-2 text-center'>
+                                                                    <input
+                                                                        type='checkbox'
+                                                                        checked={selectedIds.includes(row.slNo)}
+                                                                        onChange={() => toggleRow(row.slNo)}
+                                                                    />
+                                                                </td>
+                                                                <td className='border px-4 py-2 text-center'>{row.slNo}</td>
+                                                                <td className='border px-4 py-2 font-medium'>{row.groupName}</td>
+                                                                <td className='border px-4 py-2 text-right font-semibold'>
+                                                                    ₹ {row.concessionAmount.toLocaleString('en-IN')}
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+
+                                                    {/* GRAND TOTAL */}
+                                                    <tfoot className='bg-gray-100'>
+                                                        <tr>
+                                                            <td colSpan={3} className='border px-4 py-3 text-right font-bold'>
+                                                                Total
+                                                            </td>
+                                                            <td className='border px-4 py-3 text-right font-bold'>
+                                                                ₹{' '}
+                                                                {mockReportData
+                                                                    .reduce((sum, row) => sum + row.concessionAmount, 0)
+                                                                    .toLocaleString('en-IN')}
+                                                            </td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </CollapsibleSection>
                                 )}
                             </div>
                         </div>

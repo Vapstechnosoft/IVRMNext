@@ -6,7 +6,7 @@ import type { IFeeOpeningBalanceList } from '@/types/fees/transactions/transacti
 
 export async function getFeeOpeningBalance(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/FeeOpeningBalanceFacade/30?${urlParams}`;
+    const url = `/FeeOpeningBalanceFacade?${urlParams}`;
     return await api.get<IFeeOpeningBalanceList[]>('fees', url);
 }
 

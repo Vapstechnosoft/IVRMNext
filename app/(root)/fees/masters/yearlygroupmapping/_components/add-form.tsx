@@ -4,15 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { DataTable } from '@/components/ui/data-table/data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAcademicYearDropdown, useMasterFeeGroupDropdown } from '@/hooks/fees/useMasters';
-import { useFeeMasterHead, useFeeMasterInstallment, useMasterAllFeeHead } from '@/hooks/fees/useMasters';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { useFeeMasterHead, useFeeMasterInstallment } from '@/hooks/fees/useMasters';
 import { masterClassSchema } from '@/schemas/fees/masters';
+import { getFeeGroupBeasedOnAcademicYear } from '@/server/fees/masters/groupsgrouping';
 import { addMasterYearlyGroupMapping } from '@/server/fees/masters/yearly_group_mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ColumnDef } from '@tanstack/react-table';
+
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -48,19 +50,22 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
     const { data: academicYearOptions } = useAcademicYearDropdown();
 
     const [showClearButton, setShowClearButton] = useState(false);
-    const { data: feeGroupResponse } = useMasterFeeGroupDropdown() as {
-        data?: {
-            success?: boolean;
-            message?: string;
-            data?: { fmG_Id: number; feeGroups: string }[];
-        };
-    };
+
+    const [feeGroups, setFeeGroups] = useState<any[]>([]);
+    // const { data: feeGroupResponse } = useMasterFeeGroupDropdown() as {
+    //     data?: {
+    //         success?: boolean;
+    //         message?: string;
+    //         data?: { fmG_Id: number; feeGroups: string }[];
+    //     };
+    // };
 
     const {
         control,
         setValue,
         handleSubmit,
         reset,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterClassSchema.addOrUpdate),
@@ -85,7 +90,7 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
     const { data: installmentResponse, isLoading: isLoadingInstallments } = useFeeMasterInstallment();
 
     const academicYears = Array.isArray(academicYearOptions?.data) ? academicYearOptions.data : [];
-    const feeGroups = Array.isArray(feeGroupResponse?.data) ? feeGroupResponse.data : [];
+    //const feeGroups = Array.isArray(feeGroupResponse?.data) ? feeGroupResponse.data : [];
 
     const feeHeads = Array.isArray(feeHeadResponse?.data?.data)
         ? feeHeadResponse.data.data
@@ -123,16 +128,56 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
         return null;
     }, [academicYear, feeGroup]);
 
-    const { refetch: refetchAll } = useMasterAllFeeHead(
-        academicYear ? Number(academicYear) : 0,
-        apiSearchParams ? apiSearchParams : undefined
-    );
+    // const { refetch: refetchAll } = useMasterAllFeeHead(
+    //     academicYear ? Number(academicYear) : 0,
+    //     apiSearchParams ? apiSearchParams : undefined
+    // );
+
+    // useEffect(() => {
+    //     if (academicYear && feeGroup) {
+    //         refetchAll();
+    //     }
+    // }, [academicYear, feeGroup, refetchAll]);
+
+    const selectedAsmayId = watch('academicYear');
 
     useEffect(() => {
-        if (academicYear && feeGroup) {
-            refetchAll();
-        }
-    }, [academicYear, feeGroup, refetchAll]);
+        const fetchFeeGroups = async () => {
+            if (selectedAsmayId) {
+                try {
+                    const response = await getFeeGroupBeasedOnAcademicYear(Number(selectedAsmayId));
+
+                    console.log('Fee groups:', response);
+
+                    if (response.success && response.data) {
+                        // Remove duplicate entries based on fmG_Id
+                        const uniqueGroups = response.data.reduce((acc: any[], current: any) => {
+                            const exists = acc.find((item) => item.fmG_Id === current.fmG_Id);
+                            if (!exists) {
+                                acc.push(current);
+                            }
+                            return acc;
+                        }, []);
+
+                        setFeeGroups(uniqueGroups);
+                    } else {
+                        setFeeGroups([]);
+                        toast.error(response.message || 'No fee groups found for this academic year');
+                    }
+                } catch (error) {
+                    console.error('Error fetching fee groups:', error);
+                    setFeeGroups([]);
+                    toast.error('Failed to fetch fee groups');
+                }
+            } else {
+                setFeeGroups([]);
+                setFeeGroup(null);
+                setValue('classCategory', '');
+            }
+        };
+
+        fetchFeeGroups();
+    }, [selectedAsmayId, setValue]);
 
     const headInstallmentColumns: ColumnDef<IHeadInstallment>[] = [
         // {
@@ -306,27 +351,26 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
     // };
 
     const addRow = () => {
-    const nextId = headInstallments.length ? Math.max(...headInstallments.map((h) => h.id)) + 1 : 1;
+        const nextId = headInstallments.length ? Math.max(...headInstallments.map((h) => h.id)) + 1 : 1;
 
-    const newHeadInstallments = [
-        ...headInstallments,
-        {
-            id: nextId,
-            fmH_Id: '',
-            fmI_Id: '',
-            fineApplicable: false,
-            active: false,
-            commonAmount: false
-        }
-    ];
+        const newHeadInstallments = [
+            ...headInstallments,
+            {
+                id: nextId,
+                fmH_Id: '',
+                fmI_Id: '',
+                fineApplicable: false,
+                active: false,
+                commonAmount: false
+            }
+        ];
 
-    setHeadInstallments(newHeadInstallments);
-    setValue('headInstallments', newHeadInstallments);
+        setHeadInstallments(newHeadInstallments);
+        setValue('headInstallments', newHeadInstallments);
 
-    // show Clear button after first add
-    setShowClearButton(true);
-};
-
+        // show Clear button after first add
+        setShowClearButton(true);
+    };
 
     // const clearRows = () => {
     //     const defaultHeadInstallments = [
@@ -344,25 +388,24 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
     //     reset();
     // };
 
-
     const clearRows = () => {
-    if (headInstallments.length > 1) {
-        const newList = headInstallments.slice(0, -1); // remove last row
-        setHeadInstallments(newList);
-        setValue('headInstallments', newList);
+        if (headInstallments.length > 1) {
+            const newList = headInstallments.slice(0, -1); // remove last row
+            setHeadInstallments(newList);
+            setValue('headInstallments', newList);
 
-        if (newList.length === 1) {
-            setShowClearButton(false); // hide Clear button again
+            if (newList.length === 1) {
+                setShowClearButton(false); // hide Clear button again
+            }
         }
-    }
-};
+    };
 
     const saveRows: SubmitHandler<FormFields> = async (data) => {
         const payload = {
-            mI_Id: 30,
+            // mI_Id: 30,
             asmaY_Id: Number(data.academicYear),
             fmG_Id: Number(data.classCategory),
-            userId: 21602,
+            // userId: 21602,
             feeHeads: data.headInstallments.map((h) => ({
                 fmH_Id: Number(h.fmH_Id),
                 fmI_Id: Number(h.fmI_Id),
@@ -372,7 +415,7 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
                 fyghM_Id: 0
             }))
         };
-
+        console.log('Payload to save:', JSON.stringify(payload));
         try {
             const res = await addMasterYearlyGroupMapping(payload);
             const ok = res && (res.success === undefined || res.success === true);
@@ -383,7 +426,7 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
                     reset();
                     onSuccess?.();
 
-                    await refetchAll();
+                    //await refetchAll();
                 } catch (fetchErr) {
                     console.error('Error fetching table after save:', fetchErr);
                 }
@@ -453,7 +496,7 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
                                 {feeGroups.length ? (
                                     feeGroups.map((f: any) => (
                                         <SelectItem key={f.fmG_Id} value={f.fmG_Id?.toString() || ''}>
-                                            {f.feeGroups}
+                                            {f.fmG_GroupName}
                                         </SelectItem>
                                     ))
                                 ) : (
@@ -473,7 +516,12 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
                         <CardTitle className='text-blue-700'>HEAD INSTALLMENT LIST</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <DataTable columns={headInstallmentColumns} data={headInstallments} totalItems={headInstallments.length} />
+                        <GenericDataTable
+                            columns={headInstallmentColumns}
+                            data={headInstallments}
+                            totalItems={headInstallments.length}
+                            isLoading={false}
+                        />
                         {errors.headInstallments && <p className='mt-2 text-red-500 text-sm'>{errors.headInstallments.message}</p>}
 
                         <div className='mt-4 flex items-center justify-end gap-2'>
@@ -492,12 +540,12 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
                             {/* <Button className='w-24' variant='danger' size='sm' onClick={clearRows} type='button'>
                                 Clear
                             </Button> */}
-                            
-    {showClearButton && (
-        <Button className='w-24' variant='danger' size='sm' onClick={clearRows} type='button'>
-            Remove
-        </Button>
-    )}
+
+                            {showClearButton && (
+                                <Button className='w-24' variant='danger' size='sm' onClick={clearRows} type='button'>
+                                    Remove
+                                </Button>
+                            )}
                         </div>
                     </CardContent>
                 </Card>

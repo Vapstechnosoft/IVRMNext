@@ -6,6 +6,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { useExamSubjectWizardDetails } from '@/hooks/exam/exammodule/exam-mapping';
 import type { IExamSubjectWizard, IExamSubjectWizardDetails } from '@/types/exam/exam-module/exam-mapping';
+import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import ToggleExamSubjectWizardDetailsForm from './details-toggle-form';
@@ -34,7 +35,7 @@ function ExamSubjectWizardDetailsPageContent({
 }) {
     const [details, setDetails] = useState<IExamSubjectWizardDetails[]>([]);
     const [loading, setLoading] = useState(false);
-    const { data: response, isLoading, error, refetchAll } = useExamSubjectWizardDetails(30, rowData?.eycE_Id);
+    const { data: response, isLoading, error, refetchAll } = useExamSubjectWizardDetails(rowData?.eycE_Id);
     useEffect(() => {
         refetchAll();
     }, [rowData]);
@@ -86,17 +87,18 @@ function ExamSubjectWizardDetailsPageContent({
                     <div className='flex gap-2'>
                         <Button
                             type='button'
-                            variant='secondary'
                             onClick={onClose}
-                            className='shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                            Close
+                            variant='ghost'
+                            size='sm'
+                            className='right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                            <X className='h-4 w-4 text-destructive' /> Close
                         </Button>
                     </div>
                 </div>
                 <GenericDataTable<IExamSubjectWizardDetails>
                     {...tableProps}
                     columns={ExamSubjectWizardDetailsColumns}
-                    isLoading={loading}
+                    isLoading={isLoading}
                     noDataTitle='No Subjects Found'
                     noDataDescription='No subjects are mapped for this exam.'
                     errorTitle='Error Loading Details'

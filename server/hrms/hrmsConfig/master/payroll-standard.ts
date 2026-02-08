@@ -5,21 +5,22 @@ import type { IMasterPayrollStandardList, IMonthDropdown } from '@/types/hrms/hr
 
 /**
  * Get basic data for master payroll standard
- * GET /api/MasterPayrollStandardFacade/GetBasicData
+ * GET /api/MasterPayrollStandard
  */
 export async function getMasterPayrollStandardList() {
-    const url = '/api/MasterPayrollStandardFacade/GetBasicData';
+    const url = '/api/MasterPayrollStandard';
     return await api.get<IMasterPayrollStandardList>('hrms', url);
 }
 
 /**
  * Save or Update master payroll standard record
- * POST /api/MasterPayrollStandardFacade/SaveUpdate
+ * POST /api/MasterPayrollStandard
  */
 export async function saveMasterPayrollStandard(data: any) {
-    const url = '/api/MasterPayrollStandardFacade/SaveUpdate';
+    const url = '/api/MasterPayrollStandard';
     return await api.post<any>('hrms', url, data);
 }
+
 
 /**
  * Get Month List for dropdowns

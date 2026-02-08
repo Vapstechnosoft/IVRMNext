@@ -40,7 +40,7 @@ export default function ToggleMasterSubSubjectForm({ rowData, onClose }: ToggleM
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleMasterSubSubject(30, rowData.emsS_Id);
+            const response = await toggleMasterSubSubject(rowData.emsS_Id);
 
             if (response.success) {
                 toast.success(response.message);

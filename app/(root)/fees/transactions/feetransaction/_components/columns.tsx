@@ -55,7 +55,15 @@ export const feeTransactionColumns: ColumnDef<Ifeetransaction>[] = [
     {
         accessorKey: 'fyP_Date',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Paid Date' />,
-        cell: ({ row }) => <div>{new Date(row.getValue('fyP_Date')).toLocaleDateString()}</div>
+        cell: ({ row }) => (
+            <div>
+                {new Date(row.getValue('fyP_Date')).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                })}
+            </div>
+        )
     },
     {
         accessorKey: 'fyP_Tot_Amount',
@@ -66,6 +74,11 @@ export const feeTransactionColumns: ColumnDef<Ifeetransaction>[] = [
         accessorKey: 'fyP_Bank_Or_Cash',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Mode of Payment' />,
         cell: ({ row }) => <div>{row.getValue('fyP_Bank_Or_Cash')}</div>
+    },
+    {
+        accessorKey: 'Status',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+        cell: ({ row }) => <div>{}</div>
     },
 
     {
@@ -95,7 +108,7 @@ function ActionButtonsCell({ rowData }: { rowData: Ifeetransaction }) {
             </button>
             <ActionButtons
                 rowData={rowData}
-                buttons={{ edit: false, toggle: false, delete: false }}
+                buttons={{ edit: true, toggle: false, delete: true }}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
             />

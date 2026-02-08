@@ -27,6 +27,11 @@ export async function getFeesTermDropDown() {
     return await api.get<IFeeTermDropdownList[]>('fees', url);
 }
 
+export async function FeesTermDropDownForReports() {
+    const url = '/FeeMasterTerms/fee_term_Dropdown';
+    return await api.get<IFeeTermDropdownList[]>('fees', url);
+}
+
 export async function getFeesBusRoutesDropDown() {
     const url = '/FeesCommon/fee-bus-route';
     return await api.get<IFeeBusRouteDropdownList[]>('fees', url);
@@ -49,10 +54,23 @@ export async function getFeesDefaulterReportSectionList() {
 
 export async function getFeesSectionListByClassId(asmaY_Id: number, asmcl_Id: number) {
     const url = `/FeesCommon/section-dropdown-by-class?asmay_Id=${asmaY_Id}&asmcl_Id=${asmcl_Id}`;
+
+    console.info('getFeesSectionListByClassId url:', url);
     return await api.get<IFeeSectionDropdownList[]>('fees', url);
 }
 
 export async function feedefaluerreportdata(asmaY_Id: number, asmcl_Id: number) {
     const url = `/FeesCommon/section-dropdown-by-class?asmay_Id=${asmaY_Id}&asmcl_Id=${asmcl_Id}`;
     return await api.get<IFeeAuditReport[]>('fees', url);
+}
+
+export async function getfeedefaluerreport(payload: any) {
+    const url = '/FeeDefaulterReportFacade/fee-defaulter-report';
+    console.info('getfeedefaluerreport url:', url);
+    return await api.post<any[]>('fees', url, payload);
+}
+
+export async function mastersettinglist() {
+    const url = '/FeesCommon/master-setting-list';
+    return await api.get<any[]>('fees', url);
 }

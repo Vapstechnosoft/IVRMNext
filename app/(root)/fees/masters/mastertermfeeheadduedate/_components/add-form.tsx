@@ -102,10 +102,18 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
     //getFeeTermHeadDueDateGridList
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
+            const hasMissingDates = gridData.some(
+                (item) => !item.fmtfhdD_FromDate || !item.fmtfhdD_ToDate || !item.fmtfhdD_ApplicableDate || !item.fmtfhdD_DueDate
+            );
+
+            if (hasMissingDates) {
+                toast.error('Please select all the required date details');
+                return;
+            }
             const { asmay_Id, fmt_id, fmh_id } = data;
 
             const payload = {
-                MI_Id: 30,
+                // MI_Id: 30,
                 term_year_id: selectedAcademicYear ?? 0,
                 // fmT_Id: selectedTerm ?? 0,
                 // fmH_Id: selectedHead ?? 0,
@@ -319,9 +327,10 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
                                             <td className='border border-gray-300 px-2 py-1'>
                                                 <input
                                                     type='date'
+                                                    onKeyDown={(e) => e.preventDefault()}
                                                     className='w-full rounded-md border border-gray-300 px-2 py-1 text-gray-700 outline-none focus:border-blue-400 focus:ring focus:ring-blue-100'
                                                     // value={item.fmtfhdD_ToDate?.split('T')[0] || ''}
-                                                    value={item.fmtfhdD_ToDate ? item.fmtfhdD_FromDate.split('T')[0] : ''}
+                                                    value={item.fmtfhdD_ToDate ? item.fmtfhdD_ToDate.split('T')[0] : ''}
                                                     onChange={(e) => {
                                                         const updated = [...gridData];
                                                         updated[index].fmtfhdD_ToDate = e.target.value;
@@ -333,9 +342,10 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
                                             <td className='border border-gray-300 px-2 py-1'>
                                                 <input
                                                     type='date'
+                                                    onKeyDown={(e) => e.preventDefault()}
                                                     className='w-full rounded-md border border-gray-300 px-2 py-1 text-gray-700 outline-none focus:border-blue-400 focus:ring focus:ring-blue-100'
                                                     //  value={item.fmtfhdD_ApplicableDate?.split('T')[0] || ''}
-                                                    value={item.fmtfhdD_ApplicableDate ? item.fmtfhdD_FromDate.split('T')[0] : ''}
+                                                    value={item.fmtfhdD_ApplicableDate ? item.fmtfhdD_ApplicableDate.split('T')[0] : ''}
                                                     onChange={(e) => {
                                                         const updated = [...gridData];
                                                         updated[index].fmtfhdD_ApplicableDate = e.target.value;
@@ -347,9 +357,10 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
                                             <td className='border border-gray-300 px-2 py-1'>
                                                 <input
                                                     type='date'
+                                                    onKeyDown={(e) => e.preventDefault()}
                                                     className='w-full rounded-md border border-gray-300 px-2 py-1 text-gray-700 outline-none focus:border-blue-400 focus:ring focus:ring-blue-100'
                                                     // value={item.fmtfhdD_DueDate?.split('T')[0] || ''}
-                                                    value={item.fmtfhdD_DueDate ? item.fmtfhdD_FromDate.split('T')[0] : ''}
+                                                    value={item.fmtfhdD_DueDate ? item.fmtfhdD_DueDate.split('T')[0] : ''}
                                                     onChange={(e) => {
                                                         const updated = [...gridData];
                                                         updated[index].fmtfhdD_DueDate = e.target.value;

@@ -99,9 +99,9 @@ function FormSections() {
         selectedRow
     } = useFormContext<IMasterSubjectGroup>();
 
-    async function toggleMasterGroup(mi_Id: number, id: number) {
+    async function toggleMasterGroup(id: number) {
         try {
-            const response = await toggleMasterSubjectGroup(mi_Id, id);
+            const response = await toggleMasterSubjectGroup(id);
             if (response.success) {
                 toast.success(response.message || 'Status updated successfully');
             } else {

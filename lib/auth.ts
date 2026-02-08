@@ -50,6 +50,7 @@ export const authConfig: NextAuthConfig = {
                 token.email = user.email;
                 token.token = user.token;
                 token.role = user.role;
+                token.roleId = user.roleId;
                 token.designation = user.designation;
             }
             if (trigger === 'update' && session) {
@@ -71,7 +72,7 @@ export const authConfig: NextAuthConfig = {
             name: 'ivrm-session-1.0',
             options: {
                 httpOnly: true,
-                secure: true,
+                secure: process.env.NODE_ENV === 'production',
                 sameSite: 'lax',
                 path: '/'
             }

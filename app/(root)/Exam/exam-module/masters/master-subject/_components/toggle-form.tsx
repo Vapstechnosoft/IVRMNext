@@ -38,7 +38,7 @@ export default function ToggleMasterSubjectForm({ rowData, onClose }: ToggleMast
 
     const onSubmit: SubmitHandler<FormFields> = async (formData) => {
         try {
-            const response = await toggleMasterSubject(30, Number(formData.ismS_Id)); // <-- convert back to number
+            const response = await toggleMasterSubject(Number(formData.ismS_Id)); // <-- convert back to number
             if (response.success) {
                 toast.success(response.message || `Subject ${rowData?.ismS_ActiveFlag ? 'deactivated' : 'activated'} successfully`);
                 refetchAll();

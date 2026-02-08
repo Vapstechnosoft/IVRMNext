@@ -10,6 +10,7 @@ import { useSubExamsMappedList, useSubSubjectsAndSubExamsMappedList, useSubSubje
 
 import type { IExamSubjectWizardDetails, ISubSubjectSubExamMapped } from '@/types/exam/exam-module/exam-mapping';
 
+import { X } from 'lucide-react';
 import { SubSubjectModelColumns } from './subSubject-subExam-view-columns';
 import ToggleSubSubjectOrSubExamMappedForm from './toggle-mapped-subsub-subexam';
 
@@ -31,9 +32,9 @@ function SubSubjectSubExamModelViewContent({ rowData, onClose }: SubSubjectModel
     const showSubSubject = rowData.eyceS_SubSubjectFlg;
 
     //  Call hooks
-    const subExamsQuery = useSubExamsMappedList(30, rowData.eyceS_Id);
-    const subSubjectsQuery = useSubSubjectsMappedList(30, rowData.eyceS_Id);
-    const bothQuery = useSubSubjectsAndSubExamsMappedList(30, rowData.eyceS_Id);
+    const subExamsQuery = useSubExamsMappedList(rowData.eyceS_Id);
+    const subSubjectsQuery = useSubSubjectsMappedList(rowData.eyceS_Id);
+    const bothQuery = useSubSubjectsAndSubExamsMappedList(rowData.eyceS_Id);
 
     const [details, setDetails] = useState<ISubSubjectSubExamMapped[]>([]);
     const activeHook = showSubExam && showSubSubject ? bothQuery : showSubExam ? subExamsQuery : subSubjectsQuery;
@@ -75,18 +76,18 @@ function SubSubjectSubExamModelViewContent({ rowData, onClose }: SubSubjectModel
                 {/* Header */}
                 <div className='mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                     <Heading
-                        title={`Mapped ${
-                            showSubExam && showSubSubject ? 'Sub-Subjects & Sub-Exams' : showSubExam ? 'Sub-Exams' : 'Sub-Subjects'
-                        }`}
+                        title={`Mapped ${showSubExam && showSubSubject ? 'Sub-Subjects & Sub-Exams' : showSubExam ? 'Sub-Exams' : 'Sub-Subjects'
+                            }`}
                         description={`View all mappings for "${rowData.emE_ExamName}"`}
                     />
 
                     <Button
                         type='button'
-                        variant='secondary'
                         onClick={onClose}
-                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        Close
+                        variant='ghost'
+                        size='sm'
+                        className='right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                        <X className='h-4 w-4 text-destructive' /> Close
                     </Button>
                 </div>
 

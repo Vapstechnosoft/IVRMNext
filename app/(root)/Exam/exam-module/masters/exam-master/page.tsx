@@ -68,7 +68,6 @@ function MasterExamPageContent({
         setIsOrderSaving(true);
         try {
             const payload = {
-                mI_Id: 30,
                 examDTO: updatedData.map((item, index) => ({
                     emE_Id: item.emE_Id,
                     emE_ExamOrder: index + 1

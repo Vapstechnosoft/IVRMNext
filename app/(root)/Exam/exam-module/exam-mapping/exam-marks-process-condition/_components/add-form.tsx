@@ -7,9 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { examMarksProcessConditionSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import { addOrUpdateExamMarksProcessCondition } from '@/server/exam/exam-module/exam-mapping/exam-marks-process-condition';
-import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
+import { getCategoryDropDowByExamYearCategoryList } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import { getExamsByCategoryandAcademicYear } from '@/server/exam/exam-module/masters/exam';
-import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
+import type { ICategory } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -30,6 +30,8 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
             mI_Id: orgId,
             asmaY_Id: 0,
             emE_Id: 0,
+            eyC_Id: 1,
+            eycE_Id: 1,
             eycE_ExamStartDate: '',
             eycE_ExamEndDate: '',
             eycE_MarksEntryLastDate: '',
@@ -42,14 +44,10 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
     const { control, handleSubmit, reset, setValue, formState } = methods;
     const { isSubmitting } = formState;
 
-    const {
-        data: academicYear,
-        isLoading: academicYearLoading,
-        error: academicYearError,
-    } = useAcademicYearDropdown();
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
     // categories and exams
-    const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
+    const [categories, setCategories] = useState<ICategory[]>([]);
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
 
     // When academic year changes -> load categories
@@ -65,7 +63,7 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
 
         (async () => {
             try {
-                const { data: cats } = await getCategoryDropDownByAcademicYearlist(orgId, Number(selectedYearId));
+                const { data: cats } = await getCategoryDropDowByExamYearCategoryList(Number(selectedYearId));
                 setCategories(Array.isArray(cats) ? cats : []);
                 // reset selected category & exams
                 setValue('emcA_Id', 0);
@@ -90,7 +88,7 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
         (async () => {
             try {
                 // server helper to fetch exam list for category (I added this helper in server file)
-                const { data: ex } = await getExamsByCategoryandAcademicYear(orgId, Number(selectedYearId), Number(selectedCategoryId));
+                const { data: ex } = await getExamsByCategoryandAcademicYear(Number(selectedYearId), Number(selectedCategoryId));
                 setExams(Array.isArray(ex) ? ex : []);
                 setValue('emE_Id', 0);
             } catch (err: any) {
@@ -240,15 +238,19 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
                                             key={field.value}
                                             value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                             onValueChange={(val) => {
-                                                // set both category id (emcA_Id) and eyC_Id (if your backend uses eyC_Id differently adjust accordingly)
-                                                field.onChange(Number(val));
+                                                const selectedCategoryId = Number(val);
+                                                const selectedCategory = categories.find((c) => c.emcA_Id === selectedCategoryId);
+                                                if (selectedCategory) {
+                                                    setValue('eyC_Id', selectedCategory.eyC_Id);
+                                                }
+                                                field.onChange(selectedCategoryId);
                                             }}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {categories.map((c) => (
-                                                    <SelectItem key={c.emcA_Id} value={String(c.emcA_Id)}>
+                                                    <SelectItem key={c.eyC_Id} value={String(c.emcA_Id)}>
                                                         {c.emcA_CategoryName}
                                                     </SelectItem>
                                                 ))}

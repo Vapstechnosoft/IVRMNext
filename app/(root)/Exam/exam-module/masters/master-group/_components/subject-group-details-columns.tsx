@@ -7,7 +7,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 export const MasterSubjectGroupDetailsColumns: ColumnDef<IMasterSubjectGroupDetails>[] = [
     {
         accessorKey: 'ex_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='max-w-20' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -15,27 +15,31 @@ export const MasterSubjectGroupDetailsColumns: ColumnDef<IMasterSubjectGroupDeta
         },
         enableSorting: false,
         enableHiding: true,
-        size: 50, // <-- Set fixed width
+        size: 20, // <-- Set fixed width
         minSize: 50,
         maxSize: 50
     },
     {
         id: 'select',
         header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() ? true : table.getIsSomePageRowsSelected() ? 'indeterminate' : false}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
+            <div className='flex w-8 justify-center'>
+                <Checkbox
+                    checked={table.getIsAllPageRowsSelected() ? true : table.getIsSomePageRowsSelected() ? 'indeterminate' : false}
+                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                    aria-label='Select all'
+                />
+            </div>
         ),
         cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
+            <div className='flex w-8 justify-center'>
+                <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
+            </div>
         ),
         enableSorting: false,
         enableHiding: false,
-        size: 50, // <-- Same width as Sl.No
-        minSize: 50,
-        maxSize: 50
+        size: 35,
+        minSize: 35,
+        maxSize: 35
     },
 
     {

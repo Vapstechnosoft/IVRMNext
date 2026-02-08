@@ -31,7 +31,7 @@ interface FeeGroup {
 interface Payload {
     mI_Id: number;
     fyG_Id: number;
-    user_id: number;
+    // user_id: number;
     asmaY_Id: number;
     grouplist: number[];
     fyG_RebateTypeFlg: string;
@@ -161,12 +161,12 @@ export default function UpdateYearlyGroupForm({ onSuccess, selectedRow }: Update
                 return;
             }
 
-            const miIdFromRow = selectedRow.mI_Id ?? (selectedRow as any).mI_ID ?? (selectedRow as any).mi_id ?? 30;
+            const miIdFromRow = selectedRow.mI_Id ?? (selectedRow as any).mI_ID ?? (selectedRow as any).mi_id ?? 0;
 
             const payload: Payload = {
                 mI_Id: Number(miIdFromRow),
                 fyG_Id: selectedRow.fyG_Id || 0,
-                user_id: 21602,
+                // user_id: 21602,
                 asmaY_Id,
                 grouplist: (data.feeGroupIds || []).map((v) => Number(v)),
                 fyG_RebateTypeFlg: data.rebateApplicable && data.rebateType ? data.rebateType : '',
@@ -174,7 +174,7 @@ export default function UpdateYearlyGroupForm({ onSuccess, selectedRow }: Update
                 fyG_PartialRebateAmtOrPercentageValue: data.rebateApplicable && data.rebateValue ? Number(data.rebateValue) : 0
             };
 
-            console.warn('Calling addOrUpdateMasterGroupYearlyCategory with payload:', payload);
+            console.warn('Calling addOrUpdateMasterGroupYearlyCategory with payload:', JSON.stringify(payload));
             const response = await addOrUpdateMasterGroupYearlyCategory(payload);
             console.warn('addOrUpdateMasterGroupYearlyCategory response:', response);
 

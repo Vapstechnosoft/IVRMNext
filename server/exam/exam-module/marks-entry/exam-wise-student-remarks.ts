@@ -9,20 +9,20 @@ import type { IExamWiseRemarksGrid, IExamWiseStudentRemarksStudent } from '@/typ
 // -------------------------------
 export async function getExamWiseRemarksDataGrid(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = 'exam_master_remark/student_exam_remarks_grid?MI_Id=30';
+    const url = `exam_master_remark/student_exam_remarks_grid?${urlParams}`;
     return await api.get<IExamWiseRemarksGrid>('exam', url);
 }
 
 // -------------------------------
 // 2) GET – Search Student Details
 // -------------------------------
-export async function getStudentDetails(asmaY_Id: number, asmcL_Id: number, asmS_Id: number, emE_Id: number, MI_Id: number) {
+export async function getStudentDetails(asmaY_Id: number, asmcL_Id: number, asmS_Id: number, emE_Id: number) {
     const queryString = new URLSearchParams({
         ASMAY_Id: asmaY_Id.toString(),
         ASMCL_Id: asmcL_Id.toString(),
         ASMS_Id: asmS_Id.toString(),
         EME_Id: emE_Id.toString(),
-        MI_Id: MI_Id.toString()
+        // MI_Id: MI_Id.toString()
     }).toString();
     const query = `exam_master_remark/search_student_exam_remarks_deatils?${queryString}`;
     const response = await api.get<IExamWiseStudentRemarksStudent[]>('exam', query);

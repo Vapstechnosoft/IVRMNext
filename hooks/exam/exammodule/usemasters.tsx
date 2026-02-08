@@ -1,5 +1,5 @@
 import { EXAM_QUERY_KEYS } from '@/constants/query-keys';
-import { getExamMasterCategory } from '@/server/exam/exam-module/masters/category';
+import { getExamMasterCategory, getExamMasterCategoryDropdownList } from '@/server/exam/exam-module/masters/category';
 
 import { getExamMasterCategoryMapping } from '@/server/exam/exam-module/masters/category-class-mapping';
 import { getCoScholasticActivities } from '@/server/exam/exam-module/masters/co-scholastic-activity';
@@ -11,11 +11,11 @@ import {
 
 import { getCategoryMappedSections } from '@/server/exam/exam-module/masters/category-class-mapping';
 
-import { getMasterExam } from '@/server/exam/exam-module/masters/exam';
+import { getMasterExam, getMasterExamOrderData } from '@/server/exam/exam-module/masters/exam';
 import { getMasterExamPaper } from '@/server/exam/exam-module/masters/exam-paper';
-import { getGradeDetailsById, getMasterGrade } from '@/server/exam/exam-module/masters/grade';
+import { getGradeDetailsById, getMasterGrade, getMasterGradeDropdownList } from '@/server/exam/exam-module/masters/grade';
 import { getMasterLifeSkillAreas, getMasterLifeSkillMappings, getMasterLifeSkills } from '@/server/exam/exam-module/masters/life-skills';
-import { getMasterSubExam } from '@/server/exam/exam-module/masters/sub-exam';
+import { getMasterSubExam, getMasterSubExamDropdownList } from '@/server/exam/exam-module/masters/sub-exam';
 import { getMasterSubject, getMasterSubjectDropdownList } from '@/server/exam/exam-module/masters/subject';
 import {
     getAllMasterSubjectDetails,
@@ -51,7 +51,7 @@ export const useGetMasterSubjectDropdownList = (searchParams?: ApiSearchparams) 
     return {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.MASTER_SUBJECT_DROPDOWN_LIST, searchParams ?? {}],
-            queryFn: async () => getMasterSubjectDropdownList(30),
+            queryFn: async () => getMasterSubjectDropdownList(),
             staleTime: 300
         }),
 
@@ -62,7 +62,6 @@ export const useGetMasterSubjectDropdownList = (searchParams?: ApiSearchparams) 
         }
     };
 };
-
 
 export const useMasterExam = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -76,6 +75,23 @@ export const useMasterExam = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.MASTER_EXAM]
+            });
+        }
+    };
+};
+
+export const useMasterOrderedExamDropdownList = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.MASTER_EXAM_ORDERED_DROPDOWN_LIST, searchParams ?? {}],
+            queryFn: async () => getMasterExamOrderData(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.MASTER_EXAM_ORDERED_DROPDOWN_LIST]
             });
         }
     };
@@ -115,6 +131,23 @@ export const useMasterSubExam = (searchParams?: ApiSearchparams) => {
     };
 };
 
+export const useMasterSubExamDropdownList = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.MASTER_SUB_EXAM_DROPDOWN_LIST],
+            queryFn: async () => getMasterSubExamDropdownList(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.MASTER_SUB_EXAM_DROPDOWN_LIST]
+            });
+        }
+    };
+};
+
 export const useMasterSubSubject = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
@@ -138,7 +171,7 @@ export const useMasterSubSubjectDropdownList = (searchParams?: ApiSearchparams) 
     return {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.MASTER_SUB_SUBJECT_EX_DROPDOWN_LIST, searchParams ?? {}],
-            queryFn: async () => getMasterSubSubjectDropdownList(30),
+            queryFn: async () => getMasterSubSubjectDropdownList(),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -161,6 +194,23 @@ export const useMasterGrade = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.MASTER_GRADE_EX]
+            });
+        }
+    };
+};
+
+export const useMasterGradeDropdownList = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.MASTER_GRADE_DROPDOWN_LIST, searchParams ?? {}],
+            queryFn: async () => getMasterGradeDropdownList(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.MASTER_GRADE_DROPDOWN_LIST]
             });
         }
     };
@@ -207,7 +257,7 @@ export const useMasterSubjectGroupDropdownList = () => {
     return {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.MASTER_SUBJECT_GROUP_DROPDOWN_LIST],
-            queryFn: async () => getSubjectsGroupDropDownByList(30),
+            queryFn: async () => getSubjectsGroupDropDownByList(),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -267,6 +317,22 @@ export const useMasterCategory = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.MASTER_CATEGORY]
+            });
+        }
+    };
+};
+export const useMasterCategoryDropdownList = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.MASTER_CATEGORY_DROPDOWN_LIST],
+            queryFn: async () => getExamMasterCategoryDropdownList(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.MASTER_CATEGORY_DROPDOWN_LIST]
             });
         }
     };
@@ -380,7 +446,7 @@ export const useMasterLifeSkills = (searchParams?: ApiSearchparams) => {
     return {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.LIFE_SKILLS, searchParams ?? {}],
-            queryFn: async () => getMasterLifeSkills(30, searchParams),
+            queryFn: async () => getMasterLifeSkills(searchParams),
             staleTime: 0
         }),
 
@@ -398,7 +464,7 @@ export const useMasterLifeSkillArea = (searchParams?: ApiSearchparams) => {
     return {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.LIFE_SKILLS_AREA, searchParams ?? {}],
-            queryFn: async () => getMasterLifeSkillAreas(30, searchParams),
+            queryFn: async () => getMasterLifeSkillAreas(searchParams),
             staleTime: 0
         }),
 
@@ -416,7 +482,7 @@ export const useMasterLifeSkillAreaMapping = (searchParams?: ApiSearchparams) =>
     return {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.LIFE_SKILLS_AREA_MAPPING, searchParams ?? {}],
-            queryFn: async () => getMasterLifeSkillMappings(30, searchParams),
+            queryFn: async () => getMasterLifeSkillMappings(searchParams),
             staleTime: 0
         }),
 
@@ -427,4 +493,3 @@ export const useMasterLifeSkillAreaMapping = (searchParams?: ApiSearchparams) =>
         }
     };
 };
-

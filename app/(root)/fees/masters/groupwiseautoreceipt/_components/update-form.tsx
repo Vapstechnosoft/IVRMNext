@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown, useFeeMasterGroupwiseAutoReceiptDropDown } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
@@ -79,8 +80,11 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
     const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoadingDropdowns, setIsLoadingDropdowns] = useState(false);
-    const [usePrefix, setUsePrefix] = useState(false);
-    const [useSuffix, setUseSuffix] = useState(false);
+    // const [usePrefix, setUsePrefix] = useState(false);
+    // const [useSuffix, setUseSuffix] = useState(false);
+
+    const usePrefix = watch('usePrefix');
+    const useSuffix = watch('useSuffix');
 
     const academicYear = watch('academicYear');
     const groupsValue = watch('groups');
@@ -151,8 +155,8 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
         const hasPrefix = selectedRow.fgaR_PrefixFlag === '1' && !!selectedRow.fgaR_PrefixName;
         const hasSuffix = selectedRow.fgaR_SuffixFlag === '1' && !!selectedRow.fgaR_SuffixName;
 
-        setUsePrefix(hasPrefix);
-        setUseSuffix(hasSuffix);
+        // setUsePrefix(hasPrefix);
+        // setUseSuffix(hasSuffix);
         setValue('usePrefix', hasPrefix);
         setValue('useSuffix', hasSuffix);
         setValue('prefixValue', selectedRow.fgaR_PrefixName || '');
@@ -163,6 +167,24 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
         setValue('address', selectedRow.fgaR_Address || '');
         setValue('receiptTemplateFormat', selectedRow.fgaR_Template_Name || '');
     }, [selectedRow, academicYearOptions, setValue]);
+
+    // useEffect(() => {
+    //     if (!selectedRow?.feeGroupslist || groupOptions.length === 0) return;
+
+    //     const preSelectedGroupIds = selectedRow.feeGroupslist
+    //         .map((group: any) => {
+    //             const matched = groupOptions.find((opt) => opt.fmG_GroupName === group.fmG_GroupName);
+    //             return matched ? matched.fmG_Id.toString() : null;
+    //         })
+    //         .filter((id: string | null): id is string => id !== null);
+
+    //     if (preSelectedGroupIds.length > 0) {
+    //         setSelectedGroups(preSelectedGroupIds);
+    //         setValue('groups', preSelectedGroupIds, { shouldValidate: hasSubmitted });
+    //     }
+    // }, [selectedRow, groupOptions, setValue, hasSubmitted]);
+
+    const filteredGroupOptions = groupOptions.filter((option) => option.fmG_GroupName.toLowerCase().includes(searchTerm.toLowerCase()));
 
     useEffect(() => {
         if (!selectedRow?.feeGroupslist || groupOptions.length === 0) return;
@@ -176,35 +198,85 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
 
         if (preSelectedGroupIds.length > 0) {
             setSelectedGroups(preSelectedGroupIds);
-            setValue('groups', preSelectedGroupIds, { shouldValidate: hasSubmitted });
+            setValue('groups', preSelectedGroupIds, {
+                shouldValidate: true,
+                shouldDirty: true
+            });
         }
-    }, [selectedRow, groupOptions, setValue, hasSubmitted]);
+    }, [selectedRow, groupOptions, setValue]);
 
-    const filteredGroupOptions = groupOptions.filter((option) => option.fmG_GroupName.toLowerCase().includes(searchTerm.toLowerCase()));
+    // const handleGroupChange = (value: string) => {
+    //     const currentGroups = groupsValue || [];
+    //     let updatedGroups: string[];
+    //     if (currentGroups.includes(value)) {
+    //         updatedGroups = currentGroups.filter((c) => c !== value);
+    //     } else {
+    //         updatedGroups = [...currentGroups, value];
+    //     }
+    //     setSelectedGroups(updatedGroups);
+    //     setValue('groups', updatedGroups, { shouldValidate: hasSubmitted });
+    // };
 
     const handleGroupChange = (value: string) => {
-        const currentGroups = groupsValue || [];
-        let updatedGroups: string[];
-        if (currentGroups.includes(value)) {
-            updatedGroups = currentGroups.filter((c) => c !== value);
-        } else {
-            updatedGroups = [...currentGroups, value];
-        }
-        setSelectedGroups(updatedGroups);
-        setValue('groups', updatedGroups, { shouldValidate: hasSubmitted });
+        // Create a new array based on current selectedGroups state
+        const newSelectedGroups = selectedGroups.includes(value)
+            ? selectedGroups.filter((id) => id !== value) // Remove if already selected
+            : [...selectedGroups, value]; // Add if not selected
+
+        // Update both state and form value
+        setSelectedGroups(newSelectedGroups);
+        setValue('groups', newSelectedGroups, {
+            shouldValidate: true,
+            shouldDirty: true
+        });
     };
 
+    // const handleSelectAll = () => {
+    //     const currentGroups = groupsValue || [];
+    //     if (currentGroups.length === groupOptions.length) {
+    //         setSelectedGroups([]);
+    //         setValue('groups', [], { shouldValidate: hasSubmitted });
+    //     } else {
+    //         const allValues = groupOptions.map((opt) => opt.fmG_Id.toString());
+    //         setSelectedGroups(allValues);
+    //         setValue('groups', allValues, { shouldValidate: hasSubmitted });
+    //     }
+    // };
+
     const handleSelectAll = () => {
-        const currentGroups = groupsValue || [];
-        if (currentGroups.length === groupOptions.length) {
-            setSelectedGroups([]);
-            setValue('groups', [], { shouldValidate: hasSubmitted });
-        } else {
-            const allValues = groupOptions.map((opt) => opt.fmG_Id.toString());
-            setSelectedGroups(allValues);
-            setValue('groups', allValues, { shouldValidate: hasSubmitted });
-        }
+        if (groupOptions.length === 0) return;
+
+        const newSelectedGroups =
+            selectedGroups.length === groupOptions.length
+                ? [] // Deselect all if all are selected
+                : groupOptions.map((opt) => opt.fmG_Id.toString()); // Select all
+
+        setSelectedGroups(newSelectedGroups);
+        setValue('groups', newSelectedGroups, {
+            shouldValidate: true,
+            shouldDirty: true
+        });
     };
+
+    // In your useEffect that pre-fills groups:
+    useEffect(() => {
+        if (!selectedRow?.feeGroupslist || groupOptions.length === 0) return;
+
+        const preSelectedGroupIds = selectedRow.feeGroupslist
+            .map((group: any) => {
+                const matched = groupOptions.find((opt) => opt.fmG_GroupName === group.fmG_GroupName);
+                return matched ? matched.fmG_Id.toString() : null;
+            })
+            .filter((id: string | null): id is string => id !== null);
+
+        if (preSelectedGroupIds.length > 0) {
+            setSelectedGroups(preSelectedGroupIds);
+            setValue('groups', preSelectedGroupIds, {
+                shouldValidate: true,
+                shouldDirty: true
+            });
+        }
+    }, [selectedRow, groupOptions, setValue]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
@@ -226,6 +298,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                 fgaR_Template_Name: receiptTemplateFormat || ''
             };
 
+            console.log('auto receipt payload', JSON.stringify(payload));
             const response = await addOrUpdateMasterFeeMasterGroupwiseAutoReceipt(payload);
 
             if (response.success) {
@@ -244,8 +317,8 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
         reset();
         setSelectedGroups([]);
         setSearchTerm('');
-        setUsePrefix(false);
-        setUseSuffix(false);
+        // setUsePrefix(false);
+        // setUseSuffix(false);
         setHasSubmitted(false);
     };
 
@@ -314,8 +387,8 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                             <div className='lg:col-span-2'>
                                 <Label>Prefix / Suffix</Label>
                                 <div className='mt-2 flex flex-wrap gap-6'>
-                                    <label className='flex items-center space-x-2'>
-                                        <input
+                                    <Label className='flex items-center space-x-2'>
+                                        {/* <input
                                             type='checkbox'
                                             checked={usePrefix}
                                             onChange={(e) => {
@@ -332,11 +405,26 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                                 }
                                             }}
                                             className='h-4 w-4 rounded border-gray-300 accent-primary'
+                                        /> */}
+                                        <Input
+                                            type='checkbox'
+                                            checked={usePrefix}
+                                            onChange={(e) => {
+                                                const checked = e.target.checked;
+
+                                                setValue('usePrefix', checked, { shouldValidate: hasSubmitted });
+
+                                                if (!checked) {
+                                                    setValue('prefixValue', '', { shouldValidate: hasSubmitted });
+                                                }
+                                            }}
+                                            className='h-4 w-4 rounded border-gray-300 accent-primary'
                                         />
+
                                         <span>Prefix</span>
-                                    </label>
-                                    <label className='flex items-center space-x-2'>
-                                        <input
+                                    </Label>
+                                    <Label className='flex items-center space-x-2'>
+                                        {/* <input
                                             type='checkbox'
                                             checked={useSuffix}
                                             onChange={(e) => {
@@ -353,13 +441,27 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                                 }
                                             }}
                                             className='h-4 w-4 rounded border-gray-300 accent-primary'
+                                        /> */}
+
+                                        <Input
+                                            type='checkbox'
+                                            checked={useSuffix}
+                                            onChange={(e) => {
+                                                const checked = e.target.checked;
+
+                                                setValue('useSuffix', checked, { shouldValidate: hasSubmitted });
+
+                                                if (!checked) {
+                                                    setValue('suffixValue', '', { shouldValidate: hasSubmitted });
+                                                }
+                                            }}
+                                            className='h-4 w-4 rounded border-gray-300 accent-primary'
                                         />
                                         <span>Suffix</span>
-                                    </label>
+                                    </Label>
                                 </div>
                             </div>
 
-                            {/* Prefix Input */}
                             {usePrefix && (
                                 <div>
                                     <Label htmlFor='prefixValue'>
@@ -376,7 +478,6 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 </div>
                             )}
 
-                            {/* Suffix Input */}
                             {useSuffix && (
                                 <div>
                                     <Label htmlFor='suffixValue'>
@@ -393,8 +494,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 </div>
                             )}
 
-                            {/* Group Selection */}
-                            <div className='lg:col-span-2'>
+                            {/* <div className='lg:col-span-2'>
                                 <Label>
                                     Select Groups <span className='text-red-500'>*</span>
                                 </Label>
@@ -455,6 +555,78 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                     </div>
                                     <div className='mt-1 text-gray-500 text-xs'>
                                         {groupsValue?.length || 0} of {groupOptions.length} groups selected
+                                    </div>
+                                </div>
+                                {hasSubmitted && errors.groups && <FormError>{errors.groups.message}</FormError>}
+                            </div> */}
+
+                            {/* Group Selection */}
+                            <div className='lg:col-span-2'>
+                                <Label>
+                                    Select Groups <span className='text-red-500'>*</span>
+                                </Label>
+                                <div className='mt-2 rounded-md border border-gray-300 bg-white p-3'>
+                                    <InputText
+                                        placeholder='Search Groups...'
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className='mb-3 transition-colors focus:ring-2 focus:ring-primary/20'
+                                    />
+
+                                    {/* Select All Checkbox */}
+                                    <div
+                                        onClick={handleSelectAll}
+                                        className={cn(
+                                            'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
+                                            selectedGroups.length === groupOptions.length && groupOptions.length > 0
+                                                ? 'border-primary bg-primary/5 text-primary'
+                                                : 'border-gray-300 hover:border-primary/40'
+                                        )}>
+                                        {selectedGroups.length === groupOptions.length && groupOptions.length > 0 ? (
+                                            <CheckSquare className='h-4 w-4 text-primary' />
+                                        ) : (
+                                            <Square className='h-4 w-4 text-gray-400' />
+                                        )}
+                                        <span>Select All</span>
+                                    </div>
+
+                                    {/* Groups List */}
+                                    <div className='mt-2 max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
+                                        {loadingGroupData && (
+                                            <div className='py-4 text-center text-gray-500 text-sm'>Loading groups...</div>
+                                        )}
+                                        {!loadingGroupData && filteredGroupOptions.length === 0 && (
+                                            <div className='py-4 text-center text-gray-500 text-sm'>
+                                                {academicYear ? 'No groups found' : 'Please select an academic year first'}
+                                            </div>
+                                        )}
+                                        {filteredGroupOptions.map((option) => {
+                                            const value = option.fmG_Id.toString();
+                                            const selected = selectedGroups.includes(value); // Use selectedGroups state
+                                            return (
+                                                <div
+                                                    key={option.fmG_Id}
+                                                    onClick={() => handleGroupChange(value)}
+                                                    className={cn(
+                                                        'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',
+                                                        selected
+                                                            ? 'border-primary bg-primary/5 text-primary'
+                                                            : 'border-gray-300 hover:border-primary/40'
+                                                    )}>
+                                                    {selected ? (
+                                                        <CheckSquare className='h-4 w-4 text-primary' />
+                                                    ) : (
+                                                        <Square className='h-4 w-4 text-gray-400' />
+                                                    )}
+                                                    <span>{option.fmG_GroupName}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Selection Count */}
+                                    <div className='mt-1 text-gray-500 text-xs'>
+                                        {selectedGroups.length || 0} of {groupOptions.length} groups selected
                                     </div>
                                 </div>
                                 {hasSubmitted && errors.groups && <FormError>{errors.groups.message}</FormError>}

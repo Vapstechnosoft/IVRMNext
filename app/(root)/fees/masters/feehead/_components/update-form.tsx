@@ -56,7 +56,7 @@ export default function UpdateMasterFeeheadForm({ onSuccess, feeheadname = '', s
         try {
             const { fmH_FeeName, fmH_Id, fmH_Flag, fmH_Order, fmH_PDAFlag, fmH_SpecialFeeFlag, fmH_RefundFlag } = data;
             const payload = {
-                MI_Id: 30,
+                // MI_Id: 30,
                 fmH_Id: fmH_Id,
                 fmH_FeeName: fmH_FeeName,
                 fmH_Flag: fmH_Flag,

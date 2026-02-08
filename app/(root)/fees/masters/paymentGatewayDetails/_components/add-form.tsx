@@ -5,12 +5,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterPaymentgateway_dropdown, useMasterPaymentgatewaydetails } from '@/hooks/fees/useMasters';
+import { useMasterPaymentInstitutionName, useMasterPaymentgateway_dropdown, useMasterPaymentgatewaydetails } from '@/hooks/fees/useMasters';
 import { paymentgatewaydetailsSchema } from '@/schemas/fees/masters';
 import { addOrUpdatepaymentgatewaydetails } from '@/server/fees/masters/fee_payment_gateway_details';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Minus, Plus, Save } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 
 import { toast } from 'sonner';
@@ -25,6 +25,8 @@ interface AddpaymentgatewaydetailsProps {
 
 export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewaydetails = '' }: AddpaymentgatewaydetailsProps) {
     const { refetchAll } = useMasterPaymentgatewaydetails();
+    const { data: response } = useMasterPaymentInstitutionName();
+    const institutionName = response?.data?.[0].mI_Name;
 
     const {
         data: gatewaydata,
@@ -55,6 +57,12 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
         name: 'submerchantIds'
     });
 
+    useEffect(() => {
+        if (institutionName) {
+            setValue('institution_Name', institutionName);
+        }
+    }, [institutionName]);
+
     function OnReset() {
         reset();
         refetchgateway();
@@ -64,8 +72,8 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
             const payload = {
-                user_id: 20612,
-                mi_id: 30,
+                // user_id: 20612,
+                // mi_id: 30,
                 fpgD_SaltKey: data.fpgD_SaltKey,
                 fpgD_MerchantId: data.fpgD_MerchantId,
                 fpgD_Image: data.fpgD_Image,
@@ -144,17 +152,16 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
     return (
         <div className={`${gatewaydetails}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                <InputText
+                    label='Institution Name'
+                    id='institution_Name'
+                    disabled
+                    {...register('institution_Name')}
+                    error={errors.institution_Name?.message}
+                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                />
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-                        {/* <InputText
-                            label='Merchant Id'
-                            required
-                            id='fpgD_MerchantId'
-                            {...register('fpgD_MerchantId')}
-                            error={errors.fpgD_MerchantId?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        /> */}
-
                         <InputText
                             label='Merchant Id'
                             required
@@ -164,7 +171,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                             onKeyDown={(e) => {
                                 // Block minus, plus, special chars used in number inputs
-                                if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                if (['-', '+', ' '].includes(e.key)) {
                                     e.preventDefault();
                                 }
 
@@ -190,7 +197,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 onKeyDown={(e) => {
                                     // Block minus, plus, special chars used in number inputs
-                                    if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                    if (['-', '+', ' '].includes(e.key)) {
                                         e.preventDefault();
                                     }
 
@@ -304,7 +311,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                             onKeyDown={(e) => {
                                 // Block minus, plus, special chars used in number inputs
-                                if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                if (['-', '+', ' '].includes(e.key)) {
                                     e.preventDefault();
                                 }
 
@@ -328,7 +335,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                             onKeyDown={(e) => {
                                 // Block minus, plus, special chars used in number inputs
-                                if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                if (['-', '+', ' '].includes(e.key)) {
                                     e.preventDefault();
                                 }
 
@@ -430,12 +437,14 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
 
                         <div className='col-span-6'>
                             {fields.map((field, index) => (
-                                <div key={field.id} className='mb-4 flex flex-col gap-2 md:flex-row md:items-center'>
-                                    <label htmlFor={`submerchantIds.${index}.id`} className='font-medium text-gray-700 text-sm md:w-1/4'>
+                                <div key={field.id} className='mb-4 flex flex-col gap-1 md:flex-row md:items-center md:gap-4'>
+                                    <label
+                                        htmlFor={`submerchantIds.${index}.id`}
+                                        className='gap-3 whitespace-nowrap font-medium text-gray-700 text-sm'>
                                         Sub Merchant Id<span className='ml-1 text-red-500'>*</span>
                                     </label>
 
-                                    <div className='flex w-full items-center gap-2 md:w-3/4'>
+                                    <div className='flex w-full items-center gap-1 md:w-3/2'>
                                         <input
                                             id={`submerchantIds.${index}.id`}
                                             type='text'
@@ -445,7 +454,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                                             }`}
                                             onKeyDown={(e) => {
                                                 // Block minus, plus, special chars used in number inputs
-                                                if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                                if (['-', '+', ' '].includes(e.key)) {
                                                     e.preventDefault();
                                                 }
 

@@ -22,6 +22,7 @@ export const thirdPartyTransactionSchema = {
 
             // academicYearId: z.number({ message: 'Term is required' }),
             studentId: z.number().optional(),
+            //studentName: createStringOnlySchema('Student Name', 1, 100).optional(),
             studentName: z.string().optional(),
             // groupId: z.number().min(1, 'Group Name is required'),
             // headId: z.number().min(1, 'Head Name is required'),
@@ -49,7 +50,8 @@ export const thirdPartyTransactionSchema = {
             bankId: z.number().optional(),
             chequeDate: z.string().optional(),
             // chequeNo: z.string().optional(),
-            chequeNo: z.string().min(13, 'Cheque Number is required').max(19, 'Cheque Number is too long'),
+            //chequeNo: z.string().min(13, 'Minimum 13 characters for Cheque Number is required').max(19, 'Cheque Number is too long'),
+            chequeNo: z.string().optional(),
             bankName: z.string().optional()
         })
         .superRefine((data, ctx) => {
@@ -61,21 +63,91 @@ export const thirdPartyTransactionSchema = {
                         path: ['bankId']
                     });
                 }
-                if (!(typeof data.chequeDate === 'string' && data.chequeDate.trim() !== '')) {
+                if (!data.chequeDate || data.chequeDate.trim() === '') {
                     ctx.addIssue({
                         code: 'custom',
                         message: 'Cheque Date is required',
                         path: ['chequeDate']
                     });
                 }
-                if (!(typeof data.chequeNo === 'string' && data.chequeNo.trim() !== '')) {
+                if (!data.chequeNo || data.chequeNo.trim() === '') {
                     ctx.addIssue({
                         code: 'custom',
                         message: 'Cheque Number is required',
                         path: ['chequeNo']
                     });
+                } else if (data.chequeNo.length < 13) {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Card Number must be at least 13 digits',
+                        path: ['chequeNo']
+                    });
+                } else if (data.chequeNo.length > 19) {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Card Number cannot exceed 19 digits',
+                        path: ['chequeNo']
+                    });
                 }
             }
+            if (data.paymentMode === 'R') {
+                if (!data.chequeNo || data.chequeNo.trim() === '') {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Cheque Number is required',
+                        path: ['chequeNo']
+                    });
+                } else if (data.chequeNo.length < 13) {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Cheque Number must be at least 13 digits',
+                        path: ['chequeNo']
+                    });
+                } else if (data.chequeNo.length > 19) {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Cheque Number cannot exceed 19 digits',
+                        path: ['chequeNo']
+                    });
+                }
+            }
+            if (data.paymentMode === 'S') {
+                if (!data.chequeNo || data.chequeNo.trim() === '') {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Card Number is required',
+                        path: ['chequeNo']
+                    });
+                } else if (data.chequeNo.length < 13) {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Card Number must be at least 13 digits',
+                        path: ['chequeNo']
+                    });
+                } else if (data.chequeNo.length > 19) {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Card Number cannot exceed 19 digits',
+                        path: ['chequeNo']
+                    });
+                }
+            }
+            // if (data.studentType === 'other') {
+            //     const value = data.studentName ?? '';
+
+            //     const result = createStringOnlySchema('Student Name', 1, 100)
+            //         .safeParse(value);
+
+            //     if (!result.success) {
+            //         result.error.errors.forEach(err => {
+            //             ctx.addIssue({
+            //                 code: 'custom',
+            //                 message: err.message,
+            //                 path: ['studentName'],
+            //             });
+            //         });
+            //     }
+            // }
         }),
 
     delete: z.object({
@@ -166,6 +238,29 @@ export const feeOpeningBalanceSchema = {
 //     })
 // };
 
+// export const feeTransactionWaivedOffSchema = {
+//     addOrUpdate: z.object({
+//         academicYear: z.number({ message: 'Academic year is required' }),
+//         class: z.number({ message: 'Class is required.' }),
+//         section: z.number({ message: 'Section is required.' }),
+//         student: z.number({ message: 'Student Name is required.' }),
+//         remarks: z.string().min(1, 'Remarks are required.'),
+//         date: z.date({ required_error: 'Date is required' }),
+//         uploadedPhotoPath: z.string().optional(),
+//         feeGroupIds: z
+//             .array(
+//                 z.object({
+//                     ismS_Id: z.number({ required_error: 'Group is required' })
+//                 })
+//             )
+//             .min(1, { message: 'At least one Group must be selected' })
+//     }),
+
+//     delete: z.object({
+//         fmC_Id: deleteIdSchema('fmC_Id')
+//     })
+// };
+
 export const feeTransactionWaivedOffSchema = {
     addOrUpdate: z.object({
         academicYear: z.number({ message: 'Academic year is required' }),
@@ -175,13 +270,7 @@ export const feeTransactionWaivedOffSchema = {
         remarks: z.string().min(1, 'Remarks are required.'),
         date: z.date({ required_error: 'Date is required' }),
         uploadedPhotoPath: z.string().optional(),
-        feeGroupIds: z
-            .array(
-                z.object({
-                    ismS_Id: z.number({ required_error: 'Group is required' })
-                })
-            )
-            .min(1, { message: 'At least one Group must be selected' })
+        feeGroupIds: z.array(z.number()).min(1, { message: 'At least one Group must be selected' })
     }),
 
     delete: z.object({
@@ -343,7 +432,20 @@ export const feesStudentTransactionSchema = {
     addOrUpdate: z.object({
         asmaY_Id: z.number({ required_error: 'Academic year is required' }),
         asmcl_Id: z.number().optional(),
-        asms_Id: z.number().optional()
+        asms_Id: z.number().optional(),
+        modeofPayment: z.string().optional(),
+        narrationId: z.number().optional()
+    })
+};
+
+export const feesStudentTransactionUpdateSchema = {
+    addOrUpdate: z.object({
+        asmaY_Id: z.number({ required_error: 'Academic year is required' }),
+        asmcl_Id: z.number().optional(),
+        asms_Id: z.number().optional(),
+        modeofPayment: z.string().optional(),
+        narrationId: z.number().optional(),
+        studentSearchName: z.string().optional()
     })
 };
 
@@ -352,8 +454,8 @@ export const feesRefundableSchema = {
         refundableflag: z.string().optional(),
         academicYearId: z.number().int({ message: 'Academic Year is required' }),
         sectionId: z.number().int({ message: 'Section is required' }),
-        fR_BankName: createOptionalStringSchema('Bank Name', 1, 100),
-        fR_CheqNo: createNumberOnlyStringSchema('Cheque No.', 13, 100),
+        fR_BankName: createOptionalStringSchema('Bank Name', 1, 100).optional(),
+        fR_CheqNo: createNumberOnlyStringSchema('Cheque No.', 13, 100).optional(),
 
         fR_Date: z.string().min(1, 'Refund date is required').optional(),
 
@@ -469,3 +571,24 @@ export interface IReceiptRow {
     fineamt?: number;
     fsS_AdjustedAmount?: number;
 }
+
+export const feesStaffOtherTransactionSchema = {
+    addOrUpdate: z.object({
+        asmaY_Id: z.number({ required_error: 'Academic year is required' }),
+        amst_Id: z.number().optional(),
+        modeofPayment: z.string().optional(),
+        narrationId: z.number().optional()
+    })
+};
+
+export const amountEntrySchemastThomas = {
+    addOrUpdate: z.object({
+        //asmaY_Id: z.number().int({ message: 'Academic Year is required' }),
+        asmaY_Id: z.number({ message: 'Academic Year is required' }),
+        feeGroupId: z.number({ message: 'Fee Group is required' }),
+        categoryId: z.number({ message: 'Category is required' })
+    }),
+    delete: z.object({
+        fmA_Id: deleteIdSchema('fmA_Id')
+    })
+};

@@ -14,7 +14,7 @@ export async function getConcessionCategoryGroupHeadMappingDetails(searchParams?
         searchParams ?? {},
         'fmcC_Id,fmG_Id,fmH_Id,fmaccG_Id,fmcC_ConcessionName,fmG_GroupName,fmH_FeeName'
     );
-    const url = `/FeeMasterConcession/GetCategoryGroupHeadMappingList/30?${urlParams}`;
+    const url = `/FeeMasterConcession/GetCategoryGroupHeadMappingList?${urlParams}`;
     return await api.get<IConcessionCategoryGroupHeadMappingList[]>('fees', url);
 }
 
@@ -29,18 +29,17 @@ export async function toggleConcessionCategoryGroupHeadMapping(fmaccG_Id: number
 }
 
 export async function getconcessioncategorydropdown() {
-    //const url = 'FeeConcessionFacade/getfeeconcessioncategories/30';
     const url = 'FeeMasterConcession/concession_dropdown_list';
     return await api.get<IConcessionCategoryDropdownList[]>('fees', url);
 }
 
 export async function getcategorygroupdropdown() {
-    const url = '/FeeMasterConcession/group_drop_down_list/30';
+    const url = '/FeeMasterConcession/group_drop_down_list';
     return await api.get<IConcessionCategoryGroupDropdownList[]>('fees', url);
 }
 
 export async function getcategoryheadsdropdown(groupId: number) {
-    const url = `/FeeMasterConcession/head_drop_down_list/30/${groupId}`;
+    const url = `/FeeMasterConcession/head_drop_down_list/${groupId}`;
     console.info('FeeMasterConcession/head_drop_down_list', url);
     return await api.get<IConcessionCategoryHeadsDropdownList[]>('fees', url);
 }

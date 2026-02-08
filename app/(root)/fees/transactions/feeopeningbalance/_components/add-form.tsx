@@ -87,6 +87,8 @@ export default function AddFeeOpeningBalanceForm({
 
     const isPDA = activefee === 'PDA';
 
+    const [changedRefundableType, setChangedRefundableType] = useState<string>('');
+
     // Data Hooks
     const { data: academicYearData, isLoading: loadingAcademicYear } = useopeningacademicyerdropdowndatafee();
     const { data: classData, isLoading: loadingClasses } = useopeningClassdropdowndatafee();
@@ -94,9 +96,23 @@ export default function AddFeeOpeningBalanceForm({
         academicYearId ? Number(academicYearId) : 0,
         classId ? Number(classId) : 0
     );
+    // if (refundableType === 'Refundable') {
+    //     setChangedRefundableType('Refunable');
+    // } else {
+    //     setChangedRefundableType('NonRefundable');
+    // }
+
+    useEffect(() => {
+        if (refundableType === 'Refundable') {
+            setChangedRefundableType('Refunable'); // Keep the typo as required
+        } else {
+            setChangedRefundableType('NonRefundable');
+        }
+    }, [refundableType]);
+
     const { data: refundableData, isLoading: loadingRefundable } = useFeeOpeningRefundable(
         academicYearId ? Number(academicYearId) : 0,
-        refundableType
+        changedRefundableType
     );
     const { data: categoryData, isLoading: loadingCategories } = useopeningCategorydropdowndatafee();
     const { data: groupData, isLoading: loadingGroups } = useopeningGroupdropdowndatafee(headId ? Number(headId) : 0);
@@ -196,12 +212,12 @@ export default function AddFeeOpeningBalanceForm({
         return head?.fmH_FeeName !== 'Other Allowances';
     }, [headId, refundableData]);
 
-    const showFeeInstallment = useMemo(() => {
-        if (!headId || !groupId || !refundableData?.data || !groupData?.data) return false;
-        const head = refundableData.data.find((h: any) => h.fmH_Id === Number(headId))?.fmH_FeeName;
-        const group = groupData.data.find((g: any) => g.fmG_Id === Number(groupId))?.fmG_GroupName;
-        return head === 'TRANSPORT FEE' && group && ['TRANSPORT FEE', 'TRANSPORT OTHER FEE', 'TRANSPORT UKG AND LKG FEE'].includes(group);
-    }, [headId, groupId, refundableData, groupData]);
+    // const showFeeInstallment = useMemo(() => {
+    //     if (!headId || !groupId || !refundableData?.data || !groupData?.data) return false;
+    //     const head = refundableData.data.find((h: any) => h.fmH_Id === Number(headId))?.fmH_FeeName;
+    //     const group = groupData.data.find((g: any) => g.fmG_Id === Number(groupId))?.fmG_GroupName;
+    //     return head === 'TRANSPORT FEE' && group && ['TRANSPORT FEE', 'TRANSPORT OTHER FEE', 'TRANSPORT UKG AND LKG FEE'].includes(group);
+    // }, [headId, groupId, refundableData, groupData]);
 
     const loadStudents = useCallback(async () => {
         if (!academicYearId || !headId) return toast.error('Please select Academic Year and Fee Head');
@@ -221,12 +237,16 @@ export default function AddFeeOpeningBalanceForm({
                 studenttype: activeType,
                 FMG_Id: groupId ? Number(groupId) : 0,
                 FMH_Id: Number(headId),
-                userid: 9,
+                // userid: 9,
                 isPDA: isPDA ? 'Y' : 'N',
                 TempArrayHeadList: [{ FTI_Id: installmentId ? Number(installmentId) : 0 }]
             };
 
+            console.log('payload', JSON.stringify(payload));
+
             const res = await studentListDropdown(payload);
+
+            console.log('studentListDropdown', res);
 
             if (res?.success && res.data?.saveheadlst?.length > 0) {
                 const formatted: StudentRow[] = res.data.saveheadlst.map((s: any) => ({
@@ -276,6 +296,8 @@ export default function AddFeeOpeningBalanceForm({
                 TempHeadList: [{ FTI_Id: installmentId ? Number(installmentId) : 0 }]
             };
 
+            console.log('Payload to submit:', JSON.stringify(payload));
+
             const res = await addOrUpdateFeeOpeningBalance(payload);
             if (res.success || res.returnval) {
                 toast.success('Opening balance saved successfully!');
@@ -292,14 +314,90 @@ export default function AddFeeOpeningBalanceForm({
         }
     };
 
+    // const columns: ColumnDef<StudentRow>[] = useMemo(
+    //     () => [
+    //         // ... your columns (unchanged)
+    //         {
+    //             id: 'select',
+    //             header: () => {
+    //                 const checkedCount = students.filter((s) => s.checked).length;
+    //                 const allChecked = checkedCount === students.length && students.length > 0;
+    //                 const someChecked = checkedCount > 0 && !allChecked;
+
+    //                 return (
+    //                     <Checkbox
+    //                         checked={allChecked}
+    //                         {...(someChecked ? { 'data-state': 'indeterminate' } : {})}
+    //                         onCheckedChange={(checked) => {
+    //                             setStudents((prev) => prev.map((s) => ({ ...s, checked: !!checked })));
+    //                         }}
+    //                     />
+    //                 );
+    //             },
+    //             cell: ({ row }) => (
+    //                 <Checkbox
+    //                     checked={row.original.checked}
+    //                     onCheckedChange={(checked) => {
+    //                         setStudents((prev) => prev.map((s) => (s.amst_Id === row.original.amst_Id ? { ...s, checked: !!checked } : s)));
+    //                     }}
+    //                 />
+    //             ),
+    //             size: 50
+    //         },
+    //         {
+    //             accessorKey: 'fullName',
+    //             header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+    //             size: 300
+    //         },
+    //         {
+    //             accessorKey: 'fmoB_Student_Due',
+    //             header: 'Student Due',
+    //             cell: ({ row }) => (
+    //                 <Input
+    //                     type='number'
+    //                     min='0'
+    //                     step='1'
+    //                     className='w-32 text-right font-medium sm:w-40'
+    //                     value={row.original.fmoB_Student_Due}
+    //                     onChange={(e) => {
+    //                         const val = Number(e.target.value) || 0;
+    //                         setStudents((prev) =>
+    //                             prev.map((s) => (s.amst_Id === row.original.amst_Id ? { ...s, fmoB_Student_Due: val } : s))
+    //                         );
+    //                     }}
+    //                 />
+    //             )
+    //         },
+    //         {
+    //             accessorKey: 'fmoB_Institution_Due',
+    //             header: 'Institution Due',
+    //             cell: ({ row }) => (
+    //                 <Input
+    //                     type='number'
+    //                     min='0'
+    //                     step='1'
+    //                     className='w-32 text-right font-medium sm:w-40'
+    //                     value={row.original.fmoB_Institution_Due}
+    //                     onChange={(e) => {
+    //                         const val = Number(e.target.value) || 0;
+    //                         setStudents((prev) =>
+    //                             prev.map((s) => (s.amst_Id === row.original.amst_Id ? { ...s, fmoB_Institution_Due: val } : s))
+    //                         );
+    //                     }}
+    //                 />
+    //             )
+    //         }
+    //     ],
+    //     [students]
+    // );
     const columns: ColumnDef<StudentRow>[] = useMemo(
         () => [
-            // ... your columns (unchanged)
             {
                 id: 'select',
-                header: () => {
-                    const checkedCount = students.filter((s) => s.checked).length;
-                    const allChecked = checkedCount === students.length && students.length > 0;
+                header: ({ table }) => {
+                    const rows = table.getRowModel().rows;
+                    const checkedCount = rows.filter((r) => r.original.checked).length;
+                    const allChecked = checkedCount === rows.length && rows.length > 0;
                     const someChecked = checkedCount > 0 && !allChecked;
 
                     return (
@@ -322,11 +420,13 @@ export default function AddFeeOpeningBalanceForm({
                 ),
                 size: 50
             },
+
             {
                 accessorKey: 'fullName',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
                 size: 300
             },
+
             {
                 accessorKey: 'fmoB_Student_Due',
                 header: 'Student Due',
@@ -336,9 +436,10 @@ export default function AddFeeOpeningBalanceForm({
                         min='0'
                         step='1'
                         className='w-32 text-right font-medium sm:w-40'
-                        value={row.original.fmoB_Student_Due}
+                        value={row.getValue('fmoB_Student_Due')}
                         onChange={(e) => {
-                            const val = Number(e.target.value) || 0;
+                            const val = e.target.value === '' ? 0 : Number(e.target.value);
+
                             setStudents((prev) =>
                                 prev.map((s) => (s.amst_Id === row.original.amst_Id ? { ...s, fmoB_Student_Due: val } : s))
                             );
@@ -346,6 +447,7 @@ export default function AddFeeOpeningBalanceForm({
                     />
                 )
             },
+
             {
                 accessorKey: 'fmoB_Institution_Due',
                 header: 'Institution Due',
@@ -355,9 +457,10 @@ export default function AddFeeOpeningBalanceForm({
                         min='0'
                         step='1'
                         className='w-32 text-right font-medium sm:w-40'
-                        value={row.original.fmoB_Institution_Due}
+                        value={row.getValue('fmoB_Institution_Due')}
                         onChange={(e) => {
-                            const val = Number(e.target.value) || 0;
+                            const val = e.target.value === '' ? 0 : Number(e.target.value);
+
                             setStudents((prev) =>
                                 prev.map((s) => (s.amst_Id === row.original.amst_Id ? { ...s, fmoB_Institution_Due: val } : s))
                             );
@@ -366,7 +469,7 @@ export default function AddFeeOpeningBalanceForm({
                 )
             }
         ],
-        [students]
+        [setStudents] // ✅ ONLY stable deps
     );
 
     return (
@@ -610,33 +713,33 @@ export default function AddFeeOpeningBalanceForm({
                     )}
 
                     {/* Installment */}
-                    {showFeeInstallment && (
-                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                            <Label className='w-44 text-right'>Installment</Label>
-                            <div className='w-full sm:w-96'>
-                                <Controller
-                                    name='installmentId'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Select
-                                            onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
-                                            value={field.value?.toString()}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={loadingInstallments ? 'Loading...' : 'Select Installment'} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {installmentData?.data?.map((item: any) => (
-                                                    <SelectItem key={item.ftI_Id} value={String(item.ftI_Id)}>
-                                                        {item.ftI_Name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
-                                />
-                            </div>
+                    {/* {showFeeInstallment && ( */}
+                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                        <Label className='w-44 text-right'>Installment</Label>
+                        <div className='w-full sm:w-96'>
+                            <Controller
+                                name='installmentId'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
+                                        value={field.value?.toString()}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={loadingInstallments ? 'Loading...' : 'Select Installment'} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {installmentData?.data?.map((item: any) => (
+                                                <SelectItem key={item.ftI_Id} value={String(item.ftI_Id)}>
+                                                    {item.ftI_Name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                         </div>
-                    )}
+                    </div>
+                    {/* )} */}
                 </div>
 
                 {/* Right Column - UNCHANGED */}

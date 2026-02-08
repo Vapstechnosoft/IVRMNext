@@ -38,7 +38,7 @@ export default function ToggleCoScholasticActivityAreaForm({ rowData, onClose }:
 
     const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
-            const response = await toggleCoScholasticActivityArea(30, Number(rowData.ecactaM_Id));
+            const response = await toggleCoScholasticActivityArea(Number(rowData.ecactaM_Id));
             if (response.success) {
                 toast.success(response.message);
                 refetchAll();

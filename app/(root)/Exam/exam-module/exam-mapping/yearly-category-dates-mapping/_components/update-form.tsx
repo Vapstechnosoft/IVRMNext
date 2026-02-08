@@ -34,7 +34,7 @@ export default function UpdateYearlyCategoryDatesMapping({ selectedRow, onSucces
         mode: 'all',
         defaultValues: {
             eyC_Id: selectedRow.eyC_Id,
-            mI_Id: 30,
+            // mI_Id: 30,
             asmaY_Id: selectedRow.asmaY_Id,
             emcA_Id: selectedRow.emcA_Id,
             eyC_ExamStartDate: selectedRow.eyC_ExamStartDate?.split('T')[0],
@@ -49,7 +49,7 @@ export default function UpdateYearlyCategoryDatesMapping({ selectedRow, onSucces
         if (selectedRow) {
             methods.reset({
                 eyC_Id: selectedRow.eyC_Id,
-                mI_Id: 30,
+                // mI_Id: 30,
                 asmaY_Id: selectedRow.asmaY_Id,
                 emcA_Id: selectedRow.emcA_Id,
                 eyC_ExamStartDate: selectedRow.eyC_ExamStartDate?.split('T')[0],
@@ -81,7 +81,7 @@ export default function UpdateYearlyCategoryDatesMapping({ selectedRow, onSucces
         if (!selectedYearId) return;
         async function fetchCategories() {
             try {
-                const { data: cats } = await getCategoryDropDownByAcademicYearlist(orgId, selectedYearId);
+                const { data: cats } = await getCategoryDropDownByAcademicYearlist(selectedYearId);
                 setCategories(Array.isArray(cats) ? cats : []);
             } catch (err: any) {
                 toast.error(err?.message ?? 'Failed to load categories');

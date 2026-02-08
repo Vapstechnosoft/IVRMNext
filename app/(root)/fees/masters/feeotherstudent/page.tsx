@@ -125,8 +125,8 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add Student Fee Group Mapping'
-                        description='Fill in the details below to create a New Student Fee Group Mapping'
+                        title='Add Fee Other Student'
+                        description='Fill in the details below to create a New Fee Other Student'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
