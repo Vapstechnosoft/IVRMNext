@@ -120,19 +120,19 @@ export const qualificationDetailSchema = z
 export const experienceDetailSchema = z
     .object({
         hrmeE_Id: z.number().optional(), // ID for updates
-        organisationName: z.string().min(1, 'Organisation Name is required').max(255, 'Organisation Name must not exceed 255 characters'),
+        organisationName: z.string().max(255, 'Organisation Name must not exceed 255 characters').optional(),
         organisationAddress: z
             .string()
-            .min(1, 'Organisation Address is required')
-            .max(500, 'Organisation Address must not exceed 500 characters'),
-        department: z.string().min(1, 'Department is required').max(100, 'Department must not exceed 100 characters'),
+            .max(500, 'Organisation Address must not exceed 500 characters')
+            .optional(),
+        department: z.string().max(100, 'Department must not exceed 100 characters').optional(),
         designation: z.string().max(100, 'Designation must not exceed 100 characters').optional(),
-        joinDate: z.string().min(1, 'Date of Joining is required'),
-        exitDate: z.string().min(1, 'Date of Leaving is required'),
+        joinDate: z.string().optional(),
+        exitDate: z.string().optional(),
         noOfYears: z.string().optional(),
         noOfMonths: z.string().optional(),
         annualSalary: z.string().optional(),
-        reasonForLeaving: z.string().min(1, 'Reason For Leaving is required').max(500, 'Reason For Leaving must not exceed 500 characters')
+        reasonForLeaving: z.string().max(500, 'Reason For Leaving must not exceed 500 characters').optional()
     })
     .refine(
         (data) => {
@@ -153,10 +153,9 @@ export const documentSchema = z.object({
     documentDescription: z.string().min(1, 'Document Description is required').max(400, 'Document Description must not exceed 400 characters'),
     document: z
         .any()
-        .optional()
         .refine((file) => {
-            // Handle null/undefined (for edit mode when document is not changed)
-            if (!file) return true;
+            // Handle null/undefined
+            if (!file) return false;
             // Handle FileList - extract first file
             let actualFile: File | null = null;
             if (file instanceof FileList) {
@@ -166,12 +165,13 @@ export const documentSchema = z.object({
             } else if (Array.isArray(file) && file.length > 0 && file[0] instanceof File) {
                 // Handle array of files (sometimes React Hook Form returns arrays)
                 actualFile = file[0];
-            } else {
-                // For edit mode, document might be a string (existing file name) or other type
-                // Allow it to pass validation if it's not a File/FileList
+            } else if (typeof file === 'string' && file.length > 0) {
+                // For edit mode, document might be a string (existing file path/base64)
                 return true;
             }
-            if (!actualFile) return true;
+
+            if (!actualFile) return false;
+
             const maxSize = 2 * 1024 * 1024; // 2MB
             const allowedTypes = [
                 'image/jpeg',
@@ -180,7 +180,7 @@ export const documentSchema = z.object({
                 'application/pdf'
             ];
             return actualFile.size <= maxSize && allowedTypes.includes(actualFile.type);
-        }, 'File must be JPEG, DOC, DOCX, or PDF and not exceed 2MB')
+        }, 'upload document is mandatory (JPEG, DOC, DOCX, or PDF, max 2MB)')
 });
 
 // Payroll Item Schema (for earnings, deductions, arrears)
@@ -219,7 +219,7 @@ export const employeeRegisterFormSchema = z
         bloodGroup: z.string().optional(),
         salaryType: z.string().min(1, 'Salary Type Required'),
         modeOfPayment: z.string().min(1, 'Mode of Payment Required'),
-        employeePhoto: z.string().optional(),
+        employeePhoto: z.string().min(1, 'Employee Photo Required'),
         subjectTaught: z.string().max(50, 'Subject Taught must not exceed 50 characters').optional(),
         epf: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
         ppf: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
@@ -319,7 +319,7 @@ export const employeeRegisterFormSchema = z
         // Other tabs
         qualificationDetails: z.array(qualificationDetailSchema).optional(),
         experienceDetails: z.array(experienceDetailSchema).optional(),
-        documentList: z.array(documentSchema).optional(),
+        documentList: z.array(documentSchema).min(1, 'Please add at least one document'),
         employeeHeight: z
             .string()
             .optional()

@@ -2327,7 +2327,7 @@ export async function getUserAccessibleModules() {
                         //         }
                         //     ]
                         // },
-                        // {
+                        // ,{
                         //     id: 4,
                         //     name: 'Leave Management',
                         //     icon: 'Calendar',
