@@ -177,10 +177,6 @@ class ApiService {
                         console.error('Error refreshing session:', refreshError);
                     }
                 }
-<<<<<<< HEAD
-                // Do not call handleError here, let the caller handle it so we don't lose the original error object properties
-=======
->>>>>>> 6003fb4427d8a5b5a7a8506f8d421a175d544018
                 return Promise.reject(error);
             }
         );
