@@ -1,8 +1,6 @@
 'use client';
 
-import {
-    useTimeTableAcademicYear
-} from '@/hooks/timetable/useMasters';
+import { useTimeTableAcademicYear } from '@/hooks/timetable/useMasters';
 import { useMemo } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -11,11 +9,11 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+import { staffdropdowndatattstaffreport } from '@/hooks/timetable/reports';
 import { staffWiseReportSchema } from '@/schemas/timetable/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Search, X } from 'lucide-react';
-import { Controller, SubmitHandler, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
+import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof staffWiseReportSchema.search>;
@@ -35,10 +33,17 @@ export default function StaffWiseForm({ initialData, onSubmit, onSuccess, onCanc
         refetchAll: refetchAllAcademicYear
     } = useTimeTableAcademicYear();
 
+    const {
+        data: staffdata,
+        isLoading: staffdropdowndatattstaffreportloading,
+        error: staffdropdowndatattstaffreporterror,
+        refetchAll: refetchAllstaffdropdowndatattstaffreport
+    } = staffdropdowndatattstaffreport();
+
     const academicList = academicyeardata?.data || [];
 
     // Use initialData for these lists
-    const staffList = initialData?.stafflist || [];
+    const staffList = staffdata?.data || [];
     const periodList = initialData?.periodslst || [];
     const daysList = initialData?.dayslst_fix || [];
 
@@ -65,11 +70,10 @@ export default function StaffWiseForm({ initialData, onSubmit, onSuccess, onCanc
         });
 
         return Array.from(uniqueMap.values()).map((s: any) => ({
-            label: s.staffName || s.empName || s.hrmE_EmployeeName || "",
+            label: s.staffName || s.empName || s.hrmE_EmployeeName || '',
             value: (s.hrmE_Id || s.HRME_Id).toString()
         }));
     }, [staffList]);
-
 
     const {
         control,
