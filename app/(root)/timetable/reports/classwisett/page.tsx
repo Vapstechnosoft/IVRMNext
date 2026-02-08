@@ -1,20 +1,19 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { getClassWiseReport, getClassWiseReportDetails } from '@/server/timetable/reports/classwisett';
-import { Download, Printer } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-//
-import * as XLSX from 'xlsx';
+import { toast } from 'sonner';
 import ClassWiseForm from './_components/classwise-form';
+import ClassWiseReportGrid from './_components/classwise-report-grid';
+import ClassWiseReportPrintable from './_components/classwise-report-printable';
 
 export default function ClassWiseReportPage() {
     const [initialData, setInitialData] = useState<any>({});
     const [reportData, setReportData] = useState<any[]>([]);
-    const [error, setError] = useState<string | null>(null);
+    const [isReportVisible, setIsReportVisible] = useState(false);
     const [loading, setLoading] = useState(false);
-    const componentRef = useRef<HTMLDivElement>(null);
+    const printRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -22,12 +21,9 @@ export default function ClassWiseReportPage() {
                 const data = await getClassWiseReportDetails({});
                 if (data) {
                     setInitialData(data);
-                } else {
-                    setError('No data received from server.');
                 }
             } catch (error: any) {
-                ////console.error('Error fetching initial details', error);
-                //setError(error.message || 'Failed to fetch report details.');
+                console.error('Error fetching initial details', error);
             }
         };
         fetchDetails();
@@ -35,14 +31,23 @@ export default function ClassWiseReportPage() {
 
     const handleFormSubmit = async (payload: any) => {
         setLoading(true);
-        setError(null);
         try {
             const response = await getClassWiseReport(payload);
-            processReportData(response, payload.classarray, payload.sectionarray);
+            if ((response as AnalyserOptions) && response.tt) {
+                //&& response.tt.length > 0
+                processReportData(response, payload.classarray, payload.sectionarray);
+                setIsReportVisible(true);
+                toast.success('Report generated successfully');
+            } else {
+                toast.error('TimeTable is Not Generated For Selected Details !!!!');
+                setReportData([]);
+                setIsReportVisible(false);
+            }
         } catch (error: any) {
-            //console.error('Error generating report', error);
-            setError(error.message || 'Failed to generate report.');
+            console.error('Error generating report', error);
+            toast.error(error.message || 'Failed to generate report.');
             setReportData([]);
+            setIsReportVisible(false);
         } finally {
             setLoading(false);
         }
@@ -50,16 +55,10 @@ export default function ClassWiseReportPage() {
 
     const handleCancel = () => {
         setReportData([]);
-        setError(null);
+        setIsReportVisible(false);
     };
 
     const processReportData = (data: any, selectedClasses: any[], selectedSections: any[]) => {
-        if (!data.tt || data.tt.length === 0) {
-            setError('No TimeTable generated for the selected details.');
-            setReportData([]);
-            return;
-        }
-
         const processedList: any[] = [];
         const periodList = data.periodslst || [];
         const breakList = data.tT_Break_list || [];
@@ -67,13 +66,9 @@ export default function ClassWiseReportPage() {
         const gridWeeks = data.gridweeks || [];
         const timetable = data.tt || [];
 
-        // Iterate through each selected class
         selectedClasses.forEach((cls: any) => {
-            // Construct Period List with Breaks for this class
             const classPeriodList: any[] = [];
             periodList.forEach((period: any) => {
-                let breakFlag = false;
-                // Check if there is a break after this period for this class
                 const breakItem = breakList.find(
                     (b: any) => b.asmcL_Id === cls.asmcL_Id && Number.parseFloat(period.ttmP_PeriodName) === b.ttmB_AfterPeriod
                 );
@@ -82,18 +77,15 @@ export default function ClassWiseReportPage() {
 
                 if (breakItem) {
                     classPeriodList.push({ ped_id: 0, ped_name: 'Break', brk_name: breakItem.ttmB_BreakName, is_break: true });
-                    breakFlag = true;
                 }
             });
 
-            // Iterate through each selected section
             selectedSections.forEach((sec: any) => {
                 const tableRows: any[] = [];
 
                 gridWeeks.forEach((day: any) => {
                     const rowCells: any[] = [];
-                    classPeriodList.forEach((periodCol: any) => {
-                        // Find timetable entry
+                    classPeriodList.forEach((periodCol: any, pIdx: number) => {
                         let cellContent = '';
                         let cellColor = 'black';
 
@@ -107,59 +99,29 @@ export default function ClassWiseReportPage() {
                             );
 
                             if (entries.length > 0) {
-                                cellContent = entries
-                                    .map(
-                                        (t: any) => `${t.asmcL_ClassName} : ${t.asmC_SectionName} : ${t.ismS_SubjectName} : ${t.staffName}`
-                                    )
-                                    .join(' && ');
+                                cellContent = entries.map((t: any) => `${t.ismS_SubjectName} : ${t.staffName}`).join(' && ');
                             }
                         } else {
-                            // Handle Break
-                            // Check if this specific break applies to this day
-                            // AngularJS logic: check `tT_Break_list_all` for current day and class and after period
-                            // current periodCol corresponds to a break. The PREVIOUS period was the trigger.
-                            // But here we stored it as a separate item.
-                            // We need to know which period this break is 'after'.
-                            // However, in the loop above we just pushed it.
-                            // Let's refine the loop strategy or look up 'allBreakList'.
+                            // Break Handling logic from Angular
+                            // Previous period ped_id
+                            const prevPeriodId = pIdx > 0 ? classPeriodList[pIdx - 1].ped_id : -1;
 
-                            // Re-implementing logic:
-                            // We need to find if there is a break for THIS DAY, THIS CLASS, appearing after the previous period.
-                            // But periodCol doesn't easily track 'previous period'.
-                            // A simpler way: The break item in `classPeriodList` is static for the table header.
-                            // But for the cell content, we check `tT_Break_list_all`.
-
-                            const periodBeforeBreak = periodList.find(
-                                (p: any) =>
-                                    classPeriodList.indexOf(periodCol) > 0 &&
-                                    classPeriodList[classPeriodList.indexOf(periodCol) - 1].ped_id === p.ttmP_Id
-                            );
-
-                            // Actually, in the construction above:
-                            // classPeriodList.push({ ped_id: period.ttmP_Id ... })
-                            // if(break) classPeriodList.push({ ped_id: 0 ... })
-
-                            // So if this is a break col, the previous one in `classPeriodList` is the period it follows.
-                            const prevIndex = classPeriodList.indexOf(periodCol) - 1;
-                            const prevPeriodId = prevIndex >= 0 ? classPeriodList[prevIndex].ped_id : -1;
-
-                            // Find if we have a break definition for this day
-                            // Angular: if ($scope.day_list[j].ttmD_Id == promise.tT_Break_list_all[x].ttmD_Id && ... )
-                            const dayBreak = allBreakList.find(
+                            const daySpecificBreak = allBreakList.find(
                                 (b: any) =>
                                     b.ttmD_Id === day.ttmD_Id &&
                                     b.asmcL_Id === cls.asmcL_Id &&
-                                    // We need to match period name to 'AfterPeriod' float comparison?
-                                    // In construction we used `period.ttmP_PeriodName`.
-                                    // Let's try to match by finding the period object for `prevPeriodId`
-                                    periodList.some(
+                                    // Match by AfterPeriod float
+                                    periodList.find(
                                         (p: any) =>
                                             p.ttmP_Id === prevPeriodId && Number.parseFloat(p.ttmP_PeriodName) === b.ttmB_AfterPeriod
                                     )
                             );
 
-                            if (dayBreak) {
-                                cellContent = dayBreak.ttmB_BreakName;
+                            if (daySpecificBreak) {
+                                cellContent = daySpecificBreak.ttmB_BreakName;
+                                cellColor = 'red';
+                            } else {
+                                cellContent = periodCol.brk_name || 'Break';
                                 cellColor = 'red';
                             }
                         }
@@ -186,125 +148,22 @@ export default function ClassWiseReportPage() {
     };
 
     const handlePrint = () => {
-        if (!componentRef.current) return;
-
-        const printWindow = window.open('', '', 'width=1200,height=800');
-        if (!printWindow) return;
-
-        const content = componentRef.current.innerHTML;
-
-        printWindow.document.write(`
-            <html>
-                <head>
-                    <title>Class Wise TimeTable Report</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; padding: 20px; }
-                        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                        th, td { border: 1px solid #000; padding: 8px; text-align: center; font-size: 12px; }
-                        th { background-color: #f3f3f3; font-weight: bold; }
-                        h3 { text-align: center; color: green; margin-bottom: 10px; }
-                        .page-break-after-always { page-break-after: always; }
-                    </style>
-                </head>
-                <body>
-                    ${content}
-                </body>
-            </html>
-        `);
-
-        printWindow.document.close();
-        printWindow.focus();
-        setTimeout(() => {
-            printWindow.print();
-            printWindow.close();
-        }, 500);
-    };
-
-    const handleExport = () => {
-        // Simple export of the visible tables
-        // Since we have multiple tables, we might need a different approach or export one by one.
-        // For simplicity, we can create a workbook with multiple sheets or one big sheet.
-        // Let's verify requirement: "Export to Excel" singular.
-
-        // We can grab the HTML table and convert.
-        if (componentRef.current) {
-            const wb = XLSX.utils.table_to_book(componentRef.current);
-            XLSX.writeFile(wb, 'ClassWiseTimeTable.xlsx');
-        }
+        window.print();
     };
 
     return (
-        <div className='container space-y-4 p-1'>
-            <CollapsibleSection title='Class Wise TimeTable Report' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
+        <div className='container mx-auto space-y-6 p-4'>
+            <CollapsibleSection title='Class Wise TimeTable Report' defaultOpen={true}>
                 <ClassWiseForm initialData={initialData} onSubmit={handleFormSubmit} onCancel={handleCancel} />
-                {/* {error && (
-                    <div className='p-4 text-center text-red-500 text-sm'>
-                        <p>{error}</p>
-                    </div>
-                )} */}
             </CollapsibleSection>
 
-            {reportData.length > 0 && (
-                <CollapsibleSection title='Report Grid' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
-                    <div className='mb-4 flex justify-end space-x-2'>
-                        <Button variant='outline' onClick={handleExport}>
-                            <Download className='mr-2 h-4 w-4' />
-                            Export to Excel
-                        </Button>
-                        <Button
-                            variant='outline'
-                            //onClick={handlePrint}
-                        >
-                            <Printer className='mr-2 h-4 w-4' />
-                            Print
-                        </Button>
-                    </div>
+            {isReportVisible && (
+                <CollapsibleSection title='Grid View' defaultOpen={true}>
+                    <ClassWiseReportGrid reportData={reportData} onPrint={handlePrint} />
 
-                    <div className='overflow-x-auto rounded-lg bg-white p-4' ref={componentRef}>
-                        {reportData.map((table, idx) => (
-                            <div key={idx} className='page-break-after-always mb-8'>
-                                <h3 className='mb-2 text-center font-bold text-green-700 text-lg'>{table.header}</h3>
-                                <table className='w-full min-w-[800px] border-collapse border border-gray-300'>
-                                    <thead>
-                                        <tr className='bg-gray-100'>
-                                            <th className='border border-gray-300 p-2 text-center font-bold'>Day / Period</th>
-                                            {table.periodList.map((p: any, pIdx: number) => (
-                                                <th key={pIdx} className='border border-gray-300 p-2 text-center font-bold'>
-                                                    {p.is_break ? 'Break' : `Period ${p.ped_name}`}
-                                                </th>
-                                            ))}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {table.rows.map((row: any, rIdx: number) => (
-                                            <tr key={rIdx} className={rIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                                <td className='border border-gray-300 p-2 text-center font-medium text-blue-600'>
-                                                    {row.dayName}
-                                                </td>
-                                                {row.cells.map((cell: any, cIdx: number) => (
-                                                    <td
-                                                        key={cIdx}
-                                                        className='border border-gray-300 p-2 text-center text-sm'
-                                                        style={{ color: cell.color }}>
-                                                        {cell.content}
-                                                    </td>
-                                                ))}
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        ))}
-                    </div>
+                    <ClassWiseReportPrintable ref={printRef} reportData={reportData} />
                 </CollapsibleSection>
             )}
-            <style jsx global>{`
-                @media print {
-                    .page-break-after-always {
-                        page-break-after: always;
-                    }
-                }
-            `}</style>
         </div>
     );
 }
