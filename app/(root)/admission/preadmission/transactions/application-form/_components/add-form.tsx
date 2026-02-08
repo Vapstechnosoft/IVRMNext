@@ -861,7 +861,12 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
     // Add this handler where other form handlers are defined
     const handleDOBChange = (date: Date | undefined) => {
+        console.log('handleDOBChange called with:', date);
+        console.log('masterConfig:', masterConfig);
+        console.log('preadmissionClass:', preadmissionClass);
+
         if (!date || !masterConfig?.data) {
+            console.log('Date or masterConfig missing. Disabling class dropdown.');
             setIsClassDisabled(true);
             setFilteredClasses([]);
             setValue('asmcL_Id', 0);
@@ -869,12 +874,14 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         }
 
         const allClasses = preadmissionClass?.data || [];
+        console.log('All classes:', allClasses);
 
         const validClasses: IPreadmissionClassDropdown[] = [];
         const invalidClasses: IPreadmissionClassDropdown[] = [];
 
         allClasses.forEach((classItem: IPreadmissionClassDropdown) => {
             const validation = validateAgeForClass(date, classItem, masterConfig.data);
+            console.log(`Validation for class ${classItem.asmcL_ClassName}:`, validation);
             if (validation.isValid) {
                 validClasses.push(classItem);
             } else {
@@ -882,18 +889,30 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             }
         });
 
+        console.log('Valid classes:', validClasses);
         setFilteredClasses(validClasses);
 
         if (validClasses.length === 0) {
+            console.log('No eligible classes found.');
             setIneligibleClasses(invalidClasses);
             setShowIneligibleDialog(true);
             setIsClassDisabled(true);
             setValue('asmcL_Id', 0);
         } else {
+            console.log('Eligible classes found. Enabling dropdown.');
             setIsClassDisabled(false);
             setValue('asmcL_Id', 0);
         }
     };
+
+    // Reactively validate classes when DOB or config/master data changes
+    useEffect(() => {
+        const dob = getValues('pasR_DOB');
+        if (dob) {
+            handleDOBChange(dob);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [watch('pasR_DOB'), masterConfig, preadmissionClass]);
 
     const handleFatherPhotoUpload = async (file: File) => {
         try {
@@ -1361,7 +1380,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     onSelect={(date: Date | undefined) => {
                                                                         if (date) {
                                                                             field.onChange(date);
-                                                                            handleDOBChange(date);
                                                                             setOpenPopover(null);
                                                                         }
                                                                     }}
@@ -1611,7 +1629,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     render={({ field }) => (
                                                         <Select
                                                             key={field.value || 'empty'}
-                                                            onValueChange={(value) => field.onChange(value)}
+                                                            onValueChange={(value) => field.onChange(Number(value))}
                                                             value={field.value?.toString() || ''}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select nationality' />
@@ -1626,7 +1644,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         Error loading
                                                                     </SelectItem>
                                                                 ) : (
-                                                                    country?.data?.map((item) => (
+                                                                    country?.data?.map((item: any) => (
                                                                         <SelectItem key={item.ivrmmC_Id} value={item.ivrmmC_Id.toString()}>
                                                                             {item.ivrmmC_CountryName}
                                                                         </SelectItem>
