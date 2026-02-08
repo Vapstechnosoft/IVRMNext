@@ -352,13 +352,9 @@ function MarksEntryContent() {
     }, [selectedAcademicYear, selectedClass, selectedSectionId, selectedExam]);
 
     /* -------------------------
-       Close grid when subject changes (forces re-search)
+       Note: Grid is NOT auto-closed when subject changes.
+       User must click SEARCH button to fetch new data.
        ------------------------- */
-    useEffect(() => {
-        setIsStudentsGridOpen(false);
-        setSubjectMeta(null);
-        setStudents([]);
-    }, [selectedSubjectId]);
 
     /* ----------
        handleSearch -> fetch subject+students
@@ -734,6 +730,8 @@ function MarksEntryContent() {
                                 ISMS_Id={selectedSubjectId === undefined ? null : selectedSubjectId}
                                 onSave={async (data) => {
                                     console.info('Saving data:', data);
+                                    // Refresh the grid after successful save
+                                    await handleSearch();
                                 }}
                                 onClose={() => setIsStudentsGridOpen(false)}
                             />

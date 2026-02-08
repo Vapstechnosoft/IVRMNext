@@ -338,11 +338,18 @@ function StudentSubjectMappingContent() {
             console.info('Payload:', payload);
             const response = await addOrUpdateStudentSubjectMappings(payload);
             if (response.success) {
+                toast.success(response.message || 'Mapping saved successfully');
+
+                // Close the grid and reset all related state
                 setIsGridOpen(false);
                 setStudents([]);
                 setSubjects([]);
-                toast.success(response.message || 'Mapping saved successfully');
+                setPayload(null);
 
+                // Reset the table if ref is available
+                if (tableRef.current) {
+                    tableRef.current.reset();
+                }
             } else {
                 toast.error(response.message || 'Failed to save mapping');
             }
@@ -673,14 +680,14 @@ function StudentSubjectMappingContent() {
                                 deactive_Flag={getValues('Deactive_Flag') ?? true}
                             />
 
-                            <div className='flex w-fit justify-end gap-3 border-t p-4'>
+                            {payload !== null && <div className='flex w-fit justify-end gap-3 border-t p-4'>
                                 <Button variant='outline' onClick={() => tableRef.current?.reset()}>
                                     Cancel
                                 </Button>
                                 <Button type='submit' onClick={handleSave}>
                                     Save Mapping
                                 </Button>
-                            </div>
+                            </div>}
                         </CollapsibleSection>
                     )}
                 </div>

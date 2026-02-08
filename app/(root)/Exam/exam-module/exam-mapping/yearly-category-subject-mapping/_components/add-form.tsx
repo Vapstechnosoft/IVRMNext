@@ -24,14 +24,14 @@ type FormFields = z.infer<typeof categorySubjectMappingSchema.addOrUpdate>;
 export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess?: () => void }, rowData?: IYearlyCategorySubjectMapping) {
     const methods = useForm<FormFields>({
         resolver: zodResolver(categorySubjectMappingSchema.addOrUpdate),
-        mode: 'all',
+        mode: 'onSubmit',
         defaultValues: {
             userId: 1,
             eycG_Id: 0,
             // mI_Id: 30,
-            asmaY_Id: 0,
-            emcA_Id: 0,
-            emG_Id: 0,
+            asmaY_Id: undefined,
+            emcA_Id: undefined,
+            emG_Id: undefined,
             subjects_list: [],
             eyC_BasedOnPaperTypeFlg: false
         }
@@ -49,9 +49,9 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
             userId: 1,
             eycG_Id: rowData?.eycG_Id ?? 0,
             // mI_Id: 30,
-            asmaY_Id: rowData?.asmaY_Id ?? 0,
-            emcA_Id: 0,
-            emG_Id: rowData?.emG_Id ?? 0,
+            asmaY_Id: rowData?.asmaY_Id ?? undefined,
+            emcA_Id: undefined,
+            emG_Id: rowData?.emG_Id ?? undefined,
             subjects_list: [],
             eyC_BasedOnPaperTypeFlg: rowData?.eyC_BasedOnPaperTypeFlg ?? false
         });
@@ -130,9 +130,9 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
                 userId: 1,
                 eycG_Id: 0,
                 // mI_Id: 30,
-                asmaY_Id: 0,
-                emcA_Id: 0,
-                emG_Id: 0,
+                asmaY_Id: undefined,
+                emcA_Id: undefined,
+                emG_Id: undefined,
                 subjects_list: [],
                 eyC_BasedOnPaperTypeFlg: false
             },

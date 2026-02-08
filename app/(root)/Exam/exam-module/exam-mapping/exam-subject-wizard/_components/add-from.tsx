@@ -35,10 +35,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import SubExamModal from './subexam-model';
 import SubjectTable from './subject-table';
 import SubSubjectModal from './subsubject-modal';
 import SubSubjectSubExamModal from './subsubject-subexam-model';
+import SubExamModal from './subexam-model';
 
 type FormFields = z.infer<typeof ExamSubjectWizardSchema.addOrUpdate>;
 
@@ -451,12 +451,10 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     // ------------------- Modal open/prepare handlers -------------------
     const onOpenSubExamModal = async (subject: any) => {
         try {
-            setSubExamModalState({ open: true, subject });
+            setSubExamModalState({ open: true });
             const configList = Array.isArray(subject.subExamConfig) ? subject.subExamConfig : [];
-
-            console.log('open subexammodel configList', configList);
-            console.log('open subexammodel configList', configList);
-            console.log('open subexammodel subExams (master)', subExams);
+            console.log('config subexams', configList);
+            console.log('subExams', subExams);
             const updatedList = subExams.map((item: any) => {
                 const cfg = configList.find((c: any) => Number(c.EMSE_Id) === Number(item.emsE_Id));
 
@@ -464,7 +462,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     return { ...item, checkedvalue: false };
                 }
 
-                console.log('Found config for', item.emsE_Id, cfg);
+                console.log('Found config for', item, cfg);
                 return {
                     ...item,
                     ...cfg,
@@ -501,6 +499,8 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
             const safeSubSubjectList = Array.isArray(subject.subSubjectConfig) ? subject.subSubjectConfig : [];
             // Merge master list with config list
+            console.log('config subsubjects', safeSubSubjectList);
+            console.log('subSubjects', subSubjects);
             const updatedList = subSubjects.map((item: any) => {
                 const matched = safeSubSubjectList.find((ss: any) => ss.emsS_Id === item.emsS_Id);
 
@@ -515,6 +515,9 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 return {
                     ...item,
                     eycessS_SubSubjectOrder: item.emsS_Order,
+                    eycessS_GradeDisplayFlg: item.emsS_GradeDisplayFlg,
+                    eycessS_MarksDisplayFlg: item.emsS_MarksDisplayFlg,
+                    //eycessS_s
                     checkedvalue: false
                 };
             });
@@ -526,6 +529,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     list: updatedList
                 }
             });
+            console.log('updatedList', updatedList);
         } catch {
             setSubSubjectModalState({
                 open: true,
@@ -695,6 +699,10 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     EYCESSE_ExemptedFlg: !!(se.EYCESSE_ExemptedFlg ?? se.eycessS_ExemptedFlg),
                     EYCESSE_ExemptedPer: Number(se.EYCESSE_ExemptedPer ?? se.eycessS_ExemptedPer ?? 0) || 0,
                     EYCESSE_ActiveFlg: se.EYCESSE_ActiveFlg ?? true,
+                    EYCESSE_MarksFlg: se.EYCESSS_MarksFlg ?? true,
+                    EYCESSE_GradeFlg: se.EYCESSS_GradeFlg ?? true,
+                    EYCESSS_AplResultFlg: se.EYCESSS_AplResultFlg ?? true,
+                    EYCESSS_MarksEntryMax: Number(se.EYCESSS_MarksEntryMax ?? se.eycessS_MarksEntryMax ?? 0) || 0,
                     // Standardized payload format
                     EMSE_Id: se.EMSE_Id ?? se.emsE_Id ?? se.EMSE_Id,
                     EMSE_SubExamOrder: se.emsE_SubExamOrder ?? idx + 1,
@@ -812,7 +820,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 ASMAY_Id: Number(values.ASMAY_Id) ?? 0,
                 ASMAY_Year: '',
                 EYCE_BestOfApplicableFlg: values.EYCE_BestOfApplicableFlg ?? true,
-                EYCE_BestOf: values.EYCE_BestOf ?? 5,
+                EYCE_BestOf: values.EYCE_BestOf ?? 0,
                 EYCE_AttendanceFromDate: toBackendDate(values.EYCE_AttendanceFromDate),
                 EYCE_AttendanceToDate: toBackendDate(values.EYCE_AttendanceToDate),
                 exams_list,
@@ -1006,7 +1014,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                             fieldState={fieldState}
                                             label='Attendance From'
                                             placeholder='Select Attendance From Date'
-                                            fromDate={today}
+                                            //fromDate={today}
                                             toDate={watch('EYCE_AttendanceToDate') ? new Date(watch('EYCE_AttendanceToDate')) : undefined}
                                             restricted_tofieldName='Attendence To-Date'
                                             restricted_fromfieldName='Attendence From-Date'
@@ -1193,8 +1201,8 @@ const mapToSubSubjectConfig = (l: any) => ({
     EMGR_Id: l.emgR_Id ?? '',
     eycessS_ExemptedFlg: l.eycessS_ExemptedFlg,
     eycessS_ExemptedPer: l.eycessS_ExemptedPer ?? '',
-    eycessS_MarksDisplayFlg: l.eycessS_MarksFlg,
-    eycessS_GradeDisplayFlg: l.eycessS_GradesFlg,
+    eycessS_MarksDisplayFlg: l.eycessS_MarksDisplayFlg,
+    eycessS_GradeDisplayFlg: l.eycessS_GradeDisplayFlg,
     eycessS_AplResultFlg: l.eycessS_AplResultFlg,
     eycessS_SubSubjectOrder: l.eycessS_SubSubjectOrder
 });
