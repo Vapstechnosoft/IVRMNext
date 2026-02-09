@@ -30,7 +30,7 @@ export default function StudentComplaintsViewClient({
         setIsLoading(true);
         try {
             const response = await getStudentComplaintsReport({ ASMAY_Id: Number(yearId) });
-            if (response && response.studentdivlist) {
+            if (response?.studentdivlist) {
                 setData(response.studentdivlist);
             } else {
                 setData([]);
