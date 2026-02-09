@@ -6,7 +6,7 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ISchoolSubjectTopicMapping } from '@/types/lesson-planner/transactions/school-subject-master-topic-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Pencil, Eye } from 'lucide-react';
+import { Eye, Pencil } from 'lucide-react';
 import { useCallback } from 'react';
 
 export const SchoolSubjectTopicMappingColumns: ColumnDef<ISchoolSubjectTopicMapping>[] = [
@@ -78,22 +78,22 @@ export const SchoolSubjectTopicMappingColumns: ColumnDef<ISchoolSubjectTopicMapp
     {
         id: 'teacherGuide',
         header: ({ column }) => <DataTableColumnHeader column={column} title='T-Guide' />,
-        cell: ({ row }) => <ViewFileCell rowData={row.original} type="Teacher Guide" />
+        cell: ({ row }) => <ViewFileCell rowData={row.original} type='Teacher Guide' />
     },
     {
         id: 'studentGuide',
         header: ({ column }) => <DataTableColumnHeader column={column} title='S-Guide' />,
-        cell: ({ row }) => <ViewFileCell rowData={row.original} type="Student Guide" />
+        cell: ({ row }) => <ViewFileCell rowData={row.original} type='Student Guide' />
     },
     {
         id: 'materials',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Materials' />,
-        cell: ({ row }) => <ViewFileCell rowData={row.original} type="Materials Needed" />
+        cell: ({ row }) => <ViewFileCell rowData={row.original} type='Materials Needed' />
     },
     {
         id: 'reference',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Reference' />,
-        cell: ({ row }) => <ViewFileCell rowData={row.original} type="References" />
+        cell: ({ row }) => <ViewFileCell rowData={row.original} type='References' />
     },
     {
         id: 'actions',
@@ -146,8 +146,12 @@ function ViewFileCell({ rowData, type }: { rowData: ISchoolSubjectTopicMapping; 
     // Or just dispatch a custom event.
 
     return (
-        <Button variant='ghost' size='icon' className='text-blue-500' onClick={() => document.dispatchEvent(new CustomEvent('view-files', { detail: { row: rowData, type } }))}>
+        <Button
+            variant='ghost'
+            size='icon'
+            className='text-blue-500'
+            onClick={() => document.dispatchEvent(new CustomEvent('view-files', { detail: { row: rowData, type } }))}>
             <Eye className='h-4 w-4' />
         </Button>
-    )
+    );
 }

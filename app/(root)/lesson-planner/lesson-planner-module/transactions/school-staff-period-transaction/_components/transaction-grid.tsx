@@ -1,15 +1,15 @@
 'use client';
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
-import { format } from 'date-fns';
-import { CalendarIcon, Eye } from 'lucide-react';
-import { toast } from 'sonner';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { uploadDocument } from '@/server/document_upload';
-import { ISchoolStaffPeriodTransactionGridItem } from '../../../../../../../types/lesson-planner/transactions/school-staff-period-transaction';
+import { format } from 'date-fns';
+import { Eye } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import type { ISchoolStaffPeriodTransactionGridItem } from '../../../../../../../types/lesson-planner/transactions/school-staff-period-transaction';
 
 export default function TransactionGrid({
     data,
@@ -35,12 +35,13 @@ export default function TransactionGrid({
     };
 
     const handleFileUpload = async (index: number, file: File) => {
-        if (file.size > 5242880) { // 5MB
-            toast.error("File size should be less than 5 MB");
+        if (file.size > 5242880) {
+            // 5MB
+            toast.error('File size should be less than 5 MB');
             return;
         }
-        if (file.type !== "application/pdf") {
-            toast.error("Kindly Select Only PDF Format");
+        if (file.type !== 'application/pdf') {
+            toast.error('Kindly Select Only PDF Format');
             return;
         }
 
@@ -57,9 +58,9 @@ export default function TransactionGrid({
                 estmanssH_AnswerSheet: file.name
             };
             setItems(newItems);
-            toast.success("File Uploaded");
+            toast.success('File Uploaded');
         } catch (e) {
-            toast.error("File Upload Failed");
+            toast.error('File Upload Failed');
         }
     };
 
@@ -68,27 +69,27 @@ export default function TransactionGrid({
     };
 
     const handleSubmit = () => {
-        const selected = items.filter(i => i.Selected);
+        const selected = items.filter((i) => i.Selected);
         if (selected.length === 0) {
-            toast.error("Select At least One Transaction To Save");
+            toast.error('Select At least One Transaction To Save');
             return;
         }
         // Validate date
-        if (selected.some(i => !i.lpcswA_TakenDate)) {
-            toast.error("Select Date for selected items");
+        if (selected.some((i) => !i.lpcswA_TakenDate)) {
+            toast.error('Select Date for selected items');
             return;
         }
         onSave(selected);
     };
 
     return (
-        <div className="space-y-4">
-            <div className="border rounded-md">
+        <div className='space-y-4'>
+            <div className='rounded-md border'>
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[50px]">SL.NO.</TableHead>
-                            <TableHead className="w-[50px] text-center">Select</TableHead>
+                            <TableHead className='w-[50px]'>SL.NO.</TableHead>
+                            <TableHead className='w-[50px] text-center'>Select</TableHead>
                             <TableHead>Dates</TableHead>
                             <TableHead>Topic</TableHead>
                             <TableHead>Completed Date</TableHead>
@@ -99,19 +100,17 @@ export default function TransactionGrid({
                         {items.map((item, index) => (
                             <TableRow key={`row-${index}`}>
                                 <TableCell>{index + 1}</TableCell>
-                                <TableCell className="text-center">
+                                <TableCell className='text-center'>
                                     <Checkbox
                                         checked={item.Selected || false}
                                         onCheckedChange={(checked) => handleCheckboxChange(index, checked === true)}
                                     />
                                 </TableCell>
-                                <TableCell>
-                                    {item.alldates ? format(new Date(item.alldates), 'yyyy-MM-dd') : ''}
-                                </TableCell>
+                                <TableCell>{item.alldates ? format(new Date(item.alldates), 'yyyy-MM-dd') : ''}</TableCell>
                                 <TableCell>{item.topicname}</TableCell>
                                 <TableCell>
                                     <Input
-                                        type="date"
+                                        type='date'
                                         disabled={!item.Selected}
                                         value={item.lpcswA_TakenDate ? format(new Date(item.lpcswA_TakenDate), 'yyyy-MM-dd') : ''}
                                         onChange={(e) => handleDateChange(index, e.target.value)}
@@ -119,13 +118,13 @@ export default function TransactionGrid({
                                     />
                                 </TableCell>
                                 <TableCell>
-                                    <div className="flex items-center gap-2">
-                                        <div className="relative">
+                                    <div className='flex items-center gap-2'>
+                                        <div className='relative'>
                                             <Input
-                                                type="file"
-                                                accept=".pdf"
+                                                type='file'
+                                                accept='.pdf'
                                                 disabled={!item.Selected}
-                                                className="w-[200px]"
+                                                className='w-[200px]'
                                                 onChange={(e) => {
                                                     if (e.target.files?.[0]) handleFileUpload(index, e.target.files[0]);
                                                 }}
@@ -133,12 +132,11 @@ export default function TransactionGrid({
                                         </div>
                                         {item.estmanssH_FileLocation && (
                                             <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                                                onClick={() => handleViewFile(item.estmanssH_FileLocation!)}
-                                            >
-                                                <Eye className="h-4 w-4" />
+                                                variant='ghost'
+                                                size='icon'
+                                                className='text-red-500 hover:bg-red-50 hover:text-red-700'
+                                                onClick={() => handleViewFile(item.estmanssH_FileLocation!)}>
+                                                <Eye className='h-4 w-4' />
                                             </Button>
                                         )}
                                     </div>
@@ -149,9 +147,11 @@ export default function TransactionGrid({
                 </Table>
             </div>
 
-            <div className="flex justify-center gap-2">
+            <div className='flex justify-center gap-2'>
                 <Button onClick={handleSubmit}>Save</Button>
-                <Button variant="outline" onClick={onCancel}>Cancel</Button>
+                <Button variant='outline' onClick={onCancel}>
+                    Cancel
+                </Button>
             </div>
         </div>
     );

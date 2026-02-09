@@ -109,4 +109,3 @@ export const StudentTcDetailsSchema = z.object({
     PermOrTemp: z.number().optional(),
     AMC_Id: z.number().optional()
 });
-

@@ -21,7 +21,7 @@ export async function getStudentDetails(asmaY_Id: number, asmcL_Id: number, asmS
         ASMAY_Id: asmaY_Id.toString(),
         ASMCL_Id: asmcL_Id.toString(),
         ASMS_Id: asmS_Id.toString(),
-        EME_Id: emE_Id.toString(),
+        EME_Id: emE_Id.toString()
         // MI_Id: MI_Id.toString()
     }).toString();
     const query = `exam_master_remark/search_student_exam_remarks_deatils?${queryString}`;

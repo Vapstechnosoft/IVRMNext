@@ -1,13 +1,13 @@
 'use client';
 
-import { IAlumniReportResultItem } from "@/types/alumni/alumni-report";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { useState } from "react";
-import { format } from "date-fns";
-import { Button } from "@/components/ui/button";
-import { Printer, FileSpreadsheet } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import type { IAlumniReportResultItem } from '@/types/alumni/alumni-report';
+import { format } from 'date-fns';
+import { FileSpreadsheet } from 'lucide-react';
+import { useState } from 'react';
 import * as XLSX from 'xlsx';
 
 interface AlumniReportResultsTableProps {
@@ -27,18 +27,16 @@ export function AlumniReportResultsTable({
     onPrintAddressBook,
     isReportView
 }: AlumniReportResultsTableProps) {
-    const [searchTerm, setSearchTerm] = useState("");
+    const [searchTerm, setSearchTerm] = useState('');
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
-    const filteredData = data.filter(item =>
-        Object.values(item).some(val =>
-            val?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-        )
+    const filteredData = data.filter((item) =>
+        Object.values(item).some((val) => val?.toString().toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     const toggleSelectAll = (checked: boolean) => {
         if (checked) {
-            setSelectedIds(new Set(filteredData.map(item => item.almst_Id)));
+            setSelectedIds(new Set(filteredData.map((item) => item.almst_Id)));
         } else {
             setSelectedIds(new Set());
         }
@@ -55,7 +53,7 @@ export function AlumniReportResultsTable({
     };
 
     const getSelectedRecords = () => {
-        return data.filter(item => selectedIds.has(item.almst_Id));
+        return data.filter((item) => selectedIds.has(item.almst_Id));
     };
 
     const exportToExcel = () => {
@@ -64,59 +62,54 @@ export function AlumniReportResultsTable({
 
         // Map to friendly headers and format data
         const dataToExport = selectedRecords.map((item, index) => ({
-            "SL NO": index + 1,
-            "Alumni Name": item.amsT_FirstName,
-            "DOB": item.amsT_DOB ? format(new Date(item.amsT_DOB), "dd/MM/yyyy") : "-",
-            "Father Name": item.ALMST_FatherName,
-            "Mobile No": item.amsT_MobileNo,
-            "Email Id": item.amsT_emailId,
-            "Joined Year": item.ASMAY_Id_Join,
-            "Left Year": item.ASMAY_Id_Left,
-            "Joined Class": item.JoinClass,
-            "Left Class": item.LeftClass,
-            "Member Id": item.ALMST_MembershipId,
-            "Member Category": item.ALMMC_MembershipCategory,
-            "District": item.IVRMMD_Name,
-            "Blood Group": item.amsT_BloodGroup,
-            "Profession": item.ALSPR_Designation,
-            "City:State": item.city,
-            "Full Address": item.ALMST_FullAddess,
-            "Pin Code": item.ALMST_ConPincode || item.ALMST_PerPincode || "-"
+            'SL NO': index + 1,
+            'Alumni Name': item.amsT_FirstName,
+            DOB: item.amsT_DOB ? format(new Date(item.amsT_DOB), 'dd/MM/yyyy') : '-',
+            'Father Name': item.ALMST_FatherName,
+            'Mobile No': item.amsT_MobileNo,
+            'Email Id': item.amsT_emailId,
+            'Joined Year': item.ASMAY_Id_Join,
+            'Left Year': item.ASMAY_Id_Left,
+            'Joined Class': item.JoinClass,
+            'Left Class': item.LeftClass,
+            'Member Id': item.ALMST_MembershipId,
+            'Member Category': item.ALMMC_MembershipCategory,
+            District: item.IVRMMD_Name,
+            'Blood Group': item.amsT_BloodGroup,
+            Profession: item.ALSPR_Designation,
+            'City:State': item.city,
+            'Full Address': item.ALMST_FullAddess,
+            'Pin Code': item.ALMST_ConPincode || item.ALMST_PerPincode || '-'
         }));
 
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Alumni Report");
-        XLSX.writeFile(workbook, "Alumni_Report.xlsx");
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Alumni Report');
+        XLSX.writeFile(workbook, 'Alumni_Report.xlsx');
     };
 
     return (
-        <div className="space-y-4">
-            <div className="flex justify-between items-center bg-muted/30 p-4 rounded-lg">
-                <div className="flex items-center space-x-4">
-                    <div className="text-sm font-medium">
-                        Total Records: <span className="text-primary">{data.length}</span>
+        <div className='space-y-4'>
+            <div className='flex items-center justify-between rounded-lg bg-muted/30 p-4'>
+                <div className='flex items-center space-x-4'>
+                    <div className='font-medium text-sm'>
+                        Total Records: <span className='text-primary'>{data.length}</span>
                     </div>
                     {searchTerm && (
-                        <div className="text-sm font-medium">
-                            Filtered: <span className="text-primary">{filteredData.length}</span>
+                        <div className='font-medium text-sm'>
+                            Filtered: <span className='text-primary'>{filteredData.length}</span>
                         </div>
                     )}
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className='flex items-center space-x-2'>
                     <Input
-                        placeholder="Search result..."
+                        placeholder='Search result...'
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-64"
+                        className='w-64'
                     />
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={exportToExcel}
-                        disabled={selectedIds.size === 0}
-                    >
-                        <FileSpreadsheet className="mr-2 h-4 w-4" />
+                    <Button variant='outline' size='sm' onClick={exportToExcel} disabled={selectedIds.size === 0}>
+                        <FileSpreadsheet className='mr-2 h-4 w-4' />
                         Export
                     </Button>
                     {/* {isReportView ? (
@@ -143,20 +136,20 @@ export function AlumniReportResultsTable({
                 </div>
             </div>
 
-            <div className="border rounded-md overflow-x-auto">
+            <div className='overflow-x-auto rounded-md border'>
                 <Table>
-                    <TableHeader className="bg-muted/50">
+                    <TableHeader className='bg-muted/50'>
                         <TableRow>
-                            <TableHead className="w-12">SL NO</TableHead>
-                            <TableHead className="w-12">
+                            <TableHead className='w-12'>SL NO</TableHead>
+                            <TableHead className='w-12'>
                                 <Checkbox
                                     checked={selectedIds.size === filteredData.length && filteredData.length > 0}
                                     onCheckedChange={toggleSelectAll}
                                 />
                             </TableHead>
-                            <TableHead className="min-w-[150px]">Alumni Name</TableHead>
+                            <TableHead className='min-w-[150px]'>Alumni Name</TableHead>
                             <TableHead>DOB</TableHead>
-                            <TableHead className="min-w-[150px]">Father Name</TableHead>
+                            <TableHead className='min-w-[150px]'>Father Name</TableHead>
                             {showPhone && <TableHead>Mobile No</TableHead>}
                             {showEmail && <TableHead>Email Id</TableHead>}
                             <TableHead>Joined Year</TableHead>
@@ -169,7 +162,7 @@ export function AlumniReportResultsTable({
                             <TableHead>Blood Group</TableHead>
                             <TableHead>Profession</TableHead>
                             <TableHead>City:State</TableHead>
-                            <TableHead className="min-w-[200px]">Full Address</TableHead>
+                            <TableHead className='min-w-[200px]'>Full Address</TableHead>
                             <TableHead>Pin Code</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -183,8 +176,8 @@ export function AlumniReportResultsTable({
                                         onCheckedChange={(checked) => toggleSelectRow(item.almst_Id, !!checked)}
                                     />
                                 </TableCell>
-                                <TableCell className="font-medium">{item.amsT_FirstName}</TableCell>
-                                <TableCell>{item.amsT_DOB ? format(new Date(item.amsT_DOB), "dd/MM/yyyy") : "-"}</TableCell>
+                                <TableCell className='font-medium'>{item.amsT_FirstName}</TableCell>
+                                <TableCell>{item.amsT_DOB ? format(new Date(item.amsT_DOB), 'dd/MM/yyyy') : '-'}</TableCell>
                                 <TableCell>{item.ALMST_FatherName}</TableCell>
                                 {showPhone && <TableCell>{item.amsT_MobileNo}</TableCell>}
                                 {showEmail && <TableCell>{item.amsT_emailId}</TableCell>}
@@ -198,10 +191,10 @@ export function AlumniReportResultsTable({
                                 <TableCell>{item.amsT_BloodGroup}</TableCell>
                                 <TableCell>{item.ALSPR_Designation}</TableCell>
                                 <TableCell>{item.city}</TableCell>
-                                <TableCell className="max-w-xs truncate" title={item.ALMST_FullAddess}>
+                                <TableCell className='max-w-xs truncate' title={item.ALMST_FullAddess}>
                                     {item.ALMST_FullAddess}
                                 </TableCell>
-                                <TableCell>{item.ALMST_ConPincode || item.ALMST_PerPincode || "-"}</TableCell>
+                                <TableCell>{item.ALMST_ConPincode || item.ALMST_PerPincode || '-'}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

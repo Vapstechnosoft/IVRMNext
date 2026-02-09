@@ -1,17 +1,17 @@
 import { TRANSPORT_QUERY_KEYS } from '@/constants/query-keys';
 import { getMasterArea } from '@/server/transport/transport-module/masters/area';
 import { getMasterDriver } from '@/server/transport/transport-module/masters/driver';
+import { getExpirySettings } from '@/server/transport/transport-module/masters/expiry-settings';
 import { getMasterFuelType } from '@/server/transport/transport-module/masters/fuel-type';
 import { getMasterLocation } from '@/server/transport/transport-module/masters/location';
-import { areaDropDown, getMasterRoute, getMasterRouteArea, routeDropDown } from '@/server/transport/transport-module/masters/route';
-import { getMasterServiceStation } from '@/server/transport/transport-module/masters/service-station';
-import { getMasterVehicle } from '@/server/transport/transport-module/masters/master-vehicle';
-import { getMasterRouteSchedule } from '@/server/transport/transport-module/masters/route-schedule';
 import { getMasterSession } from '@/server/transport/transport-module/masters/master-session';
+import { getMasterVehicle } from '@/server/transport/transport-module/masters/master-vehicle';
+import { areaDropDown, getMasterRoute, getMasterRouteArea, routeDropDown } from '@/server/transport/transport-module/masters/route';
+import { getMasterRouteSchedule } from '@/server/transport/transport-module/masters/route-schedule';
+import { getMasterServiceStation } from '@/server/transport/transport-module/masters/service-station';
 import { getMasterVehicleType } from '@/server/transport/transport-module/masters/vehicle-type';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getExpirySettings } from '@/server/transport/transport-module/masters/expiry-settings';
 
 export const useMasterArea = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -64,7 +64,6 @@ export const useMasterFuelType = (searchParams?: ApiSearchparams) => {
             });
         }
     };
-
 };
 
 export const useMasterLocation = (searchParams?: ApiSearchparams) => {
@@ -119,7 +118,6 @@ export const useMasterRouteDropDown = (searchParams?: ApiSearchparams) => {
     };
 };
 
-
 export const useMasterAreaDropDown = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
@@ -156,8 +154,6 @@ export const useMasterRouteArea = (searchParams?: ApiSearchparams) => {
     };
 };
 
-
-
 export const useMasterServiceStation = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
@@ -175,7 +171,6 @@ export const useMasterServiceStation = (searchParams?: ApiSearchparams) => {
         }
     };
 };
-
 
 export const useMasterSession = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -231,9 +226,6 @@ export const useExpirySettings = (searchParams?: ApiSearchparams) => {
     };
 };
 
-
-
-
 export const useMasterRouteSchedule = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
@@ -267,7 +259,6 @@ export const useMasterVehicle = (searchParams?: ApiSearchparams) => {
             });
         }
     };
-
 };
 
 // import { getExpirySettings } from '@/server/transport/transport-module/masters/expiry-settings';

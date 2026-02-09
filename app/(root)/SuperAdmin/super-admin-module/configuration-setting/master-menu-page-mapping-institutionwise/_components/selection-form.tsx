@@ -1,14 +1,29 @@
 'use client';
 
-import { useFormContext, Controller } from 'react-hook-form';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    getInstitutionDropdown,
+    getMainMenuDropdown,
+    getModuleDropdown,
+    getSubMenuDropdown
+} from '@/server/super-admin/configuration-setting/master-menu-page-mapping-institutionwise';
+import type {
+    InstitutionDTO,
+    MainMenuDTO,
+    ModuleDTO,
+    SubMenuDTO
+} from '@/types/super-admin/configuration-setting/master-menu-page-mapping-institutionwise';
 import { useEffect, useState } from 'react';
-import { getInstitutionDropdown, getModuleDropdown, getMainMenuDropdown, getSubMenuDropdown } from '@/server/super-admin/configuration-setting/master-menu-page-mapping-institutionwise';
-import { InstitutionDTO, ModuleDTO, MainMenuDTO, SubMenuDTO } from '@/types/super-admin/configuration-setting/master-menu-page-mapping-institutionwise';
+import { Controller, useFormContext } from 'react-hook-form';
 
 export default function SelectionForm() {
-    const { control, watch, setValue, formState: { errors } } = useFormContext();
+    const {
+        control,
+        watch,
+        setValue,
+        formState: { errors }
+    } = useFormContext();
 
     const [institutions, setInstitutions] = useState<InstitutionDTO[]>([]);
     const [modules, setModules] = useState<ModuleDTO[]>([]);
@@ -34,7 +49,7 @@ export default function SelectionForm() {
     useEffect(() => {
         const loadModules = async () => {
             if (selectedMI_Id) {
-                const response = await getModuleDropdown(parseInt(selectedMI_Id));
+                const response = await getModuleDropdown(Number.parseInt(selectedMI_Id));
                 if (response.success && response.data?.moduleList) {
                     setModules(response.data.moduleList);
                 } else {
@@ -51,7 +66,7 @@ export default function SelectionForm() {
     useEffect(() => {
         const loadMainMenus = async () => {
             if (selectedMI_Id && selectedIVRMM_Id) {
-                const response = await getMainMenuDropdown(parseInt(selectedMI_Id), parseInt(selectedIVRMM_Id));
+                const response = await getMainMenuDropdown(Number.parseInt(selectedMI_Id), Number.parseInt(selectedIVRMM_Id));
                 if (response.success && response.data?.mainMenuList) {
                     setMainMenus(response.data.mainMenuList);
                 } else {
@@ -68,7 +83,7 @@ export default function SelectionForm() {
     useEffect(() => {
         const loadSubMenus = async () => {
             if (selectedMI_Id && selectedIVRMMMI_Id) {
-                const response = await getSubMenuDropdown(parseInt(selectedMI_Id), parseInt(selectedIVRMMMI_Id));
+                const response = await getSubMenuDropdown(Number.parseInt(selectedMI_Id), Number.parseInt(selectedIVRMMMI_Id));
                 if (response.success && response.data?.subMenuList) {
                     setSubMenus(response.data.subMenuList);
                 } else {
@@ -82,13 +97,15 @@ export default function SelectionForm() {
     }, [selectedIVRMMMI_Id, selectedMI_Id]);
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        <div className='mx-auto grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-2'>
             {/* Institution Dropdown */}
-            <div className="space-y-2">
-                <Label className="font-semibold">Institution Name <span className="text-red-500">*</span></Label>
+            <div className='space-y-2'>
+                <Label className='font-semibold'>
+                    Institution Name <span className='text-red-500'>*</span>
+                </Label>
                 <Controller
                     control={control}
-                    name="institution"
+                    name='institution'
                     render={({ field }) => (
                         <Select
                             onValueChange={(val) => {
@@ -97,14 +114,13 @@ export default function SelectionForm() {
                                 setValue('mainMenu', '');
                                 setValue('subMenu', '');
                             }}
-                            value={field.value}
-                        >
+                            value={field.value}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select Institution" />
+                                <SelectValue placeholder='Select Institution' />
                             </SelectTrigger>
                             <SelectContent>
                                 {institutions.map((inst) => (
-                                    <SelectItem key={inst.mI_Id} value={inst.mI_Id?.toString() || ""}>
+                                    <SelectItem key={inst.mI_Id} value={inst.mI_Id?.toString() || ''}>
                                         {inst.mI_Name}
                                     </SelectItem>
                                 ))}
@@ -112,19 +128,17 @@ export default function SelectionForm() {
                         </Select>
                     )}
                 />
-                {errors.institution && (
-                    <p className="text-sm font-medium text-red-500">
-                        {errors.institution.message as string}
-                    </p>
-                )}
+                {errors.institution && <p className='font-medium text-red-500 text-sm'>{errors.institution.message as string}</p>}
             </div>
 
             {/* Module Dropdown */}
-            <div className="space-y-2">
-                <Label className="font-semibold">Module Name <span className="text-red-500">*</span></Label>
+            <div className='space-y-2'>
+                <Label className='font-semibold'>
+                    Module Name <span className='text-red-500'>*</span>
+                </Label>
                 <Controller
                     control={control}
-                    name="module"
+                    name='module'
                     render={({ field }) => (
                         <Select
                             onValueChange={(val) => {
@@ -133,14 +147,13 @@ export default function SelectionForm() {
                                 setValue('subMenu', '');
                             }}
                             value={field.value}
-                            disabled={!selectedMI_Id}
-                        >
+                            disabled={!selectedMI_Id}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select Module" />
+                                <SelectValue placeholder='Select Module' />
                             </SelectTrigger>
                             <SelectContent>
                                 {modules.map((mod) => (
-                                    <SelectItem key={mod.ivrmM_Id} value={mod.ivrmM_Id?.toString() || ""}>
+                                    <SelectItem key={mod.ivrmM_Id} value={mod.ivrmM_Id?.toString() || ''}>
                                         {mod.ivrmM_ModuleName}
                                     </SelectItem>
                                 ))}
@@ -148,19 +161,17 @@ export default function SelectionForm() {
                         </Select>
                     )}
                 />
-                {errors.module && (
-                    <p className="text-sm font-medium text-red-500">
-                        {errors.module.message as string}
-                    </p>
-                )}
+                {errors.module && <p className='font-medium text-red-500 text-sm'>{errors.module.message as string}</p>}
             </div>
 
             {/* Main Menu Dropdown */}
-            <div className="space-y-2">
-                <Label className="font-semibold">Main Menu Name <span className="text-red-500">*</span></Label>
+            <div className='space-y-2'>
+                <Label className='font-semibold'>
+                    Main Menu Name <span className='text-red-500'>*</span>
+                </Label>
                 <Controller
                     control={control}
-                    name="mainMenu"
+                    name='mainMenu'
                     render={({ field }) => (
                         <Select
                             onValueChange={(val) => {
@@ -168,14 +179,13 @@ export default function SelectionForm() {
                                 setValue('subMenu', '');
                             }}
                             value={field.value}
-                            disabled={!selectedIVRMM_Id}
-                        >
+                            disabled={!selectedIVRMM_Id}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select Main Menu" />
+                                <SelectValue placeholder='Select Main Menu' />
                             </SelectTrigger>
                             <SelectContent>
                                 {mainMenus.map((menu) => (
-                                    <SelectItem key={menu.ivrmmM_Id} value={menu.ivrmmM_Id?.toString() || ""}>
+                                    <SelectItem key={menu.ivrmmM_Id} value={menu.ivrmmM_Id?.toString() || ''}>
                                         {menu.ivrmmmI_MenuName}
                                     </SelectItem>
                                 ))}
@@ -183,27 +193,25 @@ export default function SelectionForm() {
                         </Select>
                     )}
                 />
-                {errors.mainMenu && (
-                    <p className="text-sm font-medium text-red-500">
-                        {errors.mainMenu.message as string}
-                    </p>
-                )}
+                {errors.mainMenu && <p className='font-medium text-red-500 text-sm'>{errors.mainMenu.message as string}</p>}
             </div>
 
             {/* Sub Menu Dropdown */}
-            <div className="space-y-2">
-                <Label className="font-semibold">Sub Menu Name <span className="text-red-500">*</span></Label>
+            <div className='space-y-2'>
+                <Label className='font-semibold'>
+                    Sub Menu Name <span className='text-red-500'>*</span>
+                </Label>
                 <Controller
                     control={control}
-                    name="subMenu"
+                    name='subMenu'
                     render={({ field }) => (
                         <Select onValueChange={field.onChange} value={field.value} disabled={!selectedIVRMMMI_Id}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select Sub Menu" />
+                                <SelectValue placeholder='Select Sub Menu' />
                             </SelectTrigger>
                             <SelectContent>
                                 {subMenus.map((smenu) => (
-                                    <SelectItem key={smenu.ivrmmmI_Id} value={smenu.ivrmmmI_Id?.toString() || ""}>
+                                    <SelectItem key={smenu.ivrmmmI_Id} value={smenu.ivrmmmI_Id?.toString() || ''}>
                                         {smenu.submenuname}
                                     </SelectItem>
                                 ))}
@@ -211,11 +219,7 @@ export default function SelectionForm() {
                         </Select>
                     )}
                 />
-                {errors.subMenu && (
-                    <p className="text-sm font-medium text-red-500">
-                        {errors.subMenu.message as string}
-                    </p>
-                )}
+                {errors.subMenu && <p className='font-medium text-red-500 text-sm'>{errors.subMenu.message as string}</p>}
             </div>
         </div>
     );

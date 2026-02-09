@@ -1,14 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
-import { Calendar, Layers, Loader2 } from 'lucide-react';
-import { getMasterCOEInitialData } from '@/server/alumni/master-coe';
 import { FormProvider } from '@/components/ui/form/form-provider';
-import MasterEventsContent from './_components/master-events/master-events-content';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { getMasterCOEInitialData } from '@/server/alumni/master-coe';
+import type { IEventsMapping, IMasterEvent } from '@/types/alumni/master-coe';
+import { Calendar, Layers, Loader2 } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import EventsMappingContent from './_components/events-mapping/events-mapping-content';
-import type { IMasterEvent, IEventsMapping } from '@/types/alumni/master-coe';
+import MasterEventsContent from './_components/master-events/master-events-content';
 
 export default function MasterCOEPage() {
     const [initialData, setInitialData] = useState<any>(null);
@@ -32,45 +31,40 @@ export default function MasterCOEPage() {
 
     if (loading) {
         return (
-            <div className="flex h-[80vh] items-center justify-center">
-                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <div className='flex h-[80vh] items-center justify-center'>
+                <Loader2 className='h-12 w-12 animate-spin text-primary' />
             </div>
         );
     }
 
     return (
-        <div className="container space-y-6 p-6">
-            <div className="flex items-center justify-between border-b pb-4">
+        <div className='container space-y-6 p-6'>
+            <div className='flex items-center justify-between border-b pb-4'>
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Master COE</h1>
-                    <p className="text-muted-foreground">Manage events and their mappings to academic years.</p>
+                    <h1 className='font-bold text-3xl tracking-tight'>Master COE</h1>
+                    <p className='text-muted-foreground'>Manage events and their mappings to academic years.</p>
                 </div>
             </div>
 
-            <Tabs defaultValue="events" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
-                    <TabsTrigger value="events" className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" /> Events
+            <Tabs defaultValue='events' className='w-full'>
+                <TabsList className='grid w-full grid-cols-2 lg:w-[400px]'>
+                    <TabsTrigger value='events' className='flex items-center gap-2'>
+                        <Calendar className='h-4 w-4' /> Events
                     </TabsTrigger>
-                    <TabsTrigger value="map" className="flex items-center gap-2">
-                        <Layers className="h-4 w-4" /> Events Map
+                    <TabsTrigger value='map' className='flex items-center gap-2'>
+                        <Layers className='h-4 w-4' /> Events Map
                     </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="events" className="mt-6 space-y-4">
+                <TabsContent value='events' className='mt-6 space-y-4'>
                     <FormProvider<IMasterEvent>>
-                        <MasterEventsContent
-                            initialData={initialData}
-                            refreshData={fetchInitialData}
-                        />
+                        <MasterEventsContent initialData={initialData} refreshData={fetchInitialData} />
                     </FormProvider>
                 </TabsContent>
 
-                <TabsContent value="map" className="mt-6 space-y-4">
+                <TabsContent value='map' className='mt-6 space-y-4'>
                     <FormProvider<IEventsMapping>>
-                        <EventsMappingContent
-                            initialData={initialData}
-                        />
+                        <EventsMappingContent initialData={initialData} />
                     </FormProvider>
                 </TabsContent>
             </Tabs>

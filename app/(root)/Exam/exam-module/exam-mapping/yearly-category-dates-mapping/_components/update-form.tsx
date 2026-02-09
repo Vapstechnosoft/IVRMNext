@@ -11,7 +11,6 @@ import {
     addOrUpdateYearlyCategoryDatesMapping,
     getCategoryDropDownByAcademicYearlist
 } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
-import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { IYearlyCategoryDatesMapping } from '@/types/exam/exam-module/exam-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
@@ -66,12 +65,7 @@ export default function UpdateYearlyCategoryDatesMapping({ selectedRow, onSucces
     const { refetchAll } = useYearlyCategoryDateMapping();
 
     const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
-    const {
-        data: academicYear,
-        isLoading: academicYearLoading,
-        error: academicYearError,
-    } = useAcademicYearDropdown();
-
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
     // Watch selected Academic Year
     const selectedYearId = useWatch({ control, name: 'asmaY_Id' });

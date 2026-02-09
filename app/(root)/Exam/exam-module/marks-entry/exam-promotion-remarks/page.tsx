@@ -308,7 +308,7 @@ function PromotionRemarksContent() {
                 asmaY_Id: selectedAcademicYear!,
                 asmcL_Id: selectedClass!,
                 asmS_Id: selectedSectionId!,
-                ecT_Id: activeTab === 0 ? selectedTerm! : 0, // For overall, we can pass 0 or a special value
+                ecT_Id: activeTab === 0 ? selectedTerm! : 0 // For overall, we can pass 0 or a special value
                 // mI_Id: MI_ID
             };
 
@@ -497,8 +497,9 @@ function PromotionRemarksContent() {
                     <div className='mb-4 flex w-max gap-2 rounded-full bg-gray-200 p-1'>
                         <button
                             type='button'
-                            className={`rounded-full px-6 py-2 font-medium text-sm transition-colors duration-200 ${activeTab === 0 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'
-                                }`}
+                            className={`rounded-full px-6 py-2 font-medium text-sm transition-colors duration-200 ${
+                                activeTab === 0 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'
+                            }`}
                             onClick={() => {
                                 setActiveTab(0);
                                 setSelectedTerm(undefined);
@@ -511,8 +512,9 @@ function PromotionRemarksContent() {
                         </button>
                         <button
                             type='button'
-                            className={`rounded-full px-6 py-2 font-medium text-sm transition-colors duration-200 ${activeTab === 1 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'
-                                }`}
+                            className={`rounded-full px-6 py-2 font-medium text-sm transition-colors duration-200 ${
+                                activeTab === 1 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'
+                            }`}
                             onClick={() => {
                                 setActiveTab(1);
                                 setSelectedTerm(undefined);
@@ -543,17 +545,17 @@ function PromotionRemarksContent() {
                                 <SelectContent>
                                     {loadingAcademic
                                         ? [
-                                            <SelectItem value='loading' key='loading'>
-                                                loading.....
-                                            </SelectItem>
-                                        ]
+                                              <SelectItem value='loading' key='loading'>
+                                                  loading.....
+                                              </SelectItem>
+                                          ]
                                         : academicYears.length === 0
-                                            ? [
+                                          ? [
                                                 <SelectItem value='none' key='empty'>
                                                     -- No academic years --
                                                 </SelectItem>
                                             ]
-                                            : academicYears.map((y) => (
+                                          : academicYears.map((y) => (
                                                 <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
                                                     {y.asmaY_Year}
                                                 </SelectItem>
@@ -578,27 +580,27 @@ function PromotionRemarksContent() {
                                 <SelectContent>
                                     {!selectedAcademicYear
                                         ? [
-                                            <SelectItem value='none' key='empty'>
-                                                -- Select Academic Year first --
-                                            </SelectItem>
-                                        ]
+                                              <SelectItem value='none' key='empty'>
+                                                  -- Select Academic Year first --
+                                              </SelectItem>
+                                          ]
                                         : loadingClasses
-                                            ? [
+                                          ? [
                                                 <SelectItem value='loading' key='loading'>
                                                     loading.....
                                                 </SelectItem>
                                             ]
-                                            : classes.length === 0
-                                                ? [
-                                                    <SelectItem value='none' key='empty'>
-                                                        -- No classes --
-                                                    </SelectItem>
-                                                ]
-                                                : classes.map((c) => (
-                                                    <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
-                                                        {c.asmcL_ClassName}
-                                                    </SelectItem>
-                                                ))}
+                                          : classes.length === 0
+                                            ? [
+                                                  <SelectItem value='none' key='empty'>
+                                                      -- No classes --
+                                                  </SelectItem>
+                                              ]
+                                            : classes.map((c) => (
+                                                  <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                      {c.asmcL_ClassName}
+                                                  </SelectItem>
+                                              ))}
                                 </SelectContent>
                             </Select>
                             {formErrors.class && <p className='mt-1 text-red-500 text-sm'>{formErrors.class}</p>}
@@ -619,17 +621,17 @@ function PromotionRemarksContent() {
                                 <SelectContent>
                                     {loadingSections
                                         ? [
-                                            <SelectItem value='loading' key='loading'>
-                                                loading.....
-                                            </SelectItem>
-                                        ]
+                                              <SelectItem value='loading' key='loading'>
+                                                  loading.....
+                                              </SelectItem>
+                                          ]
                                         : sections.length === 0
-                                            ? [
+                                          ? [
                                                 <SelectItem value='none' key='empty'>
                                                     -- No sections --
                                                 </SelectItem>
                                             ]
-                                            : sections.map((s) => (
+                                          : sections.map((s) => (
                                                 <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
                                                     {s.asmC_SectionName}
                                                 </SelectItem>
@@ -658,27 +660,27 @@ function PromotionRemarksContent() {
                                 <SelectContent>
                                     {activeTab === 1
                                         ? [
-                                            <SelectItem value='disabled' key='disabled'>
-                                                -- Disabled for Overall --
-                                            </SelectItem>
-                                        ]
+                                              <SelectItem value='disabled' key='disabled'>
+                                                  -- Disabled for Overall --
+                                              </SelectItem>
+                                          ]
                                         : loadingTerms
-                                            ? [
+                                          ? [
                                                 <SelectItem value='loading' key='loading'>
                                                     loading.....
                                                 </SelectItem>
                                             ]
-                                            : terms.length === 0
-                                                ? [
-                                                    <SelectItem value='none' key='empty'>
-                                                        -- No terms --
-                                                    </SelectItem>
-                                                ]
-                                                : terms.map((t) => (
-                                                    <SelectItem key={t.ecT_Id} value={String(t.ecT_Id)}>
-                                                        {t.ecT_TermName}
-                                                    </SelectItem>
-                                                ))}
+                                          : terms.length === 0
+                                            ? [
+                                                  <SelectItem value='none' key='empty'>
+                                                      -- No terms --
+                                                  </SelectItem>
+                                              ]
+                                            : terms.map((t) => (
+                                                  <SelectItem key={t.ecT_Id} value={String(t.ecT_Id)}>
+                                                      {t.ecT_TermName}
+                                                  </SelectItem>
+                                              ))}
                                 </SelectContent>
                             </Select>
                             {formErrors.term && <p className='mt-1 text-red-500 text-sm'>{formErrors.term}</p>}

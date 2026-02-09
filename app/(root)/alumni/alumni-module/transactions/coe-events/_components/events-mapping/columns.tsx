@@ -1,13 +1,13 @@
 'use client';
 
-import { ActionButtons } from '@/components/ui/form/action-buttons';
-import type { ColumnDef } from '@tanstack/react-table';
-import { useFormContext } from '@/components/ui/form/form-provider';
-import { useCallback } from 'react';
-import type { IEventsMapping } from '@/types/alumni/master-coe';
 import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useFormContext } from '@/components/ui/form/form-provider';
+import type { IEventsMapping } from '@/types/alumni/master-coe';
+import type { ColumnDef } from '@tanstack/react-table';
+import { Eye } from 'lucide-react';
+import { useCallback } from 'react';
 
 export const EventsMappingColumns: ColumnDef<IEventsMapping>[] = [
     {

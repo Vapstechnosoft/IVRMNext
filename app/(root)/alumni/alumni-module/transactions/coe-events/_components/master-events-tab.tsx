@@ -1,27 +1,20 @@
 'use client';
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { masterEventsSchema, type IMasterEventsFormValues } from './schema';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
-import { Save, RotateCcw, Eye, Pencil, ToggleLeft, ToggleRight } from 'lucide-react';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { getPageDetails, getViewRecordsMaster, saveMasterEventsData, switch1 } from '@/server/alumni/master-coe';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Eye, Pencil, RotateCcw, Save, ToggleLeft, ToggleRight } from 'lucide-react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { saveMasterEventsData, switch1, getPageDetails, getViewRecordsMaster } from '@/server/alumni/master-coe';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { type IMasterEventsFormValues, masterEventsSchema } from './schema';
 
 interface MasterEventsTabProps {
     initialData: any;
@@ -119,8 +112,6 @@ export default function MasterEventsTab({ initialData, refreshData }: MasterEven
         }
     };
 
-
-
     const columns = [
         { header: 'SL No', accessorKey: 'sno', cell: (info: any) => info.row.index + 1 },
         { header: 'Event Name', accessorKey: 'coemE_EventName' },
@@ -129,55 +120,53 @@ export default function MasterEventsTab({ initialData, refreshData }: MasterEven
             header: 'Actions',
             id: 'actions',
             cell: ({ row }: { row: any }) => (
-                <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => handleEdit(row.original)} title="Edit">
-                        <Pencil className="h-4 w-4" />
+                <div className='flex gap-2'>
+                    <Button variant='ghost' size='icon' onClick={() => handleEdit(row.original)} title='Edit'>
+                        <Pencil className='h-4 w-4' />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleView(row.original)} title="View Mappings">
-                        <Eye className="h-4 w-4" />
+                    <Button variant='ghost' size='icon' onClick={() => handleView(row.original)} title='View Mappings'>
+                        <Eye className='h-4 w-4' />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleToggleStatus(row.original)} title="Toggle Status">
+                    <Button variant='ghost' size='icon' onClick={() => handleToggleStatus(row.original)} title='Toggle Status'>
                         {row.original.COEME_ActiveFlag ? (
-                            <ToggleRight className="h-4 w-4 text-green-500" />
+                            <ToggleRight className='h-4 w-4 text-green-500' />
                         ) : (
-                            <ToggleLeft className="h-4 w-4 text-destructive" />
+                            <ToggleLeft className='h-4 w-4 text-destructive' />
                         )}
                     </Button>
-
                 </div>
             )
         }
     ];
 
     return (
-        <div className="space-y-8">
+        <div className='space-y-8'>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
                     <CollapsibleSection title={editingId ? 'Edit Event' : 'Create New Event'}>
-                        <div className="grid grid-cols-1 gap-6">
-                            <div className="flex justify-center">
+                        <div className='grid grid-cols-1 gap-6'>
+                            <div className='flex justify-center'>
                                 <FormField
                                     control={form.control}
-                                    name="radiotype"
+                                    name='radiotype'
                                     render={({ field }) => (
-                                        <FormItem className="space-y-3">
+                                        <FormItem className='space-y-3'>
                                             <FormControl>
                                                 <RadioGroup
                                                     onValueChange={field.onChange}
                                                     defaultValue={field.value}
-                                                    className="flex space-x-4"
-                                                >
-                                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                                    className='flex space-x-4'>
+                                                    <FormItem className='flex items-center space-x-2 space-y-0'>
                                                         <FormControl>
-                                                            <RadioGroupItem value="Manual" />
+                                                            <RadioGroupItem value='Manual' />
                                                         </FormControl>
-                                                        <FormLabel className="font-normal">Manual Content</FormLabel>
+                                                        <FormLabel className='font-normal'>Manual Content</FormLabel>
                                                     </FormItem>
-                                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                                    <FormItem className='flex items-center space-x-2 space-y-0'>
                                                         <FormControl>
-                                                            <RadioGroupItem value="Default" />
+                                                            <RadioGroupItem value='Default' />
                                                         </FormControl>
-                                                        <FormLabel className="font-normal">Default Content</FormLabel>
+                                                        <FormLabel className='font-normal'>Default Content</FormLabel>
                                                     </FormItem>
                                                 </RadioGroup>
                                             </FormControl>
@@ -187,25 +176,33 @@ export default function MasterEventsTab({ initialData, refreshData }: MasterEven
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                 <FormField
                                     control={form.control}
-                                    name="COEME_EventName"
+                                    name='COEME_EventName'
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Event Name <span className="text-destructive">*</span></FormLabel>
-                                            <FormControl><Input {...field} value={field.value as string} /></FormControl>
+                                            <FormLabel>
+                                                Event Name <span className='text-destructive'>*</span>
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input {...field} value={field.value as string} />
+                                            </FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
                                 <FormField
                                     control={form.control}
-                                    name="COEME_EventDesc"
+                                    name='COEME_EventDesc'
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Event Description <span className="text-destructive">*</span></FormLabel>
-                                            <FormControl><Input {...field} value={field.value as string} /></FormControl>
+                                            <FormLabel>
+                                                Event Description <span className='text-destructive'>*</span>
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input {...field} value={field.value as string} />
+                                            </FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )}
@@ -213,30 +210,31 @@ export default function MasterEventsTab({ initialData, refreshData }: MasterEven
                             </div>
 
                             {form.watch('radiotype') === 'Manual' && (
-                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                     <FormField
                                         control={form.control}
-                                        name="COEME_SMSMessage"
+                                        name='COEME_SMSMessage'
                                         render={({ field }) => (
-                                            <FormItem className="md:col-span-1">
+                                            <FormItem className='md:col-span-1'>
                                                 <FormLabel>SMS Content</FormLabel>
-                                                <FormControl><Textarea rows={4} {...field} value={field.value as string} /></FormControl>
+                                                <FormControl>
+                                                    <Textarea rows={4} {...field} value={field.value as string} />
+                                                </FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
                                     />
-                                    <div className="flex flex-wrap gap-2 pt-8">
+                                    <div className='flex flex-wrap gap-2 pt-8'>
                                         {(initialData?.parameterlist || initialData?.parameter_list)?.map((p: any, idx: number) => (
                                             <Button
                                                 key={`sms-param-${p.ismP_ID || p.id || idx}`}
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
+                                                type='button'
+                                                variant='outline'
+                                                size='sm'
                                                 onClick={() => {
                                                     const current = form.getValues('COEME_SMSMessage') || '';
                                                     form.setValue('COEME_SMSMessage', current + ` ${p.ismP_NAME || p.name} `);
-                                                }}
-                                            >
+                                                }}>
                                                 {p.ismP_NAME || p.name}
                                             </Button>
                                         ))}
@@ -244,25 +242,33 @@ export default function MasterEventsTab({ initialData, refreshData }: MasterEven
                                 </div>
                             )}
 
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                 <FormField
                                     control={form.control}
-                                    name="COEME_MailSubject"
+                                    name='COEME_MailSubject'
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Email Subject <span className="text-destructive">*</span></FormLabel>
-                                            <FormControl><Input {...field} value={field.value as string} /></FormControl>
+                                            <FormLabel>
+                                                Email Subject <span className='text-destructive'>*</span>
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input {...field} value={field.value as string} />
+                                            </FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
                                 <FormField
                                     control={form.control}
-                                    name="COEME_MailHeader"
+                                    name='COEME_MailHeader'
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Email Header <span className="text-destructive">*</span></FormLabel>
-                                            <FormControl><Input {...field} value={field.value as string} /></FormControl>
+                                            <FormLabel>
+                                                Email Header <span className='text-destructive'>*</span>
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input {...field} value={field.value as string} />
+                                            </FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )}
@@ -270,30 +276,31 @@ export default function MasterEventsTab({ initialData, refreshData }: MasterEven
                             </div>
 
                             {form.watch('radiotype') === 'Manual' && (
-                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                     <FormField
                                         control={form.control}
-                                        name="COEME_Mail_Message"
+                                        name='COEME_Mail_Message'
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Email Message</FormLabel>
-                                                <FormControl><Textarea rows={4} {...field} value={field.value as string} /></FormControl>
+                                                <FormControl>
+                                                    <Textarea rows={4} {...field} value={field.value as string} />
+                                                </FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
                                     />
-                                    <div className="flex flex-wrap gap-2 pt-8">
+                                    <div className='flex flex-wrap gap-2 pt-8'>
                                         {(initialData?.parameterlist || initialData?.parameter_list)?.map((p: any, idx: number) => (
                                             <Button
                                                 key={`email-param-${p.ismP_ID || p.id || idx}`}
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
+                                                type='button'
+                                                variant='outline'
+                                                size='sm'
                                                 onClick={() => {
                                                     const current = form.getValues('COEME_Mail_Message') || '';
                                                     form.setValue('COEME_Mail_Message', current + ` ${p.ismP_NAME || p.name} `);
-                                                }}
-                                            >
+                                                }}>
                                                 {p.ismP_NAME || p.name}
                                             </Button>
                                         ))}
@@ -303,38 +310,41 @@ export default function MasterEventsTab({ initialData, refreshData }: MasterEven
 
                             <FormField
                                 control={form.control}
-                                name="COEME_MailFooter"
+                                name='COEME_MailFooter'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Email Footer <span className="text-destructive">*</span></FormLabel>
-                                        <FormControl><Input {...field} value={field.value as string} /></FormControl>
+                                        <FormLabel>
+                                            Email Footer <span className='text-destructive'>*</span>
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input {...field} value={field.value as string} />
+                                        </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
                         </div>
 
-                        <div className="flex justify-center gap-4 pt-8">
-                            <Button type="submit" className="w-40">
-                                <Save className="mr-2 h-4 w-4" /> {editingId ? 'Update' : 'Save'}
+                        <div className='flex justify-center gap-4 pt-8'>
+                            <Button type='submit' className='w-40'>
+                                <Save className='mr-2 h-4 w-4' /> {editingId ? 'Update' : 'Save'}
                             </Button>
                             <Button
-                                type="button"
-                                variant="outline"
-                                className="w-40"
+                                type='button'
+                                variant='outline'
+                                className='w-40'
                                 onClick={() => {
                                     form.reset();
                                     setEditingId(null);
-                                }}
-                            >
-                                <RotateCcw className="mr-2 h-4 w-4" /> Cancel
+                                }}>
+                                <RotateCcw className='mr-2 h-4 w-4' /> Cancel
                             </Button>
                         </div>
                     </CollapsibleSection>
                 </form>
             </Form>
 
-            <CollapsibleSection title="Master Events List" defaultOpen={true}>
+            <CollapsibleSection title='Master Events List' defaultOpen={true}>
                 <GenericDataTable
                     columns={columns}
                     data={(() => {
@@ -343,44 +353,53 @@ export default function MasterEventsTab({ initialData, refreshData }: MasterEven
                             return initialData.data;
                         }
                         // Fallback for other possible structures
-                        return initialData?.master_eventlist ||
-                            initialData?.master_event_list ||
-                            initialData?.mapped_eventlist ||
-                            [];
+                        return initialData?.master_eventlist || initialData?.master_event_list || initialData?.mapped_eventlist || [];
                     })()}
                     isLoading={false}
                 />
             </CollapsibleSection>
 
             <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
-                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                <DialogContent className='max-h-[80vh] max-w-4xl overflow-y-auto'>
                     <DialogHeader>
                         <DialogTitle>Mapped Event Records</DialogTitle>
                         <DialogDescription>Viewing mapping details for the selected master event.</DialogDescription>
                     </DialogHeader>
                     {isLoadingDetails ? (
-                        <div className="flex h-32 items-center justify-center"><RotateCcw className="h-8 w-8 animate-spin text-primary" /></div>
+                        <div className='flex h-32 items-center justify-center'>
+                            <RotateCcw className='h-8 w-8 animate-spin text-primary' />
+                        </div>
                     ) : (
-                        <div className="space-y-4">
+                        <div className='space-y-4'>
                             {viewDetails.length > 0 ? (
                                 <GenericDataTable
                                     isLoading={isLoadingDetails}
                                     columns={[
                                         { header: 'Academic Year', accessorKey: 'ASMAY_Year' },
-                                        { header: 'Start Date', accessorKey: 'COEE_EStartDate', cell: (info) => new Date(info.getValue() as string).toLocaleDateString() },
-                                        { header: 'End Date', accessorKey: 'COEE_EEndDate', cell: (info) => new Date(info.getValue() as string).toLocaleDateString() },
+                                        {
+                                            header: 'Start Date',
+                                            accessorKey: 'COEE_EStartDate',
+                                            cell: (info) => new Date(info.getValue() as string).toLocaleDateString()
+                                        },
+                                        {
+                                            header: 'End Date',
+                                            accessorKey: 'COEE_EEndDate',
+                                            cell: (info) => new Date(info.getValue() as string).toLocaleDateString()
+                                        },
                                         { header: 'Start Time', accessorKey: 'COEE_EStartTime' },
                                         { header: 'End Time', accessorKey: 'COEE_EEndTime' }
                                     ]}
                                     data={viewDetails}
                                 />
                             ) : (
-                                <div className="text-center p-8 text-muted-foreground">No mapping records found for this event.</div>
+                                <div className='p-8 text-center text-muted-foreground'>No mapping records found for this event.</div>
                             )}
                         </div>
                     )}
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsViewOpen(false)}>Close</Button>
+                        <Button variant='outline' onClick={() => setIsViewOpen(false)}>
+                            Close
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

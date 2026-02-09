@@ -1,4 +1,4 @@
-import { custom, z } from 'zod';
+import { z } from 'zod';
 import { createExamCustomStringSchema, createStringSchema, deleteIdSchema } from '../../validationSchemas';
 
 export const loginSchema = z.object({
@@ -7,23 +7,21 @@ export const loginSchema = z.object({
 });
 
 export const masterSubjectSchema = {
-    addOrUpdate: z
-        .object({
-            ismS_Id: z.number().int({ message: 'Subject Id is required' }).optional(),
-            mI_Id: z.number().int().optional(),
-            ismS_IVRSSubjectName: createExamCustomStringSchema('IVRS Subject Name', 1, 100),
-            ismS_SubjectCode: createStringSchema('Subject Code', 1, 50),
-            ismS_SubjectNameNew: createExamCustomStringSchema('Subject Type / New Name', 1, 50),
-            ismS_SubjectName: createExamCustomStringSchema('Subject Name', 1, 50),
-            ismS_PreadmFlag: z.number().int({ message: 'Pre-Admission Flag is required' }),
-            ismS_AttendanceFlag: z.boolean({ required_error: 'Attendance Flag is required' }),
-            ismS_BatchAppl: z.number().int({ message: 'Batch Applicable Flag is required' }),
-            ismS_ExamFlag: z.number().int({ message: 'Exam Flag is required' }),
-            ismS_LanguageFlg: z.number().int({ message: 'Language Flag is required' }),
-            ismS_AtExtraFeeFlg: z.number().int({ message: 'Extra Fee Flag is required' }),
-            ismS_ActiveFlag: z.number().int({ message: 'Active Flag is required' })
-        })
-    ,
+    addOrUpdate: z.object({
+        ismS_Id: z.number().int({ message: 'Subject Id is required' }).optional(),
+        mI_Id: z.number().int().optional(),
+        ismS_IVRSSubjectName: createExamCustomStringSchema('IVRS Subject Name', 1, 100),
+        ismS_SubjectCode: createStringSchema('Subject Code', 1, 50),
+        ismS_SubjectNameNew: createExamCustomStringSchema('Subject Type / New Name', 1, 50),
+        ismS_SubjectName: createExamCustomStringSchema('Subject Name', 1, 50),
+        ismS_PreadmFlag: z.number().int({ message: 'Pre-Admission Flag is required' }),
+        ismS_AttendanceFlag: z.boolean({ required_error: 'Attendance Flag is required' }),
+        ismS_BatchAppl: z.number().int({ message: 'Batch Applicable Flag is required' }),
+        ismS_ExamFlag: z.number().int({ message: 'Exam Flag is required' }),
+        ismS_LanguageFlg: z.number().int({ message: 'Language Flag is required' }),
+        ismS_AtExtraFeeFlg: z.number().int({ message: 'Extra Fee Flag is required' }),
+        ismS_ActiveFlag: z.number().int({ message: 'Active Flag is required' })
+    }),
 
     delete: z.object({
         ismS_Id: deleteIdSchema('ismS_Id')
@@ -93,42 +91,38 @@ export const masterSubSubjectSchema = {
     })
 };
 
-
 export const gradeDetailsSchema = z
     .object({
         emgD_Id: z.number().default(0),
         emgR_Id: z.number().default(0),
         emgD_Name: createExamCustomStringSchema('Grade Name', 1, 100),
 
-        emgD_From: z.preprocess(
-            (v) => v === "" || v === null || v === undefined ? null : Number(v),
-            z.union([
-                z.number()
-                    .min(0, { message: 'From must be at least 0' })
-                    .max(100, { message: 'From cannot exceed 100' }),
-                z.null()
-            ])
-        ).default(null),
+        emgD_From: z
+            .preprocess(
+                (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
+                z.union([
+                    z.number().min(0, { message: 'From must be at least 0' }).max(100, { message: 'From cannot exceed 100' }),
+                    z.null()
+                ])
+            )
+            .default(null),
 
-        emgD_To: z.preprocess(
-            (v) => v === "" || v === null || v === undefined ? null : Number(v),
-            z.union([
-                z.number()
-                    .min(0, { message: 'To must be at least 0' })
-                    .max(100, { message: 'To cannot exceed 100' }),
-                z.null()
-            ])
-        ).default(null),
+        emgD_To: z
+            .preprocess(
+                (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
+                z.union([z.number().min(0, { message: 'To must be at least 0' }).max(100, { message: 'To cannot exceed 100' }), z.null()])
+            )
+            .default(null),
 
-        emgD_GradePoints: z.preprocess(
-            (v) => v === "" || v === null || v === undefined ? null : Number(v),
-            z.union([
-                z.number()
-                    .min(0, { message: 'Grade points must be at least 0' })
-                    .max(10, { message: 'Grade points cannot exceed 10' }),
-                z.null()
-            ])
-        ).default(null),
+        emgD_GradePoints: z
+            .preprocess(
+                (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
+                z.union([
+                    z.number().min(0, { message: 'Grade points must be at least 0' }).max(10, { message: 'Grade points cannot exceed 10' }),
+                    z.null()
+                ])
+            )
+            .default(null),
 
         emgD_Remarks: z.string().optional(),
         emgD_ActiveFlag: z.boolean().default(true)
@@ -187,17 +181,17 @@ export const masterSubjectGroupSchema = {
 
             emG_GroupName: createExamCustomStringSchema('Subject Group Name', 1, 100),
 
-            emG_TotSubjects: z.number({ required_error: 'Total Subjects is required' })
-                .min(1, 'Total Subjects must be at least 1'),
+            emG_TotSubjects: z.number({ required_error: 'Total Subjects is required' }).min(1, 'Total Subjects must be at least 1'),
 
-            emG_MaxAplSubjects: z.number({ required_error: 'Max Applicable Subjects is required' })
+            emG_MaxAplSubjects: z
+                .number({ required_error: 'Max Applicable Subjects is required' })
                 .min(1, 'Max Applicable Subjects must be at least 1'),
 
-            emG_MinAplSubjects: z.number({ required_error: 'Min Applicable Subjects is required' })
+            emG_MinAplSubjects: z
+                .number({ required_error: 'Min Applicable Subjects is required' })
                 .min(1, 'Min Applicable Subjects must be at least 1'),
 
-            emG_BestOff: z.number({ required_error: 'Best Off Subjects is required' })
-                .min(0, 'Best Off Subjects must be 0 or greater'),
+            emG_BestOff: z.number({ required_error: 'Best Off Subjects is required' }).min(0, 'Best Off Subjects must be 0 or greater'),
 
             subject_list: z.array(subjectGroupDetailSchema).optional()
         })
@@ -242,7 +236,6 @@ export const masterSubjectGroupSchema = {
         emG_Id: z.number({ required_error: 'Exam Group Id is required' })
     })
 };
-
 
 export const masterCategorySchema = {
     addOrUpdate: z.object({
@@ -289,7 +282,7 @@ export const coScholasticActivitySchema = {
         ecacT_Id: z.number().optional(),
         mI_Id: z.number().optional(),
         ecacT_SkillName: createExamCustomStringSchema('Co-Scholastic Activity Name', 1, 100),
-        ecacT_SkillCode: createExamCustomStringSchema('Co-Scholastic Activity Code', 1, 100),
+        ecacT_SkillCode: createExamCustomStringSchema('Co-Scholastic Activity Code', 1, 100)
     }),
     delete: z.object({
         ecacT_Id: deleteIdSchema('ecacT_Id')

@@ -1,22 +1,22 @@
 'use client';
 // Force rebuild after rename
 
-import { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import html2canvas from 'html2canvas';
-import BirthdayForm from './_components/birthday-form';
-import ParticipantTable from './_components/participant-table';
-import BirthdayTemplate from './_components/birthday-template';
-import FeedbackDialog from './_components/feedback-dialog';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import {
     getBirthdayInitialData,
-    getParticipantList,
     getFeedbackQuestions,
+    getParticipantList,
     sendBirthdayMessages
 } from '@/server/alumni/alumni-student-birthday';
-import { IBirthdayFormValues } from './_components/schema';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import html2canvas from 'html2canvas';
+import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import BirthdayForm from './_components/birthday-form';
+import BirthdayTemplate from './_components/birthday-template';
+import FeedbackDialog from './_components/feedback-dialog';
+import ParticipantTable from './_components/participant-table';
+import type { IBirthdayFormValues } from './_components/schema';
 
 export default function AlumniStudentBirthdayPage() {
     const [initialData, setInitialData] = useState<any>(null);
@@ -35,10 +35,7 @@ export default function AlumniStudentBirthdayPage() {
 
     const fetchData = async () => {
         try {
-            const [initRes, feedbackRes] = await Promise.all([
-                getBirthdayInitialData(),
-                getFeedbackQuestions({ Flag: 'BirthDay' })
-            ]);
+            const [initRes, feedbackRes] = await Promise.all([getBirthdayInitialData(), getFeedbackQuestions({ Flag: 'BirthDay' })]);
 
             setInitialData(initRes);
 
@@ -46,8 +43,8 @@ export default function AlumniStudentBirthdayPage() {
                 // Enrich questions with options
                 const enriched = (feedbackRes as any).feedbackquestion.map((fq: any) => ({
                     ...fq,
-                    feedbackoptiondata: (feedbackRes as any).feedbackoption.filter((fo: any) =>
-                        fo.fmtY_Id === fq.fmtY_Id && fo.fmqE_Id === fq.fmqE_Id
+                    feedbackoptiondata: (feedbackRes as any).feedbackoption.filter(
+                        (fo: any) => fo.fmtY_Id === fq.fmtY_Id && fo.fmqE_Id === fq.fmqE_Id
                     )
                 }));
                 setFeedbackQuestions(enriched);
@@ -138,27 +135,23 @@ export default function AlumniStudentBirthdayPage() {
 
     if (loading) {
         return (
-            <div className="flex h-[80vh] items-center justify-center">
-                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <div className='flex h-[80vh] items-center justify-center'>
+                <Loader2 className='h-12 w-12 animate-spin text-primary' />
             </div>
         );
     }
 
     return (
-        <div className="container space-y-6 p-6">
-            <div className="border-b pb-4">
-                <h1 className="text-3xl font-bold tracking-tight">Alumni Student Birthday</h1>
-                <p className="text-muted-foreground">Celebrate birthdays by sending personalized wishes to the community.</p>
+        <div className='container space-y-6 p-6'>
+            <div className='border-b pb-4'>
+                <h1 className='font-bold text-3xl tracking-tight'>Alumni Student Birthday</h1>
+                <p className='text-muted-foreground'>Celebrate birthdays by sending personalized wishes to the community.</p>
             </div>
 
-            <BirthdayForm
-                onTypeChange={handleCategoryChange}
-                onSubmit={handleSendWishes}
-                isLoading={sending}
-            />
+            <BirthdayForm onTypeChange={handleCategoryChange} onSubmit={handleSendWishes} isLoading={sending} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <div className="lg:col-span-8">
+            <div className='grid grid-cols-1 gap-6 lg:grid-cols-12'>
+                <div className='lg:col-span-8'>
                     <CollapsibleSection title={`${category.charAt(0).toUpperCase() + category.slice(1)} List`} defaultOpen={true}>
                         <ParticipantTable
                             data={participants}
@@ -170,9 +163,9 @@ export default function AlumniStudentBirthdayPage() {
                     </CollapsibleSection>
                 </div>
 
-                <div className="lg:col-span-4">
-                    <CollapsibleSection title="Wish Preview" defaultOpen={true}>
-                        <div className="flex flex-col items-center gap-6 max-h-[800px] overflow-y-auto p-2">
+                <div className='lg:col-span-4'>
+                    <CollapsibleSection title='Wish Preview' defaultOpen={true}>
+                        <div className='flex max-h-[800px] flex-col items-center gap-6 overflow-y-auto p-2'>
                             {selectedRows.length > 0 ? (
                                 selectedRows.map((person) => (
                                     <BirthdayTemplate
@@ -182,7 +175,7 @@ export default function AlumniStudentBirthdayPage() {
                                     />
                                 ))
                             ) : (
-                                <div className="flex h-64 w-full flex-col items-center justify-center rounded-lg border border-dashed text-muted-foreground">
+                                <div className='flex h-64 w-full flex-col items-center justify-center rounded-lg border border-dashed text-muted-foreground'>
                                     <p>Select participants to see preview</p>
                                 </div>
                             )}
@@ -191,11 +184,7 @@ export default function AlumniStudentBirthdayPage() {
                 </div>
             </div>
 
-            <FeedbackDialog
-                open={feedbackOpen}
-                onOpenChange={setFeedbackOpen}
-                questions={feedbackQuestions}
-            />
+            <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} questions={feedbackQuestions} />
         </div>
     );
 }

@@ -1,7 +1,10 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { ITransactionReportResponse, ITransactionReportPayload } from '@/types/lesson-planner/reports/school-staff-period-transaction-report';
+import type {
+    ITransactionReportPayload,
+    ITransactionReportResponse
+} from '@/types/lesson-planner/reports/school-staff-period-transaction-report';
 
 const BASE_URL = 'lessonplanner';
 

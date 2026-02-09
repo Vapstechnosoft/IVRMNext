@@ -14,7 +14,7 @@ const withPWA = require('@ducanh2912/next-pwa').default({
 const nextConfig: NextConfig = {
     reactStrictMode: false,
     //Added below line productionBrowserSourceMaps do reduce build space
-    productionBrowserSourceMaps : false,
+    productionBrowserSourceMaps: false,
     experimental: {
         serverActions: {
             bodySizeLimit: '5mb'

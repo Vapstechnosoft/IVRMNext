@@ -1,7 +1,6 @@
 'use server';
 
-import { api, getSearchParamsUrl } from '@/lib/apiService';
-import type { ApiSearchparams } from '@/types';
+import { api } from '@/lib/apiService';
 import type { IApproveRejectPayload } from '@/types/transport/transport-module/transaction/transport-approve';
 
 // Initial Data: Academic Years, Classes, Routes
@@ -15,7 +14,6 @@ export async function getTransportApprovedInitialData() {
 //     const res = await api.post<any>('transport', 'TransportApproved/searchdetails', payload);
 //     return res;
 // }
-
 
 export async function searchTransportApprovedDetails(data: any) {
     const url = '/transport_approved/search_transport_approved_deatils';
@@ -45,7 +43,6 @@ export async function cancelTransportRejection(payload: any) {
 //     const res = await api.post<any>('transport', 'TransportApproved/gridaconchange', data);
 //     return res;
 // }
-
 
 export async function getTransportApprovedHistory(ASMAY_Id: number) {
     const url = `/transport_approved/aprrove_reject_grid_list/${ASMAY_Id}`;
