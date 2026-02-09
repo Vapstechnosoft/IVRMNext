@@ -99,15 +99,16 @@ function ExcelNotImportedReportContent() {
     const handlePrint = () => {
         const columns = [
             { key: 'slNo', label: 'Sl No' },
-            { key: 'admissionNo', label: 'Admission No' },
-            { key: 'academicyear', label: 'Academic Year' },
-            { key: 'paiddate', label: 'Paid Date' },
-            { key: 'paymentmode', label: 'Payment Mode' },
-            { key: 'amount', label: 'Amount' },
-            { key: 'remarks', label: 'Remarks' }
+            { key: 'asmaY_Year', label: 'Academic Year' },
+            { key: 'amsT_AdmNo', label: 'Admission No' },
+            { key: 'feipsT_Date', label: 'Paid Date' },
+            { key: 'feipsT_PayementMode', label: 'Payment Mode' },
+            { key: 'feipsT_Amount', label: 'Amount' },
+            { key: 'feipsT_Remarks', label: 'Remarks' }
         ];
         const rowsToPrint = reportData.map((row, index) => ({
             ...row,
+            feipsT_Date: new Date(row.feipsT_Date).toLocaleDateString('en-GB'),
             slNo: index + 1
         }));
         printTable(columns, rowsToPrint);

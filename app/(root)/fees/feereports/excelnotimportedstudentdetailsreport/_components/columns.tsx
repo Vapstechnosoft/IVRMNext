@@ -36,7 +36,16 @@ export const excelnotimportedstudentColumns: ColumnDef<ExcelNotImportedStudentDe
     {
         accessorKey: 'feipsT_Date',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Paid Date' />,
-        cell: ({ row }) => <div>{row.getValue('feipsT_Date')}</div>,
+        //cell: ({ row }) => <div>{row.getValue('feipsT_Date')}</div>,
+        cell: ({ row }) => (
+            <div>
+                {new Date(row.getValue('feipsT_Date')).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                })}
+            </div>
+        ),
         enableSorting: true,
         enableHiding: true
     },
