@@ -45,4 +45,5 @@ export interface IAlumniInteractionLoadResponse {
 
 export interface IAlumniDetailsResponse {
     getdetails: IAlumniInteractionAlumni[];
+    viewmessage: IAlumniInteractionReply[];
 }
