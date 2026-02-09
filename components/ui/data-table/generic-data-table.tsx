@@ -50,7 +50,7 @@ interface GenericDataTableProps<T> {
     defaultVisibility?: { [key: string]: boolean };
     scrollable?: boolean;
     maxHeight?: string;
-    manualPagination?: boolean;
+    //manualPagination?: boolean;
 }
 
 export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<any>>(function GenericDataTable<T>(
@@ -80,7 +80,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         // manualPagination = true
         scrollable = false,
         maxHeight = '600px',
-        manualPagination = false
+        //manualPagination = false
     }: GenericDataTableProps<T>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -143,7 +143,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     showSearchColumns={showSearchColumns}
                     showExportOptions={showExportOptions}
                     maxSelectableRows={maxSelectableRows}
-                    manualPagination={manualPagination}
+                    //manualPagination={manualPagination}
                     onRowSelectionChange={(selectedRows) => {
                         if (onRowSelectionChange) {
                             onRowSelectionChange(selectedRows);
@@ -168,7 +168,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                 columnPinning={columnPinning}
                 maxSelectableRows={maxSelectableRows}
                 showSearchColumns={showSearchColumns}
-                manualPagination={manualPagination}
+                //manualPagination={manualPagination}
                 scrollable={scrollable}
                 maxHeight={maxHeight}
                 onRowSelectionChange={(selectedRows) => {
