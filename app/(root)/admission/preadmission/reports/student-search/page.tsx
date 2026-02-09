@@ -10,7 +10,7 @@ import { useStudentSearch } from '@/hooks/admission/preadmission/useReports';
 import { studentSearchSchema } from '@/schemas/admission/preadmission/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FileSpreadsheet, Plus, Printer, RotateCcw, Search, Trash2 } from 'lucide-react';
-import { use, useState } from 'react';
+import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import { type StudentData, studentSearchColumns } from './_components/columns';
@@ -45,7 +45,7 @@ const CONDITION_OPTIONS = [
 export default function StudentSearchPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const [showReport, setShowReport] = useState(false);
     const [searchQuery, setSearchQuery] = useState<{
         stuStatus: string;

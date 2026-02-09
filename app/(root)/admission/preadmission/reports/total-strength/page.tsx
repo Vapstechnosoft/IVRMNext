@@ -212,8 +212,37 @@ export default function TotalStrengthPage() {
         }
     };
 
+    const handlePrint = () => {
+        if (!response?.data || !Array.isArray((response.data as any).studentlist)) {
+            toast.error('No data available to print');
+            return;
+        }
+        window.print();
+    };
+
     return (
         <div className='min-h-screen'>
+            <style>
+                {`
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            #printable-report, #printable-report * {
+              visibility: visible;
+            }
+            #printable-report {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+            }
+            .no-print {
+              display: none !important;
+            }
+          }
+        `}
+            </style>
             <div className='container space-y-4 p-1'>
                 <div className='space-y-4'>
                     <CollapsibleSection
@@ -221,7 +250,7 @@ export default function TotalStrengthPage() {
                         variant='default'
                         size='lg'
                         title='Total Strength'
-                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        className='no-print shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                         <div className='space-y-6 p-4'>
                             <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
                                 <div className='space-y-4 rounded-lg border border-gray-200 p-4'>
@@ -486,7 +515,7 @@ export default function TotalStrengthPage() {
                                         <FileSpreadsheet className='mr-2 h-4 w-4' />
                                         Export to Excel
                                     </Button>
-                                    <Button variant='outline' className='w-fit'>
+                                    <Button variant='outline' className='w-fit' onClick={handlePrint}>
                                         <Printer className='mr-2 h-4 w-4' />
                                         Print
                                     </Button>
@@ -496,83 +525,85 @@ export default function TotalStrengthPage() {
                     </CollapsibleSection>
 
                     {showReport && (
-                        <CollapsibleSection
-                            defaultOpen={true}
-                            variant='default'
-                            size='lg'
-                            title='Total Strength Report'
-                            className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                            <div className='space-y-4 p-4'>
-                                {isLoading ? (
-                                    <div className='flex items-center justify-center py-8'>
-                                        <p className='text-gray-500'>Loading report data...</p>
-                                    </div>
-                                ) : error ? (
-                                    <div className='flex items-center justify-center py-8'>
-                                        <p className='text-red-500'>Error loading report data</p>
-                                    </div>
-                                ) : (
-                                    <div className='overflow-x-auto'>
-                                        <table className='w-full border-collapse border border-gray-300'>
-                                            <thead>
-                                                <tr className='bg-gray-100'>
-                                                    <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Sl.No</th>
-                                                    <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Class</th>
-                                                    <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Section</th>
-                                                    <th className='border border-gray-300 px-4 py-2 text-right font-semibold'>Total</th>
-                                                    <th className='border border-gray-300 px-4 py-2 text-right font-semibold'>
-                                                        New Admission
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {Object.entries(groupedData())
-                                                    .sort(([a], [b]) => Number(a) - Number(b))
-                                                    .map(([rowNumber, sections], index) => (
-                                                        <Fragment key={rowNumber}>
-                                                            {sections.map((item: any, sectionIndex) => (
-                                                                <tr
-                                                                    key={`${rowNumber}-${item.sectionname}-${sectionIndex}`}
-                                                                    className='hover:bg-gray-50'>
-                                                                    <td className='border border-gray-300 px-4 py-2'>
-                                                                        {sectionIndex === 0 ? index + 1 : ''}
+                        <div id='printable-report'>
+                            <CollapsibleSection
+                                defaultOpen={true}
+                                variant='default'
+                                size='lg'
+                                title='Total Strength Report'
+                                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                                <div className='space-y-4 p-4'>
+                                    {isLoading ? (
+                                        <div className='flex items-center justify-center py-8'>
+                                            <p className='text-gray-500'>Loading report data...</p>
+                                        </div>
+                                    ) : error ? (
+                                        <div className='flex items-center justify-center py-8'>
+                                            <p className='text-red-500'>Error loading report data</p>
+                                        </div>
+                                    ) : (
+                                        <div className='overflow-x-auto'>
+                                            <table className='w-full border-collapse border border-gray-300'>
+                                                <thead>
+                                                    <tr className='bg-gray-100'>
+                                                        <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Sl.No</th>
+                                                        <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Class</th>
+                                                        <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Section</th>
+                                                        <th className='border border-gray-300 px-4 py-2 text-right font-semibold'>Total</th>
+                                                        <th className='border border-gray-300 px-4 py-2 text-right font-semibold'>
+                                                            New Admission
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {Object.entries(groupedData())
+                                                        .sort(([a], [b]) => Number(a) - Number(b))
+                                                        .map(([rowNumber, sections], index) => (
+                                                            <Fragment key={rowNumber}>
+                                                                {sections.map((item: any, sectionIndex) => (
+                                                                    <tr
+                                                                        key={`${rowNumber}-${item.sectionname}-${sectionIndex}`}
+                                                                        className='hover:bg-gray-50'>
+                                                                        <td className='border border-gray-300 px-4 py-2'>
+                                                                            {sectionIndex === 0 ? index + 1 : ''}
+                                                                        </td>
+                                                                        <td className='border border-gray-300 px-4 py-2'>
+                                                                            {sectionIndex === 0 ? item.classname : ''}
+                                                                        </td>
+                                                                        <td className='border border-gray-300 px-4 py-2'>{item.sectionname}</td>
+                                                                        <td className='border border-gray-300 px-4 py-2 text-right'>
+                                                                            {item.totalstudents}
+                                                                        </td>
+                                                                        <td className='border border-gray-300 px-4 py-2 text-right'>
+                                                                            {item.newAdmission || ''}
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                                <tr key={`total-${rowNumber}`} className='bg-white font-semibold'>
+                                                                    <td colSpan={3} className='border border-gray-300 px-4 py-2 text-right'>
+                                                                        Total {sections[0]?.classname}
                                                                     </td>
-                                                                    <td className='border border-gray-300 px-4 py-2'>
-                                                                        {sectionIndex === 0 ? item.classname : ''}
-                                                                    </td>
-                                                                    <td className='border border-gray-300 px-4 py-2'>{item.sectionname}</td>
                                                                     <td className='border border-gray-300 px-4 py-2 text-right'>
-                                                                        {item.totalstudents}
+                                                                        {calculateClassTotal(Number(rowNumber))}
                                                                     </td>
-                                                                    <td className='border border-gray-300 px-4 py-2 text-right'>
-                                                                        {item.newAdmission || ''}
-                                                                    </td>
+                                                                    <td className='border border-gray-300 px-4 py-2 text-right' />
                                                                 </tr>
-                                                            ))}
-                                                            <tr key={`total-${rowNumber}`} className='bg-white font-semibold'>
-                                                                <td colSpan={3} className='border border-gray-300 px-4 py-2 text-right'>
-                                                                    Total {sections[0]?.classname}
-                                                                </td>
-                                                                <td className='border border-gray-300 px-4 py-2 text-right'>
-                                                                    {calculateClassTotal(Number(rowNumber))}
-                                                                </td>
-                                                                <td className='border border-gray-300 px-4 py-2 text-right' />
-                                                            </tr>
-                                                        </Fragment>
-                                                    ))}
-                                                <tr className='bg-green-100 font-bold'>
-                                                    <td colSpan={3} className='border border-gray-300 px-4 py-2 text-right'>
-                                                        Grand Total
-                                                    </td>
-                                                    <td className='border border-gray-300 px-4 py-2 text-right'>{calculateGrandTotal()}</td>
-                                                    <td className='border border-gray-300 px-4 py-2 text-right' />
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
-                            </div>
-                        </CollapsibleSection>
+                                                            </Fragment>
+                                                        ))}
+                                                    <tr className='bg-green-100 font-bold'>
+                                                        <td colSpan={3} className='border border-gray-300 px-4 py-2 text-right'>
+                                                            Grand Total
+                                                        </td>
+                                                        <td className='border border-gray-300 px-4 py-2 text-right'>{calculateGrandTotal()}</td>
+                                                        <td className='border border-gray-300 px-4 py-2 text-right' />
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </div>
+                            </CollapsibleSection>
+                        </div>
                     )}
                 </div>
             </div>
