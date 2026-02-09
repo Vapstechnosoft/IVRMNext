@@ -4,6 +4,7 @@
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import {
     useFeeClassListDefaulterreport,
+    useFeeConCessionOnLoadreport,
     useFeeCustomGroupDefaulterreport,
     useFeeGroupDefaulterreport,
     useFeeSectionListDefaulterreport,
@@ -16,10 +17,11 @@ import { Checkbox as BaseCheckbox } from '@/components/ui/checkbox';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { saveFeesconcessionReport } from '@/server/fees/reports/fee_concession_report';
 import type {
     IFeeBusRouteDropdownList,
     IFeeClassDropdownList,
-    IFeeCustomGroupDropdownList,
+    IFeeConcessionCustomGroupDropdownList,
     IFeeGroupDropdownList,
     IFeeInstallmentDropdownList,
     IFeeSectionDropdownList,
@@ -86,7 +88,7 @@ export default function FeeConcessionReport() {
     const [feeGroups, setFeeGroups] = useState<IFeeGroupDropdownList[]>([]);
     const [feeTerms, setFeeTerms] = useState<IFeeTermDropdownList[]>([]);
     const [feeBusRoutes, setFeeBusRoutes] = useState<IFeeBusRouteDropdownList[]>([]);
-    const [customGroups, setCustomGroups] = useState<IFeeCustomGroupDropdownList[]>([]);
+    const [customGroups, setCustomGroups] = useState<IFeeConcessionCustomGroupDropdownList[]>([]);
 
     //const [reportData, setReportData] = useState<IFeeAuditReport[]>([]);
     const [reportData, setReportData] = useState<any[]>([]);
@@ -111,6 +113,7 @@ export default function FeeConcessionReport() {
     const { data: feetermData, isLoading: loadingfeeterm, error: feetermError } = useFeeTermDefaulterreport();
 
     const { data: customGroupResponse, isLoading: loadingCustomGroup, error: customGroupError } = useFeeCustomGroupDefaulterreport();
+    const { data: onOnloadResponse, isLoading: loadingonOnloadResponse, error: onOnloadResponseError } = useFeeConCessionOnLoadreport();
 
     // Load data effects (unchanged)
     useEffect(() => {
@@ -160,20 +163,33 @@ export default function FeeConcessionReport() {
         }
     }, [sectionListResponse, sectionListError]);
 
-    useEffect(() => {
-        if (feegroupError) toast.error(feegroupError?.message || 'Failed to load fee groups');
-        else if (feegroupData?.data) setFeeGroups(feegroupData.data);
-    }, [feegroupData, feegroupError]);
+    // useEffect(() => {
+    //     if (feegroupError) toast.error(feegroupError?.message || 'Failed to load fee groups');
+    //     else if (feegroupData?.data) setFeeGroups(feegroupData.data);
+    // }, [feegroupData, feegroupError]);
+
+    // useEffect(() => {
+    //     if (feetermError) toast.error(feetermError?.message || 'Failed to load terms');
+    //     else if (feetermData?.data) setFeeTerms(feetermData.data);
+    // }, [feetermData, feetermError]);
+
+    // useEffect(() => {
+    //     if (customGroupError) toast.error(customGroupError?.message || 'Failed to load custom groups');
+    //     else if (customGroupResponse?.data) setCustomGroups(customGroupResponse.data);
+    // }, [customGroupResponse, customGroupError]);
 
     useEffect(() => {
-        if (feetermError) toast.error(feetermError?.message || 'Failed to load terms');
-        else if (feetermData?.data) setFeeTerms(feetermData.data);
-    }, [feetermData, feetermError]);
-
-    useEffect(() => {
-        if (customGroupError) toast.error(customGroupError?.message || 'Failed to load custom groups');
-        else if (customGroupResponse?.data) setCustomGroups(customGroupResponse.data);
-    }, [customGroupResponse, customGroupError]);
+        if (onOnloadResponseError) toast.error(onOnloadResponseError?.message || 'Failed to load Data');
+        else if (
+            (onOnloadResponse as any)?.data?.customlist ||
+            (onOnloadResponse as any)?.data?.grouplist ||
+            (onOnloadResponse as any)?.data?.terms
+        ) {
+            setCustomGroups((onOnloadResponse as any).data.customlist);
+            setFeeGroups((onOnloadResponse as any).data.grouplist);
+            setFeeTerms((onOnloadResponse as any).data.terms);
+        }
+    }, [onOnloadResponse, onOnloadResponseError]);
 
     // Toggle handlers
     const toggleCustomGroup = (id: number) =>
@@ -207,23 +223,38 @@ export default function FeeConcessionReport() {
         }));
 
     const selectAllCustomGroups = (checked: boolean) => {
-        setFilters((prev) => ({ ...prev, customGroupIds: checked ? customGroups.map((g) => g.fmgG_Id) : [] }));
+        setFilters((prev) => ({
+            ...prev,
+            customGroupIds: checked ? customGroups.map((g) => g.fmgG_Id) : []
+        }));
     };
 
     const selectAllFeeGroups = (checked: boolean) => {
-        setFilters((prev) => ({ ...prev, feeGroupIds: checked ? feeGroups.map((g) => g.fmG_Id) : [] }));
+        setFilters((prev) => ({
+            ...prev,
+            feeGroupIds: checked ? feeGroups.map((g) => g.fmG_Id) : []
+        }));
     };
 
     const selectAllTerms = (checked: boolean) => {
-        setFilters((prev) => ({ ...prev, termIds: checked ? feeTerms.map((t) => t.fmT_Id) : [] }));
+        setFilters((prev) => ({
+            ...prev,
+            termIds: checked ? feeTerms.map((t) => t.fmT_Id) : []
+        }));
     };
 
     const selectAllInstallments = (checked: boolean) => {
-        setFilters((prev) => ({ ...prev, installmentIds: checked ? feeInstallments.map((t) => t.fmI_Id) : [] }));
+        setFilters((prev) => ({
+            ...prev,
+            installmentIds: checked ? feeInstallments.map((t) => t.fmI_Id) : []
+        }));
     };
 
     const selectAllBusRoutes = (checked: boolean) => {
-        setFilters((prev) => ({ ...prev, busRouteIds: checked ? feeBusRoutes.map((r) => r.trmR_Id) : [] }));
+        setFilters((prev) => ({
+            ...prev,
+            busRouteIds: checked ? feeBusRoutes.map((r) => r.trmR_Id) : []
+        }));
     };
 
     const toggleStatus = (status: 'active' | 'deactive' | 'left' | 'balance') => {
@@ -312,7 +343,7 @@ export default function FeeConcessionReport() {
         { slNo: 20, groupName: 'CBSE LAB FEES', concessionAmount: 91000 }
     ];
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         //      let data: any;
         // if (filters.viewMode === "year") {
         //   data = {
@@ -374,11 +405,64 @@ export default function FeeConcessionReport() {
 
         setReportLoading(true);
 
-        setTimeout(() => {
-            setReportData(mockReportData);
-            setShowReport(true);
-            setReportLoading(false);
-        }, 500);
+        let payload = {};
+
+        if (filters.viewMode === 'year') {
+            payload = {
+                ASMAY_Id: filters.academicYearId,
+                radioval: filters.breakdown,
+                studenttype: null,
+                reporttype: filters.viewMode,
+                FMGG_Id: 0,
+                TempararyArrayhEADListnew1: [],
+                TempararyArrayhEADListnew2: [],
+                TempararyArrayhEADListnew3: [],
+                feeheadarray: null,
+                customflag: '0',
+                groupflag: '0',
+                FMG_Ids: filters.customGroupIds,
+                FMT_Ids: filters.termIds,
+                term_group: 'T',
+                FMT_Idss: filters.termIds,
+                active: filters.status.active === true ? 1 : 0,
+                deactive: filters.status.deactive === true ? 1 : 0,
+                left: filters.status.left === true ? 1 : 0
+            };
+        } else {
+            payload = {
+                ASMAY_Id: filters.academicYearId,
+                FMG_Id: 0,
+                radioval: filters.breakdown,
+                studenttype: null,
+                From_Date: filters.fromDate,
+                To_Date: filters.toDate,
+                reporttype: filters.viewMode,
+                FMT_ID: 0,
+                FMGG_Id: 0,
+                TempararyArrayhEADListnew1: [],
+                TempararyArrayhEADListnew2: [],
+                TempararyArrayhEADListnew3: [],
+                customflag: '0',
+                groupflag: '0',
+                FMG_Ids: filters.customGroupIds,
+                FMT_Ids: filters.termIds,
+                term_group: 'T',
+                active: filters.status.active === true ? 1 : 0,
+                deactive: filters.status.deactive === true ? 1 : 0,
+                left: filters.status.left === true ? 1 : 0
+            };
+        }
+
+        const response = await saveFeesconcessionReport(payload);
+        setReportData(response?.data || []);
+        setShowReport(true);
+        setReportLoading(false);
+
+        // setTimeout(() => {
+        //   setReportData(mockReportData);
+        //   setShowReport(true);
+        //   setReportLoading(false);
+        // }, 500);
     };
 
     const handleExport = () => {
@@ -438,7 +522,12 @@ export default function FeeConcessionReport() {
                                                 type='radio'
                                                 name='viewMode'
                                                 checked={filters.viewMode === mode.value}
-                                                onChange={() => setFilters((prev) => ({ ...prev, viewMode: mode.value }))}
+                                                onChange={() =>
+                                                    setFilters((prev) => ({
+                                                        ...prev,
+                                                        viewMode: mode.value
+                                                    }))
+                                                }
                                                 className='h-5 w-5 text-primary'
                                             />
                                             <span className='font-medium text-base'>{mode.label}</span>
@@ -527,7 +616,7 @@ export default function FeeConcessionReport() {
                                                 <span>Select All</span>
                                             </label>
 
-                                            {loadingCustomGroup ? (
+                                            {loadingonOnloadResponse ? (
                                                 <div className='py-4 text-center text-gray-500'>Loading...</div>
                                             ) : customGroups.length > 0 ? (
                                                 customGroups.map((group) => (
@@ -540,7 +629,7 @@ export default function FeeConcessionReport() {
                                                             checked={filters.customGroupIds.includes(group.fmgG_Id)}
                                                             onCheckedChange={() => toggleCustomGroup(group.fmgG_Id)}
                                                         />
-                                                        <span className='font-medium text-sm'>{group.fmgG_GroupName}</span>
+                                                        <span className='font-medium text-sm'>{group.fmg_groupname}</span>
                                                     </label>
                                                 ))
                                             ) : (
@@ -571,7 +660,7 @@ export default function FeeConcessionReport() {
                                                 <span>Select All</span>
                                             </label>
 
-                                            {loadingfeegroup ? (
+                                            {loadingonOnloadResponse ? (
                                                 <div className='py-4 text-center text-gray-500'>Loading...</div>
                                             ) : feeGroups.length > 0 ? (
                                                 feeGroups.map((group) => (
@@ -616,7 +705,7 @@ export default function FeeConcessionReport() {
                                                     <span>Select All</span>
                                                 </label>
 
-                                                {loadingfeeterm ? (
+                                                {loadingonOnloadResponse ? (
                                                     <div className='py-4 text-center text-gray-500'>Loading...</div>
                                                 ) : feeTerms.length > 0 ? (
                                                     feeTerms.map((term) => (

@@ -945,10 +945,11 @@ export default function FeeYearlyCollectionReport() {
         const rowsToPrint = reportData.filter((row) => selectedIds.includes(row.id));
 
         // Debug: Log what we're sending to print
-        console.log('Rows to print:', rowsToPrint);
-        console.log('First row data:', rowsToPrint[0]);
-        console.log('Available properties in first row:', rowsToPrint[0] ? Object.keys(rowsToPrint[0]) : []);
-        console.log('Selected terms:', selectedTerms);
+        // console.log('Rows to print:', rowsToPrint);
+        // console.log('First row data:', rowsToPrint[0]);
+        // console.log('Available properties in first row:', rowsToPrint[0] ? Object.keys(rowsToPrint[0]) : []);
+        // console.log('Selected terms:', selectedTerms);
+        console.log('rowsToPrint[0].fss_paidamount:', rowsToPrint[0].paid);
 
         if (!rowsToPrint || rowsToPrint.length === 0) {
             toast.error('No data to print');

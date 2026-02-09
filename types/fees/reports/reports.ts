@@ -445,28 +445,32 @@ export interface IFeeYearlyCollectionReport {
     amst_mobileno: string;
 }
 
-
 export interface IFeeYearlyStudentTermWiseReport {
-  id: number;
-  amst_Id: number;
-  fmt_Id: number;
-  fmt_Name: string;
-  arrear: number;
-  excess: number;
-  balance: number;
-  paid: number;
-  payable: number;
-  concession: number;
-  charges: number;
-  studentName: string;
-  asmcl_ClassName: string;
-  fma_Id: number;
-  amst_FatherName: string;
-  amst_FatherMobileNo: string;
-  waived:number;
-  adjusted:number;
-  refund:number;
-  cdNetAmount: number;
-  cdPaidAmount: number;
-  cdBalanceAmount: number;
+    id: number;
+    amst_Id: number;
+    fmt_Id: number;
+    fmt_Name: string;
+    arrear: number;
+    excess: number;
+    balance: number;
+    paid: number;
+    payable: number;
+    concession: number;
+    charges: number;
+    studentName: string;
+    asmcl_ClassName: string;
+    fma_Id: number;
+    amst_FatherName: string;
+    amst_FatherMobileNo: string;
+    waived: number;
+    adjusted: number;
+    refund: number;
+    cdNetAmount: number;
+    cdPaidAmount: number;
+    cdBalanceAmount: number;
+}
+
+export interface IFeeConcessionCustomGroupDropdownList {
+    fmgG_Id: number;
+    fmg_groupname: string;
 }

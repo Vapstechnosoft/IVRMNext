@@ -423,7 +423,18 @@ export default function FeeInstallemntReport() {
         }
 
         // DETAILED
-        const cols = ['Sl No', 'Roll No', 'Student Name', 'Admission No', 'Class', 'Section', 'Balance', 'Total'];
+        const cols = [
+            'Sl No',
+            'Student Name',
+            'Admission No',
+            'Class',
+            'Section',
+            'Term',
+            'Payable Amount',
+            'Paid Amount',
+            'Balance',
+            'Concession'
+        ];
 
         selectedInstallmentData.forEach((inst: any) => {
             const name = inst.ftI_InstallmentName;
@@ -463,13 +474,15 @@ export default function FeeInstallemntReport() {
         return reportData.map((row: any, index: number) => {
             const data: any = {
                 'Sl No': index + 1,
-                'Roll No': row.rollNo,
                 'Student Name': row.studentName,
-                'Admission No': row.admNo,
+                'Admission No': row.admissionNo,
                 Class: row.className,
-                Section: row.sectionName,
-                Balance: row.balance,
-                Total: row.total
+                Section: row.section,
+                Term: row.term,
+                'Payable Amount': row.payableAmount,
+                'Paid Amount': row.paidAmount,
+                Balance: row.balanceAmount,
+                Concession: row.concessionAmount
             };
 
             selectedInstallmentData.forEach((inst: any) => {
