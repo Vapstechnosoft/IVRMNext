@@ -23,27 +23,16 @@ export default function AlumniSearchPage() {
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const [initialRes, cityRes, occupationRes] = await Promise.all([
-                getAlumniSearchDropdownData({}),
-                getAlumniSearchDropdownData({ type: 'City' }),
-                getAlumniSearchDropdownData({ type: 'Occupation' })
-            ]);
+            // Fetch initial dropdown data (Years, Classes)
+            const initialRes = await getAlumniSearchDropdownData({});
 
             if (initialRes.success && initialRes.data) {
                 setYears(initialRes.data.yearList || []);
                 setClasses(initialRes.data.classList || []);
-            }
 
-            if (cityRes.success && cityRes.data) {
-                const cityList = cityRes.data.citylist || cityRes.data.searchResult || [];
-                setCities(cityList.map((c: any) => c.almsT_PerCity || c.cityName || c).filter(Boolean));
+                // Legacy code also shows loading cities/occupations might not be needed initially
+                // or were handled differently. For now, we restore base dropdowns.
             }
-
-            if (occupationRes.success && occupationRes.data) {
-                const occupationList = occupationRes.data.occupationlist || occupationRes.data.searchResult || [];
-                setOccupations(occupationList.map((o: any) => o.alspR_Designation || o.designation || o).filter(Boolean));
-            }
-
         } catch (error) {
             toast.error('Failed to load search preferences');
         } finally {
@@ -73,12 +62,25 @@ export default function AlumniSearchPage() {
                 const rawData = Array.isArray(res.data) ? res.data : res.data.searchResult || [];
 
                 const mappedData: IAlumniSearchResultItem[] = rawData.map((item: any) => ({
-                    almst_id: Number(item.almst_id || item.almsT_Id || item.amst_Id || item.student_id || item.ALMST_Id || item.amst_admno || 0),
+                    almst_id: Number(
+                        item.almst_id || item.almsT_Id || item.amst_Id || item.student_id || item.ALMST_Id || item.amst_admno || 0
+                    ),
                     amsT_FirstName: item.studentname || item.amsT_FirstName || item.ALMST_FirstName || '',
-                    amsT_DOB: (item.amst_dob || item.amsT_DOB || item.ALMST_DOB) ? new Date(item.amst_dob || item.amsT_DOB || item.ALMST_DOB).toLocaleDateString() : '',
-                    amsT_MobileNo: (item.amst_mobileno || item.amsT_MobileNo || item.ALMST_MobileNo) ? (item.amst_mobileno || item.amsT_MobileNo || item.ALMST_MobileNo).toString() : '',
+                    amsT_DOB:
+                        item.amst_dob || item.amsT_DOB || item.ALMST_DOB
+                            ? new Date(item.amst_dob || item.amsT_DOB || item.ALMST_DOB).toLocaleDateString()
+                            : '',
+                    amsT_MobileNo:
+                        item.amst_mobileno || item.amsT_MobileNo || item.ALMST_MobileNo
+                            ? (item.amst_mobileno || item.amsT_MobileNo || item.ALMST_MobileNo).toString()
+                            : '',
                     amsT_emailId: item.amst_emailid || item.amsT_emailId || item.amst_emailid || item.ALMST_emailId || '',
-                    ASMAY_Id_Join: item.ASMAY_Id_Join || item.asmaY_Year || item.asmay_year || (item.amst_date ? new Date(item.amst_date).getFullYear().toString() : '') || '',
+                    ASMAY_Id_Join:
+                        item.ASMAY_Id_Join ||
+                        item.asmaY_Year ||
+                        item.asmay_year ||
+                        (item.amst_date ? new Date(item.amst_date).getFullYear().toString() : '') ||
+                        '',
                     ASMAY_Id_Left: item.ASMAY_Id_Left || '',
                     ALMST_MembershipId: item.amst_registrationno || item.ALMST_MembershipId || item.amst_admno || '',
                     amst_admno: item.amst_admno || '',

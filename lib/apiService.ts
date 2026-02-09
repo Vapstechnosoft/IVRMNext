@@ -121,7 +121,6 @@ class ApiService {
                     rejectUnauthorized: false // Bypass SSL certificate validation
                 });
 
-
                 console.info('🔵 [API SERVICE] SSL bypass enabled for:', baseURL);
             }
 

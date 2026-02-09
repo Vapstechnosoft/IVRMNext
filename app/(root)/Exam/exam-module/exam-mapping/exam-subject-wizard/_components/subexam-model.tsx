@@ -110,10 +110,10 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
 
         const finalList = shouldSort
             ? [...list].sort((a: any, b: any) => {
-                const orderA = Number(a.emsE_SubExamOrder) || 999999;
-                const orderB = Number(b.emsE_SubExamOrder) || 999999;
-                return orderA - orderB;
-            })
+                  const orderA = Number(a.emsE_SubExamOrder) || 999999;
+                  const orderB = Number(b.emsE_SubExamOrder) || 999999;
+                  return orderA - orderB;
+              })
             : list;
 
         reset({ subexam_list: finalList });
@@ -178,9 +178,7 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
             const max = row.eycessS_MaxMarks === '' || row.eycessS_MaxMarks === null ? undefined : Number(row.eycessS_MaxMarks);
             const min = row.eycessS_MinMarks === '' || row.eycessS_MinMarks === null ? undefined : Number(row.eycessS_MinMarks);
             const entry =
-                row.eycessS_MarksEntryMax === '' || row.eycessS_MarksEntryMax === null
-                    ? undefined
-                    : Number(row.eycessS_MarksEntryMax);
+                row.eycessS_MarksEntryMax === '' || row.eycessS_MarksEntryMax === null ? undefined : Number(row.eycessS_MarksEntryMax);
 
             // Required fields validation for checked rows
             if (row.checkedvalue) {
@@ -328,6 +326,32 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
         [updateRowValue, getValues, validateRowManually, setError, clearErrors]
     );
 
+    const handleCheckboxChange = useCallback(
+        (idx: number, checked: boolean) => {
+            updateRowValue(idx, 'checkedvalue', checked);
+
+            // If checked, trigger validation for required fields
+            if (checked) {
+                const row = getValues('subexam_list')[idx];
+                const rowErrs = validateRowManually(row);
+
+                // Set errors for all required fields if they exist
+                Object.keys(rowErrs).forEach((field) => {
+                    setError(`subexam_list.${idx}.${field}` as any, {
+                        type: 'manual',
+                        message: rowErrs[field]
+                    });
+                });
+            } else {
+                // Clear errors when unchecked
+                clearErrors(`subexam_list.${idx}.eycessS_MaxMarks`);
+                clearErrors(`subexam_list.${idx}.eycessS_MinMarks`);
+                clearErrors(`subexam_list.${idx}.eycessS_MarksEntryMax`);
+                clearErrors(`subexam_list.${idx}.emgR_Id`);
+            }
+        },
+        [updateRowValue, getValues, validateRowManually, setError, clearErrors]
+    );
 
     // ----------------------------------
     // Set Order Functions
@@ -432,21 +456,20 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
         }
 
         const formatted = selected.map((r, index) => ({
-            EYCESSE_Id: r.EYCESSE_Id ?? 0,
-            EYCES_Id: subject.EYCES_Id,
-            EMSE_Id: r.emsE_Id,
-            EMGR_Id: Number(r.emgR_Id) || null,
-            EYCESSE_MaxMarks: Number(r.eycessS_MaxMarks) || 0,
-            EYCESSE_MinMarks: Number(r.eycessS_MinMarks) || 0,
-            EYCESSE_ExemptedFlg: !!r.eycessS_ExemptedFlg,
-            EYCESSE_ExemptedPer: Number(r.eycessS_ExemptedPer) || 0,
-            EYCESSE_ActiveFlg: !!r.eycessS_ActiveFlg,
+            eycessE_Id: r.EYCESSE_Id ?? 0,
+            eyceS_Id: subject.EYCES_Id,
+            emsE_Id: r.emsE_Id,
+            emgR_Id: Number(r.emgR_Id) || null,
+            eycessS_MaxMarks: Number(r.eycessS_MaxMarks) || 0,
+            eycessS_MinMarks: Number(r.eycessS_MinMarks) || 0,
+            eycessS_ExemptedFlg: !!r.eycessS_ExemptedFlg,
+            eycessS_ExemptedPer: Number(r.eycessS_ExemptedPer) || 0,
+            eycessS_ActiveFlg: !!r.eycessS_ActiveFlg,
             emsE_SubExamOrder: index + 1,
-            EMSE_SubExamOrder: index + 1,
-            EYCESSS_MarksFlg: !!r.eycessS_MarksFlg,
-            EYCESSS_GradesFlg: !!r.eycessS_GradesFlg,
-            EYCESSS_AplResultFlg: !!r.eycessS_AplResultFlg,
-            EYCESSS_MarksEntryMax: Number(r.eycessS_MarksEntryMax) || 0
+            eycessS_MarksFlg: !!r.eycessS_MarksFlg,
+            eycessS_GradesFlg: !!r.eycessS_GradesFlg,
+            eycessS_AplResultFlg: !!r.eycessS_AplResultFlg,
+            eycessS_MarksEntryMax: Number(r.eycessS_MarksEntryMax) || 0
         }));
 
         onSave(subject.ISMS_Id, formatted, values.subexam_list);
@@ -477,15 +500,15 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
     // ----------------------------------
     return (
         <Dialog open={open} onOpenChange={(val) => !val && onClose(subject.ISMS_Id)}>
-            <DialogContent className='max-h-[80vh] w-full min-w-[80vw] overflow-y-auto pt-0 sm:overflow-x-hidden'>
-                <DialogHeader className='sticky top-0 z-30 bg-white pt-4 border-b pb-2'>
+            <DialogContent className='flex h-[90vh] w-full min-w-[80vw] flex-col overflow-hidden pt-0'>
+                <DialogHeader className='shrink-0 border-b bg-white pt-4 pb-2'>
                     <DialogTitle>{`Map Sub-Exam — ${subject.ISMS_SubjectName}`}</DialogTitle>
                     <DialogDescription>Fill details and save mapping</DialogDescription>
                 </DialogHeader>
 
-                {/* Search & pagination controls (sticky below header) */}
-                <div className='sticky top-[86px] z-20 mb-4 flex items-center justify-between bg-white p-2 border-b'>
-                    <div className='text-sm text-muted-foreground'>
+                {/* Search & pagination controls */}
+                <div className='flex shrink-0 items-center justify-between border-b bg-white p-2'>
+                    <div className='text-muted-foreground text-sm'>
                         Showing {filteredData.length === 0 ? 0 : startIndex + 1}-{endIndex} of {filteredData.length} items
                     </div>
                     <Input
@@ -500,350 +523,359 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                 </div>
 
                 <FormProvider {...methods}>
-                    <div className='max-h-[55vh] overflow-x-auto overflow-y-auto'>
-                        <table className='w-full table-auto border-collapse'>
-                            <thead className='bg-slate-50 text-sm'>
-                                <tr>
-                                    <th className='border p-2'>SLNO</th>
-                                    <th className='border p-2'>Select</th>
-                                    <th className='border p-2'>Sub-Exam (Code)</th>
-                                    <th className='border p-2'>Max Marks</th>
-                                    <th className='border p-2'>Min Marks</th>
-                                    <th className='border p-2'>Marks Entry Max</th>
-                                    <th className='border p-2'>Grade</th>
-                                    <th className='border p-2'>Exempted</th>
-                                    <th className='border p-2'>Exempt %</th>
-                                    <th className='border p-2'>Marks Flag</th>
-                                    <th className='border p-2'>Grades Flag</th>
-                                    <th className='border p-2'>Apl Result</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {subject && subject.list === undefined && (
+                    {/* Table container - flex-1 to fill available space */}
+                    <div className='flex flex-1 flex-col overflow-hidden'>
+                        {/* Scrollable table wrapper */}
+                        <div className='flex-1 overflow-x-auto overflow-y-auto'>
+                            <table className='w-full table-auto border-collapse'>
+                                <thead className='sticky top-0 z-10 bg-slate-50 text-sm'>
                                     <tr>
-                                        <td colSpan={12} className='p-6'>
-                                            {renderSkeletonTable()}
-                                        </td>
+                                        <th className='border bg-slate-50 p-2'>SLNO</th>
+                                        <th className='border bg-slate-50 p-2'>Select</th>
+                                        <th className='border bg-slate-50 p-2'>Sub-Exam (Code)</th>
+                                        <th className='border bg-slate-50 p-2'>Max Marks</th>
+                                        <th className='border bg-slate-50 p-2'>Min Marks</th>
+                                        <th className='border bg-slate-50 p-2'>Marks Entry Max</th>
+                                        <th className='border bg-slate-50 p-2'>Grade</th>
+                                        <th className='border bg-slate-50 p-2'>Exempted</th>
+                                        <th className='border bg-slate-50 p-2'>Exempt %</th>
+                                        <th className='border bg-slate-50 p-2'>Marks Flag</th>
+                                        <th className='border bg-slate-50 p-2'>Grades Flag</th>
+                                        <th className='border bg-slate-50 p-2'>Apl Result</th>
                                     </tr>
-                                )}
-
-                                {subject?.list?.length === 0 && (
-                                    <tr>
-                                        <td colSpan={12} className='py-6 text-center text-muted-foreground text-sm'>
-                                            No records found.
-                                        </td>
-                                    </tr>
-                                )}
-
-                                {paginatedData.map((row, i) => {
-                                    // Calculate the absolute index in the original list for Form handling
-                                    const realIdx = (watchedList || []).findIndex((r) => r.emsE_Id === row.emsE_Id);
-                                    // Fallback if not found (shouldn't happen)
-                                    const idx = realIdx !== -1 ? realIdx : startIndex + i;
-
-                                    const visibleSerial = startIndex + i + 1;
-                                    const isRowChecked = Boolean(row.checkedvalue);
-                                    const isRowDisabled = !isRowChecked;
-
-                                    return (
-                                        <tr key={row.emsE_Id} className={visibleSerial % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                                            <td className='border p-2 text-center'>{visibleSerial}</td>
-
-                                            {/* Checkbox */}
-                                            <td className='border p-2 text-center'>
-                                                <Controller
-                                                    control={control}
-                                                    name={`subexam_list.${idx}.checkedvalue`}
-                                                    render={({ field }) => (
-                                                        <Checkbox
-                                                            checked={!!field.value}
-                                                            onCheckedChange={(v) => {
-                                                                field.onChange(!!v);
-                                                                updateRowValue(idx, 'checkedvalue', !!v);
-                                                                // Clear errors if unchecked
-                                                                if (!v) {
-                                                                    clearErrors([
-                                                                        `subexam_list.${idx}.eycessS_MaxMarks`,
-                                                                        `subexam_list.${idx}.eycessS_MinMarks`,
-                                                                        `subexam_list.${idx}.eycessS_MarksEntryMax`,
-                                                                        `subexam_list.${idx}.emgR_Id`
-                                                                    ] as any);
-                                                                }
-                                                            }}
-                                                        />
-                                                    )}
-                                                />
-                                            </td>
-
-                                            <td className='border p-2 text-left'>
-                                                <div className='text-sm'>
-                                                    <div className="font-medium">{row.emsE_SubExamName}</div>
-                                                    {row.emsE_SubExamCode && (
-                                                        <div className="text-xs text-slate-500">{row.emsE_SubExamCode}</div>
-                                                    )}
-                                                </div>
-                                            </td>
-
-                                            {/* Max Marks */}
-                                            <td className='w-28 border p-2'>
-                                                <Controller
-                                                    control={control}
-                                                    name={`subexam_list.${idx}.eycessS_MaxMarks`}
-                                                    render={({ field }) => (
-                                                        <Input
-                                                            type='text'
-                                                            {...field}
-                                                            value={field.value ?? ''}
-                                                            disabled={isRowDisabled}
-                                                            onChange={(e) => {
-                                                                const raw = e.target.value.replace(/\D/g, '');
-                                                                handleMaxChange(idx, raw === '' ? '' : raw);
-                                                            }}
-                                                            onBlur={() => {
-                                                                const rowVal = getValues('subexam_list')[idx];
-                                                                const rowErrs = validateRowManually(rowVal);
-                                                                clearErrors(`subexam_list.${idx}.eycessS_MaxMarks` as any);
-                                                                if (rowErrs.eycessS_MaxMarks) {
-                                                                    setError(`subexam_list.${idx}.eycessS_MaxMarks` as any, {
-                                                                        type: 'manual',
-                                                                        message: rowErrs.eycessS_MaxMarks
-                                                                    });
-                                                                }
-                                                            }}
-                                                            className={`text-center ${errors.subexam_list?.[idx]?.eycessS_MaxMarks ? 'border-red-500' : ''}`}
-                                                            placeholder='Enter Max Marks'
-                                                            inputMode='numeric'
-                                                        />
-                                                    )}
-                                                />
-                                                {errors.subexam_list?.[idx]?.eycessS_MaxMarks && (
-                                                    <p className='mt-1 text-[11px] text-red-500'>
-                                                        {String(errors.subexam_list[idx].eycessS_MaxMarks?.message)}
-                                                    </p>
-                                                )}
-                                            </td>
-
-                                            {/* Min Marks */}
-                                            <td className='w-28 border p-2'>
-                                                <Controller
-                                                    control={control}
-                                                    name={`subexam_list.${idx}.eycessS_MinMarks`}
-                                                    render={({ field }) => (
-                                                        <Input
-                                                            type='text'
-                                                            {...field}
-                                                            value={field.value ?? ''}
-                                                            disabled={isRowDisabled}
-                                                            onChange={(e) => {
-                                                                const raw = e.target.value.replace(/\D/g, '');
-                                                                handleMinChange(idx, raw === '' ? '' : raw);
-                                                            }}
-                                                            onBlur={() => {
-                                                                const rowVal = getValues('subexam_list')[idx];
-                                                                const rowErrs = validateRowManually(rowVal);
-                                                                clearErrors(`subexam_list.${idx}.eycessS_MinMarks` as any);
-                                                                if (rowErrs.eycessS_MinMarks) {
-                                                                    setError(`subexam_list.${idx}.eycessS_MinMarks` as any, {
-                                                                        type: 'manual',
-                                                                        message: rowErrs.eycessS_MinMarks
-                                                                    });
-                                                                }
-                                                            }}
-                                                            className={`text-center ${errors.subexam_list?.[idx]?.eycessS_MinMarks ? 'border-red-500' : ''}`}
-                                                            placeholder='Enter Min Marks'
-                                                            inputMode='numeric'
-                                                        />
-                                                    )}
-                                                />
-                                                {errors.subexam_list?.[idx]?.eycessS_MinMarks && (
-                                                    <p className='mt-1 text-[11px] text-red-500'>
-                                                        {String(errors.subexam_list[idx].eycessS_MinMarks?.message)}
-                                                    </p>
-                                                )}
-                                            </td>
-
-                                            {/* Marks Entry Max */}
-                                            <td className='w-28 border p-2'>
-                                                <Controller
-                                                    control={control}
-                                                    name={`subexam_list.${idx}.eycessS_MarksEntryMax`}
-                                                    render={({ field }) => (
-                                                        <Input
-                                                            type='text'
-                                                            {...field}
-                                                            value={field.value ?? ''}
-                                                            disabled={isRowDisabled}
-                                                            onChange={(e) => {
-                                                                const raw = e.target.value.replace(/\D/g, '');
-                                                                handleEntryChange(idx, raw === '' ? '' : raw);
-                                                            }}
-                                                            onBlur={() => {
-                                                                const rowVal = getValues('subexam_list')[idx];
-                                                                const rowErrs = validateRowManually(rowVal);
-                                                                clearErrors(`subexam_list.${idx}.eycessS_MarksEntryMax` as any);
-                                                                if (rowErrs.eycessS_MarksEntryMax) {
-                                                                    setError(`subexam_list.${idx}.eycessS_MarksEntryMax` as any, {
-                                                                        type: 'manual',
-                                                                        message: rowErrs.eycessS_MarksEntryMax
-                                                                    });
-                                                                }
-                                                            }}
-                                                            className={`text-center ${errors.subexam_list?.[idx]?.eycessS_MarksEntryMax ? 'border-red-500' : ''}`}
-                                                            placeholder='Enter Max Entry'
-                                                            inputMode='numeric'
-                                                        />
-                                                    )}
-                                                />
-                                                {errors.subexam_list?.[idx]?.eycessS_MarksEntryMax && (
-                                                    <p className='mt-1 text-[11px] text-red-500'>
-                                                        {String(errors.subexam_list[idx].eycessS_MarksEntryMax?.message)}
-                                                    </p>
-                                                )}
-                                            </td>
-
-                                            {/* Grade */}
-                                            <td className='w-40 border p-2'>
-                                                <Controller
-                                                    control={control}
-                                                    name={`subexam_list.${idx}.emgR_Id`}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            value={field.value?.toString() ?? ''}
-                                                            disabled={isRowDisabled}
-                                                            onValueChange={(val) => {
-                                                                handleGradeChange(idx, val);
-                                                            }}>
-                                                            <SelectTrigger className={errors.subexam_list?.[idx]?.emgR_Id ? 'border-red-500' : ''}>
-                                                                <SelectValue placeholder='Select Grade' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {gradeList.map((g) => (
-                                                                    <SelectItem key={g.emgR_Id} value={g.emgR_Id.toString()}>
-                                                                        {g.emgR_GradeName}
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                />
-                                                {errors.subexam_list?.[idx]?.emgR_Id && (
-                                                    <p className='mt-1 text-[11px] text-red-500'>
-                                                        {String(errors.subexam_list[idx].emgR_Id?.message)}
-                                                    </p>
-                                                )}
-                                            </td>
-
-                                            {/* Exempted */}
-                                            <td className='border p-2 text-center'>
-                                                <Controller
-                                                    control={control}
-                                                    name={`subexam_list.${idx}.eycessS_ExemptedFlg`}
-                                                    render={({ field }) => (
-                                                        <Checkbox
-                                                            checked={!!field.value}
-                                                            onCheckedChange={(v) => {
-                                                                field.onChange(!!v);
-                                                                updateRowValue(idx, 'eycessS_ExemptedFlg', !!v);
-                                                                if (!v) updateRowValue(idx, 'eycessS_ExemptedPer', '');
-                                                            }}
-                                                        />
-                                                    )}
-                                                />
-                                            </td>
-
-                                            {/* Exempt % */}
-                                            <td className='w-24 border p-2'>
-                                                <Controller
-                                                    control={control}
-                                                    name={`subexam_list.${idx}.eycessS_ExemptedPer`}
-                                                    render={({ field }) => (
-                                                        <Input
-                                                            {...field}
-                                                            disabled={!watch(`subexam_list.${idx}.eycessS_ExemptedFlg`)}
-                                                            value={field.value ?? ''}
-                                                            onChange={(e) => {
-                                                                if (/^\d*$/.test(e.target.value)) {
-                                                                    const val = e.target.value === '' ? '' : Number(e.target.value);
-                                                                    field.onChange(val);
-                                                                    updateRowValue(idx, 'eycessS_ExemptedPer', val);
-                                                                }
-                                                            }}
-                                                            className='text-center'
-                                                            placeholder='%'
-                                                            inputMode='numeric'
-                                                        />
-                                                    )}
-                                                />
-                                            </td>
-
-                                            {/* Marks Flag */}
-                                            <td className='border p-2 text-center'>
-                                                <Controller
-                                                    control={control}
-                                                    name={`subexam_list.${idx}.eycessS_MarksFlg`}
-                                                    render={({ field }) => (
-                                                        <Checkbox
-                                                            checked={!!field.value}
-                                                            onCheckedChange={(v) => {
-                                                                field.onChange(!!v);
-                                                                updateRowValue(idx, 'eycessS_MarksFlg', !!v);
-                                                            }}
-                                                        />
-                                                    )}
-                                                />
-                                            </td>
-
-                                            {/* Grades Flag */}
-                                            <td className='border p-2 text-center'>
-                                                <Controller
-                                                    control={control}
-                                                    name={`subexam_list.${idx}.eycessS_GradesFlg`}
-                                                    render={({ field }) => (
-                                                        <Checkbox
-                                                            checked={!!field.value}
-                                                            onCheckedChange={(v) => {
-                                                                field.onChange(!!v);
-                                                                updateRowValue(idx, 'eycessS_GradesFlg', !!v);
-                                                            }}
-                                                        />
-                                                    )}
-                                                />
-                                            </td>
-
-                                            {/* Apl Result */}
-                                            <td className='border p-2 text-center'>
-                                                <Controller
-                                                    control={control}
-                                                    name={`subexam_list.${idx}.eycessS_AplResultFlg`}
-                                                    render={({ field }) => (
-                                                        <Checkbox
-                                                            checked={!!field.value}
-                                                            onCheckedChange={(v) => {
-                                                                field.onChange(!!v);
-                                                                updateRowValue(idx, 'eycessS_AplResultFlg', !!v);
-                                                            }}
-                                                        />
-                                                    )}
-                                                />
+                                </thead>
+                                <tbody>
+                                    {subject && subject.list === undefined && (
+                                        <tr>
+                                            <td colSpan={12} className='p-6'>
+                                                {renderSkeletonTable()}
                                             </td>
                                         </tr>
-                                    )
-                                })}
-                            </tbody>
-                        </table>
+                                    )}
+
+                                    {subject?.list?.length === 0 && (
+                                        <tr>
+                                            <td colSpan={12} className='py-6 text-center text-muted-foreground text-sm'>
+                                                No records found.
+                                            </td>
+                                        </tr>
+                                    )}
+
+                                    {paginatedData.map((row, i) => {
+                                        // Calculate the absolute index in the original list for Form handling
+                                        const realIdx = (watchedList || []).findIndex((r) => r.emsE_Id === row.emsE_Id);
+                                        // Fallback if not found (shouldn't happen)
+                                        const idx = realIdx !== -1 ? realIdx : startIndex + i;
+
+                                        const visibleSerial = startIndex + i + 1;
+                                        const isRowChecked = Boolean(row.checkedvalue);
+                                        const isRowDisabled = !isRowChecked;
+
+                                        return (
+                                            <tr key={row.emsE_Id} className={visibleSerial % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                                                <td className='border p-2 text-center'>{visibleSerial}</td>
+
+                                                {/* Select */}
+                                                <td className='border p-2 text-center'>
+                                                    <Controller
+                                                        control={control}
+                                                        name={`subexam_list.${idx}.checkedvalue`}
+                                                        render={({ field }) => (
+                                                            <Checkbox
+                                                                checked={!!field.value}
+                                                                onCheckedChange={(checked) => {
+                                                                    handleCheckboxChange(idx, !!checked);
+                                                                }}
+                                                            />
+                                                        )}
+                                                    />
+                                                </td>
+
+                                                {/* Sub-Exam Name (Code) */}
+                                                <td className='border p-2 text-left'>
+                                                    <div className='text-sm'>
+                                                        <div className='font-medium'>{row.emsE_SubExamName}</div>
+                                                        {row.emsE_SubExamCode && (
+                                                            <div className='text-slate-500 text-xs'>{row.emsE_SubExamCode}</div>
+                                                        )}
+                                                    </div>
+                                                </td>
+
+                                                {/* Max Marks */}
+                                                <td className='w-28 border p-2'>
+                                                    <Controller
+                                                        control={control}
+                                                        name={`subexam_list.${idx}.eycessS_MaxMarks`}
+                                                        render={({ field }) => (
+                                                            <Input
+                                                                type='text'
+                                                                {...field}
+                                                                value={field.value ?? ''}
+                                                                disabled={isRowDisabled}
+                                                                onChange={(e) => {
+                                                                    const raw = e.target.value.replace(/\D/g, '');
+                                                                    handleMaxChange(idx, raw === '' ? '' : raw);
+                                                                }}
+                                                                onBlur={() => {
+                                                                    const rowVal = getValues('subexam_list')[idx];
+                                                                    const rowErrs = validateRowManually(rowVal);
+                                                                    if (rowErrs.eycessS_MaxMarks) {
+                                                                        setError(`subexam_list.${idx}.eycessS_MaxMarks` as any, {
+                                                                            type: 'manual',
+                                                                            message: rowErrs.eycessS_MaxMarks
+                                                                        });
+                                                                    }
+                                                                }}
+                                                                className={
+                                                                    errors.subexam_list?.[idx]?.eycessS_MaxMarks
+                                                                        ? 'border-red-500 text-center'
+                                                                        : 'text-center'
+                                                                }
+                                                                placeholder='Enter Max Marks'
+                                                                inputMode='numeric'
+                                                            />
+                                                        )}
+                                                    />
+                                                    {errors.subexam_list?.[idx]?.eycessS_MaxMarks && (
+                                                        <p className='mt-1 text-[11px] text-red-500'>
+                                                            {String(errors.subexam_list[idx].eycessS_MaxMarks?.message)}
+                                                        </p>
+                                                    )}
+                                                </td>
+
+                                                {/* Min Marks */}
+                                                <td className='w-28 border p-2'>
+                                                    <Controller
+                                                        control={control}
+                                                        name={`subexam_list.${idx}.eycessS_MinMarks`}
+                                                        render={({ field }) => (
+                                                            <Input
+                                                                type='text'
+                                                                {...field}
+                                                                value={field.value ?? ''}
+                                                                disabled={isRowDisabled}
+                                                                onChange={(e) => {
+                                                                    const raw = e.target.value.replace(/\D/g, '');
+                                                                    handleMinChange(idx, raw === '' ? '' : raw);
+                                                                }}
+                                                                onBlur={() => {
+                                                                    const rowVal = getValues('subexam_list')[idx];
+                                                                    const rowErrs = validateRowManually(rowVal);
+                                                                    if (rowErrs.eycessS_MinMarks) {
+                                                                        setError(`subexam_list.${idx}.eycessS_MinMarks` as any, {
+                                                                            type: 'manual',
+                                                                            message: rowErrs.eycessS_MinMarks
+                                                                        });
+                                                                    }
+                                                                }}
+                                                                className={
+                                                                    errors.subexam_list?.[idx]?.eycessS_MinMarks
+                                                                        ? 'border-red-500 text-center'
+                                                                        : 'text-center'
+                                                                }
+                                                                placeholder='Enter Min Marks'
+                                                                inputMode='numeric'
+                                                            />
+                                                        )}
+                                                    />
+                                                    {errors.subexam_list?.[idx]?.eycessS_MinMarks && (
+                                                        <p className='mt-1 text-[11px] text-red-500'>
+                                                            {String(errors.subexam_list[idx].eycessS_MinMarks?.message)}
+                                                        </p>
+                                                    )}
+                                                </td>
+
+                                                {/* Marks Entry Max */}
+                                                <td className='w-28 border p-2'>
+                                                    <Controller
+                                                        control={control}
+                                                        name={`subexam_list.${idx}.eycessS_MarksEntryMax`}
+                                                        render={({ field }) => (
+                                                            <Input
+                                                                type='text'
+                                                                {...field}
+                                                                value={field.value ?? ''}
+                                                                disabled={isRowDisabled}
+                                                                onChange={(e) => {
+                                                                    const raw = e.target.value.replace(/\D/g, '');
+                                                                    handleEntryChange(idx, raw === '' ? '' : raw);
+                                                                }}
+                                                                onBlur={() => {
+                                                                    const rowVal = getValues('subexam_list')[idx];
+                                                                    const rowErrs = validateRowManually(rowVal);
+                                                                    if (rowErrs.eycessS_MarksEntryMax) {
+                                                                        setError(`subexam_list.${idx}.eycessS_MarksEntryMax` as any, {
+                                                                            type: 'manual',
+                                                                            message: rowErrs.eycessS_MarksEntryMax
+                                                                        });
+                                                                    }
+                                                                }}
+                                                                className={
+                                                                    errors.subexam_list?.[idx]?.eycessS_MarksEntryMax
+                                                                        ? 'border-red-500 text-center'
+                                                                        : 'text-center'
+                                                                }
+                                                                placeholder='Enter Max Entry'
+                                                                inputMode='numeric'
+                                                            />
+                                                        )}
+                                                    />
+                                                    {errors.subexam_list?.[idx]?.eycessS_MarksEntryMax && (
+                                                        <p className='mt-1 text-[11px] text-red-500'>
+                                                            {String(errors.subexam_list[idx].eycessS_MarksEntryMax?.message)}
+                                                        </p>
+                                                    )}
+                                                </td>
+
+                                                {/* Grade */}
+                                                <td className='w-40 border p-2'>
+                                                    <Controller
+                                                        control={control}
+                                                        name={`subexam_list.${idx}.emgR_Id`}
+                                                        render={({ field }) => (
+                                                            <Select
+                                                                value={field.value?.toString() ?? ''}
+                                                                disabled={isRowDisabled}
+                                                                onValueChange={(val) => {
+                                                                    handleGradeChange(idx, val);
+                                                                }}>
+                                                                <SelectTrigger
+                                                                    className={errors.subexam_list?.[idx]?.emgR_Id ? 'border-red-500' : ''}>
+                                                                    <SelectValue placeholder='Select Grade' />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {gradeList.map((g) => (
+                                                                        <SelectItem key={g.emgR_Id} value={g.emgR_Id.toString()}>
+                                                                            {g.emgR_GradeName}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        )}
+                                                    />
+                                                    {errors.subexam_list?.[idx]?.emgR_Id && (
+                                                        <p className='mt-1 text-[11px] text-red-500'>
+                                                            {String(errors.subexam_list[idx].emgR_Id?.message)}
+                                                        </p>
+                                                    )}
+                                                </td>
+
+                                                {/* Exempted */}
+                                                <td className='border p-2 text-center'>
+                                                    <Controller
+                                                        control={control}
+                                                        name={`subexam_list.${idx}.eycessS_ExemptedFlg`}
+                                                        render={({ field }) => (
+                                                            <Checkbox
+                                                                checked={!!field.value}
+                                                                onCheckedChange={(v) => {
+                                                                    field.onChange(!!v);
+                                                                    updateRowValue(idx, 'eycessS_ExemptedFlg', !!v);
+                                                                    if (!v) updateRowValue(idx, 'eycessS_ExemptedPer', '');
+                                                                }}
+                                                            />
+                                                        )}
+                                                    />
+                                                </td>
+
+                                                {/* Exempt % */}
+                                                <td className='w-24 border p-2'>
+                                                    <Controller
+                                                        control={control}
+                                                        name={`subexam_list.${idx}.eycessS_ExemptedPer`}
+                                                        render={({ field }) => (
+                                                            <Input
+                                                                type='text'
+                                                                disabled={!watch(`subexam_list.${idx}.eycessS_ExemptedFlg`)}
+                                                                {...field}
+                                                                value={field.value ?? ''}
+                                                                onChange={(e) => {
+                                                                    const raw = e.target.value.replace(/\D/g, '');
+                                                                    const val = raw === '' ? '' : Number(raw);
+                                                                    field.onChange(val);
+                                                                    updateRowValue(idx, 'eycessS_ExemptedPer', val);
+                                                                }}
+                                                                inputMode='numeric'
+                                                                className='text-center'
+                                                            />
+                                                        )}
+                                                    />
+                                                </td>
+
+                                                {/* Marks Flag */}
+                                                <td className='border p-2 text-center'>
+                                                    <Controller
+                                                        control={control}
+                                                        name={`subexam_list.${idx}.eycessS_MarksFlg`}
+                                                        render={({ field }) => (
+                                                            <Checkbox
+                                                                checked={!!field.value}
+                                                                onCheckedChange={(v) => {
+                                                                    field.onChange(!!v);
+                                                                    updateRowValue(idx, 'eycessS_MarksFlg', !!v);
+                                                                }}
+                                                            />
+                                                        )}
+                                                    />
+                                                </td>
+
+                                                {/* Grades Flag */}
+                                                <td className='border p-2 text-center'>
+                                                    <Controller
+                                                        control={control}
+                                                        name={`subexam_list.${idx}.eycessS_GradesFlg`}
+                                                        render={({ field }) => (
+                                                            <Checkbox
+                                                                checked={!!field.value}
+                                                                onCheckedChange={(v) => {
+                                                                    field.onChange(!!v);
+                                                                    updateRowValue(idx, 'eycessS_GradesFlg', !!v);
+                                                                }}
+                                                            />
+                                                        )}
+                                                    />
+                                                </td>
+
+                                                {/* Apl Result */}
+                                                <td className='border p-2 text-center'>
+                                                    <Controller
+                                                        control={control}
+                                                        name={`subexam_list.${idx}.eycessS_AplResultFlg`}
+                                                        render={({ field }) => (
+                                                            <Checkbox
+                                                                checked={!!field.value}
+                                                                onCheckedChange={(v) => {
+                                                                    field.onChange(!!v);
+                                                                    updateRowValue(idx, 'eycessS_AplResultFlg', !!v);
+                                                                }}
+                                                            />
+                                                        )}
+                                                    />
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
-                    {/* Pagination Footer */}
+                    {/* Pagination Footer - Only show if more than 1 page */}
                     {totalPages > 1 && (
-                        <div className="flex items-center justify-end space-x-2 p-4 border-t bg-white">
-                            <Button variant="outline" size="sm" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>First</Button>
-                            <Button variant="outline" size="sm" onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1}>
-                                <ChevronLeft className="h-4 w-4" />
+                        <div className='flex shrink-0 items-center justify-end space-x-2 border-t bg-white p-4'>
+                            <Button variant='outline' size='sm' onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
+                                First
+                            </Button>
+                            <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                                disabled={currentPage === 1}>
+                                <ChevronLeft className='h-4 w-4' />
                                 Previous
                             </Button>
 
-                            <div className="flex items-center space-x-1">
+                            <div className='flex items-center space-x-1'>
                                 {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
                                     // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
                                     let pageNum;
@@ -860,11 +892,10 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                     return (
                                         <Button
                                             key={pageNum}
-                                            variant={currentPage === pageNum ? "default" : "outline"}
-                                            size="sm"
-                                            className="w-8 h-8 p-0"
-                                            onClick={() => setCurrentPage(pageNum)}
-                                        >
+                                            variant={currentPage === pageNum ? 'default' : 'outline'}
+                                            size='sm'
+                                            className='h-8 w-8 p-0'
+                                            onClick={() => setCurrentPage(pageNum)}>
                                             {pageNum}
                                         </Button>
                                     );
@@ -872,24 +903,33 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                             </div>
 
                             <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                disabled={currentPage === totalPages}
-                            >
+                                variant='outline'
+                                size='sm'
+                                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                                disabled={currentPage === totalPages}>
                                 Next
-                                <ChevronLeft className="h-4 w-4 rotate-180" />
+                                <ChevronLeft className='h-4 w-4 rotate-180' />
                             </Button>
-                            <Button variant="outline" size="sm" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}>Last</Button>
+                            <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => setCurrentPage(totalPages)}
+                                disabled={currentPage === totalPages}>
+                                Last
+                            </Button>
                         </div>
                     )}
 
                     {/* Footer Buttons */}
-                    <div className='z-10 mt-auto flex w-fit ml-auto justify-end gap-2 border-t bg-white p-2'>
+                    <div className='ml-auto flex w-fit shrink-0 justify-end gap-2 border-t bg-white p-2'>
                         <Button type='button' variant='ghost' onClick={() => onClose(subject.ISMS_Id)}>
                             Cancel
                         </Button>
-                        <Button type='button' onClick={handleSetOrder} className='w-fit transition-all duration-200 hover:scale-90' disabled={watchedList.length === 0}>
+                        <Button
+                            type='button'
+                            onClick={handleSetOrder}
+                            className='w-fit transition-all duration-200 hover:scale-90'
+                            disabled={watchedList.length === 0}>
                             <GitCompareArrows className='h-4 w-4 transition-transform duration-200 group-hover:rotate-90' />
                             Set Order
                         </Button>

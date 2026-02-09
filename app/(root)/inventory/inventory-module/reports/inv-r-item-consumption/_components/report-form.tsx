@@ -20,10 +20,11 @@ import { useMemo, useState, useEffect } from 'react';
 import { MultiSelect } from '@/components/ui/multi-select';
 
 interface ReportFormProps {
-    onReportGenerated: (data: any, typeflag: string, optionflag?: string) => void;
+    onReportGenerated: (payload: any) => void;
+    isLoading: boolean;
 }
 
-export default function ReportForm({ onReportGenerated }: ReportFormProps) {
+export default function ReportForm({ onReportGenerated, isLoading }: ReportFormProps) {
     const form = useForm<InvRItemConsumptionSchema>({
         resolver: zodResolver(invRItemConsumptionSchema),
         defaultValues: {
@@ -49,8 +50,6 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
     // Angular logic: "loaddata(scope.optionflag)". Only when optionflag is set (Item/Staff/etc) it calls API.
     const { data: detailsData, refetch: refetchDetails } = useInvRItemConsumptionLoadData(optionflag);
 
-    const generateReportMutation = useInvRItemConsumptionReport();
-
     // Effect: Reset fields when typeflag changes (Angular `typerdochange`)
     useEffect(() => {
         if (typeflag === 'All') {
@@ -75,8 +74,9 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
     }, [optionflag, refetchDetails, setValue]);
 
 
+
     const itemOptions = useMemo(() => detailsData?.data?.get_ICreportdetails?.map((item: any) => ({
-        label: `${item.invmI_ItemName} : ${item.invmI_ItemCode}`,
+        label: item.invmI_ItemCode ? `${item.invmI_ItemName} : ${item.invmI_ItemCode}` : item.invmI_ItemName,
         value: item.invmI_Id
     })) || [], [detailsData]);
 
@@ -97,18 +97,12 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
 
 
     const onSubmit = (data: InvRItemConsumptionSchema) => {
-        generateReportMutation.mutate(data as any, {
-            onSuccess: (res) => {
-                if (res.success) {
-                    onReportGenerated(res.data.get_ICReport, data.typeflag, data.optionflag);
-                }
-            }
-        });
+        onReportGenerated(data);
     };
 
     const handleCancel = () => {
         reset();
-        onReportGenerated([], 'All');
+        onReportGenerated(null);
     };
 
     // Generic Combobox for Single Selects
@@ -156,7 +150,7 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <CollapsibleSection title="Report Configuration"  defaultOpen={true}>
+            <CollapsibleSection title="Report Configuration" defaultOpen={true}>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
 
                     {/* Report Type */}
@@ -261,7 +255,7 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                 )}
 
                 <div className="flex justify-center gap-4 p-4 border-t bg-muted/10">
-                    <Button type="submit" size="lg" className="w-32" isLoading={generateReportMutation.isPending}><FileText className="mr-2 h-4 w-4" /> Report</Button>
+                    <Button type="submit" size="lg" className="w-32" isLoading={isLoading}><FileText className="mr-2 h-4 w-4" /> Report</Button>
                     <Button type="button" variant="destructive" size="lg" className="w-32" onClick={handleCancel}><RefreshCcw className="mr-2 h-4 w-4" /> Reset</Button>
                 </div>
             </CollapsibleSection>

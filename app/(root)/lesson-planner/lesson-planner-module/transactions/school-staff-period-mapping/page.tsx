@@ -1,22 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import AddForm from './_components/add-form';
-import MappingTable from './_components/mapping-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import {
     getInitialDetails,
     getStaffPeriodSearchDetails,
     saveStaffPeriodMapping
 } from '@/server/lesson-planner/transactions/school-staff-period-mapping';
-import type {
-    IMasterYear,
-    IEmployee,
-    IDateItem,
-    ITopic
-} from '@/types/lesson-planner/transactions/school-staff-period-mapping';
+import type { IDateItem, IEmployee, IMasterYear, ITopic } from '@/types/lesson-planner/transactions/school-staff-period-mapping';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import AddForm from './_components/add-form';
+import MappingTable from './_components/mapping-table';
 import type { ISchoolStaffPeriodMappingFormValues } from './_components/schema';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 
 export default function SchoolStaffPeriodMappingPage() {
     const [masterYear, setMasterYear] = useState<IMasterYear[]>([]);
@@ -31,7 +26,7 @@ export default function SchoolStaffPeriodMappingPage() {
     const findValue = (obj: any, keys: string[]) => {
         if (!obj) return null;
         for (const key of keys) {
-            if (obj[key] !== undefined && obj[key] !== null && obj[key] !== "") return obj[key];
+            if (obj[key] !== undefined && obj[key] !== null && obj[key] !== '') return obj[key];
         }
         return null;
     };
@@ -68,7 +63,13 @@ export default function SchoolStaffPeriodMappingPage() {
                 const res = await getInitialDetails();
                 if (res.success) {
                     const yearList = getList(res, 'masteryear', ['getyear', 'getyearlist', 'yearlist', 'getAcademicYear', 'years']);
-                    const employeeList = getList(res, 'employeedetails', ['getemployee', 'getemployeelist', 'employeelist', 'employees', 'hrmE_EmployeeName']);
+                    const employeeList = getList(res, 'employeedetails', [
+                        'getemployee',
+                        'getemployeelist',
+                        'employeelist',
+                        'employees',
+                        'hrmE_EmployeeName'
+                    ]);
 
                     setMasterYear(yearList);
                     setEmployees(employeeList);
@@ -154,15 +155,13 @@ export default function SchoolStaffPeriodMappingPage() {
     };
 
     return (
-        <div className="container mx-auto py-6 space-y-6">
-            <div className="flex flex-col gap-1">
-                <h1 className="text-2xl font-bold tracking-tight">School Staff Period Mapping</h1>
-                <p className="text-muted-foreground">
-                    Map staff members to specific periods and dates for lesson planning.
-                </p>
+        <div className='container mx-auto space-y-6 py-6'>
+            <div className='flex flex-col gap-1'>
+                <h1 className='font-bold text-2xl tracking-tight'>School Staff Period Mapping</h1>
+                <p className='text-muted-foreground'>Map staff members to specific periods and dates for lesson planning.</p>
             </div>
 
-            <CollapsibleSection title="Filter Criteria" defaultOpen={true}>
+            <CollapsibleSection title='Filter Criteria' defaultOpen={true}>
                 <AddForm
                     masterYear={masterYear}
                     employees={employees}
@@ -173,13 +172,8 @@ export default function SchoolStaffPeriodMappingPage() {
             </CollapsibleSection>
 
             {dates.length > 0 && (
-                <CollapsibleSection title="Date & Topic Mapping" defaultOpen={true}>
-                    <MappingTable
-                        dates={dates}
-                        topics={topics}
-                        onSave={handleSave}
-                        isLoading={isLoading}
-                    />
+                <CollapsibleSection title='Date & Topic Mapping' defaultOpen={true}>
+                    <MappingTable dates={dates} topics={topics} onSave={handleSave} isLoading={isLoading} />
                 </CollapsibleSection>
             )}
         </div>

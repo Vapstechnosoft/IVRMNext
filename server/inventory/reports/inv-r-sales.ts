@@ -121,8 +121,29 @@ export async function getInvRSalesReport(payload: IInvRSalesPayload, searchParam
     const urlParams = getSearchParamsUrl(params);
     const url = `/INV_R_SalesFacade/onreport?${urlParams}`;
 
+    // Map payload keys to match backend expectation
+    // Map payload keys to match backend expectation
+    const apiPayload: any = {
+        ...payload,
+        selectionflag: payload.individualflag,
+        studentid: payload.singleStudentId ? payload.singleStudentId.toString() : payload.studentid,
+        hrme_id: payload.singleStaffId ? payload.singleStaffId.toString() : payload.hrme_id,
+        invmc_id: payload.singleCustomerId ? payload.singleCustomerId.toString() : payload.invmc_id,
+        // Make sure arrays are initialized if undefined
+        salenoarray: payload.salesArray || payload.salenoarray || [],
+        itemArray: payload.itemArray || [],
+        clsarray: payload.studentArray || [],
+    };
+
+    // Remove keys that are not expected by the backend
+    delete apiPayload.studentArray;
+    delete apiPayload.individualflag;
+    delete apiPayload.singleStudentId;
+    delete apiPayload.singleStaffId;
+    delete apiPayload.singleCustomerId;
+
     try {
-        const response = await api.post<any>('inventory', url, payload);
+        const response = await api.post<any>('inventory', url, apiPayload);
 
         let data = response.data;
         if (data && data.$values) data = data.$values; // Handle $values if present

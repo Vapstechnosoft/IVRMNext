@@ -99,8 +99,8 @@ export default function SubSubjectModal({
             EMGR_Id: l.EMGR_Id ?? '',
             eycessS_ExemptedFlg: l.eycessS_ExemptedFlg,
             eycessS_ExemptedPer: l.eycessS_ExemptedPer ?? '',
-            eycessS_MarksDisplayFlg: l.eycessS_MarksFlg,
-            eycessS_GradeDisplayFlg: l.eycessS_GradesFlg,
+            eycessS_MarksDisplayFlg: l.eycessS_GradeDisplayFlg,
+            eycessS_GradeDisplayFlg: l.eycessS_MarksDisplayFlg,
             eycessS_AplResultFlg: l.eycessS_AplResultFlg,
             eycessS_SubSubjectOrder: l.eycessS_SubSubjectOrder ?? 0
         }));
@@ -300,27 +300,6 @@ export default function SubSubjectModal({
     const handleCheckboxChange = useCallback(
         (idx: number, checked: boolean) => {
             updateRowValue(idx, 'checkedvalue', checked);
-
-            // If unchecking, clear any required field errors
-            if (!checked) {
-                clearErrors([
-                    `subsubject_list.${idx}.eycessS_MaxMarks`,
-                    `subsubject_list.${idx}.eycessS_MinMarks`,
-                    `subsubject_list.${idx}.eycessS_MarksEntryMax`,
-                    `subsubject_list.${idx}.EMGR_Id`
-                ] as any);
-            } else {
-                // If checking, validate immediately
-                const row = { ...getValues('subsubject_list')[idx], checkedvalue: checked };
-                const rowErrs = validateRowManually(row, idx);
-
-                Object.entries(rowErrs).forEach(([field, message]) => {
-                    setError(`subsubject_list.${idx}.${field}` as any, {
-                        type: 'manual',
-                        message
-                    });
-                });
-            }
         },
         [updateRowValue, clearErrors, getValues, validateRowManually, setError]
     );
@@ -460,21 +439,11 @@ export default function SubSubjectModal({
                 return;
             }
         }
-
+        console.log('subsubjects saved data', selected);
         // All good, save
         onSave(subject.ISMS_Id, selected, list);
         onClose();
-    }, [
-        getValues,
-        validateRowManually,
-        clearErrors,
-        setError,
-        parentMaxMarks,
-        parentMinMarks,
-        onSave,
-        onClose,
-        subject
-    ]);
+    }, [getValues, validateRowManually, clearErrors, setError, parentMaxMarks, parentMinMarks, onSave, onClose, subject]);
 
     const renderSkeletonTable = () => (
         <div className='w-full rounded-md'>
@@ -498,383 +467,397 @@ export default function SubSubjectModal({
 
     return (
         <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-            <DialogContent className='max-h-[80vh] w-full min-w-[80vw] overflow-y-auto pt-0 sm:overflow-x-hidden'>
-                <DialogHeader className='sticky top-0 z-30 bg-white pt-4 border-b'>
+            <DialogContent className='flex h-[90vh] w-full min-w-[80vw] flex-col overflow-hidden pt-0'>
+                <DialogHeader className='shrink-0 border-b bg-white pt-4 pb-2'>
                     <DialogTitle>{`Map Sub-Subjects — ${subject.ISMS_SubjectName}`}</DialogTitle>
                     <div className='text-muted-foreground text-sm'>
                         Parent Subject: Max={parentMaxMarks}, Min={parentMinMarks}
                     </div>
                 </DialogHeader>
 
-                {/* Search & pagination controls (sticky below header) */}
-                <div className="sticky top-[75px] z-20 mb-4 flex items-center justify-between bg-white p-2 border-b">
-                    <div className="text-sm text-muted-foreground">
+                {/* Search & pagination controls */}
+                <div className='flex shrink-0 items-center justify-between border-b bg-white p-2'>
+                    <div className='text-muted-foreground text-sm'>
                         Showing {filteredData.length === 0 ? 0 : startIndex + 1}-{endIndex} of {filteredData.length} items
                     </div>
                     <Input
-                        placeholder="Search sub-subject..."
+                        placeholder='Search sub-subject...'
                         value={searchTerm}
                         onChange={(e) => {
                             setSearchTerm(e.target.value);
                             setCurrentPage(1);
                         }}
-                        className="w-64"
+                        className='w-64'
                     />
                 </div>
 
                 <FormProvider {...methods}>
-                    <div className='max-h-[55vh] overflow-x-auto overflow-y-auto'>
-                        <table className='w-full table-auto border-collapse'>
-                            <thead className="bg-slate-50">
-                                <tr className='text-sm'>
-                                    <th className='border p-2'>SLNO</th>
-                                    <th className='border p-2'>Select</th>
-                                    <th className='border p-2'>Sub-Subject Name(Code)</th>
-                                    <th className='border p-2'>Max Marks</th>
-                                    <th className='border p-2'>Min Marks</th>
-                                    <th className='border p-2'>Marks Entry Max</th>
-                                    <th className='border p-2'>Grade</th>
-                                    <th className='border p-2'>Exempted Flag</th>
-                                    <th className='border p-2'>Exempted %</th>
-                                    <th className='border p-2'>Marks Display</th>
-                                    <th className='border p-2'>Grade Display</th>
-                                    <th className='border p-2'>Apply Result</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {subject && subject.list === undefined && (
+                    {/* Table container - flex-1 to fill available space */}
+                    <div className='flex flex-1 flex-col overflow-hidden'>
+                        {/* Scrollable table wrapper */}
+                        <div className='flex-1 overflow-x-auto overflow-y-auto'>
+                            <table className='w-full table-auto border-collapse'>
+                                <thead className='sticky top-0 z-10 bg-slate-50 text-sm'>
                                     <tr>
-                                        <td colSpan={12} className='p-6'>
-                                            {renderSkeletonTable()}
-                                        </td>
+                                        <th className='border bg-slate-50 p-2'>SLNO</th>
+                                        <th className='border bg-slate-50 p-2'>Select</th>
+                                        <th className='border bg-slate-50 p-2'>Sub-Subject Name(Code)</th>
+                                        <th className='border bg-slate-50 p-2'>Max Marks</th>
+                                        <th className='border bg-slate-50 p-2'>Min Marks</th>
+                                        <th className='border bg-slate-50 p-2'>Marks Entry Max</th>
+                                        <th className='border bg-slate-50 p-2'>Grade</th>
+                                        <th className='border bg-slate-50 p-2'>Exempted Flag</th>
+                                        <th className='border bg-slate-50 p-2'>Exempted %</th>
+                                        <th className='border bg-slate-50 p-2'>Marks Display</th>
+                                        <th className='border bg-slate-50 p-2'>Grade Display</th>
+                                        <th className='border bg-slate-50 p-2'>Apply Result</th>
                                     </tr>
-                                )}
-
-                                {subject?.list?.length === 0 && (
-                                    <tr>
-                                        <td colSpan={12} className='py-6 text-center text-muted-foreground text-sm'>
-                                            No records found.
-                                        </td>
-                                    </tr>
-                                )}
-
-                                {filteredData.length === 0 && searchTerm && (
-                                    <tr>
-                                        <td colSpan={12} className='py-6 text-center text-muted-foreground text-sm'>
-                                            No results found for "{searchTerm}"
-                                        </td>
-                                    </tr>
-                                )}
-
-                                {paginatedData.map((row, i) => {
-                                    // Calculate the absolute index in the original list for Form handling
-                                    // We need to find the index of this row in the watchedList (which corresponds to getValues().subsubject_list)
-                                    // Since emsS_Id is unique, we can use it.
-                                    const realIdx = (watchedList || []).findIndex((r) => r.emsS_Id === row.emsS_Id);
-
-                                    // Fallback if not found (shouldn't happen if logic is correct)
-                                    const idx = realIdx !== -1 ? realIdx : startIndex + i;
-
-                                    const idPrefix = `subsubject-${subject.ISMS_Id}-${row.emsS_Id}`;
-                                    const isRowChecked = Boolean(row.checkedvalue);
-                                    const isRowDisabled = !isRowChecked;
-                                    const visibleSerial = startIndex + i + 1;
-
-                                    return (
-                                        <tr key={row.emsS_Id} className={visibleSerial % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                                            <td className='border p-2 text-center'>{visibleSerial}</td>
-
-                                            {/* Select */}
-                                            <td className='border p-2 text-center'>
-                                                <Controller
-                                                    control={control}
-                                                    name={`subsubject_list.${idx}.checkedvalue`}
-                                                    render={({ field }) => (
-                                                        <Checkbox
-                                                            id={`${idPrefix}-check`}
-                                                            checked={!!field.value}
-                                                            onCheckedChange={(checked) => {
-                                                                handleCheckboxChange(idx, !!checked);
-                                                            }}
-                                                        />
-                                                    )}
-                                                />
-                                            </td>
-
-                                            {/* Name (Code) */}
-                                            <td className='border p-2'>
-                                                <div className='text-sm'>
-                                                    <div className='font-medium'>{row.emsS_SubSubjectName}</div>
-                                                    {row.emsS_SubSubjectCode && (
-                                                        <div className='text-slate-500 text-xs'>{row.emsS_SubSubjectCode}</div>
-                                                    )}
-                                                </div>
-                                            </td>
-
-                                            {/* Max Marks */}
-                                            <td className='border p-2 w-28'>
-                                                <Controller
-                                                    control={control}
-                                                    name={`subsubject_list.${idx}.eycessS_MaxMarks`}
-                                                    render={({ field }) => (
-                                                        <Input
-                                                            type='text'
-                                                            {...field}
-                                                            value={field.value ?? ''}
-                                                            onChange={(e) => {
-                                                                const raw = e.target.value.replace(/\D/g, '');
-                                                                handleMaxChange(idx, raw === '' ? '' : raw);
-                                                            }}
-                                                            onBlur={() => {
-                                                                const rowVal = getValues('subsubject_list')[idx];
-                                                                const rowErrs = validateRowManually(rowVal, idx);
-                                                                if (rowErrs.eycessS_MaxMarks) {
-                                                                    setError(`subsubject_list.${idx}.eycessS_MaxMarks` as any, {
-                                                                        type: 'manual',
-                                                                        message: rowErrs.eycessS_MaxMarks
-                                                                    });
-                                                                }
-                                                            }}
-                                                            inputMode='numeric'
-                                                            disabled={isRowDisabled}
-                                                            className={
-                                                                errors.subsubject_list?.[idx]?.eycessS_MaxMarks ? 'border-red-500 text-center' : 'text-center'
-                                                            }
-                                                        />
-                                                    )}
-                                                />
-                                                {errors.subsubject_list?.[idx]?.eycessS_MaxMarks && (
-                                                    <p className='mt-1 text-[11px] text-red-500'>
-                                                        {String(errors.subsubject_list[idx].eycessS_MaxMarks?.message)}
-                                                    </p>
-                                                )}
-                                            </td>
-
-                                            {/* Min Marks */}
-                                            <td className='border p-2 w-28'>
-                                                <Controller
-                                                    control={control}
-                                                    name={`subsubject_list.${idx}.eycessS_MinMarks`}
-                                                    render={({ field }) => (
-                                                        <Input
-                                                            type='text'
-                                                            {...field}
-                                                            value={field.value ?? ''}
-                                                            onChange={(e) => {
-                                                                const raw = e.target.value.replace(/\D/g, '');
-                                                                handleMinChange(idx, raw === '' ? '' : raw);
-                                                            }}
-                                                            onBlur={() => {
-                                                                const rowVal = getValues('subsubject_list')[idx];
-                                                                const rowErrs = validateRowManually(rowVal, idx);
-                                                                if (rowErrs.eycessS_MinMarks) {
-                                                                    setError(`subsubject_list.${idx}.eycessS_MinMarks` as any, {
-                                                                        type: 'manual',
-                                                                        message: rowErrs.eycessS_MinMarks
-                                                                    });
-                                                                }
-                                                            }}
-                                                            inputMode='numeric'
-                                                            disabled={isRowDisabled}
-                                                            className={
-                                                                errors.subsubject_list?.[idx]?.eycessS_MinMarks ? 'border-red-500 text-center' : 'text-center'
-                                                            }
-                                                        />
-                                                    )}
-                                                />
-                                                {errors.subsubject_list?.[idx]?.eycessS_MinMarks && (
-                                                    <p className='mt-1 text-[11px] text-red-500'>
-                                                        {String(errors.subsubject_list[idx].eycessS_MinMarks?.message)}
-                                                    </p>
-                                                )}
-                                            </td>
-
-                                            {/* Marks Entry Max */}
-                                            <td className='border p-2 w-28'>
-                                                <Controller
-                                                    control={control}
-                                                    name={`subsubject_list.${idx}.eycessS_MarksEntryMax`}
-                                                    render={({ field }) => (
-                                                        <Input
-                                                            type='text'
-                                                            {...field}
-                                                            value={field.value ?? ''}
-                                                            onChange={(e) => {
-                                                                const raw = e.target.value.replace(/\D/g, '');
-                                                                handleEntryChange(idx, raw === '' ? '' : raw);
-                                                            }}
-                                                            onBlur={() => {
-                                                                const rowVal = getValues('subsubject_list')[idx];
-                                                                const rowErrs = validateRowManually(rowVal, idx);
-                                                                if (rowErrs.eycessS_MarksEntryMax) {
-                                                                    setError(`subsubject_list.${idx}.eycessS_MarksEntryMax` as any, {
-                                                                        type: 'manual',
-                                                                        message: rowErrs.eycessS_MarksEntryMax
-                                                                    });
-                                                                }
-                                                            }}
-                                                            inputMode='numeric'
-                                                            disabled={isRowDisabled}
-                                                            className={
-                                                                errors.subsubject_list?.[idx]?.eycessS_MarksEntryMax
-                                                                    ? 'border-red-500 text-center'
-                                                                    : 'text-center'
-                                                            }
-                                                        />
-                                                    )}
-                                                />
-                                                {errors.subsubject_list?.[idx]?.eycessS_MarksEntryMax && (
-                                                    <p className='mt-1 text-[11px] text-red-500'>
-                                                        {String(errors.subsubject_list[idx].eycessS_MarksEntryMax?.message)}
-                                                    </p>
-                                                )}
-                                            </td>
-
-                                            {/* Grade */}
-                                            <td className='border p-2 w-40'>
-                                                <Controller
-                                                    control={control}
-                                                    name={`subsubject_list.${idx}.EMGR_Id`}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            value={field.value?.toString() ?? ''}
-                                                            onValueChange={(val) => handleGradeChange(idx, val)}
-                                                            disabled={isRowDisabled}>
-                                                            <SelectTrigger
-                                                                className={
-                                                                    errors.subsubject_list?.[idx]?.EMGR_Id ? 'border-red-500' : ''
-                                                                }>
-                                                                <SelectValue placeholder='Select Grade' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {gradeList.map((g) => (
-                                                                    <SelectItem key={g.emgR_Id} value={g.emgR_Id.toString()}>
-                                                                        {g.emgR_GradeName}
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                />
-                                                {errors.subsubject_list?.[idx]?.EMGR_Id && (
-                                                    <p className='mt-1 text-[11px] text-red-500'>
-                                                        {String(errors.subsubject_list[idx].EMGR_Id?.message)}
-                                                    </p>
-                                                )}
-                                            </td>
-
-                                            {/* Exempted Flag */}
-                                            <td className='border p-2 text-center'>
-                                                <Controller
-                                                    control={control}
-                                                    name={`subsubject_list.${idx}.eycessS_ExemptedFlg`}
-                                                    render={({ field }) => (
-                                                        <Checkbox
-                                                            checked={!!field.value}
-                                                            onCheckedChange={(v) => {
-                                                                field.onChange(!!v);
-                                                                updateRowValue(idx, 'eycessS_ExemptedFlg', !!v);
-                                                                if (!v) updateRowValue(idx, 'eycessS_ExemptedPer', '');
-                                                            }}
-                                                        />
-                                                    )}
-                                                />
-                                            </td>
-
-                                            {/* Exempted Percentage */}
-                                            <td className='border p-2 w-24'>
-                                                <Controller
-                                                    control={control}
-                                                    name={`subsubject_list.${idx}.eycessS_ExemptedPer`}
-                                                    render={({ field }) => (
-                                                        <Input
-                                                            type='text'
-                                                            disabled={
-                                                                !watch(`subsubject_list.${idx}.eycessS_ExemptedFlg`)
-                                                            }
-                                                            {...field}
-                                                            value={field.value ?? ''}
-                                                            onChange={(e) => {
-                                                                const raw = e.target.value.replace(/\D/g, '');
-                                                                const val = raw === '' ? '' : Number(raw);
-                                                                field.onChange(val);
-                                                                updateRowValue(idx, 'eycessS_ExemptedPer', val);
-                                                            }}
-                                                            inputMode='numeric'
-                                                            className='text-center'
-                                                        />
-                                                    )}
-                                                />
-                                            </td>
-
-                                            {/* Marks Display */}
-                                            <td className='border p-2 text-center'>
-                                                <Controller
-                                                    control={control}
-                                                    name={`subsubject_list.${idx}.eycessS_MarksDisplayFlg`}
-                                                    render={({ field }) => (
-                                                        <Checkbox
-                                                            checked={!!field.value}
-                                                            onCheckedChange={(v) => {
-                                                                field.onChange(!!v);
-                                                                updateRowValue(idx, 'eycessS_MarksDisplayFlg', !!v);
-                                                            }}
-                                                        />
-                                                    )}
-                                                />
-                                            </td>
-
-                                            {/* Grade Display */}
-                                            <td className='border p-2 text-center'>
-                                                <Controller
-                                                    control={control}
-                                                    name={`subsubject_list.${idx}.eycessS_GradeDisplayFlg`}
-                                                    render={({ field }) => (
-                                                        <Checkbox
-                                                            checked={!!field.value}
-                                                            onCheckedChange={(v) => {
-                                                                field.onChange(!!v);
-                                                                updateRowValue(idx, 'eycessS_GradeDisplayFlg', !!v);
-                                                            }}
-                                                        />
-                                                    )}
-                                                />
-                                            </td>
-
-                                            {/* Apply Result */}
-                                            <td className='border p-2 text-center'>
-                                                <Controller
-                                                    control={control}
-                                                    name={`subsubject_list.${idx}.eycessS_AplResultFlg`}
-                                                    render={({ field }) => (
-                                                        <Checkbox
-                                                            checked={!!field.value}
-                                                            onCheckedChange={(v) => {
-                                                                field.onChange(!!v);
-                                                                updateRowValue(idx, 'eycessS_AplResultFlg', !!v);
-                                                            }}
-                                                        />
-                                                    )}
-                                                />
+                                </thead>
+                                <tbody>
+                                    {subject && subject.list === undefined && (
+                                        <tr>
+                                            <td colSpan={12} className='p-6'>
+                                                {renderSkeletonTable()}
                                             </td>
                                         </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+                                    )}
+
+                                    {subject?.list?.length === 0 && (
+                                        <tr>
+                                            <td colSpan={12} className='py-6 text-center text-muted-foreground text-sm'>
+                                                No records found.
+                                            </td>
+                                        </tr>
+                                    )}
+
+                                    {filteredData.length === 0 && searchTerm && (
+                                        <tr>
+                                            <td colSpan={12} className='py-6 text-center text-muted-foreground text-sm'>
+                                                No results found for "{searchTerm}"
+                                            </td>
+                                        </tr>
+                                    )}
+
+                                    {paginatedData.map((row, i) => {
+                                        // Calculate the absolute index in the original list for Form handling
+                                        // We need to find the index of this row in the watchedList (which corresponds to getValues().subsubject_list)
+                                        // Since emsS_Id is unique, we can use it.
+                                        const realIdx = (watchedList || []).findIndex((r) => r.emsS_Id === row.emsS_Id);
+
+                                        // Fallback if not found (shouldn't happen if logic is correct)
+                                        const idx = realIdx !== -1 ? realIdx : startIndex + i;
+
+                                        const idPrefix = `subsubject-${subject.ISMS_Id}-${row.emsS_Id}`;
+                                        const isRowChecked = Boolean(row.checkedvalue);
+                                        const isRowDisabled = !isRowChecked;
+                                        const visibleSerial = startIndex + i + 1;
+
+                                        return (
+                                            <tr key={row.emsS_Id} className={visibleSerial % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                                                <td className='border p-2 text-center'>{visibleSerial}</td>
+
+                                                {/* Select */}
+                                                <td className='border p-2 text-center'>
+                                                    <Controller
+                                                        control={control}
+                                                        name={`subsubject_list.${idx}.checkedvalue`}
+                                                        render={({ field }) => (
+                                                            <Checkbox
+                                                                id={`${idPrefix}-check`}
+                                                                checked={!!field.value}
+                                                                onCheckedChange={(checked) => {
+                                                                    handleCheckboxChange(idx, !!checked);
+                                                                }}
+                                                            />
+                                                        )}
+                                                    />
+                                                </td>
+
+                                                {/* Name (Code) */}
+                                                <td className='border p-2'>
+                                                    <div className='text-sm'>
+                                                        <div className='font-medium'>{row.emsS_SubSubjectName}</div>
+                                                        {row.emsS_SubSubjectCode && (
+                                                            <div className='text-slate-500 text-xs'>{row.emsS_SubSubjectCode}</div>
+                                                        )}
+                                                    </div>
+                                                </td>
+
+                                                {/* Max Marks */}
+                                                <td className='w-28 border p-2'>
+                                                    <Controller
+                                                        control={control}
+                                                        name={`subsubject_list.${idx}.eycessS_MaxMarks`}
+                                                        render={({ field }) => (
+                                                            <Input
+                                                                type='text'
+                                                                {...field}
+                                                                value={field.value ?? ''}
+                                                                onChange={(e) => {
+                                                                    const raw = e.target.value.replace(/\D/g, '');
+                                                                    handleMaxChange(idx, raw === '' ? '' : raw);
+                                                                }}
+                                                                onBlur={() => {
+                                                                    const rowVal = getValues('subsubject_list')[idx];
+                                                                    const rowErrs = validateRowManually(rowVal, idx);
+                                                                    if (rowErrs.eycessS_MaxMarks) {
+                                                                        setError(`subsubject_list.${idx}.eycessS_MaxMarks` as any, {
+                                                                            type: 'manual',
+                                                                            message: rowErrs.eycessS_MaxMarks
+                                                                        });
+                                                                    }
+                                                                }}
+                                                                inputMode='numeric'
+                                                                disabled={isRowDisabled}
+                                                                placeholder='Enter Max'
+                                                                className={
+                                                                    errors.subsubject_list?.[idx]?.eycessS_MaxMarks
+                                                                        ? 'border-red-500 text-center'
+                                                                        : 'text-center'
+                                                                }
+                                                            />
+                                                        )}
+                                                    />
+                                                    {errors.subsubject_list?.[idx]?.eycessS_MaxMarks && (
+                                                        <p className='mt-1 text-[11px] text-red-500'>
+                                                            {String(errors.subsubject_list[idx].eycessS_MaxMarks?.message)}
+                                                        </p>
+                                                    )}
+                                                </td>
+
+                                                {/* Min Marks */}
+                                                <td className='w-28 border p-2'>
+                                                    <Controller
+                                                        control={control}
+                                                        name={`subsubject_list.${idx}.eycessS_MinMarks`}
+                                                        render={({ field }) => (
+                                                            <Input
+                                                                type='text'
+                                                                {...field}
+                                                                value={field.value ?? ''}
+                                                                onChange={(e) => {
+                                                                    const raw = e.target.value.replace(/\D/g, '');
+                                                                    handleMinChange(idx, raw === '' ? '' : raw);
+                                                                }}
+                                                                onBlur={() => {
+                                                                    const rowVal = getValues('subsubject_list')[idx];
+                                                                    const rowErrs = validateRowManually(rowVal, idx);
+                                                                    if (rowErrs.eycessS_MinMarks) {
+                                                                        setError(`subsubject_list.${idx}.eycessS_MinMarks` as any, {
+                                                                            type: 'manual',
+                                                                            message: rowErrs.eycessS_MinMarks
+                                                                        });
+                                                                    }
+                                                                }}
+                                                                inputMode='numeric'
+                                                                disabled={isRowDisabled}
+                                                                placeholder='Enter Min'
+                                                                className={
+                                                                    errors.subsubject_list?.[idx]?.eycessS_MinMarks
+                                                                        ? 'border-red-500 text-center'
+                                                                        : 'text-center'
+                                                                }
+                                                            />
+                                                        )}
+                                                    />
+                                                    {errors.subsubject_list?.[idx]?.eycessS_MinMarks && (
+                                                        <p className='mt-1 text-[11px] text-red-500'>
+                                                            {String(errors.subsubject_list[idx].eycessS_MinMarks?.message)}
+                                                        </p>
+                                                    )}
+                                                </td>
+
+                                                {/* Marks Entry Max */}
+                                                <td className='w-28 border p-2'>
+                                                    <Controller
+                                                        control={control}
+                                                        name={`subsubject_list.${idx}.eycessS_MarksEntryMax`}
+                                                        render={({ field }) => (
+                                                            <Input
+                                                                type='text'
+                                                                {...field}
+                                                                value={field.value ?? ''}
+                                                                onChange={(e) => {
+                                                                    const raw = e.target.value.replace(/\D/g, '');
+                                                                    handleEntryChange(idx, raw === '' ? '' : raw);
+                                                                }}
+                                                                onBlur={() => {
+                                                                    const rowVal = getValues('subsubject_list')[idx];
+                                                                    const rowErrs = validateRowManually(rowVal, idx);
+                                                                    if (rowErrs.eycessS_MarksEntryMax) {
+                                                                        setError(`subsubject_list.${idx}.eycessS_MarksEntryMax` as any, {
+                                                                            type: 'manual',
+                                                                            message: rowErrs.eycessS_MarksEntryMax
+                                                                        });
+                                                                    }
+                                                                }}
+                                                                inputMode='numeric'
+                                                                disabled={isRowDisabled}
+                                                                placeholder='Enter Max'
+                                                                className={
+                                                                    errors.subsubject_list?.[idx]?.eycessS_MarksEntryMax
+                                                                        ? 'border-red-500 text-center'
+                                                                        : 'text-center'
+                                                                }
+                                                            />
+                                                        )}
+                                                    />
+                                                    {errors.subsubject_list?.[idx]?.eycessS_MarksEntryMax && (
+                                                        <p className='mt-1 text-[11px] text-red-500'>
+                                                            {String(errors.subsubject_list[idx].eycessS_MarksEntryMax?.message)}
+                                                        </p>
+                                                    )}
+                                                </td>
+
+                                                {/* Grade */}
+                                                <td className='w-40 border p-2'>
+                                                    <Controller
+                                                        control={control}
+                                                        name={`subsubject_list.${idx}.EMGR_Id`}
+                                                        render={({ field }) => (
+                                                            <Select
+                                                                value={field.value?.toString() ?? ''}
+                                                                onValueChange={(val) => handleGradeChange(idx, val)}
+                                                                disabled={isRowDisabled}>
+                                                                <SelectTrigger
+                                                                    className={
+                                                                        errors.subsubject_list?.[idx]?.EMGR_Id ? 'border-red-500' : ''
+                                                                    }>
+                                                                    <SelectValue placeholder='Select Grade' />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {gradeList.map((g) => (
+                                                                        <SelectItem key={g.emgR_Id} value={g.emgR_Id.toString()}>
+                                                                            {g.emgR_GradeName}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        )}
+                                                    />
+                                                    {errors.subsubject_list?.[idx]?.EMGR_Id && (
+                                                        <p className='mt-1 text-[11px] text-red-500'>
+                                                            {String(errors.subsubject_list[idx].EMGR_Id?.message)}
+                                                        </p>
+                                                    )}
+                                                </td>
+
+                                                {/* Exempted Flag */}
+                                                <td className='border p-2 text-center'>
+                                                    <Controller
+                                                        control={control}
+                                                        name={`subsubject_list.${idx}.eycessS_ExemptedFlg`}
+                                                        render={({ field }) => (
+                                                            <Checkbox
+                                                                checked={!!field.value}
+                                                                onCheckedChange={(v) => {
+                                                                    field.onChange(!!v);
+                                                                    updateRowValue(idx, 'eycessS_ExemptedFlg', !!v);
+                                                                    if (!v) updateRowValue(idx, 'eycessS_ExemptedPer', '');
+                                                                }}
+                                                            />
+                                                        )}
+                                                    />
+                                                </td>
+
+                                                {/* Exempted Percentage */}
+                                                <td className='w-24 border p-2'>
+                                                    <Controller
+                                                        control={control}
+                                                        name={`subsubject_list.${idx}.eycessS_ExemptedPer`}
+                                                        render={({ field }) => (
+                                                            <Input
+                                                                type='text'
+                                                                disabled={!watch(`subsubject_list.${idx}.eycessS_ExemptedFlg`)}
+                                                                {...field}
+                                                                value={field.value ?? ''}
+                                                                onChange={(e) => {
+                                                                    const raw = e.target.value.replace(/\D/g, '');
+                                                                    const val = raw === '' ? '' : Number(raw);
+                                                                    field.onChange(val);
+                                                                    updateRowValue(idx, 'eycessS_ExemptedPer', val);
+                                                                }}
+                                                                inputMode='numeric'
+                                                                className='text-center'
+                                                            />
+                                                        )}
+                                                    />
+                                                </td>
+
+                                                {/* Marks Display */}
+                                                <td className='border p-2 text-center'>
+                                                    <Controller
+                                                        control={control}
+                                                        name={`subsubject_list.${idx}.eycessS_MarksDisplayFlg`}
+                                                        render={({ field }) => (
+                                                            <Checkbox
+                                                                checked={!!field.value}
+                                                                onCheckedChange={(v) => {
+                                                                    field.onChange(!!v);
+                                                                    updateRowValue(idx, 'eycessS_MarksDisplayFlg', !!v);
+                                                                }}
+                                                            />
+                                                        )}
+                                                    />
+                                                </td>
+
+                                                {/* Grade Display */}
+                                                <td className='border p-2 text-center'>
+                                                    <Controller
+                                                        control={control}
+                                                        name={`subsubject_list.${idx}.eycessS_GradeDisplayFlg`}
+                                                        render={({ field }) => (
+                                                            <Checkbox
+                                                                checked={!!field.value}
+                                                                onCheckedChange={(v) => {
+                                                                    field.onChange(!!v);
+                                                                    updateRowValue(idx, 'eycessS_GradeDisplayFlg', !!v);
+                                                                }}
+                                                            />
+                                                        )}
+                                                    />
+                                                </td>
+
+                                                {/* Apply Result */}
+                                                <td className='border p-2 text-center'>
+                                                    <Controller
+                                                        control={control}
+                                                        name={`subsubject_list.${idx}.eycessS_AplResultFlg`}
+                                                        render={({ field }) => (
+                                                            <Checkbox
+                                                                checked={!!field.value}
+                                                                onCheckedChange={(v) => {
+                                                                    field.onChange(!!v);
+                                                                    updateRowValue(idx, 'eycessS_AplResultFlg', !!v);
+                                                                }}
+                                                            />
+                                                        )}
+                                                    />
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
-                    {/* Pagination Footer */}
+                    {/* Pagination Footer - Only show if more than 1 page */}
                     {totalPages > 1 && (
-                        <div className="flex items-center justify-end space-x-2 p-4 border-t">
-                            <Button variant="outline" size="sm" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>First</Button>
-                            <Button variant="outline" size="sm" onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1}>
-                                <ChevronLeft className="h-4 w-4" />
+                        <div className='flex shrink-0 items-center justify-end space-x-2 border-t bg-white p-4'>
+                            <Button variant='outline' size='sm' onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
+                                First
+                            </Button>
+                            <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                                disabled={currentPage === 1}>
+                                <ChevronLeft className='h-4 w-4' />
                                 Previous
                             </Button>
 
-                            <div className="flex items-center space-x-1">
+                            <div className='flex items-center space-x-1'>
                                 {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
                                     // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
                                     let pageNum;
@@ -891,11 +874,10 @@ export default function SubSubjectModal({
                                     return (
                                         <Button
                                             key={pageNum}
-                                            variant={currentPage === pageNum ? "default" : "outline"}
-                                            size="sm"
-                                            className="w-8 h-8 p-0"
-                                            onClick={() => setCurrentPage(pageNum)}
-                                        >
+                                            variant={currentPage === pageNum ? 'default' : 'outline'}
+                                            size='sm'
+                                            className='h-8 w-8 p-0'
+                                            onClick={() => setCurrentPage(pageNum)}>
                                             {pageNum}
                                         </Button>
                                     );
@@ -903,19 +885,24 @@ export default function SubSubjectModal({
                             </div>
 
                             <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                disabled={currentPage === totalPages}
-                            >
+                                variant='outline'
+                                size='sm'
+                                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                                disabled={currentPage === totalPages}>
                                 Next
-                                <ChevronLeft className="h-4 w-4 rotate-180" />
+                                <ChevronLeft className='h-4 w-4 rotate-180' />
                             </Button>
-                            <Button variant="outline" size="sm" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}>Last</Button>
+                            <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => setCurrentPage(totalPages)}
+                                disabled={currentPage === totalPages}>
+                                Last
+                            </Button>
                         </div>
                     )}
 
-                    <div className='flex w-fit justify-end gap-2 border-t bg-white pt-4 ml-auto'>
+                    <div className='ml-auto flex w-fit shrink-0 justify-end gap-2 border-t bg-white p-4'>
                         <Button className='w-fit' type='button' variant='ghost' onClick={onClose}>
                             Cancel
                         </Button>

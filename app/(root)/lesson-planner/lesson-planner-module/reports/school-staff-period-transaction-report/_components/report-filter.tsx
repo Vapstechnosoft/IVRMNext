@@ -1,21 +1,27 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
+import { onChangeClass, onChangeSection, onChangeYear } from '@/server/lesson-planner/reports/school-staff-period-transaction-report';
+import type {
+    IClass,
+    IEmployee,
+    ISection,
+    ITransactionReportPayload,
+    IYear
+} from '@/types/lesson-planner/reports/school-staff-period-transaction-report';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState, useTransition } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { onChangeYear, onChangeClass, onChangeSection } from '@/server/lesson-planner/reports/school-staff-period-transaction-report';
-import type { IYear, IClass, ISection, IEmployee, ITransactionReportPayload } from '@/types/lesson-planner/reports/school-staff-period-transaction-report';
+import { z } from 'zod';
 
 const formSchema = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
     ASMCL_Id: z.string().min(1, 'Class is required'),
     ASMS_Id: z.string().min(1, 'Section is required'),
-    HRME_Id: z.string().min(1, 'Employee is required'),
+    HRME_Id: z.string().min(1, 'Employee is required')
 });
 
 interface ReportFilterProps {
@@ -35,7 +41,7 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
     const findValue = (obj: any, keys: string[]) => {
         if (!obj) return null;
         for (const key of keys) {
-            if (obj[key] !== undefined && obj[key] !== null && obj[key] !== "") return obj[key];
+            if (obj[key] !== undefined && obj[key] !== null && obj[key] !== '') return obj[key];
         }
         return null;
     };
@@ -65,13 +71,19 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
             ASMAY_Id: '',
             ASMCL_Id: '',
             ASMS_Id: '',
-            HRME_Id: '',
-        },
+            HRME_Id: ''
+        }
     });
 
-    useEffect(() => { console.log("State - Classes:", classes); }, [classes]);
-    useEffect(() => { console.log("State - Sections:", sections); }, [sections]);
-    useEffect(() => { console.log("State - Employees:", employees); }, [employees]);
+    useEffect(() => {
+        console.log('State - Classes:', classes);
+    }, [classes]);
+    useEffect(() => {
+        console.log('State - Sections:', sections);
+    }, [sections]);
+    useEffect(() => {
+        console.log('State - Employees:', employees);
+    }, [employees]);
 
     const handleYearChange = async (yearId: string) => {
         form.setValue('ASMAY_Id', yearId);
@@ -84,14 +96,14 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
 
         startTransition(async () => {
             try {
-                console.log("Fetching classes for year:", yearId);
+                console.log('Fetching classes for year:', yearId);
                 const res: any = await onChangeYear(Number(yearId));
-                console.log("onChangeYear Response:", res);
+                console.log('onChangeYear Response:', res);
                 const classes = extractArray(res, 'masterclass');
-                console.log("Extracted classes:", classes);
+                console.log('Extracted classes:', classes);
                 if (classes.length > 0) setClasses(classes);
             } catch (error) {
-                console.error("Error in handleYearChange:", error);
+                console.error('Error in handleYearChange:', error);
             }
         });
     };
@@ -108,14 +120,14 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
 
         startTransition(async () => {
             try {
-                console.log("Fetching sections for:", { yearId, classId });
+                console.log('Fetching sections for:', { yearId, classId });
                 const res: any = await onChangeClass(Number(yearId), Number(classId));
-                console.log("onChangeClass Response:", res);
+                console.log('onChangeClass Response:', res);
                 const sections = extractArray(res, 'mastersection');
-                console.log("Extracted sections:", sections);
+                console.log('Extracted sections:', sections);
                 if (sections.length > 0) setSections(sections);
             } catch (error) {
-                console.error("Error in handleClassChange:", error);
+                console.error('Error in handleClassChange:', error);
             }
         });
     };
@@ -132,9 +144,9 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
         startTransition(async () => {
             try {
                 const params = { yearId: Number(yearId), classId: Number(classId), sectionId: Number(sectionId) };
-                console.log("Main: Fetching employees with params:", params);
+                console.log('Main: Fetching employees with params:', params);
                 const res: any = await onChangeSection(params.yearId, params.classId, params.sectionId);
-                console.log("Main RAW Response Keys:", Object.keys(res || {}));
+                console.log('Main RAW Response Keys:', Object.keys(res || {}));
 
                 let extracted: any[] = [];
                 if (res && Array.isArray(res.data)) {
@@ -149,15 +161,15 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
                     extracted = extractArray(res, 'employeedetails');
                 }
 
-                console.log("Main Final Extracted:", extracted);
+                console.log('Main Final Extracted:', extracted);
                 setEmployees(extracted);
 
                 if (extracted.length === 0) {
-                    toast.info("No employees found for this section");
+                    toast.info('No employees found for this section');
                 }
             } catch (error) {
-                console.error("Main: Error in handleSectionChange:", error);
-                toast.error("Failed to fetch employees");
+                console.error('Main: Error in handleSectionChange:', error);
+                toast.error('Failed to fetch employees');
             }
         });
     };
@@ -167,24 +179,26 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
             ASMAY_Id: Number(data.ASMAY_Id),
             ASMCL_Id: Number(data.ASMCL_Id),
             ASMS_Id: Number(data.ASMS_Id),
-            HRME_Id: Number(data.HRME_Id),
+            HRME_Id: Number(data.HRME_Id)
         });
     };
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 p-4 border rounded-lg shadow-sm bg-white">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={form.handleSubmit(handleSubmit)} className='space-y-6 rounded-lg border bg-white p-4 shadow-sm'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     <FormField
                         control={form.control}
-                        name="ASMAY_Id"
+                        name='ASMAY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year <span className="text-red-500">*</span></FormLabel>
+                                <FormLabel>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={handleYearChange} value={field.value?.toString() || ''}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Year" />
+                                            <SelectValue placeholder='Select Year' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -206,14 +220,19 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
 
                     <FormField
                         control={form.control}
-                        name="ASMCL_Id"
+                        name='ASMCL_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Class <span className="text-red-500">*</span></FormLabel>
-                                <Select onValueChange={handleClassChange} value={field.value?.toString() || ''} disabled={classes.length === 0}>
+                                <FormLabel>
+                                    Class <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select
+                                    onValueChange={handleClassChange}
+                                    value={field.value?.toString() || ''}
+                                    disabled={classes.length === 0}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Class" />
+                                            <SelectValue placeholder='Select Class' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -235,14 +254,19 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
 
                     <FormField
                         control={form.control}
-                        name="ASMS_Id"
+                        name='ASMS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Section <span className="text-red-500">*</span></FormLabel>
-                                <Select onValueChange={handleSectionChange} value={field.value?.toString() || ''} disabled={sections.length === 0}>
+                                <FormLabel>
+                                    Section <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select
+                                    onValueChange={handleSectionChange}
+                                    value={field.value?.toString() || ''}
+                                    disabled={sections.length === 0}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Section" />
+                                            <SelectValue placeholder='Select Section' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -264,21 +288,39 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
 
                     <FormField
                         control={form.control}
-                        name="HRME_Id"
+                        name='HRME_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Employee <span className="text-red-500">*</span></FormLabel>
+                                <FormLabel>
+                                    Employee <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value?.toString() || ''}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder={isPending ? "Loading..." : (employees.length > 0 ? `Select Employee (${employees.length} found)` : "Select Employee")} />
+                                            <SelectValue
+                                                placeholder={
+                                                    isPending
+                                                        ? 'Loading...'
+                                                        : employees.length > 0
+                                                          ? `Select Employee (${employees.length} found)`
+                                                          : 'Select Employee'
+                                                }
+                                            />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         {employees.length > 0 ? (
                                             employees.map((item, index) => {
                                                 const id = findValue(item, ['hrmE_Id', 'HRME_Id', 'hrme_id', 'employeeId', 'employee_id']);
-                                                const name = findValue(item, ['employeename', 'hrmE_EmployeeName', 'employeeName', 'hrmE_Fullname', 'hrme_fullname', 'staffname']) || `Employee ID: ${id}`;
+                                                const name =
+                                                    findValue(item, [
+                                                        'employeename',
+                                                        'hrmE_EmployeeName',
+                                                        'employeeName',
+                                                        'hrmE_Fullname',
+                                                        'hrme_fullname',
+                                                        'staffname'
+                                                    ]) || `Employee ID: ${id}`;
                                                 return (
                                                     <SelectItem key={`${id}-${index}`} value={id?.toString() || ''}>
                                                         {name}
@@ -286,7 +328,7 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
                                                 );
                                             })
                                         ) : (
-                                            <div className="p-2 text-sm text-center text-gray-500">No employees found</div>
+                                            <div className='p-2 text-center text-gray-500 text-sm'>No employees found</div>
                                         )}
                                     </SelectContent>
                                 </Select>
@@ -296,11 +338,11 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
                     />
                 </div>
 
-                <div className="flex justify-center gap-4">
-                    <Button type="submit" disabled={isPending || isLoading}>
+                <div className='flex justify-center gap-4'>
+                    <Button type='submit' disabled={isPending || isLoading}>
                         {isPending || isLoading ? 'Loading...' : 'Report'}
                     </Button>
-                    <Button type="button" variant="destructive" onClick={onCancel}>
+                    <Button type='button' variant='destructive' onClick={onCancel}>
                         Cancel
                     </Button>
                 </div>

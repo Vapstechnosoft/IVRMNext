@@ -3,18 +3,28 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useDeleteMasterLeave, useMasterLeave, useUpdateMasterLeave } from '@/hooks/hrms/leave-management/useMasters';
+import { useDeleteMasterLeave, useMasterLeave, useToggleMasterLeave, useUpdateMasterLeave } from '@/hooks/hrms/leave-management/useMasters';
 import { useQueryClient } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
-import { toast } from 'sonner';
 import AddMasterLeaveForm from './_components/add-form';
 import { type MasterLeave, getMasterLeaveColumns } from './_components/columns';
 import UpdateMasterLeaveForm from './_components/update-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function MasterLeavePage(props: { searchParams: SearchParams }) {
-    const _searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useMasterLeave();
+    const searchParams = use(props.searchParams);
+
+    // Normalize searchParams for API
+    const normalizedParams = {
+        page: Number(searchParams.page) || 1,
+        page_size: Number(searchParams.page_size) || 10,
+        search_query: String(searchParams.search_query || ''),
+        sort_column: String(searchParams.sort_column || ''),
+        sort_direction: String(searchParams.sort_direction || 'asc') as 'asc' | 'desc'
+    };
+
+    const { data: response, isLoading, error } = useMasterLeave(normalizedParams);
+
     return (
         <FormProvider<MasterLeave>>
             <MasterLeavePageContent response={response} isLoading={isLoading} error={error} />
@@ -98,7 +108,9 @@ function FormSections() {
     } = useFormContext<MasterLeave>();
     const _queryClient = useQueryClient();
     const { mutate: updateMasterLeave } = useUpdateMasterLeave();
+    const { mutate: toggleMasterLeave, isPending: isToggling } = useToggleMasterLeave();
     const { mutate: deleteMasterLeave, isPending: isDeleting } = useDeleteMasterLeave();
+
     const handleDelete = () => {
         if (selectedRow) {
             deleteMasterLeave(selectedRow.id, {
@@ -108,12 +120,11 @@ function FormSections() {
             });
         }
     };
+
     const handleToggleStatus = () => {
         if (selectedRow) {
-            const updatedRow = { ...selectedRow, isActive: !selectedRow.isActive };
-            updateMasterLeave(updatedRow, {
+            toggleMasterLeave(selectedRow.id, {
                 onSuccess: () => {
-                    toast.success(`Master leave ${selectedRow.isActive ? 'deactivated' : 'activated'} successfully`);
                     closeToggleForm();
                 }
             });
@@ -189,16 +200,27 @@ function FormSections() {
             {isToggleFormOpen && selectedRow && (
                 <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>
                     <div className='mx-4 w-full max-w-md rounded-lg border bg-background p-6 shadow-lg'>
-                        <h2 className='mb-4 font-semibold text-lg'>{selectedRow.isActive ? 'Deactivate' : 'Activate'} Master Leave</h2>
+                        <h2 className='mb-4 font-semibold text-lg'>{selectedRow.isActive ? 'Activate' : 'Deactivate'} Master Leave</h2>
                         <p className='mb-6'>
-                            Are you sure you want to {selectedRow.isActive ? 'deactivate' : 'activate'} this master leave?
+                            Are you sure you want to {selectedRow.isActive ? 'Activate' : 'Deactivate'} this master leave?
                         </p>
                         <div className='flex justify-end gap-2'>
-                            <Button type='button' variant='outline' onClick={closeToggleForm}>
+                            <Button type='button' variant='outline' onClick={closeToggleForm} disabled={isToggling}>
                                 Cancel
                             </Button>
-                            <Button type='button' variant={selectedRow.isActive ? 'destructive' : 'default'} onClick={handleToggleStatus}>
-                                {selectedRow.isActive ? 'Deactivate' : 'Activate'}
+                            <Button
+                                type='button'
+                                variant={selectedRow.isActive ? 'default' : 'destructive'}
+                                onClick={handleToggleStatus}
+                                disabled={isToggling}
+                                className={selectedRow.isActive ? 'bg-green-600 text-white hover:bg-green-700' : ''}>
+                                {isToggling
+                                    ? selectedRow.isActive
+                                        ? 'Activating...'
+                                        : 'Deactivating...'
+                                    : selectedRow.isActive
+                                      ? 'Activate'
+                                      : 'Deactivate'}
                             </Button>
                         </div>
                     </div>

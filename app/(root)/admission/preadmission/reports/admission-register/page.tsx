@@ -83,11 +83,11 @@ const FIELD_OPTIONS = [
     { id: 'AMST_MotherTongue', label: 'Language', accessor: 'AMST_MotherTongue' },
     { id: 'AMST_MobileNo', label: 'Phone number', accessor: 'AMST_MobileNo' },
     { id: 'AMST_emailId', label: 'Email id', accessor: 'AMST_emailId' },
-    {
-        id: 'AMST_PlaceOfBirth',
-        label: 'Place of Birth',
-        accessor: 'AMST_PlaceOfBirth'
-    },
+    // {
+    //     id: 'AMST_PlaceOfBirth',
+    //     label: 'Place of Birth',
+    //     accessor: 'AMST_PlaceOfBirth'
+    // },
     {
         id: 'AMST_AadharNo',
         label: 'Aadhar Card Number',
@@ -269,10 +269,10 @@ export default function AdmissionReportPage(props: {
             const formData = watch();
 
             const payload = {
-                tempararyArrayListclass: formData.selectedClasses.map((classId) => ({
+                TempararyArrayListclass: formData.selectedClasses.map((classId) => ({
                     asmcL_Id: classId
                 })),
-                tempararyArrayListcoloumn: formData.selectedFields.map((fieldId) => ({
+                TempararyArrayListcoloumn: formData.selectedFields.map((fieldId) => ({
                     ivrM_CLM_PAR: fieldId,
                     selected: true
                 }))

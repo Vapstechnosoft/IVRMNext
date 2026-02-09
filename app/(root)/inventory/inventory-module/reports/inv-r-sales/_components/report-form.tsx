@@ -22,10 +22,11 @@ import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
 
 interface ReportFormProps {
-    onReportGenerated: (data: any[], payload: InvRSalesSchema, total: number) => void;
+    onSubmit: (payload: InvRSalesSchema) => void;
+    isLoading?: boolean;
 }
 
-export default function ReportForm({ onReportGenerated }: ReportFormProps) {
+export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
     const form = useForm<InvRSalesSchema>({
         resolver: zodResolver(invRSalesSchema),
         defaultValues: {
@@ -72,8 +73,6 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
 
     // 5. Fetch Student List (when Class/Section selected)
     const { data: studentListData, refetch: refetchStudentList } = useInvRSalesStudentList(classId, sectionId, individualflag);
-
-    const generateReportMutation = useInvRSalesReport();
 
     // Effect: Option Flag Changes
     useEffect(() => {
@@ -152,31 +151,29 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
         value: item.amsT_Id
     })) || [], [detailsData]); // This is from detailsData when optionflag=Student (mock logic)
 
-    const classOptions = useMemo(() => classData?.data?.get_class || [], [classData]);
-    const sectionOptions = useMemo(() => sectionData?.data?.get_Section || [], [sectionData]);
-    const studentListOptions = useMemo(() => studentListData?.data?.get_Studentlist?.map((item: any) => ({
-        label: `${item.studentname} : ${item.amsT_AdmNo}`,
+    const classOptions = useMemo(() => {
+        if (Array.isArray(classData?.data)) return classData.data;
+        return classData?.data?.get_class || [];
+    }, [classData]);
+    const sectionOptions = useMemo(() => {
+        if (Array.isArray(sectionData?.data)) return sectionData.data;
+        return sectionData?.data?.get_Section || [];
+    }, [sectionData]);
+    const studentList = useMemo(() => Array.isArray(studentListData?.data) ? studentListData.data : (studentListData?.data?.get_Studentlist || []), [studentListData]);
+
+    const studentListOptions = useMemo(() => studentList.map((item: any) => ({
+        label: `${item.studentName || item.studentname} : ${item.amsT_AdmNo}`,
         value: item.amsT_Id?.toString()
-    })) || [], [studentListData]);
+    })), [studentList]);
 
 
-    const onSubmit = (data: InvRSalesSchema) => {
-        generateReportMutation.mutate(data as any, {
-            onSuccess: (res) => {
-                if (res.success) {
-                    onReportGenerated(
-                        res.data.get_SalesReport,
-                        data,
-                        res.total || 0
-                    );
-                }
-            }
-        });
+    const handleFormSubmit = (data: InvRSalesSchema) => {
+        onSubmit(data);
     };
 
     const handleCancel = () => {
         reset();
-        onReportGenerated([], {} as InvRSalesSchema, 0);
+        onSubmit({} as InvRSalesSchema);
     };
 
     // Generic Combobox for Single Selects
@@ -224,7 +221,7 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
 
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
             <CollapsibleSection title="Report Configuration" defaultOpen={true}>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
 
@@ -409,7 +406,7 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                                     <div className="space-y-2 max-w-xl">
                                         <Label>Select Students <span className="text-destructive">*</span></Label>
                                         <Controller name="studentArray" control={control} render={({ field }) => (
-                                            <MultiSelect options={studentListOptions} onValueChange={(val) => field.onChange(studentListData?.data?.get_Studentlist.filter((s: any) => val.includes(s.amsT_Id.toString())))} defaultValue={field.value?.map((v: any) => v.amsT_Id.toString())} placeholder="Select Students..." />
+                                            <MultiSelect options={studentListOptions} onValueChange={(val) => field.onChange(studentList.filter((s: any) => val.includes(s.amsT_Id.toString())))} defaultValue={field.value?.map((v: any) => v.amsT_Id.toString())} placeholder="Select Students..." />
                                         )} />
                                         {errors.studentArray && <FormError>{errors.studentArray.message}</FormError>}
                                     </div>
@@ -421,7 +418,7 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                 </div>
 
                 <div className="flex justify-center gap-4 p-4 border-t bg-muted/10">
-                    <Button type="submit" size="lg" className="w-32" isLoading={generateReportMutation.isPending}><FileText className="mr-2 h-4 w-4" /> Report</Button>
+                    <Button type="submit" size="lg" className="w-32" isLoading={isLoading}><FileText className="mr-2 h-4 w-4" /> Report</Button>
                     <Button type="button" variant="destructive" size="lg" className="w-32" onClick={handleCancel}><RefreshCcw className="mr-2 h-4 w-4" /> Reset</Button>
                 </div>
 

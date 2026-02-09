@@ -320,11 +320,17 @@ export async function getInvTGRNEditDetails(invmgrN_Id: number) {
         const final_Items = itemDetails.length ? itemDetails : (get_GRNItem.length ? get_GRNItem : (allArrays['grnItemDetails'] || []));
         const final_Tax = itemTaxDetails.length ? itemTaxDetails : (get_GRNItemTax.length ? get_GRNItemTax : (allArrays['grnTaxDetails'] || []));
 
+        // Ensure Items have UOM Name if available in different casing or alias
+        const mappedItems = final_Items.map((item: any) => ({
+            ...item,
+            invmuoM_UOMName: item.invmuoM_UOMName || item.INVMUOM_UOMName || item.invmI_ItemName // Fallback or verify if data comes with UOM Name
+        }));
+
         return {
             success: true,
             data: {
                 edit_GRN: final_GRN,
-                get_GRNItem: final_Items,
+                get_GRNItem: mappedItems,
                 get_GRNItemTax: final_Tax
             }
         };
@@ -426,6 +432,8 @@ export async function getItemDetail(id: number) {
 
         // Helper to extract array from various possible locations (reused logic)
         const getArray = (res: any, key: string) => {
+            if (Array.isArray(res)) return res;
+            if (res && Array.isArray(res.data)) return res.data;
             if (res?.data?.[key] && Array.isArray(res.data[key])) return res.data[key];
             if (res?.[key] && Array.isArray(res[key])) return res[key];
             if (res?.data?.[key]?.$values && Array.isArray(res.data[key].$values)) return res.data[key].$values;
@@ -433,10 +441,35 @@ export async function getItemDetail(id: number) {
         };
 
         const itemDetails = getArray(response, 'get_itemDetail');
+        // If response.data was the array, itemDetails is now that array.
+
+        // For itemTax, we might need a separate call or it might be in the same response if the response structure allows. 
+        // But based on user input, the response above only showed item details. 
+        // We'll stick to trying to find it using the key if it exists, or empty.
         const itemTax = getArray(response, 'get_itemTax');
+        // Note: if itemDetails consumed the whole response as an array, itemTax might be the same array if we aren't careful? 
+        // Actually if response.data is the array, getArray(..., 'get_itemTax') returns response.data again.
+        // This is a risk if the API returns mixed data. 
+        // refined check: 
+
+        const getSpecificArray = (res: any, key: string) => {
+            if (res?.data?.[key] && Array.isArray(res.data[key])) return res.data[key];
+            if (res?.[key] && Array.isArray(res[key])) return res[key];
+            if (res?.data?.[key]?.$values && Array.isArray(res.data[key].$values)) return res.data[key].$values;
+            return [];
+        }
+
+        let finalItemDetails = getSpecificArray(response, 'get_itemDetail');
+        if (finalItemDetails.length === 0) {
+            // Fallback: Check if root or data is the array
+            if (Array.isArray(response)) finalItemDetails = response;
+            else if (response.data && Array.isArray(response.data)) finalItemDetails = response.data;
+        }
+
+        const finalItemTax = getSpecificArray(response, 'get_itemTax');
 
         // Normalize tax properties to match frontend expectation
-        const normalizedTax = itemTax.map((t: any) => ({
+        const normalizedTax = finalItemTax.map((t: any) => ({
             invmT_Id: t.invmT_Id ?? t.INVMT_Id ?? t.invmt_id,
             invmiT_TaxValue: t.invmiT_TaxValue ?? t.INVMIT_TaxValue ?? t.invmit_taxvalue ?? 0,
             invmT_TaxName: t.invmT_TaxName ?? t.INVMT_TaxName ?? t.invmt_taxname ?? '',
@@ -445,7 +478,7 @@ export async function getItemDetail(id: number) {
             invmiT_Id: t.invmiT_Id ?? t.INVMIT_Id ?? 0
         }));
 
-        const normalizedDetails = itemDetails.map((d: any) => ({
+        const normalizedDetails = finalItemDetails.map((d: any) => ({
             ...d,
             invmuoM_UOMName: d.invmuoM_UOMName ?? d.INVMUOM_UOMName
         }));

@@ -1,16 +1,20 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Printer } from 'lucide-react';
-import type { IDeviationReportDetail, IDeviationReportEmployee } from '@/types/lesson-planner/reports/school-staff-period-transaction-deviation-report';
+import type {
+    IDeviationReportDetail,
+    IDeviationReportEmployee
+} from '@/types/lesson-planner/reports/school-staff-period-transaction-deviation-report';
 import { format } from 'date-fns';
+import { Printer } from 'lucide-react';
+import { useMemo, useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 
 interface ReportDisplayProps {
     reportData: IDeviationReportDetail[];
     employeeData: IDeviationReportEmployee[];
-    institutionHeaderData?: { // Placeholder for header data potentially passed down
+    institutionHeaderData?: {
+        // Placeholder for header data potentially passed down
         logo?: string;
         name?: string;
     };
@@ -26,7 +30,7 @@ export default function ReportDisplay({ reportData, employeeData, filterDetails 
 
     const handlePrint = useReactToPrint({
         contentRef: componentRef,
-        documentTitle: "Staff Deviation Report",
+        documentTitle: 'Staff Deviation Report',
         pageStyle: `
           @page {
             margin: 20mm;
@@ -51,15 +55,15 @@ export default function ReportDisplay({ reportData, employeeData, filterDetails 
               padding: 4px !important;
             }
           }
-        `,
+        `
     });
 
     // Grouping logic: Match employees with their report details
     // If employeeData is empty, create groups directly from reportData
     const groupedReports = useMemo(() => {
         if (employeeData.length > 0) {
-            return employeeData.map(emp => {
-                const details = reportData.filter(d => d.isms_id === emp.isms_id);
+            return employeeData.map((emp) => {
+                const details = reportData.filter((d) => d.isms_id === emp.isms_id);
                 return {
                     ...emp,
                     details
@@ -67,8 +71,11 @@ export default function ReportDisplay({ reportData, employeeData, filterDetails 
             });
         } else {
             // Fallback for flat data structure - group by isms_id from reportData
-            const groupedMap = new Map<number, { isms_id: number; staffname: string; subjectname: string; details: IDeviationReportDetail[] }>();
-            reportData.forEach(item => {
+            const groupedMap = new Map<
+                number,
+                { isms_id: number; staffname: string; subjectname: string; details: IDeviationReportDetail[] }
+            >();
+            reportData.forEach((item) => {
                 if (!groupedMap.has(item.isms_id)) {
                     groupedMap.set(item.isms_id, {
                         isms_id: item.isms_id,
@@ -86,63 +93,71 @@ export default function ReportDisplay({ reportData, employeeData, filterDetails 
     if (!groupedReports.length && !reportData.length) return null;
 
     // Debug: log grouped reports
-    console.log("Deviation Report - groupedReports count:", groupedReports.length);
-    console.log("Deviation Report - reportData count:", reportData.length);
-    console.log("Deviation Report - employeeData count:", employeeData.length);
+    console.log('Deviation Report - groupedReports count:', groupedReports.length);
+    console.log('Deviation Report - reportData count:', reportData.length);
+    console.log('Deviation Report - employeeData count:', employeeData.length);
 
     return (
-        <div className="space-y-4">
-            <div className="flex justify-end">
-                <Button onClick={handlePrint} variant="outline" className="gap-2">
-                    <Printer className="h-4 w-4" /> Print
+        <div className='space-y-4'>
+            <div className='flex justify-end'>
+                <Button onClick={handlePrint} variant='outline' className='gap-2'>
+                    <Printer className='h-4 w-4' /> Print
                 </Button>
             </div>
 
-            <div ref={componentRef} className="print-content p-8 bg-white text-black print:p-0" style={{ minHeight: '100px' }}>
+            <div ref={componentRef} className='print-content bg-white p-8 text-black print:p-0' style={{ minHeight: '100px' }}>
                 {groupedReports.map((report, index) => (
-                    <div key={index} className="mb-8 break-inside-avoid">
+                    <div key={index} className='mb-8 break-inside-avoid'>
                         {/* Header Section per report group (replicating legacy behavior) */}
-                        <div className="text-center mb-6">
+                        <div className='mb-6 text-center'>
                             {/* Logo and Institution Name would typically go here */}
-                            <h2 className="text-xl font-bold uppercase mb-2">Subject Staff Period Deviation Report</h2>
-                            <h3 className="text-lg font-semibold">Staff Deviation For Subject - {report.subjectname}</h3>
+                            <h2 className='mb-2 font-bold text-xl uppercase'>Subject Staff Period Deviation Report</h2>
+                            <h3 className='font-semibold text-lg'>Staff Deviation For Subject - {report.subjectname}</h3>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-                            <div><strong>Year:</strong> {filterDetails.year}</div>
-                            <div><strong>Class:</strong> {filterDetails.class}</div>
-                            <div><strong>Section:</strong> {filterDetails.section}</div>
-                            <div><strong>Staff Name:</strong> {report.staffname}</div>
+                        <div className='mb-4 grid grid-cols-2 gap-4 text-sm'>
+                            <div>
+                                <strong>Year:</strong> {filterDetails.year}
+                            </div>
+                            <div>
+                                <strong>Class:</strong> {filterDetails.class}
+                            </div>
+                            <div>
+                                <strong>Section:</strong> {filterDetails.section}
+                            </div>
+                            <div>
+                                <strong>Staff Name:</strong> {report.staffname}
+                            </div>
                         </div>
 
-                        <table className="w-full border-collapse border border-gray-300 text-sm">
+                        <table className='w-full border-collapse border border-gray-300 text-sm'>
                             <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="border border-gray-300 p-2 text-center w-16">SL.NO.</th>
-                                    <th className="border border-gray-300 p-2 text-left">Topic Name</th>
-                                    <th className="border border-gray-300 p-2 text-center w-32">Allocated Date</th>
-                                    <th className="border border-gray-300 p-2 text-center w-32">Taken Date</th>
-                                    <th className="border border-gray-300 p-2 text-center w-32">Deviation Count</th>
+                                <tr className='bg-gray-100'>
+                                    <th className='w-16 border border-gray-300 p-2 text-center'>SL.NO.</th>
+                                    <th className='border border-gray-300 p-2 text-left'>Topic Name</th>
+                                    <th className='w-32 border border-gray-300 p-2 text-center'>Allocated Date</th>
+                                    <th className='w-32 border border-gray-300 p-2 text-center'>Taken Date</th>
+                                    <th className='w-32 border border-gray-300 p-2 text-center'>Deviation Count</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {report.details.length > 0 ? (
                                     report.details.map((row, idx) => (
-                                        <tr key={idx} className="hover:bg-gray-50">
-                                            <td className="border border-gray-300 p-2 text-center">{idx + 1}</td>
-                                            <td className="border border-gray-300 p-2">{row.topicname}</td>
-                                            <td className="border border-gray-300 p-2 text-center">
+                                        <tr key={idx} className='hover:bg-gray-50'>
+                                            <td className='border border-gray-300 p-2 text-center'>{idx + 1}</td>
+                                            <td className='border border-gray-300 p-2'>{row.topicname}</td>
+                                            <td className='border border-gray-300 p-2 text-center'>
                                                 {row.allocateddate ? format(new Date(row.allocateddate), 'dd/MM/yyyy') : '-'}
                                             </td>
-                                            <td className="border border-gray-300 p-2 text-center">
+                                            <td className='border border-gray-300 p-2 text-center'>
                                                 {row.takendate ? format(new Date(row.takendate), 'dd/MM/yyyy') : '-'}
                                             </td>
-                                            <td className="border border-gray-300 p-2 text-center">{row.datediffcount}</td>
+                                            <td className='border border-gray-300 p-2 text-center'>{row.datediffcount}</td>
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={5} className="border border-gray-300 p-4 text-center text-gray-500">
+                                        <td colSpan={5} className='border border-gray-300 p-4 text-center text-gray-500'>
                                             No records found for this subject.
                                         </td>
                                     </tr>

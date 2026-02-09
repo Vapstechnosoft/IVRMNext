@@ -39,6 +39,6 @@ export async function editAlumniNoticeBoard(id: number) {
 }
 
 export async function viewAlumniNoticeBoard(id: number) {
-    const url = `/Alumni_NoticeBoard/viewData?ALNTB_Id=${id}`;
-    return await api.post<{ attachementlist: any[] }>('alumni', url, {});
+    const url = `/SchoolALUDASH/viewnotice?ALNTB_Id=${id}`;
+    return await api.get<{ attachementlist: any[] }>('alumni', url);
 }

@@ -15,7 +15,7 @@ import { TotalStrengthSchema } from '@/schemas/admission/preadmission/reports';
 import { getExcelTotalStrengthReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, FileSpreadsheet, FileText, Printer, RotateCcw, Square } from 'lucide-react';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -529,7 +529,7 @@ export default function TotalStrengthPage() {
                                                 {Object.entries(groupedData())
                                                     .sort(([a], [b]) => Number(a) - Number(b))
                                                     .map(([rowNumber, sections], index) => (
-                                                        <>
+                                                        <Fragment key={rowNumber}>
                                                             {sections.map((item: any, sectionIndex) => (
                                                                 <tr
                                                                     key={`${rowNumber}-${item.sectionname}-${sectionIndex}`}
@@ -558,7 +558,7 @@ export default function TotalStrengthPage() {
                                                                 </td>
                                                                 <td className='border border-gray-300 px-4 py-2 text-right' />
                                                             </tr>
-                                                        </>
+                                                        </Fragment>
                                                     ))}
                                                 <tr className='bg-green-100 font-bold'>
                                                     <td colSpan={3} className='border border-gray-300 px-4 py-2 text-right'>

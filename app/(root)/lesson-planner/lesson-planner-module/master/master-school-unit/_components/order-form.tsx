@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { saveUnitOrder } from '@/server/lesson-planner/master/school-master-unit';
 import type { IMasterSchoolUnit } from '@/types/lesson-planner/master/school-master-unit';
+import { DndContext, type DragEndEvent, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 
 interface OrderMasterSchoolUnitFormProps {
     isOpen: boolean;
@@ -98,18 +98,18 @@ export default function OrderMasterSchoolUnitForm({ isOpen, onClose, units: init
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className='max-w-4xl max-h-[80vh] flex flex-col'>
+            <DialogContent className='flex max-h-[80vh] max-w-4xl flex-col'>
                 <DialogHeader>
                     <DialogTitle>Set Unit Order</DialogTitle>
                 </DialogHeader>
 
-                <div className='flex-1 overflow-auto border rounded-lg'>
+                <div className='flex-1 overflow-auto rounded-lg border'>
                     {units.length === 0 ? (
                         <div className='flex justify-center p-8 text-muted-foreground'>No units found.</div>
                     ) : (
                         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                             <table className='w-full border-collapse text-sm'>
-                                <thead className='bg-muted/50 sticky top-0'>
+                                <thead className='sticky top-0 bg-muted/50'>
                                     <tr>
                                         <th className='border-b p-2 text-left font-medium'>SLNO</th>
                                         <th className='border-b p-2 text-left font-medium'>Unit Name</th>

@@ -2,8 +2,8 @@
 
 import { api } from '@/lib/apiService';
 import { getSearchParamsUrl } from '@/lib/apiService';
-import type { ISchoolSubjectTopicMappingResponse } from '@/types/lesson-planner/transactions/school-subject-master-topic-mapping';
 import type { ApiSearchparams } from '@/types';
+import type { ISchoolSubjectTopicMappingResponse } from '@/types/lesson-planner/transactions/school-subject-master-topic-mapping';
 
 export async function getSchoolSubjectTopicMappingData(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'lpmT_TopicName');
@@ -21,7 +21,7 @@ export async function onChangeClass(asmaY_Id: number, asmcL_Id: number) {
     return await api.post<ISchoolSubjectTopicMappingResponse>('lessonplanner', url);
 }
 
-// Note: The legacy code had two onchangeclass(es) calls, one for section and one for class. 
+// Note: The legacy code had two onchangeclass(es) calls, one for section and one for class.
 // "onchangesection" fetched subjects in legacy.
 export async function onChangeSection(asmaY_Id: number, asmcL_Id: number, asmS_Id: number) {
     const url = `/SchoolSubjectWithMasterTopicMapping/onchange_section?ASMAY_Id=${asmaY_Id}&ASMCL_Id=${asmcL_Id}&ASMS_Id=${asmS_Id}`;
@@ -66,7 +66,9 @@ export async function deactivateDetails(id: number, activeFlag: boolean) {
 
 export async function validateOrder(orderArray: any[]) {
     const url = '/SchoolSubjectWithMasterTopicMapping/validateorder_number';
-    return await api.post<ISchoolSubjectTopicMappingResponse>('lessonplanner', url, { schoolSubjectWithMasterTopicMappingTemporderDTO: orderArray });
+    return await api.post<ISchoolSubjectTopicMappingResponse>('lessonplanner', url, {
+        schoolSubjectWithMasterTopicMappingTemporderDTO: orderArray
+    });
 }
 
 export async function viewUploadFiles(lpmT_Id: number, ismS_Id: number, lpmU_Id: number, type: string) {
