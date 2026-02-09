@@ -7,7 +7,7 @@ import { FormProvider } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useopeningacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
-import { getFeeReceiptimportCommon } from '@/server/fees/reports/feereceiptimportdelete';
+import { deleteFeeReceiptimportCommon, getFeeReceiptimportCommon } from '@/server/fees/reports/feereceiptimportdelete';
 import type { IFeeReceiptImportDelate } from '@/types/fees/transactions/transactions';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -15,57 +15,11 @@ import { toast } from 'sonner';
 import { feereceiptimportdeleteColumns } from './_components/redeiptdetails';
 
 export default function FeesReceiptImportDelete() {
-    const [isReportGenerated, setIsReportGenerated] = useState(false);
     const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
     const [selectedDate, setSelectedDate] = useState<string>('');
     const [isDeleting, setIsDeleting] = useState(false);
     const { data: academicYearData, isLoading: loadingYears } = useopeningacademicyerdropdowndatafee();
 
-    // Static data for demonstration
-    const initialStaticData: IFeeReceiptImportDelate[] = [
-        {
-            studentname: 'John Doe',
-            admissionnumber: 'ADM2024001',
-            date: '2024-03-15',
-            receiptno: 'RCPT20240315001',
-            amount: 25000,
-            fyP_Id: 1
-        },
-        {
-            studentname: 'Jane Smith',
-            admissionnumber: 'ADM2024002',
-            date: '2024-03-16',
-            receiptno: 'RCPT20240316001',
-            amount: 30000,
-            fyP_Id: 2
-        },
-        {
-            studentname: 'Robert Johnson',
-            admissionnumber: 'ADM2024003',
-            date: '2024-03-17',
-            receiptno: 'RCPT20240317001',
-            amount: 28000,
-            fyP_Id: 3
-        },
-        {
-            studentname: 'Emily Davis',
-            admissionnumber: 'ADM2024004',
-            date: '2024-03-18',
-            receiptno: 'RCPT20240318001',
-            amount: 32000,
-            fyP_Id: 4
-        },
-        {
-            studentname: 'Michael Brown',
-            admissionnumber: 'ADM2024005',
-            date: '2024-03-19',
-            receiptno: 'RCPT20240319001',
-            amount: 27000,
-            fyP_Id: 5
-        }
-    ];
-
-    const [staticData, setStaticData] = useState<IFeeReceiptImportDelate[]>(initialStaticData);
     const [isReportLoading, setIsReportLoading] = useState(false);
     const [reportData, setReportData] = useState<any[]>([]);
 
@@ -92,7 +46,7 @@ export default function FeesReceiptImportDelete() {
                 const report = await getFeeReceiptimportCommon(Number(selectedAsmayId), selectedDate);
                 setReportData(report?.data || []);
             } catch (error) {
-                console.error('Failed to fetch students:', error);
+                console.error('Failed to fetch Records:', error);
                 setReportData([]);
             } finally {
                 setIsReportLoading(false);
@@ -113,25 +67,39 @@ export default function FeesReceiptImportDelete() {
     };
 
     const handleDeleteAll = () => {
-        setIsDeleting(true);
-        setTimeout(() => {
-            setStaticData([]);
-            setIsDeleting(false);
-            toast.success('All data deleted successfully!');
-            setIsReportGenerated(false);
-        }, 1000);
+        const deleteReport = async () => {
+            setIsDeleting(true);
+            try {
+                const receipt = reportData.map((r) => ({
+                    asmaY_Id: r.asmay_id,
+                    amsT_Id: r.amst_id,
+                    fyP_Id: r.fyp_id
+                }));
+                const response = await deleteFeeReceiptimportCommon({
+                    receipts: receipt
+                });
+                if (response?.status) {
+                    toast.success(response.message);
+                } else {
+                    toast.error(response.message);
+                }
+            } catch (error) {
+                console.error('Failed to Delete Records:', error);
+            } finally {
+                setIsDeleting(false);
+            }
+        };
+        deleteReport();
     };
 
     return (
         <>
             <FormProvider<IFeeReceiptImportDelate>>
                 <FeesReceiptImportDeletePageContent
-                    response={staticData}
                     selectedAsmayId={selectedAsmayId}
                     setSelectedAsmayId={setSelectedAsmayId}
                     academicYearData={academicYearData}
                     loadingYears={loadingYears}
-                    isReportGenerated={isReportGenerated}
                     selectedDate={selectedDate}
                     setSelectedDate={setSelectedDate}
                     onReportClick={handleReportClick}
@@ -147,7 +115,6 @@ export default function FeesReceiptImportDelete() {
 }
 
 function FeesReceiptImportDeletePageContent({
-    response,
     academicYearData,
     loadingYears,
     selectedAsmayId,
@@ -161,12 +128,10 @@ function FeesReceiptImportDeletePageContent({
     isReportLoading,
     report
 }: {
-    response: any;
     academicYearData: any;
     selectedAsmayId: number | null;
     setSelectedAsmayId: (id: number | null) => void;
     loadingYears: boolean;
-    isReportGenerated: boolean;
     selectedDate: string;
     setSelectedDate: (date: string) => void;
     onReportClick: () => void;
@@ -266,6 +231,8 @@ function FeesReceiptImportDeletePageContent({
                             columns={feereceiptimportdeleteColumns}
                             isLoading={isReportLoading}
                             error={null}
+                            isPaginationRequired={false}
+                            isSearchRequired={false}
                             columnPinning={{ right: [] }}
                             loadingMessage='Loading Fees Receipt Import Delete Data...'
                             noDataTitle='No Fees Receipt Import Delete Data Found'
@@ -277,7 +244,7 @@ function FeesReceiptImportDeletePageContent({
                                 <Button
                                     type='button'
                                     onClick={onDeleteAll}
-                                    disabled={isDeleting || response.length === 0}
+                                    disabled={isDeleting}
                                     className='bg-red-500 text-white shadow-md transition-all duration-200 hover:scale-105 hover:bg-red-600 hover:shadow-lg'>
                                     {isDeleting ? <div className='flex items-center gap-2'>Deleting...</div> : 'Delete All'}
                                 </Button>

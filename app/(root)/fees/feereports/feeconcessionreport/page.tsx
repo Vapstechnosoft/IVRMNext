@@ -170,7 +170,7 @@ export default function FeeConcessionReport() {
                 const group = await getFeesconcessionOnChangeofCustomGroup(payload);
                 setFeeGroups(group?.data || []);
             } catch (error) {
-                console.error('Failed to fetch students:', error);
+                console.error('Failed to fetch Records:', error);
                 setFeeGroups([]);
             } finally {
                 setIsGroupLoading(false);
@@ -266,54 +266,6 @@ export default function FeeConcessionReport() {
     ];
 
     const handleSubmit = async () => {
-        //      let data: any;
-        // if (filters.viewMode === "year") {
-        //   data = {
-        //     FMG_Id: filters.classId || 0,
-        //     FMGG_Id: 0, // You need to get this from your state
-        //     "FMT_Id": 0, // You need to get this from your state
-        //     "ASMAY_Id": filters.academicYearId,
-        //     "radioval": filters.breakdown, // FGW, FHW, FCW, FSW
-        //     "reporttype": filters.viewMode,
-        //     "studenttype": filters.userType,
-        //     "customflag": '0',
-        //     "groupflag": '0',
-        //     active: filters.status.active,
-        //     deactive: filters.status.deactive,
-        //     left: filters.status.deactive,
-
-        //     TempararyArrayhEADListnew1: TempararyArrayhEADListnew1,
-        //     TempararyArrayhEADListnew2: TempararyArrayhEADListnew2,
-        //     TempararyArrayhEADListnew3: TempararyArrayhEADListnew3,
-        //     FMG_Ids: FMG_Ids,
-        //     FMT_Ids: FMT_Ids,
-
-        //   };
-        // } else if (filters.viewMode === "date") {
-        //   data = {
-        //     "FMG_Id": 0,
-        //     "FMGG_Id": 0, // You need to get this from your state
-        //     "FMT_Id": 0, // You need to get this from your state
-        //       active: filters.status.active,
-        //     deactive: filters.status.deactive,
-        //     left: filters.status.deactive,
-        //     "ASMAY_Id": filters.academicYearId,
-        //     "From_Date": filters.fromDate ? new Date(filters.fromDate).toDateString() : "",
-        //     "To_Date": filters.toDate ? new Date(filters.toDate).toDateString() : "",
-        //     "radioval": filters.breakdown,
-        //     "reporttype": filters.viewMode,
-        //     "studenttype": filters.userType,
-        //     "customflag": '0',
-        //     "groupflag": '0',
-        //     TempararyArrayhEADListnew1: TempararyArrayhEADListnew1,
-        //     TempararyArrayhEADListnew2: TempararyArrayhEADListnew2,
-        //     TempararyArrayhEADListnew3: TempararyArrayhEADListnew3,
-        //     FMG_Ids: FMG_Ids,
-        //     FMT_Ids: FMT_Ids
-
-        //   };
-        // }
-
         if (filters.status.active === false && filters.status.deactive === false && filters.status.left === false) {
             setShowReport(false);
             return toast.error('Please select at least one Status Active or Deactive or Left');
@@ -345,30 +297,43 @@ export default function FeeConcessionReport() {
                 FMG_Ids: filters.feeGroupIds,
                 FMT_Ids: filters.termIds,
                 term_group: config,
-                FMT_Idss: filters.termIds,
+                FMT_Idss: [],
                 active: filters.status.active === true ? 1 : 0,
                 deactive: filters.status.deactive === true ? 1 : 0,
                 left: filters.status.left === true ? 1 : 0
             };
         } else {
             payload = {
-                ASMAY_Id: filters.academicYearId,
-                FMG_Id: 0,
-                radioval: filters.breakdown,
-                studenttype: null,
-                From_Date: filters.fromDate,
-                To_Date: filters.toDate,
+                // ASMAY_Id: filters.academicYearId,
+                // FMG_Id: 0,
+                // radioval: filters.breakdown,
+                // studenttype: null,
+                // From_Date: filters.fromDate,
+                // To_Date: filters.toDate,
+                // reporttype: filters.viewMode,
+                // FMT_ID: 0,
+                // FMGG_Id: 0,
+                // TempararyArrayhEADListnew1: [],
+                // TempararyArrayhEADListnew2: [],
+                // TempararyArrayhEADListnew3: [],
+                // customflag: '0',
+                // groupflag: '0',
+                // FMG_Ids: filters.customGroupIds,
+                // FMT_Ids: filters.termIds,
+                // term_group: config,
+                // active: filters.status.active === true ? 1 : 0,
+                // deactive: filters.status.deactive === true ? 1 : 0,
+                // left: filters.status.left === true ? 1 : 0
+                fmG_Ids: filters.feeGroupIds,
+                fmT_Ids: filters.termIds,
+                asmaY_Id: filters.academicYearId,
                 reporttype: filters.viewMode,
-                FMT_ID: 0,
-                FMGG_Id: 0,
-                TempararyArrayhEADListnew1: [],
-                TempararyArrayhEADListnew2: [],
-                TempararyArrayhEADListnew3: [],
-                customflag: '0',
-                groupflag: '0',
-                FMG_Ids: filters.customGroupIds,
-                FMT_Ids: filters.termIds,
-                term_group: config,
+                radioval: filters.breakdown,
+                type: 'string',
+                from_Date: filters.fromDate,
+                to_Date: filters.toDate,
+                mI_ID: 0,
+                term_group: config.toString(),
                 active: filters.status.active === true ? 1 : 0,
                 deactive: filters.status.deactive === true ? 1 : 0,
                 left: filters.status.left === true ? 1 : 0
