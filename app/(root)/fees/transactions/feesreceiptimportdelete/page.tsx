@@ -45,6 +45,7 @@ export default function FeesReceiptImportDelete() {
             try {
                 const report = await getFeeReceiptimportCommon(Number(selectedAsmayId), selectedDate);
                 setReportData(report?.data || []);
+                toast.success(report.message);
             } catch (error) {
                 console.error('Failed to fetch Records:', error);
                 setReportData([]);
@@ -78,8 +79,9 @@ export default function FeesReceiptImportDelete() {
                 const response = await deleteFeeReceiptimportCommon({
                     receipts: receipt
                 });
-                if (response?.status) {
+                if (response.success === true) {
                     toast.success(response.message);
+                    handleReportClick();
                 } else {
                     toast.error(response.message);
                 }

@@ -79,7 +79,7 @@ export default function FeeConcessionReport() {
     const { data: onOnloadResponse, isLoading: loadingonOnloadResponse, error: onOnloadResponseError } = useFeeConCessionOnLoadreport();
     const { data: masterConfiguration } = useFeeMasterConfiguration();
 
-    const config = masterConfiguration?.data?.[0]?.fmC_AutoReceiptFeeGroupFlag ?? 0;
+    const config = masterConfiguration?.data?.[0]?.fmC_GroupOrTermFlg ?? 'T';
 
     // Load data effects (unchanged)
     useEffect(() => {
@@ -276,74 +276,79 @@ export default function FeeConcessionReport() {
                 return toast.error('Please select From Date and To Date');
             }
         }
+        try {
+            setReportLoading(true);
+            let payload = {};
 
-        setReportLoading(true);
+            if (filters.viewMode === 'year') {
+                payload = {
+                    ASMAY_Id: filters.academicYearId,
+                    radioval: filters.breakdown,
+                    studenttype: null,
+                    reporttype: filters.viewMode,
+                    FMGG_Id: 0,
+                    TempararyArrayhEADListnew1: [],
+                    TempararyArrayhEADListnew2: [],
+                    TempararyArrayhEADListnew3: [],
+                    feeheadarray: null,
+                    customflag: '0',
+                    groupflag: '0',
+                    FMG_Ids: filters.feeGroupIds,
+                    FMT_Ids: filters.termIds,
+                    term_group: config.toString(),
+                    FMT_Idss: [],
+                    active: filters.status.active === true ? 1 : 0,
+                    deactive: filters.status.deactive === true ? 1 : 0,
+                    left: filters.status.left === true ? 1 : 0
+                };
+            } else {
+                payload = {
+                    // ASMAY_Id: filters.academicYearId,
+                    // FMG_Id: 0,
+                    // radioval: filters.breakdown,
+                    // studenttype: null,
+                    // From_Date: filters.fromDate,
+                    // To_Date: filters.toDate,
+                    // reporttype: filters.viewMode,
+                    // FMT_ID: 0,
+                    // FMGG_Id: 0,
+                    // TempararyArrayhEADListnew1: [],
+                    // TempararyArrayhEADListnew2: [],
+                    // TempararyArrayhEADListnew3: [],
+                    // customflag: '0',
+                    // groupflag: '0',
+                    // FMG_Ids: filters.customGroupIds,
+                    // FMT_Ids: filters.termIds,
+                    // term_group: config,
+                    // active: filters.status.active === true ? 1 : 0,
+                    // deactive: filters.status.deactive === true ? 1 : 0,
+                    // left: filters.status.left === true ? 1 : 0
+                    fmG_Ids: filters.feeGroupIds,
+                    fmT_Ids: filters.termIds,
+                    asmaY_Id: filters.academicYearId,
+                    reporttype: filters.viewMode,
+                    radioval: filters.breakdown,
+                    type: 'string',
+                    from_Date: filters.fromDate,
+                    to_Date: filters.toDate,
+                    mI_ID: 0,
+                    term_group: config.toString(),
+                    active: filters.status.active === true ? 1 : 0,
+                    deactive: filters.status.deactive === true ? 1 : 0,
+                    left: filters.status.left === true ? 1 : 0
+                };
+            }
 
-        let payload = {};
-
-        if (filters.viewMode === 'year') {
-            payload = {
-                ASMAY_Id: filters.academicYearId,
-                radioval: filters.breakdown,
-                studenttype: null,
-                reporttype: filters.viewMode,
-                FMGG_Id: 0,
-                TempararyArrayhEADListnew1: [],
-                TempararyArrayhEADListnew2: [],
-                TempararyArrayhEADListnew3: [],
-                feeheadarray: null,
-                customflag: '0',
-                groupflag: '0',
-                FMG_Ids: filters.feeGroupIds,
-                FMT_Ids: filters.termIds,
-                term_group: config,
-                FMT_Idss: [],
-                active: filters.status.active === true ? 1 : 0,
-                deactive: filters.status.deactive === true ? 1 : 0,
-                left: filters.status.left === true ? 1 : 0
-            };
-        } else {
-            payload = {
-                // ASMAY_Id: filters.academicYearId,
-                // FMG_Id: 0,
-                // radioval: filters.breakdown,
-                // studenttype: null,
-                // From_Date: filters.fromDate,
-                // To_Date: filters.toDate,
-                // reporttype: filters.viewMode,
-                // FMT_ID: 0,
-                // FMGG_Id: 0,
-                // TempararyArrayhEADListnew1: [],
-                // TempararyArrayhEADListnew2: [],
-                // TempararyArrayhEADListnew3: [],
-                // customflag: '0',
-                // groupflag: '0',
-                // FMG_Ids: filters.customGroupIds,
-                // FMT_Ids: filters.termIds,
-                // term_group: config,
-                // active: filters.status.active === true ? 1 : 0,
-                // deactive: filters.status.deactive === true ? 1 : 0,
-                // left: filters.status.left === true ? 1 : 0
-                fmG_Ids: filters.feeGroupIds,
-                fmT_Ids: filters.termIds,
-                asmaY_Id: filters.academicYearId,
-                reporttype: filters.viewMode,
-                radioval: filters.breakdown,
-                type: 'string',
-                from_Date: filters.fromDate,
-                to_Date: filters.toDate,
-                mI_ID: 0,
-                term_group: config.toString(),
-                active: filters.status.active === true ? 1 : 0,
-                deactive: filters.status.deactive === true ? 1 : 0,
-                left: filters.status.left === true ? 1 : 0
-            };
+            const response = await saveFeesconcessionReport(payload);
+            setReportData(response?.data || []);
+            setShowReport(true);
+            setReportLoading(false);
+        } catch (error: any) {
+            console.error('Delete error:', error);
+            toast.error(error.message || 'Error deleting record');
+        } finally {
+            setReportLoading(false);
         }
-
-        const response = await saveFeesconcessionReport(payload);
-        setReportData(response?.data || []);
-        setShowReport(true);
-        setReportLoading(false);
 
         // setTimeout(() => {
         //   setReportData(mockReportData);
