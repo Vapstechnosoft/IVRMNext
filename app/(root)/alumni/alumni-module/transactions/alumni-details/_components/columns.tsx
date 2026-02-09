@@ -1,10 +1,10 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { IAlumniStudentDetail } from '@/types/alumni/alumni-membership';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import type { IAlumniStudentDetail } from '@/types/alumni/alumni-membership';
+import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -12,26 +12,28 @@ import { Badge } from '@/components/ui/badge';
 export const AlumniDetailsColumns: ColumnDef<IAlumniStudentDetail>[] = [
     {
         id: 'slNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className="text-center justify-center" />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='justify-center text-center' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
-            return <div className="text-center">{pageIndex * pageSize + row.index + 1}</div>;
+            return <div className='text-center'>{pageIndex * pageSize + row.index + 1}</div>;
         },
         enableSorting: false
     },
     {
         id: 'name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Alumnus Name' className="text-center justify-center" />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Alumnus Name' className='justify-center text-center' />,
         accessorFn: (row) => row.amsT_FirstName || row.almsT_FirstName || '',
         cell: ({ row }) => {
             const name = row.original.amsT_FirstName || row.original.almsT_FirstName || '';
             const isReadmitted = row.original.readmitted_student;
             return (
-                <div className='flex flex-col gap-1 items-center text-center'>
+                <div className='flex flex-col items-center gap-1 text-center'>
                     <span className='font-medium'>{name}</span>
                     {isReadmitted && (
-                        <Badge variant='secondary' className='w-fit text-[10px] h-4 px-1.5 bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200'>
+                        <Badge
+                            variant='secondary'
+                            className='h-4 w-fit border-amber-200 bg-amber-100 px-1.5 text-[10px] text-amber-700 hover:bg-amber-100'>
                             Readmitted
                         </Badge>
                     )}
@@ -72,14 +74,14 @@ export const AlumniDetailsColumns: ColumnDef<IAlumniStudentDetail>[] = [
     // },
     {
         accessorKey: 'almsT_MobileNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Mobile No' className="text-center justify-center" />,
-        cell: ({ row }) => <div className="text-center">{row.getValue('almsT_MobileNo')}</div>
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Mobile No' className='justify-center text-center' />,
+        cell: ({ row }) => <div className='text-center'>{row.getValue('almsT_MobileNo')}</div>
     },
     {
         accessorKey: 'almsT_emailId',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Email Id' className="text-center justify-center" />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Email Id' className='justify-center text-center' />,
         cell: ({ row }) => (
-            <div className="text-center">
+            <div className='text-center'>
                 <a href={`mailto:${row.getValue('almsT_emailId')}`} className='text-primary hover:underline'>
                     {row.getValue('almsT_emailId')}
                 </a>
@@ -88,21 +90,21 @@ export const AlumniDetailsColumns: ColumnDef<IAlumniStudentDetail>[] = [
     },
     {
         accessorKey: 'almsT_BloodGroup',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Blood Group' className="text-center justify-center" />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Blood Group' className='justify-center text-center' />,
         cell: ({ row }) => <div className='text-center'>{row.getValue('almsT_BloodGroup') || '-'}</div>
     },
     {
         accessorKey: 'almsT_FatherName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Father Name' className="text-center justify-center" />,
-        cell: ({ row }) => <div className="text-center">{row.getValue('almsT_FatherName')}</div>
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Father Name' className='justify-center text-center' />,
+        cell: ({ row }) => <div className='text-center'>{row.getValue('almsT_FatherName')}</div>
     },
     {
         id: 'location',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='State/City' className="text-center justify-center" />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='State/City' className='justify-center text-center' />,
         cell: ({ row }) => {
             const item = row.original;
             return (
-                <div className="text-center">
+                <div className='text-center'>
                     {item.ivrmmS_Name ? `${item.ivrmmS_Name}:${item.almsT_ConCity || ''}` : item.almsT_ConCity || '-'}
                 </div>
             );
@@ -110,10 +112,10 @@ export const AlumniDetailsColumns: ColumnDef<IAlumniStudentDetail>[] = [
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center justify-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='justify-center text-center' />,
         enableSorting: false,
         cell: ({ row }) => (
-            <div className="flex justify-center items-center">
+            <div className='flex items-center justify-center'>
                 <ActionButtonsCell rowData={row.original} />
             </div>
         )
@@ -147,7 +149,7 @@ function ActionButtonsCell({ rowData }: { rowData: IAlumniStudentDetail }) {
             rowData={normalizedRowData}
             buttons={{ edit: true }}
             onEdit={handleEdit}
-        // onToggle={handleToggle}
+            // onToggle={handleToggle}
         />
     );
 }

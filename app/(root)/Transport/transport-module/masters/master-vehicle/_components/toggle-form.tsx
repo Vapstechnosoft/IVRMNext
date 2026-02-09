@@ -22,15 +22,14 @@ export default function ToggleVehicleForm({
     const handleConfirm = async () => {
         try {
             setIsLoading(true);
-            const response = await activeDeactiveVehicle(rowData);
-            if (response.returnval === true) {
-                toast.success(isActive ? 'Deactivated Successfully' : 'Activated Successfully');
+
+            const response = await activeDeactiveVehicle(rowData.trmV_Id);
+            if (response.success) {
+                toast.success(response.message);
                 refetchAll();
                 onClose();
-            } else if (response.message) {
-                toast.error(response.message);
             } else {
-                toast.error(isActive ? 'Deactivation Failed' : 'Activation Failed');
+                toast.error(response.message);
             }
         } catch (error: any) {
             toast.error(error.message || 'Something went wrong');

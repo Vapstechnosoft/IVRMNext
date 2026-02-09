@@ -1,13 +1,7 @@
 'use server';
 
-import { type ApiResponse, api } from '@/lib/apiService';
-import {
-    IAlumniReportInitialData,
-    IAlumniReportResponse,
-    IAlumniReportSearchPayload,
-    IState,
-    IDistrict
-} from '@/types/alumni/alumni-report';
+import { api } from '@/lib/apiService';
+import type { IAlumniReportInitialData, IAlumniReportResponse, IAlumniReportSearchPayload } from '@/types/alumni/alumni-report';
 
 export async function getInitialData() {
     return await api.post<IAlumniReportInitialData>('alumni', '/AlumniSearch/Getdetails', {});

@@ -1,31 +1,31 @@
 'use client';
+import type { LeaveAuthorization } from '@/app/(root)/hrms/leave-management/masters/leave-authorization/_components/columns';
+import type { MasterLeave } from '@/app/(root)/hrms/leave-management/masters/master-leave/_components/columns';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import { createLocalCrud } from '@/lib/localdb';
 import {
+    deleteLeaveAuthorization as deleteLeaveAuthorizationAPI,
+    getInstitutionsByLoginBased,
+    getLeaveAuthorization,
+    getLeaveAuthorizationDropdowns,
+    getLeaveAuthorizationForEdit,
+    saveLeaveAuthorization as saveLeaveAuthorizationAPI
+} from '@/server/hrms/leave-management/masters/leave-authorization';
+import {
+    deleteMasterLeave as deleteMasterLeaveAPI,
     getMasterLeave,
     getMasterLeaveDropdowns,
     getMasterLeaveForEdit,
     saveMasterLeave as saveMasterLeaveAPI,
     toggleMasterLeave as toggleMasterLeaveAPI,
-    updateMasterLeaveOrder as updateMasterLeaveOrderAPI,
-    deleteMasterLeave as deleteMasterLeaveAPI
+    updateMasterLeaveOrder as updateMasterLeaveOrderAPI
 } from '@/server/hrms/leave-management/masters/master-leave';
-import {
-    getInstitutionsByLoginBased,
-    getLeaveAuthorization,
-    getLeaveAuthorizationDropdowns,
-    getLeaveAuthorizationForEdit,
-    saveLeaveAuthorization as saveLeaveAuthorizationAPI,
-    deleteLeaveAuthorization as deleteLeaveAuthorizationAPI
-} from '@/server/hrms/leave-management/masters/leave-authorization';
+import type { ApiSearchparams } from '@/types';
+import type { LeaveAuthorizationGetResponseData } from '@/types/hrms/leave-management/leave-authorization';
+import type { MasterLeaveGetResponseData, MasterLeaveListItem, MasterLeaveSaveRequest } from '@/types/hrms/leave-management/master-leave';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import type { MasterLeave } from '@/app/(root)/hrms/leave-management/masters/master-leave/_components/columns';
-import type { LeaveAuthorization } from '@/app/(root)/hrms/leave-management/masters/leave-authorization/_components/columns';
-import type { ApiSearchparams } from '@/types';
-import type { MasterLeaveGetResponseData, MasterLeaveDTOO, MasterLeaveSaveRequest, MasterLeaveListItem } from '@/types/hrms/leave-management/master-leave';
-import type { LeaveAuthorizationGetResponseData } from '@/types/hrms/leave-management/leave-authorization';
 // MasterLeaveYear type - placeholder until actual type is defined
 interface MasterLeaveYear {
     id: number;
@@ -61,18 +61,27 @@ function mapApiDataToMasterLeave(apiData: MasterLeaveGetResponseData | MasterLea
         leaveType: data.hrmL_LeaveType || data.HRML_LeaveType || data.leaveType || '',
         leaveApplyCriteria: data.hrmL_WhenToApplyFlg || data.HRML_LeaveApplyCriteria || data.leaveApplyCriteria || '',
         daysForApplyCriteria: String(
-            data.hrmL_NoOfDays !== undefined && data.hrmL_NoOfDays !== null ? data.hrmL_NoOfDays :
-                (data.HRML_DaysForApplyCriteria !== undefined ? data.HRML_DaysForApplyCriteria : (data.daysForApplyCriteria || ''))
+            data.hrmL_NoOfDays !== undefined && data.hrmL_NoOfDays !== null
+                ? data.hrmL_NoOfDays
+                : data.HRML_DaysForApplyCriteria !== undefined
+                  ? data.HRML_DaysForApplyCriteria
+                  : data.daysForApplyCriteria || ''
         ),
         maxDaysForApply: String(data.hrmL_MaxDaysForApply || data.HRML_MaxDaysForApply || data.maxDaysForApply || ''),
         leaveDetails: data.hrmL_LeaveDetails || data.HRML_LeaveDetails || data.leaveDetails || '',
         leaveCredit: data.hrmL_LeaveCreditFlg ?? data.HRML_LeaveCreditFlg ?? data.leaveCredit ?? false,
         lateDeduct: data.hrmL_LateDeductFlag ?? data.HRML_LateDeductFlag ?? data.lateDeduct ?? false,
-        probationNotApplicable: data.hrmL_ProbationNotApplicableFlg ?? data.HRML_ProbationNotApplicableFlg ?? data.probationNotApplicable ?? false,
+        probationNotApplicable:
+            data.hrmL_ProbationNotApplicableFlg ?? data.HRML_ProbationNotApplicableFlg ?? data.probationNotApplicable ?? false,
         leaveOrder: data.hrmL_LateDeductOrder || data.HRML_LateDeductOrder || data.leaveOrder || 0,
-        isActive: (data.hrmL_ActiveFlag !== undefined || data.HRML_ActiveFlag !== undefined || data.isActive !== undefined)
-            ? (data.hrmL_ActiveFlag === true || data.hrmL_ActiveFlag === 1 || data.HRML_ActiveFlag === true || data.HRML_ActiveFlag === 1 || data.isActive === true)
-            : true
+        isActive:
+            data.hrmL_ActiveFlag !== undefined || data.HRML_ActiveFlag !== undefined || data.isActive !== undefined
+                ? data.hrmL_ActiveFlag === true ||
+                  data.hrmL_ActiveFlag === 1 ||
+                  data.HRML_ActiveFlag === true ||
+                  data.HRML_ActiveFlag === 1 ||
+                  data.isActive === true
+                : true
     };
 }
 /**
@@ -81,7 +90,7 @@ function mapApiDataToMasterLeave(apiData: MasterLeaveGetResponseData | MasterLea
 function mapMasterLeaveToApiData(data: MasterLeave | Omit<MasterLeave, 'id' | 'createdAt'>): MasterLeaveSaveRequest {
     return {
         MI_Id: HRMS_MI_ID,
-        HRML_Id: 'id' in data ? (Number(data.id) || 0) : 0,
+        HRML_Id: 'id' in data ? Number(data.id) || 0 : 0,
         HRML_LeaveName: data.leaveName,
         HRML_LeaveCode: data.leaveCode,
         HRML_LeaveDetails: data.leaveDetails || '',
@@ -156,11 +165,7 @@ export function useMasterLeave(searchParams?: ApiSearchparams) {
                         // Case 2: data is an object with list fields (Wrapper API)
                         else if (typeof data === 'object') {
                             const dataObj = data as MasterLeaveGetResponseData;
-                            const possibleLists = [
-                                dataObj.GridviewDetails,
-                                dataObj.leavelistedit,
-                                dataObj.leaveData
-                            ];
+                            const possibleLists = [dataObj.GridviewDetails, dataObj.leavelistedit, dataObj.leaveData];
 
                             for (const list of possibleLists) {
                                 if (list && Array.isArray(list)) {
@@ -172,7 +177,7 @@ export function useMasterLeave(searchParams?: ApiSearchparams) {
                             }
 
                             // If single record in object
-                            if (leaveList.length === 0 && (dataObj as any).hrmL_Id || (dataObj as any).HRML_Id) {
+                            if ((leaveList.length === 0 && (dataObj as any).hrmL_Id) || (dataObj as any).HRML_Id) {
                                 const mapped = mapApiDataToMasterLeave(dataObj);
                                 if (mapped) leaveList = [mapped];
                             }
@@ -202,11 +207,7 @@ export function useMasterLeave(searchParams?: ApiSearchparams) {
 }
 export function useSaveMasterLeave() {
     const queryClient = useQueryClient();
-    return useMutation<
-        { success: boolean; data: MasterLeave; message: string },
-        Error,
-        Omit<MasterLeave, 'id' | 'createdAt'>
-    >({
+    return useMutation<{ success: boolean; data: MasterLeave; message: string }, Error, Omit<MasterLeave, 'id' | 'createdAt'>>({
         mutationFn: async (data: Omit<MasterLeave, 'id' | 'createdAt'>) => {
             const apiData = mapMasterLeaveToApiData(data);
             const response = await saveMasterLeaveAPI(apiData);
@@ -296,11 +297,7 @@ export function useMasterLeaveForEdit(HRML_Id: number | null) {
 }
 export function useUpdateMasterLeave() {
     const queryClient = useQueryClient();
-    return useMutation<
-        { success: boolean; data: MasterLeave; message: string },
-        Error,
-        MasterLeave
-    >({
+    return useMutation<{ success: boolean; data: MasterLeave; message: string }, Error, MasterLeave>({
         mutationFn: async (data: MasterLeave) => {
             if (!data.id) {
                 throw new Error('ID is required for update');
@@ -343,11 +340,7 @@ export function useUpdateMasterLeave() {
  */
 export function useToggleMasterLeave() {
     const queryClient = useQueryClient();
-    return useMutation<
-        { success: boolean; message: string },
-        Error,
-        number
-    >({
+    return useMutation<{ success: boolean; message: string }, Error, number>({
         mutationFn: async (HRML_Id: number) => {
             try {
                 const response = await toggleMasterLeaveAPI(HRML_Id);
@@ -384,11 +377,7 @@ export function useToggleMasterLeave() {
  */
 export function useUpdateMasterLeaveOrder() {
     const queryClient = useQueryClient();
-    return useMutation<
-        { success: boolean; message: string },
-        Error,
-        Array<{ id: number; order: number }>
-    >({
+    return useMutation<{ success: boolean; message: string }, Error, Array<{ id: number; order: number }>>({
         mutationFn: async (orders: Array<{ id: number; order: number }>) => {
             try {
                 const response = await updateMasterLeaveOrderAPI(orders);
@@ -424,11 +413,7 @@ export function useUpdateMasterLeaveOrder() {
  */
 export function useDeleteMasterLeave() {
     const queryClient = useQueryClient();
-    return useMutation<
-        { success: boolean; message: string },
-        Error,
-        number
-    >({
+    return useMutation<{ success: boolean; message: string }, Error, number>({
         mutationFn: async (HRML_Id: number) => {
             if (!HRML_Id || HRML_Id <= 0) {
                 throw new Error('Valid HRML_Id is required for deletion');
@@ -488,11 +473,7 @@ export function useMasterLeaveYear() {
 export function useSaveMasterLeaveYear() {
     const queryClient = useQueryClient();
     const db = createLocalCrud<MasterLeaveYear>('masterLeaveYear');
-    return useMutation<
-        { success: boolean; data: MasterLeaveYear; message: string },
-        Error,
-        Omit<MasterLeaveYear, 'id' | 'createdAt'>
-    >({
+    return useMutation<{ success: boolean; data: MasterLeaveYear; message: string }, Error, Omit<MasterLeaveYear, 'id' | 'createdAt'>>({
         mutationFn: async (data: Omit<MasterLeaveYear, 'id' | 'createdAt'>) => {
             const newLeaveYear = db.create(data);
             return {
@@ -519,11 +500,7 @@ export function useSaveMasterLeaveYear() {
 export function useUpdateMasterLeaveYear() {
     const queryClient = useQueryClient();
     const db = createLocalCrud<MasterLeaveYear>('masterLeaveYear');
-    return useMutation<
-        { success: boolean; data: MasterLeaveYear; message: string },
-        Error,
-        MasterLeaveYear
-    >({
+    return useMutation<{ success: boolean; data: MasterLeaveYear; message: string }, Error, MasterLeaveYear>({
         mutationFn: async (data: MasterLeaveYear) => {
             if (data.id) {
                 db.update(data.id, data);
@@ -568,7 +545,9 @@ function mapApiDataToLeaveAuthorization(apiData: LeaveAuthorizationGetResponseDa
         departmentName: data.hrmD_DepartmentName || data.HRMD_DepartmentName || data.departmentName || '',
         designationName: data.hrmdeS_DesignationName || data.HRMDES_DesignationName || data.designationName || '',
         leaveType: data.hrmL_LeaveName || data.HRML_LeaveName || data.leaveType || '',
-        orderOfApproval: String(data.hrlaoN_SanctionLevelNo || data.hrmlA_OrderOfApproval || data.HRMLA_OrderOfApproval || data.orderOfApproval || ''),
+        orderOfApproval: String(
+            data.hrlaoN_SanctionLevelNo || data.hrmlA_OrderOfApproval || data.HRMLA_OrderOfApproval || data.orderOfApproval || ''
+        ),
         approvalPerson: data.hrmE_EmployeeFirstName || data.hrmlA_ApprovalPerson || data.HRMLA_ApprovalPerson || data.approvalPerson || '',
         finalFlag: data.hrlaoN_FinalFlg ?? data.hrmlA_FinalFlag ?? data.HRMLA_FinalFlag ?? data.finalFlag ?? false
     };
@@ -618,9 +597,9 @@ export function useLeaveAuthorization() {
                     if (response.data) {
                         // Check if GridviewDetails contains the list
                         if ((response.data as any).GridviewDetails && Array.isArray((response.data as any).GridviewDetails)) {
-                            authList = (response.data as any).GridviewDetails
-                                .map((item: any) => mapApiDataToLeaveAuthorization(item))
-                                .filter((item: LeaveAuthorization | null): item is LeaveAuthorization => item !== null);
+                            authList = (response.data as any).GridviewDetails.map((item: any) =>
+                                mapApiDataToLeaveAuthorization(item)
+                            ).filter((item: LeaveAuthorization | null): item is LeaveAuthorization => item !== null);
                         }
                         // Check if leavelistauth contains the list
                         else if ((response.data as any).leavelistauth && Array.isArray((response.data as any).leavelistauth)) {
@@ -749,11 +728,15 @@ function mapLeaveAuthorizationToApiData(
 } {
     // Find IDs from dropdown options based on names
     const gradeId = dropdownData?.grades?.find((g: any) => g.label === data.gradeName || g.value === data.gradeName)?.value || 0;
-    const groupTypeId = dropdownData?.groupTypes?.find((g: any) => g.label === data.groupTypeName || g.value === data.groupTypeName)?.value || 0;
-    const departmentId = dropdownData?.departments?.find((d: any) => d.label === data.departmentName || d.value === data.departmentName)?.value || 0;
-    const designationId = dropdownData?.designations?.find((d: any) => d.label === data.designationName || d.value === data.designationName)?.value || 0;
+    const groupTypeId =
+        dropdownData?.groupTypes?.find((g: any) => g.label === data.groupTypeName || g.value === data.groupTypeName)?.value || 0;
+    const departmentId =
+        dropdownData?.departments?.find((d: any) => d.label === data.departmentName || d.value === data.departmentName)?.value || 0;
+    const designationId =
+        dropdownData?.designations?.find((d: any) => d.label === data.designationName || d.value === data.designationName)?.value || 0;
     const leaveTypeId = dropdownData?.leaveTypes?.find((l: any) => l.label === data.leaveType || l.value === data.leaveType)?.value || 0;
-    const approvalPersonId = dropdownData?.approvalPersons?.find((a: any) => a.label === data.approvalPerson || a.value === data.approvalPerson)?.value || 0;
+    const approvalPersonId =
+        dropdownData?.approvalPersons?.find((a: any) => a.label === data.approvalPerson || a.value === data.approvalPerson)?.value || 0;
     return {
         MI_Id: HRMS_MI_ID,
         HRMG_Id: Number(gradeId),
@@ -818,11 +801,7 @@ export function useSaveLeaveAuthorization() {
 export function useUpdateLeaveAuthorization() {
     const queryClient = useQueryClient();
     const { data: dropdownData } = useLeaveAuthorizationDropdowns();
-    return useMutation<
-        { success: boolean; data: LeaveAuthorization; message: string },
-        Error,
-        LeaveAuthorization
-    >({
+    return useMutation<{ success: boolean; data: LeaveAuthorization; message: string }, Error, LeaveAuthorization>({
         mutationFn: async (data: LeaveAuthorization) => {
             if (!data.id) {
                 throw new Error('ID is required for update');

@@ -1,21 +1,22 @@
 'use client';
 
-import {
-    SchoolSubjectTopicMappingColumns
-} from './_components/columns';
-import AddSchoolSubjectTopicMappingForm from './_components/add-form';
-import UpdateSchoolSubjectTopicMappingForm from './_components/update-form';
-import OrderSchoolSubjectTopicMappingForm from './_components/order-form';
-import ViewFilesModal from './_components/view-files-modal';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { getSchoolSubjectTopicMappingData, viewUploadFiles } from '@/server/lesson-planner/transactions/school-subject-master-topic-mapping';
+import {
+    getSchoolSubjectTopicMappingData,
+    viewUploadFiles
+} from '@/server/lesson-planner/transactions/school-subject-master-topic-mapping';
 import type { ISchoolSubjectTopicMapping } from '@/types/lesson-planner/transactions/school-subject-master-topic-mapping';
 import { ArrowUpDown, Plus, X } from 'lucide-react';
 import { use, useCallback, useEffect, useState } from 'react';
+import AddSchoolSubjectTopicMappingForm from './_components/add-form';
+import { SchoolSubjectTopicMappingColumns } from './_components/columns';
+import OrderSchoolSubjectTopicMappingForm from './_components/order-form';
 import ToggleSchoolTopicForm from './_components/toggle-form';
+import UpdateSchoolSubjectTopicMappingForm from './_components/update-form';
+import ViewFilesModal from './_components/view-files-modal';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -33,7 +34,8 @@ export default function SchoolSubjectTopicMappingPage(props: { searchParams: Sea
             console.info('Response Keys:', Object.keys(res || {}));
             if (res?.data) console.info('Nested Data Keys:', Object.keys(res.data));
 
-            if (res.success || res.data) { // Handle case where success might be inside data or implicit
+            if (res.success || res.data) {
+                // Handle case where success might be inside data or implicit
                 setData(res);
             } else {
                 setData(null);
@@ -71,7 +73,11 @@ function PageContent({
 }) {
     const { openAddForm } = useFormContext<ISchoolSubjectTopicMapping>();
     const [isOrderFormOpen, setIsOrderFormOpen] = useState(false);
-    const [viewFileState, setViewFileState] = useState<{ isOpen: boolean; data: any[]; type: string }>({ isOpen: false, data: [], type: '' });
+    const [viewFileState, setViewFileState] = useState<{ isOpen: boolean; data: any[]; type: string }>({
+        isOpen: false,
+        data: [],
+        type: ''
+    });
 
     const tableProps = {
         data: response?.getdetails || response?.data?.getdetails || [],
@@ -169,10 +175,7 @@ function PageContent({
                     onSuccess={refetchAll}
                 />
 
-                <FormSections
-                    onSuccess={refetchAll}
-                    masterYear={masterYear}
-                />
+                <FormSections onSuccess={refetchAll} masterYear={masterYear} />
 
                 <ViewFilesModal
                     isOpen={viewFileState.isOpen}
@@ -184,7 +187,6 @@ function PageContent({
         </div>
     );
 }
-
 
 function FormSections({
     onSuccess,
@@ -267,11 +269,7 @@ function FormSections({
             )}
 
             {isToggleFormOpen && selectedRow && (
-                <ToggleSchoolTopicForm
-                    rowData={selectedRow}
-                    onClose={closeToggleForm}
-                    onSuccess={onSuccess}
-                />
+                <ToggleSchoolTopicForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={onSuccess} />
             )}
         </>
     );

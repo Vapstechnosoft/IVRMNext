@@ -1,15 +1,15 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { createUsername, getInitialData } from '@/server/alumni/user-password-creation';
 import type { IClass, ISection, IStudent, IYear } from '@/types/alumni/user-password-creation';
-import { useCallback, useEffect, useState } from 'react';
-import FilterForm from './_components/filter-form';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { userPasswordCreationColumns } from './_components/columns';
-import { Button } from '@/components/ui/button';
 import { KeyRound, Loader2 } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { userPasswordCreationColumns } from './_components/columns';
+import FilterForm from './_components/filter-form';
 
 export default function UserPasswordCreationPage() {
     const [years, setYears] = useState<IYear[]>([]);
@@ -110,12 +110,15 @@ export default function UserPasswordCreationPage() {
                             showExportOptions={true}
                             onRowSelectionChange={setSelectedStudents}
                             totalItems={students.length}
-                        //manualPagination={false}
+                            //manualPagination={false}
                         />
 
                         {selectedStudents.length > 0 && (
                             <div className='flex justify-center'>
-                                <Button onClick={handleCreateUsername} disabled={isCreating} className='w-48 shadow-lg transition-all hover:scale-105'>
+                                <Button
+                                    onClick={handleCreateUsername}
+                                    disabled={isCreating}
+                                    className='w-48 shadow-lg transition-all hover:scale-105'>
                                     {isCreating ? (
                                         <>
                                             <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Creating...

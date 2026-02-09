@@ -178,8 +178,8 @@ export default function AdmissionReportPage(props: {
                 typeof response.data === 'object' && response.data !== null && 'searchstudentDetails' in response.data
                     ? response.data.searchstudentDetails
                     : Array.isArray(response.data)
-                        ? response.data
-                        : [],
+                      ? response.data
+                      : [],
             total: response.total,
             page: response.page,
             page_size: response.page_size
@@ -197,8 +197,8 @@ export default function AdmissionReportPage(props: {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    });
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);

@@ -1,5 +1,15 @@
 'use client';
 
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -8,17 +18,6 @@ import { Loader2, RotateCcw, Save } from 'lucide-react';
 import React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import {
-    AlertDialog,
-    AlertDialogContent,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogCancel,
-    AlertDialogAction
-} from '@/components/ui/alert-dialog';
-
 
 /* ============================================
    Types
@@ -115,7 +114,6 @@ interface SubjectMeta {
     }>;
     saved_sub_subjectOrExam_list: SavedMarksEntry[];
     saved_sub_subject_list: SavedMarksEntry[];
-
 }
 
 interface MarksCustomTableProps {
@@ -171,21 +169,7 @@ interface MarksInputCellProps {
 }
 
 const MarksInputCell = React.forwardRef<HTMLInputElement, MarksInputCellProps>(
-    (
-        {
-            value,
-            max,
-            min,
-            onChange,
-            placeholder,
-            marksGradeEntryFlg,
-            gradeDetails,
-            papertypeid,
-            papertypeGradeDetails,
-            onArrow
-        },
-        ref
-    ) => {
+    ({ value, max, min, onChange, placeholder, marksGradeEntryFlg, gradeDetails, papertypeid, papertypeGradeDetails, onArrow }, ref) => {
         const [local, setLocal] = useState<string>(value === '' || value === undefined ? '' : String(value));
         const [error, setError] = useState<string>('');
 
@@ -362,8 +346,6 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
     // Ref for input navigation
     const inputRefs = useRef<(HTMLInputElement | null)[][]>([]);
 
-
-
     const handleSearch = useCallback(async () => {
         if (!ASMS_Id || !ASMCL_Id || !ASMAY_Id || !EME_Id || !ISMS_Id) {
             return;
@@ -461,26 +443,28 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                 minMarks: subjectData.eyceS_MinMarks,
                 marksEntryMax: subjectData.eyceS_MarksEntryMax,
                 marksGradeEntryFlg: data.eyceS_MarksGradeEntryFlg,
-                subsubData: data.subject_subsubjects?.map((ss: SubSubjectData) => ({
-                    subsubId: ss.emsS_Id,
-                    subsubName: ss.emsS_SubSubjectName,
-                    maxMarks: ss.eycessS_MaxMarks,
-                    minMarks: ss.eycessS_MinMarks,
-                    marksEntryMax: ss.eycessS_MarksEntryMax
-                })) || [],
-                subexamData: data.subject_subexams?.map((se: SubExamData) => ({
-                    subexamId: se.emsE_Id,
-                    subexamName: se.emsE_SubExamName,
-                    maxMarks: se.eycessE_MaxMarks,
-                    minMarks: se.eycessE_MinMarks,
-                    marksEntryMax: se.eycessE_MarksEntryMax
-                })) || [],
+                subsubData:
+                    data.subject_subsubjects?.map((ss: SubSubjectData) => ({
+                        subsubId: ss.emsS_Id,
+                        subsubName: ss.emsS_SubSubjectName,
+                        maxMarks: ss.eycessS_MaxMarks,
+                        minMarks: ss.eycessS_MinMarks,
+                        marksEntryMax: ss.eycessS_MarksEntryMax
+                    })) || [],
+                subexamData:
+                    data.subject_subexams?.map((se: SubExamData) => ({
+                        subexamId: se.emsE_Id,
+                        subexamName: se.emsE_SubExamName,
+                        maxMarks: se.eycessE_MaxMarks,
+                        minMarks: se.eycessE_MinMarks,
+                        marksEntryMax: se.eycessE_MarksEntryMax
+                    })) || [],
                 saved_sub_subjectOrExam_list:
                     data.saved_sub_subjectOrExam_list?.map((s: any) => ({
                         estmsS_Id: s.estmsS_Id,
 
-                        AMST_Id: s.estM_Id,          // Exam/Test Master Id
-                        ISMS_Id: s.emsS_Id,          // Sub-subject / subject mapping
+                        AMST_Id: s.estM_Id, // Exam/Test Master Id
+                        ISMS_Id: s.emsS_Id, // Sub-subject / subject mapping
                         EMSS_Id: s.emsS_Id ?? undefined,
                         EMSE_Id: s.emsE_Id ?? undefined,
                         ESTM_ID: s.estM_Id,
@@ -499,8 +483,8 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                 saved_sub_subject_list: data.saved_sub_subject_list?.map((s: any) => ({
                     estmsS_Id: s.estmsS_Id,
 
-                    AMST_Id: s.estM_Id,          // Exam/Test Master Id
-                    ISMS_Id: s.emsS_Id,          // Sub-subject / subject mapping
+                    AMST_Id: s.estM_Id, // Exam/Test Master Id
+                    ISMS_Id: s.emsS_Id, // Sub-subject / subject mapping
                     EMSS_Id: s.emsS_Id ?? undefined,
                     EMSE_Id: s.emsE_Id ?? undefined,
                     ESTM_ID: s.estM_Id,
@@ -516,9 +500,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
 
                     estmsS_ActiveFlg: s.estmsS_ActiveFlg ?? true
                 }))
-
             };
-
 
             setSubjectMeta(newSubjectMeta);
 
@@ -555,7 +537,6 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
         }
     }, [ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id]);
 
-
     const isFirstLoad = useRef(true);
 
     /* Close page only on parameter change (not first load) */
@@ -572,8 +553,6 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
     useEffect(() => {
         handleSearch();
     }, [handleSearch]);
-
-
 
     /* ============================================
        Mapping Functions
@@ -647,11 +626,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
         });
     };
 
-    const mapMarksSS = (
-        students: StudentMarksEntry[],
-        savedSSList: any[],
-        subjectMeta: SubjectMeta
-    ): StudentMarksEntry[] => {
+    const mapMarksSS = (students: StudentMarksEntry[], savedSSList: any[], subjectMeta: SubjectMeta): StudentMarksEntry[] => {
         const updatedStudents = [...students];
         const updatedTempMarks: SavedMarksEntry[] = [];
 
@@ -714,11 +689,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
         return updatedStudents;
     };
 
-    const mapMarksSE = (
-        students: StudentMarksEntry[],
-        savedSEList: any[],
-        subjectMeta: SubjectMeta
-    ): StudentMarksEntry[] => {
+    const mapMarksSE = (students: StudentMarksEntry[], savedSEList: any[], subjectMeta: SubjectMeta): StudentMarksEntry[] => {
         const updatedStudents = [...students];
         const updatedTempMarks: SavedMarksEntry[] = [];
 
@@ -832,7 +803,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
         setStudents((prev) =>
             prev.map((student) => {
                 if (student.amsT_Id === studentId) {
-                    const updatedMarks = { ...(student.ESTMSS_Marks as { [key: number]: string }) || {} };
+                    const updatedMarks = { ...((student.ESTMSS_Marks as { [key: number]: string }) || {}) };
                     updatedMarks[subSubjectId] = newMark.toString();
 
                     // Calculate new total
@@ -862,7 +833,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
         setStudents((prev) =>
             prev.map((student) => {
                 if (student.amsT_Id === studentId) {
-                    const updatedMarks = { ...(student.ESTMSS_Marks as { [key: number]: string }) || {} };
+                    const updatedMarks = { ...((student.ESTMSS_Marks as { [key: number]: string }) || {}) };
                     updatedMarks[subExamId] = newMark.toString();
 
                     // Calculate new total
@@ -894,9 +865,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
 
         if (value === '') {
             // Remove from temp list
-            setTempSubsMarksList((prev) =>
-                prev.filter((item) => !(item.AMST_Id === studentId && item.ISMS_Id === student.ismS_Id))
-            );
+            setTempSubsMarksList((prev) => prev.filter((item) => !(item.AMST_Id === studentId && item.ISMS_Id === student.ismS_Id)));
             return;
         }
 
@@ -950,9 +919,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
 
         if (value === '') {
             // Remove from temp list
-            setTempSubsMarksList((prev) =>
-                prev.filter((item) => !(item.AMST_Id === studentId && item.EMSS_Id === subSubjectId))
-            );
+            setTempSubsMarksList((prev) => prev.filter((item) => !(item.AMST_Id === studentId && item.EMSS_Id === subSubjectId)));
             return;
         }
 
@@ -989,9 +956,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
         }
 
         setTempSubsMarksList((prev) => {
-            const existingIndex = prev.findIndex((item) =>
-                item.AMST_Id === studentId && item.EMSS_Id === subSubjectId
-            );
+            const existingIndex = prev.findIndex((item) => item.AMST_Id === studentId && item.EMSS_Id === subSubjectId);
 
             if (existingIndex >= 0) {
                 const updated = [...prev];
@@ -1009,9 +974,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
 
         if (value === '') {
             // Remove from temp list
-            setTempSubsMarksList((prev) =>
-                prev.filter((item) => !(item.AMST_Id === studentId && item.EMSE_Id === subExamId))
-            );
+            setTempSubsMarksList((prev) => prev.filter((item) => !(item.AMST_Id === studentId && item.EMSE_Id === subExamId)));
             return;
         }
 
@@ -1048,9 +1011,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
         }
 
         setTempSubsMarksList((prev) => {
-            const existingIndex = prev.findIndex((item) =>
-                item.AMST_Id === studentId && item.EMSE_Id === subExamId
-            );
+            const existingIndex = prev.findIndex((item) => item.AMST_Id === studentId && item.EMSE_Id === subExamId);
 
             if (existingIndex >= 0) {
                 const updated = [...prev];
@@ -1111,14 +1072,9 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
 
     const toggleStudentSelection = (studentId: number) => {
         setStudents((prev) => {
-            const updated = prev.map((student) =>
-                student.amsT_Id === studentId
-                    ? { ...student, selected: !student.selected }
-                    : student
-            );
+            const updated = prev.map((student) => (student.amsT_Id === studentId ? { ...student, selected: !student.selected } : student));
 
-            const isAllSelected =
-                updated.length > 0 && updated.every((s) => s.selected === true);
+            const isAllSelected = updated.length > 0 && updated.every((s) => s.selected === true);
 
             setAllSelected(isAllSelected);
 
@@ -1297,10 +1253,9 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
 
         if (subjectMeta.subsubFlag || subjectMeta.subexamFlag) {
             // Filter only marks for selected students
-            const selectedStudentIds = selectedStudents.map(s => s.amsT_Id);
-            const selectedSubMarks = tempSubsMarksList.filter(mark =>
-                selectedStudentIds.includes(mark.AMST_Id) &&
-                (mark.EMSS_Id !== undefined || mark.EMSE_Id !== undefined)
+            const selectedStudentIds = selectedStudents.map((s) => s.amsT_Id);
+            const selectedSubMarks = tempSubsMarksList.filter(
+                (mark) => selectedStudentIds.includes(mark.AMST_Id) && (mark.EMSS_Id !== undefined || mark.EMSE_Id !== undefined)
             );
 
             tempSubsMarksListFormatted = selectedSubMarks.map((mark) => ({
@@ -1314,7 +1269,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                 estmsS_Grade: mark.ESTMSS_Grade || '',
                 estmsS_Flg: mark.ESTMSS_Flg || '',
                 estmsS_ActiveFlg: true,
-                iP4: '',
+                iP4: ''
             }));
         }
 
@@ -1351,37 +1306,41 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
             ],
             eyceS_MarksGradeEntryFlg: subjectMeta.marksGradeEntryFlg,
             eyceS_SubSubjectFlg: subjectMeta.subsubFlag,
-            subject_subsubjects: subjectMeta.subsubFlag ? subjectMeta.subsubData.map(ss => ({
-                eycessS_Id: 0,
-                eyceS_Id: 0,
-                emsS_Id: ss.subsubId,
-                emgR_Id: 0,
-                eycessS_MaxMarks: ss.maxMarks,
-                eycessS_MinMarks: ss.minMarks || 0,
-                eycessS_MarksEntryMax: ss.marksEntryMax,
-                eycessS_ExemptedFlg: false,
-                eycessS_ExemptedPer: '',
-                eycessS_ActiveFlg: true,
-                eycessS_SubSubjectOrder: 0,
-                emsS_SubSubjectName: ss.subsubName,
-                emsS_SubSubjectCode: ''
-            })) : [],
+            subject_subsubjects: subjectMeta.subsubFlag
+                ? subjectMeta.subsubData.map((ss) => ({
+                      eycessS_Id: 0,
+                      eyceS_Id: 0,
+                      emsS_Id: ss.subsubId,
+                      emgR_Id: 0,
+                      eycessS_MaxMarks: ss.maxMarks,
+                      eycessS_MinMarks: ss.minMarks || 0,
+                      eycessS_MarksEntryMax: ss.marksEntryMax,
+                      eycessS_ExemptedFlg: false,
+                      eycessS_ExemptedPer: '',
+                      eycessS_ActiveFlg: true,
+                      eycessS_SubSubjectOrder: 0,
+                      emsS_SubSubjectName: ss.subsubName,
+                      emsS_SubSubjectCode: ''
+                  }))
+                : [],
             eyceS_SubExamFlg: subjectMeta.subexamFlag,
-            subject_subexams: subjectMeta.subexamFlag ? subjectMeta.subexamData.map(se => ({
-                eycessE_Id: 0,
-                eyceS_Id: 0,
-                emsE_Id: se.subexamId,
-                emgR_Id: 0,
-                eycessE_MaxMarks: se.maxMarks,
-                eycessE_MinMarks: se.minMarks || 0,
-                eycessE_MarksEntryMax: se.marksEntryMax,
-                eycessE_ExemptedFlg: false,
-                eycessE_ExemptedPer: '',
-                eycessE_ActiveFlg: true,
-                eycessE_SubExamOrder: 0,
-                emsE_SubExamName: se.subexamName,
-                emsE_SubExamCode: ''
-            })) : [],
+            subject_subexams: subjectMeta.subexamFlag
+                ? subjectMeta.subexamData.map((se) => ({
+                      eycessE_Id: 0,
+                      eyceS_Id: 0,
+                      emsE_Id: se.subexamId,
+                      emgR_Id: 0,
+                      eycessE_MaxMarks: se.maxMarks,
+                      eycessE_MinMarks: se.minMarks || 0,
+                      eycessE_MarksEntryMax: se.marksEntryMax,
+                      eycessE_ExemptedFlg: false,
+                      eycessE_ExemptedPer: '',
+                      eycessE_ActiveFlg: true,
+                      eycessE_SubExamOrder: 0,
+                      emsE_SubExamName: se.subexamName,
+                      emsE_SubExamCode: ''
+                  }))
+                : [],
             emgR_Id: 0,
             grade_details: gradeDetails,
             amaY_RollNo: 0,
@@ -1398,16 +1357,20 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
             saved_sub_subject_list: [],
             saved_sub_subjectOrExam_list: [],
             configuration: config ? [config] : [],
-            subsubjectlist: subjectMeta.subsubFlag ? subjectMeta.subsubData.map(ss => ({
-                emsS_Id: ss.subsubId,
-                emsS_SubSubjectName: ss.subsubName,
-                emsS_SubSubjectOrder: 0
-            })) : [],
-            subexamlist: subjectMeta.subexamFlag ? subjectMeta.subexamData.map(se => ({
-                emsE_Id: se.subexamId,
-                emsE_SubExamName: se.subexamName,
-                emsE_SubExamOrder: 0
-            })) : [],
+            subsubjectlist: subjectMeta.subsubFlag
+                ? subjectMeta.subsubData.map((ss) => ({
+                      emsS_Id: ss.subsubId,
+                      emsS_SubSubjectName: ss.subsubName,
+                      emsS_SubSubjectOrder: 0
+                  }))
+                : [],
+            subexamlist: subjectMeta.subexamFlag
+                ? subjectMeta.subexamData.map((se) => ({
+                      emsE_Id: se.subexamId,
+                      emsE_SubExamName: se.subexamName,
+                      emsE_SubExamOrder: 0
+                  }))
+                : [],
             savedMarksCount: mainSaveList.length,
             lastDateEntry: 1000,
             lastDateEntryFlag: lastDateEntryFlag,
@@ -1483,7 +1446,6 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
             handleSave('');
         }
     };
-
 
     /* ============================================
        Render Table
@@ -1634,13 +1596,16 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                                             if (student.estM_Id === ss.ESTM_ID && ss.ESTMSS_Marks !== undefined) {
                                                 examsum += Number.parseFloat(ss.ESTMSS_Marks.toString());
                                             }
-
-                                        })
+                                        });
                                     }
                                     examOver = examsum > subjectMeta.maxMarks;
                                 } else {
                                     // Simple marks
-                                    if (student.ESTM_Marks && typeof student.ESTM_Marks === 'string' && !Number.isNaN(Number.parseFloat(student.ESTM_Marks))) {
+                                    if (
+                                        student.ESTM_Marks &&
+                                        typeof student.ESTM_Marks === 'string' &&
+                                        !Number.isNaN(Number.parseFloat(student.ESTM_Marks))
+                                    ) {
                                         subsum = Number.parseFloat(student.ESTM_Marks);
                                         subOver = subsum > subjectMeta.maxMarks;
                                     }
@@ -1675,21 +1640,23 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                                                 {subjectMeta.subsubData.map((subsub, colIndex) => {
                                                     const subSubjObj = subjectMeta.saved_sub_subject_list.find(
                                                         (s) => s.EMSS_Id === subsub.subsubId && s.ESTM_ID === student.estM_Id
-                                                    )
+                                                    );
                                                     return (
                                                         <TableCell key={subsub.subsubId} className='text-center'>
                                                             <div className='flex justify-center'>
                                                                 <MarksInputCell
                                                                     value={
-                                                                        subSubjObj?.ESTM_Flg && subSubjObj.ESTM_Flg !== ""
+                                                                        subSubjObj?.ESTM_Flg && subSubjObj.ESTM_Flg !== ''
                                                                             ? subSubjObj.ESTM_Flg
                                                                             : subjectMeta.marksGradeEntryFlg === 'M'
-                                                                                ? subSubjObj?.ESTMSS_Marks ?? ''
-                                                                                : subSubjObj?.ESTMSS_Grade ?? ''
+                                                                              ? (subSubjObj?.ESTMSS_Marks ?? '')
+                                                                              : (subSubjObj?.ESTMSS_Grade ?? '')
                                                                     }
                                                                     max={subsub.maxMarks}
                                                                     min={subsub.minMarks}
-                                                                    onChange={(v) => updateSubSubjectMark(student.amsT_Id, subsub.subsubId, v)}
+                                                                    onChange={(v) =>
+                                                                        updateSubSubjectMark(student.amsT_Id, subsub.subsubId, v)
+                                                                    }
                                                                     placeholder={
                                                                         subjectMeta.marksGradeEntryFlg === 'M'
                                                                             ? 'Enter Marks...'
@@ -1706,7 +1673,6 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                                                                         }
                                                                         inputRefs.current[rowIndex][colIndex] = el;
                                                                     }}
-
                                                                 />
                                                             </div>
                                                         </TableCell>
@@ -1726,22 +1692,24 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                                                 {subjectMeta.subexamData.map((subexam, colIndex) => {
                                                     const subExamObj = subjectMeta.saved_sub_subjectOrExam_list.find(
                                                         (s) => s.EMSE_Id === subexam.subexamId && s.ESTM_ID === student.estM_Id
-                                                    )
+                                                    );
 
                                                     return (
                                                         <TableCell key={subexam.subexamId} className='text-center'>
                                                             <div className='flex justify-center'>
                                                                 <MarksInputCell
                                                                     value={
-                                                                        subExamObj?.ESTM_Flg && subExamObj.ESTM_Flg !== ""
+                                                                        subExamObj?.ESTM_Flg && subExamObj.ESTM_Flg !== ''
                                                                             ? subExamObj.ESTM_Flg
                                                                             : subjectMeta.marksGradeEntryFlg === 'M'
-                                                                                ? subExamObj?.ESTMSS_Marks ?? ''
-                                                                                : subExamObj?.ESTMSS_Grade ?? ''
+                                                                              ? (subExamObj?.ESTMSS_Marks ?? '')
+                                                                              : (subExamObj?.ESTMSS_Grade ?? '')
                                                                     }
                                                                     max={subexam.maxMarks}
                                                                     min={subexam.minMarks}
-                                                                    onChange={(v) => updateSubExamMark(student.amsT_Id, subexam.subexamId, v)}
+                                                                    onChange={(v) =>
+                                                                        updateSubExamMark(student.amsT_Id, subexam.subexamId, v)
+                                                                    }
                                                                     placeholder={
                                                                         subjectMeta.marksGradeEntryFlg === 'M'
                                                                             ? 'Enter Marks...'
@@ -1781,8 +1749,11 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                                                         value={
                                                             student.estM_Flg != null && student.estM_Flg !== ''
                                                                 ? student.estM_Flg
-                                                                : subjectMeta.marksGradeEntryFlg === 'G' && student.estM_Grade ? student.estM_Grade : subjectMeta.marksGradeEntryFlg === 'M' && student.estM_Marks ? student.estM_Marks ?? '' :
-                                                                    ''
+                                                                : subjectMeta.marksGradeEntryFlg === 'G' && student.estM_Grade
+                                                                  ? student.estM_Grade
+                                                                  : subjectMeta.marksGradeEntryFlg === 'M' && student.estM_Marks
+                                                                    ? (student.estM_Marks ?? '')
+                                                                    : ''
                                                         }
                                                         max={subjectMeta.maxMarks}
                                                         min={subjectMeta.minMarks}
@@ -1839,12 +1810,14 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                             <Button
                                 variant='outline'
                                 onClick={() => {
-                                    setStudents((prev) => prev.map((s) => ({
-                                        ...s,
-                                        selected: false,
-                                        ESTM_Marks: '',
-                                        ESTMSS_Marks: {}
-                                    })));
+                                    setStudents((prev) =>
+                                        prev.map((s) => ({
+                                            ...s,
+                                            selected: false,
+                                            ESTM_Marks: '',
+                                            ESTMSS_Marks: {}
+                                        }))
+                                    );
                                     setAllSelected(false);
                                     setTempSubsMarksList([]);
                                 }}>
@@ -1853,13 +1826,13 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                             </Button>
 
                             {userPrivileges?.canVerify && (
-                                <Button onClick={handleSaveVerify} className='bg-green-600 hover:bg-green-700 text-white'>
+                                <Button onClick={handleSaveVerify} className='bg-green-600 text-white hover:bg-green-700'>
                                     <Save className='mr-2 h-4 w-4' />
                                     Verify & Save
                                 </Button>
                             )}
 
-                            <Button onClick={handleSaveMarks} className='bg-[#7C3AED] hover:bg-[#6D28D9] text-white'>
+                            <Button onClick={handleSaveMarks} className='bg-[#7C3AED] text-white hover:bg-[#6D28D9]'>
                                 <Save className='mr-2 h-4 w-4' />
                                 {isSubmitting ? 'Saving...' : 'Save Marks'}
                             </Button>
@@ -1870,8 +1843,8 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    Marks are already calculated. If you update the marks, you will
-                                    need to recalculate them again. Do you want to continue?
+                                    Marks are already calculated. If you update the marks, you will need to recalculate them again. Do you
+                                    want to continue?
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
 
@@ -1893,20 +1866,15 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Information</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    For this user, sub-subject is not mapped for the selected subject.
-                                    Kindly contact the administrator.
+                                    For this user, sub-subject is not mapped for the selected subject. Kindly contact the administrator.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
 
                             <AlertDialogFooter>
-                                <AlertDialogAction onClick={() => setShowInfoDialog(false)}>
-                                    OK
-                                </AlertDialogAction>
+                                <AlertDialogAction onClick={() => setShowInfoDialog(false)}>OK</AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
-
-
                 </div>
             )}
 

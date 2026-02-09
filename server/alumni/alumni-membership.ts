@@ -1,9 +1,9 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { IAlumnusInitialData, IAlumnusSavePayload } from '@/types/alumni/alumni-membership';
+import type { IAlumnusInitialData } from '@/types/alumni/alumni-membership';
 
-export async function getInitialData(pageId: number = 2) {
+export async function getInitialData(pageId = 2) {
     const url = `/AlumniMembership/get_intial_data/${pageId}`;
     return await api.get<IAlumnusInitialData>('alumni', url);
 }
@@ -93,4 +93,3 @@ export async function checkStudent(alsreg_Id: number) {
     const url = `/AlumniMembership/check_student?alsreg_Id=${alsreg_Id}`;
     return await api.get<any>('alumni', url);
 }
-

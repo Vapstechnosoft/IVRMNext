@@ -1,19 +1,18 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { InstitutionDropdown, RoleDropdown } from '@/types/super-admin/configuration-setting/mobileroleprivileges';
-import { Search, Loader2 } from 'lucide-react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
 const selectionSchema = z.object({
     mI_Id: z.string().min(1, 'Institution is required'),
-    ivrmrT_Id: z.string().min(1, 'Role is required'),
+    ivrmrT_Id: z.string().min(1, 'Role is required')
 });
 
 type SelectionFormData = z.infer<typeof selectionSchema>;
@@ -26,12 +25,17 @@ interface MobileRolePrivilegesSelectionFormProps {
 }
 
 export function MobileRolePrivilegesSelectionForm({ institutions, roles, onSubmit, isLoading }: MobileRolePrivilegesSelectionFormProps) {
-    const { handleSubmit, setValue, watch, formState: { errors } } = useForm<SelectionFormData>({
+    const {
+        handleSubmit,
+        setValue,
+        watch,
+        formState: { errors }
+    } = useForm<SelectionFormData>({
         resolver: zodResolver(selectionSchema),
         defaultValues: {
             mI_Id: '',
-            ivrmrT_Id: '',
-        },
+            ivrmrT_Id: ''
+        }
     });
 
     const selectedMI = watch('mI_Id');
@@ -46,29 +50,32 @@ export function MobileRolePrivilegesSelectionForm({ institutions, roles, onSubmi
     const handleFormSubmit = (data: { mI_Id: string; ivrmrT_Id: string }) => {
         onSubmit({
             mI_Id: Number(data.mI_Id),
-            ivrmrT_Id: Number(data.ivrmrT_Id),
+            ivrmrT_Id: Number(data.ivrmrT_Id)
         });
     };
 
     return (
-        <Card className="w-full">
-            <CardHeader className="bg-slate-50/50 pb-4">
-                <CardTitle className="text-xl font-bold flex items-center text-slate-800">
-                    <div className="w-2 h-8 bg-[#7C3AED] rounded-full mr-3" />
+        <Card className='w-full'>
+            <CardHeader className='bg-slate-50/50 pb-4'>
+                <CardTitle className='flex items-center font-bold text-slate-800 text-xl'>
+                    <div className='mr-3 h-8 w-2 rounded-full bg-[#7C3AED]' />
                     Mobile Role Privileges Selection
                 </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6">
-                <form className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label className="text-sm font-semibold">Institution Name <span className="text-red-500">*</span></Label>
-                            <Select
-                                onValueChange={(value) => setValue('mI_Id', value)}
-                                value={selectedMI}
-                            >
-                                <SelectTrigger className="w-full bg-white border-slate-200 focus:ring-[#7C3AED]/20 hover:border-[#7C3AED]/30 transition-all">
-                                    <SelectValue placeholder={institutions.length > 0 ? `Select Institute (${institutions.length})` : "Select Institute"} />
+            <CardContent className='pt-6'>
+                <form className='space-y-6'>
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                        <div className='space-y-2'>
+                            <Label className='font-semibold text-sm'>
+                                Institution Name <span className='text-red-500'>*</span>
+                            </Label>
+                            <Select onValueChange={(value) => setValue('mI_Id', value)} value={selectedMI}>
+                                <SelectTrigger className='w-full border-slate-200 bg-white transition-all hover:border-[#7C3AED]/30 focus:ring-[#7C3AED]/20'>
+                                    <SelectValue
+                                        placeholder={
+                                            institutions.length > 0 ? `Select Institute (${institutions.length})` : 'Select Institute'
+                                        }
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {institutions.map((inst) => (
@@ -78,19 +85,16 @@ export function MobileRolePrivilegesSelectionForm({ institutions, roles, onSubmi
                                     ))}
                                 </SelectContent>
                             </Select>
-                            {errors.mI_Id?.message && (
-                                <FormError>{errors.mI_Id.message}</FormError>
-                            )}
+                            {errors.mI_Id?.message && <FormError>{errors.mI_Id.message}</FormError>}
                         </div>
 
-                        <div className="space-y-2">
-                            <Label className="text-sm font-semibold">Role Name <span className="text-red-500">*</span></Label>
-                            <Select
-                                onValueChange={(value) => setValue('ivrmrT_Id', value)}
-                                value={selectedRole}
-                            >
-                                <SelectTrigger className="w-full bg-white border-slate-200 focus:ring-[#7C3AED]/20 hover:border-[#7C3AED]/30 transition-all">
-                                    <SelectValue placeholder={roles.length > 0 ? `Select Role (${roles.length})` : "Select Role"} />
+                        <div className='space-y-2'>
+                            <Label className='font-semibold text-sm'>
+                                Role Name <span className='text-red-500'>*</span>
+                            </Label>
+                            <Select onValueChange={(value) => setValue('ivrmrT_Id', value)} value={selectedRole}>
+                                <SelectTrigger className='w-full border-slate-200 bg-white transition-all hover:border-[#7C3AED]/30 focus:ring-[#7C3AED]/20'>
+                                    <SelectValue placeholder={roles.length > 0 ? `Select Role (${roles.length})` : 'Select Role'} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {roles.map((role) => (
@@ -100,15 +104,13 @@ export function MobileRolePrivilegesSelectionForm({ institutions, roles, onSubmi
                                     ))}
                                 </SelectContent>
                             </Select>
-                            {errors.ivrmrT_Id?.message && (
-                                <FormError>{errors.ivrmrT_Id.message}</FormError>
-                            )}
+                            {errors.ivrmrT_Id?.message && <FormError>{errors.ivrmrT_Id.message}</FormError>}
                         </div>
                     </div>
 
                     {isLoading && (
-                        <div className="flex items-center justify-center gap-2 py-2 text-slate-500 animate-pulse font-medium">
-                            <Loader2 className="w-4 h-4 animate-spin text-[#7C3AED]" />
+                        <div className='flex animate-pulse items-center justify-center gap-2 py-2 font-medium text-slate-500'>
+                            <Loader2 className='h-4 w-4 animate-spin text-[#7C3AED]' />
                             Fetching records...
                         </div>
                     )}

@@ -1,15 +1,18 @@
 'use client';
 
-import { useFormContext, Controller } from 'react-hook-form';
+import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
-import { useEffect, useState } from 'react';
-import { InstitutionDTO, ModuleDTO } from '@/types/super-admin/configuration-setting/master-main-menu-ins';
 import { getInstitutionDropdown, getModuleDropdown } from '@/server/super-admin/configuration-setting/master-main-menu-ins';
+import type { InstitutionDTO, ModuleDTO } from '@/types/super-admin/configuration-setting/master-main-menu-ins';
+import { useEffect, useState } from 'react';
+import { Controller, useFormContext } from 'react-hook-form';
 
 export default function SelectionForm() {
-    const { control, formState: { errors } } = useFormContext();
+    const {
+        control,
+        formState: { errors }
+    } = useFormContext();
     const [institutions, setInstitutions] = useState<InstitutionDTO[]>([]);
     const [modules, setModules] = useState<ModuleDTO[]>([]);
 
@@ -18,10 +21,13 @@ export default function SelectionForm() {
             try {
                 const instData = await getInstitutionDropdown();
                 if (instData.success && instData.data?.institutionList) {
-                    const uniqueDeep = Array.from(new Map(instData.data.institutionList
-                        .filter(item => item && item.mI_Id != null)
-                        .map(item => [String(item.mI_Id), item])
-                    ).values());
+                    const uniqueDeep = Array.from(
+                        new Map(
+                            instData.data.institutionList
+                                .filter((item) => item && item.mI_Id != null)
+                                .map((item) => [String(item.mI_Id), item])
+                        ).values()
+                    );
 
                     if (uniqueDeep.length !== instData.data.institutionList.length) {
                         console.warn(`Removed ${instData.data.institutionList.length - uniqueDeep.length} duplicate institutions`);
@@ -31,10 +37,13 @@ export default function SelectionForm() {
 
                 const modData = await getModuleDropdown();
                 if (modData.success && modData.data?.moduleList) {
-                    const uniqueDeep = Array.from(new Map(modData.data.moduleList
-                        .filter(item => item && item.ivrmM_Id != null)
-                        .map(item => [String(item.ivrmM_Id), item])
-                    ).values());
+                    const uniqueDeep = Array.from(
+                        new Map(
+                            modData.data.moduleList
+                                .filter((item) => item && item.ivrmM_Id != null)
+                                .map((item) => [String(item.ivrmM_Id), item])
+                        ).values()
+                    );
 
                     if (uniqueDeep.length !== modData.data.moduleList.length) {
                         console.warn(`Removed ${modData.data.moduleList.length - uniqueDeep.length} duplicate modules`);
@@ -42,26 +51,28 @@ export default function SelectionForm() {
                     setModules(uniqueDeep);
                 }
             } catch (e) {
-                console.error("Error fetching dropdowns", e);
+                console.error('Error fetching dropdowns', e);
             }
         };
         fetchData();
     }, []);
 
     return (
-        <Card className="mb-6 bg-white shadow-md rounded-lg p-0 border">
-            <CardContent className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className='mb-6 rounded-lg border bg-white p-0 shadow-md'>
+            <CardContent className='p-6'>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                     {/* Institution Dropdown */}
-                    <div className="space-y-2">
-                        <Label className="font-semibold">Institution Name: <span className="text-red-500">*</span></Label>
+                    <div className='space-y-2'>
+                        <Label className='font-semibold'>
+                            Institution Name: <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             control={control}
-                            name="institution"
+                            name='institution'
                             render={({ field }) => (
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select Institution" />
+                                        <SelectValue placeholder='Select Institution' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {institutions.map((item) => (
@@ -74,22 +85,22 @@ export default function SelectionForm() {
                             )}
                         />
                         {errors.institution && (
-                            <p className="text-sm font-medium text-destructive text-red-500">
-                                {errors.institution.message as string}
-                            </p>
+                            <p className='font-medium text-destructive text-red-500 text-sm'>{errors.institution.message as string}</p>
                         )}
                     </div>
 
                     {/* Module Dropdown */}
-                    <div className="space-y-2">
-                        <Label className="font-semibold">Module Name: <span className="text-red-500">*</span></Label>
+                    <div className='space-y-2'>
+                        <Label className='font-semibold'>
+                            Module Name: <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             control={control}
-                            name="module"
+                            name='module'
                             render={({ field }) => (
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select Module" />
+                                        <SelectValue placeholder='Select Module' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {modules.map((item) => (
@@ -102,9 +113,7 @@ export default function SelectionForm() {
                             )}
                         />
                         {errors.module && (
-                            <p className="text-sm font-medium text-destructive text-red-500">
-                                {errors.module.message as string}
-                            </p>
+                            <p className='font-medium text-destructive text-red-500 text-sm'>{errors.module.message as string}</p>
                         )}
                     </div>
                 </div>

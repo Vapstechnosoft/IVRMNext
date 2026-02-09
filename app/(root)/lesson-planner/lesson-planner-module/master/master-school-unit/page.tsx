@@ -1,10 +1,5 @@
 'use client';
 
-import { MasterSchoolUnitColumns } from './_components/columns';
-import ToggleMasterSchoolUnitForm from './_components/toggle-form';
-import UpdateMasterSchoolUnitForm from './_components/update-form';
-import AddMasterSchoolUnitForm from './_components/add-form';
-import OrderMasterSchoolUnitForm from './_components/order-form';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -13,6 +8,11 @@ import { getSchoolMasterUnitData } from '@/server/lesson-planner/master/school-m
 import type { IMasterSchoolUnit } from '@/types/lesson-planner/master/school-master-unit';
 import { ArrowUpDown, Plus, X } from 'lucide-react';
 import { use, useCallback, useEffect, useState } from 'react';
+import AddMasterSchoolUnitForm from './_components/add-form';
+import { MasterSchoolUnitColumns } from './_components/columns';
+import OrderMasterSchoolUnitForm from './_components/order-form';
+import ToggleMasterSchoolUnitForm from './_components/toggle-form';
+import UpdateMasterSchoolUnitForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -76,19 +76,13 @@ function PageContent({
 
     // Explicit mapping to ensure server-side pagination works correctly
     const tableProps = {
-        data: Array.isArray(response?.data)
-            ? response.data
-            : Array.isArray(response?.data?.getdetails)
-                ? response.data.getdetails
-                : [],
+        data: Array.isArray(response?.data) ? response.data : Array.isArray(response?.data?.getdetails) ? response.data.getdetails : [],
         totalItems: response?.total || response?.data?.total || 0,
         success: response?.success,
         errorMessage: response?.message
     };
 
-    const units = Array.isArray(response?.data)
-        ? response.data
-        : response?.data?.getdetails || [];
+    const units = Array.isArray(response?.data) ? response.data : response?.data?.getdetails || [];
 
     return (
         <div className='min-h-screen'>

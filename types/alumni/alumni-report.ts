@@ -1,4 +1,4 @@
-import { IAlumniAcademicYear, IAlumniClass } from "./alumni-search";
+import type { IAlumniAcademicYear, IAlumniClass } from './alumni-search';
 
 export interface ICountry {
     ivrmmC_Id: number;

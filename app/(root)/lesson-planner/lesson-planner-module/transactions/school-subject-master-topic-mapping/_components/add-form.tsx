@@ -1,21 +1,30 @@
 'use client';
 
-import { useForm, useFormContext } from 'react-hook-form';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useEffect, useState, useTransition } from 'react';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { uploadDocument } from '@/server/document_upload';
+import {
+    onChangeClass,
+    onChangeSection,
+    onChangeSubject,
+    onChangeUnit,
+    onChangeYear,
+    saveDetails
+} from '@/server/lesson-planner/transactions/school-subject-master-topic-mapping';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useState, useTransition } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { onChangeClass, onChangeSection, onChangeSubject, onChangeUnit, saveDetails, onChangeYear } from '@/server/lesson-planner/transactions/school-subject-master-topic-mapping';
-import { uploadDocument } from '@/server/document_upload';
 import { FileUploadSection } from './file-upload-section';
 
 // Helper to create file array state helper
 const useFileState = () => {
-    const [files, setFiles] = useState<{ id: string; lpmtR_Resources: string; lpmtR_FileName: string }[]>([{ id: '1', lpmtR_Resources: '', lpmtR_FileName: '' }]);
+    const [files, setFiles] = useState<{ id: string; lpmtR_Resources: string; lpmtR_FileName: string }[]>([
+        { id: '1', lpmtR_Resources: '', lpmtR_FileName: '' }
+    ]);
     return { files, setFiles };
 };
 
@@ -34,7 +43,7 @@ const formSchema = z.object({
     LPMT_StudentGuide: z.string().optional(),
     LPMT_MaterialNeeded: z.string().optional(),
     LPMT_References: z.string().optional(),
-    LPMT_Homework: z.string().optional(),
+    LPMT_Homework: z.string().optional()
 });
 
 export default function AddSchoolSubjectTopicMappingForm({
@@ -103,7 +112,7 @@ export default function AddSchoolSubjectTopicMappingForm({
             LPMT_StudentGuide: '',
             LPMT_MaterialNeeded: '',
             LPMT_References: '',
-            LPMT_Homework: '',
+            LPMT_Homework: ''
         }
     });
 
@@ -117,7 +126,10 @@ export default function AddSchoolSubjectTopicMappingForm({
                 console.info('Add handleYearChange RAW:', JSON.stringify(yearRes));
                 const classList = extractArray(yearRes, 'getclass');
                 setClasses(classList);
-                setSections([]); setSubjects([]); setUnits([]); setMainTopics([]);
+                setSections([]);
+                setSubjects([]);
+                setUnits([]);
+                setMainTopics([]);
             } catch (e) {
                 console.error(e);
                 toast.error('Failed to fetch classes');
@@ -164,7 +176,8 @@ export default function AddSchoolSubjectTopicMappingForm({
                         setSubjects([]);
                     }
                 }
-                setUnits([]); setMainTopics([]);
+                setUnits([]);
+                setMainTopics([]);
             } catch (e) {
                 console.error(e);
                 toast.error('Failed to fetch sections/subjects');
@@ -181,7 +194,8 @@ export default function AddSchoolSubjectTopicMappingForm({
                 console.info('Add handleSectionChange RAW:', JSON.stringify(res));
                 const subjectList = extractArray(res, 'getsubjectlist');
                 setSubjects(subjectList);
-                setUnits([]); setMainTopics([]);
+                setUnits([]);
+                setMainTopics([]);
             } catch (e) {
                 console.error(e);
                 toast.error('Failed to fetch subjects');
@@ -278,22 +292,30 @@ export default function AddSchoolSubjectTopicMappingForm({
                 asmcL_Id: values.ASMCL_Id,
                 asmS_Id: values.ASMS_Id,
                 lpmU_Id: values.LPMU_Id,
-                teacherGuideUploadDTO: teacherGuides.files.filter(f => f.lpmtR_Resources).map(f => ({
-                    lpmtR_Resources: f.lpmtR_Resources,
-                    lpmtR_FileName: f.lpmtR_FileName
-                })),
-                studnetGuideUploadDTO: studentGuides.files.filter(f => f.lpmtR_Resources).map(f => ({
-                    lpmtR_Resources: f.lpmtR_Resources,
-                    lpmtR_FileName: f.lpmtR_FileName
-                })),
-                materalGuideUploadDTO: materials.files.filter(f => f.lpmtR_Resources).map(f => ({
-                    lpmtR_Resources: f.lpmtR_Resources,
-                    lpmtR_FileName: f.lpmtR_FileName
-                })),
-                referenceGuideUploadDTO: references.files.filter(f => f.lpmtR_Resources).map(f => ({
-                    lpmtR_Resources: f.lpmtR_Resources,
-                    lpmtR_FileName: f.lpmtR_FileName
-                })),
+                teacherGuideUploadDTO: teacherGuides.files
+                    .filter((f) => f.lpmtR_Resources)
+                    .map((f) => ({
+                        lpmtR_Resources: f.lpmtR_Resources,
+                        lpmtR_FileName: f.lpmtR_FileName
+                    })),
+                studnetGuideUploadDTO: studentGuides.files
+                    .filter((f) => f.lpmtR_Resources)
+                    .map((f) => ({
+                        lpmtR_Resources: f.lpmtR_Resources,
+                        lpmtR_FileName: f.lpmtR_FileName
+                    })),
+                materalGuideUploadDTO: materials.files
+                    .filter((f) => f.lpmtR_Resources)
+                    .map((f) => ({
+                        lpmtR_Resources: f.lpmtR_Resources,
+                        lpmtR_FileName: f.lpmtR_FileName
+                    })),
+                referenceGuideUploadDTO: references.files
+                    .filter((f) => f.lpmtR_Resources)
+                    .map((f) => ({
+                        lpmtR_Resources: f.lpmtR_Resources,
+                        lpmtR_FileName: f.lpmtR_FileName
+                    }))
             };
             const res = await saveDetails(payload);
             if (res.success) {
@@ -309,176 +331,325 @@ export default function AddSchoolSubjectTopicMappingForm({
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="ASMAY_Id" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Academic Year <span className="text-red-500">*</span></FormLabel>
-                            <Select onValueChange={handleYearChange} value={field.value?.toString() || ''}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Select Year" /></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    {masterYear.filter(item => item.asmaY_Id).map((item: any, index: number) => (
-                                        <SelectItem key={`${item.asmaY_Id}-${index}`} value={item.asmaY_Id.toString()}>{item.asmaY_Year}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4 p-4'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                    <FormField
+                        control={form.control}
+                        name='ASMAY_Id'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select onValueChange={handleYearChange} value={field.value?.toString() || ''}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Year' />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {masterYear
+                                            .filter((item) => item.asmaY_Id)
+                                            .map((item: any, index: number) => (
+                                                <SelectItem key={`${item.asmaY_Id}-${index}`} value={item.asmaY_Id.toString()}>
+                                                    {item.asmaY_Year}
+                                                </SelectItem>
+                                            ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                    <FormField control={form.control} name="ASMCL_Id" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Class <span className="text-red-500">*</span></FormLabel>
-                            <Select onValueChange={handleClassChange} value={field.value?.toString() || ''}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Select Class" /></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    {classes.filter(item => item.asmcL_Id).map((item: any, index: number) => (
-                                        <SelectItem key={`${item.asmcL_Id}-${index}`} value={item.asmcL_Id.toString()}>{item.asmcL_ClassName}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                    <FormField
+                        control={form.control}
+                        name='ASMCL_Id'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>
+                                    Class <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select onValueChange={handleClassChange} value={field.value?.toString() || ''}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Class' />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {classes
+                                            .filter((item) => item.asmcL_Id)
+                                            .map((item: any, index: number) => (
+                                                <SelectItem key={`${item.asmcL_Id}-${index}`} value={item.asmcL_Id.toString()}>
+                                                    {item.asmcL_ClassName}
+                                                </SelectItem>
+                                            ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                    <FormField control={form.control} name="ASMS_Id" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Section</FormLabel>
-                            <Select onValueChange={handleSectionChange} value={field.value?.toString() || ''}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Select Section" /></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    {sections.filter(item => item.asmS_Id || item.ASMS_Id).map((item: any, index: number) => (
-                                        <SelectItem key={`${item.asmS_Id || item.ASMS_Id || index}`} value={(item.asmS_Id || item.ASMS_Id).toString()}>
-                                            {item.asmC_SectionName || item.asmS_SectionName || item.sectionName}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                    <FormField
+                        control={form.control}
+                        name='ASMS_Id'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Section</FormLabel>
+                                <Select onValueChange={handleSectionChange} value={field.value?.toString() || ''}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Section' />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {sections
+                                            .filter((item) => item.asmS_Id || item.ASMS_Id)
+                                            .map((item: any, index: number) => (
+                                                <SelectItem
+                                                    key={`${item.asmS_Id || item.ASMS_Id || index}`}
+                                                    value={(item.asmS_Id || item.ASMS_Id).toString()}>
+                                                    {item.asmC_SectionName || item.asmS_SectionName || item.sectionName}
+                                                </SelectItem>
+                                            ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                    <FormField control={form.control} name="ISMS_Id" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Subject <span className="text-red-500">*</span></FormLabel>
-                            <Select onValueChange={handleSubjectChange} value={field.value?.toString() || ''}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Select Subject" /></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    {subjects.filter(item => item.ismS_Id).map((item: any, index: number) => (
-                                        <SelectItem key={`${item.ismS_Id}-${index}`} value={item.ismS_Id.toString()}>{item.ismS_SubjectName}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                    <FormField
+                        control={form.control}
+                        name='ISMS_Id'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>
+                                    Subject <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select onValueChange={handleSubjectChange} value={field.value?.toString() || ''}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Subject' />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {subjects
+                                            .filter((item) => item.ismS_Id)
+                                            .map((item: any, index: number) => (
+                                                <SelectItem key={`${item.ismS_Id}-${index}`} value={item.ismS_Id.toString()}>
+                                                    {item.ismS_SubjectName}
+                                                </SelectItem>
+                                            ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                    <FormField control={form.control} name="LPMU_Id" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Unit <span className="text-red-500">*</span></FormLabel>
-                            <Select onValueChange={handleUnitChange} value={field.value?.toString() || ''}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Select Unit" /></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    {units.filter(item => item.lpmU_Id).map((item: any, index: number) => (
-                                        <SelectItem key={`${item.lpmU_Id}-${index}`} value={item.lpmU_Id.toString()}>{item.lpmU_UnitName}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                    <FormField
+                        control={form.control}
+                        name='LPMU_Id'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>
+                                    Unit <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select onValueChange={handleUnitChange} value={field.value?.toString() || ''}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Unit' />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {units
+                                            .filter((item) => item.lpmU_Id)
+                                            .map((item: any, index: number) => (
+                                                <SelectItem key={`${item.lpmU_Id}-${index}`} value={item.lpmU_Id.toString()}>
+                                                    {item.lpmU_UnitName}
+                                                </SelectItem>
+                                            ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                    <FormField control={form.control} name="LPMMT_Id" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Main Topic <span className="text-red-500">*</span></FormLabel>
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Select Topic" /></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    {mainTopics.filter(item => item.lpmmT_Id).map((item: any, index: number) => (
-                                        <SelectItem key={`${item.lpmmT_Id}-${index}`} value={item.lpmmT_Id.toString()}>{item.lpmmT_TopicName}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                    <FormField
+                        control={form.control}
+                        name='LPMMT_Id'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>
+                                    Main Topic <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Topic' />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {mainTopics
+                                            .filter((item) => item.lpmmT_Id)
+                                            .map((item: any, index: number) => (
+                                                <SelectItem key={`${item.lpmmT_Id}-${index}`} value={item.lpmmT_Id.toString()}>
+                                                    {item.lpmmT_TopicName}
+                                                </SelectItem>
+                                            ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                    <FormField control={form.control} name="LPMT_TopicName" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Topic Name <span className="text-red-500">*</span></FormLabel>
-                            <FormControl><Input {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                    <FormField
+                        control={form.control}
+                        name='LPMT_TopicName'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>
+                                    Topic Name <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <FormControl>
+                                    <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                    <FormField control={form.control} name="LPMT_LessonPlan" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Topic Description <span className="text-red-500">*</span></FormLabel>
-                            <FormControl><Input {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                    <FormField
+                        control={form.control}
+                        name='LPMT_LessonPlan'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>
+                                    Topic Description <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <FormControl>
+                                    <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                    <FormField control={form.control} name="LPMT_TotalPeriods" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Total Periods <span className="text-red-500">*</span></FormLabel>
-                            <FormControl><Input type="number" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                    <FormField
+                        control={form.control}
+                        name='LPMT_TotalPeriods'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>
+                                    Total Periods <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <FormControl>
+                                    <Input type='number' {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                    <FormField control={form.control} name="LPMT_TotalHrs" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Total Hours <span className="text-red-500">*</span></FormLabel>
-                            <FormControl><Input type="number" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                    <FormField
+                        control={form.control}
+                        name='LPMT_TotalHrs'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>
+                                    Total Hours <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <FormControl>
+                                    <Input type='number' {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
                     {/* Additional fields from legacy form */}
-                    <FormField control={form.control} name="LPMT_TeacherGuide" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Teacher Guide</FormLabel>
-                            <FormControl><Input {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField control={form.control} name="LPMT_StudentGuide" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Student Guide</FormLabel>
-                            <FormControl><Input {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField control={form.control} name="LPMT_MaterialNeeded" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Material Needed</FormLabel>
-                            <FormControl><Input {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField control={form.control} name="LPMT_References" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>References</FormLabel>
-                            <FormControl><Input {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField control={form.control} name="LPMT_Homework" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Home Work</FormLabel>
-                            <FormControl><Input {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                    <FormField
+                        control={form.control}
+                        name='LPMT_TeacherGuide'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Teacher Guide</FormLabel>
+                                <FormControl>
+                                    <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name='LPMT_StudentGuide'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Student Guide</FormLabel>
+                                <FormControl>
+                                    <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name='LPMT_MaterialNeeded'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Material Needed</FormLabel>
+                                <FormControl>
+                                    <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name='LPMT_References'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>References</FormLabel>
+                                <FormControl>
+                                    <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name='LPMT_Homework'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Home Work</FormLabel>
+                                <FormControl>
+                                    <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     <FileUploadSection
-                        name="teacherGuides"
+                        name='teacherGuides'
                         label="Teachers' Guide Upload"
                         files={teacherGuides.files}
-                        onAdd={() => teacherGuides.setFiles((prev) => [...prev, { id: Date.now().toString(), lpmtR_Resources: '', lpmtR_FileName: '' }])}
+                        onAdd={() =>
+                            teacherGuides.setFiles((prev) => [
+                                ...prev,
+                                { id: Date.now().toString(), lpmtR_Resources: '', lpmtR_FileName: '' }
+                            ])
+                        }
                         onRemove={(i) => {
                             teacherGuides.setFiles((prev) => {
                                 const n = [...prev];
@@ -489,10 +660,15 @@ export default function AddSchoolSubjectTopicMappingForm({
                         onUpload={(i, f) => handleFileUpload(i, f, teacherGuides)}
                     />
                     <FileUploadSection
-                        name="studentGuides"
+                        name='studentGuides'
                         label="Students' Guide Upload"
                         files={studentGuides.files}
-                        onAdd={() => studentGuides.setFiles((prev) => [...prev, { id: Date.now().toString(), lpmtR_Resources: '', lpmtR_FileName: '' }])}
+                        onAdd={() =>
+                            studentGuides.setFiles((prev) => [
+                                ...prev,
+                                { id: Date.now().toString(), lpmtR_Resources: '', lpmtR_FileName: '' }
+                            ])
+                        }
                         onRemove={(i) => {
                             studentGuides.setFiles((prev) => {
                                 const n = [...prev];
@@ -503,10 +679,12 @@ export default function AddSchoolSubjectTopicMappingForm({
                         onUpload={(i, f) => handleFileUpload(i, f, studentGuides)}
                     />
                     <FileUploadSection
-                        name="materials"
-                        label="Material Files Upload"
+                        name='materials'
+                        label='Material Files Upload'
                         files={materials.files}
-                        onAdd={() => materials.setFiles((prev) => [...prev, { id: Date.now().toString(), lpmtR_Resources: '', lpmtR_FileName: '' }])}
+                        onAdd={() =>
+                            materials.setFiles((prev) => [...prev, { id: Date.now().toString(), lpmtR_Resources: '', lpmtR_FileName: '' }])
+                        }
                         onRemove={(i) => {
                             materials.setFiles((prev) => {
                                 const n = [...prev];
@@ -517,10 +695,12 @@ export default function AddSchoolSubjectTopicMappingForm({
                         onUpload={(i, f) => handleFileUpload(i, f, materials)}
                     />
                     <FileUploadSection
-                        name="references"
-                        label="Reference Files Upload"
+                        name='references'
+                        label='Reference Files Upload'
                         files={references.files}
-                        onAdd={() => references.setFiles((prev) => [...prev, { id: Date.now().toString(), lpmtR_Resources: '', lpmtR_FileName: '' }])}
+                        onAdd={() =>
+                            references.setFiles((prev) => [...prev, { id: Date.now().toString(), lpmtR_Resources: '', lpmtR_FileName: '' }])
+                        }
                         onRemove={(i) => {
                             references.setFiles((prev) => {
                                 const n = [...prev];
@@ -532,9 +712,11 @@ export default function AddSchoolSubjectTopicMappingForm({
                     />
                 </div>
 
-                <div className="flex justify-center gap-2">
-                    <Button type="submit">Save</Button>
-                    <Button type="button" variant="outline" onClick={onSuccess}>Cancel</Button>
+                <div className='flex justify-center gap-2'>
+                    <Button type='submit'>Save</Button>
+                    <Button type='button' variant='outline' onClick={onSuccess}>
+                        Cancel
+                    </Button>
                 </div>
             </form>
         </Form>

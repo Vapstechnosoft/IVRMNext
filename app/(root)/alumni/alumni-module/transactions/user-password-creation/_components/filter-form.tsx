@@ -5,12 +5,12 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getReportDetails } from '@/server/alumni/user-password-creation';
+import type { IClass, ISection, IYear } from '@/types/alumni/user-password-creation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, X } from 'lucide-react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { type UserPasswordCreationSchema, userPasswordCreationSchema } from './schema';
-import type { IClass, ISection, IYear } from '@/types/alumni/user-password-creation';
 
 interface FilterFormProps {
     years: IYear[];
@@ -81,15 +81,21 @@ export default function FilterForm({ years, classes, sections, onSuccess, onRese
                             <RadioGroup value={field.value} onValueChange={field.onChange} className='flex justify-center gap-8'>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='reg' id='all' />
-                                    <Label htmlFor='all' className='cursor-pointer'>All</Label>
+                                    <Label htmlFor='all' className='cursor-pointer'>
+                                        All
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='new' id='new' />
-                                    <Label htmlFor='new' className='cursor-pointer'>New</Label>
+                                    <Label htmlFor='new' className='cursor-pointer'>
+                                        New
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='Alumni' id='alumni' />
-                                    <Label htmlFor='alumni' className='cursor-pointer'>Alumni</Label>
+                                    <Label htmlFor='alumni' className='cursor-pointer'>
+                                        Alumni
+                                    </Label>
                                 </div>
                             </RadioGroup>
                         )}
