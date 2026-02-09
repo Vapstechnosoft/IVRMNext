@@ -16,7 +16,7 @@ import {
 import type { IStudentYearlyAttendenceReportList } from '@/types/admission/preadmission/reports';
 import { FileText, Printer, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { use, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useStudentYearlyAttendance } from '@/hooks/admission/preadmission/useReports';
@@ -58,7 +58,7 @@ interface AttendanceResponse {
 export default function StudentsYearlyAttendenceReport(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const router = useRouter();
     const pathname = usePathname();
 
@@ -94,7 +94,7 @@ export default function StudentsYearlyAttendenceReport(props: {
 
     const [academicYearId, setAcademicYearId] = useState<number>(0);
     const [classId, setClassId] = useState<number>(0);
-    const [sectionId, setSectionId] = useState<number>(0);
+    const [sectionId, setSectionId] = useState<number | undefined>(undefined);
 
     const [selectedStudents, setSelectedStudents] = useState<IStudentYearlyAttendenceReportList[]>([]);
 
@@ -109,7 +109,7 @@ export default function StudentsYearlyAttendenceReport(props: {
         isLoading,
         error,
         refetch: refetchAdmissionStudents
-    } = useStudentYearlyAttendance((academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0, classId, sectionId, searchParams);
+    } = useStudentYearlyAttendance((academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0, classId, sectionId ?? 0, searchParams);
 
     const transformedData = useMemo(() => {
         if (!response?.data || !showReport) {
@@ -179,7 +179,7 @@ export default function StudentsYearlyAttendenceReport(props: {
     const handleReset = () => {
         setAcademicYearId(0);
         setClassId(0);
-        setSectionId(0);
+        setSectionId(undefined);
         setSelectedStudents([]);
         setShowReport(false);
         handleResetSelection();
@@ -210,8 +210,8 @@ export default function StudentsYearlyAttendenceReport(props: {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -262,7 +262,7 @@ export default function StudentsYearlyAttendenceReport(props: {
             return;
         }
 
-        if (!sectionId || sectionId === 0) {
+        if (sectionId === undefined) {
             toast.error('Please select Section');
             return;
         }
@@ -370,7 +370,7 @@ export default function StudentsYearlyAttendenceReport(props: {
                                 </Label>
                                 <Select
                                     onValueChange={(value) => handleFilterChange('section', Number(value))}
-                                    value={sectionId !== 0 ? sectionId?.toString() : undefined}
+                                    value={sectionId !== undefined ? sectionId.toString() : undefined}
                                     disabled={classId === 0}>
                                     <SelectTrigger id='section' className='w-full'>
                                         <SelectValue placeholder='Select Section' />

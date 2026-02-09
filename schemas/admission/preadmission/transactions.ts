@@ -39,8 +39,8 @@ export const studentApplicationFormSchema = {
 
         // NATIONALITY - STRING
         pasR_Nationality: z.string().min(1, 'Student nationality is required'),
-        pasR_FatherNationality: z.number().int({ message: 'Nationality is required' }),
-        pasR_MotherNationality: z.number().int({ message: 'Nationality is required' }),
+        pasR_FatherNationality: z.string().min(1, 'Father nationality is required'),
+        pasR_MotherNationality: z.string().min(1, 'Mother nationality is required'),
 
         pasR_MobileNo: z.string().refine((val) => !val.startsWith('0'), {
             message: 'Mobile number cannot start with 0'

@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 import { CalendarIcon, Save } from 'lucide-react';
 
-import { use, useState } from 'react';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
 
 import { CalendarYear } from '@/components/ui/calendar_year';
@@ -44,7 +44,7 @@ type FormFields = z.infer<typeof attendanceAbsentSmsSchema>;
 export default function StudyCertificateReportPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const [openPopover, setOpenPopover] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [shouldFetch, setShouldFetch] = useState(false);
@@ -107,8 +107,8 @@ export default function StudyCertificateReportPage(props: {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
