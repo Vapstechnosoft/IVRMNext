@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { useMonthEndReport } from '@/hooks/transport/transportmodule/use-month-end-report';
+
 import { saveMonthEndReportData } from '@/server/transport/transport-module/reports/month-end-report';
 import type { IMonthEndReportData } from '@/types/transport/transport-module/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,7 +27,7 @@ const formSchema = z.object({
 });
 
 export default function MonthEndReportPage() {
-    const { data: initialData, isLoading: isInitialLoading } = useMonthEndReport();
+    //const { data: initialData, isLoading: isInitialLoading } = useMonthEndReport();
     const { data: academicYearData } = useAcademicYearDropdown();
     const [reportData, setReportData] = useState<IMonthEndReportData[]>([]);
     const [selectedParams, setSelectedParams] = useState<{
@@ -240,13 +240,13 @@ export default function MonthEndReportPage() {
         }
     };
 
-    if (isInitialLoading) {
-        return (
-            <div className='flex h-screen items-center justify-center'>
-                <Loader2 className='h-8 w-8 animate-spin text-primary' />
-            </div>
-        );
-    }
+    // if (isInitialLoading) {
+    //     return (
+    //         <div className='flex h-screen items-center justify-center'>
+    //             <Loader2 className='h-8 w-8 animate-spin text-primary' />
+    //         </div>
+    //     );
+    // }
 
     const totalStudents = reportData.reduce((acc, curr) => acc + curr.stdCnt, 0);
 
@@ -331,12 +331,14 @@ export default function MonthEndReportPage() {
                             </div>
 
                             <div className='flex justify-center gap-4 border-t pt-4'>
-                                <Button type='submit' disabled={isGenerating} className='w-32 bg-primary hover:bg-primary/90'>
-                                    {isGenerating ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Check className='mr-2 h-4 w-4' />}
-                                    Report
+
+
+                                <Button type='submit' disabled={isGenerating} className='min-w-32'>
+                                    {isGenerating ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
+                                    {isGenerating ? 'Generating...' : 'Report'}
                                 </Button>
-                                <Button type='button' variant='destructive' onClick={handleCancel} className='w-32'>
-                                    <X className='mr-2 h-4 w-4' />
+
+                                <Button type='button' variant='outline' onClick={handleCancel} className='min-w-32'>
                                     Cancel
                                 </Button>
                                 <Button
