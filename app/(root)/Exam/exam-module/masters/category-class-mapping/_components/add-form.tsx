@@ -38,6 +38,9 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
     const [loadingCategories, setLoadingCategories] = useState(false);
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
+    const [resetKey, setResetKey] = useState(0);
+
+
 
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
@@ -81,6 +84,8 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
     const watchedYear = useWatch({ control, name: 'asmaY_Id' });
     const watchedClass = useWatch({ control, name: 'asmcL_Id' });
     const watchedCategory = useWatch({ control, name: 'emcA_Id' });
+    const watchedSections = useWatch({control,name: "section_list",}) as {asmS_Id: number;asmC_SectionName?: string;}[];
+    
 
     // ---------- Load Initial Dropdowns (Categories & Classes) ----------
     useEffect(() => {
@@ -182,7 +187,8 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
         const year = Number(watchedYear || 0);
         const cat = Number(watchedCategory || 0);
         const cls = Number(watchedClass || 0);
-        const secs = (useWatch({ control, name: 'section_list' }) || []) as { asmS_Id: number; asmC_SectionName: string }[];
+        // const secs = (useWatch({ control, name: 'section_list' }) || []) as { asmS_Id: number; asmC_SectionName: string }[];
+        const secs = watchedSections || [];
 
         if (!year || !cat || !cls || secs.length === 0) {
             toast.error('All fields (Year, Category, Class, Sections) are required');
@@ -271,6 +277,8 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
         setValue('section_list', []);
         setEditIndex(null);
         setSections([]);
+        setResetKey(prev => prev + 1);
+
     };
 
     const handleResetAll = () => {
@@ -331,6 +339,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                         render={({ field }) => (
                             <>
                                 <Select
+                                    key={`year-${resetKey}`}
                                     value={field.value ? String(field.value) : ''}
                                     onValueChange={(val) => {
                                         field.onChange(Number(val));
@@ -380,6 +389,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                         render={({ field }) => (
                             <>
                                 <Select
+                                     key={`category-${resetKey}`}
                                     value={field.value && field.value !== 0 ? String(field.value) : ''}
                                     onValueChange={(val) => {
                                         field.onChange(Number(val));
@@ -422,6 +432,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                         render={({ field }) => (
                             <>
                                 <Select
+                                    key={`class-${resetKey}`}
                                     value={field.value && field.value !== 0 ? String(field.value) : ''}
                                     onValueChange={(val) => {
                                         field.onChange(Number(val));
