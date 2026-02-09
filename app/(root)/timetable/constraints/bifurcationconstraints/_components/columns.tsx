@@ -7,12 +7,13 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
 export interface IBifurcationConstraintList {
-    ttB_Id: number;
-    acdYear: string;
+    acdYear: number;
     categoryName: string;
+    UpdatedDate: string;
     bifricationName: string;
     periodname: number;
     ttB_ActiveFlag: boolean;
+    ttB_Id: number;
 }
 
 export const columns: ColumnDef<IBifurcationConstraintList>[] = [
