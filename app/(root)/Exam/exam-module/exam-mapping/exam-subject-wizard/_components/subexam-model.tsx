@@ -110,10 +110,10 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
 
         const finalList = shouldSort
             ? [...list].sort((a: any, b: any) => {
-                const orderA = Number(a.emsE_SubExamOrder) || 999999;
-                const orderB = Number(b.emsE_SubExamOrder) || 999999;
-                return orderA - orderB;
-            })
+                  const orderA = Number(a.emsE_SubExamOrder) || 999999;
+                  const orderB = Number(b.emsE_SubExamOrder) || 999999;
+                  return orderA - orderB;
+              })
             : list;
 
         reset({ subexam_list: finalList });
@@ -178,9 +178,7 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
             const max = row.eycessS_MaxMarks === '' || row.eycessS_MaxMarks === null ? undefined : Number(row.eycessS_MaxMarks);
             const min = row.eycessS_MinMarks === '' || row.eycessS_MinMarks === null ? undefined : Number(row.eycessS_MinMarks);
             const entry =
-                row.eycessS_MarksEntryMax === '' || row.eycessS_MarksEntryMax === null
-                    ? undefined
-                    : Number(row.eycessS_MarksEntryMax);
+                row.eycessS_MarksEntryMax === '' || row.eycessS_MarksEntryMax === null ? undefined : Number(row.eycessS_MarksEntryMax);
 
             // Required fields validation for checked rows
             if (row.checkedvalue) {
@@ -355,7 +353,6 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
         [updateRowValue, getValues, validateRowManually, setError, clearErrors]
     );
 
-
     // ----------------------------------
     // Set Order Functions
     // ----------------------------------
@@ -459,21 +456,20 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
         }
 
         const formatted = selected.map((r, index) => ({
-            EYCESSE_Id: r.EYCESSE_Id ?? 0,
-            EYCES_Id: subject.EYCES_Id,
-            EMSE_Id: r.emsE_Id,
-            EMGR_Id: Number(r.emgR_Id) || null,
-            EYCESSE_MaxMarks: Number(r.eycessS_MaxMarks) || 0,
-            EYCESSE_MinMarks: Number(r.eycessS_MinMarks) || 0,
-            EYCESSE_ExemptedFlg: !!r.eycessS_ExemptedFlg,
-            EYCESSE_ExemptedPer: Number(r.eycessS_ExemptedPer) || 0,
-            EYCESSE_ActiveFlg: !!r.eycessS_ActiveFlg,
+            eycessE_Id: r.EYCESSE_Id ?? 0,
+            eyceS_Id: subject.EYCES_Id,
+            emsE_Id: r.emsE_Id,
+            emgR_Id: Number(r.emgR_Id) || null,
+            eycessS_MaxMarks: Number(r.eycessS_MaxMarks) || 0,
+            eycessS_MinMarks: Number(r.eycessS_MinMarks) || 0,
+            eycessS_ExemptedFlg: !!r.eycessS_ExemptedFlg,
+            eycessS_ExemptedPer: Number(r.eycessS_ExemptedPer) || 0,
+            eycessS_ActiveFlg: !!r.eycessS_ActiveFlg,
             emsE_SubExamOrder: index + 1,
-            EMSE_SubExamOrder: index + 1,
-            EYCESSS_MarksFlg: !!r.eycessS_MarksFlg,
-            EYCESSS_GradesFlg: !!r.eycessS_GradesFlg,
-            EYCESSS_AplResultFlg: !!r.eycessS_AplResultFlg,
-            EYCESSS_MarksEntryMax: Number(r.eycessS_MarksEntryMax) || 0
+            eycessS_MarksFlg: !!r.eycessS_MarksFlg,
+            eycessS_GradesFlg: !!r.eycessS_GradesFlg,
+            eycessS_AplResultFlg: !!r.eycessS_AplResultFlg,
+            eycessS_MarksEntryMax: Number(r.eycessS_MarksEntryMax) || 0
         }));
 
         onSave(subject.ISMS_Id, formatted, values.subexam_list);
@@ -505,14 +501,14 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
     return (
         <Dialog open={open} onOpenChange={(val) => !val && onClose(subject.ISMS_Id)}>
             <DialogContent className='flex h-[90vh] w-full min-w-[80vw] flex-col overflow-hidden pt-0'>
-                <DialogHeader className='shrink-0 border-b bg-white pb-2 pt-4'>
+                <DialogHeader className='shrink-0 border-b bg-white pt-4 pb-2'>
                     <DialogTitle>{`Map Sub-Exam — ${subject.ISMS_SubjectName}`}</DialogTitle>
                     <DialogDescription>Fill details and save mapping</DialogDescription>
                 </DialogHeader>
 
                 {/* Search & pagination controls */}
-                <div className='shrink-0 flex items-center justify-between border-b bg-white p-2'>
-                    <div className='text-sm text-muted-foreground'>
+                <div className='flex shrink-0 items-center justify-between border-b bg-white p-2'>
+                    <div className='text-muted-foreground text-sm'>
                         Showing {filteredData.length === 0 ? 0 : startIndex + 1}-{endIndex} of {filteredData.length} items
                     </div>
                     <Input
@@ -530,22 +526,22 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                     {/* Table container - flex-1 to fill available space */}
                     <div className='flex flex-1 flex-col overflow-hidden'>
                         {/* Scrollable table wrapper */}
-                        <div className='flex-1 overflow-y-auto overflow-x-auto'>
+                        <div className='flex-1 overflow-x-auto overflow-y-auto'>
                             <table className='w-full table-auto border-collapse'>
-                                <thead className="sticky top-0 z-10 bg-slate-50 text-sm">
+                                <thead className='sticky top-0 z-10 bg-slate-50 text-sm'>
                                     <tr>
-                                        <th className='border p-2 bg-slate-50'>SLNO</th>
-                                        <th className='border p-2 bg-slate-50'>Select</th>
-                                        <th className='border p-2 bg-slate-50'>Sub-Exam (Code)</th>
-                                        <th className='border p-2 bg-slate-50'>Max Marks</th>
-                                        <th className='border p-2 bg-slate-50'>Min Marks</th>
-                                        <th className='border p-2 bg-slate-50'>Marks Entry Max</th>
-                                        <th className='border p-2 bg-slate-50'>Grade</th>
-                                        <th className='border p-2 bg-slate-50'>Exempted</th>
-                                        <th className='border p-2 bg-slate-50'>Exempt %</th>
-                                        <th className='border p-2 bg-slate-50'>Marks Flag</th>
-                                        <th className='border p-2 bg-slate-50'>Grades Flag</th>
-                                        <th className='border p-2 bg-slate-50'>Apl Result</th>
+                                        <th className='border bg-slate-50 p-2'>SLNO</th>
+                                        <th className='border bg-slate-50 p-2'>Select</th>
+                                        <th className='border bg-slate-50 p-2'>Sub-Exam (Code)</th>
+                                        <th className='border bg-slate-50 p-2'>Max Marks</th>
+                                        <th className='border bg-slate-50 p-2'>Min Marks</th>
+                                        <th className='border bg-slate-50 p-2'>Marks Entry Max</th>
+                                        <th className='border bg-slate-50 p-2'>Grade</th>
+                                        <th className='border bg-slate-50 p-2'>Exempted</th>
+                                        <th className='border bg-slate-50 p-2'>Exempt %</th>
+                                        <th className='border bg-slate-50 p-2'>Marks Flag</th>
+                                        <th className='border bg-slate-50 p-2'>Grades Flag</th>
+                                        <th className='border bg-slate-50 p-2'>Apl Result</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -598,9 +594,9 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                                 {/* Sub-Exam Name (Code) */}
                                                 <td className='border p-2 text-left'>
                                                     <div className='text-sm'>
-                                                        <div className="font-medium">{row.emsE_SubExamName}</div>
+                                                        <div className='font-medium'>{row.emsE_SubExamName}</div>
                                                         {row.emsE_SubExamCode && (
-                                                            <div className="text-xs text-slate-500">{row.emsE_SubExamCode}</div>
+                                                            <div className='text-slate-500 text-xs'>{row.emsE_SubExamCode}</div>
                                                         )}
                                                     </div>
                                                 </td>
@@ -631,7 +627,9 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                                                     }
                                                                 }}
                                                                 className={
-                                                                    errors.subexam_list?.[idx]?.eycessS_MaxMarks ? 'border-red-500 text-center' : 'text-center'
+                                                                    errors.subexam_list?.[idx]?.eycessS_MaxMarks
+                                                                        ? 'border-red-500 text-center'
+                                                                        : 'text-center'
                                                                 }
                                                                 placeholder='Enter Max Marks'
                                                                 inputMode='numeric'
@@ -671,7 +669,9 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                                                     }
                                                                 }}
                                                                 className={
-                                                                    errors.subexam_list?.[idx]?.eycessS_MinMarks ? 'border-red-500 text-center' : 'text-center'
+                                                                    errors.subexam_list?.[idx]?.eycessS_MinMarks
+                                                                        ? 'border-red-500 text-center'
+                                                                        : 'text-center'
                                                                 }
                                                                 placeholder='Enter Min Marks'
                                                                 inputMode='numeric'
@@ -739,7 +739,8 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                                                 onValueChange={(val) => {
                                                                     handleGradeChange(idx, val);
                                                                 }}>
-                                                                <SelectTrigger className={errors.subexam_list?.[idx]?.emgR_Id ? 'border-red-500' : ''}>
+                                                                <SelectTrigger
+                                                                    className={errors.subexam_list?.[idx]?.emgR_Id ? 'border-red-500' : ''}>
                                                                     <SelectValue placeholder='Select Grade' />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
@@ -852,7 +853,7 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                                     />
                                                 </td>
                                             </tr>
-                                        )
+                                        );
                                     })}
                                 </tbody>
                             </table>
@@ -861,14 +862,20 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
 
                     {/* Pagination Footer - Only show if more than 1 page */}
                     {totalPages > 1 && (
-                        <div className="shrink-0 flex items-center justify-end space-x-2 border-t bg-white p-4">
-                            <Button variant="outline" size="sm" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>First</Button>
-                            <Button variant="outline" size="sm" onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1}>
-                                <ChevronLeft className="h-4 w-4" />
+                        <div className='flex shrink-0 items-center justify-end space-x-2 border-t bg-white p-4'>
+                            <Button variant='outline' size='sm' onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
+                                First
+                            </Button>
+                            <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                                disabled={currentPage === 1}>
+                                <ChevronLeft className='h-4 w-4' />
                                 Previous
                             </Button>
 
-                            <div className="flex items-center space-x-1">
+                            <div className='flex items-center space-x-1'>
                                 {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
                                     // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
                                     let pageNum;
@@ -885,11 +892,10 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                     return (
                                         <Button
                                             key={pageNum}
-                                            variant={currentPage === pageNum ? "default" : "outline"}
-                                            size="sm"
-                                            className="w-8 h-8 p-0"
-                                            onClick={() => setCurrentPage(pageNum)}
-                                        >
+                                            variant={currentPage === pageNum ? 'default' : 'outline'}
+                                            size='sm'
+                                            className='h-8 w-8 p-0'
+                                            onClick={() => setCurrentPage(pageNum)}>
                                             {pageNum}
                                         </Button>
                                     );
@@ -897,24 +903,33 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                             </div>
 
                             <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                disabled={currentPage === totalPages}
-                            >
+                                variant='outline'
+                                size='sm'
+                                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                                disabled={currentPage === totalPages}>
                                 Next
-                                <ChevronLeft className="h-4 w-4 rotate-180" />
+                                <ChevronLeft className='h-4 w-4 rotate-180' />
                             </Button>
-                            <Button variant="outline" size="sm" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}>Last</Button>
+                            <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => setCurrentPage(totalPages)}
+                                disabled={currentPage === totalPages}>
+                                Last
+                            </Button>
                         </div>
                     )}
 
                     {/* Footer Buttons */}
-                    <div className='shrink-0 flex w-fit ml-auto justify-end gap-2 border-t bg-white p-2'>
+                    <div className='ml-auto flex w-fit shrink-0 justify-end gap-2 border-t bg-white p-2'>
                         <Button type='button' variant='ghost' onClick={() => onClose(subject.ISMS_Id)}>
                             Cancel
                         </Button>
-                        <Button type='button' onClick={handleSetOrder} className='w-fit transition-all duration-200 hover:scale-90' disabled={watchedList.length === 0}>
+                        <Button
+                            type='button'
+                            onClick={handleSetOrder}
+                            className='w-fit transition-all duration-200 hover:scale-90'
+                            disabled={watchedList.length === 0}>
                             <GitCompareArrows className='h-4 w-4 transition-transform duration-200 group-hover:rotate-90' />
                             Set Order
                         </Button>

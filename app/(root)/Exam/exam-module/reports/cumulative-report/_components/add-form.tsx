@@ -203,6 +203,7 @@ export default function CumulativeReportForm({
             attendancedispaly: data.attendancedispaly
             //page_size: data.page_size
         };
+        console.log('cumulative_report_payload', payload);
         onSuccess?.(payload, apiSearchParams || { page: 1, page_size: 10 });
         //
     };

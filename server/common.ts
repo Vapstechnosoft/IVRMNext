@@ -3705,565 +3705,7 @@ export async function getUserAccessibleModules() {
                 //         }
                 //     ]
                 // },
-                // {
-                //     id: 9,
-                //     name: 'Student Portal',
-                //     icon: 'Users',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Enrolled Students',
-                //             icon: 'BookOpen',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Enrolled Students',
-                //                     icon: 'Database',
-                //                     pages: [
-                //                         {
-                //                             id: 0,
-                //                             name: 'Dashboard',
-                //                             icon: 'LayoutDashboard',
-                //                             url: '/StudentPortal/student-dashboard',
-                //                             title: 'StudentDashboard',
-                //                             description: 'Main Dashboard'
-                //                         },
-                //                         {
-                //                             id: 1,
-                //                             name: 'Online Transfer Certificate',
-                //                             icon: 'FileText',
-                //                             url: '/StudentPortal/student-dashboard/EnrolledStudents/Transaction/OnlineTransferCertificate',
-                //                             title: 'Online Transfer Certificate',
-                //                             description: 'Apply for Transfer Certificate'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         },
 
-                // {
-                //     id: 8,
-                //     name: 'Hostel Management',
-                //     icon: 'Home',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Master',
-                //             icon: 'Settings',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Masters',
-                //                     icon: 'Database',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Master Facility',
-                //                             icon: 'Wifi',
-                //                             url: '/hostel/hostel-management/masters/master-facility',
-                //                             title: 'Master Facility',
-                //                             description: 'Manage Hostel Facilities'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Master Hostel',
-                //                             icon: 'Building',
-                //                             url: '/hostel/hostel-management/masters/master-hostel',
-                //                             title: 'Master Hostel',
-                //                             description: 'Manage Hostel Details'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Master Mess Category',
-                //                             icon: 'Home',
-                //                             url: '/hostel/hostel-management/masters/master-mess-category',
-                //                             title: 'Master Mess Category',
-                //                             description: 'Manage Mess Category Mapping'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Master Floor',
-                //                             icon: 'Layers',
-                //                             url: '/hostel/hostel-management/masters/master-floor',
-                //                             title: 'Master Floor',
-                //                             description: 'Manage Floor Details'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Master Room',
-                //                             icon: 'Home',
-                //                             url: '/hostel/hostel-management/masters/master-room',
-                //                             title: 'Master Room',
-                //                             description: 'Manage Room Details'
-                //                         },
-                //                         {
-                //                             id: 6,
-                //                             name: 'Master Bed',
-                //                             icon: 'Home',
-                //                             url: '/hostel/hostel-management/masters/master-bed',
-                //                             title: 'Master Bed',
-                //                             description: 'Manage Bed Details'
-                //                         },
-                //                         {
-                //                             id: 7,
-                //                             name: 'Master Mess',
-                //                             icon: 'Home',
-                //                             url: '/hostel/hostel-management/masters/master-mess',
-                //                             title: 'Master Mess',
-                //                             description: 'Manage Mess Details'
-                //                         },
-                //                         {
-                //                             id: 8,
-                //                             name: 'Mess Menu',
-                //                             icon: 'Home',
-                //                             url: '/hostel/hostel-management/masters/mess-menu',
-                //                             title: 'Mess Menu',
-                //                             description: 'Manage Mess Menu Details'
-                //                         },
-                //                         {
-                //                             id: 9,
-                //                             name: 'Room Category',
-                //                             icon: 'Home',
-                //                             url: '/hostel/hostel-management/masters/room-category',
-                //                             title: 'Room Category',
-                //                             description: 'Manage Room Categories'
-                //                         },
-                //                         {
-                //                             id: 10,
-                //                             name: 'Room Tariff',
-                //                             icon: 'Home',
-                //                             url: '/hostel/hostel-management/masters/room-tariff',
-                //                             title: 'Room Tariff',
-                //                             description: 'Manage Room Tariffs'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 2,
-                //                     name: 'Transactions',
-                //                     icon: 'Repeat',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Student Request',
-                //                             icon: 'FileText',
-                //                             url: '/hostel/hostel-management/transactions/student-request',
-                //                             title: 'Student Request',
-                //                             description: 'Student Hostel Request'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Student Request Confirm',
-                //                             icon: 'Home',
-                //                             url: '/hostel/hostel-management/transactions/student-request-confirm',
-                //                             title: 'Student Request Confirm',
-                //                             description: 'Confirm Student Requests'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Hostel Allotment For Student',
-                //                             icon: 'Home',
-                //                             url: '/hostel/hostel-management/transactions/student-allotment',
-                //                             title: 'Hostel Allotment For Student',
-                //                             description: 'Allot Hostel for Student'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Hostel Vacate',
-                //                             icon: 'LogOut',
-                //                             url: '/hostel/hostel-management/transactions/vacate-room',
-                //                             title: 'Hostel Vacate',
-                //                             description: 'Vacate Hostel Room'
-                //                         },
-                //                         // {
-                //                         //     id: 5,
-                //                         //     name: 'College Hostel Allotment',
-                //                         //     icon: 'Building',
-                //                         //     url: '/hostel/hostel-management/transactions/college-student-allotment',
-                //                         //     title: 'College Hostel Allotment',
-                //                         //     description: 'Allot Hostel for College Student'
-                //                         // },
-                //                         // {
-                //                         //     id: 6,
-                //                         //     name: 'College Hostel Vacate',
-                //                         //     icon: 'LogOut',
-                //                         //     url: '/hostel/hostel-management/transactions/college-vacate-room',
-                //                         //     title: 'College Hostel Vacate',
-                //                         //     description: 'Vacate College Hostel Room'
-                //                         // },
-                //                         // {
-                //                         //     id: 7,
-                //                         //     name: 'College Gate Pass',
-                //                         //     icon: 'CreditCard',
-                //                         //     url: '/hostel/hostel-management/transactions/college-gatepass',
-                //                         //     title: 'College Gate Pass',
-                //                         //     description: 'Manage College Gate Pass'
-                //                         // },
-                //                         {
-                //                             id: 8,
-                //                             name: 'Staff Request',
-                //                             icon: 'FileText',
-                //                             url: '/hostel/hostel-management/transactions/staff-request',
-                //                             title: 'Staff Request',
-                //                             description: 'Staff Hostel Request'
-                //                         },
-                //                         // {
-                //                         //     id: 9,
-                //                         //     name: 'Staff Request Confirm',
-                //                         //     icon: 'CheckSquare',
-                //                         //     url: '/hostel/hostel-management/transactions/staff-request-confirm',
-                //                         //     title: 'Staff Request Confirm',
-                //                         //     description: 'Confirm Staff Requests'
-                //                         // },
-                //                         {
-                //                             id: 10,
-                //                             name: 'Hostel Allotment For Staff',
-                //                             icon: 'User',
-                //                             url: '/hostel/hostel-management/transactions/staff-allotment',
-                //                             title: 'Hostel Allotment For Staff',
-                //                             description: 'Allot Hostel for Staff'
-                //                         },
-                //                         {
-                //                             id: 11,
-                //                             name: 'Hostel Allotment For Guest',
-                //                             icon: 'UserPlus',
-                //                             url: '/hostel/hostel-management/transactions/guest-allotment',
-                //                             title: 'Hostel Allotment For Guest',
-                //                             description: 'Allot Hostel for Guest'
-                //                         },
-                //                         {
-                //                             id: 12,
-                //                             name: 'Room Transfer',
-                //                             icon: 'Home',
-                //                             url: '/hostel/hostel-management/transactions/room-transfer',
-                //                             title: 'Room Transfer',
-                //                             description: 'Transfer Room'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 3,
-                //                     name: 'Reports',
-                //                     icon: 'BarChart',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Hostel Allotment Report',
-                //                             icon: 'FileText',
-                //                             url: '/hostel/hostel-management/reports/allotment-report',
-                //                             title: 'Hostel Allotment Report',
-                //                             description: 'View Alotment Report'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Hostel Confirm Report',
-                //                             icon: 'FileText',
-                //                             url: '/hostel/hostel-management/reports/confirm-report',
-                //                             title: 'Hostel Confirm Report',
-                //                             description: 'View Confirm Report'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Hostel Request Report',
-                //                             icon: 'FileText',
-                //                             url: '/hostel/hostel-management/reports/request-report',
-                //                             title: 'Hostel Request Report',
-                //                             description: 'View Request Report'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Hostel Vacate Report',
-                //                             icon: 'FileText',
-                //                             url: '/hostel/hostel-management/reports/vacate-report',
-                //                             title: 'Hostel Vacate Report',
-                //                             description: 'View Vacate Report'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Student Gatepass Report',
-                //                             icon: 'FileText',
-                //                             url: '/hostel/hostel-management/reports/student-gatepass-report',
-                //                             title: 'Student Gatepass Report',
-                //                             description: 'View Student Gatepass Report'
-                //                         },
-                //                         {
-                //                             id: 6,
-                //                             name: 'Student Attendance Report',
-                //                             icon: 'FileText',
-                //                             url: '/hostel/hostel-management/reports/student-attendance-report',
-                //                             title: 'Student Attendance Report',
-                //                             description: 'View Student Attendance Report'
-                //                         },
-                //                         {
-                //                             id: 7,
-                //                             name: 'Food Conveyance Report',
-                //                             icon: 'FileText',
-                //                             url: '/hostel/hostel-management/reports/food-conveyance-report',
-                //                             title: 'Food Conveyance Report',
-                //                             description: 'View Food Conveyance Report'
-                //                         },
-                //                         {
-                //                             id: 8,
-                //                             name: 'College Allotment Report',
-                //                             icon: 'FileText',
-                //                             url: '/hostel/hostel-management/reports/college-allotment-report',
-                //                             title: 'College Allotment Report',
-                //                             description: 'View College Allotment Report'
-                //                         },
-                //                         {
-                //                             id: 9,
-                //                             name: 'College Confirm Report',
-                //                             icon: 'FileText',
-                //                             url: '/hostel/hostel-management/reports/college-confirm-report',
-                //                             title: 'College Confirm Report',
-                //                             description: 'View College Confirm Report'
-                //                         },
-                //                         {
-                //                             id: 10,
-                //                             name: 'College Request Report',
-                //                             icon: 'FileText',
-                //                             url: '/hostel/hostel-management/reports/college-request-report',
-                //                             title: 'College Request Report',
-                //                             description: 'View College Request Report'
-                //                         },
-                //                         {
-                //                             id: 11,
-                //                             name: 'College Vacate Report',
-                //                             icon: 'FileText',
-                //                             url: '/hostel/hostel-management/reports/college-vacate-report',
-                //                             title: 'College Vacate Report',
-                //                             description: 'View College Vacate Report'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
-                // {
-                //     id: 9,
-                //     name: 'Student Portal',
-                //     icon: 'Users',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Enrolled Students',
-                //             icon: 'BookOpen',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Enrolled Students',
-                //                     icon: 'Database',
-                //                     pages: [
-                //                         {
-                //                             id: 0,
-                //                             name: 'Dashboard',
-                //                             icon: 'LayoutDashboard',
-                //                             url: '/StudentPortal/student-dashboard',
-                //                             title: 'StudentDashboard',
-                //                             description: 'Main Dashboard'
-                //                         },
-                //                         {
-                //                             id: 1,
-                //                             name: 'Online Transfer Certificate',
-                //                             icon: 'FileText',
-                //                             url: '/StudentPortal/student-dashboard/EnrolledStudents/Transaction/OnlineTransferCertificate',
-                //                             title: 'Online Transfer Certificate',
-                //                             description: 'Apply for Transfer Certificate'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         },
-
-                //         {
-                //             id: 2,
-                //             name: 'Admission',
-                //             icon: 'BookOpen',
-                //             sub_menu: [
-                //                 {
-                //                     id: 2,
-                //                     name: 'Admission',
-                //                     icon: 'Database',
-                //                     pages: [
-                //                         // {
-                //                         //     id: 40001,
-                //                         //     name: 'Attendance Details',
-                //                         //     icon: 'ClipboardList',
-                //                         //     url: '/StudentPortal/student-dashboard/EnrolledStudents/Transaction/AttendanceDetails',
-                //                         //     title: 'Attendance Details'
-                //                         // },
-                //                         {
-                //                             id: 40001,
-                //                             name: 'Attendance Details',
-                //                             icon: 'ClipboardList',
-                //                             url: '/StudentPortal/masters/attendance-details',
-                //                             title: 'Attendance Details'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         },
-
-                //         {
-                //             id: 3,
-                //             name: 'Interaction',
-                //             icon: 'MessageSquare',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Interaction',
-                //                     icon: 'MessageSquare',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Interactions',
-                //                             icon: 'MessageSquare',
-                //                             url: '/StudentPortal/student-dashboard/Interaction/IVRM_Interaction/Interaction',
-                //                             title: 'Interactions',
-                //                             description: 'Interact with Staff and Students'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         },
-                //         {
-                //             id: 4,
-                //             name: 'Exam',
-                //             icon: 'BookOpen',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Exam',
-                //                     icon: 'BookOpen',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Cumulative Subject',
-                //                             icon: 'BarChart3',
-                //                             url: '/StudentPortal/student-dashboard/Exam/CumulativeSubject',
-                //                             title: 'Cumulative Subject',
-                //                             description: 'View Cumulative Subject Performance'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         },
-                //         {
-                //             id: 5,
-                //             name: 'Fees',
-                //             icon: 'Banknote',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Transaction',
-                //                     icon: 'CreditCard',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Fee Details',
-                //                             icon: 'FileText',
-                //                             url: '/StudentPortal/student-dashboard/Fees/FeeDetails',
-                //                             title: 'Fee Details',
-                //                             description: 'View Fee Details'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Fee Online Payment',
-                //                             icon: 'CreditCard',
-                //                             url: '/StudentPortal/student-dashboard/Fees/FeeOnlinePayment',
-                //                             title: 'Fee Online Payment',
-                //                             description: 'Pay Fees Online'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'CumulativeFeeAnalysis',
-                //                             icon: 'CreditCard',
-                //                             url: '/StudentPortal/masters/cumulative-fee-analysis',
-                //                             title: 'Fee Online Payment',
-                //                             description: 'Pay Fees Online'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 2,
-                //                     name: 'Reports',
-                //                     icon: 'FileText',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Portal Fee Receipt',
-                //                             icon: 'FileText',
-                //                             url: '/StudentPortal/student-dashboard/Fees/Reports/PortalFeeReceipt',
-                //                             title: 'Portal Fee Receipt',
-                //                             description: 'View and Download Fee Receipts'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         },
-                //         {
-                //             id: 6,
-                //             name: 'COE',
-                //             icon: 'Calendar',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'COE',
-                //                     icon: 'Calendar',
-                //                     pages: [
-                //                         // {
-                //                         //     id: 1,
-                //                         //     name: 'Calendar of Events',
-                //                         //     icon: 'Calendar',
-                //                         //     url: '/StudentPortal/student-dashboard/COE/COE',
-                //                         //     title: 'Calendar of Events',
-                //                         //     description: 'View Calendar of Events'
-                //                         // },
-                //                         {
-                //                             id: 1,
-                //                             name: 'Calendar of Events',
-                //                             icon: 'Calendar',
-                //                             url: '/StudentPortal/coe/',
-                //                             title: 'Calendar of Events',
-                //                             description: 'View Calendar of Events'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         },
-                //         {
-                //             id: 7,
-                //             name: 'FEEDBACK',
-                //             icon: 'Calendar',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'COE',
-                //                     icon: 'Calendar',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Feedback College Parent Transaction',
-                //                             icon: 'MessageSquare',
-                //                             url: '/StudentPortal/student-dashboard/Feedback/Transaction/FeedbackCollegeParentTransaction',
-                //                             title: 'Feedback College Parent Transaction',
-                //                             description: 'Provide Feedback'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Student Feedback',
-                //                             icon: 'MessageSquare',
-                //                             url: '/StudentPortal/feedback/studentfeedback',
-                //                             title: 'Student Feedback Details',
-                //                             description: 'Provide Feedback'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
                 {
                     id: 10,
                     name: 'Inventory Management',
@@ -5169,303 +4611,6 @@ export async function getUserAccessibleModules() {
                 //         }
                 //     ]
                 // },
-                // {
-                //     id: 30,
-                //     name: 'Staff Portal',
-                //     icon: 'Settings',
-                //     menu: [
-                //         // {
-                //         //     id: 700,
-                //         //     name: 'Dashboard',
-                //         //     icon: 'LayoutDashboard',
-                //         //     sub_menu: [
-                //         //         {
-                //         //             id: 1,
-                //         //             name: 'Dashboard',
-                //         //             icon: 'LayoutDashboard',
-                //         //             pages: [
-                //         //                 {
-                //         //                     id: 1,
-                //         //                     name: 'Staff Dashboard',
-                //         //                     icon: 'LayoutDashboard',
-                //         //                     url: '/StaffPortal/staff-dashboard',
-                //         //                     title: 'Staff Dashboard',
-                //         //                     description: 'Overall Staff Statistics'
-                //         //                 }
-                //         //             ]
-                //         //         }
-                //         //     ]
-                //         // },
-                //         {
-                //             id: 2,
-                //             name: 'Attendance',
-                //             icon: 'Clock',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Transaction',
-                //                     icon: 'CalendarCheck',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Attendance Entry',
-                //                             icon: 'UserCheck',
-                //                             url: '/StaffPortal/attendance/attendance-entry',
-                //                             title: 'Attendance Entry',
-                //                             description: 'Daily Student Attendance'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 1,
-                //                     name: 'Report',
-                //                     icon: 'CalendarCheck',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: '100% Attendance Report',
-                //                             icon: 'UserCheck',
-                //                             url: '/StaffPortal/attendance/100_attendance-entry',
-                //                             title: '100% Attendance Report ',
-                //                             description: '100% Attendance Report '
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Student Attendance Report ',
-                //                             icon: 'FilePieChart',
-                //                             url: '/StaffPortal/attendance/student-attendance-report',
-                //                             title: 'Student Attendance Report',
-                //                             description: 'View Attendance History'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         },
-
-                //         {
-                //             id: 701,
-                //             name: 'Exam',
-                //             icon: 'GraduationCap',
-                //             sub_menu: [
-                //                 {
-                //                     id: 701,
-                //                     name: 'Marks Entry',
-                //                     icon: 'ClipboardEdit',
-                //                     pages: [
-                //                         {
-                //                             id: 701,
-                //                             name: 'Marks Entry',
-                //                             icon: 'PenSquare',
-                //                             url: '/StaffPortal/exam/marks-entry',
-                //                             title: 'Marks Entry',
-                //                             description: 'Direct Marks Entry'
-                //                         },
-                //                         {
-                //                             id: 702,
-                //                             name: 'Promotion Remarks',
-                //                             icon: 'Layers',
-                //                             url: '/StaffPortal/exam/promotion-remarks',
-                //                             title: 'Promotion Remarks',
-                //                             description: 'Promotion Remarks'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 703,
-                //                     name: 'CCE',
-                //                     icon: 'ClipboardEdit',
-                //                     pages: [
-                //                         {
-                //                             id: 703,
-                //                             name: 'Student Transaction',
-                //                             icon: 'Layers',
-                //                             url: '/StaffPortal/exam/student-transaction-cce',
-                //                             title: 'Student Transaction CCE',
-                //                             description: 'CCE Transaction Entry'
-                //                         }
-                //                     ]
-                //                 },
-
-                //                 {
-                //                     id: 704,
-                //                     name: 'Transaction ',
-                //                     icon: 'ClipboardEdit',
-                //                     pages: [
-                //                         {
-                //                             id: 704,
-                //                             name: 'Exam Student Wise Remarks Entry',
-                //                             icon: 'Layers',
-                //                             url: '/StaffPortal/exam/transaction/examwise-student-remarks',
-                //                             title: 'Exam Student Wise Remarks Entry',
-                //                             description: 'Exam Student Wise Remarks Entry'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 705,
-                //                     name: 'Report ',
-                //                     icon: 'ClipboardEdit',
-                //                     pages: [
-                //                         {
-                //                             id: 705,
-                //                             name: 'Cumulative Report',
-                //                             icon: 'Layers',
-                //                             url: '/StaffPortal/exam/report/cumulative-report',
-                //                             title: 'Cumulative Report',
-                //                             description: 'Cumulative Report BB'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         },
-                //         {
-                //             id: 706,
-                //             name: 'Upload',
-                //             icon: 'MessageSquare',
-                //             sub_menu: [
-                //                 {
-                //                     id: 706,
-                //                     name: 'Transaction',
-                //                     icon: 'MessagesSquare',
-                //                     pages: [
-                //                         {
-                //                             id: 706,
-                //                             name: 'Homework',
-                //                             icon: 'MessageSquare',
-                //                             url: '/StaffPortal/Upload/homework',
-                //                             title: 'Home Work',
-                //                             description: 'Upload Home Work'
-                //                         },
-                //                         {
-                //                             id: 707,
-                //                             name: 'Homework Marks Update',
-                //                             icon: 'MessageSquare',
-                //                             url: '/StaffPortal/Upload/homework-marks-entry',
-                //                             title: 'Home Work',
-                //                             description: 'Homework Marks Update'
-                //                         },
-                //                         {
-                //                             id: 708,
-                //                             name: 'Homework Upload Report',
-                //                             icon: 'MessageSquare',
-                //                             url: '/StaffPortal/Upload/homework-upload-report',
-                //                             title: 'Home Work',
-                //                             description: 'Homework Upload Report'
-                //                         },
-                //                         {
-                //                             id: 709,
-                //                             name: 'Interactions',
-                //                             icon: 'MessageSquare',
-                //                             url: '/StaffPortal/interactions',
-                //                             title: 'Interactions',
-                //                             description: 'Interact with Students/Staff'
-                //                         },
-                //                         {
-                //                             id: 710,
-                //                             name: 'Notice Board',
-                //                             icon: 'MessageSquare',
-                //                             url: '/StaffPortal/Upload/notice-board',
-                //                             title: 'Notice Board',
-                //                             description: 'Notice Board'
-                //                         },
-                //                         {
-                //                             id: 711,
-                //                             name: 'Classwork Upload',
-                //                             icon: 'MessageSquare',
-                //                             url: '/StaffPortal/Upload/classwork-upload',
-                //                             title: 'Classwork Upload',
-                //                             description: 'Classwork Upload'
-                //                         },
-                //                         {
-                //                             id: 712,
-                //                             name: 'Classwork Marks Update',
-                //                             icon: 'Classwork Marks Update',
-                //                             url: '/StaffPortal/Upload/classwork-marks',
-                //                             title: 'Classwork Marks Update',
-                //                             description: 'Classwork Marks Update'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         },
-                //         {
-                //             id: 713,
-                //             name: 'Leave',
-                //             icon: 'CalendarRange',
-                //             sub_menu: [
-                //                 {
-                //                     id: 713,
-                //                     name: 'Leave Management',
-                //                     icon: 'CalendarDays',
-                //                     pages: [
-                //                         {
-                //                             id: 713,
-                //                             name: 'Leave Application',
-                //                             icon: 'FilePlus',
-                //                             url: '/StaffPortal/leave-management/online-leave-application',
-                //                             title: 'Online Leave Application',
-                //                             description: 'Apply for leaves'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         },
-
-                //         {
-                //             id: 714,
-                //             name: 'Biometric Report  ',
-                //             icon: 'Wallet',
-                //             sub_menu: [
-                //                 {
-                //                     id: 714,
-                //                     name: 'Report ',
-                //                     icon: 'Currency',
-                //                     pages: [
-                //                         // {
-                //                         //     id: 1,
-                //                         //     name: 'Employee Punch Report ',
-                //                         //     icon: 'FileText',
-                //                         //     url: '/StaffPortal/BiometricReport/employeePunchAttendence',
-                //                         //     title: 'Staff Salary Slip',
-                //                         //     description: 'View and Download Pay Slips'
-                //                         // },
-
-                //                         {
-                //                             id: 1,
-                //                             name: 'Employee Punch Report ',
-                //                             icon: 'FileText',
-                //                             url: '/StaffPortal/BiometricReport/employeePunchAttendence',
-                //                             title: 'Employee Punch Report ',
-                //                             description: 'Employee Punch Report '
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         },
-                //         {
-                //             id: 715,
-                //             name: 'Fees',
-                //             icon: 'BadgeIndianRupee',
-                //             sub_menu: [
-                //                 {
-                //                     id: 715,
-                //                     name: 'Reports',
-                //                     icon: 'FileBarChart',
-                //                     pages: [
-                //                         {
-                //                             id: 715,
-                //                             name: 'Defaulter Report',
-                //                             icon: 'UserX',
-                //                             url: '/StaffPortal/fees/staff-fee-defaulter-report',
-                //                             title: 'Fee Defaulter Report',
-                //                             description: 'Monitor Fee Defaulters'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
 
                 // {
                 //     id: 14,
@@ -5592,717 +4737,514 @@ export async function getUserAccessibleModules() {
                 // }
             ]
         };
-        // } else if (session?.role.toUpperCase() === 'STUDENT') {
-        //     response = {
-        //         success: true,
-        //         message: 'Data fetched successfully!!',
-        //         data: [
-        //             // {
-        //             //     id: 9,
-        //             //     name: 'Student Portal',
-        //             //     icon: 'Users',
-        //             //     menu: [
-        //             //         {
-        //             //             id: 1,
-        //             //             name: 'Home',
-        //             //             icon: 'BookOpen',
-        //             //             sub_menu: [
-        //             //                 {
-        //             //                     id: 1,
-        //             //                     name: 'Home',
-        //             //                     icon: 'Database',
-        //             //                     pages: [
-        //             //                         {
-        //             //                             id: 40000,
-        //             //                             name: 'Dashboard',
-        //             //                             icon: 'LayoutDashboard',
-        //             //                             url: '/StudentPortal/student-dashboard',
-        //             //                             title: 'StudentDashboard',
-        //             //                             description: 'Main Dashboard'
-        //             //                         }
-        //             //                     ]
-        //             //                 }
-        //             //             ]
-        //             //         },
+    } else if (session?.role.toUpperCase() === 'STAFF') {
+        response = {
+            success: true,
+            message: 'Data fetched successfully!!',
+            data: [
+                {
+                    id: 30,
+                    name: 'Staff Portal',
+                    icon: 'Settings',
+                    menu: [
+                        // {
+                        //     id: 1,
+                        //     name: 'Dashboard',
+                        //     icon: 'LayoutDashboard',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 8000,
+                        //             name: 'Dashboard',
+                        //             icon: 'LayoutDashboard',
+                        //             pages: [
+                        //                 {
+                        //                     id: 8000,
+                        //                     name: 'Staff Dashboard',
+                        //                     icon: 'LayoutDashboard',
+                        //                     url: '/StaffPortal/staff-dashboard',
+                        //                     title: 'Staff Dashboard',
+                        //                     description: 'Overall Staff Statistics'
+                        //                 }
+                        //             ]
+                        //         }
+                        //     ]
+                        // },
+                        {
+                            id: 2,
+                            name: 'Attendance',
+                            icon: 'Clock',
+                            sub_menu: [
+                                {
+                                    id: 8001,
+                                    name: 'Transaction',
+                                    icon: 'CalendarCheck',
+                                    pages: [
+                                        {
+                                            id: 8001,
+                                            name: 'Attendance Entry',
+                                            icon: 'UserCheck',
+                                            url: '/StaffPortal/attendance/attendance-entry',
+                                            title: 'Attendance Entry',
+                                            description: 'Daily Student Attendance'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 8002,
+                                    name: 'Report',
+                                    icon: 'CalendarCheck',
+                                    pages: [
+                                        {
+                                            id: 8002,
+                                            name: '100% Attendance Report',
+                                            icon: 'UserCheck',
+                                            url: '/StaffPortal/attendance/100_attendance-entry',
+                                            title: '100% Attendance Report ',
+                                            description: '100% Attendance Report '
+                                        },
+                                        {
+                                            id: 8003,
+                                            name: 'Student Attendance Report ',
+                                            icon: 'FilePieChart',
+                                            url: '/StaffPortal/attendance/student-attendance-report',
+                                            title: 'Student Attendance Report',
+                                            description: 'View Attendance History'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
 
-        //             //         // ,
-        //             //         // {
-        //             //         //     id: 12,
-        //             //         //     name: 'Alumni',
-        //             //         //     icon: 'Users',
-        //             //         //     menu: [
-        //             //         //         {
-        //             //         //             id: 1,
-        //             //         //             name: 'Alumni Module',
-        //             //         //             icon: 'BookOpen',
-        //             //         //             sub_menu: [
-        //             //         //                 {
-        //             //         //                     id: 1,
-        //             //         //                     name: 'Transactions',
-        //             //         //                     icon: 'Database',
-        //             //         //                     pages: [
-        //             //         //                         {
-        //             //         //                             id: 1,
-        //             //         //                             name: 'Alumni NoticeBoard',
-        //             //         //                             icon: 'Announcement',
-        //             //         //                             url: '/alumni/alumni-module/transactions/alumni-noticeboard',
-        //             //         //                             title: 'Alumni NoticeBoard',
-        //             //         //                             description: 'Manage Alumni NoticeBoard Details'
-        //             //         //                         },
-        //             //         //                         {
-        //             //         //                             id: 2,
-        //             //         //                             name: 'Alumni Gallery',
-        //             //         //                             icon: 'Image',
-        //             //         //                             url: '/alumni/alumni-module/transactions/alumni-gallery',
-        //             //         //                             title: 'Alumni Gallery',
-        //             //         //                             description: 'Manage Alumni Gallery Details'
-        //             //         //                         },
-        //             //         //                         {
-        //             //         //                             id: 3,
-        //             //         //                             name: 'Alumni Interactions',
-        //             //         //                             icon: 'MessageSquare',
-        //             //         //                             url: '/alumni/alumni-module/transactions/alumni-interactions',
-        //             //         //                             title: 'Alumni Interactions',
-        //             //         //                             description: 'Manage Alumni Interaction Details'
-        //             //         //                         },
-        //             //         //                         {
-        //             //         //                             id: 4,
-        //             //         //                             name: 'Alumni Friend Request',
-        //             //         //                             icon: 'UserPlus',
-        //             //         //                             url: '/alumni/alumni-module/transactions/alumni-friend-request',
-        //             //         //                             title: 'Alumni Friend Request',
-        //             //         //                             description: 'Manage Alumni Friend Request Details'
-        //             //         //                         },
-        //             //         //                         {
-        //             //         //                             id: 5,
-        //             //         //                             name: 'Alumni Friend Request Accept',
-        //             //         //                             icon: 'UserPlus',
-        //             //         //                             url: '/alumni/alumni-module/transactions/alumni-friend-request-accept',
-        //             //         //                             title: 'Alumni Friend Request Accept',
-        //             //         //                             description: 'Manage Alumni Friend Request Accept Details'
-        //             //         //                         },
-        //             //         //                         {
-        //             //         //                             id: 6,
-        //             //         //                             name: 'Alumni Donation',
-        //             //         //                             icon: 'HeartHandshake',
-        //             //         //                             url: '/alumni/alumni-module/transactions/alumni-donation',
-        //             //         //                             title: 'Alumni Donation',
-        //             //         //                             description: 'Manage Alumni Donation Details'
-        //             //         //                         },
-        //             //         //                         {
-        //             //         //                             id: 7,
-        //             //         //                             name: 'Alumni Letters',
-        //             //         //                             icon: 'MailOpen',
-        //             //         //                             url: '/alumni/alumni-module/transactions/alumni-letters',
-        //             //         //                             title: 'Alumni Letters',
-        //             //         //                             description: 'Generate Alumni Letters'
-        //             //         //                         },
-        //             //         //                         {
-        //             //         //                             id: 8,
-        //             //         //                             name: 'CLG Alumni Approval',
-        //             //         //                             icon: 'UserCheck',
-        //             //         //                             url: '/alumni/alumni-module/transactions/clg-alumni-approval',
-        //             //         //                             title: 'CLG Alumni Approval',
-        //             //         //                             description: 'Approve College Alumni Registrations'
-        //             //         //                         },
-        //             //         //                         {
-        //             //         //                             id: 9,
-        //             //         //                             name: 'CLG Student Search',
-        //             //         //                             icon: 'Search',
-        //             //         //                             url: '/alumni/alumni-module/transactions/clg-alumni-student-search',
-        //             //         //                             title: 'CLG Student Search',
-        //             //         //                             description: 'Search College Alumni Students'
-        //             //         //                         }
-        //             //         //                     ]
-        //             //         //                 },
-        //             //         //                 {
-        //             //         //                     id: 2,
-        //             //         //                     name: 'Reports',
-        //             //         //                     icon: 'FileText',
-        //             //         //                     pages: [
-        //             //         //                         {
-        //             //         //                             id: 1,
-        //             //         //                             name: 'Alumni Search',
-        //             //         //                             icon: 'BookOpen',
-        //             //         //                             url: '/alumni/alumni-module/reports/alumni-search',
-        //             //         //                             title: 'Alumni Search',
-        //             //         //                             description: 'Dynamic Alumni Search Report'
-        //             //         //                         }
-        //             //         //                     ]
-        //             //         //                 }
-        //             //         //             ]
-        //             //         //         }
-        //             //         //     ]
-        //             //         // },
-        //             //         // {
-        //             //         //     id: 14,
-        //             //         //     name: 'Upload',
-        //             //         //     icon: 'Upload',
-        //             //         //     menu: [
-        //             //         //         {
-        //             //         //             id: 3,
-        //             //         //             name: 'Upload Module',
-        //             //         //             icon: 'Upload',
-        //             //         //             sub_menu: [
-        //             //         //                 {
-        //             //         //                     id: 1,
-        //             //         //                     name: 'Transactions',
-        //             //         //                     icon: 'FileText',
-        //             //         //                     pages: [
-        //             //         //                         {
-        //             //         //                             id: 221,
-        //             //         //                             name: 'Upload ClassWork',
-        //             //         //                             icon: 'BookOpen',
-        //             //         //                             url: '/upload/transactions/ivrm-classwork',
-        //             //         //                             title: 'Upload ClassWork',
-        //             //         //                             description: 'Manage ClassWork'
-        //             //         //                         },
-        //             //         //                         {
-        //             //         //                             id: 222,
-        //             //         //                             name: 'Verify Class Work',
-        //             //         //                             icon: 'BookOpen',
-        //             //         //                             url: '/upload/transactions/verify-classwork',
-        //             //         //                             title: 'Verify Class Work',
-        //             //         //                             description: 'Verify and Enter Class Work Marks'
-        //             //         //                         },
-        //             //         //                         {
-        //             //         //                             id: 223,
-        //             //         //                             name: 'IVRM HomeWork',
-        //             //         //                             icon: 'BookOpen',
-        //             //         //                             url: '/upload/transactions/ivrm-homework',
-        //             //         //                             title: 'Upload HomeWork',
-        //             //         //                             description: 'Manage IVRM HomeWork'
-        //             //         //                         },
-        //             //         //                         {
-        //             //         //                             id: 224,
-        //             //         //                             name: 'HomeWork Marks Update',
-        //             //         //                             icon: 'BookOpen',
-        //             //         //                             url: '/upload/transactions/homework-marks-update',
-        //             //         //                             title: 'Verify HomeWork',
-        //             //         //                             description: 'Verify HomeWork Marks'
-        //             //         //                         },
+                        {
+                            id: 701,
+                            name: 'Exam',
+                            icon: 'GraduationCap',
+                            sub_menu: [
+                                {
+                                    id: 8004,
+                                    name: 'Marks Entry',
+                                    icon: 'ClipboardEdit',
+                                    pages: [
+                                        {
+                                            id: 8004,
+                                            name: 'Marks Entry',
+                                            icon: 'PenSquare',
+                                            url: '/StaffPortal/exam/marks-entry',
+                                            title: 'Marks Entry',
+                                            description: 'Direct Marks Entry'
+                                        },
+                                        {
+                                            id: 8005,
+                                            name: 'Promotion Remarks',
+                                            icon: 'Layers',
+                                            url: '/StaffPortal/exam/promotion-remarks',
+                                            title: 'Promotion Remarks',
+                                            description: 'Promotion Remarks'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 8006,
+                                    name: 'CCE',
+                                    icon: 'ClipboardEdit',
+                                    pages: [
+                                        {
+                                            id: 8006,
+                                            name: 'Student Transaction',
+                                            icon: 'Layers',
+                                            url: '/StaffPortal/exam/student-transaction-cce',
+                                            title: 'Student Transaction CCE',
+                                            description: 'CCE Transaction Entry'
+                                        }
+                                    ]
+                                },
 
-        //             //         {
-        //             //             id: 7,
-        //             //             name: 'Interaction',
-        //             //             icon: 'MessageSquare',
-        //             //             sub_menu: [
-        //             //                 {
-        //             //                     id: 1,
-        //             //                     name: 'Student Interactions ',
-        //             //                     icon: 'MessageSquare',
-        //             //                     pages: [
-        //             //                         {
-        //             //                             id: 1,
-        //             //                             name: 'Interactions',
-        //             //                             icon: 'MessageSquare',
-        //             //                             url: '/StudentPortal/student-dashboard/Interaction/IVRM_Interaction/Interaction',
-        //             //                             title: 'Interactions',
-        //             //                             description: 'Interact with Staff and Students'
-        //             //                         }
-        //             //                     ]
-        //             //                 }
-        //             //             ]
-        //             //         },
+                                {
+                                    id: 8007,
+                                    name: 'Transaction ',
+                                    icon: 'ClipboardEdit',
+                                    pages: [
+                                        {
+                                            id: 8007,
+                                            name: 'Exam Student Wise Remarks Entry',
+                                            icon: 'Layers',
+                                            url: '/StaffPortal/exam/transaction/examwise-student-remarks',
+                                            title: 'Exam Student Wise Remarks Entry',
+                                            description: 'Exam Student Wise Remarks Entry'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 8008,
+                                    name: 'Report ',
+                                    icon: 'ClipboardEdit',
+                                    pages: [
+                                        {
+                                            id: 8008,
+                                            name: 'Cumulative Report',
+                                            icon: 'Layers',
+                                            url: '/StaffPortal/exam/report/cumulative-report',
+                                            title: 'Cumulative Report',
+                                            description: 'Cumulative Report BB'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 8009,
+                            name: 'Upload',
+                            icon: 'MessageSquare',
+                            sub_menu: [
+                                {
+                                    id: 8009,
+                                    name: 'Transaction',
+                                    icon: 'MessagesSquare',
+                                    pages: [
+                                        {
+                                            id: 8009,
+                                            name: 'Homework',
+                                            icon: 'MessageSquare',
+                                            url: '/StaffPortal/Upload/homework',
+                                            title: 'Home Work',
+                                            description: 'Upload Home Work'
+                                        },
+                                        {
+                                            id: 80010,
+                                            name: 'Homework Marks Update',
+                                            icon: 'MessageSquare',
+                                            url: '/StaffPortal/Upload/homework-marks-entry',
+                                            title: 'Home Work',
+                                            description: 'Homework Marks Update'
+                                        },
+                                        {
+                                            id: 80011,
+                                            name: 'Homework Upload Report',
+                                            icon: 'MessageSquare',
+                                            url: '/StaffPortal/Upload/homework-upload-report',
+                                            title: 'Home Work',
+                                            description: 'Homework Upload Report'
+                                        },
+                                        {
+                                            id: 80012,
+                                            name: 'Interactions',
+                                            icon: 'MessageSquare',
+                                            url: '/StaffPortal/interactions',
+                                            title: 'Interactions',
+                                            description: 'Interact with Students/Staff'
+                                        },
+                                        {
+                                            id: 80013,
+                                            name: 'Notice Board',
+                                            icon: 'MessageSquare',
+                                            url: '/StaffPortal/Upload/notice-board',
+                                            title: 'Notice Board',
+                                            description: 'Notice Board'
+                                        },
+                                        {
+                                            id: 80014,
+                                            name: 'Classwork Upload',
+                                            icon: 'MessageSquare',
+                                            url: '/StaffPortal/Upload/classwork-upload',
+                                            title: 'Classwork Upload',
+                                            description: 'Classwork Upload'
+                                        },
+                                        {
+                                            id: 80015,
+                                            name: 'Classwork Marks Update',
+                                            icon: 'Classwork Marks Update',
+                                            url: '/StaffPortal/Upload/classwork-marks',
+                                            title: 'Classwork Marks Update',
+                                            description: 'Classwork Marks Update'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 80016,
+                            name: 'Leave',
+                            icon: 'CalendarRange',
+                            sub_menu: [
+                                {
+                                    id: 80016,
+                                    name: 'Leave Management',
+                                    icon: 'CalendarDays',
+                                    pages: [
+                                        {
+                                            id: 80016,
+                                            name: 'Leave Application',
+                                            icon: 'FilePlus',
+                                            url: '/StaffPortal/leave-management/online-leave-application',
+                                            title: 'Online Leave Application',
+                                            description: 'Apply for leaves'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
 
-        //             //         {
-        //             //             id: 2,
-        //             //             name: 'Admission',
-        //             //             icon: 'BookOpen',
-        //             //             sub_menu: [
-        //             //                 {
-        //             //                     id: 2,
-        //             //                     name: 'Admission',
-        //             //                     icon: 'Database',
-        //             //                     pages: [
-        //             //                         // {
-        //             //                         //     id: 40001,
-        //             //                         //     name: 'Attendance Details',
-        //             //                         //     icon: 'ClipboardList',
-        //             //                         //     url: '/StudentPortal/student-dashboard/EnrolledStudents/Transaction/AttendanceDetails',
-        //             //                         //     title: 'Attendance Details'
-        //             //                         // },
-        //             //                         {
-        //             //                             id: 40001,
-        //             //                             name: 'Attendance Details',
-        //             //                             icon: 'ClipboardList',
-        //             //                             url: '/StudentPortal/masters/attendance-details',
-        //             //                             title: 'Attendance Details'
-        //             //                         },
-        //             //                         {
-        //             //                             id: 40002,
-        //             //                             name: 'Online Leave Apply',
-        //             //                             icon: 'FilePlus',
-        //             //                             url: '/StudentPortal/student-dashboard/Admission/OnlineLeaveApp',
-        //             //                             title: 'Online Leave Application',
-        //             //                             description: 'Apply for Leave'
-        //             //                         }
-        //             //                     ]
-        //             //                 }
-        //             //             ]
-        //             //         },
-        //             //         {
-        //             //             id: 3,
-        //             //             name: 'Fees',
-        //             //             icon: 'Banknote',
-        //             //             sub_menu: [
-        //             //                 {
-        //             //                     id: 1,
-        //             //                     name: 'Transaction',
-        //             //                     icon: 'CreditCard',
-        //             //                     pages: [
-        //             //                         {
-        //             //                             id: 40003,
-        //             //                             name: 'Cumulative Fee Analysis',
-        //             //                             icon: 'CreditCard',
-        //             //                             url: '/StudentPortal/masters/feecumulative',
-        //             //                             title: 'Cumulative Fee Analysis',
-        //             //                             description: 'View Fee Details'
-        //             //                         },
-        //             //                         {
-        //             //                             id: 40004,
-        //             //                             name: 'Fee Receipt',
-        //             //                             icon: 'FileText',
-        //             //                             url: '/StudentPortal/student-dashboard/Fees/Reports/PortalFeeReceipt',
-        //             //                             title: 'Portal Fee Receipt',
-        //             //                             description: 'View and Download Fee Receipts'
-        //             //                         },
-        //             //                         {
-        //             //                             id: 40005,
-        //             //                             name: 'Online Payment',
-        //             //                             icon: 'CreditCard',
-        //             //                             url: '/StudentPortal/masters/feeonlinpayment',
-        //             //                             title: 'Fee Online Payment',
-        //             //                             description: 'Pay Fees Online'
-        //             //                         }
-        //             //                     ]
-        //             //                 }
-        //             //             ]
-        //             //         },
+                        {
+                            id: 80017,
+                            name: 'Biometric Report  ',
+                            icon: 'Wallet',
+                            sub_menu: [
+                                {
+                                    id: 80017,
+                                    name: 'Report ',
+                                    icon: 'Currency',
+                                    pages: [
+                                        {
+                                            id: 80017,
+                                            name: 'Employee Punch Report ',
+                                            icon: 'FileText',
+                                            url: '/StaffPortal/BiometricReport/employeePunchAttendence',
+                                            title: 'Employee Punch Report ',
+                                            description: 'Employee Punch Report '
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 80018,
+                            name: 'Fees',
+                            icon: 'BadgeIndianRupee',
+                            sub_menu: [
+                                {
+                                    id: 80018,
+                                    name: 'Reports',
+                                    icon: 'FileBarChart',
+                                    pages: [
+                                        {
+                                            id: 80018,
+                                            name: 'Defaulter Report',
+                                            icon: 'UserX',
+                                            url: '/StaffPortal/fees/staff-fee-defaulter-report',
+                                            title: 'Fee Defaulter Report',
+                                            description: 'Monitor Fee Defaulters'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+    } else if (session?.role.toUpperCase() === 'STUDENT') {
+        response = {
+            success: true,
+            message: 'Data fetched successfully!!',
+            data: [
+                {
+                    id: 9,
+                    name: 'Student Portal',
+                    icon: 'Users',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Home',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 40000,
+                                    name: 'Home',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 40000,
+                                            name: 'Dashboard',
+                                            icon: 'LayoutDashboard',
+                                            url: '/StudentPortal/student-dashboard',
+                                            title: 'StudentDashboard',
+                                            description: 'Main Dashboard'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
 
-        //             //         {
-        //             //             id: 4,
-        //             //             name: 'Exam',
-        //             //             icon: 'BookOpen',
-        //             //             sub_menu: [
-        //             //                 {
-        //             //                     id: 40006,
-        //             //                     name: 'Exam Module',
-        //             //                     icon: 'BookOpen',
-        //             //                     pages: [
-        //             //                         {
-        //             //                             id: 21265,
-        //             //                             name: 'Marks Entry',
-        //             //                             icon: 'CalendarDays',
-        //             //                             url: '/Exam/exam-module/marks-entry/exam-marks-entry',
-        //             //                             title: 'Marks Entry',
-        //             //                             description: 'Manage Marks Entry Details'
-        //             //                         },
-        //             //                         {
-        //             //                             id: 1,
-        //             //                             name: 'Exam Report Card ',
-        //             //                             icon: 'BarChart3',
-        //             //                             url: '/StudentPortal/student-dashboard/Exam/ExamReport',
-        //             //                             title: 'Exam Report',
-        //             //                             description: 'View Exam Report Performance'
-        //             //                         },
-        //             //                         {
-        //             //                             id: 40007,
-        //             //                             name: 'Progress Card Report( Report Card) ',
-        //             //                             icon: 'BarChart3',
-        //             //                             url: '/StudentPortal/student-dashboard/Exam/ExamReport',
-        //             //                             title: 'Exam Report',
-        //             //                             description: 'View Exam Report Performance'
-        //             //                         }
-        //             //                     ]
-        //             //                 }
-        //             //             ]
-        //             //         },
+                        {
+                            id: 2,
+                            name: 'Interaction',
+                            icon: 'MessageSquare',
+                            sub_menu: [
+                                {
+                                    id: 40001,
+                                    name: 'Student Interactions ',
+                                    icon: 'MessageSquare',
+                                    pages: [
+                                        {
+                                            id: 40001,
+                                            name: 'Interactions',
+                                            icon: 'MessageSquare',
+                                            url: '/StudentPortal/student-dashboard/Interaction/IVRM_Interaction/Interaction',
+                                            title: 'Interactions',
+                                            description: 'Interact with Staff and Students'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
 
-        //             //         {
-        //             //             id: 5,
-        //             //             name: 'COE',
-        //             //             icon: 'Calendar',
-        //             //             sub_menu: [
-        //             //                 {
-        //             //                     id: 1,
-        //             //                     name: 'COE',
-        //             //                     icon: 'Calendar',
-        //             //                     pages: [
-        //             //                         {
-        //             //                             id: 40008,
-        //             //                             name: 'School Events',
-        //             //                             icon: 'Calendar',
-        //             //                             url: '/StudentPortal/coe/',
-        //             //                             title: 'Calendar of Events',
-        //             //                             description: 'View Calendar of Events'
-        //             //                         }
-        //             //                     ]
-        //             //                 }
-        //             //             ]
-        //             //         },
-        //             //         {
-        //             //             id: 6,
-        //             //             name: 'Feedback',
-        //             //             icon: 'MessageSquare',
-        //             //             sub_menu: [
-        //             //                 {
-        //             //                     id: 1,
-        //             //                     name: 'Transaction',
-        //             //                     icon: 'List',
-        //             //                     pages: [
-        //             //                         {
-        //             //                             id: 40009,
-        //             //                             name: 'Student Complaints',
-        //             //                             icon: 'List',
-        //             //                             url: '/StudentPortal/student-dashboard/Feedback/Transaction/StudentCompliantsView',
-        //             //                             title: 'Student Complaints',
-        //             //                             description: 'View Student Complaints'
-        //             //                         },
-        //             //                         {
-        //             //                             id: 40010,
-        //             //                             name: 'Student Feedback',
-        //             //                             icon: 'List',
-        //             //                             url: '/StudentPortal/feedback/studentfeedback',
-        //             //                             title: 'Student Feedback Details',
-        //             //                             description: 'Provide Feedback'
-        //             //                         }
-        //             //                     ]
-        //             //                 }
-        //             //             ]
-        //             //         }
-        //             //     ]
-        //             // }
-        //         ]
-        //     };
-        // } else if (session?.role.toUpperCase() === 'STAFF') {
-        //     response = {
-        //         success: true,
-        //         message: 'Data fetched successfully!!',
-        //         data: [
-        //             // {
-        //             //     id: 30,
-        //             //     name: 'Staff Portal',
-        //             //     icon: 'Settings',
-        //             //     menu: [
-        //             //         // {
-        //             //         //     id: 700,
-        //             //         //     name: 'Dashboard',
-        //             //         //     icon: 'LayoutDashboard',
-        //             //         //     sub_menu: [
-        //             //         //         {
-        //             //         //             id: 1,
-        //             //         //             name: 'Dashboard',
-        //             //         //             icon: 'LayoutDashboard',
-        //             //         //             pages: [
-        //             //         //                 {
-        //             //         //                     id: 1,
-        //             //         //                     name: 'Staff Dashboard',
-        //             //         //                     icon: 'LayoutDashboard',
-        //             //         //                     url: '/StaffPortal/staff-dashboard',
-        //             //         //                     title: 'Staff Dashboard',
-        //             //         //                     description: 'Overall Staff Statistics'
-        //             //         //                 }
-        //             //         //             ]
-        //             //         //         }
-        //             //         //     ]
-        //             //         // },
-        //             //         {
-        //             //             id: 2,
-        //             //             name: 'Attendance',
-        //             //             icon: 'Clock',
-        //             //             sub_menu: [
-        //             //                 {
-        //             //                     id: 1,
-        //             //                     name: 'Transaction',
-        //             //                     icon: 'CalendarCheck',
-        //             //                     pages: [
-        //             //                         {
-        //             //                             id: 1,
-        //             //                             name: 'Attendance Entry',
-        //             //                             icon: 'UserCheck',
-        //             //                             url: '/StaffPortal/attendance/attendance-entry',
-        //             //                             title: 'Attendance Entry',
-        //             //                             description: 'Daily Student Attendance'
-        //             //                         }
-        //             //                     ]
-        //             //                 },
-        //             //                 {
-        //             //                     id: 1,
-        //             //                     name: 'Report',
-        //             //                     icon: 'CalendarCheck',
-        //             //                     pages: [
-        //             //                         {
-        //             //                             id: 1,
-        //             //                             name: '100% Attendance Report',
-        //             //                             icon: 'UserCheck',
-        //             //                             url: '/StaffPortal/attendance/100_attendance-entry',
-        //             //                             title: '100% Attendance Report ',
-        //             //                             description: '100% Attendance Report '
-        //             //                         },
-        //             //                         {
-        //             //                             id: 2,
-        //             //                             name: 'Student Attendance Report ',
-        //             //                             icon: 'FilePieChart',
-        //             //                             url: '/StaffPortal/attendance/student-attendance-report',
-        //             //                             title: 'Student Attendance Report',
-        //             //                             description: 'View Attendance History'
-        //             //                         }
-        //             //                     ]
-        //             //                 }
-        //             //             ]
-        //             //         },
+                        {
+                            id: 3,
+                            name: 'Admission',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 2,
+                                    name: 'Admission',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 40002,
+                                            name: 'Attendance Details',
+                                            icon: 'ClipboardList',
+                                            url: '/StudentPortal/masters/attendance-details',
+                                            title: 'Attendance Details'
+                                        },
+                                        {
+                                            id: 40003,
+                                            name: 'Online Leave Apply',
+                                            icon: 'FilePlus',
+                                            url: '/StudentPortal/student-dashboard/Admission/OnlineLeaveApp',
+                                            title: 'Online Leave Application',
+                                            description: 'Apply for Leave'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
 
-        //             //         {
-        //             //             id: 701,
-        //             //             name: 'Exam',
-        //             //             icon: 'GraduationCap',
-        //             //             sub_menu: [
-        //             //                 {
-        //             //                     id: 701,
-        //             //                     name: 'Marks Entry',
-        //             //                     icon: 'ClipboardEdit',
-        //             //                     pages: [
-        //             //                         {
-        //             //                             id: 701,
-        //             //                             name: 'Marks Entry',
-        //             //                             icon: 'PenSquare',
-        //             //                             url: '/StaffPortal/exam/marks-entry',
-        //             //                             title: 'Marks Entry',
-        //             //                             description: 'Direct Marks Entry'
-        //             //                         },
-        //             //                         {
-        //             //                             id: 702,
-        //             //                             name: 'Promotion Remarks',
-        //             //                             icon: 'Layers',
-        //             //                             url: '/StaffPortal/exam/promotion-remarks',
-        //             //                             title: 'Promotion Remarks',
-        //             //                             description: 'Promotion Remarks'
-        //             //                         }
-        //             //                     ]
-        //             //                 },
-        //             //                 {
-        //             //                     id: 703,
-        //             //                     name: 'CCE',
-        //             //                     icon: 'ClipboardEdit',
-        //             //                     pages: [
-        //             //                         {
-        //             //                             id: 703,
-        //             //                             name: 'Student Transaction',
-        //             //                             icon: 'Layers',
-        //             //                             url: '/StaffPortal/exam/student-transaction-cce',
-        //             //                             title: 'Student Transaction CCE',
-        //             //                             description: 'CCE Transaction Entry'
-        //             //                         }
-        //             //                     ]
-        //             //                 },
+                        {
+                            id: 4,
+                            name: 'Fees',
+                            icon: 'Banknote',
+                            sub_menu: [
+                                {
+                                    id: 40004,
+                                    name: 'Transaction',
+                                    icon: 'CreditCard',
+                                    pages: [
+                                        {
+                                            id: 40004,
+                                            name: 'Cumulative Fee Analysis',
+                                            icon: 'CreditCard',
+                                            url: '/StudentPortal/masters/feecumulative',
+                                            title: 'Cumulative Fee Analysis',
+                                            description: 'View Fee Details'
+                                        },
+                                        {
+                                            id: 40005,
+                                            name: 'Fee Receipt',
+                                            icon: 'FileText',
+                                            url: '/StudentPortal/student-dashboard/Fees/Reports/PortalFeeReceipt',
+                                            title: 'Portal Fee Receipt',
+                                            description: 'View and Download Fee Receipts'
+                                        },
+                                        {
+                                            id: 40006,
+                                            name: 'Online Payment',
+                                            icon: 'CreditCard',
+                                            url: '/StudentPortal/masters/feeonlinpayment',
+                                            title: 'Fee Online Payment',
+                                            description: 'Pay Fees Online'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
 
-        //             //                 {
-        //             //                     id: 704,
-        //             //                     name: 'Transaction ',
-        //             //                     icon: 'ClipboardEdit',
-        //             //                     pages: [
-        //             //                         {
-        //             //                             id: 704,
-        //             //                             name: 'Exam Student Wise Remarks Entry',
-        //             //                             icon: 'Layers',
-        //             //                             url: '/StaffPortal/exam/transaction/examwise-student-remarks',
-        //             //                             title: 'Exam Student Wise Remarks Entry',
-        //             //                             description: 'Exam Student Wise Remarks Entry'
-        //             //                         }
-        //             //                     ]
-        //             //                 },
-        //             //                 {
-        //             //                     id: 705,
-        //             //                     name: 'Report ',
-        //             //                     icon: 'ClipboardEdit',
-        //             //                     pages: [
-        //             //                         {
-        //             //                             id: 705,
-        //             //                             name: 'Cumulative Report',
-        //             //                             icon: 'Layers',
-        //             //                             url: '/StaffPortal/exam/report/cumulative-report',
-        //             //                             title: 'Cumulative Report',
-        //             //                             description: 'Cumulative Report BB'
-        //             //                         }
-        //             //                     ]
-        //             //                 }
-        //             //             ]
-        //             //         },
-        //             //         {
-        //             //             id: 706,
-        //             //             name: 'Upload',
-        //             //             icon: 'MessageSquare',
-        //             //             sub_menu: [
-        //             //                 {
-        //             //                     id: 706,
-        //             //                     name: 'Transaction',
-        //             //                     icon: 'MessagesSquare',
-        //             //                     pages: [
-        //             //                         {
-        //             //                             id: 706,
-        //             //                             name: 'Homework',
-        //             //                             icon: 'MessageSquare',
-        //             //                             url: '/StaffPortal/Upload/homework',
-        //             //                             title: 'Home Work',
-        //             //                             description: 'Upload Home Work'
-        //             //                         },
-        //             //                         {
-        //             //                             id: 707,
-        //             //                             name: 'Homework Marks Update',
-        //             //                             icon: 'MessageSquare',
-        //             //                             url: '/StaffPortal/Upload/homework-marks-entry',
-        //             //                             title: 'Home Work',
-        //             //                             description: 'Homework Marks Update'
-        //             //                         },
-        //             //                         {
-        //             //                             id: 708,
-        //             //                             name: 'Homework Upload Report',
-        //             //                             icon: 'MessageSquare',
-        //             //                             url: '/StaffPortal/Upload/homework-upload-report',
-        //             //                             title: 'Home Work',
-        //             //                             description: 'Homework Upload Report'
-        //             //                         },
-        //             //                         {
-        //             //                             id: 709,
-        //             //                             name: 'Interactions',
-        //             //                             icon: 'MessageSquare',
-        //             //                             url: '/StaffPortal/interactions',
-        //             //                             title: 'Interactions',
-        //             //                             description: 'Interact with Students/Staff'
-        //             //                         },
-        //             //                         {
-        //             //                             id: 710,
-        //             //                             name: 'Notice Board',
-        //             //                             icon: 'MessageSquare',
-        //             //                             url: '/StaffPortal/Upload/notice-board',
-        //             //                             title: 'Notice Board',
-        //             //                             description: 'Notice Board'
-        //             //                         },
-        //             //                         {
-        //             //                             id: 711,
-        //             //                             name: 'Classwork Upload',
-        //             //                             icon: 'MessageSquare',
-        //             //                             url: '/StaffPortal/Upload/classwork-upload',
-        //             //                             title: 'Classwork Upload',
-        //             //                             description: 'Classwork Upload'
-        //             //                         },
-        //             //                         {
-        //             //                             id: 712,
-        //             //                             name: 'Classwork Marks Update',
-        //             //                             icon: 'Classwork Marks Update',
-        //             //                             url: '/StaffPortal/Upload/classwork-marks',
-        //             //                             title: 'Classwork Marks Update',
-        //             //                             description: 'Classwork Marks Update'
-        //             //                         }
-        //             //                     ]
-        //             //                 }
-        //             //             ]
-        //             //         },
-        //             //         {
-        //             //             id: 713,
-        //             //             name: 'Leave',
-        //             //             icon: 'CalendarRange',
-        //             //             sub_menu: [
-        //             //                 {
-        //             //                     id: 713,
-        //             //                     name: 'Leave Management',
-        //             //                     icon: 'CalendarDays',
-        //             //                     pages: [
-        //             //                         {
-        //             //                             id: 713,
-        //             //                             name: 'Leave Application',
-        //             //                             icon: 'FilePlus',
-        //             //                             url: '/StaffPortal/leave-management/online-leave-application',
-        //             //                             title: 'Online Leave Application',
-        //             //                             description: 'Apply for leaves'
-        //             //                         }
-        //             //                     ]
-        //             //                 }
-        //             //             ]
-        //             //         },
+                        {
+                            id: 5,
+                            name: 'Exam',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 40007,
+                                    name: 'Exam Module',
+                                    icon: 'BookOpen',
+                                    pages: [
+                                        {
+                                            id: 40007,
+                                            name: 'Marks Entry',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/marks-entry/exam-marks-entry',
+                                            title: 'Marks Entry',
+                                            description: 'Manage Marks Entry Details'
+                                        },
 
-        //             //         {
-        //             //             id: 714,
-        //             //             name: 'Biometric Report  ',
-        //             //             icon: 'Wallet',
-        //             //             sub_menu: [
-        //             //                 {
-        //             //                     id: 714,
-        //             //                     name: 'Report ',
-        //             //                     icon: 'Currency',
-        //             //                     pages: [
-        //             //                         // {
-        //             //                         //     id: 1,
-        //             //                         //     name: 'Employee Punch Report ',
-        //             //                         //     icon: 'FileText',
-        //             //                         //     url: '/StaffPortal/BiometricReport/employeePunchAttendence',
-        //             //                         //     title: 'Staff Salary Slip',
-        //             //                         //     description: 'View and Download Pay Slips'
-        //             //                         // },
+                                        {
+                                            id: 40008,
+                                            name: 'Progress Card Report( Report Card) ',
+                                            icon: 'BarChart3',
+                                            url: '/StudentPortal/student-dashboard/Exam/ExamReport',
+                                            title: 'Exam Report',
+                                            description: 'View Exam Report Performance'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 6,
+                            name: 'COE',
+                            icon: 'Calendar',
+                            sub_menu: [
+                                {
+                                    id: 40009,
+                                    name: 'COE',
+                                    icon: 'Calendar',
+                                    pages: [
+                                        {
+                                            id: 40009,
+                                            name: 'School Events',
+                                            icon: 'Calendar',
+                                            url: '/StudentPortal/coe/',
+                                            title: 'Calendar of Events',
+                                            description: 'View Calendar of Events'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
 
-        //             //                         {
-        //             //                             id: 1,
-        //             //                             name: 'Employee Punch Report ',
-        //             //                             icon: 'FileText',
-        //             //                             url: '/StaffPortal/BiometricReport/employeePunchAttendence',
-        //             //                             title: 'Employee Punch Report ',
-        //             //                             description: 'Employee Punch Report '
-        //             //                         }
-        //             //                     ]
-        //             //                 }
-        //             //             ]
-        //             //         },
-        //             //         {
-        //             //             id: 715,
-        //             //             name: 'Fees',
-        //             //             icon: 'BadgeIndianRupee',
-        //             //             sub_menu: [
-        //             //                 {
-        //             //                     id: 715,
-        //             //                     name: 'Reports',
-        //             //                     icon: 'FileBarChart',
-        //             //                     pages: [
-        //             //                         {
-        //             //                             id: 715,
-        //             //                             name: 'Defaulter Report',
-        //             //                             icon: 'UserX',
-        //             //                             url: '/StaffPortal/fees/staff-fee-defaulter-report',
-        //             //                             title: 'Fee Defaulter Report',
-        //             //                             description: 'Monitor Fee Defaulters'
-        //             //                         }
-        //             //                     ]
-        //             //                 }
-        //             //             ]
-        //             //         }
-        //             //         //    ,
-        //             //         //        {
-        //             //         //         id: 8,
-        //             //         //         name: 'HRMS',
-        //             //         //         icon: 'Wallet',
-        //             //         //         sub_menu: [
-        //             //         //             {
-        //             //         //                 id: 1,
-        //             //         //                 name: 'Report',
-        //             //         //                 icon: 'Currency',
-        //             //         //                 pages: [
-        //             //         //                     {
-        //             //         //                         id: 1,
-        //             //         //                         name: 'Generate Employee Salary Slip',
-        //             //         //                         icon: 'FileText',
-        //             //         //                         url: '/StaffPortal/salary/staff-salary-slip',
-        //             //         //                         title: 'Staff Salary Slip',
-        //             //         //                         description: 'View and Download Pay Slips'
-        //             //         //                     }
-
-        //             //         //                 ]
-        //             //         //             }
-        //             //         //         ]
-        //             //         //     },
-        //             //     ]
-        //             // }
-        //         ]
-        //     };
+                        {
+                            id: 7,
+                            name: 'Feedback',
+                            icon: 'MessageSquare',
+                            sub_menu: [
+                                {
+                                    id: 40010,
+                                    name: 'Transaction',
+                                    icon: 'List',
+                                    pages: [
+                                        {
+                                            id: 40010,
+                                            name: 'Student Complaints',
+                                            icon: 'List',
+                                            url: '/StudentPortal/student-dashboard/Feedback/Transaction/StudentCompliantsView',
+                                            title: 'Student Complaints',
+                                            description: 'View Student Complaints'
+                                        },
+                                        {
+                                            id: 40011,
+                                            name: 'Student Feedback',
+                                            icon: 'List',
+                                            url: '/StudentPortal/feedback/studentfeedback',
+                                            title: 'Student Feedback Details',
+                                            description: 'Provide Feedback'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
     } else {
         response = {
             success: true,
