@@ -68,7 +68,7 @@ export default function SigninForm() {
     const onSubmit: SubmitHandler<FormFields> = (values) => {
         setError('');
 
-        startTransition(async () => {
+        startTransition(() => {
             login({ values, callbackUrl }).then(async (data) => {
                 if (data?.error) {
                     reset({ password: '' });
