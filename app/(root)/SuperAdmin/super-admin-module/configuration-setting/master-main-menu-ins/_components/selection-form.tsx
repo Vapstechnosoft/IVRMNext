@@ -18,12 +18,28 @@ export default function SelectionForm() {
             try {
                 const instData = await getInstitutionDropdown();
                 if (instData.success && instData.data?.institutionList) {
-                    setInstitutions(instData.data.institutionList);
+                    const uniqueDeep = Array.from(new Map(instData.data.institutionList
+                        .filter(item => item && item.mI_Id != null)
+                        .map(item => [String(item.mI_Id), item])
+                    ).values());
+
+                    if (uniqueDeep.length !== instData.data.institutionList.length) {
+                        console.warn(`Removed ${instData.data.institutionList.length - uniqueDeep.length} duplicate institutions`);
+                    }
+                    setInstitutions(uniqueDeep);
                 }
 
                 const modData = await getModuleDropdown();
                 if (modData.success && modData.data?.moduleList) {
-                    setModules(modData.data.moduleList);
+                    const uniqueDeep = Array.from(new Map(modData.data.moduleList
+                        .filter(item => item && item.ivrmM_Id != null)
+                        .map(item => [String(item.ivrmM_Id), item])
+                    ).values());
+
+                    if (uniqueDeep.length !== modData.data.moduleList.length) {
+                        console.warn(`Removed ${modData.data.moduleList.length - uniqueDeep.length} duplicate modules`);
+                    }
+                    setModules(uniqueDeep);
                 }
             } catch (e) {
                 console.error("Error fetching dropdowns", e);
@@ -49,7 +65,7 @@ export default function SelectionForm() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         {institutions.map((item) => (
-                                            <SelectItem key={item.mI_Id} value={item.mI_Id.toString()}>
+                                            <SelectItem key={`inst-${item.mI_Id}`} value={item.mI_Id.toString()}>
                                                 {item.mI_Name}
                                             </SelectItem>
                                         ))}
@@ -77,7 +93,7 @@ export default function SelectionForm() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         {modules.map((item) => (
-                                            <SelectItem key={item.ivrmM_Id} value={item.ivrmM_Id.toString()}>
+                                            <SelectItem key={`mod-${item.ivrmM_Id}`} value={item.ivrmM_Id.toString()}>
                                                 {item.ivrmM_ModuleName}
                                             </SelectItem>
                                         ))}

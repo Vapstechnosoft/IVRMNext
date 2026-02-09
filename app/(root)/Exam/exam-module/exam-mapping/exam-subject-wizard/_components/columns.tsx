@@ -31,7 +31,6 @@ export const ExamSubjectWizardColumns: ColumnDef<IExamSubjectWizard>[] = [
     { accessorKey: 'emE_ExamName', header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Name' /> },
     { accessorKey: 'emE_ExamCode', header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Code' /> },
     { accessorKey: 'emgR_GradeName', header: ({ column }) => <DataTableColumnHeader column={column} title='Grade' /> },
-    { accessorKey: 'asmaY_Order', header: ({ column }) => <DataTableColumnHeader column={column} title='Order' /> },
     {
         accessorKey: 'eycE_BestOfApplicableFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Best Off Applicable' />,

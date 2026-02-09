@@ -7,20 +7,20 @@ import { IHallTicketGeneratedItem, IHallTicketStudentItem } from '@/types/exam/e
 
 // 1) Get Hall Ticket Generated List
 export async function getHallTicketGeneratedList(searchParams?: ApiSearchparams) {
-    const url = `hall_ticket_generation/hall_ticket_generation_list/30?${getSearchParamsUrl(searchParams ?? {})}`;
+    const url = `hall_ticket_generation/hall_ticket_generation_list/?${getSearchParamsUrl(searchParams ?? {})}`;
     const response = await api.get<IHallTicketGeneratedItem>('exam', url);
     return { ...response };
 }
 
 export async function getHallTicketStudentList(params: {
-    MI_Id: number;
+    // MI_Id: number;
     ASMAY_Id: number;
     ASMCL_Id: number;
     ASMS_Id: number;
     EME_Id: number;
 }) {
     const query = new URLSearchParams({
-        MI_Id: String(params.MI_Id),
+        // MI_Id: String(params.MI_Id),
         ASMAY_Id: String(params.ASMAY_Id),
         ASMCL_Id: String(params.ASMCL_Id),
         ASMS_Id: String(params.ASMS_Id),

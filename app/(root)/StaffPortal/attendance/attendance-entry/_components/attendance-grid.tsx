@@ -34,14 +34,17 @@ const AttendanceGrid: React.FC<AttendanceGridProps> = ({
 }) => {
 
     const handleCheckboxChange = (studentId: number, field: 'selected' | 'FirstHalfflag' | 'SecondHalfflag', checked: boolean) => {
+      //  console.log('handleCheckboxChange', studentId, field, checked);
+      
         setStudents(prev => prev.map(s =>
             s.amsT_Id === studentId ? { ...s, [field]: checked } : s
-        ));
+
+        ));    
     };
 
     const handleDaysBlur = (studentId: number, days: string) => {
-        const val = parseFloat(days);
-        if (isNaN(val)) return;
+        const val = Number.parseFloat(days);
+        if (Number.isNaN(val)) return;
 
         if (val > countClass) {
             toast.error(countClass === 0 ? 'Total Class Held Is ZERO' : 'Present Days Is More Than Class Held');

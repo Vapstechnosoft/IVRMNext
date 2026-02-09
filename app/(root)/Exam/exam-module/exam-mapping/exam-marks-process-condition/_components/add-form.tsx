@@ -63,7 +63,7 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
 
         (async () => {
             try {
-                const { data: cats } = await getCategoryDropDowByExamYearCategoryList(orgId, Number(selectedYearId));
+                const { data: cats } = await getCategoryDropDowByExamYearCategoryList(Number(selectedYearId));
                 setCategories(Array.isArray(cats) ? cats : []);
                 // reset selected category & exams
                 setValue('emcA_Id', 0);
@@ -88,7 +88,7 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
         (async () => {
             try {
                 // server helper to fetch exam list for category (I added this helper in server file)
-                const { data: ex } = await getExamsByCategoryandAcademicYear(orgId, Number(selectedYearId), Number(selectedCategoryId));
+                const { data: ex } = await getExamsByCategoryandAcademicYear(Number(selectedYearId), Number(selectedCategoryId));
                 setExams(Array.isArray(ex) ? ex : []);
                 setValue('emE_Id', 0);
             } catch (err: any) {

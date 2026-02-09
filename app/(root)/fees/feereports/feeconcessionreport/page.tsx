@@ -313,6 +313,54 @@ export default function FeeConcessionReport() {
     ];
 
     const handleSubmit = () => {
+        //      let data: any;
+        // if (filters.viewMode === "year") {
+        //   data = {
+        //     FMG_Id: filters.classId || 0,
+        //     FMGG_Id: 0, // You need to get this from your state
+        //     "FMT_Id": 0, // You need to get this from your state
+        //     "ASMAY_Id": filters.academicYearId,
+        //     "radioval": filters.breakdown, // FGW, FHW, FCW, FSW
+        //     "reporttype": filters.viewMode,
+        //     "studenttype": filters.userType,
+        //     "customflag": '0',
+        //     "groupflag": '0',
+        //     active: filters.status.active,
+        //     deactive: filters.status.deactive,
+        //     left: filters.status.deactive,
+
+        //     TempararyArrayhEADListnew1: TempararyArrayhEADListnew1,
+        //     TempararyArrayhEADListnew2: TempararyArrayhEADListnew2,
+        //     TempararyArrayhEADListnew3: TempararyArrayhEADListnew3,
+        //     FMG_Ids: FMG_Ids,
+        //     FMT_Ids: FMT_Ids,
+
+        //   };
+        // } else if (filters.viewMode === "date") {
+        //   data = {
+        //     "FMG_Id": 0,
+        //     "FMGG_Id": 0, // You need to get this from your state
+        //     "FMT_Id": 0, // You need to get this from your state
+        //       active: filters.status.active,
+        //     deactive: filters.status.deactive,
+        //     left: filters.status.deactive,
+        //     "ASMAY_Id": filters.academicYearId,
+        //     "From_Date": filters.fromDate ? new Date(filters.fromDate).toDateString() : "",
+        //     "To_Date": filters.toDate ? new Date(filters.toDate).toDateString() : "",
+        //     "radioval": filters.breakdown,
+        //     "reporttype": filters.viewMode,
+        //     "studenttype": filters.userType,
+        //     "customflag": '0',
+        //     "groupflag": '0',
+        //     TempararyArrayhEADListnew1: TempararyArrayhEADListnew1,
+        //     TempararyArrayhEADListnew2: TempararyArrayhEADListnew2,
+        //     TempararyArrayhEADListnew3: TempararyArrayhEADListnew3,
+        //     FMG_Ids: FMG_Ids,
+        //     FMT_Ids: FMT_Ids
+
+        //   };
+        // }
+
         if (filters.status.active === false && filters.status.deactive === false && filters.status.left === false) {
             setShowReport(false);
             return toast.error('Please select at least one Status Active or Deactive or Left');

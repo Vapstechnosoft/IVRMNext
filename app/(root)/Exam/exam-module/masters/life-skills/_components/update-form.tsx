@@ -34,7 +34,6 @@ export default function UpdateLifeSkillForm({ onSuccess, className = '', selecte
         mode: 'onChange',
         defaultValues: {
             ecS_Id: 0,
-            mI_Id: 30,
             ecS_SkillName: '',
             ecS_SkillCode: ''
         }
@@ -45,7 +44,6 @@ export default function UpdateLifeSkillForm({ onSuccess, className = '', selecte
         if (row) {
             reset({
                 ecS_Id: row.ecS_Id,
-                mI_Id: row.mI_Id ?? 30,
                 ecS_SkillName: row.ecS_SkillName ?? '',
                 ecS_SkillCode: row.ecS_SkillCode ?? ''
             });
@@ -56,8 +54,7 @@ export default function UpdateLifeSkillForm({ onSuccess, className = '', selecte
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
-                ...data,
-                mI_Id: 30
+                ...data
             };
 
             const response = await addOrUpdateMasterLifeSkill(payload);
@@ -80,7 +77,6 @@ export default function UpdateLifeSkillForm({ onSuccess, className = '', selecte
         if (row) {
             reset({
                 ecS_Id: row.ecS_Id,
-                mI_Id: row.mI_Id ?? 30,
                 ecS_SkillName: row.ecS_SkillName ?? '',
                 ecS_SkillCode: row.ecS_SkillCode ?? ''
             });

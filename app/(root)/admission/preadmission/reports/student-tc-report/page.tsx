@@ -52,7 +52,7 @@ export default function StudentTcReportPage(props: {
         resolver: zodResolver(StudentTcDetailsSchema),
         defaultValues: {
             ASMAY_Id: 0,
-            AllOrInd: 'all',
+            AllOrInd: 0,
             ASMCL_Id: [],
             ASMC_Id: [],
             TempararyArrayheadList: []
@@ -91,8 +91,8 @@ export default function StudentTcReportPage(props: {
     const [showTable, setShowTable] = useState(false);
     const [fieldSearch, setFieldSearch] = useState('');
 
-    const [viewMode, setViewMode] = useState<'all' | 'indi'>('all');
-    const [tcType, setTcType] = useState<'TTC' | 'PTC'>('PTC');
+    const [viewMode, setViewMode] = useState<0 | 1>(0); // 0 = All, 1 = Individual
+    const [tcType, setTcType] = useState<0 | 1>(0); // 0 = Permanent TC, 1 = Temporary TC
     const {
         data: preadmissionSection,
         isLoading: preadmissionSectionLoading,
@@ -113,9 +113,9 @@ export default function StudentTcReportPage(props: {
         const payload = {
             ASMAY_Id: academicYearId || 0,
             AllOrInd: viewMode,
-            ASMCL_Id: viewMode === 'indi' ? classId : 0,
-            ASMC_Id: viewMode === 'indi' ? statusId : 0,
-            tempararyArrayheadList: selectedFields.map((id: string) => {
+            ASMCL_Id: viewMode === 1 ? classId : 0,
+            ASMC_Id: viewMode === 1 ? statusId : 0,
+            TempararyArrayheadList: selectedFields.map((id: string) => {
                 const _field = ColumnValue.find((f) => f.columnID === id);
                 return {
                     columnID: id
@@ -154,8 +154,8 @@ export default function StudentTcReportPage(props: {
     const requestData = {
         ASMAY_Id: academicYearId,
         AllOrInd: viewMode,
-        ASMCL_Id: viewMode === 'indi' ? classId : 0,
-        ASMC_Id: viewMode === 'indi' ? statusId : 0,
+        ASMCL_Id: viewMode === 1 ? classId : 0,
+        ASMC_Id: viewMode === 1 ? statusId : 0,
         TempararyArrayheadList: [
             { columnID: 'AMST_Id' },
             { columnID: 'AMST_FirstName' },
@@ -200,8 +200,8 @@ export default function StudentTcReportPage(props: {
         setAcademicYearId(0);
         setClassId(0);
         setStatusId(0);
-        setViewMode('all');
-        setTcType('PTC');
+        setViewMode(0);
+        setTcType(0);
         handleResetSelection();
 
         // Reset URL params
@@ -248,11 +248,11 @@ export default function StudentTcReportPage(props: {
                         <Label className='mb-1 font-semibold'>View</Label>
                         <div className='flex items-center gap-4'>
                             <label className='flex items-center gap-2'>
-                                <input type='radio' name='viewMode' checked={viewMode === 'all'} onChange={() => setViewMode('all')} />
+                                <input type='radio' name='viewMode' checked={viewMode === 0} onChange={() => setViewMode(0)} />
                                 <span>All</span>
                             </label>
                             <label className='flex items-center gap-2'>
-                                <input type='radio' name='viewMode' checked={viewMode === 'indi'} onChange={() => setViewMode('indi')} />
+                                <input type='radio' name='viewMode' checked={viewMode === 1} onChange={() => setViewMode(1)} />
                                 <span>Individual</span>
                             </label>
                         </div>
@@ -290,7 +290,7 @@ export default function StudentTcReportPage(props: {
                     </div>
 
                     {/* Class & Section only when Individual selected */}
-                    {viewMode === 'indi' && (
+                    {viewMode === 1 && (
                         <>
                             <div className='flex w-full flex-col gap-2 sm:w-56'>
                                 <Label htmlFor='class' className='mb-1 font-semibold'>
@@ -368,9 +368,9 @@ export default function StudentTcReportPage(props: {
                                 <input
                                     type='radio'
                                     name='tcType'
-                                    value='TTC'
-                                    checked={tcType === 'TTC'}
-                                    onChange={() => setTcType('TTC')}
+                                    value='1'
+                                    checked={tcType === 1}
+                                    onChange={() => setTcType(1)}
                                     className='h-4 w-4'
                                 />
                                 <span>Temporary TC</span>
@@ -380,9 +380,9 @@ export default function StudentTcReportPage(props: {
                                 <input
                                     type='radio'
                                     name='tcType'
-                                    value='PTC'
-                                    checked={tcType === 'PTC'}
-                                    onChange={() => setTcType('PTC')}
+                                    value='0'
+                                    checked={tcType === 0}
+                                    onChange={() => setTcType(0)}
                                     className='h-4 w-4'
                                 />
                                 <span>Permanent TC</span>

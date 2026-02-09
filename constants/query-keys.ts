@@ -534,7 +534,11 @@ export const PORTAL_QUERY_KEYS = {
     STUDENT_FEE_DETAILS2: 'student_fee_details2',
     CUMULATIVE_FEE_ANALYSIS: 'Cumulative_Fee_Analysis',
     FEE_ONLINE_PAYMENT_STUDENT_INFO: 'fee_online_student_info',
-    FEE_ONLINE_PAYMENT_GROUP_LIST: 'fee_online_payment_group_list'
+    FEE_ONLINE_PAYMENT_GROUP_LIST: 'fee_online_payment_group_list',
+    FEE_ONLINE_PAYMENT_DETAILS: 'fee_online_payment_details',
+    FEE_ONLINE_PAYMENT_AMOUNT_DETAILS: 'fee_online_payment_amount_details',
+    FEE_ONLINE_PAYMENT_ORDER: 'fee_online_payment_order',
+    FEE_ONLINE_RAZORPAY_PAYMENT: 'fee_online_razorpay_payment'
 };
 
 export const STAFF_PORTAL_QUERY_KEYS = {
@@ -546,8 +550,17 @@ export const STAFF_PORTAL_QUERY_KEYS = {
     STAFF_NOTICE_ATTACHMENTS: 'staff_notice_attachments',
     STAFF_ATTENDANCE_ENTRY: 'staff_attendance_entry',
     STAFF_ATTENDANCE_ENTRY_INITIAL: 'staff_attendance_entry_initial',
+
+    FEE_ACADEMIC_YEARS: 'fee_academic_years',
+    FEE_STUDENT_INFORMATION: 'fee_student_information',
+     FEE_PORTAL_STUDENT_INFORMATION: 'fee_portal_student_information',
+    FEE_DETAILS: 'fee_details',
+    FEE_PAYMENT_ORDER: 'fee_payment_order',
+    FEE_RAZORPAY_PAYMENT: 'fee_razorpay_payment',
+    FEE_PAYMENT_CHARGES: 'fee_payment_charges',
     FEE_ONLINE_PAYMENT_STUDENT_INFO: 'fee_online_student_info',
     FEE_ONLINE_PAYMENT_GROUP_LIST: 'fee_online_payment_group_list'
+
 };
 
 export const COE_QUERY_KEYS = {
@@ -573,5 +586,6 @@ export const TRANSPORT_QUERY_KEYS = {
     VEHICLE_DROPDOWN: 'vehicle_dropdown',
     DRIVER_DROPDOWN: 'driver_dropdown',
     ROUTE_DROPDOWN: 'route_dropdown',
-    SESSION_DROPDOWN: 'session_dropdown'
+    SESSION_DROPDOWN: 'session_dropdown',
+    VECHILE_GRID_LIST: 'vechile_grid_list'
 };

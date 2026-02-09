@@ -4,6 +4,7 @@ import ViewReplyModal from '@/app/(root)/alumni/alumni-module/transactions/alumn
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { deleteAlumniInteraction } from '@/server/alumni/alumni-interactions';
 import type { IAlumniInteraction } from '@/types/alumni/alumni-interactions';
 import { format } from 'date-fns';
 import { Calendar, Clock, Loader2, MessageCircle, MessageSquare, Paperclip, Trash2, User, Users } from 'lucide-react';
@@ -16,13 +17,6 @@ interface InboxListProps {
     onRefresh: () => void;
 }
 
-// Mock API function
-const mockDeleteInboxMessage = async (id: number) => {
-    console.info('Deleting message:', id);
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    return { success: true, message: 'Interaction deleted successfully' };
-};
-
 export default function InboxList({ messages, userHrmeId, onRefresh }: InboxListProps) {
     const [selectedMessage, setSelectedMessage] = useState<IAlumniInteraction | null>(null);
     const [isDeleting, setIsDeleting] = useState<number | null>(null);
@@ -31,14 +25,13 @@ export default function InboxList({ messages, userHrmeId, onRefresh }: InboxList
         if (!confirm('Are you sure you want to delete this interaction?')) return;
         setIsDeleting(id);
         try {
-            const res = await mockDeleteInboxMessage(id);
+            const res = await deleteAlumniInteraction(id);
             if (res.success) {
                 toast.success('Interaction deleted');
                 onRefresh();
             } else {
                 toast.error(res.message || 'Failed to delete');
             }
-            // biome-ignore lint/correctness/noUnusedVariables: <explanation>
         } catch (error) {
             toast.error('An error occurred while deleting');
         } finally {

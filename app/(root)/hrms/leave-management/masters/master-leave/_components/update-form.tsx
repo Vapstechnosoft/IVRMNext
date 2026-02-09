@@ -5,54 +5,74 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterLeave, useMasterLeaveDropdowns, useUpdateMasterLeave } from '@/hooks/hrms/leave-management/useMasters';
+import { useMasterLeave, useUpdateMasterLeave, useMasterLeaveForEdit } from '@/hooks/hrms/leave-management/useMasters';
 import { MASTER_LEAVE_VALIDATION } from '@/lib/validation/hrms-master-validation';
-import { Save, X } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { Save, X, Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { MasterLeave } from './columns';
+
 interface UpdateMasterLeaveFormProps {
     onSuccess?: () => void;
     onCancel?: () => void;
     className?: string;
     selectedRow: MasterLeave;
 }
+
+const LEAVE_TYPE_OPTIONS = [
+    { value: 'Comp_Off', label: 'Comp Off' },
+    { value: 'LWP', label: 'LWP' },
+    { value: 'On_Duty', label: 'On Duty' },
+    { value: 'Sat_Off', label: 'Sat Off' },
+];
+
 export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className = '', selectedRow: row }: UpdateMasterLeaveFormProps) {
     const { refetchAll } = useMasterLeave();
     const { mutate: updateMasterLeave, isPending } = useUpdateMasterLeave();
-    const { data: dropdownData, isLoading: isLoadingDropdowns } = useMasterLeaveDropdowns();
-    // Extract leave type options from API
-    const leaveTypeOptions = useMemo(() => {
-        if (!dropdownData?.data?.leaveTypes || !Array.isArray(dropdownData.data.leaveTypes)) {
-            return [];
-        }
-        return dropdownData.data.leaveTypes;
-    }, [dropdownData]);
+
+    // Fetch fresh data for editing
+    const { data: editDataResponse, isLoading: isLoadingEditData } = useMasterLeaveForEdit(row.id);
+    const freshData = editDataResponse?.data;
+
+    const leaveTypeOptions = LEAVE_TYPE_OPTIONS;
+
     const {
         register,
         handleSubmit,
         control,
-        watch: _watch,
-        setValue: _setValue,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<MasterLeave>({
         mode: 'onChange'
     });
+
     useEffect(() => {
-        if (row) {
+        if (freshData) {
             reset({
-                leaveName: row.leaveName || '',
-                leaveCode: row.leaveCode || '',
-                leaveType: row.leaveType || '',
-                leaveDetails: row.leaveDetails || '',
-                leaveCredit: row.leaveCredit ?? false,
-                lateDeduct: row.lateDeduct ?? false,
-                leaveOrder: row.leaveOrder || 0,
-                isActive: row.isActive ?? true
+                leaveName: freshData.leaveName,
+                leaveCode: freshData.leaveCode,
+                leaveType: freshData.leaveType,
+                leaveDetails: freshData.leaveDetails,
+                leaveCredit: freshData.leaveCredit,
+                lateDeduct: freshData.lateDeduct,
+                probationNotApplicable: freshData.probationNotApplicable,
+                leaveApplyCriteria: freshData.leaveApplyCriteria,
+                daysForApplyCriteria: freshData.daysForApplyCriteria,
+                maxDaysForApply: freshData.maxDaysForApply,
+                leaveOrder: freshData.leaveOrder,
+                isActive: freshData.isActive
             });
         }
-    }, [row, reset]);
+    }, [freshData, reset]);
+
+    if (isLoadingEditData) {
+        return (
+            <div className='flex h-40 items-center justify-center space-x-2 text-muted-foreground'>
+                <Loader2 className='h-5 w-5 animate-spin' />
+                <span>Loading leave details...</span>
+            </div>
+        );
+    }
     const onSubmit: SubmitHandler<MasterLeave> = async (data) => {
         updateMasterLeave(
             {
@@ -102,9 +122,9 @@ export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className =
                                     <label htmlFor='leaveType' className='mb-2 block font-medium text-sm'>
                                         Leave Type <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingDropdowns}>
+                                    <Select value={field.value} onValueChange={field.onChange}>
                                         <SelectTrigger id='leaveType' className={errors.leaveType ? 'border-red-500' : ''}>
-                                            <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : 'Select Leave Type'} />
+                                            <SelectValue placeholder='Select Leave Type' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {leaveTypeOptions.length > 0 ? (
@@ -115,7 +135,7 @@ export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className =
                                                 ))
                                             ) : (
                                                 <div className='px-2 py-1.5 text-muted-foreground text-sm'>
-                                                    {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
+                                                    No options available
                                                 </div>
                                             )}
                                         </SelectContent>
@@ -164,6 +184,49 @@ export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className =
                             {...register('leaveOrder', { valueAsNumber: true })}
                             error={errors.leaveOrder?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                    </div>
+                    <div className='grid grid-cols-1 gap-4 border-t pt-4 md:grid-cols-3'>
+                        <Controller
+                            name='leaveApplyCriteria'
+                            control={control}
+                            rules={MASTER_LEAVE_VALIDATION.leaveApplyCriteria}
+                            render={({ field }) => (
+                                <div>
+                                    <label htmlFor='leaveApplyCriteria' className='mb-2 block font-medium text-sm'>
+                                        Apply Criteria <span className='text-red-500'>*</span>
+                                    </label>
+                                    <Select value={field.value} onValueChange={field.onChange}>
+                                        <SelectTrigger id='leaveApplyCriteria' className={errors.leaveApplyCriteria ? 'border-red-500' : ''}>
+                                            <SelectValue placeholder='Select Criteria' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value='Before'>Before</SelectItem>
+                                            <SelectItem value='After'>After</SelectItem>
+                                            <SelectItem value='Same Day'>Same Day</SelectItem>
+                                            <SelectItem value='Month'>Month</SelectItem>
+                                            <SelectItem value='Quarter'>Quarter</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.leaveApplyCriteria && <FormError>{errors.leaveApplyCriteria.message}</FormError>}
+                                </div>
+                            )}
+                        />
+                        <InputText
+                            label='Days for Criteria'
+                            id='daysForApplyCriteria'
+                            {...register('daysForApplyCriteria', MASTER_LEAVE_VALIDATION.daysForApplyCriteria)}
+                            error={errors.daysForApplyCriteria?.message}
+                            placeholder='Enter days'
+                            type='number'
+                        />
+                        <InputText
+                            label='Max Days for Apply'
+                            id='maxDaysForApply'
+                            {...register('maxDaysForApply', MASTER_LEAVE_VALIDATION.maxDaysForApply)}
+                            error={errors.maxDaysForApply?.message}
+                            placeholder='Enter max days'
+                            type='number'
                         />
                     </div>
                 </div>

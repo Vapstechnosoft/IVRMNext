@@ -43,7 +43,7 @@ export default function ToggleCategorySubjectMappingForm({ rowData, onClose }: T
                 toast.error('Mapping ID missing');
                 return;
             }
-            const response = await toggleYearlyCategorySubjectMapping(30, rowData.eycG_Id);
+            const response = await toggleYearlyCategorySubjectMapping(rowData.eycG_Id);
             if (response?.success) {
                 toast.success(response.message || 'Category Subject Mapping status updated successfully');
                 refetchAll();

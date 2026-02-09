@@ -35,7 +35,6 @@ export default function UpdateCoScholasticAreaForm({ onSuccess, className = '', 
         mode: 'onChange',
         defaultValues: {
             ecactA_Id: 0,
-            mI_Id: 30,
             ecactA_SkillArea: '',
             ecactA_SkillOrder: 0
         }
@@ -46,7 +45,6 @@ export default function UpdateCoScholasticAreaForm({ onSuccess, className = '', 
         if (row) {
             reset({
                 ecactA_Id: row.ecactA_Id,
-                mI_Id: row.mI_Id ?? 30,
                 ecactA_SkillArea: row.ecactA_SkillArea ?? '',
                 ecactA_SkillOrder: row.ecactA_SkillOrder ?? 0
             });
@@ -57,8 +55,7 @@ export default function UpdateCoScholasticAreaForm({ onSuccess, className = '', 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
-                ...data,
-                mI_Id: 30
+                ...data
             };
 
             const response = await addOrUpdatecoScholasticArea(payload);
@@ -81,7 +78,6 @@ export default function UpdateCoScholasticAreaForm({ onSuccess, className = '', 
         if (row) {
             reset({
                 ecactA_Id: row.ecactA_Id,
-                mI_Id: row.mI_Id ?? 30,
                 ecactA_SkillArea: row.ecactA_SkillArea ?? '',
                 ecactA_SkillOrder: row.ecactA_SkillOrder ?? 0
             });

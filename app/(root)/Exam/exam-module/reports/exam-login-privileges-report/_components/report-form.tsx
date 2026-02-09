@@ -69,7 +69,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         const fetchCategories = async () => {
             setLoadingCategories(true);
             try {
-                const { data: cats } = await getCategoryDropDownByAcademicYearlist(30, Number(watchYear));
+                const { data: cats } = await getCategoryDropDownByAcademicYearlist(Number(watchYear));
                 const categoryList = Array.isArray(cats) ? cats : [];
                 setCategories(categoryList);
 
@@ -169,6 +169,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
             const response = await getExamLoginPrivilagesReport(payload);
 
             if (response.success) {
+                console.log(response.data);
                 onReportGenerated(response.data);
             } else {
                 toast.error(response.message ?? 'Failed to generate report');

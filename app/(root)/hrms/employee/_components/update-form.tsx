@@ -359,9 +359,32 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
 
     // Specialization dropdown - API: /api/MasterDropDown/GetSpecialisationList
     const { data: specializationDropdownResponse, isLoading: isLoadingSpecializations } = useSpecializationDropdown();
-    const specializationDropdown: ISpecializationDropdown[] = useMemo(() =>
-        Array.isArray(specializationDropdownResponse) ? specializationDropdownResponse : (specializationDropdownResponse as any)?.data || [],
-        [specializationDropdownResponse]);
+    const specializationDropdown: ISpecializationDropdown[] = useMemo(() => {
+        const rawData = Array.isArray(specializationDropdownResponse) ? specializationDropdownResponse : (specializationDropdownResponse as any)?.data || [];
+        console.log('🔍 [DEBUG] Specialization Raw Data:', rawData);
+        return rawData
+            .map((item: any) => {
+                if (item.key !== undefined && item.value !== undefined) return item;
+                if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Specialization Item:', item);
+                return {
+                    key: String(item.hrmspL_Id ?? item.HRMSPL_Id ?? item.hrmS_Id ?? item.HRMS_Id ?? item.id ?? item.key ?? ''),
+                    value: String(
+                        item.hrmspL_SpecialisationName ??
+                        item.HRMSPL_SpecialisationName ??
+                        item.hrmS_SpecialisationName ??
+                        item.HRMS_SpecialisationName ??
+                        item.masterSpecialisationName ??
+                        item.specialisationName ??
+                        item.specializationName ??
+                        item.name ??
+                        item.value ??
+                        item.label ??
+                        'Unknown'
+                    )
+                };
+            })
+            .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
+    }, [specializationDropdownResponse]);
 
     // Leave Reason dropdown - API: /api/MasterDropDown/GetLeaveReasonList
     const { data: leaveReasonDropdownResponse, isLoading: isLoadingLeaveReasons } = useLeaveReasonDropdown();
@@ -401,9 +424,28 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
 
     // Course dropdown - API: /api/MasterDropDown/GetCourseList
     const { data: courseDropdownResponse, isLoading: isLoadingCourses } = useCourseDropdown();
-    const courseDropdown: ICourseDropdown[] = Array.isArray(courseDropdownResponse)
-        ? courseDropdownResponse
-        : (courseDropdownResponse as any)?.data || [];
+    const courseDropdown: ICourseDropdown[] = useMemo(() => {
+        const rawData = Array.isArray(courseDropdownResponse) ? courseDropdownResponse : (courseDropdownResponse as any)?.data || [];
+        console.log('🔍 [DEBUG] Course Raw Data:', rawData);
+        return rawData
+            .map((item: any) => {
+                if (item.key !== undefined && item.value !== undefined) return item;
+                if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Course Item:', item);
+                return {
+                    key: String(item.hrmC_Id ?? item.HRMC_Id ?? item.courseId ?? item.id ?? item.key ?? ''),
+                    value: String(
+                        item.hrmC_CourseName ??
+                        item.HRMC_CourseName ??
+                        item.courseName ??
+                        item.name ??
+                        item.value ??
+                        item.label ??
+                        'Unknown'
+                    )
+                };
+            })
+            .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
+    }, [courseDropdownResponse]);
 
 
 
@@ -745,7 +787,16 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 };
 
                 // Extract and show first error message
-                const errorMessage = extractErrorMessage(formErrors);
+                const errorMessages: string[] = [];
+                currentTabFields.forEach((field) => {
+                    const fieldError = (formErrors as any)[field];
+                    if (fieldError) {
+                        const msg = typeof fieldError === 'string' ? fieldError : fieldError?.message;
+                        if (msg) errorMessages.push(msg);
+                    }
+                });
+
+                const errorMessage = errorMessages.length > 0 ? errorMessages[0] : extractErrorMessage(formErrors);
                 if (errorMessage) {
                     toast.error(errorMessage);
                 } else {
@@ -1709,23 +1760,27 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             return;
         }
 
+        const currentStepId = currentStep;
+
+        // If we are not on the last step, delegate to nextStep
+        if (currentStepId < steps.length) {
+            await nextStep();
+            return;
+        }
+
         const currentTabKey = getCurrentTabKey();
         const currentTabFields = tabFieldMap[currentTabKey] || [];
 
         if (currentTabFields.length > 0) {
-            // Trigger full validation to run object-level refinements (like bank detail requirements)
-            // but we still only filter and show errors for the current tab.
-            const isValid = await trigger();
+            const isValid = await trigger(currentTabFields as any);
             if (!isValid) {
                 const formErrors = formState.errors;
                 const errorMessages: string[] = [];
                 currentTabFields.forEach((field) => {
-                    const fieldError = formErrors[field as keyof typeof formErrors];
+                    const fieldError = (formErrors as any)[field];
                     if (fieldError) {
-                        const errorMsg = typeof fieldError === 'string' ? fieldError : fieldError?.message;
-                        if (errorMsg) {
-                            errorMessages.push(errorMsg);
-                        }
+                        const msg = typeof fieldError === 'string' ? fieldError : fieldError?.message;
+                        if (msg) errorMessages.push(msg);
                     }
                 });
                 if (errorMessages.length > 0) {
@@ -1735,429 +1790,16 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             }
         }
 
-        const data = getValues();
-        const currentStepId = currentStep;
-
-        // Apply robust payment mode fix to ensure the name is sent to API and bank details are cleared for non-Bank modes
-        const fixPaymentMode = (p: any) => {
-            const paymentModeObj = (options.modeOfPayment as any[])?.find((m: any) =>
-                String(m.key || m.ivrmmod_Id || '') === String(data.modeOfPayment) ||
-                String(m.value || m.ivrmmod_ModeOfPayment || '').toLowerCase() === String(data.modeOfPayment).toLowerCase()
-            );
-            const paymentModeName = paymentModeObj?.value || paymentModeObj?.ivrmmod_ModeOfPayment || data.modeOfPayment;
-
-            if (p.employee) {
-                p.employee.hrmE_PaymentType = paymentModeName;
-            }
-
-            if (paymentModeName && String(paymentModeName).toLowerCase() !== 'bank') {
-                if (p.employee) {
-                    p.employee.hrmE_BankAccountNo = "";
-                }
-                // Ensure bankRequest is passed with empty array as requested by user
-                p.bankRequest = {
-                    mI_Id: p.employee?.mI_Id || 30,
-                    hrmE_Id: p.employee?.hrmE_Id || savedEmployeeId || 0,
-                    bankDetails: []
-                };
-            }
-            return p;
-        };
-
         try {
-            if (currentStepId === 1) {
-                // Employee tab - save without address
-                const rawPayload = mapFormDataToApiFormatWithoutAddressLocal(data);
-
-                // IMPORTANT: The rawPayload now contains { employee: {...}, bankRequest: {...} }
-                // We need to merge any manual overrides into the 'employee' object
-                const payload = {
-                    ...rawPayload,
-                    employee: {
-                        ...rawPayload.employee,
-                        hrmE_EmployeeFirstName: rawPayload.employee.hrmE_EmployeeFirstName ?? '',
-                        hrmE_EmployeeMiddleName: rawPayload.employee.hrmE_EmployeeMiddleName ?? '',
-                        hrmE_EmployeeLastName: rawPayload.employee.hrmE_EmployeeLastName ?? '',
-                        hrmE_EmployeeCode: rawPayload.employee.hrmE_EmployeeCode ?? '',
-                        hrmE_FatherName: rawPayload.employee.hrmE_FatherName ?? '',
-                        hrmE_MotherName: rawPayload.employee.hrmE_MotherName ?? '',
-                        hrmE_BloodGroup: rawPayload.employee.hrmE_BloodGroup ?? '',
-                        hrmE_SalaryType: rawPayload.employee.hrmE_SalaryType ?? '',
-                        hrmE_MobileNo: rawPayload.employee.hrmE_MobileNo ?? '',
-                        hrmE_EmailId: rawPayload.employee.hrmE_EmailId ?? '',
-                        hrmE_PANCardNo: rawPayload.employee.hrmE_PANCardNo ?? '',
-                        hrmE_NationalSSN: rawPayload.employee.hrmE_NationalSSN ?? '',
-                        hrmE_Id: savedEmployeeId || (data as any).hrmE_Id || 0
-                    }
-                };
-
-
-
-                console.log('🔍 [API DEBUG] Tab 1 (Employee + Bank) - Submitting Combined Payload:', payload);
-
-                savePersonalDetails(fixPaymentMode(payload) as any, {
-                    onSuccess: (response: any) => {
-                        console.log('✅ [API DEBUG] Tab 1 (Employee) - Save Success Response:', response);
-                        if (response?.success) {
-                            if (response.message) toast.success(response.message);
-                            const employeeId = response?.data?.HRME_Id || response?.HRME_Id || response?.data?.hrmE_Id || response?.hrmE_Id || savedEmployeeId || 0;
-                            if (employeeId) {
-                                setSavedEmployeeId(employeeId);
-
-                                // FORCE DATA REFRESH:
-                                // Reset this ref so that when the invalidation triggers a refetch,
-                                // the useEffect in update-form will re-bind the fresh data (including new bank details) to the form.
-                                hasAppliedDetailedData.current = false;
-                                console.log('🔄 [API DEBUG] Reset hasAppliedDetailedData to force re-bind of fresh data');
-
-                                // Move to next step immediately
-                                setCurrentStep(2);
-
-                            } else {
-                                toast.error('Failed to get employee ID from response');
-                            }
-                        } else {
-                            console.warn('⚠️ [API DEBUG] Tab 1 (Employee) - API returned success: false', response);
-                            toast.error(response?.message || 'Failed to save employee details');
-                        }
-                    },
-                    onError: (error: any) => {
-                        // Show API error message
-                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save employee details';
-                        toast.error(errorMessage);
-                    }
-                });
-            } else if (currentStepId === 2) {
-                // Address tab
-                if (!savedEmployeeId) {
-                    toast.error('Please save Employee details first');
-                    setCurrentStep(1);
-                    return;
-                }
-                const rawPayload = mapFormDataToApiFormatLocal(data);
-                // rawPayload is { employee: {...}, bankRequest: {...} }
-                // Verify rawPayload.employee exists
-                if (!rawPayload.employee) {
-                    console.error("❌ [API DEBUG] Payload missing employee object", rawPayload);
-                    toast.error("Form data mapping failed");
-                    return;
-                }
-
-                const payload: any = {
-                    ...rawPayload,
-                    // Ensure we are updating the employee object
-                    employee: {
-                        ...rawPayload.employee,
-                        hrmE_EmployeeFirstName: rawPayload.employee.hrmE_EmployeeFirstName ?? '',
-                        hrmE_EmployeeMiddleName: rawPayload.employee.hrmE_EmployeeMiddleName ?? '',
-                        hrmE_EmployeeLastName: rawPayload.employee.hrmE_EmployeeLastName ?? '',
-                        hrmE_EmployeeCode: rawPayload.employee.hrmE_EmployeeCode ?? '',
-                        hrmE_FatherName: rawPayload.employee.hrmE_FatherName ?? '',
-                        hrmE_MotherName: rawPayload.employee.hrmE_MotherName ?? '',
-                        hrmE_BloodGroup: rawPayload.employee.hrmE_BloodGroup ?? '',
-                        hrmE_SalaryType: rawPayload.employee.hrmE_SalaryType ?? '',
-                        hrmE_MobileNo: rawPayload.employee.hrmE_MobileNo ?? '',
-                        hrmE_EmailId: rawPayload.employee.hrmE_EmailId ?? '',
-                        hrmE_PANCardNo: rawPayload.employee.hrmE_PANCardNo ?? '',
-                        hrmE_NationalSSN: rawPayload.employee.hrmE_NationalSSN ?? '',
-                        hrmE_Id: savedEmployeeId
-                    }
-                };
-                savePersonalDetails(fixPaymentMode(payload), {
-                    onSuccess: (response: any) => {
-                        console.log('✅ [API DEBUG] Tab 2 (Address) - Save Success Response:', response);
-                        if (response?.success) {
-                            if (response.message) toast.success(response.message);
-                            setCurrentStep(3);
-                        } else {
-                            console.warn('⚠️ [API DEBUG] Tab 2 (Address) - API returned success: false', response);
-                            toast.error(response?.message || 'Failed to save address details');
-                        }
-                    },
-                    onError: (error: any) => {
-                        // Show API error message
-                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save address details';
-                        toast.error(errorMessage);
-                    }
-                });
-            } else if (currentStepId === 3) {
-                // Qualification tab
-                if (!savedEmployeeId) {
-                    toast.error('Please save Employee and Address details first');
-                    setCurrentStep(1);
-                    return;
-                }
-                const qualificationList = data.qualificationDetails || [];
-                if (qualificationList.length === 0) {
-                    setError('qualificationDetails', {
-                        type: 'required',
-                        message: 'Please add at least one qualification'
-                    });
-                    return;
-                }
-
-                console.log('🔍 [DEBUG] Qualification List Count:', qualificationList.length);
-                console.log('🔍 [DEBUG] Qualification List:', qualificationList);
-                console.log(
-                    '🔍 [DEBUG] Qualification IDs Check:',
-                    qualificationList.map((q: any, i: number) => ({
-                        index: i,
-                        hrmeQ_Id: q.hrmeQ_Id,
-                        HRMEQ_Id: q.HRMEQ_Id,
-                        hasId: !!(q.hrmeQ_Id || q.HRMEQ_Id)
-                    }))
-                );
-
-                // Map qualification data to new API format
-                const qualificationsPayload = qualificationList.map((qual: any, index: number) => {
-                    const id = qual.hrmeQ_Id || qual.HRMEQ_Id || 0; // Check both cases
-                    console.log(`🔍 [DEBUG] Qualification #${index + 1} - ID from form:`, id, 'Full qual:', qual);
-                    return {
-                        hrmeQ_Id: id, // Use existing ID if updating, 0 for new
-                        hrmC_Id: Number(qual.course) || 0,
-                        hrmE_Id: savedEmployeeId,
-                        mI_Id: 30, // Default MI_Id
-                        MI_Id: 30, // PascalCase fallback
-                        hrmE_QualificationName: qual.qualification || '',
-                        hrmeQ_CollegeName: qual.college || '',
-                        hrmeQ_UniversityName: qual.university || '',
-                        hrmeQ_YearOfPassing: Number(qual.yearOfPassing) || 0,
-                        hrmeQ_RegistrationNo: qual.registrationNo || '',
-                        hrmeQ_Result: qual.result || '',
-                        hrmeQ_CGPAOrPerFlag: qual.cgpaOrPercentage || 'CGPA',
-                        hrmeQ_CGPA: qual.cgpaOrPercentage === 'CGPA' ? qual.cgpa || '' : '',
-                        hrmeQ_Percentage: qual.cgpaOrPercentage === 'Percentage' ? qual.cgpa || '' : '',
-                        hrmeQ_AreaOfSpecialisation: qual.areaOfSpecialisation || qual.specialisation || '',
-                        hrmeQ_PHDFlg: qual.phdFlag || false,
-                        hrmeQ_StateId: Number(qual.qualificationState) || 0,
-                        hrmeQ_CountryId: Number(qual.qualificationCountry) || 0,
-                        hrmeQ_ThesisTitle: qual.thesisTitle || '',
-                        hrmeQ_RegistrationYear: Number(qual.registrationYear) || 0,
-                        hrmeQ_GuideName: qual.guideName || '',
-                        hrmeQ_Date: qual.qualifiedDate ? new Date(qual.qualifiedDate).toISOString() : null,
-                        hrmeQ_MedicalCouncil: qual.medicalCouncil || '',
-                        hrmeQ_Hardcopy: qual.hardcopy || '',
-                        retrunMsg: ''
-                    };
-                });
-
-                console.log('🔍 [DEBUG] Qualification Payload Count:', qualificationsPayload.length);
-                console.log('🔍 [DEBUG] Qualification Payload:', qualificationsPayload);
-                console.log('🔍 [DEBUG] Employee ID:', savedEmployeeId);
-                console.log('🔍 [DEBUG] Calling saveQualificationDetails ONCE with array of', qualificationsPayload.length, 'items');
-                console.log('🔍 [DEBUG] isSavingQualification:', isSavingQualification);
-
-                if (isSavingQualification) {
-                    console.warn('⚠️ [DEBUG] Already saving qualification, ignoring duplicate call');
-                    return;
-                }
-
-                // Ensure we only call the API once with the entire array
-                saveQualificationDetails(qualificationsPayload, {
-                    onSuccess: (response: any) => {
-                        console.log('✅ [DEBUG] Qualification Save Success:', response);
-                        // Show API response message
-                        if (response?.success && response?.message) {
-                            toast.success(response.message);
-                        } else if (response?.message) {
-                            toast.info(response.message);
-                        }
-                        setCurrentStep(4);
-                    },
-                    onError: (error: any) => {
-                        console.error('❌ [DEBUG] Qualification Save Error:', error);
-                        // Show API error message
-                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save qualification details';
-                        toast.error(errorMessage);
-                    }
-                });
-            } else if (currentStepId === 4) {
-                // Experience tab - save experience details
-                console.log('🔍 [DEBUG] Tab 4 (Experience) - Condition check: currentStepId === 4', currentStepId === 4);
-                console.log('🔍 [DEBUG] Tab 4 (Experience) - Starting save process');
-                console.log('🔍 [DEBUG] Tab 4 (Experience) - Employee ID:', savedEmployeeId);
-                console.log('🔍 [DEBUG] Tab 4 (Experience) - Current Step ID:', currentStepId);
-                console.log('🔍 [DEBUG] Tab 4 (Experience) - Type of currentStepId:', typeof currentStepId);
-
-                if (!savedEmployeeId) {
-                    console.error('❌ [DEBUG] Tab 4 - No employee ID found');
-                    toast.error('Please save Employee and Address details first');
-                    setCurrentStep(1);
-                    return;
-                }
-
-                const experienceList = data.experienceDetails || [];
-                console.log('🔍 [DEBUG] Tab 4 (Experience) - Form Data:', data);
-                console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience List (Raw):', experienceList);
-                console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience Count:', experienceList.length);
-
-                if (experienceList.length === 0) {
-                    console.error('❌ [DEBUG] Tab 4 - No experiences found');
-                    setError('experienceDetails', {
-                        type: 'required',
-                        message: 'Please add at least one experience'
-                    });
-                    return;
-                }
-
-                // Map experience data to API format (matching API request body format)
-                console.log(
-                    '🔍 [DEBUG] Experience IDs Check:',
-                    experienceList.map((e: any, i: number) => ({
-                        index: i,
-                        hrmeE_Id: e.hrmeE_Id,
-                        HRMEE_Id: e.HRMEE_Id,
-                        hasId: !!(e.hrmeE_Id || e.HRMEE_Id)
-                    }))
-                );
-                const experiencesPayload = experienceList.map((exp: any, index: number) => {
-                    const id = exp.hrmeE_Id || exp.HRMEE_Id || 0; // Check both cases
-                    console.log(`🔍 [DEBUG] Experience #${index + 1} - ID from form:`, id, 'Full exp:', exp);
-                    const mapped = {
-                        hrmeE_Id: id, // Use existing ID if updating, 0 for new
-                        hrmE_Id: savedEmployeeId,
-                        mI_Id: 30, // Default MI_Id
-                        MI_Id: 30, // PascalCase fallback
-                        hrmeE_OrganisationName: exp.organisationName || '',
-                        hrmeE_OrganisationAddress: exp.organisationAddress || '',
-                        hrmeE_Department: exp.department || '',
-                        hrmeE_Designation: exp.designation || '',
-                        hrmeE_JoinDate: exp.joinDate ? new Date(exp.joinDate).toISOString() : '',
-                        hrmeE_ExitDate: exp.exitDate ? new Date(exp.exitDate).toISOString() : '',
-                        hrmeE_NoOfYears: Number(exp.noOfYears) || 0,
-                        hrmeE_NoOfMonths: Number(exp.noOfMonths) || 0,
-                        hrmeE_AnnualSalary: Number(exp.annualSalary) || 0,
-                        hrmeE_ReasonForLeaving: exp.reasonForLeaving || ''
-                    };
-                    console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Mapping:`, {
-                        raw: exp,
-                        mapped: mapped
-                    });
-                    return mapped;
-                });
-
-                console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload Count:', experiencesPayload.length);
-                console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload:', experiencesPayload);
-                console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload (JSON):', JSON.stringify(experiencesPayload, null, 2));
-                console.log(
-                    '🔍 [DEBUG] Tab 4 (Experience) - Calling saveExperienceDetails ONCE with array of',
-                    experiencesPayload.length,
-                    'items'
-                );
-                console.log('🔍 [DEBUG] Tab 4 (Experience) - saveExperienceDetails function type:', typeof saveExperienceDetails);
-                console.log('🔍 [DEBUG] Tab 4 (Experience) - isSavingExperience:', isSavingExperience);
-
-                if (!saveExperienceDetails) {
-                    console.error('❌ [DEBUG] Tab 4 - saveExperienceDetails is not defined!');
-                    toast.error('Experience save function is not available. Please refresh the page.');
-                    return;
-                }
-
-                if (isSavingExperience) {
-                    console.warn('⚠️ [DEBUG] Tab 4 - Already saving experience, ignoring duplicate call');
-                    return;
-                }
-
-                // Ensure we only call the API once with the entire array
-                saveExperienceDetails(experiencesPayload, {
-                    onSuccess: (response: any) => {
-                        console.log('✅ [DEBUG] Tab 4 (Experience) - Save Success:', response);
-                        console.log('🔍 [DEBUG] Tab 4 - Full API Response:', JSON.stringify(response, null, 2));
-                        console.log('🔍 [DEBUG] Tab 4 - Response Success:', response?.success);
-                        console.log('🔍 [DEBUG] Tab 4 - Response Message:', response?.message);
-                        console.log('🔍 [DEBUG] Tab 4 - Response Data:', response?.data);
-
-                        // Verify experience data was saved
-                        if (response?.data && Array.isArray(response.data)) {
-                            console.log('🔍 [DEBUG] Tab 4 - Response contains experience array, length:', response.data.length);
-                            console.log('🔍 [DEBUG] Tab 4 - Response Experiences:', response.data);
-                        }
-
-                        // Show API response message
-                        if (response?.success && response?.message) {
-                            toast.success(response.message);
-                        } else if (response?.message) {
-                            toast.info(response.message);
-                        } else if (response?.success === false) {
-                            console.warn('⚠️ [DEBUG] Tab 4 - API returned success: false');
-                            toast.warning('Experience saved but API returned success: false. Please verify the data was saved.');
-                        }
-
-                        setCurrentStep(5);
-                    },
-                    onError: (error: any) => {
-                        console.error('❌ [DEBUG] Tab 4 (Experience) - Save Error:', error);
-                        console.error('❌ [DEBUG] Tab 4 - Error Details:', JSON.stringify(error, null, 2));
-                        console.error('❌ [DEBUG] Tab 4 - Error Response:', error?.response);
-                        console.error('❌ [DEBUG] Tab 4 - Error Message:', error?.message);
-                        // Show API error message
-                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save experience details';
-                        toast.error(errorMessage);
-                    }
-                });
-            } else if (currentStepId === 5) {
-                // Document tab
-                await handleDocumentSave();
-                if (savedEmployeeId) setCurrentStep(6); // Move to next step if saved logic doesn't do it (it does do it in onSuccess, but double check)
-            } else if (currentStepId === 6) {
-                // Medical tab
-                if (!savedEmployeeId) {
-                    toast.error('Please save Employee and Address details first');
-                    setCurrentStep(1);
-                    return;
-                }
-                const payload = mapFormDataToPascalCaseLocal(data);
-
-                saveMedicalDetails(payload, {
-                    onSuccess: (response: any) => {
-                        // Show API response message
-                        if (response?.success && response?.message) {
-                            toast.success(response.message);
-                        } else if (response?.message) {
-                            toast.info(response.message);
-                        }
-                        setCurrentStep(7);
-                    },
-                    onError: (error: any) => {
-                        // Show API error message
-                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save medical details';
-                        toast.error(errorMessage);
-                    }
-                });
-            } else if (currentStepId === 7) {
-                // Other details tab
-                if (!savedEmployeeId) {
-                    toast.error('Please save Employee and Address details first');
-                    setCurrentStep(1);
-                    return;
-                }
-                const payload = mapFormDataToPascalCaseLocal(data);
-
-                saveOtherDetails(payload, {
-                    onSuccess: (response: any) => {
-                        // Show API response message
-                        if (response?.success && response?.message) {
-                            toast.success(response.message);
-                        } else if (response?.message) {
-                            toast.info(response.message);
-                        }
-                        setCurrentStep(8);
-                    },
-                    onError: (error: any) => {
-                        // Show API error message
-                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save other details';
-                        toast.error(errorMessage);
-                    }
-                });
-            } else if (currentStepId === 8) {
+            if (currentStepId === 8) {
                 // Payroll tab - handled by PayrollTab component
-                toast.success('Employee update completed!');
+                toast.success('Employee update completed successfully!');
                 if (onSuccess) {
                     onSuccess();
                 }
             }
         } catch (error: any) {
-            toast.error(error.message || 'An error occurred');
+            toast.error(error.message || 'An error occurred during update');
         }
     };
 
@@ -2167,10 +1809,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             setPhotoFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {
-                const base64 = reader.result as string;
-                setSelectedPhoto(base64);
-                // Synchronize with form state for validation
-                setValue('employeePhoto', base64, { shouldValidate: true, shouldDirty: true });
+                const base64String = reader.result as string;
+                setSelectedPhoto(base64String);
+                setValue('employeePhoto', base64String, { shouldValidate: true, shouldDirty: true });
+                // Explicitly trigger validation to clear any "required" error
                 trigger('employeePhoto');
             };
             reader.readAsDataURL(file);
@@ -5431,6 +5073,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                             </span>
                                                                         )}
                                                                     </div>
+                                                                    {errors.documentList?.[index]?.document?.message && (
+                                                                        <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                            {String(errors.documentList?.[index]?.document?.message)}
+                                                                        </div>
+                                                                    )}
                                                                 </div>
                                                             </div>
                                                         </div>

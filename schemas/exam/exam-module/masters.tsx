@@ -10,7 +10,7 @@ export const masterSubjectSchema = {
     addOrUpdate: z
         .object({
             ismS_Id: z.number().int({ message: 'Subject Id is required' }).optional(),
-            mI_Id: z.number().int({ message: 'MI ID is required' }).optional(),
+            mI_Id: z.number().int().optional(),
             ismS_IVRSSubjectName: createExamCustomStringSchema('IVRS Subject Name', 1, 100),
             ismS_SubjectCode: createStringSchema('Subject Code', 1, 50),
             ismS_SubjectNameNew: createExamCustomStringSchema('Subject Type / New Name', 1, 50),
@@ -33,7 +33,7 @@ export const masterSubjectSchema = {
 export const masterExamSchema = {
     addOrUpdate: z.object({
         emE_Id: z.number().optional(),
-        mI_Id: z.number(),
+        mI_Id: z.number().optional(),
         emE_ExamName: createExamCustomStringSchema('Exam Name', 1, 100),
         emE_ExamCode: z.string().min(1, { message: 'Exam Code is required' }),
         emE_ExamDescription: createExamCustomStringSchema('Exam Description', 1, 100),
@@ -68,7 +68,7 @@ export const masterExamPaperSchema = {
 export const masterSubExamSchema = {
     addOrUpdate: z.object({
         emsE_Id: z.number().int({ message: 'Sub Exam Id is required' }).optional(),
-        mI_Id: z.number().int({ message: 'Institute ID is required' }),
+        mI_Id: z.number().int().optional(),
         emsE_SubExamName: createExamCustomStringSchema('Sub Exam Name', 1, 100),
         emsE_SubExamCode: createExamCustomStringSchema('Sub Exam Code', 1, 50)
     }),
@@ -80,7 +80,7 @@ export const masterSubExamSchema = {
 export const masterSubSubjectSchema = {
     addOrUpdate: z.object({
         emsS_Id: z.number().int().optional(), // optional for new entries
-        mI_Id: z.number().int({ message: 'Master ID is required' }), // required master ID
+        mI_Id: z.number().int().optional(),
         emsS_SubSubjectName: createExamCustomStringSchema('Sub Subject Name', 1, 100),
         emsS_SubSubjectCode: createExamCustomStringSchema('Sub Subject Code', 1, 50),
         emsS_Order: z.number().int().optional(), // backend can handle default
@@ -270,7 +270,7 @@ export const masterCategorySchema = {
 export const categoryClassMappingSchema = {
     addOrUpdate: z.object({
         emcA_Id: z.number().min(1, { message: 'Category is required' }),
-        mI_Id: z.number().min(1, { message: 'MI Id is required' }),
+        mI_Id: z.number().optional(),
         ecaC_Id: z.number().optional().default(0),
         asmaY_Id: z.number().min(1, { message: 'Academic Year is required' }),
         asmcL_Id: z.number().optional().default(0),
@@ -287,7 +287,7 @@ export const categoryClassMappingSchema = {
 export const coScholasticActivitySchema = {
     addOrUpdate: z.object({
         ecacT_Id: z.number().optional(),
-        mI_Id: z.number(),
+        mI_Id: z.number().optional(),
         ecacT_SkillName: createExamCustomStringSchema('Co-Scholastic Activity Name', 1, 100),
         ecacT_SkillCode: createExamCustomStringSchema('Co-Scholastic Activity Code', 1, 100),
     }),
@@ -298,7 +298,7 @@ export const coScholasticActivitySchema = {
 export const coScholasticAreaSchema = {
     addOrUpdate: z.object({
         ecactA_Id: z.number().optional(),
-        mI_Id: z.number(),
+        mI_Id: z.number().optional(),
         ecactA_SkillArea: createExamCustomStringSchema('Co-Scholastic Area Name', 1, 100),
         ecactA_SkillOrder: z.coerce.number().min(1, { message: 'Co-Scholastic Area Order is required' })
     }),
@@ -310,7 +310,7 @@ export const coScholasticAreaSchema = {
 export const masterLifeSkillSchema = {
     addOrUpdate: z.object({
         ecS_Id: z.number().int({ message: 'Life Skill ID is required' }).optional(),
-        mI_Id: z.number().int({ message: 'MI ID is required' }).optional(),
+        mI_Id: z.number().int().optional(),
         ecS_SkillName: createExamCustomStringSchema('Life Skill Name', 1, 100),
         ecS_SkillCode: createExamCustomStringSchema('Life Skill Code', 1, 50),
         ecS_ActiveFlag: z.boolean({ required_error: 'Active Flag is required' }).default(true)
@@ -324,7 +324,7 @@ export const masterLifeSkillSchema = {
 export const lifeSkillAreaSchema = {
     addOrUpdate: z.object({
         ecS_Id: z.number().default(0),
-        mI_Id: z.number().default(30),
+        mI_Id: z.number().optional(),
         ecS_SkillName: createExamCustomStringSchema('Life Skill Area Name', 1, 100),
         ecS_SkillCode: createExamCustomStringSchema('Life Skill Area Code', 1, 50),
 
@@ -344,7 +344,7 @@ export const lifeSkillAreaSchema = {
             z.object({
                 ecsaM_Id: z.number().default(0),
                 asmaY_Id: z.number().default(0),
-                mI_Id: z.number().default(30),
+                mI_Id: z.number().optional(),
                 ecS_Id: z.number().default(0),
                 ecsA_Id: z.number().default(0),
                 ecsaM_IndicatorDescription: z.string().optional().default(''),
@@ -361,7 +361,7 @@ export const lifeSkillAreaSchema = {
 export const lifeSkillAreaMappingSchema = {
     addOrUpdate: z.object({
         ecS_Id: z.number().default(0),
-        mI_Id: z.number().default(30),
+        mI_Id: z.number().optional(),
         ecS_SkillName: createExamCustomStringSchema('Skill Name', 1, 100),
         ecS_SkillCode: createStringSchema('Skill Code', 1, 50),
 
@@ -386,7 +386,7 @@ export const lifeSkillAreaMappingSchema = {
                 z.object({
                     ecsaM_Id: z.number().default(0),
                     asmaY_Id: z.number({ required_error: 'Academic Year is required' }).int({ message: 'Academic Year must be integer' }),
-                    mI_Id: z.number({ required_error: 'MI ID is required' }).int(),
+                    mI_Id: z.number().optional(),
                     ecS_Id: z.number({ required_error: 'Life Skill ID is required' }).int(),
                     ecsA_Id: z.number({ required_error: 'Skill Area ID is required' }).int(),
                     ecsaM_IndicatorDescription: createExamCustomStringSchema('Indicator Description', 1, 300),

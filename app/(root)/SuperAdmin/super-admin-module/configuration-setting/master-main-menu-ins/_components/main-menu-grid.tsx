@@ -106,7 +106,7 @@ export default function MainMenuGrid({ data: initialData, onDelete, onOrder, onC
                                 </thead>
                                 <tbody>
                                     {paginatedData.map((item, index) => (
-                                        <tr key={item.ivrmmmI_Id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                        <tr key={`main-${item.ivrmmmI_Id}`} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                                             <td className="p-2 border text-center">{startIndex + index + 1}</td>
                                             <td className="p-2 border text-center">{item.mI_Name}</td>
                                             <td className="p-2 border text-center">{item.modulename}</td>

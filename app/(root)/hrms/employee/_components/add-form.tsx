@@ -703,10 +703,37 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             console.log('🔍 [DEBUG] nextStep - Validation result:', isValid);
             if (!isValid) {
                 console.error('❌ [DEBUG] nextStep - Validation failed, not proceeding');
-                const formErrors = getValues();
-                console.error('❌ [DEBUG] nextStep - Form errors:', errors);
-                toast.error('Please fix the validation errors before proceeding');
+                const formErrors = formState.errors;
+                const errorMessages: string[] = [];
+                currentTabFields.forEach((field) => {
+                    const fieldError = formErrors[field as keyof typeof formErrors];
+                    if (fieldError) {
+                        const errorMsg = typeof fieldError === 'string' ? fieldError : (fieldError as any)?.message;
+                        if (errorMsg) {
+                            errorMessages.push(errorMsg);
+                        }
+                    }
+                });
+
+                if (errorMessages.length > 0) {
+                    toast.error(errorMessages[0]);
+                } else {
+                    toast.error('Please fix the validation errors before proceeding');
+                }
                 return;
+            }
+
+            // Manual check for employee photo if it's in the current tab as requested in implementation plan
+            if (currentTabKey === 'employee') {
+                const photoValue = getValues('employeePhoto');
+                if (!photoValue || photoValue.trim() === '') {
+                    setError('employeePhoto', {
+                        type: 'manual',
+                        message: 'Employee Photo Required'
+                    });
+                    toast.error('Employee Photo Required');
+                    return;
+                }
             }
         }
 
@@ -1789,25 +1816,31 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     });
 
 
-    // Custom submit handler
+    // Custom submit handler - now only handles the final step or redirects to nextStep
     const onFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         e.stopPropagation();
+
+        const currentStepId = currentStep;
+
+        // If we are not on the last step, delegate to nextStep
+        if (currentStepId < steps.length) {
+            await nextStep();
+            return;
+        }
 
         const currentTabKey = getCurrentTabKey();
         const currentTabFields = tabFieldMap[currentTabKey] || [];
 
         if (currentTabFields.length > 0) {
-            // Trigger full validation to run object-level refinements (like bank detail requirements)
-            // but we still only filter and show errors for the current tab.
-            const isValid = await trigger();
+            const isValid = await trigger(currentTabFields as any);
             if (!isValid) {
                 const formErrors = formState.errors;
                 const errorMessages: string[] = [];
                 currentTabFields.forEach((field) => {
                     const fieldError = formErrors[field as keyof typeof formErrors];
                     if (fieldError) {
-                        const errorMsg = typeof fieldError === 'string' ? fieldError : fieldError?.message;
+                        const errorMsg = typeof fieldError === 'string' ? fieldError : (fieldError as any)?.message;
                         if (errorMsg) {
                             errorMessages.push(errorMsg);
                         }
@@ -1820,515 +1853,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             }
         }
 
-        const data = getValues();
-        const currentStepId = currentStep;
-
-        // Apply robust payment mode fix to ensure the name is sent to API and bank details are cleared for non-Bank modes
-        const fixPaymentMode = (p: any) => {
-            const paymentModeObj = (options.modeOfPayment as any[])?.find((m: any) =>
-                String(m.key || m.ivrmmod_Id || '') === String(data.modeOfPayment) ||
-                String(m.value || m.ivrmmod_ModeOfPayment || '').toLowerCase() === String(data.modeOfPayment).toLowerCase()
-            );
-            const paymentModeName = paymentModeObj?.value || paymentModeObj?.ivrmmod_ModeOfPayment || data.modeOfPayment;
-
-            if (p.employee) {
-                p.employee.hrmE_PaymentType = paymentModeName;
-            }
-
-            if (paymentModeName && String(paymentModeName).toLowerCase() !== 'bank') {
-                if (p.employee) {
-                    p.employee.hrmE_BankAccountNo = null;
-                }
-                if (p.bankRequest) {
-                    delete p.bankRequest;
-                }
-            }
-            return p;
-        };
-
         try {
-            if (currentStepId === 1) {
-                // Employee Information tab - call /api/EmployeeRegistration/SavePersonalDetails
-                // Save employee details without address (address fields will be null)
-                const payload = fixPaymentMode(mapFormDataToApiFormatWithoutAddressLocal(data));
-                payload.employee.hrmE_Id = 0; // New record
-                savePersonalDetails(payload as any, {
-                    onSuccess: (response: any) => {
-                        // Show API response message
-                        if (response?.success && response?.message) {
-                            toast.success(response.message);
-                        } else if (response?.message) {
-                            toast.info(response.message);
-                        }
-                        // API returns hrmE_Id (lowercase) in response
-                        const employeeId =
-                            response?.data?.hrmE_Id || response?.data?.HRME_Id || response?.hrmE_Id || response?.HRME_Id || 0;
-                        if (employeeId && employeeId > 0) {
-                            setSavedEmployeeId(employeeId);
-                            setCurrentStep(2);
-                        } else {
-                            toast.error('Failed to get employee ID from response');
-                        }
-                    },
-                    onError: (error: any) => {
-                        // Show API error message
-                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save employee details';
-                        toast.error(errorMessage);
-                    }
-                });
-            } else if (currentStepId === 2) {
-                // Address Information tab - call same endpoint /api/EmployeeRegistration/SavePersonalDetails
-                // Update with address details using the hrmE_Id from step 1
-                if (!savedEmployeeId) {
-                    toast.error('Please save Employee details first');
-                    setCurrentStep(1);
-                    return;
-                }
-                const payload = fixPaymentMode(mapFormDataToApiFormatLocal(data));
-                savePersonalDetails(payload, {
-                    onSuccess: (response: any) => {
-                        // Show API response message
-                        if (response?.success && response?.message) {
-                            toast.success(response.message);
-                        } else if (response?.message) {
-                            toast.info(response.message);
-                        }
-                        setCurrentStep(3);
-                    },
-                    onError: (error: any) => {
-                        // Show API error message
-                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save address details';
-                        toast.error(errorMessage);
-                    }
-                });
-            } else if (currentStepId === 3) {
-                // Qualification tab
-                console.log('🔍 [DEBUG] Tab 3 (Qualification) - Starting save process');
-                console.log('🔍 [DEBUG] Tab 3 (Qualification) - Employee ID:', savedEmployeeId);
-
-                if (!savedEmployeeId) {
-                    console.error('❌ [DEBUG] Tab 3 - No employee ID found');
-                    toast.error('Please save Employee and Address details first');
-                    setCurrentStep(1);
-                    return;
-                }
-
-                const qualificationList = data.qualificationDetails || [];
-                console.log('🔍 [DEBUG] Tab 3 (Qualification) - Form Data:', data);
-                console.log('🔍 [DEBUG] Tab 3 (Qualification) - Qualification List (Raw):', qualificationList);
-                console.log('🔍 [DEBUG] Tab 3 (Qualification) - Qualification Count:', qualificationList.length);
-
-                if (qualificationList.length === 0) {
-                    console.error('❌ [DEBUG] Tab 3 - No qualifications found');
-                    setError('qualificationDetails', {
-                        type: 'required',
-                        message: 'Please add at least one qualification'
-                    });
-                    return;
-                }
-
-                // Map qualification data to API format
-                const qualificationsPayload = qualificationList.map((qual: any, index: number) => {
-                    const mapped = {
-                        hrmeQ_Id: 0,
-                        hrmC_Id: Number(qual.course) || 0,
-                        hrmE_Id: savedEmployeeId,
-                        hrmE_QualificationName: qual.qualification || '',
-                        hrmeQ_CollegeName: qual.college || '',
-                        hrmeQ_UniversityName: qual.university || '',
-                        hrmeQ_YearOfPassing: Number(qual.yearOfPassing) || 0,
-                        hrmeQ_RegistrationNo: qual.registrationNo || '',
-                        hrmeQ_Result: qual.result || '',
-                        hrmeQ_CGPAOrPerFlag: qual.cgpaOrPercentage || 'CGPA',
-                        hrmeQ_CGPA: qual.cgpaOrPercentage === 'CGPA' ? qual.cgpa || '' : '',
-                        hrmeQ_Percentage: qual.cgpaOrPercentage === 'Percentage' ? qual.cgpa || '' : '',
-                        hrmeQ_AreaOfSpecialisation: qual.areaOfSpecialisation || qual.specialisation || '',
-                        hrmeQ_MedicalCouncil: qual.medicalCouncil || '',
-                        hrmeQ_Date: (qual.qualifiedDate && !isNaN(new Date(qual.qualifiedDate).getTime()))
-                            ? new Date(qual.qualifiedDate).toISOString()
-                            : new Date().toISOString(),
-                        hrmeQ_Hardcopy: '',
-                        retrunMsg: '',
-                        hrmeQ_PHDFlg: qual.phdFlag || false,
-                        hrmeQ_StateId: Number(qual.qualificationState) || 0,
-                        hrmeQ_CountryId: Number(qual.qualificationCountry) || 0,
-                        hrmeQ_ThesisTitle: qual.thesisTitle || '',
-                        hrmeQ_RegistrationYear: Number(qual.registrationYear) || 0,
-                        hrmeQ_GuideName: qual.guideName || ''
-                    };
-                    console.log(`🔍 [DEBUG] Tab 3 - Qualification #${index + 1} Mapping:`, {
-                        raw: qual,
-                        mapped: mapped
-                    });
-                    return mapped;
-                });
-
-                console.log('🔍 [DEBUG] Tab 3 (Qualification) - Payload:', qualificationsPayload);
-                console.log('🔍 [DEBUG] Tab 3 (Qualification) - Payload (JSON):', JSON.stringify(qualificationsPayload, null, 2));
-                console.log('🔍 [DEBUG] Tab 3 (Qualification) - Calling saveQualificationDetails...');
-
-                saveQualificationDetails(qualificationsPayload, {
-                    onSuccess: (response: any) => {
-                        console.log('✅ [DEBUG] Tab 3 (Qualification) - Save Success:', response);
-                        console.log('🔍 [DEBUG] Tab 3 - Full API Response:', JSON.stringify(response, null, 2));
-                        console.log('🔍 [DEBUG] Tab 3 - Response Success:', response?.success);
-                        console.log('🔍 [DEBUG] Tab 3 - Response Message:', response?.message);
-                        console.log('🔍 [DEBUG] Tab 3 - Response Data:', response?.data);
-
-                        // Verify qualification data was saved
-                        if (response?.data && Array.isArray(response.data)) {
-                            console.log('🔍 [DEBUG] Tab 3 - Response contains qualification array, length:', response.data.length);
-                            console.log('🔍 [DEBUG] Tab 3 - Response Qualifications:', response.data);
-
-                            // Compare sent vs received
-                            if (response.data.length === qualificationsPayload.length) {
-                                console.log('✅ [DEBUG] Tab 3 - Qualification count matches!');
-                                qualificationsPayload.forEach((sent, index) => {
-                                    const received = response.data[index];
-                                    if (received) {
-                                        console.log(`🔍 [DEBUG] Tab 3 - Qualification #${index + 1} Comparison:`, {
-                                            sent: sent,
-                                            received: received
-                                        });
-
-                                        // Check key fields
-                                        const keyFields = [
-                                            'HRME_Id',
-                                            'HRMC_Id',
-                                            'HRMEQ_CollegeName',
-                                            'HRMEQ_UniversityName',
-                                            'HRMEQ_YearOfPassing'
-                                        ];
-                                        const mismatches: string[] = [];
-                                        keyFields.forEach((field) => {
-                                            if (sent[field as keyof typeof sent] !== received[field as keyof typeof received]) {
-                                                mismatches.push(
-                                                    `${field}: Sent="${sent[field as keyof typeof sent]}" vs Received="${received[field as keyof typeof received]}"`
-                                                );
-                                            }
-                                        });
-
-                                        if (mismatches.length > 0) {
-                                            console.warn(`⚠️ [DEBUG] Tab 3 - Qualification #${index + 1} mismatches:`, mismatches);
-                                        } else {
-                                            console.log(`✅ [DEBUG] Tab 3 - Qualification #${index + 1} key fields match!`);
-                                        }
-                                    }
-                                });
-                            } else {
-                                console.warn(
-                                    `⚠️ [DEBUG] Tab 3 - Qualification count mismatch: Sent=${qualificationsPayload.length}, Received=${response.data.length}`
-                                );
-                            }
-                        } else {
-                            console.warn('⚠️ [DEBUG] Tab 3 - Response data is not an array or is missing');
-                        }
-
-                        // Show API response message
-                        if (response?.success) {
-                            if (response.message) toast.success(response.message);
-                            setCurrentStep(4);
-                        } else {
-                            console.warn('⚠️ [DEBUG] Tab 3 - API returned success: false');
-                            toast.error(response?.message || 'Failed to save qualification details');
-                        }
-                    },
-                    onError: (error: any) => {
-                        console.error('❌ [DEBUG] Tab 3 (Qualification) - Save Error:', error);
-                        console.error('❌ [DEBUG] Tab 3 - Error Details:', JSON.stringify(error, null, 2));
-                        console.error('❌ [DEBUG] Tab 3 - Error Response:', error?.response);
-                        console.error('❌ [DEBUG] Tab 3 - Error Message:', error?.message);
-                        // Show API error message
-                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save qualification details';
-                        toast.error(errorMessage);
-                    }
-                });
-            } else if (currentStepId === 4) {
-                // Experience tab
-                console.log('🔍 [DEBUG] Tab 4 (Experience) - Starting save process');
-                console.log('🔍 [DEBUG] Tab 4 (Experience) - Employee ID:', savedEmployeeId);
-
-                if (!savedEmployeeId) {
-                    console.error('❌ [DEBUG] Tab 4 - No employee ID found');
-                    toast.error('Please save Employee and Address details first');
-                    setCurrentStep(1);
-                    return;
-                }
-
-                const experienceList = data.experienceDetails || [];
-                console.log('🔍 [DEBUG] Tab 4 (Experience) - Form Data:', data);
-                console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience List (Raw):', experienceList);
-                console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience Count:', experienceList.length);
-
-                if (experienceList.length === 0) {
-                    console.error('❌ [DEBUG] Tab 4 - No experiences found');
-                    setError('experienceDetails', {
-                        type: 'required',
-                        message: 'Please add at least one experience'
-                    });
-                    return;
-                }
-
-                // Map experience data to API format (matching API request body format)
-                const experiencesPayload = experienceList.map((exp: any, index: number) => {
-                    const mapped = {
-                        hrmeE_Id: 0, // New record
-                        hrmE_Id: savedEmployeeId,
-                        hrmeE_OrganisationName: exp.organisationName || '',
-                        hrmeE_OrganisationAddress: exp.organisationAddress || '',
-                        hrmeE_Department: exp.department || '',
-                        hrmeE_Designation: exp.designation || '',
-                        hrmeE_JoinDate: (exp.joinDate && !isNaN(new Date(exp.joinDate).getTime()))
-                            ? new Date(exp.joinDate).toISOString()
-                            : new Date().toISOString(),
-                        hrmeE_ExitDate: (exp.exitDate && !isNaN(new Date(exp.exitDate).getTime()))
-                            ? new Date(exp.exitDate).toISOString()
-                            : new Date().toISOString(),
-                        hrmeE_NoOfYears: Number(exp.noOfYears) || 0,
-                        hrmeE_NoOfMonths: Number(exp.noOfMonths) || 0,
-                        hrmeE_AnnualSalary: Number(exp.annualSalary) || 0,
-                        hrmeE_ReasonForLeaving: exp.reasonForLeaving || ''
-                    };
-                    console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Mapping:`, {
-                        raw: exp,
-                        mapped: mapped
-                    });
-                    return mapped;
-                });
-
-                console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload:', experiencesPayload);
-                console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload (JSON):', JSON.stringify(experiencesPayload, null, 2));
-                console.log('🔍 [DEBUG] Tab 4 (Experience) - Calling saveExperienceDetails...');
-
-                saveExperienceDetails(experiencesPayload, {
-                    onSuccess: (response: any) => {
-                        console.log('✅ [DEBUG] Tab 4 (Experience) - Save Success:', response);
-                        console.log('🔍 [DEBUG] Tab 4 - Full API Response:', JSON.stringify(response, null, 2));
-                        console.log('🔍 [DEBUG] Tab 4 - Response Success:', response?.success);
-                        console.log('🔍 [DEBUG] Tab 4 - Response Message:', response?.message);
-                        console.log('🔍 [DEBUG] Tab 4 - Response Data:', response?.data);
-
-                        // Verify experience data was saved
-                        if (response?.data && Array.isArray(response.data)) {
-                            console.log('🔍 [DEBUG] Tab 4 - Response contains experience array, length:', response.data.length);
-                            console.log('🔍 [DEBUG] Tab 4 - Response Experiences:', response.data);
-
-                            // Compare sent vs received
-                            if (response.data.length === experiencesPayload.length) {
-                                console.log('✅ [DEBUG] Tab 4 - Experience count matches!');
-                                experiencesPayload.forEach((sent, index) => {
-                                    const received = response.data[index];
-                                    if (received) {
-                                        console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Comparison:`, {
-                                            sent: sent,
-                                            received: received
-                                        });
-
-                                        // Check key fields
-                                        const keyFields = [
-                                            'hrmE_Id',
-                                            'hrmeE_OrganisationName',
-                                            'hrmeE_Department',
-                                            'hrmeE_Designation',
-                                            'hrmeE_NoOfYears'
-                                        ];
-                                        const mismatches: string[] = [];
-                                        keyFields.forEach((field) => {
-                                            if (sent[field as keyof typeof sent] !== received[field as keyof typeof received]) {
-                                                mismatches.push(
-                                                    `${field}: Sent="${sent[field as keyof typeof sent]}" vs Received="${received[field as keyof typeof received]}"`
-                                                );
-                                            }
-                                        });
-
-                                        if (mismatches.length > 0) {
-                                            console.warn(`⚠️ [DEBUG] Tab 4 - Experience #${index + 1} mismatches:`, mismatches);
-                                        } else {
-                                            console.log(`✅ [DEBUG] Tab 4 - Experience #${index + 1} key fields match!`);
-                                        }
-                                    }
-                                });
-                            } else {
-                                console.warn(
-                                    `⚠️ [DEBUG] Tab 4 - Experience count mismatch: Sent=${experiencesPayload.length}, Received=${response.data.length}`
-                                );
-                            }
-                        } else {
-                            console.warn('⚠️ [DEBUG] Tab 4 - Response data is not an array or is missing');
-                        }
-
-                        // Show API response message
-                        if (response?.success) {
-                            if (response.message) toast.success(response.message);
-                            setCurrentStep(5);
-                        } else {
-                            console.warn('⚠️ [DEBUG] Tab 4 - API returned success: false');
-                            toast.error(response?.message || 'Failed to save experience details');
-                        }
-                    },
-                    onError: (error: any) => {
-                        console.error('❌ [DEBUG] Tab 4 (Experience) - Save Error:', error);
-                        console.error('❌ [DEBUG] Tab 4 - Error Details:', JSON.stringify(error, null, 2));
-                        console.error('❌ [DEBUG] Tab 4 - Error Response:', error?.response);
-                        console.error('❌ [DEBUG] Tab 4 - Error Message:', error?.message);
-                        // Show API error message
-                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save experience details';
-                        toast.error(errorMessage);
-                    }
-                });
-            } else if (currentStepId === 5) {
-                // Document tab
-                if (!savedEmployeeId) {
-                    toast.error('Please save Employee and Address details first');
-                    setCurrentStep(1);
-                    return;
-                }
-                const documentList = data.documentList || [];
-                if (documentList.length === 0) {
-                    setError('documentList', {
-                        type: 'required',
-                        message: 'Please add at least one document'
-                    });
-                    toast.error('Please add at least one document');
-                    return;
-                }
-
-                // Map form data to API format with Base64 support
-                try {
-                    toast.loading('Processing documents...', { id: 'doc-upload' });
-
-                    const documentsPayload = await Promise.all(documentList.map(async (doc: any) => {
-                        const documentName = doc.documentName || doc.name || '';
-                        const documentDescription = doc.description || doc.documentDescription || '';
-
-                        // Handle File object from react-hook-form / file input
-                        let blobBase64 = '';
-                        let fileName = '';
-
-                        const fileObj = doc.document?.[0] || doc.file || null;
-                        if (fileObj instanceof File) {
-                            blobBase64 = await fileToBase64(fileObj);
-                            fileName = fileObj.name;
-                        } else {
-                            // Fallback for existing documents
-                            blobBase64 = doc.blobBase64 || '';
-                            fileName = doc.fileName || doc.imageName || '';
-                        }
-
-                        // Target payload as per user request + MI_Id for VAPS API compatibility
-                        return {
-                            hrmedS_Id: 0,
-                            hrmE_Id: savedEmployeeId,
-                            mI_Id: 30, // Default Institution ID
-                            MI_Id: 30,
-                            hrmedS_DocumentName: documentName,
-                            hrmedS_DocumentImageName: fileName,
-                            hrmedS_DucumentDescription: documentDescription,
-                            blobBase64: blobBase64,
-                            fileName: fileName
-                        };
-                    }));
-
-                    toast.dismiss('doc-upload');
-
-                    const rawPayload = mapFormDataToApiFormatLocal(data);
-                    const finalPayload: any = {
-                        ...rawPayload,
-                        employee: {
-                            ...rawPayload.employee,
-                            hrmE_EmployeeFirstName: rawPayload.employee.hrmE_EmployeeFirstName ?? '',
-                            hrmE_EmployeeMiddleName: rawPayload.employee.hrmE_EmployeeMiddleName ?? '',
-                            hrmE_EmployeeLastName: rawPayload.employee.hrmE_EmployeeLastName ?? '',
-                            hrmE_EmployeeCode: rawPayload.employee.hrmE_EmployeeCode ?? '',
-                            hrmE_FatherName: rawPayload.employee.hrmE_FatherName ?? '',
-                            hrmE_MotherName: rawPayload.employee.hrmE_MotherName ?? '',
-                            hrmE_BloodGroup: rawPayload.employee.hrmE_BloodGroup ?? '',
-                            hrmE_SalaryType: rawPayload.employee.hrmE_SalaryType ?? '',
-                            hrmE_MobileNo: rawPayload.employee.hrmE_MobileNo ?? '',
-                            hrmE_EmailId: rawPayload.employee.hrmE_EmailId ?? '',
-                            hrmE_PANCardNo: rawPayload.employee.hrmE_PANCardNo ?? '',
-                            hrmE_NationalSSN: rawPayload.employee.hrmE_NationalSSN ?? '',
-                            hrmE_Id: savedEmployeeId
-                        },
-                        documentList: documentsPayload,
-                        DocumentList: documentsPayload
-                    };
-
-                    console.log('🔍 [API DEBUG] Tab 5 (Document) - Full Payload:', JSON.stringify(finalPayload, null, 2));
-
-                    (saveDocumentDetails as any)(finalPayload, {
-                        onSuccess: (response: any) => {
-                            console.log('✅ [API DEBUG] Tab 5 (Document) - Save Success Response:', response);
-                            if (response?.success) {
-                                if (response.message) toast.success(response.message);
-                                setCurrentStep(6);
-                            } else {
-                                console.error('❌ [API DEBUG] Tab 5 (Document) - API returned success: false', response);
-                                toast.error(response?.message || 'Failed to save document details');
-                            }
-                        },
-                        onError: (error: any) => {
-                            console.error('❌ [API DEBUG] Tab 5 (Document) - API Error:', error);
-                            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save document details';
-                            toast.error(errorMessage);
-                        }
-                    });
-                } catch (err) {
-                    toast.dismiss('doc-upload');
-                    console.error('❌ [DEBUG] Tab 5 - Error processing documents:', err);
-                    toast.error('Error processing document files');
-                }
-            } else if (currentStepId === 6) {
-                // Medical tab
-                if (!savedEmployeeId) {
-                    toast.error('Please save Employee and Address details first');
-                    setCurrentStep(1);
-                    return;
-                }
-                const payload = mapFormDataToPascalCaseLocal(data);
-                saveMedicalDetails(payload, {
-                    onSuccess: (response: any) => {
-                        console.log('✅ [API DEBUG] Tab 6 (Medical) - Save Success Response:', response);
-                        if (response?.success) {
-                            toast.success(response.message || 'Medical details saved successfully');
-                            setCurrentStep(7);
-                        } else {
-                            console.error('❌ [API DEBUG] Tab 6 (Medical) - API returned success: false', response);
-                            toast.error(response?.message || 'Failed to save medical details');
-                        }
-                    },
-                    onError: (error: any) => {
-                        console.error('❌ [API DEBUG] Tab 6 (Medical) - API Error:', error);
-                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save medical details';
-                        toast.error(errorMessage);
-                    }
-                });
-            } else if (currentStepId === 7) {
-                // Other details tab
-                if (!savedEmployeeId) {
-                    toast.error('Please save Employee and Address details first');
-                    setCurrentStep(1);
-                    return;
-                }
-                const payload = mapFormDataToPascalCaseLocal(data);
-                saveOtherDetails(payload, {
-                    onSuccess: (response: any) => {
-                        console.log('✅ [API DEBUG] Tab 7 (Other) - Save Success Response:', response);
-                        if (response?.success) {
-                            toast.success(response.message || 'Other details saved successfully');
-                            setCurrentStep(8);
-                        } else {
-                            console.error('❌ [API DEBUG] Tab 7 (Other) - API returned success: false', response);
-                            toast.error(response?.message || 'Failed to save other details');
-                        }
-                    },
-                    onError: (error: any) => {
-                        console.error('❌ [API DEBUG] Tab 7 (Other) - API Error:', error);
-                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save other details';
-                        toast.error(errorMessage);
-                    }
-                });
-            } else if (currentStepId === 8) {
+            if (currentStepId === 8) {
                 // Payroll tab - handled by PayrollTab component
                 toast.success('Employee registration completed!');
                 if (onSuccess) {
@@ -2348,7 +1874,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             reader.onloadend = () => {
                 const base64String = reader.result as string;
                 setSelectedPhoto(base64String);
-                setValue('employeePhoto', base64String, { shouldValidate: true });
+                setValue('employeePhoto', base64String, { shouldValidate: true, shouldDirty: true });
+                // Explicitly trigger validation to clear any "required" error
+                trigger('employeePhoto');
             };
             reader.readAsDataURL(file);
         }
@@ -5351,6 +4879,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             </span>
                                                                         )}
                                                                     </div>
+                                                                    {errors.documentList?.[index]?.document?.message && (
+                                                                        <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                            {String(errors.documentList?.[index]?.document?.message)}
+                                                                        </div>
+                                                                    )}
                                                                 </div>
                                                             </div>
                                                         </div>

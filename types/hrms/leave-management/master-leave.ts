@@ -31,11 +31,32 @@ export interface LeaveOrderDropdownItem {
 }
 
 /**
- * Response data structure from GetLeave endpoint
+ * Individual Master Leave item from the new GET API
+ */
+export interface MasterLeaveListItem {
+    hrmL_Id: number;
+    mI_Id: number;
+    hrmL_LeaveName: string;
+    hrmL_LeaveCode: string;
+    hrmL_LeaveDetails: string;
+    hrmL_LeaveCreditFlg: boolean;
+    hrmL_LeaveType: string;
+    hrmL_LateDeductFlag: boolean;
+    hrmL_LateDeductOrder: number;
+    hrmL_WhenToApplyFlg: string | null;
+    hrmL_NoOfDays: number | null;
+    hrmL_ProbationNotApplicableFlg?: boolean;
+    hrmL_ActiveFlag?: boolean | number;
+    createdDate: string;
+    updatedDate: string;
+}
+
+/**
+ * Response data structure from GetLeave endpoint (Legacy or Wrapper)
  */
 export interface MasterLeaveGetResponseData {
     edit_m_event: any | null;
-    leaveData: any | null;
+    leaveData: MasterLeaveListItem[] | any | null;
     dupr: boolean;
     selected_master_event: any | null;
     returnduplicatestatus: any | null;
@@ -43,24 +64,11 @@ export interface MasterLeaveGetResponseData {
     returnval_add: boolean;
     retrunMsg: string | null;
     returnval: boolean;
-    HRML_Id: number;
-    MI_Id: number;
-    HRML_LeaveName: string | null;
-    HRML_LeaveCode: string | null;
-    HRML_LeaveDetails: string | null;
     master_eventlist: LeaveTypeDropdownItem[] | any[] | null;
-    HRML_LeaveCreditFlg: boolean;
-    HRML_LeaveType: string | null;
-    message: string | null;
-    HRML_LateDeductFlag: boolean;
-    GridviewDetails: any | null;
-    leavelistedit: any | null;
-    HRML_LateDeductOrder: number;
-    SelectedRowDetails: any | null;
-    MasterLeaveDTOO: any | null;
     leaveorderlist: LeaveOrderDropdownItem[] | any[] | null;
-    CreatedDate: string | null;
-    UpdatedDate: string | null;
+    GridviewDetails: MasterLeaveListItem[] | any | null;
+    leavelistedit: any | null;
+    message?: string | null;
 }
 
 /**
@@ -69,7 +77,7 @@ export interface MasterLeaveGetResponseData {
 export interface MasterLeaveGetResponse {
     success: boolean;
     message: string;
-    data: MasterLeaveGetResponseData;
+    data: MasterLeaveListItem[] | MasterLeaveGetResponseData;
     total: number | null;
     page: number | null;
     page_size: number | null;
@@ -91,6 +99,11 @@ export interface MasterLeaveSaveRequest {
     HRML_LateDeductOrder: number;
     CreatedDate?: string;
     UpdatedDate?: string;
+    HRML_ActiveFlag?: boolean | number;
+    HRML_ProbationNotApplicableFlg?: boolean;
+    HRML_LeaveApplyCriteria?: string | null;
+    HRML_DaysForApplyCriteria?: string | number | null;
+    HRML_MaxDaysForApply?: string | number | null;
 }
 
 /**

@@ -34,8 +34,8 @@ import type {IOnlinePaymentStudenyInformationList,FeeStructure,GroupTermMapping}
 
 import Script from "next/script";
 
-import { useStudentInformation,useGroupList } from '@/hooks/student-portal/useFeeOnlinePayment';
-// Type for Razorpay global
+import { useStudentInformation } from '@/hooks/staff-portal/useFeeOnlinePayment';
+
 declare global {
     interface Window {
         Razorpay: any;
@@ -58,7 +58,7 @@ export default function FeeOnlinePaymentClient({ initialData }: any) { // Using 
    
   
 
-const { data: studentInfoDetails, isLoading } = useStudentInformation();
+const { data: studentInfoDetails, isLoading } = useStudentInformation(academicYear || null);
 
 // Example usage of session
 useEffect(() => {
@@ -70,14 +70,9 @@ useEffect(() => {
     fetchSession();
 }, []);
 
-const { data: initialGroupList } = useGroupList();
+const groupList = initialData?.customgrplist || []; // Use data from props instead
 
-
-
-  const groupList = initialGroupList; 
-console.log("groupList Details latest ",initialGroupList );
-
-
+console.log("groupList Details latest ",groupList );
 
 
     useEffect(() => {
@@ -229,27 +224,27 @@ console.log("groupList Details latest ",initialGroupList );
                             <div className="space-y-2 text-sm">
                                 <div className="grid grid-cols-3">
                                     <span className="font-semibold">Name</span>
-                                    <span className="col-span-2">: {studentInfoDetails?.amsT_FirstName} {studentInfoDetails?.amsT_LastName}</span>
+                                    <span className="col-span-2">: {studentInfoDetails?.studentInfo?.amsT_FirstName} {studentInfoDetails?.studentInfo?.amsT_LastName}</span>
                                 </div>
                                 <div className="grid grid-cols-3">
                                     <span className="font-semibold">Class/Section/Roll No</span>
-                                    <span className="col-span-2">: {studentInfoDetails?.classname}  {studentInfoDetails?.sectionname} {studentInfoDetails?.amaY_RollNo}</span>
+                                    <span className="col-span-2">: {studentInfoDetails?.studentInfo?.classname}  {studentInfoDetails?.studentInfo?.sectionname} {studentInfoDetails?.studentInfo?.amaY_RollNo}</span>
                                 </div>
                                 <div className="grid grid-cols-3">
                                     <span className="font-semibold">Adm No</span>
-                                    <span className="col-span-2">: {studentInfoDetails?.amsT_AdmNo}</span>
+                                    <span className="col-span-2">: {studentInfoDetails?.studentInfo?.amsT_AdmNo}</span>
                                 </div>
                                   <div className="grid grid-cols-3">
                                     <span className="font-semibold">Reg No</span>
-                                    <span className="col-span-2">: {studentInfoDetails?.amsT_RegistrationNo}</span>
+                                    <span className="col-span-2">: {studentInfoDetails?.studentInfo?.amsT_RegistrationNo}</span>
                                 </div>
                                 <div className="grid grid-cols-3">
                                     <span className="font-semibold">Mobile No</span>
-                                    <span className="col-span-2">: {studentInfoDetails?.amst_mobile}</span>
+                                    <span className="col-span-2">: {studentInfoDetails?.studentInfo?.amst_mobile}</span>
                                 </div>
                                 <div className="grid grid-cols-3">
                                     <span className="font-semibold">Email Id</span>
-                                    <span className="col-span-2">: {studentInfoDetails?.amst_email_id}</span>
+                                    <span className="col-span-2">: {studentInfoDetails?.studentInfo?.amst_email_id}</span>
                                 </div>
                             </div>
                         </div>

@@ -1992,9 +1992,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         tcNumber: school.pasrpS_TcNo || school.tcNumber || '',
                         tcDate: (() => {
                             const d = school.pasrpS_TcDate ?? school.tcDate;
-                            if (!d) return '';
+                            if (!d) return null;
                             const parsed = d instanceof Date ? d : new Date(d);
-                            return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString();
+                            return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
                         })()
                     }));
 
@@ -2493,9 +2493,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                             tcNumber: school.pasrpS_TcNo || school.tcNumber || '',
                             tcDate: (() => {
                                 const d = school.pasrpS_TcDate ?? school.tcDate;
-                                if (!d) return '';
+                                if (!d) return null;
                                 const parsed = d instanceof Date ? d : new Date(d);
-                                return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString();
+                                return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
                             })()
                         }));
 

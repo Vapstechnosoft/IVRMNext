@@ -50,6 +50,7 @@ export const authConfig: NextAuthConfig = {
                 token.email = user.email;
                 token.token = user.token;
                 token.role = user.role;
+                token.roleId = user.roleId;
                 token.designation = user.designation;
             }
             if (trigger === 'update' && session) {

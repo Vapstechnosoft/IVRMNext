@@ -342,6 +342,10 @@ export default function DailyFeeCollectionReportForm() {
         // ===================================================
         // API CALL
         // ===================================================
+
+        if (data.Fmc_allorsudentorother === 'all') {
+            data.Fmc_allorsudentorother = 'multiplepaymentmode';
+        }
         try {
             setShowTable(false);
             setLoading(true);

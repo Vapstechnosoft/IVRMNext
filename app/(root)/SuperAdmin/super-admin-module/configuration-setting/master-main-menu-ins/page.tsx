@@ -38,7 +38,16 @@ export default function MasterMainMenuINSPage() {
             try {
                 const response = await getMainMenuListINS();
                 if (response.success && response.data?.gridDetails) {
-                    setGridData(response.data.gridDetails);
+                    // Strict deduplication using String(id) to handle mixed types (3 vs "3")
+                    const uniqueData = Array.from(new Map(response.data.gridDetails
+                        .filter(item => item && item.ivrmmmI_Id != null)
+                        .map(item => [String(item.ivrmmmI_Id), item])
+                    ).values());
+
+                    if (uniqueData.length !== response.data.gridDetails.length) {
+                        console.warn(`Removed ${response.data.gridDetails.length - uniqueData.length} duplicate records from Main Menu Grid`);
+                    }
+                    setGridData(uniqueData);
                 }
             } catch (error) {
                 console.error("Error in fetchGridData:", error);
@@ -48,7 +57,16 @@ export default function MasterMainMenuINSPage() {
             try {
                 const modResponse = await getModuleMenuList();
                 if (modResponse.success && modResponse.data?.moduleList) {
-                    setModuleMenuData(modResponse.data.moduleList);
+                    // Strict deduplication for Module List
+                    const uniqueData = Array.from(new Map(modResponse.data.moduleList
+                        .filter(item => item && item.ivrmmM_Id != null)
+                        .map(item => [String(item.ivrmmM_Id), item])
+                    ).values());
+
+                    if (uniqueData.length !== modResponse.data.moduleList.length) {
+                        console.warn(`Removed ${modResponse.data.moduleList.length - uniqueData.length} duplicate records from Module Menu Grid`);
+                    }
+                    setModuleMenuData(uniqueData);
                 }
             } catch (error) {
                 console.error("Error in fetchModuleList:", error);
