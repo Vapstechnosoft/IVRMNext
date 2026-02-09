@@ -1,13 +1,11 @@
-import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Tooltip } from 'chart.js';
-import { Bar } from 'react-chartjs-2';
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Legend, Tooltip);
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis } from 'recharts';
 
 const getMonthName = (monthNumber: number) => {
     return new Date(0, monthNumber - 1).toLocaleString('en-US', {
         month: 'long'
     });
 };
+
 interface ReportItem {
     name: string;
     count?: number; // optional
@@ -37,15 +35,10 @@ export default function AdmissionMonthEndReport({ reportData, month, year, imple
         year: 'numeric'
     });
 
-    const chartData = {
-        labels: reportData.map((x) => x.name),
-        datasets: [
-            {
-                label: 'Count',
-                data: reportData.map((x) => x.count)
-            }
-        ]
-    };
+    const chartData = reportData.map((x) => ({
+        name: x.name,
+        count: x.count || 0
+    }));
 
     return (
         <div className='w-full p-5 font-sans'>
@@ -62,7 +55,7 @@ export default function AdmissionMonthEndReport({ reportData, month, year, imple
 
                 <h3 className='mt-5 mb-3 font-semibold text-base'>ADMISSION MODULE</h3>
                 <h2 className='font-semibold text-base'>
-                    <h2 className='font-bold text-xl'>{getMonthName(Number(month)).toUpperCase()} MONTH END REPORT</h2>
+                    <span className='font-bold text-xl'>{getMonthName(Number(month)).toUpperCase()} MONTH END REPORT</span>
                 </h2>
             </div>
 
@@ -128,8 +121,17 @@ export default function AdmissionMonthEndReport({ reportData, month, year, imple
 
             {/* CHART + SIGNATURE SECTION */}
             <div className='flex gap-8'>
-                <div className='flex-1'>
-                    <Bar data={chartData} />
+                <div className='h-[300px] flex-1'>
+                    <ResponsiveContainer width='100%' height='100%'>
+                        <BarChart data={chartData}>
+                            <CartesianGrid strokeDasharray='3 3' />
+                            <XAxis dataKey='name' />
+                            <YAxis />
+                            <RechartsTooltip />
+                            <Legend />
+                            <Bar dataKey='count' fill='#3b82f6' />
+                        </BarChart>
+                    </ResponsiveContainer>
                 </div>
 
                 <div className='flex-1 pt-12'>

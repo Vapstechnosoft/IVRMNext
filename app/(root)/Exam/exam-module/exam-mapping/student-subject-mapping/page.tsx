@@ -675,7 +675,7 @@ function StudentSubjectMappingContent() {
                                 onClick={handleCloseGrid}
                                 variant='ghost'
                                 size='sm'
-                                className='flex w-fit absolute top-[10px] right-2 z-10 border bg-white shadow-md hover:bg-destructive/10'>
+                                className='absolute top-[10px] right-2 z-10 flex w-fit border bg-white shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <CollapsibleSection defaultOpen variant='default' size='lg' className='shadow-lg'>
@@ -698,14 +698,16 @@ function StudentSubjectMappingContent() {
                                     deactive_Flag={getValues('Deactive_Flag') ?? true}
                                 />
 
-                                {payload !== null && <div className='flex w-fit justify-end gap-3 border-t p-4'>
-                                    <Button variant='outline' onClick={() => tableRef.current?.reset()}>
-                                        Reset
-                                    </Button>
-                                    <Button type='submit' onClick={handleSave}>
-                                        Save Mapping
-                                    </Button>
-                                </div>}
+                                {payload !== null && (
+                                    <div className='flex w-fit justify-end gap-3 border-t p-4'>
+                                        <Button variant='outline' onClick={() => tableRef.current?.reset()}>
+                                            Reset
+                                        </Button>
+                                        <Button type='submit' onClick={handleSave}>
+                                            Save Mapping
+                                        </Button>
+                                    </div>
+                                )}
                             </CollapsibleSection>
                         </div>
                     )}
