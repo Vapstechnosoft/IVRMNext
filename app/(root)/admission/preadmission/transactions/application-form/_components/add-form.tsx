@@ -180,6 +180,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     const { data: gender, isLoading: genderLoading, error: genderError, refetchAll: refetchGender } = useGenderDropdown();
     const { data: preadmissionClass, refetchAll: refetchClass } = usePreadmissionClassDropdown();
     const { data: country, isLoading: countryLoading, error: countryError, refetchAll: refetchCountry } = useCountryDropdown();
+
     const {
         data: conState,
         isLoading: conStateLoading,
@@ -1628,8 +1629,11 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     render={({ field }) => (
                                                         <Select
                                                             key={field.value || 'empty'}
-                                                            onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || ''}>
+                                                            // onValueChange={(value) => field.onChange(Number(value))}
+                                                            //value={field.value?.toString() || ''}>
+
+                                                            onValueChange={field.onChange}
+                                                            value={field.value || ''}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select nationality' />
                                                             </SelectTrigger>
