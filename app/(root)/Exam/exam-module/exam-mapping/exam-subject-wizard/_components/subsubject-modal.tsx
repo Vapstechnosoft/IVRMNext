@@ -300,27 +300,6 @@ export default function SubSubjectModal({
     const handleCheckboxChange = useCallback(
         (idx: number, checked: boolean) => {
             updateRowValue(idx, 'checkedvalue', checked);
-
-            // If unchecking, clear any required field errors
-            if (!checked) {
-                clearErrors([
-                    `subsubject_list.${idx}.eycessS_MaxMarks`,
-                    `subsubject_list.${idx}.eycessS_MinMarks`,
-                    `subsubject_list.${idx}.eycessS_MarksEntryMax`,
-                    `subsubject_list.${idx}.EMGR_Id`
-                ] as any);
-            } else {
-                // If checking, validate immediately
-                const row = { ...getValues('subsubject_list')[idx], checkedvalue: checked };
-                const rowErrs = validateRowManually(row, idx);
-
-                Object.entries(rowErrs).forEach(([field, message]) => {
-                    setError(`subsubject_list.${idx}.${field}` as any, {
-                        type: 'manual',
-                        message
-                    });
-                });
-            }
         },
         [updateRowValue, clearErrors, getValues, validateRowManually, setError]
     );
@@ -464,17 +443,7 @@ export default function SubSubjectModal({
         // All good, save
         onSave(subject.ISMS_Id, selected, list);
         onClose();
-    }, [
-        getValues,
-        validateRowManually,
-        clearErrors,
-        setError,
-        parentMaxMarks,
-        parentMinMarks,
-        onSave,
-        onClose,
-        subject
-    ]);
+    }, [getValues, validateRowManually, clearErrors, setError, parentMaxMarks, parentMinMarks, onSave, onClose, subject]);
 
     const renderSkeletonTable = () => (
         <div className='w-full rounded-md'>
@@ -499,7 +468,7 @@ export default function SubSubjectModal({
     return (
         <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
             <DialogContent className='flex h-[90vh] w-full min-w-[80vw] flex-col overflow-hidden pt-0'>
-                <DialogHeader className='shrink-0 border-b bg-white pb-2 pt-4'>
+                <DialogHeader className='shrink-0 border-b bg-white pt-4 pb-2'>
                     <DialogTitle>{`Map Sub-Subjects — ${subject.ISMS_SubjectName}`}</DialogTitle>
                     <div className='text-muted-foreground text-sm'>
                         Parent Subject: Max={parentMaxMarks}, Min={parentMinMarks}
@@ -507,18 +476,18 @@ export default function SubSubjectModal({
                 </DialogHeader>
 
                 {/* Search & pagination controls */}
-                <div className="shrink-0 flex items-center justify-between border-b bg-white p-2">
-                    <div className="text-sm text-muted-foreground">
+                <div className='flex shrink-0 items-center justify-between border-b bg-white p-2'>
+                    <div className='text-muted-foreground text-sm'>
                         Showing {filteredData.length === 0 ? 0 : startIndex + 1}-{endIndex} of {filteredData.length} items
                     </div>
                     <Input
-                        placeholder="Search sub-subject..."
+                        placeholder='Search sub-subject...'
                         value={searchTerm}
                         onChange={(e) => {
                             setSearchTerm(e.target.value);
                             setCurrentPage(1);
                         }}
-                        className="w-64"
+                        className='w-64'
                     />
                 </div>
 
@@ -526,22 +495,22 @@ export default function SubSubjectModal({
                     {/* Table container - flex-1 to fill available space */}
                     <div className='flex flex-1 flex-col overflow-hidden'>
                         {/* Scrollable table wrapper */}
-                        <div className='flex-1 overflow-y-auto overflow-x-auto'>
+                        <div className='flex-1 overflow-x-auto overflow-y-auto'>
                             <table className='w-full table-auto border-collapse'>
-                                <thead className="sticky top-0 z-10 bg-slate-50 text-sm">
+                                <thead className='sticky top-0 z-10 bg-slate-50 text-sm'>
                                     <tr>
-                                        <th className='border p-2 bg-slate-50'>SLNO</th>
-                                        <th className='border p-2 bg-slate-50'>Select</th>
-                                        <th className='border p-2 bg-slate-50'>Sub-Subject Name(Code)</th>
-                                        <th className='border p-2 bg-slate-50'>Max Marks</th>
-                                        <th className='border p-2 bg-slate-50'>Min Marks</th>
-                                        <th className='border p-2 bg-slate-50'>Marks Entry Max</th>
-                                        <th className='border p-2 bg-slate-50'>Grade</th>
-                                        <th className='border p-2 bg-slate-50'>Exempted Flag</th>
-                                        <th className='border p-2 bg-slate-50'>Exempted %</th>
-                                        <th className='border p-2 bg-slate-50'>Marks Display</th>
-                                        <th className='border p-2 bg-slate-50'>Grade Display</th>
-                                        <th className='border p-2 bg-slate-50'>Apply Result</th>
+                                        <th className='border bg-slate-50 p-2'>SLNO</th>
+                                        <th className='border bg-slate-50 p-2'>Select</th>
+                                        <th className='border bg-slate-50 p-2'>Sub-Subject Name(Code)</th>
+                                        <th className='border bg-slate-50 p-2'>Max Marks</th>
+                                        <th className='border bg-slate-50 p-2'>Min Marks</th>
+                                        <th className='border bg-slate-50 p-2'>Marks Entry Max</th>
+                                        <th className='border bg-slate-50 p-2'>Grade</th>
+                                        <th className='border bg-slate-50 p-2'>Exempted Flag</th>
+                                        <th className='border bg-slate-50 p-2'>Exempted %</th>
+                                        <th className='border bg-slate-50 p-2'>Marks Display</th>
+                                        <th className='border bg-slate-50 p-2'>Grade Display</th>
+                                        <th className='border bg-slate-50 p-2'>Apply Result</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -615,7 +584,7 @@ export default function SubSubjectModal({
                                                 </td>
 
                                                 {/* Max Marks */}
-                                                <td className='border p-2 w-28'>
+                                                <td className='w-28 border p-2'>
                                                     <Controller
                                                         control={control}
                                                         name={`subsubject_list.${idx}.eycessS_MaxMarks`}
@@ -642,7 +611,9 @@ export default function SubSubjectModal({
                                                                 disabled={isRowDisabled}
                                                                 placeholder='Enter Max'
                                                                 className={
-                                                                    errors.subsubject_list?.[idx]?.eycessS_MaxMarks ? 'border-red-500 text-center' : 'text-center'
+                                                                    errors.subsubject_list?.[idx]?.eycessS_MaxMarks
+                                                                        ? 'border-red-500 text-center'
+                                                                        : 'text-center'
                                                                 }
                                                             />
                                                         )}
@@ -655,7 +626,7 @@ export default function SubSubjectModal({
                                                 </td>
 
                                                 {/* Min Marks */}
-                                                <td className='border p-2 w-28'>
+                                                <td className='w-28 border p-2'>
                                                     <Controller
                                                         control={control}
                                                         name={`subsubject_list.${idx}.eycessS_MinMarks`}
@@ -682,7 +653,9 @@ export default function SubSubjectModal({
                                                                 disabled={isRowDisabled}
                                                                 placeholder='Enter Min'
                                                                 className={
-                                                                    errors.subsubject_list?.[idx]?.eycessS_MinMarks ? 'border-red-500 text-center' : 'text-center'
+                                                                    errors.subsubject_list?.[idx]?.eycessS_MinMarks
+                                                                        ? 'border-red-500 text-center'
+                                                                        : 'text-center'
                                                                 }
                                                             />
                                                         )}
@@ -695,7 +668,7 @@ export default function SubSubjectModal({
                                                 </td>
 
                                                 {/* Marks Entry Max */}
-                                                <td className='border p-2 w-28'>
+                                                <td className='w-28 border p-2'>
                                                     <Controller
                                                         control={control}
                                                         name={`subsubject_list.${idx}.eycessS_MarksEntryMax`}
@@ -737,7 +710,7 @@ export default function SubSubjectModal({
                                                 </td>
 
                                                 {/* Grade */}
-                                                <td className='border p-2 w-40'>
+                                                <td className='w-40 border p-2'>
                                                     <Controller
                                                         control={control}
                                                         name={`subsubject_list.${idx}.EMGR_Id`}
@@ -788,16 +761,14 @@ export default function SubSubjectModal({
                                                 </td>
 
                                                 {/* Exempted Percentage */}
-                                                <td className='border p-2 w-24'>
+                                                <td className='w-24 border p-2'>
                                                     <Controller
                                                         control={control}
                                                         name={`subsubject_list.${idx}.eycessS_ExemptedPer`}
                                                         render={({ field }) => (
                                                             <Input
                                                                 type='text'
-                                                                disabled={
-                                                                    !watch(`subsubject_list.${idx}.eycessS_ExemptedFlg`)
-                                                                }
+                                                                disabled={!watch(`subsubject_list.${idx}.eycessS_ExemptedFlg`)}
                                                                 {...field}
                                                                 value={field.value ?? ''}
                                                                 onChange={(e) => {
@@ -873,14 +844,20 @@ export default function SubSubjectModal({
 
                     {/* Pagination Footer - Only show if more than 1 page */}
                     {totalPages > 1 && (
-                        <div className="shrink-0 flex items-center justify-end space-x-2 border-t bg-white p-4">
-                            <Button variant="outline" size="sm" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>First</Button>
-                            <Button variant="outline" size="sm" onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1}>
-                                <ChevronLeft className="h-4 w-4" />
+                        <div className='flex shrink-0 items-center justify-end space-x-2 border-t bg-white p-4'>
+                            <Button variant='outline' size='sm' onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
+                                First
+                            </Button>
+                            <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                                disabled={currentPage === 1}>
+                                <ChevronLeft className='h-4 w-4' />
                                 Previous
                             </Button>
 
-                            <div className="flex items-center space-x-1">
+                            <div className='flex items-center space-x-1'>
                                 {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
                                     // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
                                     let pageNum;
@@ -897,11 +874,10 @@ export default function SubSubjectModal({
                                     return (
                                         <Button
                                             key={pageNum}
-                                            variant={currentPage === pageNum ? "default" : "outline"}
-                                            size="sm"
-                                            className="w-8 h-8 p-0"
-                                            onClick={() => setCurrentPage(pageNum)}
-                                        >
+                                            variant={currentPage === pageNum ? 'default' : 'outline'}
+                                            size='sm'
+                                            className='h-8 w-8 p-0'
+                                            onClick={() => setCurrentPage(pageNum)}>
                                             {pageNum}
                                         </Button>
                                     );
@@ -909,19 +885,24 @@ export default function SubSubjectModal({
                             </div>
 
                             <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                disabled={currentPage === totalPages}
-                            >
+                                variant='outline'
+                                size='sm'
+                                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                                disabled={currentPage === totalPages}>
                                 Next
-                                <ChevronLeft className="h-4 w-4 rotate-180" />
+                                <ChevronLeft className='h-4 w-4 rotate-180' />
                             </Button>
-                            <Button variant="outline" size="sm" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}>Last</Button>
+                            <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => setCurrentPage(totalPages)}
+                                disabled={currentPage === totalPages}>
+                                Last
+                            </Button>
                         </div>
                     )}
 
-                    <div className='shrink-0 flex w-fit justify-end gap-2 border-t bg-white p-4 ml-auto'>
+                    <div className='ml-auto flex w-fit shrink-0 justify-end gap-2 border-t bg-white p-4'>
                         <Button className='w-fit' type='button' variant='ghost' onClick={onClose}>
                             Cancel
                         </Button>
