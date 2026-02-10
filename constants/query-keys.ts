@@ -238,6 +238,7 @@ export const FEES_QUERY_KEYS = {
     FEE_CONCESSION_ACADEMIC_YEAR_DROPDOWN: 'fee_concession_academic_year_dropdown',
     FEE_CONCESSION_TERM_DROPDOWN: 'fee_concession_term_dropdown',
     FEE_REFUNDABLE_LIST: 'fee_refundable_list',
+    FEE_CONCESSION_ON_LOAD: 'fee_concession_on_load',
 
     FEE_CONCESSION_CLASS_DROPDOWN: 'fee_concession_class_dropdown',
     FEE_CONCESSION_HEAD_LIST: 'fee_concession_head_list',

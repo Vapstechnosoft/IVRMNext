@@ -378,6 +378,17 @@ export interface ExcelNotImportedStudentDetailsReport {
     remarks: string;
     paymentmode: string;
     id: number;
+    feipsT_Id: number;
+    mI_Id: number;
+    asmaY_Id: number;
+    amsT_Id: number;
+    feipsT_Date: string;
+    feipsT_ActiveFlg: boolean;
+    asmaY_Year: string;
+    feipsT_Remarks: string;
+    feipsT_PayementMode: string;
+    feipsT_Amount: number;
+    amsT_AdmNo: string;
 }
 
 export interface IFeeYearlyCollectionReport {
@@ -468,4 +479,9 @@ export interface IFeeYearlyStudentTermWiseReport {
     cdNetAmount: number;
     cdPaidAmount: number;
     cdBalanceAmount: number;
+}
+
+export interface IFeeConcessionCustomGroupDropdownList {
+    fmgG_Id: number;
+    fmg_groupname: string;
 }
