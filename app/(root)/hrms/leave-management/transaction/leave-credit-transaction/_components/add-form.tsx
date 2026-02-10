@@ -46,6 +46,17 @@ const designationOptions = [
 ];
 const employeeOptions = ['Steffi Halian', 'Shruthi NA', 'Bindhushree N', 'Chaithra NS', 'Balu Prabhakar'];
 const _leaveNames = ['CL', 'SL', 'PL', 'LWP', 'OD'];
+interface LeaveCreditTransactionFormData extends Partial<LeaveCreditTransaction> {
+    type: string[];
+    department: string[];
+    designation: string[];
+    leaveYear: string;
+    employee: string;
+    lossOfPayType: string;
+    lossOfPayAmount: number;
+    availed: number;
+}
+
 export default function AddLeaveCreditTransactionForm({ onSuccess, className = '' }: AddLeaveCreditTransactionFormProps) {
     const { refetchAll } = useLeaveCreditTransaction();
     const { mutate: saveTransaction, isPending } = useSaveLeaveCreditTransaction();
@@ -60,7 +71,7 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
         trigger,
         reset,
         formState: { errors, isSubmitting }
-    } = useForm<LeaveCreditTransaction>({
+    } = useForm<LeaveCreditTransactionFormData>({
         mode: 'onChange',
         defaultValues: {
             type: [],
@@ -122,8 +133,8 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
             setValue('lossOfPayAmount', 0);
         }
     }, [lossOfPayType, totalDays, setValue]);
-    const onSubmit: SubmitHandler<LeaveCreditTransaction> = async (data) => {
-        saveTransaction(data, {
+    const onSubmit: SubmitHandler<LeaveCreditTransactionFormData> = async (data) => {
+        saveTransaction(data as any, {
             onSuccess: () => {
                 reset();
                 refetchAll();

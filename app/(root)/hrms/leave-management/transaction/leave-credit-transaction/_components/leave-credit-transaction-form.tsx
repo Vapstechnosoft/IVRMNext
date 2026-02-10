@@ -1,24 +1,23 @@
 'use client';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
 import { FormError } from '@/components/ui/extension/field';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
-import { differenceInDays, format } from 'date-fns';
-import { CalendarIcon, Save, X } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
-import { DatePicker } from '@/components/ui/date-picker';
-import { Input } from '@/components/ui/input';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { useMasterLeaveDropdowns } from '@/hooks/hrms/leave-management/useMasters';
 import {
     useLeaveTransactionDepartments,
     useLeaveTransactionDesignation,
-    useLeaveTransactionEmployee,
-    useLeaveTransactionEmpLop
+    useLeaveTransactionEmployee
 } from '@/hooks/hrms/leave-management/useTransactions';
-import { useMasterLeaveDropdowns } from '@/hooks/hrms/leave-management/useMasters';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { cn } from '@/lib/utils';
+import { differenceInDays } from 'date-fns';
+import { Save, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveCreditTransaction } from './columns';
 
 interface LeaveCreditTransactionFormProps {
@@ -51,20 +50,22 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
         setValue,
         formState: { errors }
     } = useForm<LeaveCreditTransaction>({
-        defaultValues: editingRow || {
-            employeeId: 0,
-            leaveName: '',
-            hrmL_LeaveType: '',
-            hrmlY_Id: 0,
-            fromDate: new Date(),
-            toDate: new Date(),
-            totalDays: 1,
-            id: 0,
-            transactionId: 0,
-            isActive: true,
-            employeeName: '',
-            createdAt: new Date()
-        } as any
+        defaultValues:
+            editingRow ||
+            ({
+                employeeId: 0,
+                leaveName: '',
+                hrmL_LeaveType: '',
+                hrmlY_Id: 0,
+                fromDate: new Date(),
+                toDate: new Date(),
+                totalDays: 1,
+                id: 0,
+                transactionId: 0,
+                isActive: true,
+                employeeName: '',
+                createdAt: new Date()
+            } as any)
     });
 
     const fromDate = watch('fromDate');
@@ -80,7 +81,7 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                     const days = differenceInDays(end, start) + 1;
                     setValue('totalDays', days, { shouldValidate: true });
                 }
-            } catch (_error) { }
+            } catch (_error) {}
         }
     }, [fromDate, toDate, setValue]);
 
@@ -149,10 +150,7 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                         control={control}
                         rules={{ required: 'Employee is required', min: { value: 1, message: 'Employee is required' } }}
                         render={({ field }) => (
-                            <Select
-                                value={field.value ? String(field.value) : ''}
-                                onValueChange={(val) => field.onChange(Number(val))}
-                            >
+                            <Select value={field.value ? String(field.value) : ''} onValueChange={(val) => field.onChange(Number(val))}>
                                 <SelectTrigger className={errors.employeeId ? 'border-red-500' : ''}>
                                     <SelectValue placeholder='Select employee' />
                                 </SelectTrigger>
@@ -205,7 +203,7 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                         rules={{ required: 'From Date is required' }}
                         render={({ field }) => (
                             <DatePicker
-                                date={field.value}
+                                date={field.value ? new Date(field.value) : undefined}
                                 setDate={field.onChange}
                                 placeholder='Select date'
                                 className={cn('w-full', errors.fromDate && 'border-red-500')}
@@ -225,7 +223,7 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                         rules={{ required: 'To Date is required' }}
                         render={({ field }) => (
                             <DatePicker
-                                date={field.value}
+                                date={field.value ? new Date(field.value) : undefined}
                                 setDate={field.onChange}
                                 placeholder='Select date'
                                 // fromDate={fromDate}
@@ -272,4 +270,3 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
         </form>
     );
 }
-

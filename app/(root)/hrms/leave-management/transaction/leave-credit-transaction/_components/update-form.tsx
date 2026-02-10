@@ -47,6 +47,17 @@ const designationOptions = [
 ];
 const employeeOptions = ['Steffi Halian', 'Shruthi NA', 'Bindhushree N', 'Chaithra NS', 'Balu Prabhakar'];
 const _leaveNames = ['CL', 'SL', 'PL', 'LWP', 'OD'];
+interface LeaveCreditTransactionFormData extends Partial<LeaveCreditTransaction> {
+    type: string[];
+    department: string[];
+    designation: string[];
+    leaveYear: string;
+    employee: string;
+    lossOfPayType: string;
+    lossOfPayAmount: number;
+    availed: number;
+}
+
 export default function UpdateLeaveCreditTransactionForm({
     onSuccess,
     className = '',
@@ -65,24 +76,25 @@ export default function UpdateLeaveCreditTransactionForm({
         trigger,
         reset,
         formState: { errors, isSubmitting }
-    } = useForm<LeaveCreditTransaction>({
+    } = useForm<LeaveCreditTransactionFormData>({
         mode: 'onChange'
     });
     useEffect(() => {
         if (row) {
+            const r = row as any;
             reset({
-                type: row.type || [],
-                department: row.department || [],
-                designation: row.designation || [],
-                leaveYear: row.leaveYear || '2025',
-                fromDate: row.fromDate || '',
-                toDate: row.toDate || '',
-                totalDays: row.totalDays || 0,
-                employee: row.employee || '',
-                lossOfPayType: row.lossOfPayType || 'none',
-                lossOfPayAmount: row.lossOfPayAmount || 0,
-                leaveName: row.leaveName || 'CL',
-                availed: row.availed || 0
+                type: r.type || [],
+                department: r.department || [],
+                designation: r.designation || [],
+                leaveYear: r.leaveYear || '2025',
+                fromDate: r.fromDate || '',
+                toDate: r.toDate || '',
+                totalDays: r.totalDays || 0,
+                employee: r.employee || r.employeeName || '',
+                lossOfPayType: r.lossOfPayType || 'none',
+                lossOfPayAmount: r.lossOfPayAmount || 0,
+                leaveName: r.leaveName || 'CL',
+                availed: r.availed || 0
             });
         }
     }, [row, reset]);
@@ -134,12 +146,12 @@ export default function UpdateLeaveCreditTransactionForm({
             setValue('lossOfPayAmount', 0);
         }
     }, [lossOfPayType, totalDays, setValue]);
-    const onSubmit: SubmitHandler<LeaveCreditTransaction> = async (data) => {
+    const onSubmit: SubmitHandler<LeaveCreditTransactionFormData> = async (data) => {
         updateTransaction(
             {
                 ...data,
                 id: row.id
-            },
+            } as any,
             {
                 onSuccess: () => {
                     reset();
