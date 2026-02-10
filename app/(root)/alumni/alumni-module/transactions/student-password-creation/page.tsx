@@ -75,9 +75,9 @@ export default function StudentPasswordCreationPage() {
         setFilterParams(values);
         try {
             const res = await getReportDetails({
-                asmaY_Id: parseInt(values.asmaY_Id),
-                asmcL_Id: parseInt(values.asmcL_Id),
-                asmS_Id: values.asmS_Id ? parseInt(values.asmS_Id) : 0,
+                asmaY_Id: Number.parseInt(values.asmaY_Id),
+                asmcL_Id: Number.parseInt(values.asmcL_Id),
+                asmS_Id: values.asmS_Id ? Number.parseInt(values.asmS_Id) : 0,
                 filterdata: values.filterdata
             });
             if (res && (res as any).success !== false) { // API usually returns success: true.
