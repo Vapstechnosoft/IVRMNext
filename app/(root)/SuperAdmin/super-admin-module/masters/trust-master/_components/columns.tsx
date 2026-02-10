@@ -7,29 +7,25 @@ import type { ITrustMaster } from '@/types/super-admin/super-admin-module/trust-
 import type { ColumnDef } from '@tanstack/react-table';
 import { toast } from 'sonner';
 
-import { useQueryClient } from '@tanstack/react-query';
+import { useFormContext } from '@/components/ui/form/form-provider';
+import { useCallback } from 'react';
 
 const TrustMasterActionCell = ({ row }: { row: any }) => {
-    const queryClient = useQueryClient();
+    const { openToggleForm } = useFormContext<ITrustMaster>();
+
+    const handleToggle = useCallback(
+        (data: ITrustMaster) => {
+            openToggleForm(data);
+        },
+        [openToggleForm]
+    );
 
     return (
         <ActionButtons
             rowData={row.original}
             buttons={{ edit: false, toggle: true, delete: false }}
             toggleConditionKey='mO_ActiveFlag'
-            onToggle={async (data, checked) => {
-                try {
-                    const response = await activateDeactivateTrustMaster(data.mO_Id);
-                    if (response.success) {
-                        toast.success(response.message || 'Trust details updated successfully');
-                        queryClient.invalidateQueries({ queryKey: ['trust_master_data'] });
-                    } else {
-                        toast.error(response.message || 'Failed to update Trust Status');
-                    }
-                } catch (error) {
-                    toast.error('Something went wrong');
-                }
-            }}
+            onToggle={handleToggle}
         />
     );
 };

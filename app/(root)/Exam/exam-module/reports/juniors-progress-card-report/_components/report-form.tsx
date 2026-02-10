@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type JuniorsProgressCardReportSchema, juniorsProgressCardReportSchema } from '@/schemas/exam/exam-module/reports';
+import { getClassDropDownByAcademicYearlist, getExamsDropDownByAcademicYearandClassandSectionlist, getSectionsDropDownByAcademicYearandClasslist, getStudentsDropDownByAcademicYearandClassandSectionlist } from '@/server/exam/exam-module/reports/cumulative-report';
 import {
     getClasses,
     getExamsAndStudents,
@@ -27,6 +28,7 @@ interface ReportFormProps {
 
 export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const { data: academicData, isLoading: academicYearLoading } = useAcademicYearDropdown();
+    console.log("Academic Data", academicData);
     const academicYears = academicData?.data || [];
     const [classes, setClasses] = useState<any[]>([]);
     const [sections, setSections] = useState<any[]>([]);
@@ -61,83 +63,129 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         if (studentSearch.trim() === '') {
             setFilteredStudents(students);
         } else {
-            setFilteredStudents(students.filter((s) => s.studentname.toLowerCase().includes(studentSearch.toLowerCase())));
+            setFilteredStudents(students.filter((s) => s.studentName.toLowerCase().includes(studentSearch.toLowerCase())));
         }
     }, [studentSearch, students]);
 
-    // Initial Data
     // Initial Data
     useEffect(() => {
         setLoading(false);
     }, []);
 
     // Load Classes
-    // Load Classes
     useEffect(() => {
         if (watchYear) {
-            setLoadingClasses(true);
-            getClasses(watchYear)
-                .then((res) => {
-                    if (res.ctlist && res.ctlist.length > 0) {
-                        setClasses(res.ctlist);
-                    } else {
-                        setClasses([]);
-                        toast.info('No classes found');
+            (async () => {
+                try {
+                    setLoadingClasses(true);
+                    const response = await getClassDropDownByAcademicYearlist(Number(watchYear));
+                    const data = response.data as any;
+                    setClasses(Array.isArray(data) ? data : []);
+                    if (!data || (Array.isArray(data) && data.length === 0)) {
+                        toast.info('No Classes found');
                     }
-                })
-                .catch(() => toast.error('Failed to load classes'))
-                .finally(() => setLoadingClasses(false));
+                } catch (err) {
+                    console.error(err);
+                    toast.error('Failed to load classes');
+                } finally {
+                    setLoadingClasses(false);
+                }
+            })();
             setValue('ASMCL_Id', '');
+
+        } else {
+            setClasses([]);
         }
     }, [watchYear, setValue]);
 
     // Load Sections
-    // Load Sections
     useEffect(() => {
-        if (watchClass) {
-            setLoadingSections(true);
-            getSections(watchClass)
-                .then((res) => {
-                    if (res.seclist && res.seclist.length > 0) {
-                        setSections(res.seclist);
-                    } else {
-                        setSections([]);
-                        toast.info('No sections found');
+        if (watchYear && watchClass) {
+            (async () => {
+                try {
+                    setLoadingSections(true);
+                    const response = await getSectionsDropDownByAcademicYearandClasslist(Number(watchYear), Number(watchClass));
+                    const data = response.data as any;
+                    setSections(Array.isArray(data) ? data : []);
+                    if (!data || (Array.isArray(data) && data.length === 0)) {
+                        toast.info('No Sections found');
                     }
-                })
-                .catch(() => toast.error('Failed to load sections'))
-                .finally(() => setLoadingSections(false));
+                } catch (err) {
+                    console.error(err);
+                    toast.error('Failed to load sections');
+                } finally {
+                    setLoadingSections(false);
+                }
+            })();
             setValue('ASMS_Id', '');
-        }
-    }, [watchClass, setValue]);
 
-    // Load Exams & Students
-    // Load Exams & Students
+        } else {
+            setSections([]);
+        }
+    }, [watchYear, watchClass, setValue]);
+
+    // Load Students
     useEffect(() => {
-        if (watchSection) {
-            setLoadingExams(true);
-            getExamsAndStudents(watchSection)
-                .then((res) => {
-                    if (res.examlist && res.examlist.length > 0) {
-                        setExams(res.examlist);
-                    } else {
-                        setExams([]);
-                        toast.info('No exams found');
-                    }
-                    if (res.studentlist && res.studentlist.length > 0) {
-                        setStudents(res.studentlist);
-                    } else {
-                        setStudents([]);
-                        toast.info('No students found');
-                    }
-                })
-                .catch(() => toast.error('Failed to load exams and students'))
-                .finally(() => setLoadingExams(false));
+        if (!watchYear || !watchClass || !watchSection) return;
+        (async () => {
+            try {
 
-            setValue('EME_Id', '');
-            setValue('selectedStudents', []);
-        }
-    }, [watchSection, setValue]);
+                const { data } = await getStudentsDropDownByAcademicYearandClassandSectionlist(
+                    Number(watchYear),
+                    Number(watchClass),
+                    Number(watchSection)
+                );
+                const valid = Array.isArray(data)
+                    ? data.filter((s): s is { amsT_AdmNo: number; amsT_Id: number; studentName?: string, amsT_FirstName?: string, amsT_MiddleName?: string, amsT_LastName?: string } => !!s?.amsT_Id)
+                    : [];
+
+                // Map to consistent format if needed, but the cumulative report logic returns objects with amsT_Id and studentName/amsT_FirstName
+                // We'll map them to a structure suitable for the display
+                const mappedStudents = valid.map(s => ({
+                    amsT_Id: s.amsT_Id,
+                    amsT_AdmNo: s.amsT_AdmNo,
+                    studentName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
+                }));
+
+                setStudents(mappedStudents);
+                console.log('Students:', mappedStudents);
+                setValue('selectedStudents', []);
+
+            } catch {
+                toast.error('Failed to load students');
+            } finally {
+            }
+        })();
+    }, [watchYear, watchClass, watchSection, setValue]);
+
+    // load exams
+    useEffect(() => {
+            if (watchYear && watchClass && watchSection) {
+                (async () => {
+                    try {
+                        setLoadingExams(true);
+                        const response = await getExamsDropDownByAcademicYearandClassandSectionlist(
+                            Number(watchYear),
+                            Number(watchClass),
+                            Number(watchSection)
+                        );
+                        const data = response.data as any;
+                        setExams(Array.isArray(data) ? data : []);
+                        if (!data || (Array.isArray(data) && data.length === 0)) {
+                            toast.info('No Exams found');
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        toast.error('Failed to load exams');
+                    } finally {
+                        setLoadingExams(false);
+                    }
+                })();
+                setValue('EME_Id', '');
+            } else {
+                setExams([]);
+            }
+        }, [watchYear, watchClass, watchSection, setValue]);
 
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
@@ -166,6 +214,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
             selectedStudents: []
         });
         onReset();
+        setStudents([]);
     };
 
     if (loading)
@@ -412,7 +461,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                                         />
                                                     )}
                                                 />
-                                                <Label className='w-full cursor-pointer font-normal text-sm'>{student.studentname}</Label>
+                                                <Label className='w-full cursor-pointer font-normal text-sm'>{student.studentName}</Label>
                                             </div>
                                         ))}
                                         {filteredStudents.length === 0 && (
