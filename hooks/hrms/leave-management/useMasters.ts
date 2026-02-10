@@ -9,7 +9,8 @@ import {
     saveMasterLeave as saveMasterLeaveAPI,
     toggleMasterLeave as toggleMasterLeaveAPI,
     updateMasterLeaveOrder as updateMasterLeaveOrderAPI,
-    deleteMasterLeave as deleteMasterLeaveAPI
+    deleteMasterLeave as deleteMasterLeaveAPI,
+    deleteMasterLeave
 } from '@/server/hrms/leave-management/masters/master-leave';
 import {
     getInstitutionsByLoginBased,
@@ -26,6 +27,7 @@ import type { LeaveAuthorization } from '@/app/(root)/hrms/leave-management/mast
 import type { ApiSearchparams } from '@/types';
 import type { MasterLeaveGetResponseData, MasterLeaveDTOO, MasterLeaveSaveRequest, MasterLeaveListItem } from '@/types/hrms/leave-management/master-leave';
 import type { LeaveAuthorizationGetResponseData } from '@/types/hrms/leave-management/leave-authorization';
+import { getTimetableData } from '@/server/timetable/transactions/staff-replacement-in-unallocated-period';
 // MasterLeaveYear type - placeholder until actual type is defined
 interface MasterLeaveYear {
     id: number;
@@ -70,9 +72,8 @@ function mapApiDataToMasterLeave(apiData: MasterLeaveGetResponseData | MasterLea
         lateDeduct: data.hrmL_LateDeductFlag ?? data.HRML_LateDeductFlag ?? data.lateDeduct ?? false,
         probationNotApplicable: data.hrmL_ProbationNotApplicableFlg ?? data.HRML_ProbationNotApplicableFlg ?? data.probationNotApplicable ?? false,
         leaveOrder: data.hrmL_LateDeductOrder || data.HRML_LateDeductOrder || data.leaveOrder || 0,
-        isActive: (data.hrmL_ActiveFlag !== undefined || data.HRML_ActiveFlag !== undefined || data.isActive !== undefined)
-            ? (data.hrmL_ActiveFlag === true || data.hrmL_ActiveFlag === 1 || data.HRML_ActiveFlag === true || data.HRML_ActiveFlag === 1 || data.isActive === true)
-            : true
+        // Map isActive to hrmL_LeaveCreditFlg as per user request for toggle functionality
+        isActive: data.hrmL_LeaveCreditFlg ?? data.HRML_LeaveCreditFlg ?? false
     };
 }
 /**
@@ -462,6 +463,7 @@ export function useDeleteMasterLeave() {
         }
     });
 }
+
 // Master Leave Year hooks
 export function useMasterLeaveYear() {
     const queryClient = useQueryClient();
@@ -564,18 +566,20 @@ function mapApiDataToLeaveAuthorization(apiData: LeaveAuthorizationGetResponseDa
         createdAt: data.createdDate || data.CreatedDate ? new Date(data.createdDate || data.CreatedDate) : new Date(),
         institution: data.mI_Name || data.institutionName || data.InstitutionName || data.institution || '',
         gradeName: data.hrmG_GradeName || data.HRMG_GradeName || data.gradeName || '',
-        groupTypeName: data.hrmgT_GroupTypeName || data.HRMGT_GroupTypeName || data.groupTypeName || '',
+        groupTypeName: data.hrmgT_EmployeeGroupType || data.hrmgT_GroupTypeName || data.HRMGT_GroupTypeName || data.groupTypeName || '',
         departmentName: data.hrmD_DepartmentName || data.HRMD_DepartmentName || data.departmentName || '',
         designationName: data.hrmdeS_DesignationName || data.HRMDES_DesignationName || data.designationName || '',
-        leaveType: data.hrmL_LeaveName || data.HRML_LeaveName || data.leaveType || '',
+        leaveType: data.hrmL_LeaveType || data.hrmL_LeaveName || data.HRML_LeaveName || data.leaveType || '',
         orderOfApproval: String(data.hrlaoN_SanctionLevelNo || data.hrmlA_OrderOfApproval || data.HRMLA_OrderOfApproval || data.orderOfApproval || ''),
         approvalPerson: data.hrmE_EmployeeFirstName || data.hrmlA_ApprovalPerson || data.HRMLA_ApprovalPerson || data.approvalPerson || '',
         finalFlag: data.hrlaoN_FinalFlg ?? data.hrmlA_FinalFlag ?? data.HRMLA_FinalFlag ?? data.finalFlag ?? false
     };
 
     // Store HRLA_Id if available (needed for delete operation)
-    const hrlA_Id = data.hrlA_Id || data.HRLA_Id;
-    if (hrlA_Id !== undefined) {
+    // In authorizationGrid it is hrlA_Id or hrmlA_Id
+    const hrlA_Id = data.hrlA_Id || data.HRLA_Id || data.hrla_id || data.hrmlA_Id || data.HRMLA_Id;
+    console.log(`🔍 Mapping Auth - id: ${mappedData.id}, hrlA_Id found: ${hrlA_Id}`);
+    if (hrlA_Id !== undefined && hrlA_Id !== null) {
         (mappedData as any)._HRLA_Id = hrlA_Id;
     }
     return mappedData;
@@ -597,27 +601,33 @@ export function useInstitutionsByLoginBased() {
     });
 }
 // Leave Authorization hooks
-export function useLeaveAuthorization() {
+export function useLeaveAuthorization(searchParams?: ApiSearchparams & { MI_Id?: string | number; UserId?: number }) {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATION],
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATION, searchParams ?? {}],
             queryFn: async () => {
                 try {
-                    // Call API with onchangeoronload="" to get all authorizations
+                    // Call API with search params for pagination and filtering
                     const response = await getLeaveAuthorization({
+                        ...searchParams,
                         UserId: 0,
-                        MI_Id: HRMS_MI_ID
+                        MI_Id: searchParams?.MI_Id || HRMS_MI_ID
                     });
                     if (!response.success) {
                         throw new Error(response.message || 'Failed to fetch leave authorization');
                     }
                     // Extract list from response
-                    // The API might return list in GridviewDetails, leavelistauth, or as an array
                     let authList: LeaveAuthorization[] = [];
                     if (response.data) {
+                        // Check for authorizationGrid (User provided specific structure)
+                        if ((response.data as any).authorizationGrid && Array.isArray((response.data as any).authorizationGrid)) {
+                            authList = (response.data as any).authorizationGrid
+                                .map((item: any) => mapApiDataToLeaveAuthorization(item))
+                                .filter((item: LeaveAuthorization | null): item is LeaveAuthorization => item !== null);
+                        }
                         // Check if GridviewDetails contains the list
-                        if ((response.data as any).GridviewDetails && Array.isArray((response.data as any).GridviewDetails)) {
+                        else if ((response.data as any).GridviewDetails && Array.isArray((response.data as any).GridviewDetails)) {
                             authList = (response.data as any).GridviewDetails
                                 .map((item: any) => mapApiDataToLeaveAuthorization(item))
                                 .filter((item: LeaveAuthorization | null): item is LeaveAuthorization => item !== null);
@@ -644,8 +654,11 @@ export function useLeaveAuthorization() {
                     }
                     return {
                         success: true,
+                        message: response.message || 'Leave authorization fetched successfully',
                         data: authList,
-                        message: response.message || 'Leave authorization fetched successfully'
+                        total: response.total || authList.length,
+                        page: response.page || 1,
+                        page_size: response.page_size || authList.length
                     };
                 } catch (error: any) {
                     throw new Error(error?.message || 'Failed to fetch leave authorization');
@@ -734,6 +747,7 @@ function mapLeaveAuthorizationToApiData(
     data: LeaveAuthorization | Omit<LeaveAuthorization, 'id' | 'createdAt'>,
     dropdownData: any
 ): {
+    HRLA_Id: number;
     MI_Id: number;
     HRMG_Id: number;
     HRMGT_Id: number;
@@ -747,14 +761,17 @@ function mapLeaveAuthorizationToApiData(
         ApprovalFinalFlag: boolean;
     }>;
 } {
-    // Find IDs from dropdown options based on names
-    const gradeId = dropdownData?.grades?.find((g: any) => g.label === data.gradeName || g.value === data.gradeName)?.value || 0;
-    const groupTypeId = dropdownData?.groupTypes?.find((g: any) => g.label === data.groupTypeName || g.value === data.groupTypeName)?.value || 0;
-    const departmentId = dropdownData?.departments?.find((d: any) => d.label === data.departmentName || d.value === data.departmentName)?.value || 0;
-    const designationId = dropdownData?.designations?.find((d: any) => d.label === data.designationName || d.value === data.designationName)?.value || 0;
-    const leaveTypeId = dropdownData?.leaveTypes?.find((l: any) => l.label === data.leaveType || l.value === data.leaveType)?.value || 0;
-    const approvalPersonId = dropdownData?.approvalPersons?.find((a: any) => a.label === data.approvalPerson || a.value === data.approvalPerson)?.value || 0;
+    // Find IDs from dropdown options based on names or values
+    // form data might contain IDs (values) if coming from add/edit form, or Names (labels) if coming from table row
+    const gradeId = dropdownData?.grades?.find((g: any) => g.value == data.gradeName || g.label === data.gradeName)?.value || 0;
+    const groupTypeId = dropdownData?.groupTypes?.find((g: any) => g.value == data.groupTypeName || g.label === data.groupTypeName)?.value || 0;
+    const departmentId = dropdownData?.departments?.find((d: any) => d.value == data.departmentName || d.label === data.departmentName)?.value || 0;
+    const designationId = dropdownData?.designations?.find((d: any) => d.value == data.designationName || d.label === data.designationName)?.value || 0;
+    const leaveTypeId = dropdownData?.leaveTypes?.find((l: any) => l.value == data.leaveType || l.label === data.leaveType)?.value || 0;
+    const approvalPersonId = dropdownData?.approvalPersons?.find((a: any) => a.value == data.approvalPerson || a.label === data.approvalPerson)?.value || 0;
+
     return {
+        HRLA_Id: (data as any)._HRLA_Id || 0,
         MI_Id: HRMS_MI_ID,
         HRMG_Id: Number(gradeId),
         HRMGT_Id: Number(groupTypeId),
@@ -766,7 +783,7 @@ function mapLeaveAuthorizationToApiData(
             {
                 Approval_HRME_Id: Number(approvalPersonId),
                 ApprovalLevelNo: Number(data.orderOfApproval) || 0,
-                ApprovalFinalFlag: data.finalFlag || false
+                ApprovalFinalFlag: !!data.finalFlag
             }
         ]
     };
@@ -789,7 +806,22 @@ export function useSaveLeaveAuthorization() {
                 throw new Error(response.message || 'Failed to save leave authorization');
             }
             // Map response back to frontend format
-            const mappedData = mapApiDataToLeaveAuthorization(response.data);
+            let mappedData: LeaveAuthorization | null = null;
+            if (response.data) {
+                mappedData = mapApiDataToLeaveAuthorization(response.data);
+            }
+
+            // If API returns success but no data (common in some legacy APIs), prevent error
+            if (!mappedData && response.success) {
+                // Return the input data as a placeholder
+                // Note: This might contain IDs instead of Names until refetch
+                mappedData = {
+                    id: 0,
+                    createdAt: new Date(),
+                    ...data
+                } as LeaveAuthorization;
+            }
+
             if (!mappedData) {
                 throw new Error('Failed to parse saved authorization data');
             }
@@ -893,6 +925,7 @@ export function useDeleteLeaveAuthorization() {
             }
         },
         onError: (error: Error) => {
+            console.error('Delete Authorization Failed:', error);
             // Error message from API is already in error.message
             toast.error(error.message || 'Failed to delete leave authorization');
         }

@@ -101,6 +101,9 @@ export function useLeaveHistory(request?: { MI_Id?: number; UserId?: number }) {
                     return {
                         success: true,
                         data: leaveHistory,
+                        total: leaveHistory.length,
+                        page: 1,
+                        page_Size: leaveHistory.length,
                         message: response.message || 'Leave history fetched successfully'
                     };
                 } catch (error: any) {

@@ -153,15 +153,3 @@ export interface MasterLeaveValidateOrderResponse {
 export interface MasterLeaveDeleteRequest {
     HRML_Id: number;
 }
-
-/**
- * Response from DeletePages endpoint
- */
-export interface MasterLeaveDeleteResponse {
-    success: boolean;
-    message: string;
-    data: any;
-    retrunMsg?: string;
-    returnval?: boolean;
-}
-

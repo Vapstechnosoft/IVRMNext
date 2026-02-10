@@ -6,12 +6,6 @@ import type {
     MasterLeaveGetResponse,
     MasterLeaveGetResponseData,
     MasterLeaveSaveRequest,
-    MasterLeaveSaveResponse,
-    MasterLeaveValidateOrderRequest,
-    MasterLeaveValidateOrderResponse,
-    MasterLeaveDTOO,
-    MasterLeaveDeleteRequest,
-    MasterLeaveDeleteResponse,
     MasterLeaveListItem
 } from '@/types/hrms/leave-management/master-leave';
 /**
@@ -301,7 +295,7 @@ export async function deleteMasterLeave(HRML_Id: number): Promise<ApiResponse<an
         console.log('🔴 [SERVER] Response:', JSON.stringify(response, null, 2));
 
         const res = response as any;
-        const isSuccess = res.success === true || String(res.success) === 'true';
+        const isSuccess = res.success === true || String(res.success) === 'true' || res.returnval === true;
 
         return {
             success: isSuccess,
