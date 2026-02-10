@@ -117,12 +117,18 @@ export default function StudentsYearlyAttendenceReport(props: {
         }
 
         const attendanceData = response.data as any;
+        console.log('API Response:', response);
+        console.log('Attendance Data:', attendanceData);
 
-        if (!attendanceData.studentAttendanceList || !attendanceData.monthList) {
+        const studentList = attendanceData.studentAttendanceList || attendanceData.StudentAttendanceList;
+        const monthListVal = attendanceData.monthList || attendanceData.MonthList;
+
+        if (!studentList || !monthListVal) {
             return [];
         }
 
-        const { studentAttendanceList, monthList } = attendanceData;
+        const studentAttendanceList = studentList;
+        const monthList = monthListVal;
 
         const studentMap = new Map<number, IStudentYearlyAttendenceReportList>();
 
@@ -167,7 +173,7 @@ export default function StudentsYearlyAttendenceReport(props: {
         }
 
         const attendanceData = response.data as any;
-        const monthList = attendanceData.monthList || [];
+        const monthList = attendanceData.monthList || attendanceData.MonthList || [];
 
         return createStudentsYearlyAttendenceReportColumns(monthList);
     }, [response?.data]);
