@@ -16,6 +16,23 @@ import { useEffect } from 'react';
 import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveCreditTransaction } from './columns';
+
+interface LeaveCreditTransactionFormValues extends Omit<LeaveCreditTransaction, 'fromDate' | 'toDate' | 'id' | 'createdAt' | 'transactionId' | 'isActive'> {
+    id?: number;
+    transactionId?: number;
+    isActive?: boolean;
+    type: string[];
+    department: string[];
+    designation: string[];
+    leaveYear: string;
+    fromDate: string;
+    toDate: string;
+    employee: string;
+    lossOfPayType: string;
+    lossOfPayAmount: number;
+    availed: number;
+}
+
 interface UpdateLeaveCreditTransactionFormProps {
     onSuccess?: () => void;
     className?: string;
@@ -65,24 +82,25 @@ export default function UpdateLeaveCreditTransactionForm({
         trigger,
         reset,
         formState: { errors, isSubmitting }
-    } = useForm<LeaveCreditTransaction>({
+    } = useForm<LeaveCreditTransactionFormValues>({
         mode: 'onChange'
     });
     useEffect(() => {
         if (row) {
             reset({
-                type: row.type || [],
-                department: row.department || [],
-                designation: row.designation || [],
-                leaveYear: row.leaveYear || '2025',
-                fromDate: row.fromDate || '',
-                toDate: row.toDate || '',
+                ...row,
+                type: (row as any).type || [],
+                department: (row as any).department || [],
+                designation: (row as any).designation || [],
+                leaveYear: (row as any).leaveYear || '2025',
+                fromDate: row.fromDate ? format(new Date(row.fromDate), 'yyyy-MM-dd') : '',
+                toDate: row.toDate ? format(new Date(row.toDate), 'yyyy-MM-dd') : '',
                 totalDays: row.totalDays || 0,
-                employee: row.employee || '',
-                lossOfPayType: row.lossOfPayType || 'none',
-                lossOfPayAmount: row.lossOfPayAmount || 0,
+                employee: (row as any).employee || '',
+                lossOfPayType: (row as any).lossOfPayType || 'none',
+                lossOfPayAmount: (row as any).lossOfPayAmount || 0,
                 leaveName: row.leaveName || 'CL',
-                availed: row.availed || 0
+                availed: (row as any).availed || 0
             });
         }
     }, [row, reset]);
@@ -134,12 +152,19 @@ export default function UpdateLeaveCreditTransactionForm({
             setValue('lossOfPayAmount', 0);
         }
     }, [lossOfPayType, totalDays, setValue]);
-    const onSubmit: SubmitHandler<LeaveCreditTransaction> = async (data) => {
+    const onSubmit: SubmitHandler<LeaveCreditTransactionFormValues> = async (data) => {
         updateTransaction(
             {
                 ...data,
-                id: row.id
-            },
+                id: row.id,
+                transactionId: row.transactionId,
+                isActive: row.isActive,
+                fromDate: new Date(data.fromDate),
+                toDate: new Date(data.toDate),
+                createdAt: row.createdAt,
+                employeeName: data.employee || row.employeeName,
+                employeeId: row.employeeId
+            } as LeaveCreditTransaction,
             {
                 onSuccess: () => {
                     reset();

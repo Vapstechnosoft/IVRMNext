@@ -8,7 +8,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useStudentCountReport } from '@/hooks/admission/preadmission/useReports';
 import type { IMasterStudentCountReportList } from '@/types/admission/preadmission/reports';
 import { X } from 'lucide-react';
-import { use, useState } from 'react';
+import React, { useState } from 'react';
 import PreadmissionStatusCountReport from '../../transactions/application-form/_components/preadmission-status-count-report';
 import AddStudentCountReportForm from './_components/add-from';
 import { masterStudentCountReportColumns } from './_components/columns';
@@ -18,7 +18,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function StudentCountReportPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const [filterPayload, setFilterPayload] = useState<any>({
         report_type: 1,
         type: 'between',

@@ -4,10 +4,12 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import {
-    useDeleteLeaveCreditTransaction,
-    useLeaveCreditTransaction,
-    useSaveLeaveCreditTransaction
-} from '@/hooks/hrms/leave-management/useTransactions';
+    useLeaveTransactionManualList,
+    useSaveLeaveTransactionManual,
+    useUpdateLeaveTransactionManual,
+    useDeleteLeaveTransactionManual,
+    useToggleLeaveTransactionManual
+} from '@/hooks/hrms/leave-management/useLeaveTransactionManual';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import { toast } from 'sonner';
@@ -16,32 +18,40 @@ import { LeaveCreditTransactionForm } from './_components/leave-credit-transacti
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function LeaveCreditTransactionPage(props: { searchParams: SearchParams }) {
     const _searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useLeaveCreditTransaction();
+    const { data: response, isLoading, error, refetchAll } = useLeaveTransactionManualList(_searchParams as any);
     return (
         <FormProvider<LeaveCreditTransaction>>
-            <LeaveCreditTransactionPageContent response={response} isLoading={isLoading} error={error} />
+            <LeaveCreditTransactionPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
         </FormProvider>
     );
 }
 function LeaveCreditTransactionPageContent({
     response,
     isLoading,
-    error
+    error,
+    refetchAll
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    refetchAll: () => void;
 }) {
     const { openAddForm } = useFormContext<LeaveCreditTransaction>();
     const { openEditForm, openDeleteForm } = useFormContext<LeaveCreditTransaction>();
+    const { mutate: toggleStatus } = useToggleLeaveTransactionManual();
     const tableProps = useDataTableProps(response);
     const columns = getLeaveCreditTransactionColumns({
         onEdit: openEditForm,
         onDelete: (id: number) => {
-            const row = response?.data?.find((r: LeaveCreditTransaction) => r.id === id);
+            const row = (response?.data as LeaveCreditTransaction[])?.find((r) => r.id === id);
             if (row) {
                 openDeleteForm(row);
             }
+        },
+        onToggle: (id: number) => {
+            toggleStatus(id, {
+                onSuccess: () => refetchAll()
+            });
         }
     });
     return (
@@ -77,12 +87,12 @@ function LeaveCreditTransactionPageContent({
                     />
                 </CollapsibleSection>
                 {/* Forms */}
-                <FormSections />
+                <FormSections refetchAll={refetchAll} />
             </div>
         </div>
     );
 }
-function FormSections() {
+function FormSections({ refetchAll }: { refetchAll: () => void }) {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -94,24 +104,33 @@ function FormSections() {
         addFormRef,
         editFormRef
     } = useFormContext<LeaveCreditTransaction>();
-    const { refetchAll } = useLeaveCreditTransaction();
-    const { mutate: saveTransaction } = useSaveLeaveCreditTransaction();
-    const { mutate: deleteTransaction } = useDeleteLeaveCreditTransaction();
+    const { mutate: saveTransaction } = useSaveLeaveTransactionManual();
+    const { mutate: updateTransaction } = useUpdateLeaveTransactionManual();
+    const { mutate: deleteTransaction } = useDeleteLeaveTransactionManual();
     const handleFormSubmit = (formData: LeaveCreditTransaction) => {
-        saveTransaction(formData, {
-            onSuccess: () => {
-                toast.success(selectedRow ? 'Leave transaction updated successfully' : 'Leave transaction saved successfully');
-                refetchAll();
-                closeEditForm();
-                closeAddForm();
-            }
-        });
+        if (selectedRow) {
+            updateTransaction(formData as any, {
+                onSuccess: () => {
+                    refetchAll();
+                    closeEditForm();
+                }
+            });
+        } else {
+            saveTransaction(formData as any, {
+                onSuccess: () => {
+                    refetchAll();
+                    closeAddForm();
+                }
+            });
+        }
     };
     const handleDelete = () => {
         if (selectedRow) {
-            deleteTransaction(selectedRow.id, {
+            deleteTransaction({
+                HRELTD_Id: selectedRow.id,
+                HRELT_Id: selectedRow.transactionId
+            }, {
                 onSuccess: () => {
-                    toast.success('Leave transaction deleted successfully');
                     refetchAll();
                     closeDeleteForm();
                 }
