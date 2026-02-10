@@ -19,11 +19,7 @@ interface ViewReplyModalProps {
     onSuccess: () => void;
 }
 
-import {
-    deleteAlumniInteraction,
-    replyAlumniInteraction,
-    searchAlumniForInteraction
-} from '@/server/alumni/alumni-interactions';
+import { deleteAlumniInteraction, replyAlumniInteraction, searchAlumniForInteraction } from '@/server/alumni/alumni-interactions';
 import { uploadDocument } from '@/server/document_upload';
 
 // biome-ignore lint/correctness/noUnusedVariables: <explanation>
@@ -232,10 +228,11 @@ export default function ViewReplyModal({ message, userHrmeId, onClose, onSuccess
                                 return (
                                     <div key={idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                                         <div
-                                            className={`group relative max-w-[85%] rounded-2xl px-5 py-3 shadow-md ${isMe
+                                            className={`group relative max-w-[85%] rounded-2xl px-5 py-3 shadow-md ${
+                                                isMe
                                                     ? 'rounded-br-none bg-gradient-to-r from-blue-600 to-blue-700 text-white'
                                                     : 'rounded-bl-none border border-gray-200 bg-white shadow-sm'
-                                                }`}>
+                                            }`}>
                                             <div className='mb-2 flex items-center justify-between'>
                                                 <span className={`font-bold text-xs ${isMe ? 'text-blue-100' : 'text-blue-600'}`}>
                                                     {isMe ? 'You' : reply.Sender}

@@ -1,4 +1,3 @@
-
 export interface IMasterSchoolTopic {
     lpmmT_Id: number;
     lpmmT_TopicName: string;

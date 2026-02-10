@@ -36,7 +36,8 @@ export default function ToggleSchoolTopicForm({ rowData, onClose, onSuccess }: T
         <AdaptiveDialog title={`${rowData.lpmT_ActiveFlag ? 'Deactivate' : 'Activate'} Record?`} isOpen={true} onClose={onClose}>
             <form onSubmit={handleConfirm} className='flex flex-col gap-4'>
                 <AdaptiveBody>
-                    Are you sure you want to {rowData.lpmT_ActiveFlag ? 'deactivate' : 'activate'} this record for topic "{rowData.lpmT_TopicName}"?
+                    Are you sure you want to {rowData.lpmT_ActiveFlag ? 'deactivate' : 'activate'} this record for topic "
+                    {rowData.lpmT_TopicName}"?
                 </AdaptiveBody>
                 <AdaptiveFooter>
                     <Button variant='secondary' onClick={onClose} type='button'>

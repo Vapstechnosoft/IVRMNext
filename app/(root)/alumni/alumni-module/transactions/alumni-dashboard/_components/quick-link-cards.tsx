@@ -1,16 +1,7 @@
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
-import {
-    UserCircle,
-    HeartHandshake,
-    Images,
-    Megaphone,
-    CalendarDays,
-    UserRoundPlus,
-    ChevronRight,
-    GraduationCap
-} from 'lucide-react';
+import { CalendarDays, ChevronRight, GraduationCap, HeartHandshake, Images, Megaphone, UserCircle, UserRoundPlus } from 'lucide-react';
 import Image from 'next/image';
 
 interface QuickLinkCardsProps {
@@ -103,8 +94,7 @@ export default function QuickLinkCards({
                 <Card
                     key={idx}
                     className={`cursor-pointer border-l-4 transition-all hover:scale-[1.02] hover:shadow-lg ${card.color}`}
-                    onClick={card.action}
-                >
+                    onClick={card.action}>
                     <CardContent className='flex flex-col items-center justify-center space-y-3 p-6 text-center'>
                         <div className='relative flex h-16 w-16 items-center justify-center rounded-full bg-muted/30'>
                             <Image
@@ -122,9 +112,9 @@ export default function QuickLinkCards({
                         </div>
                         <div className='space-y-1'>
                             <h3 className='font-bold text-primary'>{card.title}</h3>
-                            <p className='text-xs text-muted-foreground'>{card.detail}</p>
+                            <p className='text-muted-foreground text-xs'>{card.detail}</p>
                         </div>
-                        <div className='flex w-full items-center justify-between border-t pt-3 text-xs font-medium text-muted-foreground'>
+                        <div className='flex w-full items-center justify-between border-t pt-3 font-medium text-muted-foreground text-xs'>
                             <span>Go to details</span>
                             <ChevronRight className='h-3 w-3' />
                         </div>

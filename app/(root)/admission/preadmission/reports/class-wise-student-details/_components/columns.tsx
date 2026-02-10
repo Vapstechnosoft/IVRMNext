@@ -134,7 +134,9 @@ export const getMasterAdmissionReportColumns = (selectedFields: string[]): Colum
     const columns: ColumnDef<any>[] = [serialNumberColumn, studentPhotoColumn];
 
     selectedFields.forEach((fieldId) => {
-        columns.push(createDynamicColumn(fieldId));
+        if (fieldId !== 'AMST_Photoname') {
+            columns.push(createDynamicColumn(fieldId));
+        }
     });
 
     return columns;

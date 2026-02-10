@@ -1,25 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Save, Eye, FileUp, Loader2 } from 'lucide-react';
-import type {
-    IDateItem,
-    ITopic
-} from '@/types/lesson-planner/transactions/school-staff-period-mapping';
-import { format } from 'date-fns';
-import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { uploadDocument } from '@/server/document_upload';
+import type { IDateItem, ITopic } from '@/types/lesson-planner/transactions/school-staff-period-mapping';
+import { format } from 'date-fns';
+import { Eye, FileUp, Loader2, Save } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface MappingTableProps {
     dates: IDateItem[];
@@ -35,7 +26,7 @@ export default function MappingTable({ dates, topics, onSave, isLoading }: Mappi
     const findValue = (obj: any, keys: string[]) => {
         if (!obj) return null;
         for (const key of keys) {
-            if (obj[key] !== undefined && obj[key] !== null && obj[key] !== "") return obj[key];
+            if (obj[key] !== undefined && obj[key] !== null && obj[key] !== '') return obj[key];
         }
         return null;
     };
@@ -103,7 +94,7 @@ export default function MappingTable({ dates, topics, onSave, isLoading }: Mappi
     };
 
     const handleSave = () => {
-        const selected = localDates.filter(d => {
+        const selected = localDates.filter((d) => {
             const isSelected = d.Selected;
             const topicId = findValue(d, ['lpmT_Id', 'LPMT_Id', 'topicId']);
             return isSelected && Number(topicId) > 0;
@@ -114,7 +105,7 @@ export default function MappingTable({ dates, topics, onSave, isLoading }: Mappi
             return;
         }
 
-        const payload = selected.map(d => {
+        const payload = selected.map((d) => {
             const id = findValue(d, ['lplP_Id', 'LPLP_Id', 'mappingId']) || 0;
             const date = findValue(d, ['alldates', 'LPLP_LPDate', 'allDates', 'date']);
             const topicId = findValue(d, ['lpmT_Id', 'LPMT_Id', 'topicId']);
@@ -143,16 +134,16 @@ export default function MappingTable({ dates, topics, onSave, isLoading }: Mappi
     };
 
     return (
-        <div className="space-y-4">
-            <div className="rounded-md border overflow-hidden">
+        <div className='space-y-4'>
+            <div className='overflow-hidden rounded-md border'>
                 <Table>
-                    <TableHeader className="bg-muted/50">
+                    <TableHeader className='bg-muted/50'>
                         <TableRow>
-                            <TableHead className="w-[50px] text-center">SL.NO.</TableHead>
-                            <TableHead className="w-[50px] text-center">Select</TableHead>
+                            <TableHead className='w-[50px] text-center'>SL.NO.</TableHead>
+                            <TableHead className='w-[50px] text-center'>Select</TableHead>
                             <TableHead>Date</TableHead>
-                            <TableHead className="min-w-[200px]">Topic</TableHead>
-                            <TableHead className="w-[150px]">Attachment</TableHead>
+                            <TableHead className='min-w-[200px]'>Topic</TableHead>
+                            <TableHead className='w-[150px]'>Attachment</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -164,28 +155,25 @@ export default function MappingTable({ dates, topics, onSave, isLoading }: Mappi
 
                             return (
                                 <TableRow key={index}>
-                                    <TableCell className="text-center">{index + 1}</TableCell>
-                                    <TableCell className="text-center">
+                                    <TableCell className='text-center'>{index + 1}</TableCell>
+                                    <TableCell className='text-center'>
                                         <Checkbox
                                             checked={!!item.Selected}
                                             onCheckedChange={(checked) => handleCheckboxChange(index, !!checked)}
                                             disabled={isTaken}
                                         />
                                     </TableCell>
-                                    <TableCell>
-                                        {dateValue ? format(new Date(dateValue), 'yyyy-MM-dd') : '-'}
-                                    </TableCell>
+                                    <TableCell>{dateValue ? format(new Date(dateValue), 'yyyy-MM-dd') : '-'}</TableCell>
                                     <TableCell>
                                         <Select
                                             value={topicId?.toString() || ''}
                                             onValueChange={(val: string) => handleTopicChange(index, val)}
-                                            disabled={!item.Selected || isTaken}
-                                        >
+                                            disabled={!item.Selected || isTaken}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Topic" />
+                                                <SelectValue placeholder='Select Topic' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {topics.map(t => {
+                                                {topics.map((t) => {
                                                     const tId = findValue(t, ['lpmT_Id', 'LPMT_Id', 'topicId']);
                                                     const tName = findValue(t, ['lpmT_TopicName', 'LPMT_TopicName', 'topicName']);
                                                     return (
@@ -198,22 +186,30 @@ export default function MappingTable({ dates, topics, onSave, isLoading }: Mappi
                                         </Select>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <div className="relative">
-                                                <Button variant="outline" size="icon" disabled={!item.Selected || isUploading === index} type="button">
-                                                    {isUploading === index ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />}
+                                        <div className='flex items-center gap-2'>
+                                            <div className='relative'>
+                                                <Button
+                                                    variant='outline'
+                                                    size='icon'
+                                                    disabled={!item.Selected || isUploading === index}
+                                                    type='button'>
+                                                    {isUploading === index ? (
+                                                        <Loader2 className='h-4 w-4 animate-spin' />
+                                                    ) : (
+                                                        <FileUp className='h-4 w-4' />
+                                                    )}
                                                 </Button>
                                                 <Input
-                                                    type="file"
-                                                    className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
-                                                    accept=".pdf"
+                                                    type='file'
+                                                    className='absolute inset-0 cursor-pointer opacity-0 disabled:cursor-not-allowed'
+                                                    accept='.pdf'
                                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFileUpload(index, e)}
                                                     disabled={!item.Selected || isUploading !== null}
                                                 />
                                             </div>
                                             {location && (
-                                                <Button variant="ghost" size="icon" type="button" onClick={() => window.open(location)}>
-                                                    <Eye className="h-4 w-4 text-primary" />
+                                                <Button variant='ghost' size='icon' type='button' onClick={() => window.open(location)}>
+                                                    <Eye className='h-4 w-4 text-primary' />
                                                 </Button>
                                             )}
                                         </div>
@@ -225,9 +221,9 @@ export default function MappingTable({ dates, topics, onSave, isLoading }: Mappi
                 </Table>
             </div>
 
-            <div className="flex justify-center">
-                <Button onClick={handleSave} disabled={isLoading} size="lg">
-                    <Save className="mr-2 h-4 w-4" /> Save Mapping
+            <div className='flex justify-center'>
+                <Button onClick={handleSave} disabled={isLoading} size='lg'>
+                    <Save className='mr-2 h-4 w-4' /> Save Mapping
                 </Button>
             </div>
         </div>

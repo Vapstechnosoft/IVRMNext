@@ -79,7 +79,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         showExportOptions = false,
         // manualPagination = true
         scrollable = false,
-        maxHeight = '600px',
+        maxHeight = '600px'
         //manualPagination = false
     }: GenericDataTableProps<T>,
     ref: React.Ref<DataTableRef>

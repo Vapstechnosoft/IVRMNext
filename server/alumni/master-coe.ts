@@ -20,8 +20,6 @@ export interface IMasterCOEResponse {
     page_size?: number;
 }
 
-
-
 // Paginated data fetching for Master Events with search support
 export async function getMasterCOEData(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'COEME_EventName');
@@ -34,7 +32,6 @@ export async function getMasterCOEInitialData() {
     const url = '/MasterCOE/getdetails';
     return await api.get<any>('alumni', url);
 }
-
 
 export async function saveMasterEventsData(data: any) {
     return await api.post<any>('alumni', '/MasterCOE/savedetail', data);

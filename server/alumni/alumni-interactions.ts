@@ -1,10 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type {
-    IAlumniInteractionLoadResponse,
-    IAlumniDetailsResponse
-} from '@/types/alumni/alumni-interactions';
+import type { IAlumniDetailsResponse, IAlumniInteractionLoadResponse } from '@/types/alumni/alumni-interactions';
 
 export async function getAlumniInteractionLoadData() {
     return await api.post<IAlumniInteractionLoadResponse>('alumni', '/Alumni_Interactions/getdata', {});

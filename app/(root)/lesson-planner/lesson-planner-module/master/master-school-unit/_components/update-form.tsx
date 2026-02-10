@@ -1,10 +1,10 @@
 'use client';
 
-import AddMasterSchoolUnitForm from './add-form';
-import type { IMasterSchoolUnit } from '@/types/lesson-planner/master/school-master-unit';
 import { editSchoolMasterUnit } from '@/server/lesson-planner/master/school-master-unit';
+import type { IMasterSchoolUnit } from '@/types/lesson-planner/master/school-master-unit';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import AddMasterSchoolUnitForm from './add-form';
 
 interface UpdateMasterSchoolUnitFormProps {
     selectedRow: IMasterSchoolUnit;
@@ -34,7 +34,7 @@ export default function UpdateMasterSchoolUnitForm({
                 if (res.success && res.data) {
                     const editArray = Array.isArray(res.data)
                         ? res.data
-                        : (res.data.geteditdetails || res.data.editdetail || res.data.editdetails || []);
+                        : res.data.geteditdetails || res.data.editdetail || res.data.editdetails || [];
 
                     if (editArray.length > 0) {
                         setEditData(editArray[0]);
@@ -60,7 +60,7 @@ export default function UpdateMasterSchoolUnitForm({
 
     if (isLoading) {
         return (
-            <div className={`flex justify-center items-center p-8 ${className}`}>
+            <div className={`flex items-center justify-center p-8 ${className}`}>
                 <div className='text-muted-foreground'>Loading edit details...</div>
             </div>
         );
@@ -68,7 +68,7 @@ export default function UpdateMasterSchoolUnitForm({
 
     if (!editData) {
         return (
-            <div className={`flex justify-center items-center p-8 ${className}`}>
+            <div className={`flex items-center justify-center p-8 ${className}`}>
                 <div className='text-destructive'>Failed to load edit data</div>
             </div>
         );
@@ -76,12 +76,7 @@ export default function UpdateMasterSchoolUnitForm({
 
     return (
         <div className={className}>
-            <AddMasterSchoolUnitForm
-                initialData={editData}
-                onSuccess={onSuccess}
-                mI_Id={mI_Id}
-                userId={userId}
-            />
+            <AddMasterSchoolUnitForm initialData={editData} onSuccess={onSuccess} mI_Id={mI_Id} userId={userId} />
         </div>
     );
 }

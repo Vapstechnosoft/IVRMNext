@@ -14,11 +14,9 @@ export default function BirthdayMarquee({ birthdays }: BirthdayMarqueeProps) {
         .join(', ');
 
     return (
-        <div className='relative flex h-12 w-full items-center overflow-hidden bg-muted/30 border-y shadow-sm'>
-            <div className='absolute left-0 z-20 bg-background px-4 py-2 font-bold text-primary shadow-md border-r'>
-                🎂 BIRTHDAYS
-            </div>
-            <div className='flex w-max animate-marquee whitespace-nowrap px-4 py-2 text-lg font-medium text-blue-600'>
+        <div className='relative flex h-12 w-full items-center overflow-hidden border-y bg-muted/30 shadow-sm'>
+            <div className='absolute left-0 z-20 border-r bg-background px-4 py-2 font-bold text-primary shadow-md'>🎂 BIRTHDAYS</div>
+            <div className='flex w-max animate-marquee whitespace-nowrap px-4 py-2 font-medium text-blue-600 text-lg'>
                 <span className='mx-8'>Happy Birthday {bdayText} 🎂</span>
                 <span className='mx-8'>Happy Birthday {bdayText} 🎂</span>
                 <span className='mx-8'>Happy Birthday {bdayText} 🎂</span>

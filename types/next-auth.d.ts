@@ -27,5 +27,5 @@ declare module 'next-auth' {
         user_image: string | null;
     }
 
-    interface JWT extends User { }
+    interface JWT extends User {}
 }

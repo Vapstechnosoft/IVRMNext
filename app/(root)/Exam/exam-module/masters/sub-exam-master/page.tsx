@@ -7,7 +7,7 @@ import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import { useMasterSubExam } from '@/hooks/exam/exammodule/usemasters';
 import { UpdatedOrderdSubExams, getMasterSubExamOrderData } from '@/server/exam/exam-module/masters/sub-exam';
 import type { IMasterSubExam } from '@/types/exam/exam-module/masters';
-import { GitCompareArrows, List, Plus, X } from 'lucide-react';
+import { GitCompareArrows, Plus, X } from 'lucide-react';
 import { use, useState } from 'react';
 import { toast } from 'sonner';
 import AddSubExamForm from './_components/add-form';

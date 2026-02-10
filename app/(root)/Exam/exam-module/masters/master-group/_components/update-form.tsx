@@ -169,8 +169,8 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
             {/* Actions */}
             <div className='flex w-fit items-center justify-center gap-3'>
                 <Button
-                    type="button"
-                    variant="outline"
+                    type='button'
+                    variant='outline'
                     onClick={() => {
                         reset({
                             emG_Id: initialData?.emG_Id || 0,
@@ -189,11 +189,10 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
                     Reset
                 </Button>
 
-                <Button type="submit" disabled={isSubmitting} isLoading={isSubmitting} loadingText="Updating...">
+                <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting} loadingText='Updating...'>
                     Update
                 </Button>
             </div>
-
         </form>
     );
 }

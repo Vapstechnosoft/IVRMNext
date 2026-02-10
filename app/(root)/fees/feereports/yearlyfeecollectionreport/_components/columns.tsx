@@ -1021,13 +1021,13 @@ export function printTermWiseTable(rows: IFeeYearlyCollectionReport[], selectedT
             const data = rows.find((r) => r.fmh_id === feeHead.fmh_id && (r.fmt_id === term.fmT_Id || r.fmt_Id === term.fmT_Id));
 
             // Use the CORRECT property names from your data
-            const paid = data ? getNumericValue(data.fss_paidamount || data.paid || data.totalpaid || 0) : 0;
-            const balance = data ? getNumericValue(data.totalbalance || data.balance || data.cdBalanceAmount || 0) : 0;
-            const concession = data ? getNumericValue(data.totalconcession || data.concession || 0) : 0;
-            const arrear = data ? getNumericValue(data.arrear || 0) : 0;
-            const excess = data ? getNumericValue(data.runningexcess || data.excess || 0) : 0;
-            const charges = data ? getNumericValue(data.totalcharges || data.charges || data.charge || 0) : 0;
-            const payable = data ? getNumericValue(data.totalpayable || data.payable || data.cdNetAmount || 0) : 0;
+            const paid = data ? getNumericValue(data.paid) : 0;
+            const balance = data ? getNumericValue(data.balance) : 0;
+            const concession = data ? getNumericValue(data.concession) : 0;
+            const arrear = data ? getNumericValue(data.arrear) : 0;
+            const excess = data ? getNumericValue(data.excess) : 0;
+            const charges = data ? getNumericValue(data.charges) : 0;
+            const payable = data ? getNumericValue(data.payable) : 0;
 
             bodyRows += `
         <td>${formatCurrency(paid)}</td>

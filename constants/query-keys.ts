@@ -238,6 +238,7 @@ export const FEES_QUERY_KEYS = {
     FEE_CONCESSION_ACADEMIC_YEAR_DROPDOWN: 'fee_concession_academic_year_dropdown',
     FEE_CONCESSION_TERM_DROPDOWN: 'fee_concession_term_dropdown',
     FEE_REFUNDABLE_LIST: 'fee_refundable_list',
+    FEE_CONCESSION_ON_LOAD: 'fee_concession_on_load',
 
     FEE_CONCESSION_CLASS_DROPDOWN: 'fee_concession_class_dropdown',
     FEE_CONCESSION_HEAD_LIST: 'fee_concession_head_list',
@@ -553,14 +554,13 @@ export const STAFF_PORTAL_QUERY_KEYS = {
 
     FEE_ACADEMIC_YEARS: 'fee_academic_years',
     FEE_STUDENT_INFORMATION: 'fee_student_information',
-     FEE_PORTAL_STUDENT_INFORMATION: 'fee_portal_student_information',
+    FEE_PORTAL_STUDENT_INFORMATION: 'fee_portal_student_information',
     FEE_DETAILS: 'fee_details',
     FEE_PAYMENT_ORDER: 'fee_payment_order',
     FEE_RAZORPAY_PAYMENT: 'fee_razorpay_payment',
     FEE_PAYMENT_CHARGES: 'fee_payment_charges',
     FEE_ONLINE_PAYMENT_STUDENT_INFO: 'fee_online_student_info',
     FEE_ONLINE_PAYMENT_GROUP_LIST: 'fee_online_payment_group_list'
-
 };
 
 export const COE_QUERY_KEYS = {
@@ -586,5 +586,6 @@ export const TRANSPORT_QUERY_KEYS = {
     VEHICLE_DROPDOWN: 'vehicle_dropdown',
     DRIVER_DROPDOWN: 'driver_dropdown',
     ROUTE_DROPDOWN: 'route_dropdown',
-    SESSION_DROPDOWN: 'session_dropdown'
+    SESSION_DROPDOWN: 'session_dropdown',
+    VECHILE_GRID_LIST: 'vechile_grid_list'
 };

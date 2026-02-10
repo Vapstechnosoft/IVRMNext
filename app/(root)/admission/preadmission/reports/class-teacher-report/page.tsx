@@ -12,17 +12,20 @@ import { useClassTeacherReport } from '@/hooks/admission/preadmission/useReports
 import { getExcelClassTeacherReport } from '@/server/admission/preadmission/reports/month_end_report';
 import type { IClassTeacherReportList } from '@/types/admission/preadmission/reports';
 import { FileText, Printer, RotateCcw, X } from 'lucide-react';
-import { use, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { getClassTeacherReportColumns } from './_components/columns';
+import { useReactToPrint } from 'react-to-print';
+import { ClassTeacherReportPrint } from './_components/class-teacher-report-print';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function ClassTeacherReportPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const tableRef = useRef<DataTableRef>(null);
+    const componentRef = useRef<HTMLDivElement>(null);
 
     const { data: academicYearOptions, isLoading: academicYearLoading, isError: academicYearError } = useAcademicYearDropdown();
 
@@ -90,8 +93,8 @@ export default function ClassTeacherReportPage(props: {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    });
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -147,6 +150,11 @@ export default function ClassTeacherReportPage(props: {
         toast.success('Generating report...');
     };
 
+    const handlePrintContent = useReactToPrint({
+        contentRef: componentRef,
+        documentTitle: 'Class_Teacher_Report'
+    });
+
     const handlePrint = () => {
         const studentDetails = (response?.data as any)?.searchstudentDetails;
         if (!studentDetails || studentDetails.length === 0) {
@@ -154,181 +162,178 @@ export default function ClassTeacherReportPage(props: {
             return;
         }
 
-        if (selectedStudents.length === 0) {
-            toast.error('Please select at least one record to print');
-            return;
-        }
+        const dataToPrint = selectedStudents.length > 0 ? selectedStudents : studentDetails;
 
-        window.print();
+        toast.info(`Preparing print for ${dataToPrint.length} record(s)...`);
+
+        // Give React time to re-render the print component with selected data
+        setTimeout(() => {
+            handlePrintContent();
+        }, 100);
     };
 
     return (
         <div className='min-h-screen p-8'>
-            <style>
-                {`
-          @media print {
-            body * {
-              visibility: hidden;
-            }
-            #printable-report, #printable-report * {
-              visibility: visible;
-            }
-            #printable-report {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100%;
-            }
-            .no-print {
-              display: none !important;
-            }
-          }
-        `}
-            </style>
+            <CollapsibleSection
+                title='Class Teacher Report'
+                defaultOpen={true}
+                variant='outline'
+                size='md'
+                className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                <div className='space-y-6'>
+                    <div className='flex justify-center'>
+                        <div className='w-full max-w-xs space-y-2'>
+                            <Label htmlFor='academic-year' className='font-medium text-gray-900 text-sm'>
+                                Academic Year <span className='text-red-500'>*</span>
+                            </Label>
 
-            <div className='container space-y-4 p-1'>
-                <CollapsibleSection
-                    title='Class Teacher Report'
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='no-print slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <div className='space-y-6'>
-                        <div className='flex justify-center'>
-                            <div className='w-full max-w-xs space-y-2'>
-                                <Label htmlFor='academic-year' className='font-medium text-gray-900 text-sm'>
-                                    Academic Year <span className='text-red-500'>*</span>
-                                </Label>
+                            <Select
+                                onValueChange={(value) => handleFilterChange('academic_year', Number(value))}
+                                value={academicYearId !== 0 ? academicYearId?.toString() : undefined}>
+                                <SelectTrigger id='academic-year' className='w-full'>
+                                    <SelectValue placeholder='Select Academic Year' />
+                                </SelectTrigger>
 
-                                <Select
-                                    onValueChange={(value) => handleFilterChange('academic_year', Number(value))}
-                                    value={academicYearId !== 0 ? academicYearId?.toString() : undefined}>
-                                    <SelectTrigger id='academic-year' className='w-full'>
-                                        <SelectValue placeholder='Select Academic Year' />
-                                    </SelectTrigger>
-
-                                    <SelectContent>
-                                        {academicYearLoading ? (
-                                            <SelectItem value='loading' disabled>
-                                                Loading...
+                                <SelectContent>
+                                    {academicYearLoading ? (
+                                        <SelectItem value='loading' disabled>
+                                            Loading...
+                                        </SelectItem>
+                                    ) : academicYearError ? (
+                                        <SelectItem value='error' disabled>
+                                            Error loading
+                                        </SelectItem>
+                                    ) : (
+                                        academicYearOptions?.data?.map((item) => (
+                                            <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
+                                                {item.asmaY_Year}
                                             </SelectItem>
-                                        ) : academicYearError ? (
-                                            <SelectItem value='error' disabled>
-                                                Error loading
-                                            </SelectItem>
-                                        ) : (
-                                            academicYearOptions?.data?.map((item) => (
-                                                <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
-                                                    {item.asmaY_Year}
-                                                </SelectItem>
-                                            ))
-                                        )}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-
-                        <div className='flex flex-col items-center gap-3'>
-                            <RadioGroup
-                                value={reportType}
-                                onValueChange={handleReportTypeChange}
-                                className='flex flex-wrap items-center justify-center gap-6'>
-                                <div className='flex items-center gap-2'>
-                                    <RadioGroupItem value='class_teacher' id='report-class-teacher' />
-                                    <Label htmlFor='report-class-teacher' className='cursor-pointer'>
-                                        Class Teacher
-                                    </Label>
-                                </div>
-
-                                <div className='flex items-center gap-2'>
-                                    <RadioGroupItem value='class_teacher_attendance' id='report-class-attendance' />
-                                    <Label htmlFor='report-class-attendance' className='cursor-pointer'>
-                                        Class Teacher having Attendance Privilege
-                                    </Label>
-                                </div>
-
-                                <div className='flex items-center gap-2'>
-                                    <RadioGroupItem value='subject_teacher_attendance' id='report-subject-attendance' />
-                                    <Label htmlFor='report-subject-attendance' className='cursor-pointer'>
-                                        Subject Teacher having Attendance Privilege
-                                    </Label>
-                                </div>
-                            </RadioGroup>
-                        </div>
-
-                        <div className='flex flex-col gap-3 sm:flex-row sm:justify-center'>
-                            <Button
-                                type='button'
-                                onClick={handleReport}
-                                className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'>
-                                <FileText className='mr-2 h-4 w-4' />
-                                Report
-                            </Button>
-
-                            <Button
-                                type='button'
-                                variant='outline'
-                                onClick={handleReset}
-                                className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'>
-                                <RotateCcw className='mr-2 h-4 w-4' />
-                                Reset
-                            </Button>
-
-                            <Button
-                                variant='outline'
-                                className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
-                                onClick={handleCancel}>
-                                <X className='mr-2 h-4 w-4' />
-                                Cancel
-                            </Button>
-
-                            {showReport &&
-                                (response?.data as any)?.searchstudentDetails &&
-                                (response?.data as any)?.searchstudentDetails.length > 0 && (
-                                    <>
-                                        <Button onClick={downloadExcel} className='w-fit'>
-                                            Export to Excel
-                                        </Button>
-                                        <Button
-                                            variant='outline'
-                                            className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
-                                            onClick={handlePrint}
-                                            disabled={selectedStudents.length === 0}>
-                                            <Printer className='mr-2 h-4 w-4' />
-                                            Print
-                                        </Button>
-                                    </>
-                                )}
+                                        ))
+                                    )}
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
-                </CollapsibleSection>
 
-                {showReport &&
-                    (response?.data as any)?.searchstudentDetails &&
-                    (response?.data as any)?.searchstudentDetails.length > 0 && (
-                        <div id='printable-report'>
-                            <CollapsibleSection
-                                title='Class Teacher Report Results'
-                                defaultOpen={true}
-                                variant='outline'
-                                size='md'
-                                className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                                <GenericDataTable<IClassTeacherReportList>
-                                    {...tableProps}
-                                    ref={tableRef}
-                                    columns={columns}
-                                    isLoading={isLoading}
-                                    error={error}
-                                    showViewOptions={false}
-                                    loadingMessage='Loading class teacher reports...'
-                                    noDataTitle='No Data Found'
-                                    noDataDescription='No class teacher reports found.'
-                                    errorTitle='Error Loading Class Teacher Reports'
-                                    onRowSelectionChange={handleSelectStudent}
-                                />
-                            </CollapsibleSection>
-                        </div>
-                    )}
+                    <div className='flex flex-col items-center gap-3'>
+                        <RadioGroup
+                            value={reportType}
+                            onValueChange={handleReportTypeChange}
+                            className='flex flex-wrap items-center justify-center gap-6'>
+                            <div className='flex items-center gap-2'>
+                                <RadioGroupItem value='class_teacher' id='report-class-teacher' />
+                                <Label htmlFor='report-class-teacher' className='cursor-pointer'>
+                                    Class Teacher
+                                </Label>
+                            </div>
+
+                            <div className='flex items-center gap-2'>
+                                <RadioGroupItem value='class_teacher_attendance' id='report-class-attendance' />
+                                <Label htmlFor='report-class-attendance' className='cursor-pointer'>
+                                    Class Teacher having Attendance Privilege
+                                </Label>
+                            </div>
+
+                            <div className='flex items-center gap-2'>
+                                <RadioGroupItem value='subject_teacher_attendance' id='report-subject-attendance' />
+                                <Label htmlFor='report-subject-attendance' className='cursor-pointer'>
+                                    Subject Teacher having Attendance Privilege
+                                </Label>
+                            </div>
+                        </RadioGroup>
+                    </div>
+
+                    <div className='flex flex-col gap-3 sm:flex-row sm:justify-center'>
+                        <Button
+                            type='button'
+                            onClick={handleReport}
+                            className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'>
+                            <FileText className='mr-2 h-4 w-4' />
+                            Report
+                        </Button>
+
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={handleReset}
+                            className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'>
+                            <RotateCcw className='mr-2 h-4 w-4' />
+                            Reset
+                        </Button>
+
+                        <Button
+                            variant='outline'
+                            className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
+                            onClick={handleCancel}>
+                            <X className='mr-2 h-4 w-4' />
+                            Cancel
+                        </Button>
+
+                        {showReport &&
+                            (response?.data as any)?.searchstudentDetails &&
+                            (response?.data as any)?.searchstudentDetails.length > 0 && (
+                                <>
+                                    <Button onClick={downloadExcel} className='w-fit'>
+                                        Export to Excel
+                                    </Button>
+                                    <Button
+                                        variant='outline'
+                                        className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
+                                        onClick={handlePrint}>
+                                        <Printer className='mr-2 h-4 w-4' />
+                                        Print
+                                    </Button>
+                                </>
+                            )}
+                    </div>
+                </div>
+            </CollapsibleSection>
+
+            {showReport &&
+                (response?.data as any)?.searchstudentDetails &&
+                (response?.data as any)?.searchstudentDetails.length > 0 && (
+                    <div id='printable-report'>
+                        <CollapsibleSection
+                            title='Class Teacher Report Results'
+                            defaultOpen={true}
+                            variant='outline'
+                            size='md'
+                            className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                            <GenericDataTable<IClassTeacherReportList>
+                                {...tableProps}
+                                ref={tableRef}
+                                columns={columns}
+                                isLoading={isLoading}
+                                error={error}
+                                showViewOptions={false}
+                                loadingMessage='Loading class teacher reports...'
+                                noDataTitle='No Data Found'
+                                noDataDescription='No class teacher reports found.'
+                                errorTitle='Error Loading Class Teacher Reports'
+                                onRowSelectionChange={handleSelectStudent}
+                            />
+                        </CollapsibleSection>
+                    </div>
+                )}
+
+            {/* Hidden Print Component */}
+            <div
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: 0,
+                    height: 0,
+                    overflow: 'hidden',
+                    opacity: 0,
+                    pointerEvents: 'none',
+                    zIndex: -1
+                }}>
+                <ClassTeacherReportPrint
+                    ref={componentRef}
+                    data={selectedStudents.length > 0 ? selectedStudents : (response?.data as any)?.searchstudentDetails || []}
+                    reportType={reportType}
+                />
             </div>
         </div>
     );

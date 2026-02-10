@@ -1,68 +1,34 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import {
-    alumnusMembershipSchema,
-    alumnusMembershipUpdateSchema,
-    type IAlumnusMembershipFormValues
-} from './schema';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-    FormDescription
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { CalendarIcon, Save, RotateCcw, Image as ImageIcon, Upload, Loader2, Check, ChevronsUpDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList
-} from '@/components/ui/command';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
-import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-    saveAlumnusData,
-    saveNewAlumnus,
-    onCountryChange,
-    onStateChange,
-    getStudentList,
-    getAlumniStudentData
-} from '@/server/alumni/alumni-membership';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
+import { getAlumniStudentData, getStudentList, onCountryChange, onStateChange, saveAlumnusData } from '@/server/alumni/alumni-membership';
 import { uploadDocument } from '@/server/document_upload';
-import QualificationSection from './qualification-section';
-import ProfessionalSection from './professional-section';
+import type { ICountry, IDistrict, IMemberCategory, IState, IYear } from '@/types/alumni/alumni-membership';
+import type { ICity } from '@/types/alumni/alumni-report';
+import type { IClass } from '@/types/staff-portal/attendance-entry';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { CalendarIcon, Check, ChevronsUpDown, Image as ImageIcon, Loader2, RotateCcw, Save, Upload } from 'lucide-react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import AchievementSection from './achievement-section';
+import ProfessionalSection from './professional-section';
+import QualificationSection from './qualification-section';
 import ReadmittedSection from './readmitted-section';
-import { IYear, IMemberCategory, ICountry, IState, IDistrict } from '@/types/alumni/alumni-membership';
-import { IClass } from '@/types/staff-portal/attendance-entry';
-import { ICity } from '@/types/alumni/alumni-report';
-
+import { type IAlumnusMembershipFormValues, alumnusMembershipSchema, alumnusMembershipUpdateSchema } from './schema';
 
 interface AlumniFormProps {
     initialData?: any;
@@ -118,14 +84,16 @@ export default function AlumniForm({
             ALMST_PhoneNo: initialData?.almsT_PhoneNo || '',
             ALMST_emailId: initialData?.almsT_emailId || '',
             ALMST_BloodGroup: initialData?.almsT_BloodGroup || '',
-            ALMST_Marital_Status: (initialData?.almsT_Marital_Status === 'Married' || initialData?.almsT_Marital_Status === '1') ? '1' : '0',
+            ALMST_Marital_Status: initialData?.almsT_Marital_Status === 'Married' || initialData?.almsT_Marital_Status === '1' ? '1' : '0',
 
             ALMST_SpouseName: initialData?.almsT_SpouseName || '',
             ALMST_SpouseContactNo: initialData?.almsT_SpouseContactNo || '',
             ALMST_SpouseEmailId: initialData?.almsT_SpouseEmailId || '',
             ALMST_SpouseQulaification: initialData?.almsT_SpouseQulaification || '',
             ALMST_SpouseProfession: initialData?.almsT_SpouseProfession || '',
-            ALMST_WeddingAnniversaryDate: initialData?.almsT_WeddingAnniversaryDate ? new Date(initialData.almsT_WeddingAnniversaryDate) : undefined,
+            ALMST_WeddingAnniversaryDate: initialData?.almsT_WeddingAnniversaryDate
+                ? new Date(initialData.almsT_WeddingAnniversaryDate)
+                : undefined,
 
             ALMST_PerCountry: initialData?.ivrmmC_Id?.toString() || '',
             ALMST_PerState: initialData?.almsT_ConState?.toString() || '',
@@ -155,21 +123,23 @@ export default function AlumniForm({
             ALSAC_Achievement: initialData?.alsaC_Achievement || '',
             ALSAC_Remarks: initialData?.alsaC_Remarks || '',
 
-            qualification_array: initialData?.studentquali?.map((q: any) => ({
-                Qualification: q.alsqU_Qulification || '',
-                ALMST_PUC_INS_NAME: q.alsqU_University || '',
-                ALMST_PUC_PASSED_OUT: q.alsqU_YearOfPassing || '',
-                ALSQU_Percentage: q.alsqU_Percentage?.toString() || '',
-                ALMST_PLACE: q.alsqU_Place || '',
-                ALMST_PerState: q.almsT_PerState,
-                ALSQU_OtherDetails: q.alsqU_OtherDetails || ''
-            })) || [],
-            ReadmittedStudentDTO: initialData?.readmittedDetails?.map((r: any) => ({
-                ALMSTRADM_YearJoined: r.almstradM_YearJoined || 0,
-                ALMSTRADM_YearLeft: r.almstradM_YearLeft || 0,
-                ALMSTRADM_ClassJoined: r.almstradM_ClassJoined || 0,
-                ALMSTRADM_ClassLeft: r.almstradM_ClassLeft || 0
-            })) || [],
+            qualification_array:
+                initialData?.studentquali?.map((q: any) => ({
+                    Qualification: q.alsqU_Qulification || '',
+                    ALMST_PUC_INS_NAME: q.alsqU_University || '',
+                    ALMST_PUC_PASSED_OUT: q.alsqU_YearOfPassing || '',
+                    ALSQU_Percentage: q.alsqU_Percentage?.toString() || '',
+                    ALMST_PLACE: q.alsqU_Place || '',
+                    ALMST_PerState: q.almsT_PerState,
+                    ALSQU_OtherDetails: q.alsqU_OtherDetails || ''
+                })) || [],
+            ReadmittedStudentDTO:
+                initialData?.readmittedDetails?.map((r: any) => ({
+                    ALMSTRADM_YearJoined: r.almstradM_YearJoined || 0,
+                    ALMSTRADM_YearLeft: r.almstradM_YearLeft || 0,
+                    ALMSTRADM_ClassJoined: r.almstradM_ClassJoined || 0,
+                    ALMSTRADM_ClassLeft: r.almstradM_ClassLeft || 0
+                })) || [],
             ALMSTRADM_Id: initialData?.almstradM_Id || 0,
             Readmitted_student: !!initialData?.readmitted_student
         }
@@ -196,9 +166,9 @@ export default function AlumniForm({
             fullAddress += city + '\n';
         }
 
-        const stateName = currentStates.find(s => s.ivrmmS_Id?.toString() === stateId)?.ivrmmS_Name || '';
-        const countryName = countries.find(c => c.ivrmmC_Id?.toString() === countryId)?.ivrmmC_CountryName || '';
-        const districtName = currentDistricts.find(d => d.ivrmmD_Id?.toString() === districtId)?.ivrmmD_Name || '';
+        const stateName = currentStates.find((s) => s.ivrmmS_Id?.toString() === stateId)?.ivrmmS_Name || '';
+        const countryName = countries.find((c) => c.ivrmmC_Id?.toString() === countryId)?.ivrmmC_CountryName || '';
+        const districtName = currentDistricts.find((d) => d.ivrmmD_Id?.toString() === districtId)?.ivrmmD_Name || '';
 
         if (stateName) fullAddress += stateName;
         if (districtName) fullAddress += ', ' + districtName;
@@ -212,7 +182,7 @@ export default function AlumniForm({
         form.setValue('ALMST_PerState', '');
         form.setValue('ALMST_PerDistrict', '');
         if (!countryId) return;
-        const res = await onCountryChange(parseInt(countryId));
+        const res = await onCountryChange(Number.parseInt(countryId));
         if (res.success) {
             const data = res.data || res;
             setCurrentStates(data.statedropdown || []);
@@ -224,7 +194,7 @@ export default function AlumniForm({
         form.setValue('ALMST_PerState', stateId);
         form.setValue('ALMST_PerDistrict', '');
         if (!stateId) return;
-        const res = await onStateChange(parseInt(stateId));
+        const res = await onStateChange(Number.parseInt(stateId));
         if (res.success) {
             const data = res.data || res;
             setCurrentDistricts(data.districtdropdown || []);
@@ -273,7 +243,7 @@ export default function AlumniForm({
         if (!yearId) return;
 
         setIsStudentLoading(true);
-        const res = await getStudentList(parseInt(yearId));
+        const res = await getStudentList(Number.parseInt(yearId));
         if (res.success) {
             let list = [];
             if (Array.isArray(res.data)) {
@@ -348,52 +318,53 @@ export default function AlumniForm({
             const payload: any = {
                 almsT_Id: initialData?.almsT_Id || 0,
                 almsT_FirstName: values.ALMST_FirstName,
-                almsT_MiddleName: values.ALMST_MiddleName || "",
-                almsT_LastName: values.ALMST_LastName || "",
+                almsT_MiddleName: values.ALMST_MiddleName || '',
+                almsT_LastName: values.ALMST_LastName || '',
                 almsT_DOB: format(values.ALMST_DOB, 'yyyy-MM-dd'),
                 almsT_NickName: values.ALMST_NickName,
                 almsT_FatherName: values.ALMST_FatherName,
                 almsT_MobileNo: Number(values.ALMST_MobileNo) || 0,
-                almsT_PhoneNo: values.ALMST_PhoneNo || "",
+                almsT_PhoneNo: values.ALMST_PhoneNo || '',
                 almsT_AdmNo: values.ALMST_AdmNo,
                 almsT_emailId: values.ALMST_emailId,
                 almsT_ConCountryId: values.ALMST_PerCountry ? Number(values.ALMST_PerCountry) : 0,
                 almsT_ConState: values.ALMST_PerState ? Number(values.ALMST_PerState) : 0,
                 almsT_ConCity: values.ALMST_ConCity,
                 almsT_ConArea: values.ALMST_ConArea,
-                almsT_ConStreet: values.ALMST_ConStreet || "",
+                almsT_ConStreet: values.ALMST_ConStreet || '',
                 almsT_ConPincode: values.ALMST_ConPincode ? Number(values.ALMST_ConPincode) : 0,
-                almsT_Marital_Status: values.ALMST_Marital_Status === "1" ? "Married" : "Single",
+                almsT_Marital_Status: values.ALMST_Marital_Status === '1' ? 'Married' : 'Single',
                 almsT_BloodGroup: values.ALMST_BloodGroup,
                 asmaY_Id_Join: values.ASMAY_Id_Join ? Number(values.ASMAY_Id_Join) : 0,
                 asmaY_Id_Left: values.ASMAY_Id_Left ? Number(values.ASMAY_Id_Left) : 0,
                 asmcL_Id_Join: values.ASMCL_Id_Join ? Number(values.ASMCL_Id_Join) : 0,
                 asmcL_Id_Left: values.ASMCL_Id_Left ? Number(values.ASMCL_Id_Left) : 0,
-                almsT_StudentPhoto: stuPhoto || "",
-                almsT_FamilyPhoto: famPhoto || "",
-                almsT_SpouseName: values.ALMST_SpouseName || "",
-                almsT_SpouseContactNo: values.ALMST_SpouseContactNo || "",
-                almsT_SpouseEmailId: values.ALMST_SpouseEmailId || "",
-                almsT_SpouseQulaification: values.ALMST_SpouseQulaification || "",
-                almsT_SpouseProfession: values.ALMST_SpouseProfession || "",
+                almsT_StudentPhoto: stuPhoto || '',
+                almsT_FamilyPhoto: famPhoto || '',
+                almsT_SpouseName: values.ALMST_SpouseName || '',
+                almsT_SpouseContactNo: values.ALMST_SpouseContactNo || '',
+                almsT_SpouseEmailId: values.ALMST_SpouseEmailId || '',
+                almsT_SpouseQulaification: values.ALMST_SpouseQulaification || '',
+                almsT_SpouseProfession: values.ALMST_SpouseProfession || '',
                 // almsT_WeddingAnniversaryDate: values.ALMST_WeddingAnniversaryDate ? format(values.ALMST_WeddingAnniversaryDate, 'yyyy-MM-dd') : null,
-                qualification_array: values.qualification_array?.map(q => ({
-                    qualification: q.Qualification,
-                    almsT_PUC_PASSED_OUT: q.ALMST_PUC_PASSED_OUT ? Number(q.ALMST_PUC_PASSED_OUT) : 0,
-                    almsT_PUC_INS_NAME: q.ALMST_PUC_INS_NAME,
-                    almsT_PLACE: q.ALMST_PLACE || "",
-                    alsqU_OtherDetails: q.ALSQU_OtherDetails || "",
-                    alsqU_Percentage: q.ALSQU_Percentage ? Number(q.ALSQU_Percentage) : 0,
-                    almsT_PerState: q.ALMST_PerState || 0
-                })) || [],
-                alspR_CompanyName: values.ALSPR_CompanyName || "",
-                alspR_CompanyAddress: values.ALSPR_CompanyAddress || "",
-                alspR_Designation: values.ALSPR_Designation || "",
-                alspR_EmailId: values.ALSPR_EmailId || "",
+                qualification_array:
+                    values.qualification_array?.map((q) => ({
+                        qualification: q.Qualification,
+                        almsT_PUC_PASSED_OUT: q.ALMST_PUC_PASSED_OUT ? Number(q.ALMST_PUC_PASSED_OUT) : 0,
+                        almsT_PUC_INS_NAME: q.ALMST_PUC_INS_NAME,
+                        almsT_PLACE: q.ALMST_PLACE || '',
+                        alsqU_OtherDetails: q.ALSQU_OtherDetails || '',
+                        alsqU_Percentage: q.ALSQU_Percentage ? Number(q.ALSQU_Percentage) : 0,
+                        almsT_PerState: q.ALMST_PerState || 0
+                    })) || [],
+                alspR_CompanyName: values.ALSPR_CompanyName || '',
+                alspR_CompanyAddress: values.ALSPR_CompanyAddress || '',
+                alspR_Designation: values.ALSPR_Designation || '',
+                alspR_EmailId: values.ALSPR_EmailId || '',
                 alspR_WorkingSince: values.ALSPR_WorkingSince ? Number(values.ALSPR_WorkingSince) : 0,
-                alspR_OtherDetails: values.ALSPR_OtherDetails || "",
-                alsaC_Achievement: values.ALSAC_Achievement || "",
-                alsaC_Remarks: values.ALSAC_Remarks || ""
+                alspR_OtherDetails: values.ALSPR_OtherDetails || '',
+                alsaC_Achievement: values.ALSAC_Achievement || '',
+                alsaC_Remarks: values.ALSAC_Remarks || ''
             };
 
             // If new student, add ReadmittedStudentDTO if needed
@@ -404,7 +375,7 @@ export default function AlumniForm({
             const res = await saveAlumnusData(payload);
 
             // Handle backend quirk where success might be false but message indicates success
-            if (res.success || res.message === "Records updated Successfully" || res.message === "Saved Successfully") {
+            if (res.success || res.message === 'Records updated Successfully' || res.message === 'Saved Successfully') {
                 const message = res.message || (initialData ? 'Alumni updated successfully' : 'Alumni registered successfully');
                 toast.success(message);
                 onSuccess();
@@ -419,41 +390,38 @@ export default function AlumniForm({
         }
     };
 
-
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
                 {/* Main Section - ALUMNUS DETAILS */}
-                <Card className="border-2 border-primary/20">
-                    <div className="bg-primary/10 px-4 py-3 border-b">
-                        <h2 className="text-lg font-semibold text-primary">ALUMNUS DETAILS</h2>
+                <Card className='border-2 border-primary/20'>
+                    <div className='border-b bg-primary/10 px-4 py-3'>
+                        <h2 className='font-semibold text-lg text-primary'>ALUMNUS DETAILS</h2>
                     </div>
-                    <CardContent className="p-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <CardContent className='p-6'>
+                        <div className='grid grid-cols-1 gap-8 lg:grid-cols-2'>
                             {/* LEFT COLUMN */}
-                            <div className="space-y-4">
+                            <div className='space-y-4'>
                                 {/* Batch (Admin only) */}
                                 <FormField
                                     control={form.control}
-                                    name="ASMAY_Id_Left"
+                                    name='ASMAY_Id_Left'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">
-                                                Batch :<span className="text-destructive">*</span>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                Batch :<span className='text-destructive'>*</span>
                                             </FormLabel>
-                                            <Select
-                                                onValueChange={handleBatchChange}
-                                                value={field.value}
-                                                disabled={!!initialData}
-                                            >
+                                            <Select onValueChange={handleBatchChange} value={field.value} disabled={!!initialData}>
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="--Select Batch Year--" />
+                                                        <SelectValue placeholder='--Select Batch Year--' />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {years.map(y => (
-                                                        <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>{y.asmaY_Year}</SelectItem>
+                                                    {years.map((y) => (
+                                                        <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
+                                                            {y.asmaY_Year}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
@@ -464,55 +432,64 @@ export default function AlumniForm({
                                 {/* Alumnus Name */}
                                 <FormField
                                     control={form.control}
-                                    name="ALMST_FirstName"
+                                    name='ALMST_FirstName'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">
-                                                Alumnus Name :<span className="text-destructive">*</span>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                Alumnus Name :<span className='text-destructive'>*</span>
                                             </FormLabel>
-                                            <div className="relative">
+                                            <div className='relative'>
                                                 {!initialData ? (
                                                     <Popover open={openStudentCombo} onOpenChange={setOpenStudentCombo}>
                                                         <PopoverTrigger asChild>
                                                             <FormControl>
                                                                 <Button
-                                                                    variant="outline"
-                                                                    role="combobox"
+                                                                    variant='outline'
+                                                                    role='combobox'
                                                                     className={cn(
-                                                                        "w-full justify-between",
-                                                                        !field.value && "text-muted-foreground"
+                                                                        'w-full justify-between',
+                                                                        !field.value && 'text-muted-foreground'
                                                                     )}
-                                                                    disabled={!form.watch('ASMAY_Id_Left')}
-                                                                >
-                                                                    {field.value || "Select or search Student in the list..."}
+                                                                    disabled={!form.watch('ASMAY_Id_Left')}>
+                                                                    {field.value || 'Select or search Student in the list...'}
                                                                     {isStudentLoading ? (
-                                                                        <Loader2 className="ml-2 h-4 w-4 shrink-0 animate-spin opacity-50" />
+                                                                        <Loader2 className='ml-2 h-4 w-4 shrink-0 animate-spin opacity-50' />
                                                                     ) : (
-                                                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                                        <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
                                                                     )}
                                                                 </Button>
                                                             </FormControl>
                                                         </PopoverTrigger>
-                                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                                                        <PopoverContent className='w-[--radix-popover-trigger-width] p-0' align='start'>
                                                             <Command>
-                                                                <CommandInput placeholder="Search student..." />
+                                                                <CommandInput placeholder='Search student...' />
                                                                 <CommandList>
                                                                     <CommandEmpty>No student found.</CommandEmpty>
                                                                     <CommandGroup>
                                                                         {localStudentList.map((student) => {
-                                                                            const name = student.membername || student.alsreG_MemberName || student.amsT_FirstName || student.almsT_FirstName || '--';
+                                                                            const name =
+                                                                                student.membername ||
+                                                                                student.alsreG_MemberName ||
+                                                                                student.amsT_FirstName ||
+                                                                                student.almsT_FirstName ||
+                                                                                '--';
                                                                             const admNo = student.almsT_AdmNo || student.amsT_AdmNo || '';
                                                                             const label = admNo ? `${name} : ${admNo}` : name;
                                                                             return (
                                                                                 <CommandItem
-                                                                                    key={student.almsT_Id || student.alsreG_Id || Math.random()}
+                                                                                    key={
+                                                                                        student.almsT_Id ||
+                                                                                        student.alsreG_Id ||
+                                                                                        Math.random()
+                                                                                    }
                                                                                     value={label}
-                                                                                    onSelect={() => handleStudentSelect(student)}
-                                                                                >
+                                                                                    onSelect={() => handleStudentSelect(student)}>
                                                                                     <Check
                                                                                         className={cn(
-                                                                                            "mr-2 h-4 w-4",
-                                                                                            field.value === name ? "opacity-100" : "opacity-0"
+                                                                                            'mr-2 h-4 w-4',
+                                                                                            field.value === name
+                                                                                                ? 'opacity-100'
+                                                                                                : 'opacity-0'
                                                                                         )}
                                                                                     />
                                                                                     {label}
@@ -526,11 +503,7 @@ export default function AlumniForm({
                                                     </Popover>
                                                 ) : (
                                                     <FormControl>
-                                                        <Input
-                                                            placeholder="Alumnus Name"
-                                                            {...field}
-                                                            disabled={!!initialData}
-                                                        />
+                                                        <Input placeholder='Alumnus Name' {...field} disabled={!!initialData} />
                                                     </FormControl>
                                                 )}
                                             </div>
@@ -541,14 +514,14 @@ export default function AlumniForm({
                                 {/* Nick Name */}
                                 <FormField
                                     control={form.control}
-                                    name="ALMST_NickName"
+                                    name='ALMST_NickName'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">
-                                                Nick Name :<span className="text-destructive">*</span>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                Nick Name :<span className='text-destructive'>*</span>
                                             </FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Enter Nick Name" {...field} />
+                                                <Input placeholder='Enter Nick Name' {...field} />
                                             </FormControl>
                                         </FormItem>
                                     )}
@@ -557,14 +530,14 @@ export default function AlumniForm({
                                 {/* Admission Number */}
                                 <FormField
                                     control={form.control}
-                                    name="ALMST_AdmNo"
+                                    name='ALMST_AdmNo'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">
-                                                Admission Number :<span className="text-destructive">*</span>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                Admission Number :<span className='text-destructive'>*</span>
                                             </FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Enter Admission Number" {...field} disabled />
+                                                <Input placeholder='Enter Admission Number' {...field} disabled />
                                             </FormControl>
                                         </FormItem>
                                     )}
@@ -572,19 +545,21 @@ export default function AlumniForm({
 
                                 <FormField
                                     control={form.control}
-                                    name="ASMAY_Id_Join"
+                                    name='ASMAY_Id_Join'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">Year of Admission :</FormLabel>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>Year of Admission :</FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="--Select Year of Admission--" />
+                                                        <SelectValue placeholder='--Select Year of Admission--' />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {years.map(y => (
-                                                        <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>{y.asmaY_Year}</SelectItem>
+                                                    {years.map((y) => (
+                                                        <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
+                                                            {y.asmaY_Year}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
@@ -594,19 +569,21 @@ export default function AlumniForm({
 
                                 <FormField
                                     control={form.control}
-                                    name="ASMCL_Id_Join"
+                                    name='ASMCL_Id_Join'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">Class Joined :</FormLabel>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>Class Joined :</FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="--Select Joined Class--" />
+                                                        <SelectValue placeholder='--Select Joined Class--' />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {classes.map(c => (
-                                                        <SelectItem key={c.asmcL_Id} value={c.asmcL_Id.toString()}>{c.asmcL_ClassName}</SelectItem>
+                                                    {classes.map((c) => (
+                                                        <SelectItem key={c.asmcL_Id} value={c.asmcL_Id.toString()}>
+                                                            {c.asmcL_ClassName}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
@@ -616,19 +593,21 @@ export default function AlumniForm({
 
                                 <FormField
                                     control={form.control}
-                                    name="ASMCL_Id_Left"
+                                    name='ASMCL_Id_Left'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">Class Passed Out :</FormLabel>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>Class Passed Out :</FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="--Select Passed Out Class--" />
+                                                        <SelectValue placeholder='--Select Passed Out Class--' />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {classes.map(c => (
-                                                        <SelectItem key={c.asmcL_Id} value={c.asmcL_Id.toString()}>{c.asmcL_ClassName}</SelectItem>
+                                                    {classes.map((c) => (
+                                                        <SelectItem key={c.asmcL_Id} value={c.asmcL_Id.toString()}>
+                                                            {c.asmcL_ClassName}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
@@ -639,33 +618,32 @@ export default function AlumniForm({
                                 {/* Date of Birth */}
                                 <FormField
                                     control={form.control}
-                                    name="ALMST_DOB"
+                                    name='ALMST_DOB'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">
-                                                Date of Birth :<span className="text-destructive">*</span>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                Date of Birth :<span className='text-destructive'>*</span>
                                             </FormLabel>
                                             <Popover>
                                                 <PopoverTrigger asChild>
                                                     <FormControl>
                                                         <Button
-                                                            variant={"outline"}
+                                                            variant={'outline'}
                                                             className={cn(
-                                                                "w-full pl-3 text-left font-normal",
-                                                                !field.value && "text-muted-foreground"
-                                                            )}
-                                                        >
-                                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                                            {field.value ? format(field.value, "dd/MM/yyyy") : <span>Enter date</span>}
+                                                                'w-full pl-3 text-left font-normal',
+                                                                !field.value && 'text-muted-foreground'
+                                                            )}>
+                                                            <CalendarIcon className='mr-2 h-4 w-4' />
+                                                            {field.value ? format(field.value, 'dd/MM/yyyy') : <span>Enter date</span>}
                                                         </Button>
                                                     </FormControl>
                                                 </PopoverTrigger>
-                                                <PopoverContent className="w-auto p-0" align="start">
+                                                <PopoverContent className='w-auto p-0' align='start'>
                                                     <Calendar
-                                                        mode="single"
+                                                        mode='single'
                                                         selected={field.value}
                                                         onSelect={field.onChange}
-                                                        disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                                                        disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
                                                         initialFocus
                                                     />
                                                 </PopoverContent>
@@ -677,14 +655,14 @@ export default function AlumniForm({
                                 {/* Mobile Number */}
                                 <FormField
                                     control={form.control}
-                                    name="ALMST_MobileNo"
+                                    name='ALMST_MobileNo'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">
-                                                Mobile Number :<span className="text-destructive">*</span>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                Mobile Number :<span className='text-destructive'>*</span>
                                             </FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Enter Mobile Number" maxLength={10} {...field} />
+                                                <Input placeholder='Enter Mobile Number' maxLength={10} {...field} />
                                             </FormControl>
                                         </FormItem>
                                     )}
@@ -693,14 +671,14 @@ export default function AlumniForm({
                                 {/* Father's Name */}
                                 <FormField
                                     control={form.control}
-                                    name="ALMST_FatherName"
+                                    name='ALMST_FatherName'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">
-                                                Father's Name :<span className="text-destructive">*</span>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                Father's Name :<span className='text-destructive'>*</span>
                                             </FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Enter Father Name" {...field} />
+                                                <Input placeholder='Enter Father Name' {...field} />
                                             </FormControl>
                                         </FormItem>
                                     )}
@@ -709,15 +687,15 @@ export default function AlumniForm({
                                 {/* Phone Number */}
                                 <FormField
                                     control={form.control}
-                                    name="ALMST_PhoneNo"
+                                    name='ALMST_PhoneNo'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">
-                                                Phone Number :<span className="text-destructive">*</span>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                Phone Number :<span className='text-destructive'>*</span>
                                             </FormLabel>
                                             <FormControl>
                                                 <Input
-                                                    placeholder="Enter Phone Number"
+                                                    placeholder='Enter Phone Number'
                                                     maxLength={10}
                                                     {...field}
                                                     onInput={(e) => {
@@ -733,14 +711,14 @@ export default function AlumniForm({
                                 {/* Email Id */}
                                 <FormField
                                     control={form.control}
-                                    name="ALMST_emailId"
+                                    name='ALMST_emailId'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">
-                                                Email Id :<span className="text-destructive">*</span>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                Email Id :<span className='text-destructive'>*</span>
                                             </FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Enter Valid Email" {...field} />
+                                                <Input placeholder='Enter Valid Email' {...field} />
                                             </FormControl>
                                         </FormItem>
                                     )}
@@ -749,21 +727,23 @@ export default function AlumniForm({
                                 {/* Blood Group */}
                                 <FormField
                                     control={form.control}
-                                    name="ALMST_BloodGroup"
+                                    name='ALMST_BloodGroup'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">
-                                                Blood Group :<span className="text-destructive">*</span>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                Blood Group :<span className='text-destructive'>*</span>
                                             </FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="--Select Blood Group--" />
+                                                        <SelectValue placeholder='--Select Blood Group--' />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => (
-                                                        <SelectItem key={bg} value={bg}>{bg}</SelectItem>
+                                                    {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((bg) => (
+                                                        <SelectItem key={bg} value={bg}>
+                                                            {bg}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
@@ -774,12 +754,12 @@ export default function AlumniForm({
                                 {/* Membership ID */}
                                 <FormField
                                     control={form.control}
-                                    name="ALMST_MembershipId"
+                                    name='ALMST_MembershipId'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">Membership ID :</FormLabel>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>Membership ID :</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Membership ID" {...field} disabled={!isAdmin} />
+                                                <Input placeholder='Membership ID' {...field} disabled={!isAdmin} />
                                             </FormControl>
                                         </FormItem>
                                     )}
@@ -788,12 +768,12 @@ export default function AlumniForm({
                                 {/* Membership Fee */}
                                 <FormField
                                     control={form.control}
-                                    name="ALMST_AmountPaid"
+                                    name='ALMST_AmountPaid'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">Membership Fee :</FormLabel>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>Membership Fee :</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Membership Amount" {...field} disabled={!isAdmin} />
+                                                <Input placeholder='Membership Amount' {...field} disabled={!isAdmin} />
                                             </FormControl>
                                         </FormItem>
                                     )}
@@ -802,21 +782,23 @@ export default function AlumniForm({
                                 {/* Category */}
                                 <FormField
                                     control={form.control}
-                                    name="ALMST_MembershipCategory"
+                                    name='ALMST_MembershipCategory'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">
-                                                Category :<span className="text-destructive">*</span>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                Category :<span className='text-destructive'>*</span>
                                             </FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value} disabled={!isAdmin}>
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="--Select Category--" />
+                                                        <SelectValue placeholder='--Select Category--' />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {categories.map(c => (
-                                                        <SelectItem key={c.almmC_Id} value={c.almmC_Id.toString()}>{c.almmC_MembershipCategory}</SelectItem>
+                                                    {categories.map((c) => (
+                                                        <SelectItem key={c.almmC_Id} value={c.almmC_Id.toString()}>
+                                                            {c.almmC_MembershipCategory}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
@@ -826,27 +808,27 @@ export default function AlumniForm({
                             </div>
 
                             {/* RIGHT COLUMN */}
-                            <div className="space-y-4">
+                            <div className='space-y-4'>
                                 {/* Photo Upload Section */}
-                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                <div className='mb-4 grid grid-cols-2 gap-4'>
                                     {/* Profile Photo */}
-                                    <div className="space-y-2">
-                                        <div className="relative w-full h-32 border-2 border-primary/30 rounded overflow-hidden bg-muted flex items-center justify-center">
+                                    <div className='space-y-2'>
+                                        <div className='relative flex h-32 w-full items-center justify-center overflow-hidden rounded border-2 border-primary/30 bg-muted'>
                                             {stuPhoto ? (
-                                                <img src={stuPhoto} alt="Student" className="h-full w-full object-cover" />
+                                                <img src={stuPhoto} alt='Student' className='h-full w-full object-cover' />
                                             ) : (
-                                                <ImageIcon className="h-12 w-12 text-muted-foreground opacity-30" />
+                                                <ImageIcon className='h-12 w-12 text-muted-foreground opacity-30' />
                                             )}
                                         </div>
-                                        <label className="block w-full">
-                                            <Button variant="outline" className="w-full text-primary border-primary" asChild>
+                                        <label className='block w-full'>
+                                            <Button variant='outline' className='w-full border-primary text-primary' asChild>
                                                 <span>
-                                                    <Upload className="mr-2 h-4 w-4" />
+                                                    <Upload className='mr-2 h-4 w-4' />
                                                     Upload Profile Photo
                                                     <input
-                                                        type="file"
-                                                        className="hidden"
-                                                        accept="image/jpeg,image/jpg,image/png"
+                                                        type='file'
+                                                        className='hidden'
+                                                        accept='image/jpeg,image/jpg,image/png'
                                                         onChange={(e) => handlePhotoUpload(e, 'stu')}
                                                     />
                                                 </span>
@@ -855,23 +837,23 @@ export default function AlumniForm({
                                     </div>
 
                                     {/* Family Photo */}
-                                    <div className="space-y-2">
-                                        <div className="relative w-full h-32 border-2 border-primary/30 rounded overflow-hidden bg-muted flex items-center justify-center">
+                                    <div className='space-y-2'>
+                                        <div className='relative flex h-32 w-full items-center justify-center overflow-hidden rounded border-2 border-primary/30 bg-muted'>
                                             {famPhoto ? (
-                                                <img src={famPhoto} alt="Family" className="h-full w-full object-cover" />
+                                                <img src={famPhoto} alt='Family' className='h-full w-full object-cover' />
                                             ) : (
-                                                <ImageIcon className="h-12 w-12 text-muted-foreground opacity-30" />
+                                                <ImageIcon className='h-12 w-12 text-muted-foreground opacity-30' />
                                             )}
                                         </div>
-                                        <label className="block w-full">
-                                            <Button variant="outline" className="w-full text-primary border-primary" asChild>
+                                        <label className='block w-full'>
+                                            <Button variant='outline' className='w-full border-primary text-primary' asChild>
                                                 <span>
-                                                    <Upload className="mr-2 h-4 w-4" />
+                                                    <Upload className='mr-2 h-4 w-4' />
                                                     Upload Family Photo
                                                     <input
-                                                        type="file"
-                                                        className="hidden"
-                                                        accept="image/jpeg,image/jpg,image/png"
+                                                        type='file'
+                                                        className='hidden'
+                                                        accept='image/jpeg,image/jpg,image/png'
                                                         onChange={(e) => handlePhotoUpload(e, 'fam')}
                                                     />
                                                 </span>
@@ -881,30 +863,30 @@ export default function AlumniForm({
                                 </div>
 
                                 {/* Note */}
-                                <p className="text-sm text-muted-foreground">
-                                    <span className="font-bold">Note:</span>
-                                    <span className="text-destructive">*</span> 1. File Format JPG, JPEG and PNG Only &nbsp;&nbsp; 2. Max Size 2MB
+                                <p className='text-muted-foreground text-sm'>
+                                    <span className='font-bold'>Note:</span>
+                                    <span className='text-destructive'>*</span> 1. File Format JPG, JPEG and PNG Only &nbsp;&nbsp; 2. Max
+                                    Size 2MB
                                 </p>
 
                                 {/* Marital Status */}
                                 <FormField
                                     control={form.control}
-                                    name="ALMST_Marital_Status"
+                                    name='ALMST_Marital_Status'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">Marital status :</FormLabel>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>Marital status :</FormLabel>
                                             <RadioGroup
                                                 onValueChange={field.onChange}
                                                 value={field.value}
-                                                className="flex items-center gap-6"
-                                            >
-                                                <div className="flex items-center space-x-2">
-                                                    <RadioGroupItem value="1" id="married-yes" />
-                                                    <Label htmlFor="married-yes">Yes</Label>
+                                                className='flex items-center gap-6'>
+                                                <div className='flex items-center space-x-2'>
+                                                    <RadioGroupItem value='1' id='married-yes' />
+                                                    <Label htmlFor='married-yes'>Yes</Label>
                                                 </div>
-                                                <div className="flex items-center space-x-2">
-                                                    <RadioGroupItem value="0" id="married-no" />
-                                                    <Label htmlFor="married-no">No</Label>
+                                                <div className='flex items-center space-x-2'>
+                                                    <RadioGroupItem value='0' id='married-no' />
+                                                    <Label htmlFor='married-no'>No</Label>
                                                 </div>
                                             </RadioGroup>
                                         </FormItem>
@@ -916,25 +898,25 @@ export default function AlumniForm({
                                     <>
                                         <FormField
                                             control={form.control}
-                                            name="ALMST_SpouseName"
+                                            name='ALMST_SpouseName'
                                             render={({ field }) => (
-                                                <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                                    <FormLabel className="text-right">Spouse Name :</FormLabel>
+                                                <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                                    <FormLabel className='text-right'>Spouse Name :</FormLabel>
                                                     <FormControl>
-                                                        <Input placeholder="Enter Spouse Name" {...field} />
+                                                        <Input placeholder='Enter Spouse Name' {...field} />
                                                     </FormControl>
                                                 </FormItem>
                                             )}
                                         />
                                         <FormField
                                             control={form.control}
-                                            name="ALMST_SpouseContactNo"
+                                            name='ALMST_SpouseContactNo'
                                             render={({ field }) => (
-                                                <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                                    <FormLabel className="text-right">Spouse Contact No :</FormLabel>
+                                                <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                                    <FormLabel className='text-right'>Spouse Contact No :</FormLabel>
                                                     <FormControl>
                                                         <Input
-                                                            placeholder="Enter Spouse Contact No"
+                                                            placeholder='Enter Spouse Contact No'
                                                             maxLength={10}
                                                             {...field}
                                                             onInput={(e) => {
@@ -948,64 +930,67 @@ export default function AlumniForm({
                                         />
                                         <FormField
                                             control={form.control}
-                                            name="ALMST_SpouseEmailId"
+                                            name='ALMST_SpouseEmailId'
                                             render={({ field }) => (
-                                                <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                                    <FormLabel className="text-right">Spouse Email Id :</FormLabel>
+                                                <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                                    <FormLabel className='text-right'>Spouse Email Id :</FormLabel>
                                                     <FormControl>
-                                                        <Input placeholder="Enter Email Id" {...field} />
+                                                        <Input placeholder='Enter Email Id' {...field} />
                                                     </FormControl>
                                                 </FormItem>
                                             )}
                                         />
                                         <FormField
                                             control={form.control}
-                                            name="ALMST_SpouseQulaification"
+                                            name='ALMST_SpouseQulaification'
                                             render={({ field }) => (
-                                                <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                                    <FormLabel className="text-right">Spouse Qualification :</FormLabel>
+                                                <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                                    <FormLabel className='text-right'>Spouse Qualification :</FormLabel>
                                                     <FormControl>
-                                                        <Input placeholder="Enter Spouse Qualification" {...field} />
+                                                        <Input placeholder='Enter Spouse Qualification' {...field} />
                                                     </FormControl>
                                                 </FormItem>
                                             )}
                                         />
                                         <FormField
                                             control={form.control}
-                                            name="ALMST_SpouseProfession"
+                                            name='ALMST_SpouseProfession'
                                             render={({ field }) => (
-                                                <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                                    <FormLabel className="text-right">Spouse Profession :</FormLabel>
+                                                <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                                    <FormLabel className='text-right'>Spouse Profession :</FormLabel>
                                                     <FormControl>
-                                                        <Input placeholder="Enter Spouse Profession" {...field} />
+                                                        <Input placeholder='Enter Spouse Profession' {...field} />
                                                     </FormControl>
                                                 </FormItem>
                                             )}
                                         />
                                         <FormField
                                             control={form.control}
-                                            name="ALMST_WeddingAnniversaryDate"
+                                            name='ALMST_WeddingAnniversaryDate'
                                             render={({ field }) => (
-                                                <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                                    <FormLabel className="text-right">Wedding Date:</FormLabel>
+                                                <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                                    <FormLabel className='text-right'>Wedding Date:</FormLabel>
                                                     <Popover>
                                                         <PopoverTrigger asChild>
                                                             <FormControl>
                                                                 <Button
-                                                                    variant={"outline"}
+                                                                    variant={'outline'}
                                                                     className={cn(
-                                                                        "w-full pl-3 text-left font-normal",
-                                                                        !field.value && "text-muted-foreground"
+                                                                        'w-full pl-3 text-left font-normal',
+                                                                        !field.value && 'text-muted-foreground'
+                                                                    )}>
+                                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                    {field.value ? (
+                                                                        format(field.value, 'dd/MM/yyyy')
+                                                                    ) : (
+                                                                        <span>Enter date</span>
                                                                     )}
-                                                                >
-                                                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                                                    {field.value ? format(field.value, "dd/MM/yyyy") : <span>Enter date</span>}
                                                                 </Button>
                                                             </FormControl>
                                                         </PopoverTrigger>
-                                                        <PopoverContent className="w-auto p-0" align="start">
+                                                        <PopoverContent className='w-auto p-0' align='start'>
                                                             <Calendar
-                                                                mode="single"
+                                                                mode='single'
                                                                 selected={field.value}
                                                                 onSelect={field.onChange}
                                                                 initialFocus
@@ -1021,21 +1006,23 @@ export default function AlumniForm({
                                 {/* Country */}
                                 <FormField
                                     control={form.control}
-                                    name="ALMST_PerCountry"
+                                    name='ALMST_PerCountry'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">
-                                                Country :<span className="text-destructive">*</span>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                Country :<span className='text-destructive'>*</span>
                                             </FormLabel>
                                             <Select onValueChange={handleCountryChange} value={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="--Select Country--" />
+                                                        <SelectValue placeholder='--Select Country--' />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {countries.map(c => (
-                                                        <SelectItem key={c.ivrmmC_Id} value={c.ivrmmC_Id.toString()}>{c.ivrmmC_CountryName}</SelectItem>
+                                                    {countries.map((c) => (
+                                                        <SelectItem key={c.ivrmmC_Id} value={c.ivrmmC_Id.toString()}>
+                                                            {c.ivrmmC_CountryName}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
@@ -1046,21 +1033,23 @@ export default function AlumniForm({
                                 {/* State */}
                                 <FormField
                                     control={form.control}
-                                    name="ALMST_PerState"
+                                    name='ALMST_PerState'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">
-                                                State :<span className="text-destructive">*</span>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                State :<span className='text-destructive'>*</span>
                                             </FormLabel>
                                             <Select onValueChange={handleStateChange} value={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="--Select State--" />
+                                                        <SelectValue placeholder='--Select State--' />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {currentStates.map(s => (
-                                                        <SelectItem key={s.ivrmmS_Id} value={s.ivrmmS_Id.toString()}>{s.ivrmmS_Name}</SelectItem>
+                                                    {currentStates.map((s) => (
+                                                        <SelectItem key={s.ivrmmS_Id} value={s.ivrmmS_Id.toString()}>
+                                                            {s.ivrmmS_Name}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
@@ -1071,21 +1060,28 @@ export default function AlumniForm({
                                 {/* District */}
                                 <FormField
                                     control={form.control}
-                                    name="ALMST_PerDistrict"
+                                    name='ALMST_PerDistrict'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">
-                                                District :<span className="text-destructive">*</span>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                District :<span className='text-destructive'>*</span>
                                             </FormLabel>
-                                            <Select onValueChange={(val) => { field.onChange(val); updateFullAddress(); }} value={field.value}>
+                                            <Select
+                                                onValueChange={(val) => {
+                                                    field.onChange(val);
+                                                    updateFullAddress();
+                                                }}
+                                                value={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="--Select District--" />
+                                                        <SelectValue placeholder='--Select District--' />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {currentDistricts.map(d => (
-                                                        <SelectItem key={d.ivrmmD_Id} value={d.ivrmmD_Id.toString()}>{d.ivrmmD_Name}</SelectItem>
+                                                    {currentDistricts.map((d) => (
+                                                        <SelectItem key={d.ivrmmD_Id} value={d.ivrmmD_Id.toString()}>
+                                                            {d.ivrmmD_Name}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
@@ -1096,18 +1092,21 @@ export default function AlumniForm({
                                 {/* Pincode */}
                                 <FormField
                                     control={form.control}
-                                    name="ALMST_ConPincode"
+                                    name='ALMST_ConPincode'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">
-                                                Pincode :<span className="text-destructive">*</span>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                Pincode :<span className='text-destructive'>*</span>
                                             </FormLabel>
                                             <FormControl>
                                                 <Input
-                                                    placeholder="Enter Pincode"
+                                                    placeholder='Enter Pincode'
                                                     maxLength={6}
                                                     {...field}
-                                                    onChange={(e) => { field.onChange(e); updateFullAddress(); }}
+                                                    onChange={(e) => {
+                                                        field.onChange(e);
+                                                        updateFullAddress();
+                                                    }}
                                                 />
                                             </FormControl>
                                         </FormItem>
@@ -1117,15 +1116,20 @@ export default function AlumniForm({
                                 {/* City */}
                                 <FormField
                                     control={form.control}
-                                    name="ALMST_ConCity"
+                                    name='ALMST_ConCity'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">City :<span className="text-destructive">*</span></FormLabel>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                City :<span className='text-destructive'>*</span>
+                                            </FormLabel>
                                             <FormControl>
                                                 <Input
-                                                    placeholder="Select or search City in the list"
+                                                    placeholder='Select or search City in the list'
                                                     {...field}
-                                                    onChange={(e) => { field.onChange(e); updateFullAddress(); }}
+                                                    onChange={(e) => {
+                                                        field.onChange(e);
+                                                        updateFullAddress();
+                                                    }}
                                                 />
                                             </FormControl>
                                         </FormItem>
@@ -1133,18 +1137,20 @@ export default function AlumniForm({
                                 />
 
                                 {/* If No City Match */}
-                                <div className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                    <div className="flex items-center justify-end gap-2">
+                                <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                    <div className='flex items-center justify-end gap-2'>
                                         <Checkbox
-                                            id="noCityMatch"
+                                            id='noCityMatch'
                                             checked={noCityMatch}
                                             onCheckedChange={(checked) => setNoCityMatch(!!checked)}
                                         />
-                                        <Label htmlFor="noCityMatch" className="text-sm">If No City Match :</Label>
+                                        <Label htmlFor='noCityMatch' className='text-sm'>
+                                            If No City Match :
+                                        </Label>
                                     </div>
                                     {noCityMatch && (
                                         <Input
-                                            placeholder="Enter City Name"
+                                            placeholder='Enter City Name'
                                             onChange={(e) => {
                                                 form.setValue('ALMST_ConCity', e.target.value);
                                                 updateFullAddress();
@@ -1156,18 +1162,21 @@ export default function AlumniForm({
                                 {/* Address line1 */}
                                 <FormField
                                     control={form.control}
-                                    name="ALMST_ConArea"
+                                    name='ALMST_ConArea'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">
-                                                Address line1 :<span className="text-destructive">*</span>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                Address line1 :<span className='text-destructive'>*</span>
                                             </FormLabel>
                                             <FormControl>
                                                 <Input
-                                                    placeholder="Enter Address"
+                                                    placeholder='Enter Address'
                                                     maxLength={40}
                                                     {...field}
-                                                    onChange={(e) => { field.onChange(e); updateFullAddress(); }}
+                                                    onChange={(e) => {
+                                                        field.onChange(e);
+                                                        updateFullAddress();
+                                                    }}
                                                 />
                                             </FormControl>
                                         </FormItem>
@@ -1177,16 +1186,19 @@ export default function AlumniForm({
                                 {/* Address line2 */}
                                 <FormField
                                     control={form.control}
-                                    name="ALMST_ConStreet"
+                                    name='ALMST_ConStreet'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">Address line2 :</FormLabel>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>Address line2 :</FormLabel>
                                             <FormControl>
                                                 <Input
-                                                    placeholder="Enter Street Name"
+                                                    placeholder='Enter Street Name'
                                                     maxLength={40}
                                                     {...field}
-                                                    onChange={(e) => { field.onChange(e); updateFullAddress(); }}
+                                                    onChange={(e) => {
+                                                        field.onChange(e);
+                                                        updateFullAddress();
+                                                    }}
                                                 />
                                             </FormControl>
                                         </FormItem>
@@ -1196,14 +1208,14 @@ export default function AlumniForm({
                                 {/* Full Address */}
                                 <FormField
                                     control={form.control}
-                                    name="ALMST_FullAddess"
+                                    name='ALMST_FullAddess'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[140px_1fr] items-start gap-4">
-                                            <FormLabel className="text-right pt-2">Full Address :</FormLabel>
+                                        <FormItem className='grid grid-cols-[140px_1fr] items-start gap-4'>
+                                            <FormLabel className='pt-2 text-right'>Full Address :</FormLabel>
                                             <FormControl>
                                                 <Textarea
-                                                    placeholder="Enter Full Address"
-                                                    className="min-h-[80px] resize-none"
+                                                    placeholder='Enter Full Address'
+                                                    className='min-h-[80px] resize-none'
                                                     {...field}
                                                     disabled={!isAdmin}
                                                 />
@@ -1217,9 +1229,9 @@ export default function AlumniForm({
                 </Card>
 
                 {/* Qualification & Professional Details */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
                     <QualificationSection form={form} states={initialStates} />
-                    <div className="space-y-6">
+                    <div className='space-y-6'>
                         <AchievementSection form={form} />
                         <ProfessionalSection form={form} />
                     </div>
@@ -1229,30 +1241,15 @@ export default function AlumniForm({
                 <ReadmittedSection form={form} years={years} classes={classes} />
 
                 {/* Submit Buttons */}
-                <Card className="border-2 border-primary/20">
-                    <CardContent className="p-6">
-                        <div className="flex justify-center gap-4">
-                            <Button
-                                type="submit"
-                                size="lg"
-                                className="w-32 bg-primary hover:bg-primary/90"
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting ? (
-                                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                ) : (
-                                    <Save className="mr-2 h-5 w-5" />
-                                )}
+                <Card className='border-2 border-primary/20'>
+                    <CardContent className='p-6'>
+                        <div className='flex justify-center gap-4'>
+                            <Button type='submit' size='lg' className='w-32 bg-primary hover:bg-primary/90' disabled={isSubmitting}>
+                                {isSubmitting ? <Loader2 className='mr-2 h-5 w-5 animate-spin' /> : <Save className='mr-2 h-5 w-5' />}
                                 Save
                             </Button>
-                            <Button
-                                type="button"
-                                variant="destructive"
-                                size="lg"
-                                className="w-32"
-                                onClick={onCancel}
-                            >
-                                <RotateCcw className="mr-2 h-5 w-5" />
+                            <Button type='button' variant='destructive' size='lg' className='w-32' onClick={onCancel}>
+                                <RotateCcw className='mr-2 h-5 w-5' />
                                 Cancel
                             </Button>
                         </div>
