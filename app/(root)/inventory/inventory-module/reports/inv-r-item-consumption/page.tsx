@@ -1,32 +1,89 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Heading } from '@/components/layout/heading';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
 import ReportForm from './_components/report-form';
 import { getColumns } from './_components/columns';
-import { IInvRItemConsumptionReportData } from '@/types/inventory/reports/inv-r-item-consumption';
-import { Badge } from '@/components/ui/badge';
+import { IInvRItemConsumptionPayload } from '@/types/inventory/reports/inv-r-item-consumption';
+import { parseAsInteger, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
+import { getInvRItemConsumptionReport } from '@/server/inventory/reports/inv-r-item-consumption';
+import { toast } from 'sonner';
 
 export default function InvRItemConsumptionPage() {
-    const [reportData, setReportData] = useState<IInvRItemConsumptionReportData[]>([]);
-    const [currentTypeFlag, setCurrentTypeFlag] = useState<string>('All');
-    const [currentOptionFlag, setCurrentOptionFlag] = useState<string | undefined>(undefined);
+    const [reportData, setReportData] = useState<any[]>([]);
+    const [currentPayload, setCurrentPayload] = useState<IInvRItemConsumptionPayload | null>(null);
+    const [totalRecords, setTotalRecords] = useState(0);
     const [showReport, setShowReport] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleReportGenerated = (data: IInvRItemConsumptionReportData[], typeflag: string, optionflag?: string) => {
-        setReportData(data);
-        setCurrentTypeFlag(typeflag);
-        setCurrentOptionFlag(optionflag);
-        setShowReport(true);
+    // Pagination State synced with URL (same as DataTable)
+    const [currentPage, setCurrentPage] = useQueryState(
+        tableSearchVariables.page,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
+    );
+    const [pageSize] = useQueryState(
+        tableSearchVariables.page_size,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
+    );
+
+    const handleReportGenerated = (payload: any) => { // Updated Signature
+        if (payload) {
+            setCurrentPayload(payload);
+            setCurrentPage(1);
+            setShowReport(true);
+            // Report data will be fetched by useEffect
+        } else {
+            // Reset
+            setReportData([]);
+            setCurrentPayload(null);
+            setTotalRecords(0);
+            setShowReport(false);
+            setIsLoading(false);
+        }
     };
 
-    const columns = getColumns(currentTypeFlag, currentOptionFlag);
+    // Handle pagination changes (Next/Prev/PageSize)
+    const fetchPageData = useCallback(async (pageIndex: number, pgSize: number) => {
+        if (!currentPayload) return;
+
+        setIsLoading(true);
+        const searchParams = {
+            page: pageIndex,
+            page_size: pgSize
+        };
+
+        const result = await getInvRItemConsumptionReport(currentPayload, searchParams);
+
+        if (result.success) {
+            if (!result.data.get_ICReport || result.data.get_ICReport.length === 0) {
+                toast.warning("No records found.");
+                setReportData([]);
+                setTotalRecords(0);
+                setShowReport(false);
+            } else {
+                setReportData(result.data.get_ICReport);
+                setTotalRecords(result.total || 0);
+            }
+        } else {
+            toast.error(result.message);
+        }
+        setIsLoading(false);
+    }, [currentPayload]);
+
+    useEffect(() => {
+        if (currentPayload) {
+            fetchPageData(currentPage, pageSize);
+        }
+    }, [currentPage, pageSize, currentPayload, fetchPageData]);
+
+    const columns = getColumns(currentPayload?.typeflag || 'All', currentPayload?.optionflag);
 
     const tableProps = useDataTableProps({
         enablePagination: true,
@@ -41,7 +98,7 @@ export default function InvRItemConsumptionPage() {
                 description="Generate Item Consumption Reports"
             />
 
-            <ReportForm onReportGenerated={handleReportGenerated} />
+            <ReportForm onReportGenerated={handleReportGenerated} isLoading={isLoading} />
 
             {showReport && (
                 <CollapsibleSection title="Report Result" defaultOpen={true}>
@@ -49,7 +106,7 @@ export default function InvRItemConsumptionPage() {
                         <div className="flex justify-between items-center bg-muted/20 p-2 rounded border">
                             <div className="flex gap-2 items-center">
                                 <span className="font-semibold text-sm">Total Records:</span>
-                                <Badge variant="secondary">{reportData.length}</Badge>
+                                <Badge variant="secondary">{totalRecords}</Badge>
                             </div>
                             <Button variant="outline" size="sm" onClick={() => window.print()}>
                                 <Printer className="mr-2 h-4 w-4" /> Print
@@ -60,7 +117,8 @@ export default function InvRItemConsumptionPage() {
                             {...tableProps}
                             data={reportData}
                             columns={columns}
-                            isLoading={false}
+                            isLoading={isLoading}
+                            totalItems={totalRecords}
                         />
                     </div>
                 </CollapsibleSection>

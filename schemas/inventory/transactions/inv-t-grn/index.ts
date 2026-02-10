@@ -13,6 +13,7 @@ export const invTGRNItemSchema = z.object({
     invmgrN_Id: z.number().default(0),
     invmI_Id: z.number().min(1, 'Select Item'),
     invmuoM_Id: z.number().min(1, 'UOM is required'),
+    invmuoM_UOMName: z.string().optional(),
     invtgrN_BatchNo: z.string().min(1, 'Enter Batch No'),
     invtgrN_Qty: z.number().min(1, 'Enter Quantity'),
     invtgrN_MfgDate: z.union([z.date(), z.string()]).optional().nullable(),

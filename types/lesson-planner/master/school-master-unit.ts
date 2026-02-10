@@ -1,4 +1,3 @@
-
 export interface IMasterSchoolUnit {
     lpmU_Id: number;
     lpmU_UnitName: string;

@@ -1,7 +1,12 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
-import { InstitutionDTO, ModuleDTO, MainMenuDTO, SubMenuDTO, GridDetailDTO } from '@/types/super-admin/configuration-setting/master-menu-page-mapping-institutionwise';
+import type {
+    InstitutionDTO,
+    MainMenuDTO,
+    ModuleDTO,
+    SubMenuDTO
+} from '@/types/super-admin/configuration-setting/master-menu-page-mapping-institutionwise';
 
 const API_KEY = 'sadmin';
 
@@ -12,9 +17,9 @@ export async function getInstitutionDropdown() {
     try {
         return await api.get<{ institutionList: InstitutionDTO[] }>(API_KEY, `${FACADE}/get_institution_drop_down`);
     } catch (error: any) {
-        console.error("getInstitutionDropdown error:", error);
+        console.error('getInstitutionDropdown error:', error);
         if (error?.response) {
-            console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
+            console.error('Error Response Data:', JSON.stringify(error.response.data, null, 2));
         }
         return { success: false, message: error.message || 'Failed to fetch institutions', data: null };
     }
@@ -32,9 +37,9 @@ export async function getModuleDropdown(mi_id: number) {
         }
         return { success: false, message: response.message || 'Failed to fetch modules', data: null };
     } catch (error: any) {
-        console.error("getModuleDropdown error:", error);
+        console.error('getModuleDropdown error:', error);
         if (error?.response) {
-            console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
+            console.error('Error Response Data:', JSON.stringify(error.response.data, null, 2));
         }
         return { success: false, message: error.message || 'Failed to fetch modules', data: null };
     }
@@ -53,9 +58,9 @@ export async function getMainMenuDropdown(mi_id: number, ivrmm_id: number) {
         }
         return { success: false, message: response.message || 'Failed to fetch main menus', data: null };
     } catch (error: any) {
-        console.error("getMainMenuDropdown error:", error);
+        console.error('getMainMenuDropdown error:', error);
         if (error?.response) {
-            console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
+            console.error('Error Response Data:', JSON.stringify(error.response.data, null, 2));
         }
         return { success: false, message: error.message || 'Failed to fetch main menus', data: null };
     }
@@ -76,11 +81,10 @@ export async function getSubMenuDropdown(mi_id: number, ivrmmm_id: number) {
             };
         }
         return { success: false, message: response.message || 'Failed to fetch sub menu list', data: null };
-
     } catch (error: any) {
-        console.error("getSubMenuDropdown error:", error);
+        console.error('getSubMenuDropdown error:', error);
         if (error?.response) {
-            console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
+            console.error('Error Response Data:', JSON.stringify(error.response.data, null, 2));
         }
         return { success: false, message: error.message || 'Failed to fetch sub menu list', data: null };
     }
@@ -95,7 +99,8 @@ export async function getOnloadGrid(searchParams?: any) {
 
         if (response.success) {
             // Priority: response.data.records -> response.data.gridDetails -> response.data.$values -> response.data (if array) -> response.records -> response.gridDetails
-            const records = response.data?.records ||
+            const records =
+                response.data?.records ||
                 response.data?.gridDetails ||
                 response.data?.$values ||
                 (Array.isArray(response.data) ? response.data : null) ||
@@ -107,15 +112,15 @@ export async function getOnloadGrid(searchParams?: any) {
                 success: true,
                 data: { gridDetails: records },
                 total: response.total || records.length || 0,
-                page: response.page || (searchParams?.page || 1),
-                pageSize: response.page_size || response.page_Size || (searchParams?.page_size || 10)
+                page: response.page || searchParams?.page || 1,
+                pageSize: response.page_size || response.page_Size || searchParams?.page_size || 10
             };
         }
         return { success: false, message: response.message || 'Failed to fetch grid details', data: { gridDetails: [] }, total: 0 };
     } catch (error: any) {
-        console.error("getOnloadGrid error:", error);
+        console.error('getOnloadGrid error:', error);
         if (error?.response) {
-            console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
+            console.error('Error Response Data:', JSON.stringify(error.response.data, null, 2));
         }
         return { success: false, message: error.message || 'Failed to fetch grid details', data: { gridDetails: [] }, total: 0 };
     }
@@ -127,7 +132,8 @@ export async function getMasterPageGrid(mi_id: number, ivrmm_id: number, ivrmmmi
         const response = await api.get<any>(API_KEY, url);
 
         if (response.success) {
-            const records = response.data?.records ||
+            const records =
+                response.data?.records ||
                 response.data?.$values ||
                 (Array.isArray(response.data) ? response.data : null) ||
                 response.records ||
@@ -141,9 +147,9 @@ export async function getMasterPageGrid(mi_id: number, ivrmm_id: number, ivrmmmi
         }
         return { success: false, message: response.message || 'Failed to fetch master pages', data: { masterPages: [] } };
     } catch (error: any) {
-        console.error("getMasterPageGrid error:", error);
+        console.error('getMasterPageGrid error:', error);
         if (error?.response) {
-            console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
+            console.error('Error Response Data:', JSON.stringify(error.response.data, null, 2));
         }
         return { success: false, message: error.message || 'Failed to fetch master pages', data: { masterPages: [] } };
     }
@@ -160,9 +166,9 @@ export async function saveMasterMenuPageMapping(payload: any) {
         }
         return { success: false, message: response.message || 'Failed to save mapping' };
     } catch (error: any) {
-        console.error("saveMasterMenuPageMapping error:", error);
+        console.error('saveMasterMenuPageMapping error:', error);
         if (error?.response) {
-            console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
+            console.error('Error Response Data:', JSON.stringify(error.response.data, null, 2));
         }
         return { success: false, message: error.message || 'Failed to save mapping' };
     }
@@ -174,7 +180,8 @@ export async function getSavedMappingGrid(mi_id: number, ivrmm_id: number, ivrmm
         const response = await api.get<any>(API_KEY, url);
 
         if (response.success) {
-            const records = response.data?.pagesdata ||
+            const records =
+                response.data?.pagesdata ||
                 response.data?.records ||
                 response.data?.$values ||
                 (Array.isArray(response.data) ? response.data : null) ||
@@ -189,9 +196,9 @@ export async function getSavedMappingGrid(mi_id: number, ivrmm_id: number, ivrmm
         }
         return { success: false, message: response.message || 'Failed to fetch saved mappings', data: { savedMappings: [] } };
     } catch (error: any) {
-        console.error("getSavedMappingGrid error:", error);
+        console.error('getSavedMappingGrid error:', error);
         if (error?.response) {
-            console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
+            console.error('Error Response Data:', JSON.stringify(error.response.data, null, 2));
         }
         return { success: false, message: error.message || 'Failed to fetch saved mappings', data: { savedMappings: [] } };
     }
@@ -203,7 +210,8 @@ export async function getSetOrderList(mi_id: number, ivrmm_id: number, ivrmmmi_i
         const response = await api.get<any>(API_KEY, url);
 
         if (response.success) {
-            const records = response.data?.records ||
+            const records =
+                response.data?.records ||
                 response.data?.$values ||
                 (Array.isArray(response.data) ? response.data : null) ||
                 response.records ||
@@ -217,9 +225,9 @@ export async function getSetOrderList(mi_id: number, ivrmm_id: number, ivrmmmi_i
         }
         return { success: false, message: response.message || 'Failed to fetch set order list', data: { setOrderList: [] } };
     } catch (error: any) {
-        console.error("getSetOrderList error:", error);
+        console.error('getSetOrderList error:', error);
         if (error?.response) {
-            console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
+            console.error('Error Response Data:', JSON.stringify(error.response.data, null, 2));
         }
         return { success: false, message: error.message || 'Failed to fetch set order list', data: { setOrderList: [] } };
     }
@@ -227,9 +235,9 @@ export async function getSetOrderList(mi_id: number, ivrmm_id: number, ivrmmmi_i
 
 export async function saveSetOrder(payload: any) {
     try {
-        console.log("saveSetOrder Payload:", JSON.stringify(payload, null, 2));
+        console.log('saveSetOrder Payload:', JSON.stringify(payload, null, 2));
         const response = await api.post<any>(API_KEY, `${FACADE}/set_order`, payload);
-        console.log("saveSetOrder Response:", JSON.stringify(response, null, 2));
+        console.log('saveSetOrder Response:', JSON.stringify(response, null, 2));
         if (response.success) {
             return {
                 success: true,
@@ -238,9 +246,9 @@ export async function saveSetOrder(payload: any) {
         }
         return { success: false, message: response.message || 'Failed to update order' };
     } catch (error: any) {
-        console.error("saveSetOrder error:", error);
+        console.error('saveSetOrder error:', error);
         if (error?.response) {
-            console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
+            console.error('Error Response Data:', JSON.stringify(error.response.data, null, 2));
         }
         return { success: false, message: error.message || 'Failed to update order' };
     }
@@ -248,7 +256,7 @@ export async function saveSetOrder(payload: any) {
 
 export async function deleteMasterMenuPageMapping(payload: any) {
     try {
-        console.log("DEBUG: deleteMasterMenuPageMapping START");
+        console.log('DEBUG: deleteMasterMenuPageMapping START');
 
         // We'll try the format that worked in Swagger if the user can provide it,
         // but for now let's try 'delete_saved_records' which is common in other sadmin files.
@@ -256,15 +264,15 @@ export async function deleteMasterMenuPageMapping(payload: any) {
 
         // Ensure we send the array format the user mentioned first
         const body = {
-            "pageMappingIds": Array.isArray(payload.pageMappingIds) ? payload.pageMappingIds : [payload.ivrmmmpmI_Id || payload.id],
-            "mi_id": payload.mi_id || payload.MI_Id // Most sadmin APIs require mi_id
+            pageMappingIds: Array.isArray(payload.pageMappingIds) ? payload.pageMappingIds : [payload.ivrmmmpmI_Id || payload.id],
+            mi_id: payload.mi_id || payload.MI_Id // Most sadmin APIs require mi_id
         };
 
-        console.log("DEBUG: Request URL:", url);
-        console.log("DEBUG: Request Body:", JSON.stringify(body));
+        console.log('DEBUG: Request URL:', url);
+        console.log('DEBUG: Request Body:', JSON.stringify(body));
 
         const response = await api.post<any>(API_KEY, url, body);
-        console.log("DEBUG: Raw Response from apiService:", JSON.stringify(response, null, 2));
+        console.log('DEBUG: Raw Response from apiService:', JSON.stringify(response, null, 2));
 
         if (response.success) {
             return {
@@ -278,7 +286,7 @@ export async function deleteMasterMenuPageMapping(payload: any) {
             data: response
         };
     } catch (error: any) {
-        console.error("deleteMasterMenuPageMapping ERROR:", error);
+        console.error('deleteMasterMenuPageMapping ERROR:', error);
         // If error is an object (Axios error), try to serialize it better for returning
         const detail = error?.response?.data?.message || error?.message || String(error);
         return {

@@ -76,8 +76,12 @@ export const getMasterLeaveColumns = ({ onEdit, onDelete, onToggleStatus }: Mast
                     <Button variant='outline' size='sm' onClick={() => onDelete(entity.id)}>
                         <Trash2 className='h-4 w-4' />
                     </Button>
-                    <Button variant={entity.isActive ? 'destructive' : 'default'} size='sm' onClick={() => onToggleStatus(entity)}>
-                        {entity.isActive ? 'Deactivate' : 'Activate'}
+                    <Button
+                        variant={entity.isActive ? 'default' : 'destructive'}
+                        size='sm'
+                        onClick={() => onToggleStatus(entity)}
+                        className={entity.isActive ? 'bg-green-600 text-white hover:bg-green-700' : ''}>
+                        {entity.isActive ? 'Activate' : 'Deactivate'}
                     </Button>
                 </div>
             );

@@ -1,21 +1,36 @@
 'use client';
 
-import { useForm, FormProvider } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import SelectionForm from './_components/selection-form';
+import {
+    deleteMasterMenuPageMapping,
+    getMasterPageGrid,
+    getOnloadGrid,
+    getSavedMappingGrid,
+    getSetOrderList,
+    saveMasterMenuPageMapping,
+    saveSetOrder
+} from '@/server/super-admin/configuration-setting/master-menu-page-mapping-institutionwise';
+import type {
+    GridDetailDTO,
+    MasterPageDTO,
+    SaveMasterMenuPageMappingRequest,
+    SavedMappingDTO,
+    SetOrderDTO,
+    SetOrderRequest
+} from '@/types/super-admin/configuration-setting/master-menu-page-mapping-institutionwise';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { z } from 'zod';
+import DeleteMappingGrid from './_components/delete-mapping-grid';
 import MappingGrid from './_components/mapping-grid';
 import MasterPagesGrid from './_components/master-pages-grid';
-import SelectedMasterPagesGrid from './_components/selected-master-pages-grid';
 import SavedMappingGrid from './_components/saved-mapping-grid';
+import SelectedMasterPagesGrid from './_components/selected-master-pages-grid';
+import SelectionForm from './_components/selection-form';
 import SetOrderModal from './_components/set-order-modal';
-import DeleteMappingGrid from './_components/delete-mapping-grid';
-import { toast } from 'sonner';
-import { useEffect, useState, useCallback, useMemo } from 'react';
-import { getOnloadGrid, getMasterPageGrid, saveMasterMenuPageMapping, getSavedMappingGrid, getSetOrderList, saveSetOrder, deleteMasterMenuPageMapping } from '@/server/super-admin/configuration-setting/master-menu-page-mapping-institutionwise';
-import { GridDetailDTO, MasterPageDTO, SavedMappingDTO, SetOrderDTO, SaveMasterMenuPageMappingRequest, SetOrderRequest } from '@/types/super-admin/configuration-setting/master-menu-page-mapping-institutionwise';
-import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 
 const formSchema = z.object({
     institution: z.string().min(1, 'Institution is required'),
@@ -34,7 +49,10 @@ export default function MasterMenuPageMappingInstitutionwisePage() {
     // nuqs states for URL-synced pagination
     const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1).withOptions({ shallow: false }));
     const [pageSize, setPageSize] = useQueryState('page_size', parseAsInteger.withDefault(10).withOptions({ shallow: false }));
-    const [searchQuery, setSearchQuery] = useQueryState('search', parseAsString.withDefault('').withOptions({ shallow: false, throttleMs: 500 }));
+    const [searchQuery, setSearchQuery] = useQueryState(
+        'search',
+        parseAsString.withDefault('').withOptions({ shallow: false, throttleMs: 500 })
+    );
 
     const [masterPages, setMasterPages] = useState<MasterPageDTO[]>([]);
     const [isMasterPagesLoading, setIsMasterPagesLoading] = useState(false);
@@ -46,8 +64,8 @@ export default function MasterMenuPageMappingInstitutionwisePage() {
     const [setOrderList, setSetOrderList] = useState<SetOrderDTO[]>([]);
     const [isSetOrderLoading, setIsSetOrderLoading] = useState(false);
 
-    const selectedPages = useMemo(() => masterPages.filter(p => p.checked), [masterPages]);
-    const selectedDeleteItems = useMemo(() => gridData.filter(item => item.checked), [gridData]);
+    const selectedPages = useMemo(() => masterPages.filter((p) => p.checked), [masterPages]);
+    const selectedDeleteItems = useMemo(() => gridData.filter((item) => item.checked), [gridData]);
 
     const methods = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -73,20 +91,20 @@ export default function MasterMenuPageMappingInstitutionwisePage() {
         setIsMasterPagesLoading(true);
         try {
             const response = await getMasterPageGrid(
-                parseInt(selectedMI_Id),
-                parseInt(selectedIVRMM_Id),
-                parseInt(selectedIVRMMMI_Id)
+                Number.parseInt(selectedMI_Id),
+                Number.parseInt(selectedIVRMM_Id),
+                Number.parseInt(selectedIVRMMMI_Id)
             );
 
             if (response.success) {
                 setMasterPages(response.data?.masterPages || []);
             } else {
-                toast.error(response.message || "Failed to load master pages");
+                toast.error(response.message || 'Failed to load master pages');
                 setMasterPages([]);
             }
         } catch (error: any) {
-            console.error("fetchMasterPages error:", error);
-            toast.error("An error occurred while fetching master pages");
+            console.error('fetchMasterPages error:', error);
+            toast.error('An error occurred while fetching master pages');
         } finally {
             setIsMasterPagesLoading(false);
         }
@@ -106,9 +124,9 @@ export default function MasterMenuPageMappingInstitutionwisePage() {
         setIsSavedMappingsLoading(true);
         try {
             const response = await getSavedMappingGrid(
-                parseInt(selectedMI_Id),
-                parseInt(selectedIVRMM_Id),
-                parseInt(selectedIVRMMMI_Id)
+                Number.parseInt(selectedMI_Id),
+                Number.parseInt(selectedIVRMM_Id),
+                Number.parseInt(selectedIVRMMMI_Id)
             );
 
             if (response.success) {
@@ -117,7 +135,7 @@ export default function MasterMenuPageMappingInstitutionwisePage() {
                 setSavedMappings([]);
             }
         } catch (error: any) {
-            console.error("fetchSavedMappings error:", error);
+            console.error('fetchSavedMappings error:', error);
             setSavedMappings([]);
         } finally {
             setIsSavedMappingsLoading(false);
@@ -144,13 +162,13 @@ export default function MasterMenuPageMappingInstitutionwisePage() {
                 setGridData(gridDetails);
                 setTotalItems(response.total || gridDetails.length || 0);
             } else {
-                toast.error(response.message || "Failed to load mapping grid");
+                toast.error(response.message || 'Failed to load mapping grid');
                 setGridData([]);
                 setTotalItems(0);
             }
         } catch (error: any) {
-            console.error("fetchGrid error:", error);
-            toast.error(error.message || "An error occurred while fetching grid data");
+            console.error('fetchGrid error:', error);
+            toast.error(error.message || 'An error occurred while fetching grid data');
             setGridData([]);
             setTotalItems(0);
         } finally {
@@ -163,32 +181,24 @@ export default function MasterMenuPageMappingInstitutionwisePage() {
     }, [fetchGrid]);
 
     const handleToggleRow = (row: GridDetailDTO) => {
-        setGridData(prev => prev.map(item =>
-            item.ivrmmmpmI_Id === row.ivrmmmpmI_Id ? { ...item, checked: !item.checked } : item
-        ));
+        setGridData((prev) => prev.map((item) => (item.ivrmmmpmI_Id === row.ivrmmmpmI_Id ? { ...item, checked: !item.checked } : item)));
     };
 
     const handleToggleAll = (checked: boolean) => {
-        setGridData(prev => prev.map(item => ({ ...item, checked })));
+        setGridData((prev) => prev.map((item) => ({ ...item, checked })));
     };
 
     // Master Pages handlers
     const handleToggleMasterPageRow = (row: MasterPageDTO) => {
-        setMasterPages(prev => prev.map(item =>
-            item.ivrmP_Id === row.ivrmP_Id ? { ...item, checked: !item.checked } : item
-        ));
+        setMasterPages((prev) => prev.map((item) => (item.ivrmP_Id === row.ivrmP_Id ? { ...item, checked: !item.checked } : item)));
     };
 
     const handleMasterPageDisplayNameChange = (row: MasterPageDTO, displayName: string) => {
-        setMasterPages(prev => prev.map(item =>
-            item.ivrmP_Id === row.ivrmP_Id ? { ...item, displayname: displayName } : item
-        ));
+        setMasterPages((prev) => prev.map((item) => (item.ivrmP_Id === row.ivrmP_Id ? { ...item, displayname: displayName } : item)));
     };
 
     const handleRemoveSelectedPage = (row: MasterPageDTO) => {
-        setMasterPages(prev => prev.map(item =>
-            item.ivrmP_Id === row.ivrmP_Id ? { ...item, checked: false } : item
-        ));
+        setMasterPages((prev) => prev.map((item) => (item.ivrmP_Id === row.ivrmP_Id ? { ...item, checked: false } : item)));
     };
 
     const handleCancel = () => {
@@ -200,27 +210,27 @@ export default function MasterMenuPageMappingInstitutionwisePage() {
 
     const handleSetOrder = async () => {
         if (!selectedMI_Id || !selectedIVRMM_Id || !selectedIVRMMMI_Id) {
-            toast.warning("Please select Institution, Module and Sub Menu.");
+            toast.warning('Please select Institution, Module and Sub Menu.');
             return;
         }
 
         setIsSetOrderLoading(true);
         try {
             const response = await getSetOrderList(
-                parseInt(selectedMI_Id),
-                parseInt(selectedIVRMM_Id),
-                parseInt(selectedIVRMMMI_Id)
+                Number.parseInt(selectedMI_Id),
+                Number.parseInt(selectedIVRMM_Id),
+                Number.parseInt(selectedIVRMMMI_Id)
             );
 
             if (response.success) {
                 setSetOrderList(response.data?.setOrderList || []);
                 setIsSetOrderModalOpen(true);
             } else {
-                toast.error(response.message || "Failed to fetch order list");
+                toast.error(response.message || 'Failed to fetch order list');
             }
         } catch (error: any) {
-            console.error("handleSetOrder error:", error);
-            toast.error(error.message || "An error occurred while fetching the order list");
+            console.error('handleSetOrder error:', error);
+            toast.error(error.message || 'An error occurred while fetching the order list');
         } finally {
             setIsSetOrderLoading(false);
         }
@@ -230,7 +240,7 @@ export default function MasterMenuPageMappingInstitutionwisePage() {
         setIsLoading(true);
         try {
             const payload: SetOrderRequest = {
-                pages: updatedList.map(item => ({
+                pages: updatedList.map((item) => ({
                     ivrmimP_Id: item.ivrmimP_Id,
                     ivrmmmpmI_Id: item.ivrmmmpmI_Id,
                     ivrmimP_PageOrder: item.pageorder,
@@ -239,17 +249,17 @@ export default function MasterMenuPageMappingInstitutionwisePage() {
             };
 
             const response = await saveSetOrder(payload);
-            console.log("onSaveOrder Server Response:", response);
+            console.log('onSaveOrder Server Response:', response);
             if (response.success) {
-                toast.success(response.message || "Order updated successfully");
+                toast.success(response.message || 'Order updated successfully');
                 setIsSetOrderModalOpen(false);
                 fetchSavedMappings();
             } else {
-                toast.error(response.message || "Failed to update order");
+                toast.error(response.message || 'Failed to update order');
             }
         } catch (error: any) {
-            console.error("onSaveOrder error:", error);
-            toast.error(error.message || "An error occurred while saving the order");
+            console.error('onSaveOrder error:', error);
+            toast.error(error.message || 'An error occurred while saving the order');
         } finally {
             setIsLoading(false);
         }
@@ -259,86 +269,87 @@ export default function MasterMenuPageMappingInstitutionwisePage() {
         handleCancel();
     };
 
-    const handleDelete = useCallback(async (selectedItems: GridDetailDTO[]) => {
-        if (!selectedItems.length) return;
+    const handleDelete = useCallback(
+        async (selectedItems: GridDetailDTO[]) => {
+            if (!selectedItems.length) return;
 
-        const confirmation = window.confirm(`Are you sure you want to delete ${selectedItems.length} selected mapping(s)?`);
-        if (!confirmation) return;
+            const confirmation = window.confirm(`Are you sure you want to delete ${selectedItems.length} selected mapping(s)?`);
+            if (!confirmation) return;
 
-        setIsLoading(true);
-        try {
-            const payload = {
-                pageMappingIds: selectedItems.map(item => item.ivrmmmpmI_Id),
-                mi_id: parseInt(selectedMI_Id)
-            };
+            setIsLoading(true);
+            try {
+                const payload = {
+                    pageMappingIds: selectedItems.map((item) => item.ivrmmmpmI_Id),
+                    mi_id: Number.parseInt(selectedMI_Id)
+                };
 
-            const response = await deleteMasterMenuPageMapping(payload);
+                const response = await deleteMasterMenuPageMapping(payload);
 
-            if (response.success) {
-                toast.success(response.message || "Mapping(s) deleted successfully");
-                fetchGrid();
-            } else {
-                const detail = response.message || "Unknown error";
-                const raw = JSON.stringify(response);
-                toast.error(`Delete Failed: ${detail}. Data: ${raw.substring(0, 100)}...`, {
-                    duration: 10000,
-                });
+                if (response.success) {
+                    toast.success(response.message || 'Mapping(s) deleted successfully');
+                    fetchGrid();
+                } else {
+                    const detail = response.message || 'Unknown error';
+                    const raw = JSON.stringify(response);
+                    toast.error(`Delete Failed: ${detail}. Data: ${raw.substring(0, 100)}...`, {
+                        duration: 10000
+                    });
+                }
+            } catch (error: any) {
+                console.error('handleDelete error:', error);
+                toast.error(error.message || 'An unexpected error occurred');
+            } finally {
+                setIsLoading(false);
+                handleToggleAll(false);
             }
-        } catch (error: any) {
-            console.error("handleDelete error:", error);
-            toast.error(error.message || "An unexpected error occurred");
-        } finally {
-            setIsLoading(false);
-            handleToggleAll(false);
-        }
-    }, [selectedMI_Id, fetchGrid, handleToggleAll]);
+        },
+        [selectedMI_Id, fetchGrid, handleToggleAll]
+    );
 
     const onSubmit = async (data: FormValues) => {
         if (selectedPages.length === 0) {
-            toast.warning("Please select at least one page from the Master Pages grid.");
+            toast.warning('Please select at least one page from the Master Pages grid.');
             return;
         }
 
         const payload: SaveMasterMenuPageMappingRequest = {
-            ivrmmmI_Id: parseInt(data.subMenu),
+            ivrmmmI_Id: Number.parseInt(data.subMenu),
             saveTmpData: selectedPages.map((page: MasterPageDTO) => ({
-                ivrmmmI_Id: parseInt(data.subMenu),
+                ivrmmmI_Id: Number.parseInt(data.subMenu),
                 ivrmP_Id: page.ivrmP_Id,
                 displayname: page.displayname
             })),
-            returnVal: ""
+            returnVal: ''
         };
 
-        console.log("Save Payload:", payload);
+        console.log('Save Payload:', payload);
         setIsLoading(true);
         try {
             const response = await saveMasterMenuPageMapping(payload);
             if (response.success) {
-                toast.success(response.message || "Mapping saved successfully");
+                toast.success(response.message || 'Mapping saved successfully');
                 handleCancel();
                 fetchGrid();
             } else {
-                toast.error(response.message || "Failed to save mapping");
+                toast.error(response.message || 'Failed to save mapping');
             }
         } catch (error: any) {
-            console.error("onSubmit error:", error);
-            toast.error(error.message || "An error occurred while saving the mapping");
+            console.error('onSubmit error:', error);
+            toast.error(error.message || 'An error occurred while saving the mapping');
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="container mx-auto p-6 space-y-8">
-            <Card className="w-full shadow-lg border-t-4 border-t-primary">
+        <div className='container mx-auto space-y-8 p-6'>
+            <Card className='w-full border-t-4 border-t-primary shadow-lg'>
                 <CardHeader>
-                    <CardTitle className="text-2xl font-bold text-center text-primary">
-                        Master Menu Page Mapping Institutionwise
-                    </CardTitle>
+                    <CardTitle className='text-center font-bold text-2xl text-primary'>Master Menu Page Mapping Institutionwise</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <FormProvider {...methods}>
-                        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
+                        <form onSubmit={methods.handleSubmit(onSubmit)} className='space-y-6'>
                             <SelectionForm />
                             {selectedIVRMMMI_Id && (
                                 <MasterPagesGrid
@@ -367,8 +378,8 @@ export default function MasterMenuPageMappingInstitutionwisePage() {
                 </CardContent>
             </Card>
 
-            <Card className="w-full shadow-lg border-t-4 border-t-primary">
-                <CardContent className="pt-6">
+            <Card className='w-full border-t-4 border-t-primary shadow-lg'>
+                <CardContent className='pt-6'>
                     <MappingGrid
                         data={gridData}
                         onToggleRow={handleToggleRow}
@@ -386,13 +397,9 @@ export default function MasterMenuPageMappingInstitutionwisePage() {
             </Card>
 
             {selectedDeleteItems.length > 0 && (
-                <Card className="w-full shadow-lg border-t-4 border-t-red-500">
-                    <CardContent className="pt-6">
-                        <DeleteMappingGrid
-                            data={selectedDeleteItems}
-                            onDelete={handleDelete}
-                            onCancel={() => handleToggleAll(false)}
-                        />
+                <Card className='w-full border-t-4 border-t-red-500 shadow-lg'>
+                    <CardContent className='pt-6'>
+                        <DeleteMappingGrid data={selectedDeleteItems} onDelete={handleDelete} onCancel={() => handleToggleAll(false)} />
                     </CardContent>
                 </Card>
             )}
@@ -402,12 +409,12 @@ export default function MasterMenuPageMappingInstitutionwisePage() {
                 onClose={() => setIsSetOrderModalOpen(false)}
                 onSave={onSaveOrder}
                 data={setOrderList}
-            // Need to find the institution name from the list. 
-            // Wait, I need to check where 'institutions' list is. 
-            // It's likely in SelectionForm or fetched in page.tsx? 
-            // Looking at page.tsx, it's not there. It must be inside SelectionForm.
-            // I might need to lift the institutions state or just use a placeholder for now.
-            // Actually, let's just pass undefined or use a prop if I find it.
+                // Need to find the institution name from the list.
+                // Wait, I need to check where 'institutions' list is.
+                // It's likely in SelectionForm or fetched in page.tsx?
+                // Looking at page.tsx, it's not there. It must be inside SelectionForm.
+                // I might need to lift the institutions state or just use a placeholder for now.
+                // Actually, let's just pass undefined or use a prop if I find it.
             />
         </div>
     );

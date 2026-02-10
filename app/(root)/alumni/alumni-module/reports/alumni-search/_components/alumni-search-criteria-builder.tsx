@@ -17,22 +17,22 @@ interface AlumniSearchCriteriaBuilderProps {
 }
 
 const FIELDS = [
-    { value: 'StudentName', name: 'Alumni Name' },
-    { value: 'ALMST_MobileNo', name: 'MobileNo' },
-    { value: 'ALMST_emailId', name: 'Email id' },
-    { value: 'IVRMMC_CountryName', name: 'Country' },
-    { value: 'IVRMMS_Name', name: 'State' },
-    { value: 'ALMST_PerCity', name: 'City' },
-    { value: 'ALSPR_Designation', name: 'Profession' },
-    { value: 'ALMST_BloodGroup', name: 'Blood Group' },
-    { value: 'ALMST_FatherName', name: 'Father Name' },
-    { value: 'ALMST_FullAddess', name: 'Full Address' },
-    { value: 'ASMCL_Id_Join', name: 'Class Joined' },
-    { value: 'ASMCL_Id_Left', name: 'Class Left' },
-    { value: 'ASMAY_Id_Join', name: 'Year Joined' },
-    { value: 'ASMAY_Id_Left', name: 'Year Left' },
-    { value: 'ALMST_MembershipId', name: 'Membership ID' },
-    { value: 'ALMMC_MembershipCategory', name: 'Membership Category' }
+    { value: 'StudentName', name: 'Alumni Name' }
+    // { value: 'ALMST_MobileNo', name: 'MobileNo' },
+    // { value: 'ALMST_emailId', name: 'Email id' },
+    // { value: 'IVRMMC_CountryName', name: 'Country' },
+    // { value: 'IVRMMS_Name', name: 'State' },
+    // { value: 'ALMST_PerCity', name: 'City' },
+    // { value: 'ALSPR_Designation', name: 'Profession' },
+    // { value: 'ALMST_BloodGroup', name: 'Blood Group' },
+    // { value: 'ALMST_FatherName', name: 'Father Name' },
+    // { value: 'ALMST_FullAddess', name: 'Full Address' },
+    // { value: 'ASMCL_Id_Join', name: 'Class Joined' },
+    // { value: 'ASMCL_Id_Left', name: 'Class Left' },
+    // { value: 'ASMAY_Id_Join', name: 'Year Joined' },
+    // { value: 'ASMAY_Id_Left', name: 'Year Left' },
+    // { value: 'ALMST_MembershipId', name: 'Membership ID' },
+    // { value: 'ALMMC_MembershipCategory', name: 'Membership Category' }
 ];
 
 const DEFAULT_OPERATORS = [
@@ -51,7 +51,14 @@ const CONDITIONS = [
     { value: 'OR', name: 'OR' }
 ];
 
-export default function AlumniSearchCriteriaBuilder({ years, classes, cities, occupations, onSearch, onClear }: AlumniSearchCriteriaBuilderProps) {
+export default function AlumniSearchCriteriaBuilder({
+    years,
+    classes,
+    cities,
+    occupations,
+    onSearch,
+    onClear
+}: AlumniSearchCriteriaBuilderProps) {
     const [rows, setRows] = useState<any[]>([{ field: '', operator: '', value: '', condition: 'AND' }]);
 
     const addRow = () => {

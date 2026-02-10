@@ -5,8 +5,10 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { ROLES } from '@/constants';
+import { PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import { useActivePreadmissionDetails, useStudentApplicationList } from '@/hooks/admission/preadmission/useTransactions';
 import type { IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
+import { useQueryClient } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { use, useEffect, useState } from 'react';
@@ -137,6 +139,7 @@ function FormSections({
     refetch: () => void;
 }) {
     const { isAddFormOpen, closeAddForm, addFormRef, isEditFormOpen, closeEditForm, editFormRef, selectedRow } = useFormContext();
+    const queryClient = useQueryClient();
 
     return (
         <>
@@ -164,6 +167,9 @@ function FormSections({
                                     closeAddForm();
                                     setSuccess('create');
                                     refetch();
+                                    queryClient.invalidateQueries({
+                                        queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_STATUS_COUNT_REPORT]
+                                    });
                                 }}
                             />
                         </div>
@@ -196,6 +202,9 @@ function FormSections({
                                     closeEditForm();
                                     setSuccess('update');
                                     refetch();
+                                    queryClient.invalidateQueries({
+                                        queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_STATUS_COUNT_REPORT]
+                                    });
                                 }}
                                 onClose={closeEditForm}
                             />

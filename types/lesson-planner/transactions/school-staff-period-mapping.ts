@@ -1,4 +1,3 @@
-
 export interface ISchoolStaffPeriodMapping {
     lplP_Id: number;
     lpmT_Id: number;

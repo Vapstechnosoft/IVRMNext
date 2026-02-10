@@ -52,7 +52,7 @@ export const useInvRSalesStudentList = (
             const payload = {
                 ASMCL_Id: Number(asmcL_Id),
                 ASMS_Id: asmS_Id ? Number(asmS_Id) : 0,
-                type: individualflag
+                type: 'C' // Always 'C' for student list, even when section is selected
             };
             return getInvRSalesStudentList(payload);
         },

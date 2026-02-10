@@ -143,6 +143,37 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                     />
                 </div>
             </div>
+            <div className='grid grid-cols-1 gap-4 border-t pt-4 md:grid-cols-3'>
+                <div>
+                    <label htmlFor='leave-apply-criteria-select' className='font-medium text-sm'>
+                        Apply Criteria
+                    </label>
+                    <Select value={watch('leaveApplyCriteria')} onValueChange={(value) => setValue('leaveApplyCriteria', value)}>
+                        <SelectTrigger id='leave-apply-criteria-select'>
+                            <SelectValue placeholder='Select Criteria' />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value='Before'>Before</SelectItem>
+                            <SelectItem value='After'>After</SelectItem>
+                            <SelectItem value='Same Day'>Same Day</SelectItem>
+                            <SelectItem value='Month'>Month</SelectItem>
+                            <SelectItem value='Quarter'>Quarter</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div>
+                    <label htmlFor='days-for-criteria-input' className='font-medium text-sm'>
+                        Days for Criteria
+                    </label>
+                    <InputText id='days-for-criteria-input' {...register('daysForApplyCriteria')} placeholder='Enter days' type='number' />
+                </div>
+                <div>
+                    <label htmlFor='max-days-input' className='font-medium text-sm'>
+                        Max Days for Apply
+                    </label>
+                    <InputText id='max-days-input' {...register('maxDaysForApply')} placeholder='Enter max days' type='number' />
+                </div>
+            </div>
             <div className='flex gap-2'>
                 <Button type='submit' variant='default'>
                     {editingLeave ? 'Update' : 'Save'}

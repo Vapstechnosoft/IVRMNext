@@ -267,8 +267,8 @@ export default function AdmissionReportPage(props: {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -374,7 +374,7 @@ export default function AdmissionReportPage(props: {
                                     }}
                                     defaultValue={selectedSectionItems.map((data) => data.asmS_Id)}
                                     value={selectedSectionItems.map((data) => data.asmS_Id)}
-                                    placeholder='Select Classes'
+                                    placeholder='Select Sections'
                                     variant='inverted'
                                     disabled={masterSectionLoading}
                                 />

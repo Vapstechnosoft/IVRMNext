@@ -652,7 +652,7 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                                     <SelectTrigger><SelectValue placeholder='Select Customer' /></SelectTrigger>
                                     <SelectContent>
                                         {customerList.map((s: any, index: number) => (
-                                            <SelectItem key={`${s.invmC_Id}-${index}`} value={s.invmC_CustomerName || ''}>{s.invmC_CustomerName}</SelectItem>
+                                            <SelectItem key={`${s.invmC_Id}-${index}`} value={s.invmC_Id?.toString() || ''}>{s.invmC_CustomerName}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>

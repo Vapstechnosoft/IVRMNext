@@ -1,8 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError, Label } from '@/components/ui/extension/field';
-import { InputNumber } from '@/components/ui/extension/input-number';
+import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useMasterSubject } from '@/hooks/exam/exammodule/usemasters';
@@ -36,7 +35,7 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterSubjectSchema.addOrUpdate),
-        mode: 'onChange'
+        mode: 'onTouched'
     });
 
     // Initialize form with selected row safely

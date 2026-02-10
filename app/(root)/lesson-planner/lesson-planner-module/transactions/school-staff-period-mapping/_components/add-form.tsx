@@ -1,39 +1,26 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from '@/components/ui/form';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Search, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { SchoolStaffPeriodMappingSchema, type ISchoolStaffPeriodMappingFormValues } from './schema';
-import type {
-    IMasterYear,
-    IEmployee,
-    IMasterClass,
-    ISection,
-    IMasterSubject
-} from '@/types/lesson-planner/transactions/school-staff-period-mapping';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     getEmployeeClasses,
     getEmployeeSections,
     getEmployeeSubjects
 } from '@/server/lesson-planner/transactions/school-staff-period-mapping';
+import type {
+    IEmployee,
+    IMasterClass,
+    IMasterSubject,
+    IMasterYear,
+    ISection
+} from '@/types/lesson-planner/transactions/school-staff-period-mapping';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Search, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { type ISchoolStaffPeriodMappingFormValues, SchoolStaffPeriodMappingSchema } from './schema';
 
 interface AddFormProps {
     masterYear: IMasterYear[];
@@ -43,13 +30,7 @@ interface AddFormProps {
     isLoading?: boolean;
 }
 
-export default function AddForm({
-    masterYear,
-    employees,
-    onSearch,
-    onReset,
-    isLoading
-}: AddFormProps) {
+export default function AddForm({ masterYear, employees, onSearch, onReset, isLoading }: AddFormProps) {
     const [classes, setClasses] = useState<IMasterClass[]>([]);
     const [sections, setSections] = useState<ISection[]>([]);
     const [subjects, setSubjects] = useState<IMasterSubject[]>([]);
@@ -61,8 +42,8 @@ export default function AddForm({
             HRME_Id: 0,
             ASMCL_Id: 0,
             ASMS_Id: 0,
-            ISMS_Id: 0,
-        },
+            ISMS_Id: 0
+        }
     });
 
     const selectedYear = form.watch('ASMA_Id');
@@ -73,7 +54,7 @@ export default function AddForm({
     const findValue = (obj: any, keys: string[]) => {
         if (!obj) return null;
         for (const key of keys) {
-            if (obj[key] !== undefined && obj[key] !== null && obj[key] !== "") return obj[key];
+            if (obj[key] !== undefined && obj[key] !== null && obj[key] !== '') return obj[key];
         }
         return null;
     };
@@ -109,7 +90,14 @@ export default function AddForm({
             const fetchClasses = async () => {
                 try {
                     const res = await getEmployeeClasses(Number(selectedEmployee), Number(selectedYear));
-                    const classData = getArray(res, 'masterclass', ['getclass', 'getclasslist', 'classList', 'getMasterClass', 'classes', 'classroom']);
+                    const classData = getArray(res, 'masterclass', [
+                        'getclass',
+                        'getclasslist',
+                        'classList',
+                        'getMasterClass',
+                        'classes',
+                        'classroom'
+                    ]);
                     setClasses(classData);
                 } catch (error) {
                     toast.error('Failed to fetch classes');
@@ -127,7 +115,14 @@ export default function AddForm({
             const fetchSections = async () => {
                 try {
                     const res = await getEmployeeSections(Number(selectedYear), Number(selectedEmployee), Number(selectedClass));
-                    const sectionData = getArray(res, 'mastersection', ['getsection', 'getsectionlist', 'sectionList', 'getMasterSection', 'sections', 'section']);
+                    const sectionData = getArray(res, 'mastersection', [
+                        'getsection',
+                        'getsectionlist',
+                        'sectionList',
+                        'getMasterSection',
+                        'sections',
+                        'section'
+                    ]);
                     setSections(sectionData);
                 } catch (error) {
                     toast.error('Failed to fetch sections');
@@ -144,8 +139,20 @@ export default function AddForm({
         if (Number(selectedYear) > 0 && Number(selectedEmployee) > 0 && Number(selectedClass) > 0 && Number(selectedSection) > 0) {
             const fetchSubjects = async () => {
                 try {
-                    const res = await getEmployeeSubjects(Number(selectedYear), Number(selectedEmployee), Number(selectedClass), Number(selectedSection));
-                    const subjectData = getArray(res, 'mastersubjects', ['getsubject', 'getsubjectlist', 'subjectList', 'getMasterSubject', 'subjects', 'subject']);
+                    const res = await getEmployeeSubjects(
+                        Number(selectedYear),
+                        Number(selectedEmployee),
+                        Number(selectedClass),
+                        Number(selectedSection)
+                    );
+                    const subjectData = getArray(res, 'mastersubjects', [
+                        'getsubject',
+                        'getsubjectlist',
+                        'subjectList',
+                        'getMasterSubject',
+                        'subjects',
+                        'subject'
+                    ]);
                     setSubjects(subjectData);
                 } catch (error) {
                     toast.error('Failed to fetch subjects');
@@ -168,26 +175,34 @@ export default function AddForm({
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSearch)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <form onSubmit={form.handleSubmit(onSearch)} className='space-y-6'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
                     {/* Academic Year */}
                     <FormField
                         control={form.control}
-                        name="ASMA_Id"
+                        name='ASMA_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year <span className="text-red-500">*</span></FormLabel>
+                                <FormLabel>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value?.toString() || ''}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Year" />
+                                            <SelectValue placeholder='Select Year' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         {masterYear.length > 0 ? (
                                             masterYear.map((item) => {
                                                 const id = findValue(item, ['asmaY_Id', 'ASMAY_Id', 'asmaY_ID', 'yearId', 'asmaY_id']);
-                                                const name = findValue(item, ['asmaY_Year', 'ASMAY_Year', 'asmaY_year', 'yearName', 'year']);
+                                                const name = findValue(item, [
+                                                    'asmaY_Year',
+                                                    'ASMAY_Year',
+                                                    'asmaY_year',
+                                                    'yearName',
+                                                    'year'
+                                                ]);
                                                 return (
                                                     <SelectItem key={id} value={id?.toString() || ''}>
                                                         {name}
@@ -195,7 +210,9 @@ export default function AddForm({
                                                 );
                                             })
                                         ) : (
-                                            <SelectItem value="0" disabled>No years found</SelectItem>
+                                            <SelectItem value='0' disabled>
+                                                No years found
+                                            </SelectItem>
                                         )}
                                     </SelectContent>
                                 </Select>
@@ -207,21 +224,28 @@ export default function AddForm({
                     {/* Employee */}
                     <FormField
                         control={form.control}
-                        name="HRME_Id"
+                        name='HRME_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Employee Name <span className="text-red-500">*</span></FormLabel>
+                                <FormLabel>
+                                    Employee Name <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value?.toString() || ''}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Employee" />
+                                            <SelectValue placeholder='Select Employee' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         {employees.length > 0 ? (
                                             employees.map((item) => {
                                                 const id = findValue(item, ['hrmE_Id', 'HRME_Id', 'employeeId', 'hrmE_id']);
-                                                const name = findValue(item, ['employeename', 'hrmE_EmployeeName', 'employeeName', 'hrmE_Fullname']);
+                                                const name = findValue(item, [
+                                                    'employeename',
+                                                    'hrmE_EmployeeName',
+                                                    'employeeName',
+                                                    'hrmE_Fullname'
+                                                ]);
                                                 return (
                                                     <SelectItem key={id} value={id?.toString() || ''}>
                                                         {name}
@@ -229,7 +253,9 @@ export default function AddForm({
                                                 );
                                             })
                                         ) : (
-                                            <SelectItem value="0" disabled>No employees found</SelectItem>
+                                            <SelectItem value='0' disabled>
+                                                No employees found
+                                            </SelectItem>
                                         )}
                                     </SelectContent>
                                 </Select>
@@ -241,21 +267,37 @@ export default function AddForm({
                     {/* Class */}
                     <FormField
                         control={form.control}
-                        name="ASMCL_Id"
+                        name='ASMCL_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Class <span className="text-red-500">*</span></FormLabel>
+                                <FormLabel>
+                                    Class <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value?.toString() || ''}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Class" />
+                                            <SelectValue placeholder='Select Class' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         {classes.length > 0 ? (
                                             classes.map((item) => {
-                                                const id = findValue(item, ['asmcL_Id', 'ASMCL_Id', 'asmcL_ID', 'classId', 'asmcL_id', 'asmA_Id', 'ASMA_Id']);
-                                                const name = findValue(item, ['asmcL_ClassName', 'ASMCL_ClassName', 'asmcL_Classname', 'className', 'class']);
+                                                const id = findValue(item, [
+                                                    'asmcL_Id',
+                                                    'ASMCL_Id',
+                                                    'asmcL_ID',
+                                                    'classId',
+                                                    'asmcL_id',
+                                                    'asmA_Id',
+                                                    'ASMA_Id'
+                                                ]);
+                                                const name = findValue(item, [
+                                                    'asmcL_ClassName',
+                                                    'ASMCL_ClassName',
+                                                    'asmcL_Classname',
+                                                    'className',
+                                                    'class'
+                                                ]);
                                                 return (
                                                     <SelectItem key={id} value={id?.toString() || ''}>
                                                         {name}
@@ -263,7 +305,9 @@ export default function AddForm({
                                                 );
                                             })
                                         ) : (
-                                            <SelectItem value="0" disabled>No classes found</SelectItem>
+                                            <SelectItem value='0' disabled>
+                                                No classes found
+                                            </SelectItem>
                                         )}
                                     </SelectContent>
                                 </Select>
@@ -275,21 +319,36 @@ export default function AddForm({
                     {/* Section */}
                     <FormField
                         control={form.control}
-                        name="ASMS_Id"
+                        name='ASMS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Section <span className="text-red-500">*</span></FormLabel>
+                                <FormLabel>
+                                    Section <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value?.toString() || ''}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Section" />
+                                            <SelectValue placeholder='Select Section' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         {sections.length > 0 ? (
                                             sections.map((item) => {
-                                                const id = findValue(item, ['asmS_Id', 'ASMS_Id', 'asmS_ID', 'sectionId', 'asmS_id', 'asmS_Id']);
-                                                const name = findValue(item, ['asmC_SectionName', 'ASMC_SectionName', 'asmC_Sectionname', 'sectionName', 'section']);
+                                                const id = findValue(item, [
+                                                    'asmS_Id',
+                                                    'ASMS_Id',
+                                                    'asmS_ID',
+                                                    'sectionId',
+                                                    'asmS_id',
+                                                    'asmS_Id'
+                                                ]);
+                                                const name = findValue(item, [
+                                                    'asmC_SectionName',
+                                                    'ASMC_SectionName',
+                                                    'asmC_Sectionname',
+                                                    'sectionName',
+                                                    'section'
+                                                ]);
                                                 return (
                                                     <SelectItem key={id} value={id?.toString() || ''}>
                                                         {name}
@@ -297,7 +356,9 @@ export default function AddForm({
                                                 );
                                             })
                                         ) : (
-                                            <SelectItem value="0" disabled>No sections found</SelectItem>
+                                            <SelectItem value='0' disabled>
+                                                No sections found
+                                            </SelectItem>
                                         )}
                                     </SelectContent>
                                 </Select>
@@ -309,21 +370,36 @@ export default function AddForm({
                     {/* Subject */}
                     <FormField
                         control={form.control}
-                        name="ISMS_Id"
+                        name='ISMS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Subject <span className="text-red-500">*</span></FormLabel>
+                                <FormLabel>
+                                    Subject <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value?.toString() || ''}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Subject" />
+                                            <SelectValue placeholder='Select Subject' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         {subjects.length > 0 ? (
                                             subjects.map((item) => {
-                                                const id = findValue(item, ['ismS_Id', 'ISMS_Id', 'ismS_ID', 'subjectId', 'ismS_id', 'isM_Id']);
-                                                const name = findValue(item, ['ismS_SubjectName', 'ISMS_SubjectName', 'ismS_subjectName', 'subjectName', 'subject']);
+                                                const id = findValue(item, [
+                                                    'ismS_Id',
+                                                    'ISMS_Id',
+                                                    'ismS_ID',
+                                                    'subjectId',
+                                                    'ismS_id',
+                                                    'isM_Id'
+                                                ]);
+                                                const name = findValue(item, [
+                                                    'ismS_SubjectName',
+                                                    'ISMS_SubjectName',
+                                                    'ismS_subjectName',
+                                                    'subjectName',
+                                                    'subject'
+                                                ]);
                                                 return (
                                                     <SelectItem key={id} value={id?.toString() || ''}>
                                                         {name}
@@ -331,7 +407,9 @@ export default function AddForm({
                                                 );
                                             })
                                         ) : (
-                                            <SelectItem value="0" disabled>No subjects found</SelectItem>
+                                            <SelectItem value='0' disabled>
+                                                No subjects found
+                                            </SelectItem>
                                         )}
                                     </SelectContent>
                                 </Select>
@@ -341,12 +419,12 @@ export default function AddForm({
                     />
                 </div>
 
-                <div className="flex justify-center gap-4">
-                    <Button type="submit" disabled={isLoading} variant="default">
-                        <Search className="mr-2 h-4 w-4" /> Get Details
+                <div className='flex justify-center gap-4'>
+                    <Button type='submit' disabled={isLoading} variant='default'>
+                        <Search className='mr-2 h-4 w-4' /> Get Details
                     </Button>
-                    <Button type="button" variant="outline" onClick={handleReset} disabled={isLoading}>
-                        <X className="mr-2 h-4 w-4" /> Cancel
+                    <Button type='button' variant='outline' onClick={handleReset} disabled={isLoading}>
+                        <X className='mr-2 h-4 w-4' /> Cancel
                     </Button>
                 </div>
             </form>

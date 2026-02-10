@@ -121,7 +121,6 @@ class ApiService {
                     rejectUnauthorized: false // Bypass SSL certificate validation
                 });
 
-
                 console.info('🔵 [API SERVICE] SSL bypass enabled for:', baseURL);
             }
 
@@ -319,6 +318,28 @@ class ApiService {
 
     public async post<T>(baseUrlKey: ApiBaseUrlKey, url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
         return this.request<T>(baseUrlKey, 'POST', url, config, data);
+    }
+
+    public async postBinary(
+        baseUrlKey: ApiBaseUrlKey,
+        url: string,
+        data?: unknown,
+        config?: AxiosRequestConfig
+    ): Promise<any> {
+        try {
+            const instance = this.getOrCreateInstance(baseUrlKey);
+            const response = await instance.request({
+                method: 'POST',
+                url,
+                data,
+                responseType: 'arraybuffer',
+                ...config
+            });
+
+            return response.data;
+        } catch (error) {
+            throw this.handleError(error);
+        }
     }
 
     public async put<T>(baseUrlKey: ApiBaseUrlKey, url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {

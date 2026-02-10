@@ -2,10 +2,9 @@
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { IStudentYearlyAttendenceReportList } from '@/types/admission/preadmission/reports';
 import type { ColumnDef } from '@tanstack/react-table';
 
-export const birthCertificateColumns: ColumnDef<IStudentYearlyAttendenceReportList>[] = [
+export const birthCertificateColumns: ColumnDef<any>[] = [
     {
         id: 'select',
         header: ({ table }) => (
@@ -23,58 +22,66 @@ export const birthCertificateColumns: ColumnDef<IStudentYearlyAttendenceReportLi
         size: 24
     },
     {
-        accessorKey: 'user_name',
+        accessorKey: 'amsT_FirstName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
-        cell: ({ row }) => <div>{row.getValue('user_name')}</div>,
+        cell: ({ row }) => <div>{row.getValue('amsT_FirstName') ?? row.original.studentName ?? 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'email',
+        accessorKey: 'amsT_AdmNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Admission No.' />,
-        cell: ({ row }) => <div>{row.getValue('email')}</div>,
+        cell: ({ row }) => <div>{row.getValue('amsT_AdmNo') ?? row.original.admNo ?? 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'phone_number',
+        accessorKey: 'amsT_RegistrationNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Registration No.' />,
-        cell: ({ row }) => <div>{row.getValue('phone_number')}</div>,
+        cell: ({ row }) => <div>{row.getValue('amsT_RegistrationNo') ?? row.original.regNo ?? 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'class_name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='\tClass Name' />,
-        cell: ({ row }) => <div>{row.getValue('pasR_RegistrationNo') ?? 'N.A'}</div>,
+        accessorKey: 'asmcL_ClassName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' />,
+        cell: ({ row }) => <div>{row.getValue('asmcL_ClassName') ?? row.original.className ?? 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'section_name',
+        accessorKey: 'asmC_SectionName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Section Name' />,
-        cell: ({ row }) => <div>{row.getValue('pasR_RegistrationNo') ?? 'N.A'}</div>,
+        cell: ({ row }) => <div>{row.getValue('asmC_SectionName') ?? row.original.sectionName ?? 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'working_days',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='No. of Working days' />,
-        cell: ({ row }) => <div>{row.getValue('pasR_RegistrationNo') ?? 'N.A'}</div>,
+        accessorKey: 'amsT_DOB',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Date of Birth' />,
+        cell: ({ row }) => {
+            const dob = row.getValue('amsT_DOB') ?? row.original.dob;
+            if (!dob) return <div>N/A</div>;
+            try {
+                return <div>{new Date(dob as string).toLocaleDateString()}</div>;
+            } catch {
+                return <div>{String(dob)}</div>;
+            }
+        },
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'present_days',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='No. of Present days' />,
-        cell: ({ row }) => <div>{row.getValue('pasR_RegistrationNo') ?? 'N.A'}</div>,
+        accessorKey: 'amsT_FatherName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Father Name' />,
+        cell: ({ row }) => <div>{row.getValue('amsT_FatherName') ?? row.original.fatherName ?? 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'present',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Present' />,
-        cell: ({ row }) => <div>{row.getValue('pasR_RegistrationNo') ?? 'N.A'}</div>,
+        accessorKey: 'amsT_MotherName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Mother Name' />,
+        cell: ({ row }) => <div>{row.getValue('amsT_MotherName') ?? row.original.motherName ?? 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     }

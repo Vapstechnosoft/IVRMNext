@@ -1,216 +1,188 @@
 'use server';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
 import type {
-    LeaveAuthorizationGetRequest,
-    LeaveAuthorizationGetResponse,
-    LeaveAuthorizationGetResponseData,
-    LeaveAuthorizationSaveRequest,
-    LeaveAuthorizationSaveResponse,
-    LeaveAuthorizationEditRequest,
-    LeaveAuthorizationEditResponse,
     LeaveAuthorizationDeleteRequest,
-    LeaveAuthorizationDeleteResponse
+    LeaveAuthorizationGetResponseData,
+    LeaveAuthorizationSaveRequest
 } from '@/types/hrms/leave-management/leave-authorization';
 /**
- * Get leave authorization details
- * POST /api/LeaveAuthorizationFacade/GetAuthLeave
- * 
- * @param request - Request payload with UserId, MI_Id, and onchangeoronload
- * @returns Leave authorization data
+ * Get institutions based on login
+ * GET /api/LeaveAuthorization/get_institutions_by_loginbased
  */
-export async function getLeaveAuthorization(request: LeaveAuthorizationGetRequest): Promise<ApiResponse<LeaveAuthorizationGetResponseData>> {
-    const url = '/api/LeaveAuthorizationFacade/GetAuthLeave';
-    const requestBody: LeaveAuthorizationGetRequest = {
-        UserId: request.UserId || 0,
-        MI_Id: request.MI_Id || HRMS_MI_ID,
-        onchangeoronload: request.onchangeoronload || ''
-    };
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
+export async function getInstitutionsByLoginBased(): Promise<ApiResponse<any[]>> {
+    const url = '/api/LeaveAuthorization/get_institutions_by_loginbased';
+    console.log('🔵 [SERVER] GET Request URL:', url);
     try {
-        const response = await api.post<LeaveAuthorizationGetResponseData>('hmslms', url, requestBody);
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
-        // Handle the response structure
-        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-            // Already wrapped in ApiResponse format
-            return response as ApiResponse<LeaveAuthorizationGetResponseData>;
-        }
-        // Wrap raw response data
-        const responseData = response as any;
+        const response = await api.get<any>('hmslms', url);
+        console.log('🔵 [SERVER] GET Response:', JSON.stringify(response, null, 2));
+
+        const res = response as any;
+        const isSuccess = res.success === true || String(res.success) === 'true';
+
         return {
-            success: responseData?.success ?? true,
-            message: responseData?.message || responseData?.retrunMsg || 'Data fetched successfully',
-            data: response as unknown as LeaveAuthorizationGetResponseData
+            success: isSuccess,
+            message: res.message || 'Institutions fetched successfully',
+            data: res.data || []
         };
     } catch (error: any) {
-        // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch leave authorization data';
-        // Throw error so hooks can catch and display it
+        throw new Error(error?.message || 'Failed to fetch institutions');
+    }
+}
+
+/**
+ * Get leave authorization details by MI_Id
+ * GET /api/LeaveAuthorization/get_authorization_details_by_miid?mi_id={mi_id}
+ *
+ * @param searchParams - Search parameters for filtering
+ * @returns Leave authorization data
+ */
+export async function getLeaveAuthorization(
+    searchParams?: ApiSearchparams & { MI_Id?: string | number; UserId?: number }
+): Promise<ApiResponse<LeaveAuthorizationGetResponseData | any[]>> {
+    const miId = searchParams?.MI_Id || HRMS_MI_ID;
+
+    const url = `/api/LeaveAuthorization/get_authorization_details_by_miid?mi_id=${miId}`;
+
+    console.log('🔵 [SERVER] GET Request URL:', url);
+    try {
+        const response = await api.get<any>('hmslms', url);
+        console.log('🔵 [SERVER] GET Response:', JSON.stringify(response, null, 2));
+
+        const res = response as any;
+        const isSuccess = res.success === true || String(res.success) === 'true';
+
+        if (isSuccess) {
+            return {
+                ...res,
+                success: true,
+                data: res.data || []
+            };
+        }
+
+        return {
+            success: false,
+            message: res.message || 'Failed to fetch data',
+            data: []
+        };
+    } catch (error: any) {
+        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to fetch leave authorization data';
         throw new Error(errorMessage);
     }
 }
 /**
  * Save or update leave authorization
- * POST /api/LeaveAuthorizationFacade/SaveAuthData
- * 
+ * POST /api/LeaveAuthorization/add_or_update_leave_authorisation
+ *
  * @param data - Leave authorization data to save or update
  * @returns Save/Update response
  */
 export async function saveLeaveAuthorization(data: LeaveAuthorizationSaveRequest): Promise<ApiResponse<LeaveAuthorizationGetResponseData>> {
-    const url = '/api/LeaveAuthorizationFacade/SaveAuthData';
-    const requestBody: LeaveAuthorizationSaveRequest = {
-        MI_Id: data.MI_Id || HRMS_MI_ID,
-        HRMG_Id: data.HRMG_Id || 0,
-        HRMGT_Id: data.HRMGT_Id || 0,
-        HRMD_Id: data.HRMD_Id || 0,
-        HRMDES_Id: data.HRMDES_Id || 0,
-        HRML_Id: data.HRML_Id || 0,
-        UserId: data.UserId || 0,
-        approvaluser_array: data.approvaluser_array || []
+    const url = '/api/LeaveAuthorization/add_or_update_leave_authorisation';
+
+    // Map to the structure expected by the NEW API
+    const requestBody = {
+        hrmG_Id: Number(data.HRMG_Id || 0),
+        hrmgT_Id: Number(data.HRMGT_Id || 0),
+        hrmD_Id: Number(data.HRMD_Id || 0),
+        hrmdeS_Id: Number(data.HRMDES_Id || 0),
+        hrmL_Id: Number(data.HRML_Id || 0),
+        userId: Number(data.UserId || 0),
+        approvalUser: (data.approvaluser_array || []).map((item) => ({
+            approval_HRME_Id: Number(item.Approval_HRME_Id),
+            approvalLevelNo: Number(item.ApprovalLevelNo),
+            approvalFinalFlag: !!item.ApprovalFinalFlag
+        }))
     };
+
+    console.log('🟠 [SERVER] POST Request URL:', url);
     console.log('🟠 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
+
     try {
-        const response = await api.post<LeaveAuthorizationSaveResponse>('hmslms', url, requestBody);
+        const response = await api.post<any>('hmslms', url, requestBody);
         console.log('🟢 [SERVER] Response:', JSON.stringify(response, null, 2));
-        // Extract return message from response
-        const responseData = response as any;
-        const retrunMsg = responseData?.retrunMsg || 
-                         responseData?.data?.retrunMsg || 
-                         responseData?.message || 
-                         '';
-        // Check for duplicate
-        const isDuplicate = retrunMsg === 'Duplicate' || 
-                           (retrunMsg && retrunMsg.toLowerCase().includes('duplicate'));
-        if (isDuplicate) {
-            return {
-                success: false,
-                message: retrunMsg || 'Leave authorization already exists',
-                data: responseData?.data || null
-            };
-        }
-        // Check for success indicators
-        const isUpdateSuccess = retrunMsg === 'Update' || 
-                               retrunMsg === 'Saved' || 
-                               retrunMsg === 'Add' ||
-                               responseData?.returnval_Update === true ||
-                               responseData?.returnval_add === true ||
-                               responseData?.returnval === true;
-        const isSuccess = isUpdateSuccess || 
-                         (response?.success === true);
-        let message = retrunMsg || 'Failed to save leave authorization';
-        if (isSuccess) {
-            message = retrunMsg || 'Leave authorization saved successfully';
-        }
+
+        const res = response as any;
+        const isSuccess = res.success === true || String(res.success) === 'true';
+
         return {
             success: isSuccess,
-            message: message,
-            data: responseData?.data || null
+            message: res.message || (isSuccess ? 'Saved successfully' : 'Failed to save'),
+            data: res.data || null
         };
     } catch (error: any) {
-        // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to save leave authorization';
+        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save leave authorization';
         throw new Error(errorMessage);
     }
 }
 /**
  * Get leave authorization for editing
- * POST /api/LeaveAuthorizationFacade/EditDetails
- * 
- * @param HRLAON_Id - Leave authorization ID to edit
+ * GET /api/LeaveAuthorization/leave_authorisation_by_id/{hrlaon_id}
+ *
+ * @param hrlaoN_Id - Leave authorization ID to edit
  * @returns Leave authorization data for editing
  */
-export async function getLeaveAuthorizationForEdit(HRLAON_Id: number): Promise<ApiResponse<LeaveAuthorizationGetResponseData>> {
-    const url = '/api/LeaveAuthorizationFacade/EditDetails';
-    const requestBody: LeaveAuthorizationEditRequest = {
-        HRLAON_Id: HRLAON_Id || 0
-    };
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
+export async function getLeaveAuthorizationForEdit(hrlaoN_Id: number): Promise<ApiResponse<any>> {
+    const url = `/api/LeaveAuthorization/leave_authorisation_by_id/${hrlaoN_Id}`;
+    console.log('🔵 [SERVER] GET Request URL:', url);
     try {
-        const response = await api.post<LeaveAuthorizationGetResponseData>('hmslms', url, requestBody);
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
-        // Handle the response structure
-        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-            // Already wrapped in ApiResponse format
-            return response as ApiResponse<LeaveAuthorizationGetResponseData>;
+        const response = await api.get<any>('hmslms', url);
+        console.log('🔵 [SERVER] GET Response:', JSON.stringify(response, null, 2));
+
+        const res = response as any;
+        const isSuccess = res.success === true || String(res.success) === 'true';
+
+        if (isSuccess && res.data) {
+            // The API returns an array in 'data' even for a single record
+            const data = Array.isArray(res.data) ? res.data[0] : res.data;
+            return {
+                success: true,
+                message: res.message || 'Data fetched successfully',
+                data: data
+            };
         }
-        // Wrap raw response data
-        const responseData = response as any;
-        return {
-            success: responseData?.success ?? true,
-            message: responseData?.message || responseData?.retrunMsg || 'Data fetched successfully',
-            data: response as unknown as LeaveAuthorizationGetResponseData
-        };
+
+        throw new Error(res.message || 'Failed to fetch leave authorization for editing');
     } catch (error: any) {
-        // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch leave authorization data for editing';
-        // Throw error so hooks can catch and display it
-        throw new Error(errorMessage);
+        throw new Error(error?.message || 'Failed to fetch leave authorization data for editing');
     }
 }
 /**
  * Delete leave authorization
- * POST /api/LeaveAuthorizationFacade/DeleteAuth
- * 
+ * DELETE /api/LeaveAuthorization/delete_leave_authorisation/{hrla_id}/{hrlaon_id}
+ *
  * @param request - Delete request with HRLA_Id and HRLAON_Id
  * @returns Delete response
  */
 export async function deleteLeaveAuthorization(request: LeaveAuthorizationDeleteRequest): Promise<ApiResponse<any>> {
-    const url = '/api/LeaveAuthorizationFacade/DeleteAuth';
-    const requestBody: LeaveAuthorizationDeleteRequest = {
-        HRLA_Id: request.HRLA_Id || 0,
-        HRLAON_Id: request.HRLAON_Id || 0
-    };
-    console.log('🔴 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
+    const hrla_Id = request.HRLA_Id || 0;
+    const hrlaon_Id = request.HRLAON_Id || 0;
+    const url = `/api/LeaveAuthorization/delete_leave_authorisation/${hrla_Id}/${hrlaon_Id}`;
+
+    console.log('🔴 [SERVER] DELETE Request URL:', url);
+
     try {
-        const response = await api.post<LeaveAuthorizationDeleteResponse>('hmslms', url, requestBody);
+        const response = await api.delete<any>('hmslms', url);
         console.log('🔴 [SERVER] Response:', JSON.stringify(response, null, 2));
-        // Handle the response structure
-        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-            // Already wrapped in ApiResponse format
-            return response as ApiResponse<any>;
-        }
-        // Extract return message from response
-        const responseData = response as any;
-        const retrunMsg = responseData?.retrunMsg || 
-                         responseData?.data?.retrunMsg || 
-                         responseData?.message || 
-                         '';
-        // Check for success indicators
-        const isSuccess = retrunMsg === 'Delete' || 
-                         retrunMsg === 'Deleted' ||
-                         retrunMsg === 'Success' ||
-                         responseData?.returnval === true ||
-                         (response as any)?.success === true;
-        let message = retrunMsg || 'Failed to delete leave authorization';
-        if (isSuccess) {
-            message = retrunMsg || 'Leave authorization deleted successfully';
-        }
+
+        const res = response as any;
+        const isSuccess = res.success === true || String(res.success) === 'true';
+
         return {
             success: isSuccess,
-            message: message,
-            data: responseData?.data || null
+            message: res.message || (isSuccess ? 'Deleted successfully' : 'Failed to delete'),
+            data: res.data || null
         };
     } catch (error: any) {
-        // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to delete leave authorization';
+        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete leave authorization';
         throw new Error(errorMessage);
     }
 }
 /**
  * Get leave authorization dropdown options
- * This calls GetAuthLeave with onchangeoronload="" to get dropdown data
+ * GET /api/LeaveAuthorization/get_authorization_details_by_miid?mi_id={mi_id}
+ * This returns comprehensive dropdown data including grades, leaves, groupType, department, designation, applicationUsers
  */
 export async function getLeaveAuthorizationDropdowns(request: { MI_Id?: number; UserId?: number }): Promise<{
     grades: Array<{ value: string; label: string }>;
@@ -220,12 +192,88 @@ export async function getLeaveAuthorizationDropdowns(request: { MI_Id?: number; 
     leaveTypes: Array<{ value: string; label: string }>;
     approvalPersons: Array<{ value: string; label: string }>;
 }> {
-    const response = await getLeaveAuthorization({
-        UserId: request.UserId || 0,
-        MI_Id: request.MI_Id || HRMS_MI_ID,
-        onchangeoronload: ''
-    });
-    if (!response.success || !response.data) {
+    const miId = request.MI_Id || HRMS_MI_ID;
+    const url = `/api/LeaveAuthorization/get_authorization_details_by_miid?mi_id=${miId}`;
+
+    console.log('🔵 [SERVER] GET Dropdowns URL:', url);
+    try {
+        const response = await api.get<any>('hmslms', url);
+        console.log('🔵 [SERVER] Dropdowns Response:', JSON.stringify(response, null, 2));
+
+        const res = response as any;
+        const isSuccess = res.success === true || String(res.success) === 'true';
+
+        if (!isSuccess || !res.data) {
+            return {
+                grades: [],
+                groupTypes: [],
+                departments: [],
+                designations: [],
+                leaveTypes: [],
+                approvalPersons: []
+            };
+        }
+
+        const data = res.data;
+
+        // Map grades from API response structure
+        const grades = (data.grades || [])
+            .map((item: any) => ({
+                value: String(item.hrmG_Id || ''),
+                label: String(item.hrmG_GradeName || '')
+            }))
+            .filter((item: { value: string; label: string }) => item.value && item.label);
+
+        // Map leaves from API response structure
+        const leaveTypes = (data.leaves || [])
+            .map((item: any) => ({
+                value: String(item.hrmL_Id || ''),
+                label: String(item.hrmL_LeaveName || '')
+            }))
+            .filter((item: { value: string; label: string }) => item.value && item.label);
+
+        // Map groupType from API response structure
+        const groupTypes = (data.groupType || [])
+            .map((item: any) => ({
+                value: String(item.hrmgT_Id || ''),
+                label: String(item.hrmgT_EmployeeGroupType || '')
+            }))
+            .filter((item: { value: string; label: string }) => item.value && item.label);
+
+        // Map department from API response structure
+        const departments = (data.department || [])
+            .map((item: any) => ({
+                value: String(item.hrmD_Id || ''),
+                label: String(item.hrmD_DepartmentName || '')
+            }))
+            .filter((item: { value: string; label: string }) => item.value && item.label);
+
+        // Map designation from API response structure
+        const designations = (data.designation || [])
+            .map((item: any) => ({
+                value: String(item.hrmdeS_Id || ''),
+                label: String(item.hrmdeS_DesignationName || '')
+            }))
+            .filter((item: { value: string; label: string }) => item.value && item.label);
+
+        // Map applicationUsers from API response structure
+        const approvalPersons = (data.applicationUsers || [])
+            .map((item: any) => ({
+                value: String(item.id || ''),
+                label: String(item.userName || '')
+            }))
+            .filter((item: { value: string; label: string }) => item.value && item.label);
+
+        return {
+            grades,
+            groupTypes,
+            departments,
+            designations,
+            leaveTypes,
+            approvalPersons
+        };
+    } catch (error: any) {
+        console.error('❌ [SERVER] Error fetching dropdowns:', error);
         return {
             grades: [],
             groupTypes: [],
@@ -235,39 +283,4 @@ export async function getLeaveAuthorizationDropdowns(request: { MI_Id?: number; 
             approvalPersons: []
         };
     }
-    const data = response.data as any;
-    // Extract dropdown options from API response
-    // These field names may need adjustment based on actual API response
-    const grades = (data.gradedropdown || data.gradeList || []).map((item: any) => ({
-        value: String(item.value || item.HRMG_Id || item.id || ''),
-        label: String(item.label || item.HRMG_GradeName || item.name || '')
-    })).filter((item: { value: string; label: string }) => item.value && item.label);
-    const groupTypes = (data.groupTypedropdown || data.groupTypeList || []).map((item: any) => ({
-        value: String(item.value || item.HRMGT_Id || item.id || ''),
-        label: String(item.label || item.HRMGT_GroupTypeName || item.name || '')
-    })).filter((item: { value: string; label: string }) => item.value && item.label);
-    const departments = (data.departmentdropdown || data.departmentList || []).map((item: any) => ({
-        value: String(item.value || item.HRMD_Id || item.id || ''),
-        label: String(item.label || item.HRMD_DepartmentName || item.name || '')
-    })).filter((item: { value: string; label: string }) => item.value && item.label);
-    const designations = (data.designationdropdown || data.designationList || []).map((item: any) => ({
-        value: String(item.value || item.HRMDES_Id || item.id || ''),
-        label: String(item.label || item.HRMDES_DesignationName || item.name || '')
-    })).filter((item: { value: string; label: string }) => item.value && item.label);
-    const leaveTypes = (data.leaveTypedropdown || data.leaveTypeList || data.master_eventlist || []).map((item: any) => ({
-        value: String(item.value || item.HRML_Id || item.LeaveType || item.id || ''),
-        label: String(item.label || item.HRML_LeaveName || item.LeaveTypeName || item.name || '')
-    })).filter((item: { value: string; label: string }) => item.value && item.label);
-    const approvalPersons = (data.approvalPersondropdown || data.approvalPersonList || data.employeeList || []).map((item: any) => ({
-        value: String(item.value || item.HRME_Id || item.EmployeeCode || item.id || ''),
-        label: String(item.label || item.EmployeeName || item.HRME_EmployeeFirstName || item.name || '')
-    })).filter((item: { value: string; label: string }) => item.value && item.label);
-    return {
-        grades,
-        groupTypes,
-        departments,
-        designations,
-        leaveTypes,
-        approvalPersons
-    };
 }

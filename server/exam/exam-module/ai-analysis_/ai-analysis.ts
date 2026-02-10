@@ -1,6 +1,6 @@
 'use server';
 
-import { ClassAnalysis, IndividualAnalysis } from '@/types/exam/exam-module/ai-analysis';
+import type { ClassAnalysis, IndividualAnalysis } from '@/types/exam/exam-module/ai-analysis';
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';

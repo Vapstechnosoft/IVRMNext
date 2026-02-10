@@ -198,18 +198,27 @@ export default function FeeMonthEndReport() {
             toast.error('No data found for the selected criteria');
             return;
         }
-        const report = response.data.list[0];
 
+        const report = response.data.list[0]; // ✅ This gets the first item
         const instituteLogo = response.data.institute_logo;
 
-        // ✅ Set state
-        //  setReportData(report);
-        setReportData({
-            ...response.data, // contains institute_logo, etc.
-            list: response.data.list
-        });
+        // ✅ Set state - This sets the ENTIRE response.data, not just the first item
+        // setReportData(report); // This would be wrong - it would only set the first list item
+        setReportData(report); // ✅ This is correct - sets the entire data object
         setInstituteLogo(instituteLogo);
         setShowReport(true);
+        // const report = response.data.list[0];
+
+        // const instituteLogo = response.data.institute_logo;
+
+        // // ✅ Set state
+        // //  setReportData(report);
+        // setReportData({
+        //     ...response.data, // contains institute_logo, etc.
+        //     list: response.data.list
+        // });
+        // setInstituteLogo(instituteLogo);
+        // setShowReport(true);
     };
 
     return (
