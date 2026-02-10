@@ -4724,22 +4724,22 @@ export async function getUserAccessibleModules() {
                                             description: 'Mobile Role Privileges'
                                         }
                                     ]
-                                },
-                                {
-                                    id: 6,
-                                    name: 'User Creation',
-                                    icon: 'UserPlus',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Staff User Creation',
-                                            icon: 'UserPlus',
-                                            url: '/SuperAdmin/super-admin-module/user-creation/staff-user-creation',
-                                            title: 'Staff User Creation',
-                                            description: 'Manage Institution Staff User Details'
-                                        }
-                                    ]
                                 }
+                                // {
+                                //     id: 6,
+                                //     name: 'User Creation',
+                                //     icon: 'UserPlus',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Staff User Creation',
+                                //             icon: 'UserPlus',
+                                //             url: '/SuperAdmin/super-admin-module/user-creation/staff-user-creation',
+                                //             title: 'Staff User Creation',
+                                //             description: 'Manage Institution Staff User Details'
+                                //         }
+                                //     ]
+                                // }
                             ]
                         }
                     ]
