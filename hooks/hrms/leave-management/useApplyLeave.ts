@@ -14,6 +14,7 @@ function mapApiDataToLeaveHistory(apiData: any): LeaveHistoryRow | null {
         return null;
     }
     return {
+        id: apiData.HRELAP_Id || apiData.id || 0,
         leaveType: apiData.HRML_LeaveName || apiData.leaveType || apiData.LeaveType || '',
         fromDate: apiData.HRELAP_FromDate || apiData.fromDate || apiData.FromDate || '',
         toDate: apiData.HRELAP_ToDate || apiData.toDate || apiData.ToDate || '',
