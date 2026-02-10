@@ -50,8 +50,8 @@ function mapApiDataToLeaveCreditDetail(apiData: LeaveCreditDetailItem, index: nu
         grade: apiData.HRMG_GradeName ? [apiData.HRMG_GradeName] : undefined,
         leaveName: apiData.HRML_LeaveName || apiData.leaveName || '',
         leaveCode: apiData.HRML_LeaveCode || apiData.leaveCode || '',
-        noOfDays: typeof apiData.HRMLD_NoOfDays === 'string' 
-            ? parseFloat(apiData.HRMLD_NoOfDays) || 0 
+        noOfDays: typeof apiData.HRMLD_NoOfDays === 'string'
+            ? parseFloat(apiData.HRMLD_NoOfDays) || 0
             : (apiData.HRMLD_NoOfDays || apiData.noOfDays || 0),
         maxLeaveApplicable: apiData.HRMLD_MaxLeaveApplicable || apiData.maxLeaveApplicable || 0,
         leaveCarryForward: apiData.HRMLD_CarryForFlg ?? apiData.leaveCarryForward ?? false,
@@ -69,13 +69,10 @@ function mapApiDataToLeaveCreditDetail(apiData: LeaveCreditDetailItem, index: nu
  * @returns Leave credit details data
  */
 export async function getLeaveCreditDetails(request?: { MI_Id?: number }): Promise<ApiResponse<LeaveCreditDetail[]>> {
-    const url = '/api/LeaveCreditWrapperFacade/GetLeave';
-    const requestBody: GetLeaveCreditDetailsRequest = {
-        MI_Id: request?.MI_Id || HRMS_MI_ID
-    };
-    console.log('💳 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
+    const miId = request?.MI_Id || HRMS_MI_ID;
+    const url = `/api/LeaveCreditWrapperFacade/GetLeave/${miId}`;
     try {
-        const response = await api.post<GetLeaveCreditDetailsResponseData>('hmslms', url, requestBody);
+        const response = await api.get<any>('hmslms', url);
         console.log('💳 [SERVER] Response:', JSON.stringify(response, null, 2));
         // Handle the response structure
         let responseData: GetLeaveCreditDetailsResponseData;
@@ -109,10 +106,10 @@ export async function getLeaveCreditDetails(request?: { MI_Id?: number }): Promi
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch leave credit details';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to fetch leave credit details';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -125,13 +122,11 @@ export async function getLeaveCreditDetails(request?: { MI_Id?: number }): Promi
  * @returns Leave code data
  */
 export async function getLeaveCode(request: GetLeaveCodeRequest): Promise<ApiResponse<GetLeaveCodeResponseData>> {
-    const url = '/api/LeaveCreditWrapperFacade/GetLeaveCode';
-    const requestBody: GetLeaveCodeRequest = {
-        leavecode: request.leavecode || 0
-    };
-    console.log('🔑 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
+    const leavecode = request.leavecode || 0;
+    const url = `/api/LeaveCreditWrapperFacade/GetLeaveCode/${leavecode}`;
+    console.log('🔑 [SERVER] GET Request URL:', url);
     try {
-        const response = await api.post<GetLeaveCodeResponseData>('hmslms', url, requestBody);
+        const response = await api.get<any>('hmslms', url);
         console.log('🔑 [SERVER] Response:', JSON.stringify(response, null, 2));
         // Handle the response structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
@@ -141,15 +136,15 @@ export async function getLeaveCode(request: GetLeaveCodeRequest): Promise<ApiRes
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
-            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            message: (response as any)?.message || (response as any)?.retrunMsg || 'Data fetched successfully',
             data: response as unknown as GetLeaveCodeResponseData
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch leave code';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to fetch leave code';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -184,10 +179,10 @@ export async function getLeaveCreditDepartments(request: GetLeaveCreditDepartmen
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch departments';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to fetch departments';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -222,10 +217,10 @@ export async function getLeaveCreditDesignation(request: GetLeaveCreditDesignati
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch designation';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to fetch designation';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -260,10 +255,10 @@ export async function getLeaveCreditGrade(request: GetLeaveCreditGradeRequest): 
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch grade';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to fetch grade';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -299,10 +294,10 @@ export async function getLeaveMaster(request: GetLeaveMasterRequest): Promise<Ap
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch leave master';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to fetch leave master';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -337,10 +332,10 @@ export async function getLeaveDetailsCFMonth(request: GetLeaveDetailsCFMonthRequ
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch leave details CF month';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to fetch leave details CF month';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -385,10 +380,10 @@ export async function getLeaveDetailsEnCash(request: GetLeaveDetailsEnCashReques
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch leave details encash';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to fetch leave details encash';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -423,10 +418,10 @@ export async function getLeaveDetailsCF(request: GetLeaveDetailsCFRequest): Prom
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch leave details CF';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to fetch leave details CF';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -461,10 +456,10 @@ export async function getLeaveDetailsCreditMonth(request: GetLeaveDetailsCreditM
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch leave details credit month';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to fetch leave details credit month';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -510,12 +505,12 @@ export async function saveLeaveCreditDetails(data: SaveLeaveCreditDetailsRequest
             responseData = (response as unknown as SaveLeaveCreditDetailsResponseData) || {};
         }
         // Extract success message
-        const successMessage = responseData?.retrunMsg || 
-                              responseData?.message || 
-                              (response as any)?.message || 
-                              (responseData?.returnval_add ? 'Leave credit detail created successfully' : 
-                               responseData?.returnval_Update ? 'Leave credit detail updated successfully' : 
-                               'Leave credit detail saved successfully');
+        const successMessage = responseData?.retrunMsg ||
+            responseData?.message ||
+            (response as any)?.message ||
+            (responseData?.returnval_add ? 'Leave credit detail created successfully' :
+                responseData?.returnval_Update ? 'Leave credit detail updated successfully' :
+                    'Leave credit detail saved successfully');
         // Check for duplicate status
         if (responseData?.dupr || responseData?.returnduplicatestatus) {
             const duplicateMessage = responseData?.returnduplicatestatus || 'Duplicate record found';
@@ -532,10 +527,10 @@ export async function saveLeaveCreditDetails(data: SaveLeaveCreditDetailsRequest
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to save leave credit details';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to save leave credit details';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }

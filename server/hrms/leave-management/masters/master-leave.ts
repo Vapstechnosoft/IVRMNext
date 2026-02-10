@@ -1,7 +1,13 @@
 'use server';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { type ApiResponse, api } from '@/lib/apiService';
-import type { MasterLeaveGetResponseData, MasterLeaveListItem, MasterLeaveSaveRequest } from '@/types/hrms/leave-management/master-leave';
+import { api, type ApiResponse } from '@/lib/apiService';
+import type {
+    MasterLeaveGetRequest,
+    MasterLeaveGetResponse,
+    MasterLeaveGetResponseData,
+    MasterLeaveSaveRequest,
+    MasterLeaveListItem
+} from '@/types/hrms/leave-management/master-leave';
 /**
  * Get master leave dropdown options (leave types, etc.)
  * This is a helper function that calls GetLeave with HRML_Id=0 to get dropdown data
@@ -294,7 +300,7 @@ export async function deleteMasterLeave(HRML_Id: number): Promise<ApiResponse<an
         console.log('🔴 [SERVER] Response:', JSON.stringify(response, null, 2));
 
         const res = response as any;
-        const isSuccess = res.success === true || String(res.success) === 'true';
+        const isSuccess = res.success === true || String(res.success) === 'true' || res.returnval === true;
 
         return {
             success: isSuccess,
