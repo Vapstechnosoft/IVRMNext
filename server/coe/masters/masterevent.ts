@@ -45,7 +45,7 @@ export async function saveMappedEvent(payload: any) {
     return await api.post<any[]>('coe', url, payload);
 }
 
-export async function toggleMappedEvent(id: number) {
+export async function toggleMappedEvent(id: number, coee_Id: number) {
     const url = `/master_coe/active_deactive_coe_event/${id}`;
     return await api.put('coe', url);
 }
