@@ -17,7 +17,8 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-import { getInstitutionDropdown, type InstitutionDropdown } from '@/server/super-admin/super-admin-module/masters/institution-facade';
+import { useInstitutionSubscriptionDropdown } from '@/hooks/super-admin/super-admin-module/use-master-institution';
+import type { IInstitutionDropdown } from '@/types/super-admin/super-admin-module/institution/master-institution';
 import { useEffect, useState } from 'react';
 
 // Mock Data Removed
@@ -43,23 +44,8 @@ export default function AddInstitutionSubscriptionForm({ onSuccess }: AddInstitu
         }
     });
 
-    const [institutionOptions, setInstitutionOptions] = useState<InstitutionDropdown[]>([]);
-
-    useEffect(() => {
-        const fetchDropdowns = async () => {
-            try {
-                const response = await getInstitutionDropdown();
-                if (response.success && response.data) {
-                    setInstitutionOptions(response.data);
-                }
-            } catch (error) {
-                console.error('Failed to fetch institution dropdown', error);
-                toast.error('Failed to load institutions');
-            }
-        };
-
-        fetchDropdowns();
-    }, []);
+    const { data: institutionResponse, isLoading: isInstitutionLoading } = useInstitutionSubscriptionDropdown();
+    const institutionOptions = (institutionResponse?.data?.institutionList || []) as IInstitutionDropdown[];
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
@@ -91,7 +77,7 @@ export default function AddInstitutionSubscriptionForm({ onSuccess }: AddInstitu
                         render={({ field }) => (
                             <Select onValueChange={(val) => field.onChange(Number(val))} defaultValue={field.value?.toString()}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select Institution" />
+                                    <SelectValue placeholder={isInstitutionLoading ? "Loading Institutions..." : "Select Institution"} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {institutionOptions.map((option) => (
