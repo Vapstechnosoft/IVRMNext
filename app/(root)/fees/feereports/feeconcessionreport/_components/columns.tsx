@@ -2,6 +2,7 @@
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import type { IFeeConcessionReport } from '@/types/fees/reports/reports';
 import type { ColumnDef } from '@tanstack/react-table';
 import * as XLSX from 'xlsx';
 
@@ -129,13 +130,148 @@ export function printTable(columns: string[], rows: any[], sumRow?: any) {
     printWindow.print();
 }
 
-export function exportToExcel(rows: any[], fileName: string) {
+export function exportToExcelforFGW(rows: IFeeConcessionReport[], fileName: string) {
     if (!rows || rows.length === 0) return;
 
-    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        groupName: row.reportname,
+        concessionAmount: row.concession
+    }));
+
+    // Add totals row
+    const totalsRow = {
+        'Sl No': 'TOTAL',
+        groupName: '',
+        concessionAmount: rows.reduce((sum, row) => sum + (row.concession || 0), 0)
+    };
+
+    // Combine data and totals
+    const allData = [...dataForExcel, totalsRow];
+
+    const worksheet = XLSX.utils.json_to_sheet(allData);
     const workbook = XLSX.utils.book_new();
 
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+    // Auto-size columns
+    const maxWidth = Object.keys(dataForExcel[0] || {}).reduce((acc, key) => {
+        const maxLength = Math.max(key.length, ...allData.map((row: any) => String(row[key] || '').length));
+        // biome-ignore lint/performance/noAccumulatingSpread: <explanation>
+        return { ...acc, [key]: { wch: Math.min(maxLength + 2, 50) } };
+    }, {});
+
+    worksheet['!cols'] = Object.values(maxWidth);
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Fee Group Report');
+
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export function exportToExcelforFHW(rows: IFeeConcessionReport[], fileName: string) {
+    if (!rows || rows.length === 0) return;
+
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        HeadName: row.reportname,
+        concessionAmount: row.concession
+    }));
+
+    // Add totals row
+    const totalsRow = {
+        'Sl No': 'TOTAL',
+        HeadName: '',
+        concessionAmount: rows.reduce((sum, row) => sum + (row.concession || 0), 0)
+    };
+
+    // Combine data and totals
+    const allData = [...dataForExcel, totalsRow];
+
+    const worksheet = XLSX.utils.json_to_sheet(allData);
+    const workbook = XLSX.utils.book_new();
+
+    // Auto-size columns
+    const maxWidth = Object.keys(dataForExcel[0] || {}).reduce((acc, key) => {
+        const maxLength = Math.max(key.length, ...allData.map((row: any) => String(row[key] || '').length));
+        // biome-ignore lint/performance/noAccumulatingSpread: <explanation>
+        return { ...acc, [key]: { wch: Math.min(maxLength + 2, 50) } };
+    }, {});
+
+    worksheet['!cols'] = Object.values(maxWidth);
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Fee Group Report');
+
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export function exportToExcelforFCW(rows: IFeeConcessionReport[], fileName: string) {
+    if (!rows || rows.length === 0) return;
+
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        ClassName: row.classname,
+        concessionAmount: row.concession
+    }));
+
+    // Add totals row
+    const totalsRow = {
+        'Sl No': 'TOTAL',
+        ClassName: '',
+        concessionAmount: rows.reduce((sum, row) => sum + (row.concession || 0), 0)
+    };
+
+    // Combine data and totals
+    const allData = [...dataForExcel, totalsRow];
+
+    const worksheet = XLSX.utils.json_to_sheet(allData);
+    const workbook = XLSX.utils.book_new();
+
+    // Auto-size columns
+    const maxWidth = Object.keys(dataForExcel[0] || {}).reduce((acc, key) => {
+        const maxLength = Math.max(key.length, ...allData.map((row: any) => String(row[key] || '').length));
+        // biome-ignore lint/performance/noAccumulatingSpread: <explanation>
+        return { ...acc, [key]: { wch: Math.min(maxLength + 2, 50) } };
+    }, {});
+
+    worksheet['!cols'] = Object.values(maxWidth);
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Fee Group Report');
+
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export function exportToExcelforFSW(rows: IFeeConcessionReport[], fileName: string) {
+    if (!rows || rows.length === 0) return;
+
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        'Student Name': row.studentname,
+        'Class:Section': row.classname,
+        concessionAmount: row.concession
+    }));
+
+    // Add totals row
+    const totalsRow = {
+        'Sl No': 'TOTAL',
+        'Student Name': '',
+        'Class:Section': '',
+        concessionAmount: rows.reduce((sum, row) => sum + (row.concession || 0), 0)
+    };
+
+    // Combine data and totals
+    const allData = [...dataForExcel, totalsRow];
+
+    const worksheet = XLSX.utils.json_to_sheet(allData);
+    const workbook = XLSX.utils.book_new();
+
+    // Auto-size columns
+    const maxWidth = Object.keys(dataForExcel[0] || {}).reduce((acc, key) => {
+        const maxLength = Math.max(key.length, ...allData.map((row: any) => String(row[key] || '').length));
+        // biome-ignore lint/performance/noAccumulatingSpread: <explanation>
+        return { ...acc, [key]: { wch: Math.min(maxLength + 2, 50) } };
+    }, {});
+
+    worksheet['!cols'] = Object.values(maxWidth);
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Fee Group Report');
 
     XLSX.writeFile(workbook, `${fileName}.xlsx`);
 }
