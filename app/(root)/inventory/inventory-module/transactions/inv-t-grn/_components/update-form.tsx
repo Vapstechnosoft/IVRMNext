@@ -117,6 +117,7 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
                                 invmgrN_Id: item.invmgrN_Id,
                                 invmI_Id: item.invmI_Id,
                                 invmuoM_Id: item.invmuoM_Id,
+                                invmuoM_UOMName: item.invmuoM_UOMName || item.INVMUOM_UOMName,
                                 invtgrN_BatchNo: item.invtgrN_BatchNo || '',
                                 invtgrN_Qty: Number(item.invtgrN_Qty || 0),
                                 invtgrN_PurchaseRate: Number(item.invtgrN_PurchaseRate || 0),
@@ -168,7 +169,9 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
                     const taxes = res.data.get_itemTax || [];
 
                     if (detail) {
-                        // Optional: update UOM from detail (though we have it from item list locally usually)
+                        if (detail.invmuoM_UOMName) {
+                            setValue(`GRNItem.${index}.invmuoM_UOMName`, detail.invmuoM_UOMName);
+                        }
                     }
                     setValue(`GRNItem.${index}.invmuoM_Id`, item.invmuoM_Id);
 
@@ -379,7 +382,7 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
                                     </td>
                                     <td className='border p-2'>
                                         <div className='h-8 flex items-center justify-center bg-muted/30 rounded text-[11px] font-semibold text-muted-foreground border border-dashed'>
-                                            {loadData?.data?.get_item.find((i: any) => i.invmI_Id === watch(`GRNItem.${index}.invmI_Id`))?.invmuoM_UOMName || '-'}
+                                            {watch(`GRNItem.${index}.invmuoM_UOMName`) || (watch(`GRNItem.${index}.invmI_Id`) ? loadData?.data?.get_item.find((i: any) => i.invmI_Id === watch(`GRNItem.${index}.invmI_Id`))?.invmuoM_UOMName : '-')}
                                         </div>
                                     </td>
                                     <td className='border p-2'>

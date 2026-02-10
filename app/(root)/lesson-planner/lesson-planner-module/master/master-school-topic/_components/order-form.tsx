@@ -4,13 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getClassesByYear, getSubjectsByClass, getTopicsForOrder, saveTopicOrder } from '@/server/lesson-planner/master/school-topic';
-import type { IMasterYear, IMasterClass, IMasterSubject, IMasterSchoolTopic } from '@/types/lesson-planner/master/school-topic';
+import type { IMasterClass, IMasterSchoolTopic, IMasterSubject, IMasterYear } from '@/types/lesson-planner/master/school-topic';
+import { DndContext, type DragEndEvent, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 
 interface OrderMasterSchoolTopicFormProps {
     isOpen: boolean;
@@ -151,12 +151,12 @@ export default function OrderMasterSchoolTopicForm({ isOpen, onClose, masterYear
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className='max-w-4xl max-h-[80vh] flex flex-col'>
+            <DialogContent className='flex max-h-[80vh] max-w-4xl flex-col'>
                 <DialogHeader>
                     <DialogTitle>Set Topic Order</DialogTitle>
                 </DialogHeader>
 
-                <div className='grid grid-cols-3 gap-4 mb-4'>
+                <div className='mb-4 grid grid-cols-3 gap-4'>
                     {/* Academic Year */}
                     <div className='space-y-2'>
                         <label className='font-medium text-sm'>
@@ -215,15 +215,17 @@ export default function OrderMasterSchoolTopicForm({ isOpen, onClose, masterYear
                     </div>
                 </div>
 
-                <div className='flex-1 overflow-auto border rounded-lg'>
+                <div className='flex-1 overflow-auto rounded-lg border'>
                     {isLoading ? (
                         <div className='flex justify-center p-8'>Loading topics...</div>
                     ) : topics.length === 0 ? (
-                        <div className='flex justify-center p-8 text-muted-foreground'>No topics found. Select year, class and subject.</div>
+                        <div className='flex justify-center p-8 text-muted-foreground'>
+                            No topics found. Select year, class and subject.
+                        </div>
                     ) : (
                         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                             <table className='w-full border-collapse text-sm'>
-                                <thead className='bg-muted/50 sticky top-0'>
+                                <thead className='sticky top-0 bg-muted/50'>
                                     <tr>
                                         <th className='border-b p-2 text-left font-medium'>SLNO</th>
                                         <th className='border-b p-2 text-left font-medium'>Topic Name</th>

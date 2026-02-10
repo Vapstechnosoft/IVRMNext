@@ -1,17 +1,17 @@
 'use client';
 
-import { MasterEventsColumns } from './columns';
-import MasterEventsForm from './add-update-form';
-import ToggleMasterEventForm from './toggle-form';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import { getViewRecordsMaster } from '@/server/alumni/master-coe';
 import type { IMasterEvent } from '@/types/alumni/master-coe';
 import { Plus, X } from 'lucide-react';
 import React, { useState, useCallback } from 'react';
-import { getViewRecordsMaster } from '@/server/alumni/master-coe';
 import ViewDetailsDialog from '../view-details-dialog';
+import MasterEventsForm from './add-update-form';
+import { MasterEventsColumns } from './columns';
+import ToggleMasterEventForm from './toggle-form';
 
 interface MasterEventsContentProps {
     initialData: any;
@@ -68,10 +68,7 @@ export default function MasterEventsContent({ initialData, refreshData, isLoadin
     return (
         <div className='space-y-6'>
             <div className='flex justify-end'>
-                <Button
-                    onClick={openAddForm}
-                    className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'
-                >
+                <Button onClick={openAddForm} className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                     <Plus className='mr-2 h-4 w-4' /> Create New Event
                 </Button>
             </div>
@@ -84,7 +81,7 @@ export default function MasterEventsContent({ initialData, refreshData, isLoadin
                                 variant='ghost'
                                 size='sm'
                                 onClick={closeAddForm}
-                                className='absolute right-0 -top-12 text-destructive hover:bg-destructive/10'>
+                                className='-top-12 absolute right-0 text-destructive hover:bg-destructive/10'>
                                 <X className='mr-2 h-4 w-4' /> Close
                             </Button>
                             <MasterEventsForm
@@ -107,7 +104,7 @@ export default function MasterEventsContent({ initialData, refreshData, isLoadin
                                 variant='ghost'
                                 size='sm'
                                 onClick={closeEditForm}
-                                className='absolute right-0 -top-12 text-destructive hover:bg-destructive/10'>
+                                className='-top-12 absolute right-0 text-destructive hover:bg-destructive/10'>
                                 <X className='mr-2 h-4 w-4' /> Close
                             </Button>
                             <MasterEventsForm
@@ -126,8 +123,7 @@ export default function MasterEventsContent({ initialData, refreshData, isLoadin
             <CollapsibleSection
                 title='Master Events List'
                 defaultOpen={true}
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-            >
+                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                 <GenericDataTable
                     columns={MasterEventsColumns}
                     data={tableData}
@@ -142,11 +138,7 @@ export default function MasterEventsContent({ initialData, refreshData, isLoadin
             </CollapsibleSection>
 
             {isToggleFormOpen && selectedRow && (
-                <ToggleMasterEventForm
-                    rowData={selectedRow}
-                    onClose={closeToggleForm}
-                    onSuccess={refreshData}
-                />
+                <ToggleMasterEventForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={refreshData} />
             )}
 
             <ViewDetailsDialog
@@ -158,16 +150,12 @@ export default function MasterEventsContent({ initialData, refreshData, isLoadin
             />
 
             {/* Effect to handle detail loading when modal opens */}
-            <DetailLoader
-                isOpen={isMappedviewOpen}
-                selectedRow={selectedRow}
-                onLoad={handleOpenMappedView}
-            />
+            <DetailLoader isOpen={isMappedviewOpen} selectedRow={selectedRow} onLoad={handleOpenMappedView} />
         </div>
     );
 }
 
-function DetailLoader({ isOpen, selectedRow, onLoad }: { isOpen: boolean, selectedRow: any, onLoad: (row: any) => void }) {
+function DetailLoader({ isOpen, selectedRow, onLoad }: { isOpen: boolean; selectedRow: any; onLoad: (row: any) => void }) {
     React.useEffect(() => {
         if (isOpen && selectedRow) {
             onLoad(selectedRow);

@@ -2,14 +2,14 @@
 
 import { Button } from '@/components/ui/button';
 import { InputText } from '@/components/ui/extension/input-text';
+import { Form } from '@/components/ui/form';
 import { saveSchoolMasterUnit } from '@/server/lesson-planner/master/school-master-unit';
+import type { IMasterSchoolUnit } from '@/types/lesson-planner/master/school-master-unit';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { type ISchoolMasterUnitFormValues, SchoolMasterUnitSchema } from './schema';
-import type { IMasterSchoolUnit } from '@/types/lesson-planner/master/school-master-unit';
-import { Form } from '@/components/ui/form';
 
 interface AddMasterSchoolUnitFormProps {
     initialData?: IMasterSchoolUnit;
@@ -19,17 +19,11 @@ interface AddMasterSchoolUnitFormProps {
     className?: string;
 }
 
-export default function AddMasterSchoolUnitForm({
-    initialData,
-    onSuccess,
-    mI_Id,
-    userId,
-    className = ''
-}: AddMasterSchoolUnitFormProps) {
+export default function AddMasterSchoolUnitForm({ initialData, onSuccess, mI_Id, userId, className = '' }: AddMasterSchoolUnitFormProps) {
     const findValue = (obj: any, keys: string[]) => {
         if (!obj) return null;
         for (const key of keys) {
-            if (obj[key] !== undefined && obj[key] !== null && obj[key] !== "") return obj[key];
+            if (obj[key] !== undefined && obj[key] !== null && obj[key] !== '') return obj[key];
         }
         return null;
     };
@@ -42,7 +36,7 @@ export default function AddMasterSchoolUnitForm({
             lpmU_UnitName: findValue(initialData, ['lpmU_UnitName', 'LPMU_UnitName', 'lpmU_Unitname']) || '',
             lpmU_UnitDescription: findValue(initialData, ['lpmU_UnitDescription', 'LPMU_UnitDescription', 'lpmU_Unitdescription']) || '',
             lpmU_TotalHrs: findValue(initialData, ['lpmU_TotalHrs', 'LPMU_TotalHrs', 'lpmU_Totalhrs']) || null,
-            lpmU_TotalPeriods: findValue(initialData, ['lpmU_TotalPeriods', 'LPMU_TotalPeriods', 'lpmU_Totalperiods']) || null,
+            lpmU_TotalPeriods: findValue(initialData, ['lpmU_TotalPeriods', 'LPMU_TotalPeriods', 'lpmU_Totalperiods']) || null
         }
     });
 
@@ -59,8 +53,12 @@ export default function AddMasterSchoolUnitForm({
                 lpmU_Id: data.lpmU_Id || 0,
                 lpmU_UnitName: data.lpmU_UnitName,
                 lpmU_UnitDescription: data.lpmU_UnitDescription,
-                lpmU_TotalHrs: data.lpmU_TotalHrs === undefined || data.lpmU_TotalHrs === null || data.lpmU_TotalHrs === "" ? 0 : Number(data.lpmU_TotalHrs),
-                lpmU_TotalPeriods: data.lpmU_TotalPeriods === undefined || data.lpmU_TotalPeriods === null ? 0 : Number(data.lpmU_TotalPeriods)
+                lpmU_TotalHrs:
+                    data.lpmU_TotalHrs === undefined || data.lpmU_TotalHrs === null || data.lpmU_TotalHrs === ''
+                        ? 0
+                        : Number(data.lpmU_TotalHrs),
+                lpmU_TotalPeriods:
+                    data.lpmU_TotalPeriods === undefined || data.lpmU_TotalPeriods === null ? 0 : Number(data.lpmU_TotalPeriods)
             };
 
             const res: any = await saveSchoolMasterUnit(payload);
@@ -95,12 +93,7 @@ export default function AddMasterSchoolUnitForm({
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         {/* Unit Name */}
-                        <InputText
-                            label='Unit Name'
-                            required
-                            {...register('lpmU_UnitName')}
-                            error={errors.lpmU_UnitName?.message}
-                        />
+                        <InputText label='Unit Name' required {...register('lpmU_UnitName')} error={errors.lpmU_UnitName?.message} />
 
                         {/* Unit Description */}
                         <InputText

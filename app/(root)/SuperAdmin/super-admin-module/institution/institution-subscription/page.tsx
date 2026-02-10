@@ -9,41 +9,46 @@ import { Plus, X } from 'lucide-react';
 import AddInstitutionSubscriptionForm from './_components/add-form';
 import { InstitutionSubscriptionColumns } from './_components/columns';
 
-import { getInstitutionSubscriptionData } from '@/server/super-admin/super-admin-module/masters/institution-facade';
-import { useCallback, useEffect, useState } from 'react';
+import { useInstitutionSubscriptionData } from '@/hooks/super-admin/super-admin-module/use-institution-subscription';
+import { use } from 'react';
 
-// Static Data Removed
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function InstitutionSubscriptionPage() {
+export default function InstitutionSubscriptionPage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const { data: response, isLoading, error, refetchAll } = useInstitutionSubscriptionData(searchParams);
+
     return (
         <FormProvider<IInstitutionSubscription>>
-            <InstitutionSubscriptionPageContent />
+            <InstitutionSubscriptionPageContent
+                response={response}
+                isLoading={isLoading}
+                error={error}
+                refetchAll={refetchAll}
+            />
         </FormProvider>
     );
 }
 
-function InstitutionSubscriptionPageContent() {
+function InstitutionSubscriptionPageContent({
+    response,
+    isLoading,
+    error,
+    refetchAll
+}: {
+    response: any;
+    isLoading: boolean;
+    error: any;
+    refetchAll: any;
+}) {
     const { openAddForm } = useFormContext<IInstitutionSubscription>();
 
-    const [data, setData] = useState<IInstitutionSubscription[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<Error | null>(null);
-
-    const fetchData = useCallback(async () => {
-        try {
-            setIsLoading(true);
-            const response = await getInstitutionSubscriptionData();
-            setData(response.data || []);
-        } catch (err) {
-            setError(err instanceof Error ? err : new Error('Failed to fetch data'));
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+    const tableProps = {
+        data: response?.data || [],
+        totalItems: response?.total || 0,
+        success: response?.success,
+        errorMessage: response?.message
+    };
 
     return (
         <div>
@@ -68,11 +73,11 @@ function InstitutionSubscriptionPageContent() {
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
                 >
                     <GenericDataTable<IInstitutionSubscription>
-                        data={data}
+                        {...tableProps}
                         columns={InstitutionSubscriptionColumns}
                         isLoading={isLoading}
                         error={error}
-                        totalItems={data.length}
+                        total={tableProps.totalItems}
                         loadingMessage='Loading subscription details...'
                         noDataTitle='No Subscription Details Found'
                         noDataDescription='No subscription details available currently.'
@@ -83,13 +88,13 @@ function InstitutionSubscriptionPageContent() {
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections onRefresh={fetchData} />
+                <FormSections refetchAll={refetchAll} />
             </div>
         </div>
     );
 }
 
-function FormSections({ onRefresh }: { onRefresh: () => void }) {
+function FormSections({ refetchAll }: { refetchAll: () => void }) {
     const {
         isAddFormOpen,
         closeAddForm,
@@ -98,7 +103,7 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
 
     const handleSuccess = () => {
         closeAddForm();
-        onRefresh();
+        refetchAll();
     };
 
     return (

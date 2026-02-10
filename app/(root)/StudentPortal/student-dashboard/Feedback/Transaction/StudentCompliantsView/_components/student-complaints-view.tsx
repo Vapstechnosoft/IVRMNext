@@ -1,12 +1,11 @@
 'use client';
 
-import { DataTable } from '@/components/ui/data-table/data-table';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DataTable } from '@/components/ui/data-table/data-table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState } from 'react';
 import { getStudentComplaintsReport } from '../actions';
-import { AcademicYear, StudentComplaint } from '../types';
+import type { AcademicYear, StudentComplaint } from '../types';
 import { columns } from './columns';
 
 interface StudentComplaintsViewClientProps {
@@ -15,11 +14,7 @@ interface StudentComplaintsViewClientProps {
     initialYearId: number;
 }
 
-export default function StudentComplaintsViewClient({
-    initialYears,
-    initialData,
-    initialYearId
-}: StudentComplaintsViewClientProps) {
+export default function StudentComplaintsViewClient({ initialYears, initialData, initialYearId }: StudentComplaintsViewClientProps) {
     const [years] = useState<AcademicYear[]>(initialYears);
     const [selectedYear, setSelectedYear] = useState<string>(String(initialYearId));
     const [data, setData] = useState<StudentComplaint[]>(initialData);
@@ -30,7 +25,7 @@ export default function StudentComplaintsViewClient({
         setIsLoading(true);
         try {
             const response = await getStudentComplaintsReport({ ASMAY_Id: Number(yearId) });
-            if (response && response.studentdivlist) {
+            if (response?.studentdivlist) {
                 setData(response.studentdivlist);
             } else {
                 setData([]);
@@ -46,7 +41,7 @@ export default function StudentComplaintsViewClient({
         <div className='space-y-6'>
             <Card>
                 <CardHeader>
-                    <CardTitle className='flex justify-between items-center'>
+                    <CardTitle className='flex items-center justify-between'>
                         <span>STUDENT DISCIPLINE</span>
                         {/* Collapse button logic is typically handled by Collapsible component, omitting for MVP unless requested */}
                     </CardTitle>
@@ -55,7 +50,7 @@ export default function StudentComplaintsViewClient({
                     <div className='flex justify-center'>
                         <div className='w-full max-w-md space-y-2'>
                             <div className='flex items-center space-x-2'>
-                                <span className='font-semibold whitespace-nowrap'>
+                                <span className='whitespace-nowrap font-semibold'>
                                     Year:<span className='text-red-500'>*</span>
                                 </span>
                                 <Select value={selectedYear} onValueChange={handleYearChange}>
@@ -95,9 +90,7 @@ export default function StudentComplaintsViewClient({
                 </Card>
             )}
 
-            {data.length === 0 && !isLoading && (
-                <div className="text-center p-4 text-muted-foreground">No Records Found</div>
-            )}
+            {data.length === 0 && !isLoading && <div className='p-4 text-center text-muted-foreground'>No Records Found</div>}
         </div>
     );
 }

@@ -126,15 +126,15 @@ async function fetchSubjectAndStudentsMock(
             marks: '', // keep blank for main mark if subsub/subexam used
             subSubMarks: subjectData.subsubFlag
                 ? subjectData.subsubData.map((sub: { subsubId: any; maxMarks: number }) => ({
-                    subsubId: sub.subsubId,
-                    marks: '' // leave blank for entry
-                }))
+                      subsubId: sub.subsubId,
+                      marks: '' // leave blank for entry
+                  }))
                 : [],
             subExamMarks: subjectData.subexamFlag
                 ? subjectData.subexamData.map((se: { subexamId: any; maxMarks: number }) => ({
-                    subexamId: se.subexamId,
-                    marks: ''
-                }))
+                      subexamId: se.subexamId,
+                      marks: ''
+                  }))
                 : []
         };
     });
@@ -396,62 +396,62 @@ function MarksEntryContent() {
                 minMarks: s.minMarks !== undefined ? Number(s.minMarks) : undefined,
                 subsubData: Array.isArray(s.subsubData)
                     ? s.subsubData.map((x: any) => ({
-                        subsubId: Number(x.subsubId ?? x.subsubid ?? x.id),
-                        subsubName: String(x.subsubName ?? x.subsubName ?? x.subsubName ?? x.name ?? ''),
-                        maxMarks: Number(x.maxMarks ?? x.max ?? 0),
-                        minMarks: x.minMarks !== undefined ? Number(x.minMarks) : undefined
-                    }))
+                          subsubId: Number(x.subsubId ?? x.subsubid ?? x.id),
+                          subsubName: String(x.subsubName ?? x.subsubName ?? x.subsubName ?? x.name ?? ''),
+                          maxMarks: Number(x.maxMarks ?? x.max ?? 0),
+                          minMarks: x.minMarks !== undefined ? Number(x.minMarks) : undefined
+                      }))
                     : [],
                 subexamData: Array.isArray(s.subexamData)
                     ? s.subexamData.map((x: any) => ({
-                        subexamId: Number(x.subexamId ?? x.subexamid ?? x.id),
-                        subexamName: String(x.subexamName ?? x.subexamName ?? x.name ?? ''),
-                        maxMarks: Number(x.maxMarks ?? x.max ?? 0),
-                        minMarks: x.minMarks !== undefined ? Number(x.minMarks) : undefined
-                    }))
+                          subexamId: Number(x.subexamId ?? x.subexamid ?? x.id),
+                          subexamName: String(x.subexamName ?? x.subexamName ?? x.name ?? ''),
+                          maxMarks: Number(x.maxMarks ?? x.max ?? 0),
+                          minMarks: x.minMarks !== undefined ? Number(x.minMarks) : undefined
+                      }))
                     : []
             };
 
             // normalize students
             const students: IStudentMarksRow[] = Array.isArray(resp.studentData)
                 ? resp.studentData.map((st: any) => {
-                    const row: IStudentMarksRow = {
-                        studentID: st.studentID ?? st.studentId ?? 0,
-                        studentName: st.studentName ?? st.name ?? '',
-                        RegNo: st.RegNo ?? st.Reg_No ?? '',
-                        AdmissionNo: st.AdmissionNo ?? st.Admission_no ?? st.AdmissionNo ?? '',
-                        RollNo: st.RollNo ?? st.rollNo ?? 0
-                    };
+                      const row: IStudentMarksRow = {
+                          studentID: st.studentID ?? st.studentId ?? 0,
+                          studentName: st.studentName ?? st.name ?? '',
+                          RegNo: st.RegNo ?? st.Reg_No ?? '',
+                          AdmissionNo: st.AdmissionNo ?? st.Admission_no ?? st.AdmissionNo ?? '',
+                          RollNo: st.RollNo ?? st.rollNo ?? 0
+                      };
 
-                    if (!subjectMeta.subsubFlag && !subjectMeta.subexamFlag) {
-                        row.marks = st.marks === '' || st.marks === undefined ? '' : Number(st.marks);
-                    } else {
-                        if (subjectMeta.subsubFlag) {
-                            row.subSubMarks = subjectMeta.subsubData.map((ss) => {
-                                const found = Array.isArray(st.subSubMarks)
-                                    ? st.subSubMarks.find((x: any) => Number(x.subsubId ?? x.subsubid) === Number(ss.subsubId))
-                                    : undefined;
-                                return {
-                                    subsubId: ss.subsubId,
-                                    marks: found?.marks === '' || found?.marks === undefined ? '' : Number(found?.marks)
-                                };
-                            });
-                        }
-                        if (subjectMeta.subexamFlag) {
-                            row.subExamMarks = subjectMeta.subexamData.map((se) => {
-                                const found = Array.isArray(st.subExamMarks)
-                                    ? st.subExamMarks.find((x: any) => Number(x.subexamId ?? x.subexamid) === Number(se.subexamId))
-                                    : undefined;
-                                return {
-                                    subexamId: se.subexamId,
-                                    marks: found?.marks === '' || found?.marks === undefined ? '' : Number(found?.marks)
-                                };
-                            });
-                        }
-                    }
+                      if (!subjectMeta.subsubFlag && !subjectMeta.subexamFlag) {
+                          row.marks = st.marks === '' || st.marks === undefined ? '' : Number(st.marks);
+                      } else {
+                          if (subjectMeta.subsubFlag) {
+                              row.subSubMarks = subjectMeta.subsubData.map((ss) => {
+                                  const found = Array.isArray(st.subSubMarks)
+                                      ? st.subSubMarks.find((x: any) => Number(x.subsubId ?? x.subsubid) === Number(ss.subsubId))
+                                      : undefined;
+                                  return {
+                                      subsubId: ss.subsubId,
+                                      marks: found?.marks === '' || found?.marks === undefined ? '' : Number(found?.marks)
+                                  };
+                              });
+                          }
+                          if (subjectMeta.subexamFlag) {
+                              row.subExamMarks = subjectMeta.subexamData.map((se) => {
+                                  const found = Array.isArray(st.subExamMarks)
+                                      ? st.subExamMarks.find((x: any) => Number(x.subexamId ?? x.subexamid) === Number(se.subexamId))
+                                      : undefined;
+                                  return {
+                                      subexamId: se.subexamId,
+                                      marks: found?.marks === '' || found?.marks === undefined ? '' : Number(found?.marks)
+                                  };
+                              });
+                          }
+                      }
 
-                    return row;
-                })
+                      return row;
+                  })
                 : [];
 
             setSubjectMeta(subjectMeta);

@@ -2575,151 +2575,217 @@ export async function getUserAccessibleModules() {
                     ]
                 },
 
-                // {
-                //     id: 5,
-                //     name: 'IFrame',
-                //     icon: 'Users',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'IFrame',
-                //             icon: 'BookOpen',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'IFrame',
-                //                     icon: 'Database',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'AI Assignment',
-                //                             icon: 'BookOpen',
-                //                             url: '/iframe/ai-assignment',
-                //                             title: 'IFrame',
-                //                             description: 'Manage AI Assignment Details'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Question Generator',
-                //                             icon: 'BookOpen',
-                //                             url: '/iframe/question-generator',
-                //                             title: 'IFrame',
-                //                             description: 'Manage Question Generator Details'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
-                // {
-                //     id: 12,
-                //     name: 'Alumni',
-                //     icon: 'Users',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Alumni Module',
-                //             icon: 'BookOpen',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Transactions',
-                //                     icon: 'Database',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Alumni NoticeBoard',
-                //                             icon: 'Announcement',
-                //                             url: '/alumni/alumni-module/transactions/alumni-noticeboard',
-                //                             title: 'Alumni NoticeBoard',
-                //                             description: 'Manage Alumni NoticeBoard Details'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Alumni Gallery',
-                //                             icon: 'Image',
-                //                             url: '/alumni/alumni-module/transactions/alumni-gallery',
-                //                             title: 'Alumni Gallery',
-                //                             description: 'Manage Alumni Gallery Details'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Alumni Interactions',
-                //                             icon: 'MessageSquare',
-                //                             url: '/alumni/alumni-module/transactions/alumni-interactions',
-                //                             title: 'Alumni Interactions',
-                //                             description: 'Manage Alumni Interaction Details'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Alumni Friend Request',
-                //                             icon: 'UserPlus',
-                //                             url: '/alumni/alumni-module/transactions/alumni-friend-request',
-                //                             title: 'Alumni Friend Request',
-                //                             description: 'Manage Alumni Friend Request Details'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Alumni Friend Request Accept',
-                //                             icon: 'UserPlus',
-                //                             url: '/alumni/alumni-module/transactions/alumni-friend-request-accept',
-                //                             title: 'Alumni Friend Request Accept',
-                //                             description: 'Manage Alumni Friend Request Accept Details'
-                //                         },
-                //                         {
-                //                             id: 6,
-                //                             name: 'Alumni Donation',
-                //                             icon: 'HeartHandshake',
-                //                             url: '/alumni/alumni-module/transactions/alumni-donation',
-                //                             title: 'Alumni Donation',
-                //                             description: 'Manage Alumni Donation Details'
-                //                         },
-                //                         {
-                //                             id: 7,
-                //                             name: 'Alumni Letters',
-                //                             icon: 'MailOpen',
-                //                             url: '/alumni/alumni-module/transactions/alumni-letters',
-                //                             title: 'Alumni Letters',
-                //                             description: 'Generate Alumni Letters'
-                //                         },
-                //                         {
-                //                             id: 8,
-                //                             name: 'CLG Alumni Approval',
-                //                             icon: 'UserCheck',
-                //                             url: '/alumni/alumni-module/transactions/clg-alumni-approval',
-                //                             title: 'CLG Alumni Approval',
-                //                             description: 'Approve College Alumni Registrations'
-                //                         },
-                //                         {
-                //                             id: 9,
-                //                             name: 'CLG Student Search',
-                //                             icon: 'Search',
-                //                             url: '/alumni/alumni-module/transactions/clg-alumni-student-search',
-                //                             title: 'CLG Student Search',
-                //                             description: 'Search College Alumni Students'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 2,
-                //                     name: 'Reports',
-                //                     icon: 'FileText',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Alumni Search',
-                //                             icon: 'BookOpen',
-                //                             url: '/alumni/alumni-module/reports/alumni-search',
-                //                             title: 'Alumni Search',
-                //                             description: 'Dynamic Alumni Search Report'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
+                {
+                    id: 5,
+                    name: 'IFrame',
+                    icon: 'Users',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'IFrame',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'IFrame',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'AI Assignment',
+                                            icon: 'BookOpen',
+                                            url: '/iframe/ai-assignment',
+                                            title: 'IFrame',
+                                            description: 'Manage AI Assignment Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Question Generator',
+                                            icon: 'BookOpen',
+                                            url: '/iframe/question-generator',
+                                            title: 'IFrame',
+                                            description: 'Manage Question Generator Details'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 12,
+                    name: 'Alumni',
+                    icon: 'GraduationCap',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Alumni Module',
+                            icon: 'School',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Transactions',
+                                    icon: 'ArrowRightLeft',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Alumni Dashboard',
+                                            icon: 'LayoutDashboard',
+                                            url: '/alumni/alumni-module/transactions/alumni-dashboard',
+                                            title: 'Alumni Dashboard',
+                                            description: 'Alumni Portal Dashboard'
+                                        },
+                                        {
+                                            id: 13,
+                                            name: 'Alumni Details',
+                                            icon: 'UserRoundCog',
+                                            url: '/alumni/alumni-module/transactions/alumni-details',
+                                            title: 'Alumni Details',
+                                            description: 'Manage Alumni Details and Profile'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Alumni NoticeBoard',
+                                            icon: 'Megaphone',
+                                            url: '/alumni/alumni-module/transactions/alumni-noticeboard',
+                                            title: 'Alumni NoticeBoard',
+                                            description: 'Manage Alumni NoticeBoard Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Alumni Gallery',
+                                            icon: 'Images',
+                                            url: '/alumni/alumni-module/transactions/alumni-gallery',
+                                            title: 'Alumni Gallery',
+                                            description: 'Manage Alumni Gallery Details'
+                                        },
+                                        // {
+                                        //     id: 4,
+                                        //     name: 'Alumni Interactions',
+                                        //     icon: 'MessagesSquare',
+                                        //     url: '/alumni/alumni-module/transactions/alumni-interactions',
+                                        //     title: 'Alumni Interactions',
+                                        //     description: 'Manage Alumni Interaction Details'
+                                        // },
+                                        {
+                                            id: 5,
+                                            name: 'Alumni Friend Request',
+                                            icon: 'UserRoundPlus',
+                                            url: '/alumni/alumni-module/transactions/alumni-friend-request',
+                                            title: 'Alumni Friend Request',
+                                            description: 'Manage Alumni Friend Request Details'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Alumni Friend Request Accept',
+                                            icon: 'UserRoundCheck',
+                                            url: '/alumni/alumni-module/transactions/alumni-friend-request-accept',
+                                            title: 'Alumni Friend Request Accept',
+                                            description: 'Manage Alumni Friend Request Accept Details'
+                                        },
+                                        // {
+                                        //     id: 7,
+                                        //     name: 'Alumni Donation',
+                                        //     icon: 'HeartHandshake',
+                                        //     url: '/alumni/alumni-module/transactions/alumni-donation',
+                                        //     title: 'Alumni Donation',
+                                        //     description: 'Manage Alumni Donation Details'
+                                        // },
+                                        {
+                                            id: 8,
+                                            name: 'Alumni Letters',
+                                            icon: 'MailOpen',
+                                            url: '/alumni/alumni-module/transactions/alumni-letters',
+                                            title: 'Alumni Letters',
+                                            description: 'Generate Alumni Letters'
+                                        },
+                                        // {
+                                        //     id: 9,
+                                        //     name: 'CLG Alumni Approval',
+                                        //     icon: 'UserCheck',
+                                        //     url: '/alumni/alumni-module/transactions/clg-alumni-approval',
+                                        //     title: 'CLG Alumni Approval',
+                                        //     description: 'Approve College Alumni Registrations'
+                                        // },
+                                        // {
+                                        //     id: 10,
+                                        //     name: 'CLG Student Search',
+                                        //     icon: 'Search',
+                                        //     url: '/alumni/alumni-module/transactions/clg-alumni-student-search',
+                                        //     title: 'CLG Student Search',
+                                        //     description: 'Search College Alumni Students'
+                                        // },
+                                        {
+                                            id: 11,
+                                            name: 'User Password Creation',
+                                            icon: 'KeyRound',
+                                            url: '/alumni/alumni-module/transactions/user-password-creation',
+                                            title: 'User Password Creation',
+                                            description: 'Generate Usernames and Passwords'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Student Password Creation',
+                                            icon: 'LockKeyhole',
+                                            url: '/alumni/alumni-module/transactions/student-password-creation',
+                                            title: 'Student Password Creation',
+                                            description: 'Student Credentials Management'
+                                        },
+                                        {
+                                            id: 14,
+                                            name: 'COE Events',
+                                            icon: 'CalendarClock',
+                                            url: '/alumni/alumni-module/transactions/coe-events',
+                                            title: 'COE Events',
+                                            description: 'COE Events Management'
+                                        }
+                                        // ,
+                                        // {
+                                        //     id: 15,
+                                        //     name: 'Student Birthday Wishes',
+                                        //     icon: 'Cake',
+                                        //     url: '/alumni/alumni-module/transactions/student-birthday-wishes',
+                                        //     title: 'Student Birthday Wishes',
+                                        //     description: 'Student Birthday Wishes Management'
+                                        // }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Reports',
+                                    icon: 'BarChart3',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Alumni Search',
+                                            icon: 'UserSearch',
+                                            url: '/alumni/alumni-module/reports/alumni-search',
+                                            title: 'Alumni Search',
+                                            description: 'Dynamic Alumni Search Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Alumni Report',
+                                            icon: 'FilePieChart',
+                                            url: '/alumni/alumni-module/reports/alumni-report',
+                                            title: 'Alumni Report',
+                                            description: 'Comprehensive Alumni Report and Address Book'
+                                        }
+                                        // ,
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Alumni Student Birthday Report',
+                                        //     icon: 'Cake',
+                                        //     url: '/alumni/alumni-module/reports/alumni-student-birthday-report',
+                                        //     title: 'Alumni Student Birthday Report',
+                                        //     description: 'Report of student birthdays in alumni community'
+                                        // }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
                 // {
                 //     id: 25,
                 //     name: 'COE',
@@ -3953,6 +4019,14 @@ export async function getUserAccessibleModules() {
                                             url: '/inventory/inventory-module/reports/inv-r-item-consumption',
                                             title: 'Item Consumption Report',
                                             description: 'Generate Item Consumption Reports'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Inventory Month End Report',
+                                            icon: 'FileText',
+                                            url: '/inventory/inventory-module/reports/inv-r-month-end-report',
+                                            title: 'Inventory Month End Report',
+                                            description: 'Generate Inventory Month End Reports'
                                         }
                                     ]
                                 }
@@ -4768,6 +4842,203 @@ export async function getUserAccessibleModules() {
                 //                 }
                 //             ]
                 //         }
+                // ,
+                // {
+                //     id: 111,
+                //     name: 'Transport',
+                //     icon: 'BookOpen',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'Transport',
+                //             icon: 'BookOpen',
+                //             sub_menu: [
+                //                 {
+                //                     id: 3000,
+                //                     name: 'Masters',
+                //                     icon: 'Database',
+                //                     pages: [
+                //                         {
+                //                             id: 30001,
+                //                             name: 'Master Area',
+                //                             icon: 'BookOpen',
+                //                             url: '/Transport/transport-module/masters/master-area',
+                //                             title: 'Master Area / Zone',
+                //                             description: 'Master Area / Zone Details'
+                //                         },
+                //                         {
+                //                             id: 30002,
+                //                             name: 'Master Driver',
+                //                             icon: 'BookOpen',
+                //                             url: '/Transport/transport-module/masters/master-driver',
+                //                             title: 'Master Driver',
+                //                             description: 'Master Driver Details'
+                //                         },
+                //                         {
+                //                             id: 30003,
+                //                             name: 'Master Fuel Type',
+                //                             icon: 'BookOpen',
+                //                             url: '/Transport/transport-module/masters/master-fuel-type',
+                //                             title: 'Master Fuel Type',
+                //                             description: 'Master Fuel Type Details'
+                //                         },
+                //                         {
+                //                             id: 30004,
+                //                             name: 'Master Location',
+                //                             icon: 'BookOpen',
+                //                             url: '/Transport/transport-module/masters/master-location',
+                //                             title: 'Master Location',
+                //                             description: 'Master Location Details'
+                //                         },
+                //                         {
+                //                             id: 30005,
+                //                             name: 'Master Route',
+                //                             icon: 'BookOpen',
+                //                             url: '/Transport/transport-module/masters/master-route',
+                //                             title: 'Master Route',
+                //                             description: 'Master Route Details'
+                //                         },
+                //                         {
+                //                             id: 30006,
+                //                             name: 'Route Area Mapping',
+                //                             icon: 'BookOpen',
+                //                             url: '/Transport/transport-module/masters/route-area-mapping',
+                //                             title: 'Route Area Mapping',
+                //                             description: 'Route Area Mapping Details'
+                //                         },
+                //                         {
+                //                             id: 30007,
+                //                             name: 'Master Service Station',
+                //                             icon: 'BookOpen',
+                //                             url: '/Transport/transport-module/masters/master-service-station',
+                //                             title: 'Master Service Station',
+                //                             description: 'Master Service Station Details'
+                //                         },
+                //                         {
+                //                             id: 30008,
+                //                             name: 'Master Session',
+                //                             icon: 'BookOpen',
+                //                             url: '/Transport/transport-module/masters/master-session',
+                //                             title: 'Master Session',
+                //                             description: 'Master Session Details'
+                //                         },
+                //                         {
+                //                             id: 30009,
+                //                             name: 'Master Vehicle Type',
+                //                             icon: 'BookOpen',
+                //                             url: '/Transport/transport-module/masters/master-vehicle-type',
+                //                             title: 'Master Vehicle Type',
+                //                             description: 'Master Vehicle Type Details'
+                //                         },
+                //                         {
+                //                             id: 30010,
+                //                             name: 'Master Route Schedule',
+                //                             icon: 'BookOpen',
+                //                             url: '/Transport/transport-module/masters/master-route-schedule',
+                //                             title: 'Master Route Schedule',
+                //                             description: 'Master Route Schedule Details'
+                //                         },
+                //                         {
+                //                             id: 30011,
+                //                             name: 'Master Vehicle',
+                //                             icon: 'BookOpen',
+                //                             url: '/Transport/transport-module/masters/master-vehicle',
+                //                             title: 'Master Vehicle',
+                //                             description: 'Master Vehicle Details'
+                //                         },
+                //                         {
+                //                             id: 30012,
+                //                             name: 'Expiry Settings',
+                //                             icon: 'BookOpen',
+                //                             url: '/Transport/transport-module/masters/expiry-settings',
+                //                             title: 'Expiry Settings',
+                //                             description: 'Transport Expiry Settings'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 3001,
+                //                     name: 'Transactions',
+                //                     icon: 'BookOpen',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'Route Location Mapping',
+                //                             icon: 'Settings',
+                //                             url: '/Transport/transport-module/transaction/route-location-mapping',
+                //                             title: 'Route Location Mapping',
+                //                             description: 'Manage Route Location Mapping'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'Vehicle Driver Mapping',
+                //                             icon: 'Settings',
+                //                             url: '/Transport/transport-module/transaction/vehicle-driver-mapping',
+                //                             title: 'Vehicle Driver Mapping',
+                //                             description: 'Manage Vehicle Driver Mapping'
+                //                         },
+                //                         {
+                //                             id: 3,
+                //                             name: 'Vehicle Route Mapping',
+                //                             icon: 'Settings',
+                //                             url: '/Transport/transport-module/transaction/vehicle-route-mapping',
+                //                             title: 'Vehicle Route Mapping',
+                //                             description: 'Manage Vehicle Route Mapping'
+                //                         },
+                //                         {
+                //                             id: 4,
+                //                             name: 'Transport Approve',
+                //                             icon: 'Settings',
+                //                             url: '/Transport/transport-module/transaction/transport-approve',
+                //                             title: 'Transport Approve',
+                //                             description: 'Manage Transport Approve'
+                //                         }
+
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 3002,
+                //                     name: 'Reports',
+                //                     icon: 'BookOpen',
+                //                     pages: [
+                //                         {
+                //                             id: 30201,
+                //                             name: 'Month End Report',
+                //                             icon: 'FileText',
+                //                             url: '/Transport/transport-module/reports/month-end-report',
+                //                             title: 'Month End Report',
+                //                             description: 'Transport Month End Report'
+                //                         },
+                //                         {
+                //                             id: 30202,
+                //                             name: 'Transport Report',
+                //                             icon: 'FileText',
+                //                             url: '/Transport/transport-module/reports/transport-report',
+                //                             title: 'Transport Report',
+                //                             description: 'Transport Report'
+                //                         },
+                //                         {
+                //                             id: 30203,
+                //                             name: 'Fee Student Route Mapping Report',
+                //                             icon: 'FileText',
+                //                             url: '/Transport/transport-module/reports/fee-student-route-mapping-report',
+                //                             title: 'Fee Student Route Mapping Report',
+                //                             description: 'Fee Student Route Mapping Report'
+                //                         },
+                //                         {
+                //                             id: 30204,
+                //                             name: 'Student Route Mapping Report',
+                //                             icon: 'FileText',
+                //                             url: '/Transport/transport-module/reports/student-route-mapping-report',
+                //                             title: 'Student Route Mapping Report',
+                //                             description: 'Student Route Mapping Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
                 //         //    ,
                 //         //        {
                 //         //         id: 8,

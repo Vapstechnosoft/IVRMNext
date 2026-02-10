@@ -98,21 +98,21 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
         reValidateMode: 'onChange',
         defaultValues: initialData
             ? {
-                emG_GroupName: initialData.emG_GroupName,
-                emG_TotSubjects: initialData.emG_TotSubjects,
-                emG_MaxAplSubjects: initialData.emG_MaxAplSubjects,
-                emG_MinAplSubjects: initialData.emG_MinAplSubjects,
-                emG_BestOff: initialData.emG_BestOff,
-                subject_list: initialData.subjects?.map((s) => ({ ismS_Id: s.ismS_Id })) ?? []
-            }
+                  emG_GroupName: initialData.emG_GroupName,
+                  emG_TotSubjects: initialData.emG_TotSubjects,
+                  emG_MaxAplSubjects: initialData.emG_MaxAplSubjects,
+                  emG_MinAplSubjects: initialData.emG_MinAplSubjects,
+                  emG_BestOff: initialData.emG_BestOff,
+                  subject_list: initialData.subjects?.map((s) => ({ ismS_Id: s.ismS_Id })) ?? []
+              }
             : {
-                emG_GroupName: '',
-                emG_TotSubjects: 1,
-                emG_MaxAplSubjects: 1,
-                emG_MinAplSubjects: 1,
-                emG_BestOff: 1,
-                subject_list: []
-            }
+                  emG_GroupName: '',
+                  emG_TotSubjects: 1,
+                  emG_MaxAplSubjects: 1,
+                  emG_MinAplSubjects: 1,
+                  emG_BestOff: 1,
+                  subject_list: []
+              }
     });
 
     // biome-ignore lint/correctness/noUnusedVariables: <explanation>

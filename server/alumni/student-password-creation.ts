@@ -2,10 +2,10 @@
 
 import { api } from '@/lib/apiService';
 import type {
-    IStudentPasswordCreationInitialData,
-    IStudentPasswordCreationReportResponse,
     ICommonResponse,
-    ICredentialStudent
+    ICredentialStudent,
+    IStudentPasswordCreationInitialData,
+    IStudentPasswordCreationReportResponse
 } from '@/types/alumni/student-password-creation';
 
 export async function getInitialData() {

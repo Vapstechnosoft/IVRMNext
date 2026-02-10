@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { deactivateMasterEvent, switch1 } from '@/server/alumni/master-coe';
+import { deactivateMasterEvent } from '@/server/alumni/master-coe';
 import type { IMasterEvent } from '@/types/alumni/master-coe';
 import type React from 'react';
 import { toast } from 'sonner';

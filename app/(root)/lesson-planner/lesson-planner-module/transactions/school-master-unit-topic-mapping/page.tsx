@@ -1,18 +1,18 @@
 'use client';
 
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import {
+    deactivateMapping,
+    getInitialDetails,
+    getTopics,
+    saveMapping
+} from '@/server/lesson-planner/transactions/school-master-unit-topic-mapping';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import AddForm from './_components/add-form';
 import MappingList from './_components/mapping-list';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import {
-    getInitialDetails,
-    getTopics,
-    saveMapping,
-    deactivateMapping
-} from '@/server/lesson-planner/transactions/school-master-unit-topic-mapping';
 
-import type { IUnit, IMappingGridItem, ITopic } from '@/types/lesson-planner/transactions/school-master-unit-topic-mapping';
+import type { IMappingGridItem, IUnit } from '@/types/lesson-planner/transactions/school-master-unit-topic-mapping';
 
 export default function SchoolMasterUnitTopicMappingPage() {
     const [units, setUnits] = useState<IUnit[]>([]);
@@ -22,7 +22,7 @@ export default function SchoolMasterUnitTopicMappingPage() {
     const findValue = (obj: any, keys: string[]) => {
         if (!obj) return null;
         for (const key of keys) {
-            if (obj[key] !== undefined && obj[key] !== null && obj[key] !== "") return obj[key];
+            if (obj[key] !== undefined && obj[key] !== null && obj[key] !== '') return obj[key];
         }
         return null;
     };
@@ -62,7 +62,6 @@ export default function SchoolMasterUnitTopicMappingPage() {
 
             setUnits(unitList);
             setGridData(gridList);
-
         } catch (error) {
             console.error('Error fetching initial data:', error);
             toast.error('Failed to load initial data');
@@ -126,10 +125,10 @@ export default function SchoolMasterUnitTopicMappingPage() {
             if (res.returnval === true || res.success || res.message?.toLowerCase().includes('successfully')) {
                 toast.success(res.message || `Record ${item.lpmuT_ActiveFlag ? 'Deactivated' : 'Activated'} successfully`);
                 fetchInitialData();
-            } else if (res.message === "Exists") {
-                toast.warning("You Can Not Deactivate This Record, It Has Dependency");
+            } else if (res.message === 'Exists') {
+                toast.warning('You Can Not Deactivate This Record, It Has Dependency');
             } else {
-                toast.error(res.message || "Failed to change status");
+                toast.error(res.message || 'Failed to change status');
             }
         } catch (error) {
             console.error('Error deactivating:', error);
@@ -142,26 +141,17 @@ export default function SchoolMasterUnitTopicMappingPage() {
     };
 
     return (
-        <div className="container mx-auto py-6 space-y-6">
-            <div className="flex flex-col gap-1">
-                <h1 className="text-2xl font-bold tracking-tight">Master Topic Unit Mapping</h1>
+        <div className='container mx-auto space-y-6 py-6'>
+            <div className='flex flex-col gap-1'>
+                <h1 className='font-bold text-2xl tracking-tight'>Master Topic Unit Mapping</h1>
             </div>
 
-            <CollapsibleSection title="Master Topic Unit Mapping" defaultOpen={true}>
-                <AddForm
-                    units={units}
-                    onUnitChange={handleUnitChange}
-                    onSave={handleSave}
-                    onCancel={handleCancel}
-                    isLoading={isLoading}
-                />
+            <CollapsibleSection title='Master Topic Unit Mapping' defaultOpen={true}>
+                <AddForm units={units} onUnitChange={handleUnitChange} onSave={handleSave} onCancel={handleCancel} isLoading={isLoading} />
             </CollapsibleSection>
 
-            <CollapsibleSection title="Master Topic Unit Mapping List" defaultOpen={true}>
-                <MappingList
-                    data={gridData}
-                    onToggleActive={handleToggleActive}
-                />
+            <CollapsibleSection title='Master Topic Unit Mapping List' defaultOpen={true}>
+                <MappingList data={gridData} onToggleActive={handleToggleActive} />
             </CollapsibleSection>
         </div>
     );

@@ -1,37 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from '@/components/ui/form';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Save, X, Search } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Save, Search, X } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import * as z from 'zod';
 
-import type { IUnit, ITopic } from '@/types/lesson-planner/transactions/school-master-unit-topic-mapping';
+import type { ITopic, IUnit } from '@/types/lesson-planner/transactions/school-master-unit-topic-mapping';
 
 const formSchema = z.object({
-    LPMU_Id: z.string().min(1, 'Unit is required'),
+    LPMU_Id: z.string().min(1, 'Unit is required')
 });
 
 interface AddFormProps {
@@ -51,14 +37,14 @@ export default function AddForm({ units, onUnitChange, onSave, onCancel, isLoadi
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            LPMU_Id: '',
-        },
+            LPMU_Id: ''
+        }
     });
 
     const findValue = (obj: any, keys: string[]) => {
         if (!obj) return null;
         for (const key of keys) {
-            if (obj[key] !== undefined && obj[key] !== null && obj[key] !== "") return obj[key];
+            if (obj[key] !== undefined && obj[key] !== null && obj[key] !== '') return obj[key];
         }
         return null;
     };
@@ -71,11 +57,11 @@ export default function AddForm({ units, onUnitChange, onSave, onCancel, isLoadi
             const fetchedTopics = await onUnitChange(unitId);
             setTopics(fetchedTopics || []);
             if (fetchedTopics && fetchedTopics.length === 0) {
-                toast.info("All Topics Is Mapped For This Unit");
+                toast.info('All Topics Is Mapped For This Unit');
             }
         } catch (error) {
-            console.error("Error fetching topics", error);
-            toast.error("Failed to fetch topics");
+            console.error('Error fetching topics', error);
+            toast.error('Failed to fetch topics');
         } finally {
             setIsFetchingTopics(false);
         }
@@ -91,7 +77,7 @@ export default function AddForm({ units, onUnitChange, onSave, onCancel, isLoadi
         setSelectedTopics(newSelected);
     };
 
-    const filteredTopics = topics.filter(t => {
+    const filteredTopics = topics.filter((t) => {
         const name = findValue(t, ['lpmT_TopicName', 'LPMT_TopicName', 'topicName']) || '';
         return name.toLowerCase().includes(searchTerm.toLowerCase());
     });
@@ -102,7 +88,7 @@ export default function AddForm({ units, onUnitChange, onSave, onCancel, isLoadi
             return;
         }
 
-        const topicList = Array.from(selectedTopics).map(id => ({
+        const topicList = Array.from(selectedTopics).map((id) => ({
             lpmT_Id: id
         }));
 
@@ -123,20 +109,21 @@ export default function AddForm({ units, onUnitChange, onSave, onCancel, isLoadi
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 border rounded-lg bg-card">
-
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+                <div className='grid grid-cols-1 gap-6 rounded-lg border bg-card p-4 md:grid-cols-2'>
                     {/* Unit Selection */}
                     <FormField
                         control={form.control}
-                        name="LPMU_Id"
+                        name='LPMU_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Unit Name <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Unit Name <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={handleUnitChange} value={field.value}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="-- Select Unit --" />
+                                            <SelectValue placeholder='-- Select Unit --' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -157,43 +144,44 @@ export default function AddForm({ units, onUnitChange, onSave, onCancel, isLoadi
                     />
 
                     {/* Topic Selection */}
-                    <div className="space-y-2">
-                        <FormLabel>Topic Name <span className="text-destructive">*</span></FormLabel>
-                        <div className="border rounded-md p-2 space-y-2">
-                            <div className="flex items-center space-x-2 border-b pb-2">
-                                <Search className="h-4 w-4 text-muted-foreground" />
+                    <div className='space-y-2'>
+                        <FormLabel>
+                            Topic Name <span className='text-destructive'>*</span>
+                        </FormLabel>
+                        <div className='space-y-2 rounded-md border p-2'>
+                            <div className='flex items-center space-x-2 border-b pb-2'>
+                                <Search className='h-4 w-4 text-muted-foreground' />
                                 <Input
-                                    placeholder="Search here..."
+                                    placeholder='Search here...'
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="border-none shadow-none focus-visible:ring-0 h-8"
+                                    className='h-8 border-none shadow-none focus-visible:ring-0'
                                 />
                             </div>
 
-                            <ScrollArea className="h-[200px]">
+                            <ScrollArea className='h-[200px]'>
                                 {isFetchingTopics ? (
-                                    <div className="flex justify-center items-center h-full">
-                                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                                    <div className='flex h-full items-center justify-center'>
+                                        <Loader2 className='h-6 w-6 animate-spin text-primary' />
                                     </div>
                                 ) : filteredTopics.length > 0 ? (
-                                    <div className="space-y-2 p-1">
+                                    <div className='space-y-2 p-1'>
                                         {filteredTopics.map((topic) => {
                                             const tId = findValue(topic, ['lpmT_Id', 'LPMT_Id', 'topicId']);
                                             const tName = findValue(topic, ['lpmT_TopicName', 'LPMT_TopicName', 'topicName']);
                                             return (
-                                                <div key={tId} className="flex items-center space-x-2 hover:bg-muted/50 p-1 rounded">
-                                                    <Checkbox
-                                                        checked={selectedTopics.has(tId)}
-                                                        onCheckedChange={() => toggleTopic(tId)}
-                                                    />
-                                                    <span className="text-sm">{tName}</span>
+                                                <div key={tId} className='flex items-center space-x-2 rounded p-1 hover:bg-muted/50'>
+                                                    <Checkbox checked={selectedTopics.has(tId)} onCheckedChange={() => toggleTopic(tId)} />
+                                                    <span className='text-sm'>{tName}</span>
                                                 </div>
                                             );
                                         })}
                                     </div>
                                 ) : (
-                                    <div className="text-center text-muted-foreground text-sm py-4">
-                                        {topics.length === 0 && form.getValues('LPMU_Id') ? "No topics found" : "Select a unit to view topics"}
+                                    <div className='py-4 text-center text-muted-foreground text-sm'>
+                                        {topics.length === 0 && form.getValues('LPMU_Id')
+                                            ? 'No topics found'
+                                            : 'Select a unit to view topics'}
                                     </div>
                                 )}
                             </ScrollArea>
@@ -202,13 +190,13 @@ export default function AddForm({ units, onUnitChange, onSave, onCancel, isLoadi
                     </div>
                 </div>
 
-                <div className="flex justify-center gap-4">
-                    <Button type="submit" disabled={isLoading || selectedTopics.size === 0}>
-                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                <div className='flex justify-center gap-4'>
+                    <Button type='submit' disabled={isLoading || selectedTopics.size === 0}>
+                        {isLoading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Save className='mr-2 h-4 w-4' />}
                         Save
                     </Button>
-                    <Button type="button" variant="destructive" onClick={onCancel} disabled={isLoading}>
-                        <X className="mr-2 h-4 w-4" /> Cancel
+                    <Button type='button' variant='destructive' onClick={onCancel} disabled={isLoading}>
+                        <X className='mr-2 h-4 w-4' /> Cancel
                     </Button>
                 </div>
             </form>

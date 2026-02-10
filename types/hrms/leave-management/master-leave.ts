@@ -164,4 +164,3 @@ export interface MasterLeaveDeleteResponse {
     retrunMsg?: string;
     returnval?: boolean;
 }
-

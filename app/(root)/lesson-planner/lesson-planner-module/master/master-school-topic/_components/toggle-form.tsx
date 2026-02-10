@@ -38,14 +38,16 @@ export default function ToggleMasterSchoolTopicForm({ rowData, onClose, onSucces
                 return null;
             };
 
-            const resMessage = getVal(res, ['message', 'Message', 'data.message', 'data.Message']) ||
-                (typeof res === 'string' ? res : '');
+            const resMessage = getVal(res, ['message', 'Message', 'data.message', 'data.Message']) || (typeof res === 'string' ? res : '');
             const resSuccess = getVal(res, ['success', 'Success', 'data.success', 'data.Success']);
             const resReturnval = getVal(res, ['returnval', 'Returnval', 'returnVal', 'ReturnVal', 'data.returnval', 'data.Returnval']);
 
             const lowerMessage = resMessage.toString().toLowerCase();
-            const isSuccess = resSuccess === true || resSuccess === 'true' ||
-                resReturnval === true || resReturnval === 'true' ||
+            const isSuccess =
+                resSuccess === true ||
+                resSuccess === 'true' ||
+                resReturnval === true ||
+                resReturnval === 'true' ||
                 lowerMessage.includes('successfully') ||
                 lowerMessage.includes('success') ||
                 lowerMessage.includes('activated') ||

@@ -60,6 +60,10 @@ export interface IInvRSalesReportData {
     saleTax?: number;
     saleAmount?: number;
 
+    // Keys from response (lowercase)
+    invmsl_SalesNo?: string;
+    invmsl_SalesDate?: string;
+
     // New API Fields
     item_Name?: string;
     sales_Date?: string;
@@ -70,6 +74,17 @@ export interface IInvRSalesReportData {
     total_Amount?: number;
     invmsL_Id?: number;
     invmI_Id?: number;
+
+    // Keys from User Response (Overall + Item)
+    invmi_Id?: number;
+    invmi_ItemName?: string;
+    memberId?: number;
+    memberName?: string;
+    invtsl_SalesQty?: number;
+    invtsl_SalesPrice?: number;
+    invtsl_DiscountAmt?: number;
+    invtsl_TaxAmt?: number;
+    invtsl_Amount?: number;
 }
 
 export interface IInvRSalesPayload {
@@ -81,15 +96,24 @@ export interface IInvRSalesPayload {
     bw_dates: boolean;
 
     // Arrays for multi-selects
+    salesArray?: IInvRSalesEntity[];
     salenoarray?: IInvRSalesEntity[];
-    itemarray?: IInvRSalesEntity[];
+    itemArray?: IInvRSalesEntity[];
     clsarray?: IInvRSalesEntity[];
     secarray?: IInvRSalesEntity[];
+    studentArray?: IInvRSalesEntity[];
 
     // ID for single selects
-    studentid?: number;
-    hrme_id?: number;
-    invmc_id?: number;
+    studentid?: number | string;
+    hrme_id?: number | string;
+    invmc_id?: number | string;
+
+    // Form specific keys (mapped to api keys in server action)
+    singleStudentId?: number;
+    singleStaffId?: number;
+    singleCustomerId?: number;
+    classId?: string;
+    sectionId?: string;
 
     // Flags for Tax/Discount columns (handled in frontend mostly for display, but payload might need them if server filters)
     // Angular sends " HRM_id: 0" etc.

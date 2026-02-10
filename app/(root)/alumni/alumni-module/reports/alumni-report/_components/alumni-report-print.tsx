@@ -1,8 +1,8 @@
 'use client';
 
-import { IAlumniReportResultItem } from "@/types/alumni/alumni-report";
-import { format, isValid } from "date-fns";
-import React from "react";
+import type { IAlumniReportResultItem } from '@/types/alumni/alumni-report';
+import { format, isValid } from 'date-fns';
+import React from 'react';
 
 interface AlumniReportPrintProps {
     data: IAlumniReportResultItem[];
@@ -13,12 +13,12 @@ interface AlumniReportPrintProps {
 
 export const AlumniReportPrint = React.forwardRef<HTMLDivElement, AlumniReportPrintProps>(
     ({ data, institutionName, showEmail = true, showPhone = true }, ref) => {
-        const currentDate = format(new Date(), "dd/MM/yyyy");
+        const currentDate = format(new Date(), 'dd/MM/yyyy');
 
         const formatDate = (dateStr: string | null | undefined) => {
-            if (!dateStr) return "-";
+            if (!dateStr) return '-';
             const date = new Date(dateStr);
-            return isValid(date) ? format(date, "dd/MM/yyyy") : "-";
+            return isValid(date) ? format(date, 'dd/MM/yyyy') : '-';
         };
 
         if (!data || data.length === 0) {
@@ -31,8 +31,9 @@ export const AlumniReportPrint = React.forwardRef<HTMLDivElement, AlumniReportPr
 
         return (
             <div ref={ref} style={{ padding: '20mm', background: 'white', color: 'black', minHeight: '100%', width: '100%' }}>
-                <style dangerouslySetInnerHTML={{
-                    __html: `
+                <style
+                    dangerouslySetInnerHTML={{
+                        __html: `
                     @media print {
                         .print-component-wrapper {
                             display: block !important;
@@ -40,11 +41,13 @@ export const AlumniReportPrint = React.forwardRef<HTMLDivElement, AlumniReportPr
                             visibility: visible !important;
                         }
                     }
-                `}} />
-                <div className="print-component-wrapper">
+                `
+                    }}
+                />
+                <div className='print-component-wrapper'>
                     <div style={{ textAlign: 'center', marginBottom: '20px', borderBottom: '2px solid black', paddingBottom: '10px' }}>
                         <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0', textTransform: 'uppercase' }}>
-                            {institutionName || "VAPS TECHNOSOFT"}
+                            {institutionName || 'VAPS TECHNOSOFT'}
                         </h1>
                         <h2 style={{ fontSize: '20px', fontWeight: 'bold', textDecoration: 'underline', marginTop: '10px' }}>
                             ALUMNI REPORT
@@ -57,10 +60,22 @@ export const AlumniReportPrint = React.forwardRef<HTMLDivElement, AlumniReportPr
                                 <th style={{ border: '1px solid black', padding: '5px', width: '30px', textAlign: 'center' }}>SL</th>
                                 <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left' }}>Alumnus Name</th>
                                 <th style={{ border: '1px solid black', padding: '5px', textAlign: 'center', width: '70px' }}>DOB</th>
-                                {showPhone && <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left', width: '100px' }}>Mobile No</th>}
-                                {showEmail && <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left', width: '150px' }}>Email Id</th>}
-                                <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left', width: '100px' }}>Designation/City</th>
-                                <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left', width: '180px' }}>Full Address</th>
+                                {showPhone && (
+                                    <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left', width: '100px' }}>
+                                        Mobile No
+                                    </th>
+                                )}
+                                {showEmail && (
+                                    <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left', width: '150px' }}>
+                                        Email Id
+                                    </th>
+                                )}
+                                <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left', width: '100px' }}>
+                                    Designation/City
+                                </th>
+                                <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left', width: '180px' }}>
+                                    Full Address
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -81,7 +96,13 @@ export const AlumniReportPrint = React.forwardRef<HTMLDivElement, AlumniReportPr
                                         </td>
                                     )}
                                     {showEmail && (
-                                        <td style={{ border: '1px solid black', padding: '5px', verticalAlign: 'top', wordBreak: 'break-all' }}>
+                                        <td
+                                            style={{
+                                                border: '1px solid black',
+                                                padding: '5px',
+                                                verticalAlign: 'top',
+                                                wordBreak: 'break-all'
+                                            }}>
                                             {row.amsT_emailId || '-'}
                                         </td>
                                     )}
@@ -99,7 +120,9 @@ export const AlumniReportPrint = React.forwardRef<HTMLDivElement, AlumniReportPr
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colSpan={5 + (showEmail ? 1 : 0) + (showPhone ? 1 : 0)} style={{ paddingTop: '15px', textAlign: 'center', fontStyle: 'italic', fontSize: '8px', opacity: 0.7 }}>
+                                <td
+                                    colSpan={5 + (showEmail ? 1 : 0) + (showPhone ? 1 : 0)}
+                                    style={{ paddingTop: '15px', textAlign: 'center', fontStyle: 'italic', fontSize: '8px', opacity: 0.7 }}>
                                     Date: {currentDate} | Generated by Vaps Technosoft Pvt. Ltd.
                                 </td>
                             </tr>
@@ -111,4 +134,4 @@ export const AlumniReportPrint = React.forwardRef<HTMLDivElement, AlumniReportPr
     }
 );
 
-AlumniReportPrint.displayName = "AlumniReportPrint";
+AlumniReportPrint.displayName = 'AlumniReportPrint';

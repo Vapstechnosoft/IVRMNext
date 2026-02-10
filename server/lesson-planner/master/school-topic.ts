@@ -1,9 +1,9 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { IMasterSchoolTopicResponse } from '@/types/lesson-planner/master/school-topic';
 import { getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
+import type { IMasterSchoolTopicResponse } from '@/types/lesson-planner/master/school-topic';
 
 // Fetch initial data
 export async function getSchoolTopicData(searchParams?: ApiSearchparams) {
