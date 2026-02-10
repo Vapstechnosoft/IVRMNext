@@ -553,7 +553,7 @@ export const STAFF_PORTAL_QUERY_KEYS = {
 
     FEE_ACADEMIC_YEARS: 'fee_academic_years',
     FEE_STUDENT_INFORMATION: 'fee_student_information',
-     FEE_PORTAL_STUDENT_INFORMATION: 'fee_portal_student_information',
+    FEE_PORTAL_STUDENT_INFORMATION: 'fee_portal_student_information',
     FEE_DETAILS: 'fee_details',
     FEE_PAYMENT_ORDER: 'fee_payment_order',
     FEE_RAZORPAY_PAYMENT: 'fee_razorpay_payment',
@@ -564,7 +564,9 @@ export const STAFF_PORTAL_QUERY_KEYS = {
 };
 
 export const COE_QUERY_KEYS = {
-    MASTER_EVENT_COE: 'master_event_coe'
+    MASTER_EVENT_COE: 'master_event_coe',
+    MASTER_EVENT_COE_INITIAL_DATA: 'master_event_coe_initial_data',
+    EVENT_DROPDOWN: 'event_dropdown',
 };
 
 export const TRANSPORT_QUERY_KEYS = {

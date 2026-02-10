@@ -13,11 +13,11 @@ import { saveMasterEvent } from "@/server/coe/masters/masterevent";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Save } from "lucide-react";
 import { useEffect } from "react";
-import { Form, type SubmitHandler, useForm } from "react-hook-form";
+import { type SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 import { MasterEventCoe } from "@/types/coe/masterevent";
-import { FormField } from "@/components/ui/form";
+import { Form, FormField } from "@/components/ui/form";
 
 type FormFields = z.infer<typeof masterEventCoeSchema.addOrUpdate>;
 
