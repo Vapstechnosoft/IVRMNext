@@ -48,6 +48,7 @@ import {
     updateFeeStudentCurrentAcademicDetails,
     updateFeeStudentTransactionDetails
 } from '@/server/fees/trasactions/fee_student_transaction';
+import { getFeeStudentTransactionDetailsstthomas } from '@/server/fees/trasactions/fee_transaction_stthomas';
 import {
     getFeePreadmissionTransactionList,
     getFeeProspectusTransactionList,
@@ -1077,5 +1078,21 @@ export const useacademicyerdropofStThomas = (searchParams?: ApiSearchparams) => 
                 queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN_FEES_STTHOMAS]
             });
         }
+    };
+};
+
+export const useFeeTransactionListStThomas = (asmaY_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_TRANSACTIONSTTHOMAS, asmaY_Id, searchParams ?? {}],
+            queryFn: async () => getFeeStudentTransactionDetailsstthomas(asmaY_Id, searchParams)
+        }),
+
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_TRANSACTIONSTTHOMAS]
+            })
     };
 };

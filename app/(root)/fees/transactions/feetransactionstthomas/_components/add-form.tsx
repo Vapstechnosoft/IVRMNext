@@ -16,11 +16,11 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { Checkbox } from '@/components/ui/checkbox';
-import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { InputText } from '@/components/ui/extension/input-text';
+import { FeesCustomMultiSelectBox } from '@/components/ui/feesmultiselect';
 import { useStudentClassDropDown, useStudentSectionDropDown } from '@/hooks/fees/useMasters';
 import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
-import { useFeeMasterConfiguration, useFeeTransactionList } from '@/hooks/fees/useTrasactions';
+import { useFeeMasterConfiguration, useFeeTransactionListStThomas } from '@/hooks/fees/useTrasactions';
 import { feesStudentTransactionSchema } from '@/schemas/fees/trasactions';
 import {
     getFeeHead,
@@ -52,12 +52,13 @@ interface FeestudentTrasactionsFormProps {
 }
 
 export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: FeestudentTrasactionsFormProps) {
-    const { refetchAll } = useFeeTransactionList(Number(asmayId));
+    const { refetchAll } = useFeeTransactionListStThomas(Number(asmayId));
 
     const {
         handleSubmit,
         reset,
         control,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(feesStudentTransactionSchema.addOrUpdate),
@@ -178,10 +179,7 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
     const { data: academicYearData, isLoading: loadingYears } = useFeeDefaulterReport();
 
     const { data: masterConfiguration } = useFeeMasterConfiguration();
-
     const config = masterConfiguration?.data?.[0]?.fmC_AutoReceiptFeeGroupFlag ?? 0;
-    // console.log("masterConfiguration", masterConfiguration);
-    // console.log("config", config);
 
     useEffect(() => {
         setStudentSearch('');
@@ -235,6 +233,8 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
 
     const { data: feeSectionData, isLoading: feeSectionDataLoading } = useStudentSectionDropDown(section);
 
+    const asmcLID = watch('asmcl_Id');
+    const asmS_Id = watch('asms_Id');
     useEffect(() => {
         if (!studentSearch.trim()) {
             setStudents([]);
@@ -246,11 +246,11 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
             try {
                 const payload = {
                     asmaY_Id: selectedAsmayId,
-                    filterinitialdata: filterType,
+                    filterinitialdata: left === true || deactive === true ? 'NameAdmno' : filterType,
                     searchfilter: studentSearch,
-                    asmcL_ID: selectedclassId ?? 0,
-                    asmS_Id: selectedSectionId ?? 0,
-                    amsT_SOL: left === false ? 'S' : 'L'
+                    asmcL_ID: classs === true || section === true ? asmcLID : 0,
+                    asmS_Id: section === true ? asmS_Id : 0,
+                    amsT_SOL: left === true ? 'L' : deactive === true ? 'D' : 'S'
                 };
                 const studentsArray = await searchStudentName(payload);
                 const studentsData = JSON.parse(JSON.stringify(studentsArray.feeStudentSearch || []));
@@ -279,7 +279,6 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
                 const payload = {
                     amst_Id: selectedStudent.amst_Id,
                     filterinitialdata: filterType,
-                    // configset: 'T',
                     autoReceiptFlag: true,
                     asmaY_Id: selectedAsmayId
                 };
@@ -522,8 +521,12 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
     const handleCheckboxChange = (checked: boolean, type: 'left' | 'inactive' | 'class' | 'section') => {
         if (type === 'left') {
             setLeft(checked);
+            setDeative(false);
+            setFilterType('NameAdmno');
         } else if (type === 'inactive') {
             setDeative(checked);
+            setLeft(false);
+            setFilterType('NameAdmno');
         } else if (type === 'class') {
             setClass(checked);
             if (!checked) {
@@ -537,6 +540,14 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
                 setClass(false);
             }
         }
+
+        setStudentSearch('');
+        setSelectedStudent(null);
+        setStudents([]);
+        setTerms([]);
+        SetStudentDetails([]);
+        SetFeeDetails([]);
+        setselectedTerm([]);
     };
 
     const onSubmit = async () => {
@@ -732,7 +743,7 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
                 smsconfig: sms,
                 emailconfig: email
             };
-
+            console.log('save fee transaction payload', JSON.stringify(payload));
             const response = await saveFeeTransaction(payload);
 
             if (response?.displaymessage) {
@@ -1075,25 +1086,53 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
                                     />
 
                                     {studentSearch.trim() !== '' && !selectedStudent && (
-                                        <ul className='absolute top-full left-0 z-10 mt-1 max-h-40 w-full overflow-y-auto rounded border bg-white shadow-md'>
-                                            {loadingStudents ? (
-                                                <li className='px-3 py-2 text-gray-500'>Loading...</li>
-                                            ) : students.length === 0 ? (
-                                                <li className='px-3 py-2 text-gray-500'>No students found</li>
+                                        <>
+                                            {/* For regular filter type - check minimum letters */}
+                                            {filterType === 'regular' ? (
+                                                studentSearch.trim().length >= Number.parseInt(searchByLet) && (
+                                                    <ul className='absolute top-full left-0 z-10 mt-1 max-h-40 w-full overflow-y-auto rounded border bg-white shadow-md'>
+                                                        {loadingStudents ? (
+                                                            <li className='px-3 py-2 text-gray-500'>Loading...</li>
+                                                        ) : students.length === 0 ? (
+                                                            <li className='px-3 py-2 text-gray-500'>No students found</li>
+                                                        ) : (
+                                                            students.map((student) => (
+                                                                <li
+                                                                    key={student.amst_Id}
+                                                                    onClick={() => {
+                                                                        setSelectedStudent(student);
+                                                                        setStudentSearch(student.amsT_StudentName);
+                                                                    }}
+                                                                    className='cursor-pointer px-3 py-2 hover:bg-blue-100'>
+                                                                    {student.amsT_StudentName}
+                                                                </li>
+                                                            ))
+                                                        )}
+                                                    </ul>
+                                                )
                                             ) : (
-                                                students.map((student) => (
-                                                    <li
-                                                        key={student.amst_Id}
-                                                        onClick={() => {
-                                                            setSelectedStudent(student);
-                                                            setStudentSearch(student.amsT_StudentName);
-                                                        }}
-                                                        className='cursor-pointer px-3 py-2 hover:bg-blue-100'>
-                                                        {student.amsT_StudentName}
-                                                    </li>
-                                                ))
+                                                /* For non-regular filter types - show immediately */
+                                                <ul className='absolute top-full left-0 z-10 mt-1 max-h-40 w-full overflow-y-auto rounded border bg-white shadow-md'>
+                                                    {loadingStudents ? (
+                                                        <li className='px-3 py-2 text-gray-500'>Loading...</li>
+                                                    ) : students.length === 0 ? (
+                                                        <li className='px-3 py-2 text-gray-500'>No students found</li>
+                                                    ) : (
+                                                        students.map((student) => (
+                                                            <li
+                                                                key={student.amst_Id}
+                                                                onClick={() => {
+                                                                    setSelectedStudent(student);
+                                                                    setStudentSearch(student.amsT_StudentName);
+                                                                }}
+                                                                className='cursor-pointer px-3 py-2 hover:bg-blue-100'>
+                                                                {student.amsT_StudentName}
+                                                            </li>
+                                                        ))
+                                                    )}
+                                                </ul>
                                             )}
-                                        </ul>
+                                        </>
                                     )}
                                 </div>
                             </div>
@@ -1118,7 +1157,7 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
                             </div>
 
                             <div className='w-80'>
-                                <CustomMultiSelectBox
+                                <FeesCustomMultiSelectBox
                                     options={terms.map((ex) => ({
                                         label: ex.fmG_GroupName,
                                         value: ex.fmT_Id.toString(),
