@@ -70,14 +70,21 @@ export interface AdminOnDutyApplyListParams {
     isExport?: boolean;
 }
 
-export function useAdminOnDutyApplyList(params: ApiSearchparams = {}) {
+export function useAdminOnDutyApplyList(params: AdminOnDutyApplyListParams | ApiSearchparams = {}) {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [ADMIN_ON_DUTY_APPLY_KEYS.LIST, params],
             queryFn: async () => {
-                const response = await getEmployeeOnDutyLeaveApply(params);
+                const response = await getEmployeeOnDutyLeaveApply({
+                    page: (params as any).page,
+                    page_size: (params as any).pageSize ?? (params as any).page_size,
+                    search_query: (params as any).searchQuery ?? (params as any).search_query,
+                    search_column: (params as any).searchColumn ?? (params as any).search_column,
+                    sort_column: (params as any).sortColumn ?? (params as any).sort_column,
+                    sort_direction: (params as any).sortDirection ?? (params as any).sort_direction
+                });
                 if (!response.success) {
                     throw new Error(response.message);
                 }
