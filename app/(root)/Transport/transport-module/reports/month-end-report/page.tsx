@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
@@ -12,8 +11,7 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { saveMonthEndReportData } from '@/server/transport/transport-module/reports/month-end-report';
 import type { IMonthEndReportData } from '@/types/transport/transport-module/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
-import { Check, Loader2, Printer, X } from 'lucide-react';
+import { Loader2, Printer } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -23,7 +21,7 @@ import { z } from 'zod';
 const formSchema = z.object({
     ASMAY_Id: z.coerce.number().min(1, 'Academic Year is required'),
     IVRM_Month_Id: z.coerce.number().min(1, 'Month is required'),
-    ieName: z.string().optional(),
+    ieName: z.string().optional()
 });
 
 export default function MonthEndReportPage() {
@@ -62,14 +60,14 @@ export default function MonthEndReportPage() {
         defaultValues: {
             ASMAY_Id: 0,
             IVRM_Month_Id: 0,
-            ieName: '',
+            ieName: ''
         }
     });
 
     // Attempt to get logo from localStorage as per legacy code
     useEffect(() => {
         try {
-            const admfigsettings = localStorage.getItem("admfigsettings");
+            const admfigsettings = localStorage.getItem('admfigsettings');
             if (admfigsettings) {
                 const settings = JSON.parse(admfigsettings);
                 if (settings.length > 0 && settings[0].asC_Logo_Path) {
@@ -77,7 +75,7 @@ export default function MonthEndReportPage() {
                 }
             }
         } catch (e) {
-            console.error("Failed to load logo from settings", e);
+            console.error('Failed to load logo from settings', e);
         }
     }, []);
 
@@ -87,13 +85,12 @@ export default function MonthEndReportPage() {
         setSelectedParams(null);
 
         try {
-
             const payload = {
-                ASMAY_Id: values.ASMAY_Id,
+                ASMAY_Id: values.ASMAY_Id
             };
-            console.log("payload", payload);
+            console.log('payload', payload);
             const response = await saveMonthEndReportData(payload);
-            console.log("response", response);
+            console.log('response', response);
 
             let data: any[] = [];
             if (Array.isArray(response)) {
@@ -106,13 +103,17 @@ export default function MonthEndReportPage() {
                 setReportData(data);
 
                 // Find names for display
-                const yearName = Array.isArray(academicYears) ? academicYears.find(y => y.asmaY_Id === values.ASMAY_Id)?.asmaY_Year || '' : '';
-                const monthName = Array.isArray(months) ? months.find(m => m.ivrM_Month_Id === values.IVRM_Month_Id)?.ivrM_Month_Name || '' : '';
+                const yearName = Array.isArray(academicYears)
+                    ? academicYears.find((y) => y.asmaY_Id === values.ASMAY_Id)?.asmaY_Year || ''
+                    : '';
+                const monthName = Array.isArray(months)
+                    ? months.find((m) => m.ivrM_Month_Id === values.IVRM_Month_Id)?.ivrM_Month_Name || ''
+                    : '';
 
                 setSelectedParams({
                     yearName,
                     monthName,
-                    ieName: values.ieName || '',
+                    ieName: values.ieName || ''
                 });
             } else {
                 toast.warning('No Records Found');
@@ -128,7 +129,7 @@ export default function MonthEndReportPage() {
         form.reset({
             ASMAY_Id: 0,
             IVRM_Month_Id: 0,
-            ieName: '',
+            ieName: ''
         });
         setReportData([]);
         setSelectedParams(null);
@@ -268,11 +269,15 @@ export default function MonthEndReportPage() {
                                     name='ASMAY_Id'
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Academic Year <span className='text-destructive'>*</span></FormLabel>
-                                            <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value !== 0 ? field.value.toString() : undefined}>
+                                            <FormLabel>
+                                                Academic Year <span className='text-destructive'>*</span>
+                                            </FormLabel>
+                                            <Select
+                                                onValueChange={(v) => field.onChange(Number(v))}
+                                                value={field.value !== 0 ? field.value.toString() : undefined}>
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Select Academic Year" />
+                                                        <SelectValue placeholder='Select Academic Year' />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
@@ -294,11 +299,15 @@ export default function MonthEndReportPage() {
                                     name='IVRM_Month_Id'
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Month <span className='text-destructive'>*</span></FormLabel>
-                                            <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value !== 0 ? field.value.toString() : undefined}>
+                                            <FormLabel>
+                                                Month <span className='text-destructive'>*</span>
+                                            </FormLabel>
+                                            <Select
+                                                onValueChange={(v) => field.onChange(Number(v))}
+                                                value={field.value !== 0 ? field.value.toString() : undefined}>
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Select Month" />
+                                                        <SelectValue placeholder='Select Month' />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
@@ -331,8 +340,6 @@ export default function MonthEndReportPage() {
                             </div>
 
                             <div className='flex justify-center gap-4 border-t pt-4'>
-
-
                                 <Button type='submit' disabled={isGenerating} className='min-w-32'>
                                     {isGenerating ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
                                     {isGenerating ? 'Generating...' : 'Report'}
@@ -364,9 +371,7 @@ export default function MonthEndReportPage() {
                                 {logoPath && <img src={logoPath} alt='Institution Logo' className='h-24 w-auto object-contain' />}
                             </div>
                             <h3 className='font-bold text-xl uppercase tracking-wide'>Transport Module</h3>
-                            <h4 className='font-semibold text-lg text-primary'>
-                                {selectedParams.monthName} Month End Report
-                            </h4>
+                            <h4 className='font-semibold text-lg text-primary'>{selectedParams.monthName} Month End Report</h4>
                         </CardHeader>
                         <CardContent className='space-y-6'>
                             {/* Report Header Details */}
@@ -420,7 +425,9 @@ export default function MonthEndReportPage() {
                                             </TableRow>
                                         ))}
                                         <TableRow className='bg-muted font-bold'>
-                                            <TableCell colSpan={2} className='text-right'>Total</TableCell>
+                                            <TableCell colSpan={2} className='text-right'>
+                                                Total
+                                            </TableCell>
                                             <TableCell className='text-center'>{totalStudents}</TableCell>
                                         </TableRow>
                                     </TableBody>
@@ -434,7 +441,14 @@ export default function MonthEndReportPage() {
                                     <ResponsiveContainer width='100%' height='100%'>
                                         <BarChart data={reportData} margin={{ top: 20, right: 30, left: 20, bottom: 50 }}>
                                             <CartesianGrid strokeDasharray='3 3' vertical={false} />
-                                            <XAxis dataKey='trmR_RouteName' angle={-45} textAnchor="end" height={80} interval={0} tick={{ fontSize: 12 }} />
+                                            <XAxis
+                                                dataKey='trmR_RouteName'
+                                                angle={-45}
+                                                textAnchor='end'
+                                                height={80}
+                                                interval={0}
+                                                tick={{ fontSize: 12 }}
+                                            />
                                             <YAxis />
                                             <Tooltip
                                                 contentStyle={{

@@ -14,6 +14,7 @@ import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { getCountryList, getStateList, saveTrustMaster } from '@/server/super-admin/super-admin-module/masters/trust-master';
+import { useCountryListData, useStateListData, useTrustMasterData } from '@/hooks/super-admin/super-admin-module/use-trust-masters';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -22,15 +23,17 @@ type FormFields = z.infer<typeof trustMasterSchema.addOrUpdate>;
 
 interface AddTrustMasterFormProps {
     onSuccess?: () => void;
+    onRefresh?: () => void;
     className?: string;
 }
 
-export default function AddTrustMasterForm({ onSuccess, className = '' }: AddTrustMasterFormProps) {
+export default function AddTrustMasterForm({ onSuccess, onRefresh, className = '' }: AddTrustMasterFormProps) {
     const {
         control,
         register,
         handleSubmit,
         reset,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(trustMasterSchema.addOrUpdate),
@@ -55,45 +58,19 @@ export default function AddTrustMasterForm({ onSuccess, className = '' }: AddTru
     const queryClient = useQueryClient();
 
 
+    const selectedCountryId = watch('ivrmmC_Id');
 
-    const [countryList, setCountryList] = React.useState<any[]>([]);
-    const [stateList, setStateList] = React.useState<any[]>([]);
-    const [loadingCountries, setLoadingCountries] = React.useState(false);
-    const [loadingStates, setLoadingStates] = React.useState(false);
+    const { data: countryData, isLoading: loadingCountries } = useCountryListData();
+    const countryList = countryData?.data || [];
+
+    const { data: stateData, isLoading: loadingStates } = useStateListData(Number(selectedCountryId));
+    const stateList = stateData?.data || [];
+
+    // const [stateList, setStateList] = React.useState<any[]>([]);
+    // const [loadingStates, setLoadingStates] = React.useState(false);
 
     React.useEffect(() => {
-        const fetchCountries = async () => {
-            setLoadingCountries(true);
-            try {
-                const response = await getCountryList();
-                if (response.success && response.data) {
-                    setCountryList(response.data);
-                }
-            } catch (error) {
-                console.error('Failed to fetch countries', error);
-                toast.error('Failed to load countries');
-            } finally {
-                setLoadingCountries(false);
-            }
-        };
-
-        const fetchStates = async () => {
-            setLoadingStates(true);
-            try {
-                const response = await getStateList();
-                if (response.success && response.data) {
-                    setStateList(response.data);
-                }
-            } catch (error) {
-                console.error('Failed to fetch states', error);
-                toast.error('Failed to load states');
-            } finally {
-                setLoadingStates(false);
-            }
-        };
-
-        fetchCountries();
-        fetchStates();
+        // fetchStates is no longer needed as we use the hook
     }, []);
 
     const { fields: phoneFields, append: appendPhone, remove: removePhone } = useFieldArray({
@@ -132,7 +109,7 @@ export default function AddTrustMasterForm({ onSuccess, className = '' }: AddTru
             if (response.success) {
                 toast.success('Trust Master saved successfully');
                 reset();
-                queryClient.invalidateQueries({ queryKey: ['trust_master_data'] });
+                onRefresh?.();
                 onSuccess?.();
             } else {
                 toast.error(response.message || 'Failed to save Trust Master');
@@ -219,12 +196,13 @@ export default function AddTrustMasterForm({ onSuccess, className = '' }: AddTru
                                     <Select
                                         onValueChange={(val) => field.onChange(Number(val))}
                                         value={field.value ? String(field.value) : undefined}
+                                        disabled={loadingStates || !selectedCountryId}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder='Select State' />
+                                            <SelectValue placeholder={!selectedCountryId ? 'Select Country First' : loadingStates ? 'Loading...' : 'Select State'} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {stateList.map((s) => (
+                                            {stateList.map((s: any) => (
                                                 <SelectItem key={s.ivrmmS_Id} value={String(s.ivrmmS_Id)}>
                                                     {s.ivrmmS_Name}
                                                 </SelectItem>

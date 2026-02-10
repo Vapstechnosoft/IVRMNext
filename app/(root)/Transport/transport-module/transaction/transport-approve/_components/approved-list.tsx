@@ -33,7 +33,6 @@ export default function ApprovedList() {
         try {
             const response = await getTransportApprovedHistory(yearId);
             if (response && response.data) {
-
                 setData(response.data);
             } else {
                 setData([]);
@@ -49,15 +48,15 @@ export default function ApprovedList() {
     const handleYearChange = (val: string) => {
         const year = Number(val);
         setSelectedYear(year);
-    }
+    };
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-center space-x-4 w-full md:w-1/3">
-                <label className="text-sm font-medium">Academic Year:</label>
+        <div className='space-y-4'>
+            <div className='flex w-full items-center space-x-4 md:w-1/3'>
+                <label className='font-medium text-sm'>Academic Year:</label>
                 <Select value={selectedYear?.toString()} onValueChange={handleYearChange}>
                     <SelectTrigger>
-                        <SelectValue placeholder="Select Year" />
+                        <SelectValue placeholder='Select Year' />
                     </SelectTrigger>
                     <SelectContent>
                         {academicYears.map((year: any) => (
@@ -74,8 +73,8 @@ export default function ApprovedList() {
                 columns={approvedListColumns}
                 total={data.length}
                 isLoading={isLoading}
-                loadingMessage="Loading history..."
-                noDataTitle="No Approved/Rejected Records"
+                loadingMessage='Loading history...'
+                noDataTitle='No Approved/Rejected Records'
             />
         </div>
     );

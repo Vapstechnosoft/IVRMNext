@@ -12,136 +12,131 @@ export const studentListColumns: ColumnDef<IStudentData>[] = [
             <Checkbox
                 checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
                 onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label="Select all"
+                aria-label='Select all'
             />
         ),
         cell: ({ row }) => (
-            <Checkbox
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label="Select row"
-            />
+            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
         ),
         enableSorting: false,
-        enableHiding: false,
+        enableHiding: false
     },
     {
         id: 'sms',
         header: 'SMS',
-        cell: ({ row }) => null, // Placeholder for interaction handled in list
+        cell: ({ row }) => null // Placeholder for interaction handled in list
     },
     {
         id: 'email',
         header: 'Email',
-        cell: ({ row }) => null, // Placeholder for interaction handled in list
+        cell: ({ row }) => null // Placeholder for interaction handled in list
     },
     {
         header: 'SL.No',
-        cell: ({ row }) => row.index + 1,
+        cell: ({ row }) => row.index + 1
     },
     {
         accessorKey: 'amsT_Photoname',
         header: 'Photo',
-        cell: ({ row }) => (
-            row.original.amsT_Photoname ?
-                <img src={row.original.amsT_Photoname} alt="Student" className="h-8 w-8 rounded-full object-cover" />
-                : null
-        ),
+        cell: ({ row }) =>
+            row.original.amsT_Photoname ? (
+                <img src={row.original.amsT_Photoname} alt='Student' className='h-8 w-8 rounded-full object-cover' />
+            ) : null
     },
     {
         accessorKey: 'studentname',
-        header: 'Student Name',
+        header: 'Student Name'
     },
     {
         accessorKey: 'applicationno',
-        header: 'App No',
+        header: 'App No'
     },
     {
         accessorKey: 'amsT_AdmNo',
-        header: 'Adm No',
+        header: 'Adm No'
     },
     {
         accessorKey: 'asmcL_ClassName',
-        header: 'Class',
+        header: 'Class'
     },
     // Conditional: Pickup Route (Only if Route is 'All' aka 0)
     {
         accessorKey: 'pickuproute',
-        header: 'Pickup Route',
+        header: 'Pickup Route'
     },
     {
         accessorKey: 'pickuplocation',
-        header: 'Pickup Location',
+        header: 'Pickup Location'
     },
     {
         id: 'PickUp_Session', // Managed by custom cell in StudentList
-        header: 'Pickup Session',
+        header: 'Pickup Session'
     },
     // Conditional: Drop Route (Only if Route is 'All' aka 0)
     {
         accessorKey: 'drouproute',
-        header: 'Drop Route',
+        header: 'Drop Route'
     },
     {
         accessorKey: 'drouplocation',
-        header: 'Drop Location',
+        header: 'Drop Location'
     },
     {
         id: 'Drop_Session', // Managed by custom cell in StudentList
-        header: 'Drop Session',
+        header: 'Drop Session'
     },
     {
         accessorKey: 'neworreguular',
-        header: 'New/Regular',
+        header: 'New/Regular'
     },
     {
         id: 'view',
         header: 'View',
         cell: ({ row }) => (
-            <div className="flex items-center justify-center cursor-pointer text-primary">
-                <Eye className="h-4 w-4 mr-1" />
-                <span className="text-xs">View App</span>
+            <div className='flex cursor-pointer items-center justify-center text-primary'>
+                <Eye className='mr-1 h-4 w-4' />
+                <span className='text-xs'>View App</span>
             </div>
         )
     },
     {
         id: 'remarks1', // Managed by custom cell in StudentList
-        header: 'Remarks SMS',
+        header: 'Remarks SMS'
     },
     {
         id: 'studentremarkemail1', // Managed by custom cell in StudentList
-        header: 'Remarks Email',
+        header: 'Remarks Email'
     }
 ];
 
 export const approvedListColumns: ColumnDef<any>[] = [
     {
         header: 'SL.No',
-        cell: ({ row }) => row.index + 1,
+        cell: ({ row }) => row.index + 1
     },
     {
         accessorKey: 'studentname',
-        header: 'Student Name',
+        header: 'Student Name'
     },
     {
         accessorKey: 'applicationno',
-        header: 'App No',
+        header: 'App No'
     },
     {
         accessorKey: 'astA_ApplStatus',
-        header: 'App Status',
+        header: 'App Status'
     },
     {
         accessorKey: 'areaname',
-        header: 'Area',
+        header: 'Area'
     },
     {
         id: 'view',
         header: 'View',
         cell: ({ row }) => (
-            <div className="flex items-center justify-center cursor-pointer text-primary">
-                <Eye className="h-4 w-4 mr-1" />
-                <span className="text-xs">View App</span>
+            <div className='flex cursor-pointer items-center justify-center text-primary'>
+                <Eye className='mr-1 h-4 w-4' />
+                <span className='text-xs'>View App</span>
             </div>
         )
     }

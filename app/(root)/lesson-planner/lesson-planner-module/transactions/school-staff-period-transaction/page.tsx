@@ -1,19 +1,19 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { toast } from 'sonner';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import SearchForm from './_components/search-form';
-import TransactionGrid from './_components/transaction-grid';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState, useTransition } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { z } from 'zod';
 import {
-    getStaffPeriodTransactionInitialData,
     getSearchDetailsTransaction,
+    getStaffPeriodTransactionInitialData,
     saveStaffPeriodTransaction
 } from '../../../../../../server/lesson-planner/transactions/school-staff-period-transaction';
-import { ISchoolStaffPeriodTransactionGridItem } from '../../../../../../types/lesson-planner/transactions/school-staff-period-transaction';
+import type { ISchoolStaffPeriodTransactionGridItem } from '../../../../../../types/lesson-planner/transactions/school-staff-period-transaction';
+import SearchForm from './_components/search-form';
+import TransactionGrid from './_components/transaction-grid';
 
 const formSchema = z.object({
     ASMAY_Id: z.number().min(1, 'Academic Year Required'),
@@ -23,16 +23,16 @@ const formSchema = z.object({
     ISMS_Id: z.number().min(1, 'Subject Required'),
     classes: z.array(z.any()).optional(),
     sections: z.array(z.any()).optional(),
-    subjects: z.array(z.any()).optional(),
+    subjects: z.array(z.any()).optional()
 });
 
 export default function SchoolStaffPeriodTransactionPage() {
-    const [initialData, setInitialData] = useState<{ masteryear: any[], employeedetails: any[] }>({ masteryear: [], employeedetails: [] });
+    const [initialData, setInitialData] = useState<{ masteryear: any[]; employeedetails: any[] }>({ masteryear: [], employeedetails: [] });
     const [gridData, setGridData] = useState<ISchoolStaffPeriodTransactionGridItem[] | null>(null);
     const [isPending, startTransition] = useTransition();
 
     const methods = useForm({
-        resolver: zodResolver(formSchema),
+        resolver: zodResolver(formSchema)
     });
 
     useEffect(() => {
@@ -62,13 +62,7 @@ export default function SchoolStaffPeriodTransactionPage() {
     const handleSearch = (data: any) => {
         startTransition(async () => {
             try {
-                const res = await getSearchDetailsTransaction(
-                    data.ASMAY_Id,
-                    data.HRME_Id,
-                    data.ASMCL_Id,
-                    data.ASMS_Id,
-                    data.ISMS_Id
-                );
+                const res = await getSearchDetailsTransaction(data.ASMAY_Id, data.HRME_Id, data.ASMCL_Id, data.ASMS_Id, data.ISMS_Id);
 
                 const responseData = res.data || res;
                 const dates = responseData.getalldates || [];
@@ -121,9 +115,9 @@ export default function SchoolStaffPeriodTransactionPage() {
                     asmS_Id: methods.getValues('ASMS_Id'),
                     hrmE_Id: methods.getValues('HRME_Id'),
                     ismS_Id: methods.getValues('ISMS_Id'),
-                    schoolStaffPeriodMappingsavingTempDTO: items.map(i => {
+                    schoolStaffPeriodMappingsavingTempDTO: items.map((i) => {
                         // Ensure we have lpmT_Id
-                        const finalTopicId = i.lpmT_Id || (gridData?.find(gd => gd.lplP_Id === i.lplP_Id)?.lpmT_Id) || 0;
+                        const finalTopicId = i.lpmT_Id || gridData?.find((gd) => gd.lplP_Id === i.lplP_Id)?.lpmT_Id || 0;
 
                         return {
                             lplP_LPDate: i.alldates,
@@ -151,21 +145,17 @@ export default function SchoolStaffPeriodTransactionPage() {
     };
 
     return (
-        <div className="container p-4 space-y-4">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">Subject Staff Period Transaction</h1>
+        <div className='container space-y-4 p-4'>
+            <div className='flex items-center justify-between'>
+                <h1 className='font-bold text-2xl'>Subject Staff Period Transaction</h1>
             </div>
 
             <FormProvider {...methods}>
-                <SearchForm
-                    masterYear={initialData.masteryear}
-                    employees={initialData.employeedetails}
-                    onSearch={handleSearch}
-                />
+                <SearchForm masterYear={initialData.masteryear} employees={initialData.employeedetails} onSearch={handleSearch} />
             </FormProvider>
 
             {gridData && (
-                <CollapsibleSection title="Subject Staff Period Mapping" defaultOpen={true}>
+                <CollapsibleSection title='Subject Staff Period Mapping' defaultOpen={true}>
                     <TransactionGrid
                         key={`grid-${gridData.length}-${gridData[0]?.lplP_Id}-${gridData[0]?.lpmT_Id}`}
                         data={gridData}

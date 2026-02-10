@@ -4,7 +4,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useInstitutionsByLoginBased, useLeaveAuthorization, useLeaveAuthorizationDropdowns, useSaveLeaveAuthorization } from '@/hooks/hrms/leave-management/useMasters';
+import {
+    useInstitutionsByLoginBased,
+    useLeaveAuthorization,
+    useLeaveAuthorizationDropdowns,
+    useSaveLeaveAuthorization
+} from '@/hooks/hrms/leave-management/useMasters';
 import { LEAVE_AUTHORIZATION_VALIDATION } from '@/lib/validation/hrms-master-validation';
 import { Save, X } from 'lucide-react';
 import { useMemo } from 'react';
@@ -26,10 +31,12 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
         if (!institutionsData?.data || !Array.isArray(institutionsData.data)) {
             return [];
         }
-        return institutionsData.data.map((item: any) => ({
-            value: String(item.mI_Id || ''),
-            label: String(item.mI_Name || '')
-        })).filter((item: { value: string; label: string }) => item.value && item.label);
+        return institutionsData.data
+            .map((item: any) => ({
+                value: String(item.mI_Id || ''),
+                label: String(item.mI_Name || '')
+            }))
+            .filter((item: { value: string; label: string }) => item.value && item.label);
     }, [institutionsData]);
 
     // Extract dropdown options from API

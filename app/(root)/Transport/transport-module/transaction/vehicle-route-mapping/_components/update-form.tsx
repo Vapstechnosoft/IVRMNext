@@ -5,17 +5,22 @@ import { Calendar } from '@/components/ui/calendar';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useRouteDropDown, useSessionDropDown, useVehicleDropDown, useVehicleRouteMapping } from '@/hooks/transport/transportmodule/usetransaction';
+import {
+    useRouteDropDown,
+    useSessionDropDown,
+    useVehicleDropDown,
+    useVehicleRouteMapping
+} from '@/hooks/transport/transportmodule/usetransaction';
 import { cn } from '@/lib/utils';
 import { vehicleRouteMappingSchema } from '@/schemas/transport/transaction';
 import { saveVehicleRouteMapping } from '@/server/transport/transport-module/transaction/vehicle-route-mapping';
 import type { IVehicleRouteMapping } from '@/types/transport/transport-module/transaction';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CalendarIcon, Loader2, Save } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 interface UpdateFormProps {
     onClose: () => void;
@@ -32,9 +37,9 @@ export default function UpdateForm({ onClose, selectedRow: row }: UpdateFormProp
     const { data: routeData, isLoading: routeLoading } = useRouteDropDown();
     const { data: sessionData, isLoading: sessionLoading } = useSessionDropDown();
 
-    const vehicles = useMemo(() => Array.isArray(vehicleData) ? vehicleData : vehicleData?.data || [], [vehicleData]);
-    const routes = useMemo(() => Array.isArray(routeData) ? routeData : routeData?.data || [], [routeData]);
-    const sessions = useMemo(() => Array.isArray(sessionData) ? sessionData : sessionData?.data || [], [sessionData]);
+    const vehicles = useMemo(() => (Array.isArray(vehicleData) ? vehicleData : vehicleData?.data || []), [vehicleData]);
+    const routes = useMemo(() => (Array.isArray(routeData) ? routeData : routeData?.data || []), [routeData]);
+    const sessions = useMemo(() => (Array.isArray(sessionData) ? sessionData : sessionData?.data || []), [sessionData]);
 
     const isDataLoading = vehicleLoading || routeLoading || sessionLoading;
 
@@ -49,7 +54,7 @@ export default function UpdateForm({ onClose, selectedRow: row }: UpdateFormProp
             trvR_Date: row?.trvR_Date ? new Date(row.trvR_Date).toISOString() : new Date().toISOString(),
             trmV_VehicleNo: row?.trmV_VehicleNo,
             trmR_RouteName: row?.trmR_RouteName,
-            trmS_SessionName: row?.trmS_SessionName,
+            trmS_SessionName: row?.trmS_SessionName
         }
     });
 
@@ -57,7 +62,7 @@ export default function UpdateForm({ onClose, selectedRow: row }: UpdateFormProp
 
     useEffect(() => {
         if (row && !isDataLoading) {
-            console.log("UpdateForm Row Data:", row);
+            console.log('UpdateForm Row Data:', row);
 
             let flagValue = row.trmS_Flag;
             // Normalize flag value if backend sends variations
@@ -90,10 +95,14 @@ export default function UpdateForm({ onClose, selectedRow: row }: UpdateFormProp
                 trmR_Id: Number(routeId),
                 trmS_Id: Number(sessionId),
                 trmS_Flag: flagValue || 'PickUp',
-                trvR_Date: row.trvR_Date ? new Date(row.trvR_Date).toString() !== 'Invalid Date' ? row.trvR_Date : new Date().toISOString() : new Date().toISOString(),
+                trvR_Date: row.trvR_Date
+                    ? new Date(row.trvR_Date).toString() !== 'Invalid Date'
+                        ? row.trvR_Date
+                        : new Date().toISOString()
+                    : new Date().toISOString(),
                 trmV_VehicleNo: row.trmV_VehicleNo,
                 trmR_RouteName: row.trmR_RouteName,
-                trmS_SessionName: row.trmS_SessionName,
+                trmS_SessionName: row.trmS_SessionName
             });
         }
     }, [row, reset, vehicles, routes, sessions, isDataLoading]);
@@ -107,7 +116,7 @@ export default function UpdateForm({ onClose, selectedRow: row }: UpdateFormProp
                 trmS_Id: values.trmS_Id,
                 trmS_Flag: values.trmS_Flag,
                 trvR_Date: values.trvR_Date,
-                trvR_Id: values.trvR_Id,
+                trvR_Id: values.trvR_Id
             };
 
             const response = await saveVehicleRouteMapping(payload);
@@ -127,9 +136,9 @@ export default function UpdateForm({ onClose, selectedRow: row }: UpdateFormProp
 
     if (isDataLoading) {
         return (
-            <div className="flex h-60 w-full items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <span className="ml-2">Loading data...</span>
+            <div className='flex h-60 w-full items-center justify-center'>
+                <Loader2 className='h-8 w-8 animate-spin text-primary' />
+                <span className='ml-2'>Loading data...</span>
             </div>
         );
     }
@@ -144,12 +153,13 @@ export default function UpdateForm({ onClose, selectedRow: row }: UpdateFormProp
                         name='trmV_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Vehicle <span className='text-destructive'>*</span></FormLabel>
+                                <FormLabel>
+                                    Vehicle <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value}
                                     onValueChange={(val) => field.onChange(Number(val))}
-                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
-                                >
+                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Vehicle' />
@@ -174,12 +184,13 @@ export default function UpdateForm({ onClose, selectedRow: row }: UpdateFormProp
                         name='trmR_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Route Name <span className='text-destructive'>*</span></FormLabel>
+                                <FormLabel>
+                                    Route Name <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value}
                                     onValueChange={(val) => field.onChange(Number(val))}
-                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
-                                >
+                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Route' />
@@ -204,7 +215,9 @@ export default function UpdateForm({ onClose, selectedRow: row }: UpdateFormProp
                         name='trvR_Date'
                         render={({ field }) => (
                             <FormItem className='flex flex-col'>
-                                <FormLabel>Date <span className='text-destructive'>*</span></FormLabel>
+                                <FormLabel>
+                                    Date <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <FormControl>
@@ -213,8 +226,7 @@ export default function UpdateForm({ onClose, selectedRow: row }: UpdateFormProp
                                                 className={cn(
                                                     'w-full pl-3 text-left font-normal',
                                                     !field.value && 'text-muted-foreground'
-                                                )}
-                                            >
+                                                )}>
                                                 {field.value && new Date(field.value).toString() !== 'Invalid Date' ? (
                                                     <span>{new Date(field.value).toLocaleDateString()}</span>
                                                 ) : (
@@ -229,9 +241,7 @@ export default function UpdateForm({ onClose, selectedRow: row }: UpdateFormProp
                                             mode='single'
                                             selected={field.value ? new Date(field.value) : undefined}
                                             onSelect={(date) => field.onChange(date?.toISOString())}
-                                            disabled={(date) =>
-                                                date < new Date('1900-01-01')
-                                            }
+                                            disabled={(date) => date < new Date('1900-01-01')}
                                             initialFocus
                                         />
                                     </PopoverContent>
@@ -247,12 +257,13 @@ export default function UpdateForm({ onClose, selectedRow: row }: UpdateFormProp
                         name='trmS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Session Name <span className='text-destructive'>*</span></FormLabel>
+                                <FormLabel>
+                                    Session Name <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value}
                                     onValueChange={(val) => field.onChange(Number(val))}
-                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
-                                >
+                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Session' />
@@ -278,26 +289,21 @@ export default function UpdateForm({ onClose, selectedRow: row }: UpdateFormProp
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>PickUp / Drop</FormLabel>
-                                <Select
-                                    key={field.value}
-                                    onValueChange={field.onChange}
-                                    value={field.value || 'PickUp'}
-                                >
+                                <Select key={field.value} onValueChange={field.onChange} value={field.value || 'PickUp'}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Flag" />
+                                            <SelectValue placeholder='Select Flag' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        <SelectItem value="PickUp">PickUp</SelectItem>
-                                        <SelectItem value="Drop">Drop</SelectItem>
+                                        <SelectItem value='PickUp'>PickUp</SelectItem>
+                                        <SelectItem value='Drop'>Drop</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
-
                 </div>
 
                 <div className='flex justify-end space-x-2'>

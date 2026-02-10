@@ -1,4 +1,4 @@
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, Legend, Tooltip as RechartsTooltip, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 
 const getMonthName = (monthNumber: number) => {
     return new Date(0, monthNumber - 1).toLocaleString('en-US', {

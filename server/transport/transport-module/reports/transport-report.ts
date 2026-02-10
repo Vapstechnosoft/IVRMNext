@@ -1,7 +1,6 @@
 'use server';
 
-import { api, type ApiResponse } from '@/lib/apiService';
-
+import { api } from '@/lib/apiService';
 
 export async function getTransportReportData(data: any) {
     const url = '/transport_report/transport_report';

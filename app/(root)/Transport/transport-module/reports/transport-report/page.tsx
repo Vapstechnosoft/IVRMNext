@@ -2,27 +2,26 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import type { ApiResponse } from '@/lib/apiService';
+import { getTransportReportData } from '@/server/transport/transport-module/reports/transport-report';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { Check, FileSpreadsheet, Loader2, Printer, X } from 'lucide-react';
+import { FileSpreadsheet, Loader2, Printer } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
 import * as XLSX from 'xlsx';
-import { useMutation } from '@tanstack/react-query';
-import { getTransportReportData } from '@/server/transport/transport-module/reports/transport-report';
-import { type ApiResponse } from '@/lib/apiService';
-import { Checkbox } from '@/components/ui/checkbox';
-
+import { z } from 'zod';
 
 const formSchema = z.object({
     allorindiv: z.enum(['All', 'indi']),
     regorname_m: z.string().optional(),
-    regorname_map: z.string().optional(),
+    regorname_map: z.string().optional()
 });
 
 export default function TransportReportPage() {
@@ -45,7 +44,7 @@ export default function TransportReportPage() {
         defaultValues: {
             allorindiv: 'All',
             regorname_m: 'masterarea',
-            regorname_map: 'routelocmap',
+            regorname_map: 'routelocmap'
         }
     });
 
@@ -60,13 +59,13 @@ export default function TransportReportPage() {
         const payload = {
             onclickloaddata: values.allorindiv,
             regorname_m: values.allorindiv === 'All' ? values.regorname_m : undefined,
-            regorname_map: values.allorindiv === 'indi' ? values.regorname_map : undefined,
+            regorname_map: values.allorindiv === 'indi' ? values.regorname_map : undefined
         };
 
-        console.log("report payload", payload);
+        console.log('report payload', payload);
         generateReport(payload, {
             onSuccess: (response: any) => {
-                console.log("transport report response", response);
+                console.log('transport report response', response);
                 if (response && response.data && response.data.length > 0) {
                     setReportData(response.data);
 
@@ -86,11 +85,7 @@ export default function TransportReportPage() {
     };
 
     const toggleRow = (index: number) => {
-        setSelectedRows(prev =>
-            prev.includes(index)
-                ? prev.filter(i => i !== index)
-                : [...prev, index]
-        );
+        setSelectedRows((prev) => (prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]));
     };
 
     const toggleSelectAll = () => {
@@ -103,26 +98,41 @@ export default function TransportReportPage() {
 
     const getMasterReportTitle = (type?: string) => {
         switch (type) {
-            case 'masterarea': return 'Master Area Report';
-            case 'masterdriver': return 'Master Driver Report';
-            case 'masterfueltype': return 'Master Fuel Report';
-            case 'masterlocation': return 'Master Location Report';
-            case 'masterroute': return 'Master Route Report';
-            case 'mastervehical': return 'Master Vehicle Report';
-            case 'mastervehicaltype': return 'Master Vehicle Type Report';
-            case 'mastersession': return 'Master Session Report';
-            case 'masterrouteschedule': return 'Master Schedule Report';
-            default: return 'Transport Report';
+            case 'masterarea':
+                return 'Master Area Report';
+            case 'masterdriver':
+                return 'Master Driver Report';
+            case 'masterfueltype':
+                return 'Master Fuel Report';
+            case 'masterlocation':
+                return 'Master Location Report';
+            case 'masterroute':
+                return 'Master Route Report';
+            case 'mastervehical':
+                return 'Master Vehicle Report';
+            case 'mastervehicaltype':
+                return 'Master Vehicle Type Report';
+            case 'mastersession':
+                return 'Master Session Report';
+            case 'masterrouteschedule':
+                return 'Master Schedule Report';
+            default:
+                return 'Transport Report';
         }
     };
 
     const getMapReportTitle = (type?: string) => {
         switch (type) {
-            case 'routelocmap': return 'Route Location Mapping Report';
-            case 'vehicalroutemap': return 'Vehicle Route Mapping Report';
-            case 'vehicaldrivermap': return 'Vehicle Driver Mapping Report';
-            case 'vehicaldriversubstitute': return 'Vehicle Driver Substitute Mapping Report';
-            default: return 'Transport Report';
+            case 'routelocmap':
+                return 'Route Location Mapping Report';
+            case 'vehicalroutemap':
+                return 'Vehicle Route Mapping Report';
+            case 'vehicaldrivermap':
+                return 'Vehicle Driver Mapping Report';
+            case 'vehicaldriversubstitute':
+                return 'Vehicle Driver Substitute Mapping Report';
+            default:
+                return 'Transport Report';
         }
     };
 
@@ -130,7 +140,7 @@ export default function TransportReportPage() {
         form.reset({
             allorindiv: 'All',
             regorname_m: 'masterarea',
-            regorname_map: 'routelocmap',
+            regorname_map: 'routelocmap'
         });
         setReportData([]);
         setSelectedRows([]);
@@ -151,14 +161,16 @@ export default function TransportReportPage() {
             headerHtml = clonedHeaderRow.outerHTML;
         }
 
-        const selectedRowsHtml = selectedRows.sort((a, b) => a - b).map(index => {
-            const row = document.querySelectorAll('#report-table tbody tr')[index];
-            // Clone the row to modify it for print (remove check box)
-            const clonedRow = row.cloneNode(true) as HTMLElement;
-            if (clonedRow.firstElementChild) clonedRow.removeChild(clonedRow.firstElementChild); // Remove checkbox cell
-            return clonedRow.outerHTML;
-        }).join('');
-
+        const selectedRowsHtml = selectedRows
+            .sort((a, b) => a - b)
+            .map((index) => {
+                const row = document.querySelectorAll('#report-table tbody tr')[index];
+                // Clone the row to modify it for print (remove check box)
+                const clonedRow = row.cloneNode(true) as HTMLElement;
+                if (clonedRow.firstElementChild) clonedRow.removeChild(clonedRow.firstElementChild); // Remove checkbox cell
+                return clonedRow.outerHTML;
+            })
+            .join('');
 
         const popupWin = window.open('', '_blank', 'width=1000,height=1000');
 
@@ -209,11 +221,13 @@ export default function TransportReportPage() {
         tempTable.appendChild(header);
 
         const tbody = document.createElement('tbody');
-        selectedRows.sort((a, b) => a - b).forEach(index => {
-            const row = document.querySelectorAll('#report-table tbody tr')[index]?.cloneNode(true) as HTMLElement;
-            if (row.firstElementChild) row.removeChild(row.firstElementChild); // Remove checkbox td
-            tbody.appendChild(row);
-        });
+        selectedRows
+            .sort((a, b) => a - b)
+            .forEach((index) => {
+                const row = document.querySelectorAll('#report-table tbody tr')[index]?.cloneNode(true) as HTMLElement;
+                if (row.firstElementChild) row.removeChild(row.firstElementChild); // Remove checkbox td
+                tbody.appendChild(row);
+            });
         tempTable.appendChild(tbody);
 
         const wb = XLSX.utils.table_to_book(tempTable);
@@ -231,7 +245,6 @@ export default function TransportReportPage() {
                 <CardContent className='pt-6'>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
-
                             {/* Main Selection */}
                             <div className='flex justify-center rounded-lg border bg-muted/20 p-4'>
                                 <FormField
@@ -243,15 +256,18 @@ export default function TransportReportPage() {
                                                 <RadioGroup
                                                     onValueChange={field.onChange}
                                                     defaultValue={field.value}
-                                                    className='flex space-x-8'
-                                                >
+                                                    className='flex space-x-8'>
                                                     <div className='flex items-center space-x-2'>
                                                         <RadioGroupItem value='All' id='radio-all' />
-                                                        <FormLabel htmlFor='radio-all' className='cursor-pointer font-semibold'>Master Reports</FormLabel>
+                                                        <FormLabel htmlFor='radio-all' className='cursor-pointer font-semibold'>
+                                                            Master Reports
+                                                        </FormLabel>
                                                     </div>
                                                     <div className='flex items-center space-x-2'>
                                                         <RadioGroupItem value='indi' id='radio-indi' />
-                                                        <FormLabel htmlFor='radio-indi' className='cursor-pointer font-semibold'>Transaction Reports</FormLabel>
+                                                        <FormLabel htmlFor='radio-indi' className='cursor-pointer font-semibold'>
+                                                            Transaction Reports
+                                                        </FormLabel>
                                                     </div>
                                                 </RadioGroup>
                                             </FormControl>
@@ -272,8 +288,7 @@ export default function TransportReportPage() {
                                                     <RadioGroup
                                                         onValueChange={field.onChange}
                                                         defaultValue={field.value}
-                                                        className='grid grid-cols-1 gap-4 md:grid-cols-2'
-                                                    >
+                                                        className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                         {[
                                                             { value: 'masterarea', label: 'Master Area' },
                                                             { value: 'masterdriver', label: 'Master Driver' },
@@ -283,11 +298,13 @@ export default function TransportReportPage() {
                                                             { value: 'mastervehical', label: 'Master Vehicle' },
                                                             { value: 'mastervehicaltype', label: 'Master Vehicle Type' },
                                                             { value: 'mastersession', label: 'Master Session' },
-                                                            { value: 'masterrouteschedule', label: 'Master Route Schedule' },
+                                                            { value: 'masterrouteschedule', label: 'Master Route Schedule' }
                                                         ].map((item) => (
                                                             <div key={item.value} className='flex items-center space-x-2'>
                                                                 <RadioGroupItem value={item.value} id={`m-${item.value}`} />
-                                                                <FormLabel htmlFor={`m-${item.value}`} className='cursor-pointer'>{item.label}</FormLabel>
+                                                                <FormLabel htmlFor={`m-${item.value}`} className='cursor-pointer'>
+                                                                    {item.label}
+                                                                </FormLabel>
                                                             </div>
                                                         ))}
                                                     </RadioGroup>
@@ -310,17 +327,18 @@ export default function TransportReportPage() {
                                                     <RadioGroup
                                                         onValueChange={field.onChange}
                                                         defaultValue={field.value}
-                                                        className='grid grid-cols-1 gap-4'
-                                                    >
+                                                        className='grid grid-cols-1 gap-4'>
                                                         {[
                                                             { value: 'routelocmap', label: 'Route Location Mapping' },
                                                             { value: 'vehicalroutemap', label: 'Vehicle Route Mapping' },
                                                             { value: 'vehicaldrivermap', label: 'Vehicle Driver Mapping' },
-                                                            { value: 'vehicaldriversubstitute', label: 'Vehicle Driver Substitute Mapping' },
+                                                            { value: 'vehicaldriversubstitute', label: 'Vehicle Driver Substitute Mapping' }
                                                         ].map((item) => (
                                                             <div key={item.value} className='flex items-center space-x-2'>
                                                                 <RadioGroupItem value={item.value} id={`t-${item.value}`} />
-                                                                <FormLabel htmlFor={`t-${item.value}`} className='cursor-pointer'>{item.label}</FormLabel>
+                                                                <FormLabel htmlFor={`t-${item.value}`} className='cursor-pointer'>
+                                                                    {item.label}
+                                                                </FormLabel>
                                                             </div>
                                                         ))}
                                                     </RadioGroup>
@@ -333,8 +351,6 @@ export default function TransportReportPage() {
 
                             {/* Buttons */}
                             <div className='flex justify-center gap-4 border-t pt-4'>
-
-
                                 <Button type='submit' disabled={isGenerating} className='min-w-32'>
                                     {isGenerating ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
                                     {isGenerating ? 'Generating...' : 'Report'}
@@ -374,22 +390,20 @@ export default function TransportReportPage() {
             {reportData.length > 0 && (
                 <Card className='fade-in-50 slide-in-from-bottom-5 w-full animate-in shadow-lg'>
                     <CardHeader className='pb-2 text-center'>
-                        <CardTitle className='text-lg font-semibold uppercase'>{reportTitle}</CardTitle>
+                        <CardTitle className='font-semibold text-lg uppercase'>{reportTitle}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className='rounded-md border p-2 mb-4 bg-muted/20 text-sm font-medium'>
-                            Total Records: {reportData.length}
-                        </div>
-                        <div className='overflow-auto max-h-[600px] border rounded-md' id="report-table-container">
+                        <div className='mb-4 rounded-md border bg-muted/20 p-2 font-medium text-sm'>Total Records: {reportData.length}</div>
+                        <div className='max-h-[600px] overflow-auto rounded-md border' id='report-table-container'>
                             {/* Dynamic Table Rendering */}
-                            <Table id="report-table">
-                                <TableHeader className='bg-primary/10 sticky top-0'>
+                            <Table id='report-table'>
+                                <TableHeader className='sticky top-0 bg-primary/10'>
                                     <TableRow>
-                                        <TableHead className="w-[50px] text-center">
+                                        <TableHead className='w-[50px] text-center'>
                                             <Checkbox
                                                 checked={reportData.length > 0 && selectedRows.length === reportData.length}
                                                 onCheckedChange={toggleSelectAll}
-                                                aria-label="Select all"
+                                                aria-label='Select all'
                                             />
                                         </TableHead>
                                         <TableHead className='w-[60px] text-center font-bold'>SL.No.</TableHead>
@@ -499,17 +513,13 @@ export default function TransportReportPage() {
                                                 <TableHead className='font-bold'>To Date</TableHead>
                                             </>
                                         )}
-
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {reportData.map((item, index) => (
                                         <TableRow key={index} className='hover:bg-muted/50'>
-                                            <TableCell className="text-center">
-                                                <Checkbox
-                                                    checked={selectedRows.includes(index)}
-                                                    onCheckedChange={() => toggleRow(index)}
-                                                />
+                                            <TableCell className='text-center'>
+                                                <Checkbox checked={selectedRows.includes(index)} onCheckedChange={() => toggleRow(index)} />
                                             </TableCell>
                                             <TableCell className='text-center'>{index + 1}</TableCell>
 
@@ -528,7 +538,11 @@ export default function TransportReportPage() {
                                                     <TableCell>{item.trmD_DriverCode}</TableCell>
                                                     <TableCell>{item.trmD_DLNo}</TableCell>
                                                     <TableCell>{item.trmD_RTOName}</TableCell>
-                                                    <TableCell>{item.trmD_DLExpiryDate ? format(new Date(item.trmD_DLExpiryDate), 'dd/MM/yyyy') : ''}</TableCell>
+                                                    <TableCell>
+                                                        {item.trmD_DLExpiryDate
+                                                            ? format(new Date(item.trmD_DLExpiryDate), 'dd/MM/yyyy')
+                                                            : ''}
+                                                    </TableCell>
                                                 </>
                                             )}
                                             {/* Master Fuel */}
@@ -598,7 +612,9 @@ export default function TransportReportPage() {
                                                 <>
                                                     <TableCell>{item.trmV_VehicleName}</TableCell>
                                                     <TableCell>{item.trmR_RouteName}</TableCell>
-                                                    <TableCell>{item.trvR_Date ? format(new Date(item.trvR_Date), 'dd/MM/yyyy') : ''}</TableCell>
+                                                    <TableCell>
+                                                        {item.trvR_Date ? format(new Date(item.trvR_Date), 'dd/MM/yyyy') : ''}
+                                                    </TableCell>
                                                     <TableCell>{item.trmS_SessionName}</TableCell>
                                                 </>
                                             )}
@@ -608,7 +624,9 @@ export default function TransportReportPage() {
                                                 <>
                                                     <TableCell>{item.trmV_VehicleName}</TableCell>
                                                     <TableCell>{item.trmD_DriverName}</TableCell>
-                                                    <TableCell>{item.trvD_Date ? format(new Date(item.trvD_Date), 'dd/MM/yyyy') : ''}</TableCell>
+                                                    <TableCell>
+                                                        {item.trvD_Date ? format(new Date(item.trvD_Date), 'dd/MM/yyyy') : ''}
+                                                    </TableCell>
                                                     <TableCell>{item.trmS_SessionName}</TableCell>
                                                 </>
                                             )}
@@ -619,11 +637,14 @@ export default function TransportReportPage() {
                                                     <TableCell>{item.trmV_VehicleName}</TableCell>
                                                     <TableCell>{item.absent_Driver}</TableCell>
                                                     <TableCell>{item.substitute_Driver}</TableCell>
-                                                    <TableCell>{item.trvdS_FromDate ? format(new Date(item.trvdS_FromDate), 'dd/MM/yyyy') : ''}</TableCell>
-                                                    <TableCell>{item.trvdS_ToDate ? format(new Date(item.trvdS_ToDate), 'dd/MM/yyyy') : ''}</TableCell>
+                                                    <TableCell>
+                                                        {item.trvdS_FromDate ? format(new Date(item.trvdS_FromDate), 'dd/MM/yyyy') : ''}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {item.trvdS_ToDate ? format(new Date(item.trvdS_ToDate), 'dd/MM/yyyy') : ''}
+                                                    </TableCell>
                                                 </>
                                             )}
-
                                         </TableRow>
                                     ))}
                                 </TableBody>

@@ -4,9 +4,7 @@ import AddInteractionForm from '@/app/(root)/alumni/alumni-module/transactions/a
 import InboxList from '@/app/(root)/alumni/alumni-module/transactions/alumni-interactions/_components/inbox-list';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-    getAlumniInteractionLoadData
-} from '@/server/alumni/alumni-interactions';
+import { getAlumniInteractionLoadData } from '@/server/alumni/alumni-interactions';
 import type { IAlumniInteraction } from '@/types/alumni/alumni-interactions';
 import { Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';

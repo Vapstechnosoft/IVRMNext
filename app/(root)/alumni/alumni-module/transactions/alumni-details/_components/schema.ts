@@ -29,14 +29,20 @@ export const alumnusMembershipSchema = z.object({
     ALMST_DOB: z.date({ required_error: 'Date of Birth is required' }),
     ALMST_MobileNo: z.string().regex(/^[0-9]{10}$/, 'Mobile No must be exactly 10 digits'),
     ALMST_FatherName: z.string().min(1, 'Father Name is required'),
-    ALMST_PhoneNo: z.string().refine(v => v === "" || /^[0-9]{10}$/.test(v), "Must be exactly 10 digits").optional(),
+    ALMST_PhoneNo: z
+        .string()
+        .refine((v) => v === '' || /^[0-9]{10}$/.test(v), 'Must be exactly 10 digits')
+        .optional(),
     ALMST_emailId: z.string().min(1, 'Email Id is required'),
     ALMST_BloodGroup: z.string().min(1, 'Blood Group is required'),
     ALMST_Marital_Status: z.string().default('0'),
 
     // Spouse details
     ALMST_SpouseName: z.string().optional(),
-    ALMST_SpouseContactNo: z.string().refine(v => v === "" || /^[0-9]{10}$/.test(v), "Must be exactly 10 digits").optional(),
+    ALMST_SpouseContactNo: z
+        .string()
+        .refine((v) => v === '' || /^[0-9]{10}$/.test(v), 'Must be exactly 10 digits')
+        .optional(),
     ALMST_SpouseEmailId: z.string().optional(),
     ALMST_SpouseQulaification: z.string().optional(),
     ALMST_SpouseProfession: z.string().optional(),
@@ -143,8 +149,5 @@ export const alumnusMembershipUpdateSchema = z.object({
     ALMSTRADM_Id: z.number().optional(),
     Readmitted_student: z.boolean().default(false)
 });
-
-
-
 
 export type IAlumnusMembershipFormValues = z.infer<typeof alumnusMembershipSchema>;

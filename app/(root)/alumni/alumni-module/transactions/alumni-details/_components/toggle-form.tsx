@@ -24,7 +24,12 @@ export default function ToggleAlumnusForm({ rowData, onClose, onSuccess }: Toggl
             const response: any = await deactivateAlumnus(rowData.almsT_Id);
             const message = response?.message || `Alumnus ${isActive ? 'deactivated' : 'activated'} successfully`;
 
-            if (response === true || response?.success || response?.data === true || (message && message.toLowerCase().includes('successfully'))) {
+            if (
+                response === true ||
+                response?.success ||
+                response?.data === true ||
+                (message && message.toLowerCase().includes('successfully'))
+            ) {
                 // Backend quirk: Deactivation might say "DeActivated successfully" but return success: false
                 // We trust the "successfully" keyword in the message
                 toast.success(message);
@@ -45,7 +50,8 @@ export default function ToggleAlumnusForm({ rowData, onClose, onSuccess }: Toggl
             <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} alumnus: <strong>{rowData.amsT_FirstName || rowData.almsT_FirstName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} alumnus:{' '}
+                        <strong>{rowData.amsT_FirstName || rowData.almsT_FirstName}</strong>?
                     </p>
                 </AdaptiveBody>
                 <AdaptiveFooter>

@@ -13,11 +13,7 @@ export const userPasswordCreationColumns: ColumnDef<IStudent>[] = [
             />
         ),
         cell: ({ row }) => (
-            <Checkbox
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label='Select row'
-            />
+            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
         ),
         enableSorting: false,
         enableHiding: false

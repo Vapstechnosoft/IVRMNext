@@ -17,7 +17,6 @@ import {
     getSubjectsForIndividualExam,
     getSubjectsForPromotionalExam
 } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
-import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { IESubject, IExamSubjectGroupMapping, IExamSubjectGroupingDetails } from '@/types/exam/exam-module/exam-mapping';
 import type { ICategory } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -62,17 +61,12 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
     const [subjects, setSubjects] = useState<IESubject[]>([]);
     const [detail, setDetail] = useState<IExamSubjectGroupingDetails | null>(null);
 
-    const {
-        data: academicYear,
-        isLoading: academicYearLoading,
-        error: academicYearError,
-    } = useAcademicYearDropdown();
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
     const esG_ExamPromotionFlag = useWatch({ control, name: 'esG_ExamPromotionFlag' });
     const asmaY_Id = useWatch({ control, name: 'asmaY_Id' });
     const emcA_Id = useWatch({ control, name: 'emcA_Id' });
     const emE_Id = useWatch({ control, name: 'emE_Id' });
-
 
     // Step 2: Load Mapping Details + Pre-fill
     useEffect(() => {

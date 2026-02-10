@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { deactivateEvent, switch2 } from '@/server/alumni/master-coe';
+import { deactivateEvent } from '@/server/alumni/master-coe';
 import type { IEventsMapping } from '@/types/alumni/master-coe';
 import type React from 'react';
 import { toast } from 'sonner';
@@ -38,17 +38,21 @@ export default function ToggleEventsMappingForm({ rowData, onClose, onSuccess }:
     };
 
     return (
-        <AdaptiveDialog title={`${(rowData.coeE_ActiveFlag || (rowData as any).COEE_ActiveFlag) ? 'Deactivate' : 'Activate'} Mapping?`} isOpen={true} onClose={onClose}>
+        <AdaptiveDialog
+            title={`${rowData.coeE_ActiveFlag || (rowData as any).COEE_ActiveFlag ? 'Deactivate' : 'Activate'} Mapping?`}
+            isOpen={true}
+            onClose={onClose}>
             <form onSubmit={handleConfirm} className='flex flex-col gap-4'>
                 <AdaptiveBody>
-                    Are you sure you want to {(rowData.coeE_ActiveFlag || (rowData as any).COEE_ActiveFlag) ? 'deactivate' : 'activate'} the mapping for event &quot;{rowData.coemE_EventName || (rowData as any).COEME_EventName}&quot;?
+                    Are you sure you want to {rowData.coeE_ActiveFlag || (rowData as any).COEE_ActiveFlag ? 'deactivate' : 'activate'} the
+                    mapping for event &quot;{rowData.coemE_EventName || (rowData as any).COEME_EventName}&quot;?
                 </AdaptiveBody>
                 <AdaptiveFooter>
                     <Button variant='secondary' onClick={onClose} type='button'>
                         Cancel
                     </Button>
-                    <Button type='submit' variant={(rowData.coeE_ActiveFlag || (rowData as any).COEE_ActiveFlag) ? 'destructive' : 'default'}>
-                        {(rowData.coeE_ActiveFlag || (rowData as any).COEE_ActiveFlag) ? 'Deactivate' : 'Activate'}
+                    <Button type='submit' variant={rowData.coeE_ActiveFlag || (rowData as any).COEE_ActiveFlag ? 'destructive' : 'default'}>
+                        {rowData.coeE_ActiveFlag || (rowData as any).COEE_ActiveFlag ? 'Deactivate' : 'Activate'}
                     </Button>
                 </AdaptiveFooter>
             </form>

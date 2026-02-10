@@ -8,7 +8,7 @@ import { useCallback } from 'react';
 
 export const excelnotimportedstudentColumns: ColumnDef<ExcelNotImportedStudentDetailsReport>[] = [
     {
-        accessorKey: 'id',
+        accessorKey: 'feipsT_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -20,44 +20,53 @@ export const excelnotimportedstudentColumns: ColumnDef<ExcelNotImportedStudentDe
         enableHiding: false
     },
     {
-        accessorKey: 'academicyear',
+        accessorKey: 'asmaY_Year',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
-        cell: ({ row }) => <div>{row.getValue('academicyear')}</div>,
+        cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'admissionNo',
+        accessorKey: 'amsT_AdmNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Admission No' />,
-        cell: ({ row }) => <div>{row.getValue('admissionNo')}</div>,
+        cell: ({ row }) => <div>{row.getValue('amsT_AdmNo')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'paiddate',
+        accessorKey: 'feipsT_Date',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Paid Date' />,
-        cell: ({ row }) => <div>{row.getValue('paiddate')}</div>,
+        //cell: ({ row }) => <div>{row.getValue('feipsT_Date')}</div>,
+        cell: ({ row }) => (
+            <div>
+                {new Date(row.getValue('feipsT_Date')).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                })}
+            </div>
+        ),
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'amount',
+        accessorKey: 'feipsT_Amount',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Amount' />,
-        cell: ({ row }) => <div>₹{Number(row.getValue('amount')).toLocaleString('en-IN')}</div>,
+        cell: ({ row }) => <div>₹{Number(row.getValue('feipsT_Amount')).toLocaleString('en-IN')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'remarks',
+        accessorKey: 'feipsT_Remarks',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' />,
-        cell: ({ row }) => <div>{row.getValue('remarks')}</div>,
+        cell: ({ row }) => <div>{row.getValue('feipsT_Remarks')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'paymentmode',
+        accessorKey: 'feipsT_PayementMode',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Payment Mode' />,
-        cell: ({ row }) => <div>{row.getValue('paymentmode')}</div>,
+        cell: ({ row }) => <div>{row.getValue('feipsT_PayementMode')}</div>,
         enableSorting: true,
         enableHiding: true
     },

@@ -9,8 +9,7 @@ import { categoryClassMappingSchema } from '@/schemas/exam/exam-module/masters';
 import {
     addOrUpdateCategoryClassMapping,
     getCategories,
-    getClassMappedSections,
-    getClasses
+    getClassMappedSections
 } from '@/server/exam/exam-module/masters/category-class-mapping';
 import { getOpeningClassDropdownData } from '@/server/fees/trasactions/fee_opening_balance';
 import type { ICategory, IClass } from '@/types/exam/exam-module/masters';
@@ -39,8 +38,6 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
     const [resetKey, setResetKey] = useState(0);
-
-
 
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
@@ -84,8 +81,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
     const watchedYear = useWatch({ control, name: 'asmaY_Id' });
     const watchedClass = useWatch({ control, name: 'asmcL_Id' });
     const watchedCategory = useWatch({ control, name: 'emcA_Id' });
-    const watchedSections = useWatch({control,name: "section_list",}) as {asmS_Id: number;asmC_SectionName?: string;}[];
-    
+    const watchedSections = useWatch({ control, name: 'section_list' }) as { asmS_Id: number; asmC_SectionName?: string }[];
 
     // ---------- Load Initial Dropdowns (Categories & Classes) ----------
     useEffect(() => {
@@ -204,7 +200,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                 // The form value usually just has IDs if using some components, but `CustomMultiSelectBox`
                 // usually returns what we give it or we mapping it.
                 // In onChange below, we map to objects.
-                const sectionName = sections.find(sec => sec.asmS_Id === s.asmS_Id)?.asmC_SectionName || s.asmC_SectionName || 'Unknown';
+                const sectionName = sections.find((sec) => sec.asmS_Id === s.asmS_Id)?.asmC_SectionName || s.asmC_SectionName || 'Unknown';
                 return {
                     asmS_Id: Number(s.asmS_Id),
                     asmC_SectionName: sectionName
@@ -277,8 +273,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
         setValue('section_list', []);
         setEditIndex(null);
         setSections([]);
-        setResetKey(prev => prev + 1);
-
+        setResetKey((prev) => prev + 1);
     };
 
     const handleResetAll = () => {
@@ -353,16 +348,19 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                                         // But here 'getClasses' is independent.
                                         // However, 'sections' ARE dependent.
                                     }}
-                                    disabled={mappingList.length > 0 && field.value !== 0}
-                                >
+                                    disabled={mappingList.length > 0 && field.value !== 0}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='Select Academic Year' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {academicYearLoading ? (
-                                            <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                            <SelectItem value='loading' disabled>
+                                                Loading...
+                                            </SelectItem>
                                         ) : academicYears.length === 0 ? (
-                                            <SelectItem value='empty' disabled>No Academic Years</SelectItem>
+                                            <SelectItem value='empty' disabled>
+                                                No Academic Years
+                                            </SelectItem>
                                         ) : (
                                             academicYears.map((y) => (
                                                 <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
@@ -389,23 +387,26 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                         render={({ field }) => (
                             <>
                                 <Select
-                                     key={`category-${resetKey}`}
+                                    key={`category-${resetKey}`}
                                     value={field.value && field.value !== 0 ? String(field.value) : ''}
                                     onValueChange={(val) => {
                                         field.onChange(Number(val));
                                         // Category change might not strictly require clearing others, but typically
                                         // in a mapping form you might want to keep the year/class selection.
                                     }}
-                                    disabled={mappingList.length > 0 && field.value !== 0}
-                                >
+                                    disabled={mappingList.length > 0 && field.value !== 0}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='Select Category' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {loadingCategories ? (
-                                            <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                            <SelectItem value='loading' disabled>
+                                                Loading...
+                                            </SelectItem>
                                         ) : categories.length === 0 ? (
-                                            <SelectItem value='empty' disabled>No Categories</SelectItem>
+                                            <SelectItem value='empty' disabled>
+                                                No Categories
+                                            </SelectItem>
                                         ) : (
                                             categories.map((c) => (
                                                 <SelectItem key={c.emcA_Id} value={String(c.emcA_Id)}>
@@ -438,16 +439,19 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                                         field.onChange(Number(val));
                                         // Class Changed -> Reset Sections
                                         setValue('section_list', []);
-                                    }}
-                                >
+                                    }}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='Select Class' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {loadingClasses ? (
-                                            <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                            <SelectItem value='loading' disabled>
+                                                Loading...
+                                            </SelectItem>
                                         ) : classes.length === 0 ? (
-                                            <SelectItem value='empty' disabled>No Classes</SelectItem>
+                                            <SelectItem value='empty' disabled>
+                                                No Classes
+                                            </SelectItem>
                                         ) : (
                                             classes.map((c) => (
                                                 <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
@@ -514,11 +518,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
 
             {/* ACTION BUTTONS */}
             <div className='flex w-fit items-center justify-center gap-3 md:col-span-2'>
-                <Button
-                    type='button'
-                    variant='outline'
-                    onClick={handleClear}
-                >
+                <Button type='button' variant='outline' onClick={handleClear}>
                     <X className='mr-2 h-4 w-4 text-destructive' />
                     CLEAR
                 </Button>
@@ -549,17 +549,18 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                                         <tr key={i} className='even:bg-muted/20'>
                                             <td className='border p-2 text-center'>{i + 1}</td>
                                             <td className='border p-2 text-center'>
-                                                {academicYears.find((y) => String(y.asmaY_Id) === String(m.asmaY_Id))?.asmaY_Year || m.asmaY_Id}
+                                                {academicYears.find((y) => String(y.asmaY_Id) === String(m.asmaY_Id))?.asmaY_Year ||
+                                                    m.asmaY_Id}
                                             </td>
                                             <td className='border p-2 text-center'>
-                                                {categories.find((c) => Number(c.emcA_Id) === Number(m.emcA_Id))?.emcA_CategoryName || m.emcA_Id}
+                                                {categories.find((c) => Number(c.emcA_Id) === Number(m.emcA_Id))?.emcA_CategoryName ||
+                                                    m.emcA_Id}
                                             </td>
                                             <td className='border p-2 text-center'>
-                                                {classes.find((c) => Number(c.asmcL_Id) === Number(m.asmcL_Id))?.asmcL_ClassName || m.asmcL_Id}
+                                                {classes.find((c) => Number(c.asmcL_Id) === Number(m.asmcL_Id))?.asmcL_ClassName ||
+                                                    m.asmcL_Id}
                                             </td>
-                                            <td className='border p-2'>
-                                                {m.section_list.map((s) => s.asmC_SectionName).join(', ')}
-                                            </td>
+                                            <td className='border p-2'>{m.section_list.map((s) => s.asmC_SectionName).join(', ')}</td>
                                             <td className='border p-2 text-center'>
                                                 <div className='flex justify-center gap-2'>
                                                     <Button
@@ -567,8 +568,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                                                         variant='ghost'
                                                         size='icon'
                                                         onClick={() => handleEdit(i)}
-                                                        className='h-8 w-8 hover:text-blue-600'
-                                                    >
+                                                        className='h-8 w-8 hover:text-blue-600'>
                                                         <Edit className='h-4 w-4' />
                                                     </Button>
                                                     <Button
@@ -579,8 +579,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                                                             setDeleteIndex(i);
                                                             setConfirmOpen(true);
                                                         }}
-                                                        className='h-8 w-8 hover:text-red-600'
-                                                    >
+                                                        className='h-8 w-8 hover:text-red-600'>
                                                         <Trash2 className='h-4 w-4' />
                                                     </Button>
                                                 </div>
@@ -593,21 +592,11 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                     </div>
 
                     <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                        <Button
-                            type='button'
-                            variant='outline'
-                            onClick={handleResetAll}
-                            disabled={isSubmitting}
-                        >
+                        <Button type='button' variant='outline' onClick={handleResetAll} disabled={isSubmitting}>
                             Reset All
                         </Button>
 
-                        <Button
-                            type='submit'
-                            disabled={isSubmitting}
-                            isLoading={isSubmitting}
-                            loadingText='Saving...'
-                        >
+                        <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting} loadingText='Saving...'>
                             <Save className='mr-2 h-4 w-4' />
                             Save Category Class Mapping
                         </Button>
@@ -631,8 +620,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                                     if (deleteIndex !== null) handleDelete(deleteIndex);
                                     setConfirmOpen(false);
                                     setDeleteIndex(null);
-                                }}
-                            >
+                                }}>
                                 Delete
                             </Button>
                         </div>

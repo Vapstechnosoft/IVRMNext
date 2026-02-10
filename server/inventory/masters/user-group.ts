@@ -15,6 +15,18 @@ export async function fetchUserGroupData(searchParams?: ApiSearchparams): Promis
             api.post<any>('inventory', mainGroupDropdownUrl, {})
         ]);
 
+        if (userGroupResponse.success === false && userGroupResponse.total === 0) {
+            return {
+                success: true,
+                data: {
+                    get_usergroup: [],
+                    get_maingroupdd: [],
+                    usergroupTotal: 0
+                },
+                message: userGroupResponse.message
+            };
+        }
+
         const extractData = (res: any): any[] => {
             if (!res) return [];
             if (Array.isArray(res)) return res;

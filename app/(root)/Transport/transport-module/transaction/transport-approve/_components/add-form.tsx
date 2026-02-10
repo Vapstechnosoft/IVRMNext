@@ -11,7 +11,7 @@ import { Loader2, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 interface AddFormProps {
     onSearch: (data: any) => void;
@@ -37,7 +37,7 @@ export default function AddForm({ onSearch }: AddFormProps) {
             asmaY_Id: undefined,
             asmcL_Id: 0,
             trmR_Id: 0,
-            newreg: undefined,
+            newreg: undefined
         }
     });
 
@@ -48,9 +48,9 @@ export default function AddForm({ onSearch }: AddFormProps) {
                 ASMAY_Id: values.asmaY_Id,
                 ASMCL_Id: values.asmcL_Id,
                 TRMR_Id: values.trmR_Id,
-                RegularNew: values.newreg,
+                RegularNew: values.newreg
             };
-            console.log("search students", payload);
+            console.log('search students', payload);
             const response = await searchTransportApprovedDetails(payload);
             if (response && response.data && response.data.length > 0) {
                 onSearch(response.data);
@@ -75,11 +75,13 @@ export default function AddForm({ onSearch }: AddFormProps) {
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year <span className='text-destructive'>*</span></FormLabel>
+                                <FormLabel>
+                                    Academic Year <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Year" />
+                                            <SelectValue placeholder='Select Year' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -101,15 +103,17 @@ export default function AddForm({ onSearch }: AddFormProps) {
                         name='asmcL_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Class <span className='text-destructive'>*</span></FormLabel>
+                                <FormLabel>
+                                    Class <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={(val) => field.onChange(Number(val))} defaultValue={field.value?.toString()}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Class" />
+                                            <SelectValue placeholder='Select Class' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        <SelectItem value="0">All</SelectItem>
+                                        <SelectItem value='0'>All</SelectItem>
                                         {classes.map((item: any) => (
                                             <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
                                                 {item.asmcL_ClassName}
@@ -128,15 +132,17 @@ export default function AddForm({ onSearch }: AddFormProps) {
                         name='trmR_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Route <span className='text-destructive'>*</span></FormLabel>
+                                <FormLabel>
+                                    Route <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={(val) => field.onChange(Number(val))} defaultValue={field.value?.toString()}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Route" />
+                                            <SelectValue placeholder='Select Route' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        <SelectItem value="0">All</SelectItem>
+                                        <SelectItem value='0'>All</SelectItem>
                                         {routes.map((item: any) => (
                                             <SelectItem key={item.trmR_Id} value={item.trmR_Id.toString()}>
                                                 {item.trmR_RouteNo}: {item.trmR_RouteName}
@@ -155,17 +161,19 @@ export default function AddForm({ onSearch }: AddFormProps) {
                         name='newreg'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>New/Regular <span className='text-destructive'>*</span></FormLabel>
+                                <FormLabel>
+                                    New/Regular <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Status" />
+                                            <SelectValue placeholder='Select Status' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        <SelectItem value="New">New</SelectItem>
-                                        <SelectItem value="Regular">Regular</SelectItem>
-                                        <SelectItem value="Both">Both</SelectItem>
+                                        <SelectItem value='New'>New</SelectItem>
+                                        <SelectItem value='Regular'>Regular</SelectItem>
+                                        <SelectItem value='Both'>Both</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />

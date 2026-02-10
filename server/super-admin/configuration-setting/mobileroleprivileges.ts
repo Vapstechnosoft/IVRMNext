@@ -1,8 +1,13 @@
 'use server';
 
 import { api } from '@/lib/apiService';
+import type {
+    IMasterPageRecord,
+    IMobilePrivilegeRecord,
+    InstitutionDropdown,
+    RoleDropdown
+} from '@/types/super-admin/configuration-setting/mobileroleprivileges';
 import { revalidatePath } from 'next/cache';
-import type { IMobileRolePrivilege, InstitutionDropdown, RoleDropdown, IMobilePrivilegeRecord, IMasterPageRecord } from '@/types/super-admin/configuration-setting/mobileroleprivileges';
 
 const FACADE = 'Mobile_role_priviledges';
 
@@ -14,7 +19,8 @@ export async function getInstitutionDropdown() {
 
         if (response && (response.success || response.data || response.institutionList)) {
             // Priority: response.data.institutionList -> response.institutionList -> response.data -> response
-            const list = response.data?.institutionList ||
+            const list =
+                response.data?.institutionList ||
                 response.institutionList ||
                 response.data?.institutionDropDown ||
                 response.institutionDropDown ||
@@ -51,7 +57,8 @@ export async function getRoleNameDropdown() {
         const response = await api.get<any>('sadmin', url);
 
         if (response && (response.success || response.data || response.roleTypeList)) {
-            const list = response.data?.roleTypeList ||
+            const list =
+                response.data?.roleTypeList ||
                 response.roleTypeList ||
                 response.data?.roles ||
                 response.roles ||
@@ -88,16 +95,20 @@ export async function getOnLoadData() {
     try {
         const url = `${FACADE}/get_onload`;
         const [onloadRes, instRes, roleRes] = await Promise.all([
-            api.get<any>('sadmin', url).catch(err => ({ success: false, data: null, message: err.message })),
+            api.get<any>('sadmin', url).catch((err) => ({ success: false, data: null, message: err.message })),
             getInstitutionDropdown(),
             getRoleNameDropdown()
         ]);
 
-        const institutions = (instRes.success && instRes.data?.length) ? instRes.data :
-            (onloadRes.data?.institutionDropDown || onloadRes.data?.institutionList || []);
+        const institutions =
+            instRes.success && instRes.data?.length
+                ? instRes.data
+                : onloadRes.data?.institutionDropDown || onloadRes.data?.institutionList || [];
 
-        const roles = (roleRes.success && roleRes.data?.length) ? roleRes.data :
-            (onloadRes.data?.roles || onloadRes.data?.roleList || onloadRes.data?.fillroletype || []);
+        const roles =
+            roleRes.success && roleRes.data?.length
+                ? roleRes.data
+                : onloadRes.data?.roles || onloadRes.data?.roleList || onloadRes.data?.fillroletype || [];
 
         return {
             success: true,
@@ -115,8 +126,6 @@ export async function getOnLoadData() {
         };
     }
 }
-
-
 
 export async function getPages(mi_id: number, ivrmrT_id: number) {
     try {
@@ -206,7 +215,7 @@ export async function deletePrivilege(id: number) {
     }
 }
 
-export async function getOnLoadGrid(page: number, pageSize: number, search: string = '') {
+export async function getOnLoadGrid(page: number, pageSize: number, search = '') {
     try {
         const url = `${FACADE}/get_onload_grid_mobile_priviledge?page=${page}&page_size=${pageSize}&search_query=${search}`;
         const response = await api.get<any>('sadmin', url);
@@ -237,7 +246,7 @@ export async function getOnLoadGrid(page: number, pageSize: number, search: stri
     }
 }
 
-export async function getMasterPagesGlobalGrid(page: number, pageSize: number, search: string = '') {
+export async function getMasterPagesGlobalGrid(page: number, pageSize: number, search = '') {
     try {
         const url = `${FACADE}/get_onchange_grid_masterpage?page=${page}&page_size=${pageSize}&search_query=${search}`;
         const response = await api.get<any>('sadmin', url);

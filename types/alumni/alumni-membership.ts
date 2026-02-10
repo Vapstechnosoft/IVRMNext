@@ -102,9 +102,9 @@ export interface IAlumniStudentDetail {
     asmaY_Year?: string;
     asmcL_ClassName?: string;
 
-    // Legacy uppercase fields - technically shouldn't be needed if data is consistent, 
-    // but if we want to keep the fallbacks in page.tsx valid, we'd add them. 
-    // However, better to fix page.tsx. 
+    // Legacy uppercase fields - technically shouldn't be needed if data is consistent,
+    // but if we want to keep the fallbacks in page.tsx valid, we'd add them.
+    // However, better to fix page.tsx.
     // Adding optional fields that might be in alumnilist
     asmaY_Year_Left?: string;
     asmaY_Year_Join?: string;
