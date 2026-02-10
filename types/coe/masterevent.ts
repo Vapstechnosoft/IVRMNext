@@ -1,4 +1,4 @@
- export interface MasterEventCoe {
+export interface MasterEventCoe {
   coemE_Id: number
   coemE_EventName: string
   coemE_EventDesc: string

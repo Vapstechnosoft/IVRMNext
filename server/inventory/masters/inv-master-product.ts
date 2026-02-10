@@ -10,6 +10,15 @@ export async function getInvMasterProductLoadData(page: number = 1) {
         const loadDataResponse = await api.get<any>('inventory', url);
         const loadData = loadDataResponse || {};
 
+        if (loadData.success === false && loadData.total === 0) {
+            return {
+                success: true,
+                data: [],
+                total: 0,
+                message: loadData.message
+            };
+        }
+
         return {
             ...loadData
         };

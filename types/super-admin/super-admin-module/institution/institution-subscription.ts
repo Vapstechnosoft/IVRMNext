@@ -1,9 +1,7 @@
 export interface IInstitutionSubscription {
     misV_Id: number;
     mI_Id: number;
-    institution?: {
-        mI_Name: string;
-    };
+    institutionName?: string;
     misV_SubscriptionType: string;
     misV_FromDate: string;
     misV_ToDate: string;

@@ -15,10 +15,10 @@ function mapApiDataToLeaveApproval(apiData: any): LeaveApprovalRow | null {
     return {
         id: apiData.HRELAP_Id || apiData.id || apiData.HRELS_Id || 0,
         employeeCode: apiData.HRME_EmployeeCode || apiData.employeeCode || apiData.EmployeeCode || '',
-        employeeName: apiData.HRME_EmployeeFirstName || 
-                     apiData.employeeName || 
-                     apiData.EmployeeName || 
-                     `${apiData.HRME_EmployeeFirstName || ''} ${apiData.HRME_EmployeeLastName || ''}`.trim() || '',
+        employeeName: apiData.HRME_EmployeeFirstName ||
+            apiData.employeeName ||
+            apiData.EmployeeName ||
+            `${apiData.HRME_EmployeeFirstName || ''} ${apiData.HRME_EmployeeLastName || ''}`.trim() || '',
         leaveName: apiData.HRML_LeaveName || apiData.leaveName || apiData.LeaveName || '',
         fromDate: apiData.HRELAP_FromDate || apiData.fromDate || apiData.FromDate || '',
         toDate: apiData.HRELAP_ToDate || apiData.toDate || apiData.ToDate || '',

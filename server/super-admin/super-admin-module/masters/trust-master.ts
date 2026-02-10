@@ -1,11 +1,12 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
 import type { ITrustMaster } from '@/types/super-admin/super-admin-module/trust-masters';
 import type { CountryDropdown } from './institution-facade';
 
 export async function getCountryList() {
-    const url = `/OrganisationFacade`;
+    const url = `/OrganisationFacade/get_country_dropdown`;
     try {
         const response = await api.get<CountryDropdown[]>('sadmin', url);
         return response;
@@ -14,8 +15,8 @@ export async function getCountryList() {
     }
 }
 
-export async function getStateList() {
-    const url = `/OrganisationFacade/state`;
+export async function getStateList(ivrmmC_Id: number) {
+    const url = `/OrganisationFacade/get_state_dropdown_onchnageof_country/${ivrmmC_Id}`;
     try {
         const response = await api.get<any[]>('sadmin', url);
         return response;
@@ -44,11 +45,11 @@ export async function activateDeactivateTrustMaster(id: number) {
     }
 }
 
-export async function getTrustMasterData(mo_id: number, roleId: number) {
-    const url = `/OrganisationFacade/get_on_load_details/${mo_id}/${roleId}`;
+export async function getTrustMasterData(searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const url = `/OrganisationFacade/get_on_load_details?${urlParams}`;
     try {
-        // Assuming 'admission' is the correct base URL key based on similar modules
-        const response = await api.get<{ organisations: ITrustMaster[] }>(
+        const response = await api.get<ITrustMaster[]>(
             'sadmin',
             url
         );
@@ -57,5 +58,3 @@ export async function getTrustMasterData(mo_id: number, roleId: number) {
         throw error;
     }
 }
-
-
