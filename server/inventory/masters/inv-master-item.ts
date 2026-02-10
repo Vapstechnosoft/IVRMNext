@@ -21,6 +21,25 @@ export async function getInvMasterItem(searchParams?: ApiSearchparams) {
             api.post<any>('inventory', `/INV_MasterItemFacade/get_taxlist`, {}).catch(e => { console.error('TaxList failed', e); return { data: [] }; })
         ]);
 
+        if (response.success === false && response.total === 0) {
+            return {
+                success: true,
+                data: {
+                    get_item: [],
+                    get_tax: [],
+                    get_itemgroup: [],
+                    get_maingroup: [],
+                    get_usergroup: [],
+                    get_UOM: [],
+                    companynames: [],
+                    ledgernames: [],
+                    companyconfig: [],
+                    total: 0
+                },
+                message: response.message
+            };
+        }
+
         const extractArray = (res: any, key?: string): any[] => {
             if (!res) return [];
             const root = res.data || res;
@@ -125,41 +144,39 @@ export async function getInvMasterItem(searchParams?: ApiSearchparams) {
 }
 
 export async function getItemTax(itemId: number) {
-    const url = `/INV_MasterItemFacade/itemTax`;
-    console.log("getItemTax: Posting for Item ID:", itemId);
+    const url = `/INV_MasterItemFacade/get_itemTax?id=${itemId}`;
+    console.log("getItemTax: Calling URL:", url);
     try {
-        const response = await api.post<any>('inventory', url, { INVMI_Id: itemId });
+        const response: any = await api.post<any>('inventory', url, {});
 
-        const extractData = (res: any, key: string) => {
-            const nested = res?.data?.[key] || res?.[key];
-            if (Array.isArray(nested)) return nested;
-            if (nested?.$values && Array.isArray(nested.$values)) return nested.$values;
+        const extractData = (res: any) => {
+            if (Array.isArray(res)) return res;
+            if (res?.data && Array.isArray(res.data)) return res.data;
+            if (res?.data?.$values && Array.isArray(res.data.$values)) return res.data.$values;
             return [];
         };
 
-        const griditemTax = extractData(response, 'griditemTax');
-        const get_itemTax = extractData(response, 'get_itemTax');
+        const rawData = extractData(response);
 
         const normalize = (list: any[]) => list.map(t => ({
-            invmiT_Id: t.invmiT_Id ?? t.INVMIT_Id ?? t.invmit_id ?? 0,
-            invmT_Id: t.invmT_Id ?? t.INVMT_Id ?? t.invmt_id,
-            invmiT_TaxValue: t.invmiT_TaxValue ?? t.INVMIT_TaxValue ?? t.invmit_taxvalue,
-            invmT_TaxName: t.invmT_TaxName ?? t.INVMT_TaxName ?? t.invmt_taxname,
-            invmT_TaxAliasName: t.invmT_TaxAliasName ?? t.INVMT_TaxAliasName ?? t.invmt_taxaliasname,
-            invmiT_ActiveFlg: t.invmiT_ActiveFlg ?? t.INVMIT_ActiveFlg ?? t.invmit_activeflg ?? false
+            invmiT_Id: t.invmiT_Id ?? t.INVMIT_Id ?? 0,
+            invmT_Id: t.invmT_Id ?? t.INVMT_Id ?? 0,
+            invmiT_TaxValue: t.invmiT_TaxValue ?? t.INVMIT_TaxValue ?? 0,
+            invmT_TaxName: t.invmT_TaxName ?? t.INVMT_TaxName ?? '',
+            invmT_TaxAliasName: t.invmT_TaxAliasName ?? t.INVMT_TaxAliasName ?? '',
+            invmiT_ActiveFlg: t.invmiT_ActiveFlg ?? t.INVMIT_ActiveFlg ?? false
         }));
 
-        const finalData = normalize(griditemTax.length > 0 ? griditemTax : get_itemTax);
+        const finalData = normalize(rawData);
 
         return {
             success: true,
-            griditemTax: finalData,
             get_itemTax: finalData,
             data: response?.data || response
         };
     } catch (error) {
         console.error('getItemTax: FAILED', error);
-        return { success: false, griditemTax: [], get_itemTax: [], data: null };
+        return { success: false, get_itemTax: [], data: null };
     }
 }
 

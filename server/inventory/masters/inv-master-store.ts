@@ -18,6 +18,18 @@ export async function getInvMasterStore(searchParams?: ApiSearchparams) {
             api.post<any>('inventory', employeeListUrl, {})
         ]);
 
+        if (storeResponse.success === false && storeResponse.total === 0) {
+            return {
+                success: true,
+                data: {
+                    get_store: [],
+                    empname_list: [],
+                    total: 0
+                },
+                message: storeResponse.message
+            };
+        }
+
         const extractData = (res: any) => {
             if (Array.isArray(res)) return res;
             if (res?.data && Array.isArray(res.data)) return res.data;
