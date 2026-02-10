@@ -1,18 +1,5 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { MobileRolePrivilegesSelectionForm } from './_components/selection-form';
-import { MasterPagesGrid } from './_components/master-pages-grid';
-import { PrivilegesGrid } from './_components/privileges-grid';
-import { MobileRolePrivilegeListGrid } from './_components/mobile-role-privilege-list-grid';
-import { MasterPagesGlobalGrid } from './_components/master-pages-global-grid';
-import { getOnLoadData, getPages, savePrivileges, deletePrivilege, getOnLoadGrid, getMasterPagesGlobalGrid } from '@/server/super-admin/configuration-setting/mobileroleprivileges';
-import type { InstitutionDropdown, RoleDropdown, IMobileRolePrivilege, IMobilePrivilegeRecord, IMasterPageRecord } from '@/types/super-admin/configuration-setting/mobileroleprivileges';
-import { toast } from 'sonner';
-import { Loader2, Save, RefreshCcw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
-import { tableSearchVariables } from '@/lib/data-table.config';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -21,8 +8,34 @@ import {
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+    AlertDialogTitle
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { tableSearchVariables } from '@/lib/data-table.config';
+import {
+    deletePrivilege,
+    getMasterPagesGlobalGrid,
+    getOnLoadData,
+    getOnLoadGrid,
+    getPages,
+    savePrivileges
+} from '@/server/super-admin/configuration-setting/mobileroleprivileges';
+import type {
+    IMasterPageRecord,
+    IMobilePrivilegeRecord,
+    IMobileRolePrivilege,
+    InstitutionDropdown,
+    RoleDropdown
+} from '@/types/super-admin/configuration-setting/mobileroleprivileges';
+import { Loader2, RefreshCcw, Save } from 'lucide-react';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { MasterPagesGlobalGrid } from './_components/master-pages-global-grid';
+import { MasterPagesGrid } from './_components/master-pages-grid';
+import { MobileRolePrivilegeListGrid } from './_components/mobile-role-privilege-list-grid';
+import { PrivilegesGrid } from './_components/privileges-grid';
+import { MobileRolePrivilegesSelectionForm } from './_components/selection-form';
 
 export default function MobileRolePrivilegesPage() {
     const [institutions, setInstitutions] = useState<InstitutionDropdown[]>([]);
@@ -63,7 +76,7 @@ export default function MobileRolePrivilegesPage() {
     const [isDeleting, setIsDeleting] = useState(false);
 
     // Fetch Main Grid Data
-    const fetchGridData = useCallback(async (p: number, ps: number, s: string = '') => {
+    const fetchGridData = useCallback(async (p: number, ps: number, s = '') => {
         setIsGridLoading(true);
         try {
             const res = await getOnLoadGrid(p, ps, s);
@@ -79,7 +92,7 @@ export default function MobileRolePrivilegesPage() {
     }, []);
 
     // Fetch Global Master Pages Data
-    const fetchMasterGlobalData = useCallback(async (p: number, ps: number, s: string = '') => {
+    const fetchMasterGlobalData = useCallback(async (p: number, ps: number, s = '') => {
         setIsMasterGlobalLoading(true);
         try {
             const res = await getMasterPagesGlobalGrid(p, ps, s);
@@ -145,28 +158,29 @@ export default function MobileRolePrivilegesPage() {
     };
 
     const handlePageSelect = (item: IMobileRolePrivilege, isChecked: boolean) => {
-        const updatedAvailable = availablePages.map(p =>
-            p.ivrmmaP_Id === item.ivrmmaP_Id ? { ...p, checked: isChecked } : p
-        );
+        const updatedAvailable = availablePages.map((p) => (p.ivrmmaP_Id === item.ivrmmaP_Id ? { ...p, checked: isChecked } : p));
         setAvailablePages(updatedAvailable);
 
         if (isChecked) {
-            const exists = cartPrivileges.some(c => c.ivrmmaP_Id === item.ivrmmaP_Id);
+            const exists = cartPrivileges.some((c) => c.ivrmmaP_Id === item.ivrmmaP_Id);
             if (!exists) {
-                setCartPrivileges([...cartPrivileges, {
-                    ...item,
-                    ivrmrP_Id: 0,
-                    ivrmrP_AddFlag: false,
-                    ivrmrP_UpdateFlag: false,
-                    ivrmrP_DeleteFlag: false,
-                    ivrmrP_ReportFlag: false,
-                    mI_Id: selectedMI!,
-                    ivrmrT_Id: selectedRole!,
-                    isNew: true
-                }]);
+                setCartPrivileges([
+                    ...cartPrivileges,
+                    {
+                        ...item,
+                        ivrmrP_Id: 0,
+                        ivrmrP_AddFlag: false,
+                        ivrmrP_UpdateFlag: false,
+                        ivrmrP_DeleteFlag: false,
+                        ivrmrP_ReportFlag: false,
+                        mI_Id: selectedMI!,
+                        ivrmrT_Id: selectedRole!,
+                        isNew: true
+                    }
+                ]);
             }
         } else {
-            setCartPrivileges(cartPrivileges.filter(c => c.ivrmmaP_Id !== item.ivrmmaP_Id));
+            setCartPrivileges(cartPrivileges.filter((c) => c.ivrmmaP_Id !== item.ivrmmaP_Id));
         }
     };
 
@@ -177,7 +191,7 @@ export default function MobileRolePrivilegesPage() {
         }
 
         if (isChecked) {
-            const exists = cartPrivileges.some(c => c.ivrmmaP_Id === item.ivrmmaP_Id);
+            const exists = cartPrivileges.some((c) => c.ivrmmaP_Id === item.ivrmmaP_Id);
             if (!exists) {
                 const newPriv: IMobileRolePrivilege = {
                     ivrmmaP_Id: item.ivrmmaP_Id,
@@ -197,15 +211,13 @@ export default function MobileRolePrivilegesPage() {
                 toast.info(`Added ${item.ivrmmaP_AppPageName} to cart`);
             }
         } else {
-            setCartPrivileges(cartPrivileges.filter(c => c.ivrmmaP_Id !== item.ivrmmaP_Id));
+            setCartPrivileges(cartPrivileges.filter((c) => c.ivrmmaP_Id !== item.ivrmmaP_Id));
         }
     };
 
     const handleRemoveFromCart = (item: IMobileRolePrivilege) => {
-        setCartPrivileges(cartPrivileges.filter(c => c.ivrmmaP_Id !== item.ivrmmaP_Id));
-        setAvailablePages(availablePages.map(p =>
-            p.ivrmmaP_Id === item.ivrmmaP_Id ? { ...p, checked: false } : p
-        ));
+        setCartPrivileges(cartPrivileges.filter((c) => c.ivrmmaP_Id !== item.ivrmmaP_Id));
+        setAvailablePages(availablePages.map((p) => (p.ivrmmaP_Id === item.ivrmmaP_Id ? { ...p, checked: false } : p)));
     };
 
     const handleSave = async () => {
@@ -223,7 +235,7 @@ export default function MobileRolePrivilegesPage() {
             const payload = {
                 ivrmrT_Id: selectedRole,
                 mI_Id: selectedMI,
-                savempdata: allPrivileges.map(p => ({
+                savempdata: allPrivileges.map((p) => ({
                     ivrmmaP_Id: p.ivrmmaP_Id,
                     ivrmmaP_AddFlg: p.ivrmrP_AddFlag,
                     ivrmmaP_UpdateFlg: p.ivrmrP_UpdateFlag,
@@ -270,27 +282,27 @@ export default function MobileRolePrivilegesPage() {
 
     if (isInitLoading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-                <Loader2 className="w-8 h-8 animate-spin text-[#7C3AED]" />
-                <p className="text-muted-foreground animate-pulse font-medium">Initializing Mobile Role Privileges...</p>
+            <div className='flex min-h-[400px] flex-col items-center justify-center space-y-4'>
+                <Loader2 className='h-8 w-8 animate-spin text-[#7C3AED]' />
+                <p className='animate-pulse font-medium text-muted-foreground'>Initializing Mobile Role Privileges...</p>
             </div>
         );
     }
 
     return (
-        <div className="container mx-auto p-6 space-y-10">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div className="space-y-2">
-                    <h1 className="text-4xl font-black tracking-tight text-[#1E293B]">
-                        Mobile Role <span className="text-[#7C3AED]">Privileges</span>
+        <div className='container mx-auto space-y-10 p-6'>
+            <div className='flex flex-col justify-between gap-4 md:flex-row md:items-end'>
+                <div className='space-y-2'>
+                    <h1 className='font-black text-4xl text-[#1E293B] tracking-tight'>
+                        Mobile Role <span className='text-[#7C3AED]'>Privileges</span>
                     </h1>
-                    <p className="text-slate-500 max-w-2xl font-medium">
+                    <p className='max-w-2xl font-medium text-slate-500'>
                         Securely map institution roles to mobile application pages and define granular access levels.
                     </p>
                 </div>
             </div>
 
-            <div className="w-full">
+            <div className='w-full'>
                 <MobileRolePrivilegesSelectionForm
                     institutions={institutions}
                     roles={roles}
@@ -300,18 +312,15 @@ export default function MobileRolePrivilegesPage() {
             </div>
 
             {availablePages.length > 0 && (
-                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <MasterPagesGrid
-                        data={availablePages}
-                        onSelect={handlePageSelect}
-                    />
+                <div className='fade-in slide-in-from-bottom-4 animate-in duration-500'>
+                    <MasterPagesGrid data={availablePages} onSelect={handlePageSelect} />
                 </div>
             )}
 
             {savedPrivileges.length > 0 && (
-                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className='fade-in slide-in-from-bottom-4 animate-in duration-500'>
                     <PrivilegesGrid
-                        title="Registered Role Privileges"
+                        title='Registered Role Privileges'
                         data={savedPrivileges}
                         onChange={setSavedPrivileges}
                         onDelete={handleDeleteClick}
@@ -320,41 +329,38 @@ export default function MobileRolePrivilegesPage() {
             )}
 
             {cartPrivileges.length > 0 && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className='fade-in slide-in-from-bottom-4 animate-in space-y-6 duration-500'>
                     <PrivilegesGrid
-                        title="Selected Master Pages"
+                        title='Selected Master Pages'
                         data={cartPrivileges}
                         onChange={setCartPrivileges}
                         onDelete={handleRemoveFromCart}
                         isCart={true}
                     />
-                    <div className="flex justify-center gap-6 py-4">
+                    <div className='flex justify-center gap-6 py-4'>
                         <Button
                             onClick={handleSave}
                             disabled={isActionLoading}
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-10 h-12 rounded-full font-bold shadow-lg shadow-emerald-200 transition-all hover:scale-105"
-                        >
-                            {isActionLoading ? <Loader2 className="w-5 h-5 mr-3 animate-spin" /> : <Save className="w-5 h-5 mr-3" />}
+                            className='h-12 rounded-full bg-emerald-600 px-10 font-bold text-white shadow-emerald-200 shadow-lg transition-all hover:scale-105 hover:bg-emerald-700'>
+                            {isActionLoading ? <Loader2 className='mr-3 h-5 w-5 animate-spin' /> : <Save className='mr-3 h-5 w-5' />}
                             Save
                         </Button>
                         <Button
-                            variant="outline"
+                            variant='outline'
                             onClick={() => {
                                 setCartPrivileges([]);
-                                setAvailablePages(availablePages.map(p => ({ ...p, checked: false })));
+                                setAvailablePages(availablePages.map((p) => ({ ...p, checked: false })));
                             }}
-                            className="h-12 px-10 rounded-full font-bold border-2 hover:bg-slate-50 transition-all"
-                        >
-                            <RefreshCcw className="w-5 h-5 mr-3" />
+                            className='h-12 rounded-full border-2 px-10 font-bold transition-all hover:bg-slate-50'>
+                            <RefreshCcw className='mr-3 h-5 w-5' />
                             Reset Selection
                         </Button>
                     </div>
                 </div>
             )}
 
-
             {selectedMI && selectedRole && (
-                <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div className='fade-in slide-in-from-bottom-4 animate-in duration-700'>
                     <MasterPagesGlobalGrid
                         data={masterGlobalRecords}
                         totalCount={masterGlobalTotal}
@@ -364,7 +370,7 @@ export default function MobileRolePrivilegesPage() {
                 </div>
             )}
 
-            <div className="pt-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+            <div className='fade-in slide-in-from-bottom-4 animate-in pt-10 duration-1000'>
                 <MobileRolePrivilegeListGrid
                     data={gridRecords}
                     totalCount={totalRecords}
@@ -375,27 +381,35 @@ export default function MobileRolePrivilegesPage() {
 
             {/* Delete Confirmation Dialog */}
             <AlertDialog open={!!rowToDelete} onOpenChange={(open) => !open && setRowToDelete(null)}>
-                <AlertDialogContent className="border-[#7C3AED]/20 shadow-2xl">
+                <AlertDialogContent className='border-[#7C3AED]/20 shadow-2xl'>
                     <AlertDialogHeader>
-                        <AlertDialogTitle className="text-[#1E293B] font-bold">Are you absolutely sure?</AlertDialogTitle>
-                        <AlertDialogDescription className="text-[#64748B]">
+                        <AlertDialogTitle className='font-bold text-[#1E293B]'>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription className='text-[#64748B]'>
                             This action cannot be undone. This will permanently delete the mapping for
-                            <span className="font-bold text-[#7C3AED]"> "{rowToDelete?.ivrmmaP_AppPageName || rowToDelete?.ivrmmaP_AppPageName}"</span>
+                            <span className='font-bold text-[#7C3AED]'>
+                                {' '}
+                                "{rowToDelete?.ivrmmaP_AppPageName || rowToDelete?.ivrmmaP_AppPageName}"
+                            </span>
                             {rowToDelete?.institutename && (
-                                <> from <span className="font-semibold text-slate-700">{rowToDelete.institutename}</span></>
-                            )}.
+                                <>
+                                    {' '}
+                                    from <span className='font-semibold text-slate-700'>{rowToDelete.institutename}</span>
+                                </>
+                            )}
+                            .
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel className="border-[#7C3AED] text-[#7C3AED] hover:bg-[#F3E8FF] rounded-full px-6">Cancel</AlertDialogCancel>
+                        <AlertDialogCancel className='rounded-full border-[#7C3AED] px-6 text-[#7C3AED] hover:bg-[#F3E8FF]'>
+                            Cancel
+                        </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={confirmDelete}
                             disabled={isDeleting}
-                            className="bg-red-500 hover:bg-red-600 text-white rounded-full px-8 shadow-lg shadow-red-100 transition-all active:scale-95"
-                        >
+                            className='rounded-full bg-red-500 px-8 text-white shadow-lg shadow-red-100 transition-all hover:bg-red-600 active:scale-95'>
                             {isDeleting ? (
                                 <>
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                                     Deleting...
                                 </>
                             ) : (

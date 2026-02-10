@@ -202,7 +202,7 @@ export const useStudentYearlyAttendance = (ASMAY_Id: number, ASMCL_Id: number, A
             queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_STUDENT_LISTS, ASMAY_Id, ASMCL_Id, ASMS_Id, searchParams ?? {}],
             queryFn: async () => GetStudentYearlyAttendance(ASMAY_Id, ASMCL_Id, ASMS_Id, searchParams),
             staleTime: 0,
-            enabled: !!ASMAY_Id && !!ASMS_Id && ASMCL_Id !== undefined
+            enabled: !!ASMAY_Id && ASMS_Id !== undefined && ASMCL_Id !== undefined
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({

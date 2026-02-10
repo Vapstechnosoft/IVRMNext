@@ -1,11 +1,5 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { MobileMasterPageForm } from './_components/mobile-master-page-form';
-import { MobileMasterPageGrid } from './_components/mobile-master-page-grid';
-import { getMobileMasterPages, deleteMobileMasterPage, getMobileMasterPageById } from '@/server/super-admin/configuration-setting/mobilemasterpage';
-import type { IMobileMasterPage } from '@/types/super-admin/configuration-setting/mobilemasterpage';
-import { toast } from 'sonner';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -14,9 +8,19 @@ import {
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+    AlertDialogTitle
+} from '@/components/ui/alert-dialog';
+import {
+    deleteMobileMasterPage,
+    getMobileMasterPageById,
+    getMobileMasterPages
+} from '@/server/super-admin/configuration-setting/mobilemasterpage';
+import type { IMobileMasterPage } from '@/types/super-admin/configuration-setting/mobilemasterpage';
 import { Loader2 } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { MobileMasterPageForm } from './_components/mobile-master-page-form';
+import { MobileMasterPageGrid } from './_components/mobile-master-page-grid';
 
 export default function MobileMasterPage() {
     const [data, setData] = useState<IMobileMasterPage[]>([]);
@@ -31,27 +35,30 @@ export default function MobileMasterPage() {
     const [total, setTotal] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
 
-    const fetchData = useCallback(async (page = 1, search = '') => {
-        setLoading(true);
-        try {
-            const result = await getMobileMasterPages({
-                page: page,
-                page_size: pageSize,
-                search_query: search
-            });
-            if (result.success) {
-                setData(result.data);
-                setTotal(result.total ?? 0);
-                setCurrentPage(result.page ?? 1);
-            } else {
-                toast.error(result.message);
+    const fetchData = useCallback(
+        async (page = 1, search = '') => {
+            setLoading(true);
+            try {
+                const result = await getMobileMasterPages({
+                    page: page,
+                    page_size: pageSize,
+                    search_query: search
+                });
+                if (result.success) {
+                    setData(result.data);
+                    setTotal(result.total ?? 0);
+                    setCurrentPage(result.page ?? 1);
+                } else {
+                    toast.error(result.message);
+                }
+            } catch (error) {
+                toast.error('Failed to fetch data');
+            } finally {
+                setLoading(false);
             }
-        } catch (error) {
-            toast.error('Failed to fetch data');
-        } finally {
-            setLoading(false);
-        }
-    }, [pageSize]);
+        },
+        [pageSize]
+    );
 
     useEffect(() => {
         fetchData(currentPage, searchTerm);
@@ -105,22 +112,18 @@ export default function MobileMasterPage() {
     };
 
     return (
-        <div className="flex flex-col gap-8 p-6 max-w-7xl mx-auto animate-in fade-in duration-500">
+        <div className='fade-in mx-auto flex max-w-7xl animate-in flex-col gap-8 p-6 duration-500'>
             {/* Form Section */}
-            <section className="w-full">
-                <MobileMasterPageForm
-                    selectedRow={selectedRow}
-                    onSuccess={handleFormSuccess}
-                    onCancel={handleFormCancel}
-                />
+            <section className='w-full'>
+                <MobileMasterPageForm selectedRow={selectedRow} onSuccess={handleFormSuccess} onCancel={handleFormCancel} />
             </section>
 
             {/* Grid Section */}
-            <section className="w-full">
+            <section className='w-full'>
                 {loading ? (
-                    <div className="flex flex-col items-center justify-center h-64 bg-white/50 backdrop-blur-sm rounded-xl border border-[#7C3AED]/10 shadow-sm">
-                        <Loader2 className="w-10 h-10 text-[#7C3AED] animate-spin mb-4" />
-                        <p className="text-[#7C3AED] font-medium animate-pulse">Loading amazing pages...</p>
+                    <div className='flex h-64 flex-col items-center justify-center rounded-xl border border-[#7C3AED]/10 bg-white/50 shadow-sm backdrop-blur-sm'>
+                        <Loader2 className='mb-4 h-10 w-10 animate-spin text-[#7C3AED]' />
+                        <p className='animate-pulse font-medium text-[#7C3AED]'>Loading amazing pages...</p>
                     </div>
                 ) : (
                     <MobileMasterPageGrid
@@ -142,24 +145,20 @@ export default function MobileMasterPage() {
 
             {/* Delete Confirmation Dialog */}
             <AlertDialog open={!!rowToDelete} onOpenChange={(open) => !open && setRowToDelete(null)}>
-                <AlertDialogContent className="border-[#7C3AED]/20 shadow-2xl">
+                <AlertDialogContent className='border-[#7C3AED]/20 shadow-2xl'>
                     <AlertDialogHeader>
-                        <AlertDialogTitle className="text-[#1E293B] font-bold">Are you absolutely sure?</AlertDialogTitle>
-                        <AlertDialogDescription className="text-[#64748B]">
+                        <AlertDialogTitle className='font-bold text-[#1E293B]'>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription className='text-[#64748B]'>
                             This action cannot be undone. This will permanently delete the page{' '}
-                            <span className="font-bold text-[#7C3AED]">"{rowToDelete?.ivrmmaP_AppPageName}"</span>.
+                            <span className='font-bold text-[#7C3AED]'>"{rowToDelete?.ivrmmaP_AppPageName}"</span>.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel className="border-[#7C3AED] text-[#7C3AED] hover:bg-[#F3E8FF]">Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={confirmDelete}
-                            disabled={isDeleting}
-                            className="bg-red-500 hover:bg-red-600 text-white"
-                        >
+                        <AlertDialogCancel className='border-[#7C3AED] text-[#7C3AED] hover:bg-[#F3E8FF]'>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} disabled={isDeleting} className='bg-red-500 text-white hover:bg-red-600'>
                             {isDeleting ? (
                                 <>
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                                     Deleting...
                                 </>
                             ) : (

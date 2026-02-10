@@ -1,43 +1,38 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
+    getBirthdayData,
+    getClasswiseStudent,
     getDashboardData,
     getGalleryData,
     getNoticeData,
-    viewGalleryItem,
-    viewNoticeItem,
     getYearwiseList,
-    getClasswiseStudent,
-    getBirthdayData
+    viewGalleryItem,
+    viewNoticeItem
 } from '@/server/alumni/alumni-dashboard';
 import { getMasterCOEInitialData } from '@/server/alumni/master-coe';
 import type {
+    IAlumniBirthday,
+    IClasswiseStudent,
     IDashboardData,
     IGallery,
     INotice,
-    IYearwiseCount,
-    IClasswiseStudent,
-    IAlumniBirthday
+    IYearwiseCount
 } from '@/types/alumni/alumni-dashboard';
-import BirthdayMarquee from './_components/birthday-marquee';
-import QuickLinkCards from './_components/quick-link-cards';
-import DashboardTabs from './_components/dashboard-tabs';
-import CalendarSection from './_components/calendar-section';
-import TotalAlumniList from './_components/total-alumni-list';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
-import { Eye, Download, FileText, LayoutDashboard } from 'lucide-react';
+import { Download, Eye, FileText, LayoutDashboard } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import BirthdayMarquee from './_components/birthday-marquee';
+import CalendarSection from './_components/calendar-section';
+import DashboardTabs from './_components/dashboard-tabs';
+import QuickLinkCards from './_components/quick-link-cards';
+import TotalAlumniList from './_components/total-alumni-list';
 
 export default function AlumniDashboardPage() {
     const router = useRouter();
@@ -182,16 +177,16 @@ export default function AlumniDashboardPage() {
                             <LayoutDashboard className='h-8 w-8 text-white' />
                         </div>
                         <div>
-                            <h1 className='text-4xl font-extrabold tracking-tight'>Alumni Dashboard</h1>
-                            <p className='mt-1 text-blue-100/80 font-medium'>
+                            <h1 className='font-extrabold text-4xl tracking-tight'>Alumni Dashboard</h1>
+                            <p className='mt-1 font-medium text-blue-100/80'>
                                 Welcome to the {data?.rolename || 'Alumni'} Portal. Stay connected with your alma mater.
                             </p>
                         </div>
                     </div>
                 </div>
                 {/* Decorative Elements */}
-                <div className='absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/10 blur-3xl' />
-                <div className='absolute -left-16 -bottom-16 h-48 w-48 rounded-full bg-blue-400/20 blur-2xl' />
+                <div className='-right-16 -top-16 absolute h-64 w-64 rounded-full bg-white/10 blur-3xl' />
+                <div className='-left-16 -bottom-16 absolute h-48 w-48 rounded-full bg-blue-400/20 blur-2xl' />
             </div>
 
             {/* Birthday Marquee */}
@@ -219,7 +214,7 @@ export default function AlumniDashboardPage() {
                 <div className='lg:col-span-2'>
                     <DashboardTabs
                         batchData={data?.batch || []}
-                        birthdayData={birthdayData.length > 0 ? birthdayData : (data?.alumnibirthday || [])}
+                        birthdayData={birthdayData.length > 0 ? birthdayData : data?.alumnibirthday || []}
                         onViewYearwise={handleViewYearwise}
                         showAdminDetails={isAdmin}
                     />
@@ -227,17 +222,12 @@ export default function AlumniDashboardPage() {
 
                 {/* Event Calendar */}
                 <div className='lg:col-span-1'>
-                    <CalendarSection events={coeEvents.length > 0 ? coeEvents : (data?.calenderlist || [])} />
+                    <CalendarSection events={coeEvents.length > 0 ? coeEvents : data?.calenderlist || []} />
                 </div>
             </div>
 
             {/* Total Alumni List (Always at bottom for visibility) */}
-            {isAdmin && data?.alumnilist && (
-                <TotalAlumniList
-                    alumni={data.alumnilist}
-                    totalCount={data.alumnilist.length}
-                />
-            )}
+            {isAdmin && data?.alumnilist && <TotalAlumniList alumni={data.alumnilist} totalCount={data.alumnilist.length} />}
 
             {/* --- MODALS --- */}
 
@@ -249,10 +239,13 @@ export default function AlumniDashboardPage() {
                     </DialogHeader>
                     <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3'>
                         {galleryModal.items.map((item) => (
-                            <Card key={item.algA_Id} className='cursor-pointer hover:bg-muted' onClick={() => handleViewGallery(item.algA_Id)}>
+                            <Card
+                                key={item.algA_Id}
+                                className='cursor-pointer hover:bg-muted'
+                                onClick={() => handleViewGallery(item.algA_Id)}>
                                 <CardContent className='p-4'>
                                     <h4 className='font-bold'>{item.algA_GalleryName}</h4>
-                                    <p className='text-xs text-muted-foreground'>{format(new Date(item.algA_Date), 'dd MMM yyyy')}</p>
+                                    <p className='text-muted-foreground text-xs'>{format(new Date(item.algA_Date), 'dd MMM yyyy')}</p>
                                     <div className='mt-2 flex items-center text-primary text-xs'>
                                         <Eye className='mr-1 h-3 w-3' /> View Media
                                     </div>
@@ -270,7 +263,7 @@ export default function AlumniDashboardPage() {
                         <DialogTitle>Notice Board</DialogTitle>
                     </DialogHeader>
                     <ScrollArea className='h-[60vh]'>
-                        <div className="w-full">
+                        <div className='w-full'>
                             <table className='w-full border-collapse text-sm'>
                                 <thead>
                                     <tr className='border-b bg-muted/50'>
@@ -285,9 +278,13 @@ export default function AlumniDashboardPage() {
                                     {noticeModal.items.map((item) => (
                                         <tr key={item.alntb_id} className='border-b'>
                                             <td className='p-3 font-medium'>{item.alntb_title}</td>
-                                            <td className='p-3 max-w-xs truncate'>{item.alntb_description}</td>
-                                            <td className='p-3 text-center'>{item.alntb_startdate ? format(new Date(item.alntb_startdate), 'dd-MM-yyyy') : '-'}</td>
-                                            <td className='p-3 text-center'>{item.alntb_enddate ? format(new Date(item.alntb_enddate), 'dd-MM-yyyy') : '-'}</td>
+                                            <td className='max-w-xs truncate p-3'>{item.alntb_description}</td>
+                                            <td className='p-3 text-center'>
+                                                {item.alntb_startdate ? format(new Date(item.alntb_startdate), 'dd-MM-yyyy') : '-'}
+                                            </td>
+                                            <td className='p-3 text-center'>
+                                                {item.alntb_enddate ? format(new Date(item.alntb_enddate), 'dd-MM-yyyy') : '-'}
+                                            </td>
                                             <td className='p-3 text-center'>
                                                 {item.filecount > 0 && (
                                                     <button onClick={() => handleViewNotice(item.alntb_id)} className='text-primary'>
@@ -332,8 +329,7 @@ export default function AlumniDashboardPage() {
                                                 const classId = item.ASMCL_Id || (item as any).asmcL_Id || (item as any).asmcl_id;
                                                 handleViewClasswise(yearId, classId);
                                             }}
-                                            className='text-primary hover:underline font-medium'
-                                        >
+                                            className='font-medium text-primary hover:underline'>
                                             View Students
                                         </button>
                                     </td>
@@ -343,7 +339,9 @@ export default function AlumniDashboardPage() {
                         {yearwiseModal.items.length > 0 && (
                             <tfoot>
                                 <tr className='bg-muted/20 font-bold'>
-                                    <td className='p-3 text-center' colSpan={2}>Grand Total</td>
+                                    <td className='p-3 text-center' colSpan={2}>
+                                        Grand Total
+                                    </td>
                                     <td className='p-3 text-center'>
                                         {yearwiseModal.items.reduce((acc, item) => acc + (Number(item.NOofstudents) || 0), 0)}
                                     </td>
@@ -362,7 +360,7 @@ export default function AlumniDashboardPage() {
                         <DialogTitle>Student List</DialogTitle>
                     </DialogHeader>
                     <ScrollArea className='h-[70vh]'>
-                        <div className="w-full">
+                        <div className='w-full'>
                             <table className='w-full border-collapse text-sm'>
                                 <thead>
                                     <tr className='border-b bg-muted/50 font-bold'>
@@ -384,9 +382,7 @@ export default function AlumniDashboardPage() {
                                             <td className='p-3'>{item.classname}</td>
                                             <td className='p-3'>{item.almst_mobileno}</td>
                                             <td className='p-3'>{item.almst_emailid}</td>
-                                            <td className='p-3'>
-                                                {item.almst_dob ? format(new Date(item.almst_dob), 'dd-MM-yyyy') : '-'}
-                                            </td>
+                                            <td className='p-3'>{item.almst_dob ? format(new Date(item.almst_dob), 'dd-MM-yyyy') : '-'}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -407,13 +403,13 @@ export default function AlumniDashboardPage() {
                             <Card key={idx} className='flex items-center space-x-4 p-4'>
                                 <FileText className='h-8 w-8 text-primary' />
                                 <div className='flex-1 overflow-hidden'>
-                                    <p className='truncate text-sm font-medium'>{file.alntbfL_FileName}</p>
+                                    <p className='truncate font-medium text-sm'>{file.alntbfL_FileName}</p>
                                     <a
                                         href={file.alntbfL_FilePath}
                                         download={file.alntbfL_FileName}
-                                        className='flex items-center text-xs text-primary hover:underline'
-                                    >
-                                        <Download className='mr-1 h-3 w-3' />Download
+                                        className='flex items-center text-primary text-xs hover:underline'>
+                                        <Download className='mr-1 h-3 w-3' />
+                                        Download
                                     </a>
                                 </div>
                             </Card>
@@ -429,7 +425,7 @@ export default function AlumniDashboardPage() {
                         <DialogTitle>Gallery Media</DialogTitle>
                     </DialogHeader>
                     <ScrollArea className='h-[60vh]'>
-                        <div className="w-full">
+                        <div className='w-full'>
                             <table className='w-full border-collapse text-sm'>
                                 <thead>
                                     <tr className='border-b bg-muted/50'>
@@ -454,39 +450,43 @@ export default function AlumniDashboardPage() {
                                                 <td className='p-3'>{idx + 1}</td>
                                                 <td className='p-3 font-medium'>{item.alga_galleryname}</td>
                                                 <td className='p-3 text-center'>
-                                                    {item.alga_date ? (() => {
-                                                        try {
-                                                            return format(new Date(item.alga_date), 'dd-MM-yyyy');
-                                                        } catch {
-                                                            return item.alga_date;
-                                                        }
-                                                    })() : '-'}
+                                                    {item.alga_date
+                                                        ? (() => {
+                                                              try {
+                                                                  return format(new Date(item.alga_date), 'dd-MM-yyyy');
+                                                              } catch {
+                                                                  return item.alga_date;
+                                                              }
+                                                          })()
+                                                        : '-'}
                                                 </td>
                                                 <td className='p-3 text-center'>
-                                                    {item.alga_time ? (() => {
-                                                        try {
-                                                            // Try to extract time from datetime string like "2026-01-16 07:15:42"
-                                                            const timeStr = item.alga_time.toString();
-                                                            const timePart = timeStr.includes(' ') ? timeStr.split(' ')[1] : timeStr;
-                                                            return timePart?.substring(0, 5) || item.alga_time;
-                                                        } catch {
-                                                            return item.alga_time;
-                                                        }
-                                                    })() : '-'}
+                                                    {item.alga_time
+                                                        ? (() => {
+                                                              try {
+                                                                  // Try to extract time from datetime string like "2026-01-16 07:15:42"
+                                                                  const timeStr = item.alga_time.toString();
+                                                                  const timePart = timeStr.includes(' ') ? timeStr.split(' ')[1] : timeStr;
+                                                                  return timePart?.substring(0, 5) || item.alga_time;
+                                                              } catch {
+                                                                  return item.alga_time;
+                                                              }
+                                                          })()
+                                                        : '-'}
                                                 </td>
                                                 <td className='p-3 text-center'>
-                                                    <span className={`rounded px-2 py-1 text-xs font-semibold ${item.alga_activeflag ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                    <span
+                                                        className={`rounded px-2 py-1 font-semibold text-xs ${item.alga_activeflag ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                                         {item.alga_activeflag ? 'Active' : 'Inactive'}
                                                     </span>
                                                 </td>
                                                 <td className='p-3 text-center'>
-                                                    {(item.algap_photos || item.algav_videos) ? (
+                                                    {item.algap_photos || item.algav_videos ? (
                                                         <a
                                                             href={item.algap_photos || item.algav_videos}
                                                             target='_blank'
                                                             rel='noreferrer'
-                                                            className='inline-flex items-center text-primary hover:underline'
-                                                        >
+                                                            className='inline-flex items-center text-primary hover:underline'>
                                                             <Eye className='mr-1 h-4 w-4' />
                                                             {item.algav_videos ? 'Video' : 'Photo'}
                                                         </a>
@@ -503,7 +503,6 @@ export default function AlumniDashboardPage() {
                     </ScrollArea>
                 </DialogContent>
             </Dialog>
-
         </div>
     );
 }

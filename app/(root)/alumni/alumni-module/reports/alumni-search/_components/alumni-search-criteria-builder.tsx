@@ -51,7 +51,14 @@ const CONDITIONS = [
     { value: 'OR', name: 'OR' }
 ];
 
-export default function AlumniSearchCriteriaBuilder({ years, classes, cities, occupations, onSearch, onClear }: AlumniSearchCriteriaBuilderProps) {
+export default function AlumniSearchCriteriaBuilder({
+    years,
+    classes,
+    cities,
+    occupations,
+    onSearch,
+    onClear
+}: AlumniSearchCriteriaBuilderProps) {
     const [rows, setRows] = useState<any[]>([{ field: '', operator: '', value: '', condition: 'AND' }]);
 
     const addRow = () => {

@@ -8,15 +8,15 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { getPageDetailsMap, saveEventsMapData } from '@/server/alumni/master-coe';
 import { uploadDocument } from '@/server/document_upload';
-import { getEventDetails, getPageDetailsMap, saveEventsMapData } from '@/server/alumni/master-coe';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FileText, Image as ImageIcon, Plus, RotateCcw, Save, Trash2, Video } from 'lucide-react';
-import React, { useEffect } from 'react';
+import { Image as ImageIcon, Plus, RotateCcw, Save, Trash2, Video } from 'lucide-react';
+import type React from 'react';
+import { useEffect } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { eventsMapSchema, type EventsMapFormValues } from './schema';
+import { type EventsMapFormValues, eventsMapSchema } from './schema';
 
 interface EventsMappingFormProps {
     onSuccess?: () => void;
@@ -47,12 +47,20 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
         }
     });
 
-    const { fields: imageFields, append: appendImage, remove: removeImage } = useFieldArray({
+    const {
+        fields: imageFields,
+        append: appendImage,
+        remove: removeImage
+    } = useFieldArray({
         control: form.control,
         name: 'images_listCoe'
     });
 
-    const { fields: videoFields, append: appendVideo, remove: removeVideo } = useFieldArray({
+    const {
+        fields: videoFields,
+        append: appendVideo,
+        remove: removeVideo
+    } = useFieldArray({
         control: form.control,
         name: 'videos_list'
     });
@@ -81,8 +89,14 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                             COEE_Id: mainData.coeE_Id || mainData.COEE_Id,
                             ASMAY_Id: (mainData.asmaY_Id || mainData.ASMAY_Id || '').toString(),
                             COEME_Id: (mainData.coemE_Id || mainData.COEME_Id || '').toString(),
-                            COEE_EStartDate: (mainData.coeE_EStartDate || mainData.COEE_EStartDate) ? new Date(mainData.coeE_EStartDate || mainData.COEE_EStartDate) : undefined,
-                            COEE_EEndDate: (mainData.coeE_EEndDate || mainData.COEE_EEndDate) ? new Date(mainData.coeE_EEndDate || mainData.COEE_EEndDate) : undefined,
+                            COEE_EStartDate:
+                                mainData.coeE_EStartDate || mainData.COEE_EStartDate
+                                    ? new Date(mainData.coeE_EStartDate || mainData.COEE_EStartDate)
+                                    : undefined,
+                            COEE_EEndDate:
+                                mainData.coeE_EEndDate || mainData.COEE_EEndDate
+                                    ? new Date(mainData.coeE_EEndDate || mainData.COEE_EEndDate)
+                                    : undefined,
                             COEE_EStartTime: mainData.coeE_EStartTime || mainData.COEE_EStartTime || '',
                             COEE_EEndTime: mainData.coeE_EEndTime || mainData.COEE_EEndTime || '',
                             COEE_StudentFlag: mainData.coeE_StudentFlag ?? mainData.COEE_StudentFlag ?? false,
@@ -118,7 +132,7 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                 ASMAY_Id: Number(values.ASMAY_Id),
                 COEE_EStartDate: values.COEE_EStartDate ? values.COEE_EStartDate.toISOString() : null,
                 COEE_EEndDate: values.COEE_EEndDate ? values.COEE_EEndDate.toISOString() : null,
-                videos_list: values.videos_list.map(v => v.COEEV_VideoURL)
+                videos_list: values.videos_list.map((v) => v.COEEV_VideoURL)
             };
 
             const res = await saveEventsMapData(payload);
@@ -186,7 +200,9 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                             name='ASMAY_Id'
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Academic Year <span className='text-destructive'>*</span></FormLabel>
+                                    <FormLabel>
+                                        Academic Year <span className='text-destructive'>*</span>
+                                    </FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
                                             <SelectTrigger>
@@ -210,7 +226,9 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                             name='COEME_Id'
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Event Name <span className='text-destructive'>*</span></FormLabel>
+                                    <FormLabel>
+                                        Event Name <span className='text-destructive'>*</span>
+                                    </FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
                                             <SelectTrigger>
@@ -239,7 +257,9 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                             name='COEE_EStartDate'
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Start Date <span className='text-destructive'>*</span></FormLabel>
+                                    <FormLabel>
+                                        Start Date <span className='text-destructive'>*</span>
+                                    </FormLabel>
                                     <DatePicker date={field.value} setDate={field.onChange} />
                                     <FormMessage />
                                 </FormItem>
@@ -250,7 +270,9 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                             name='COEE_EEndDate'
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>End Date <span className='text-destructive'>*</span></FormLabel>
+                                    <FormLabel>
+                                        End Date <span className='text-destructive'>*</span>
+                                    </FormLabel>
                                     <DatePicker date={field.value} setDate={field.onChange} />
                                     <FormMessage />
                                 </FormItem>
@@ -261,7 +283,9 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                             name='COEE_EStartTime'
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Start Time <span className='text-destructive'>*</span></FormLabel>
+                                    <FormLabel>
+                                        Start Time <span className='text-destructive'>*</span>
+                                    </FormLabel>
                                     <FormControl>
                                         <Input placeholder='09:00 AM' {...field} />
                                     </FormControl>
@@ -274,7 +298,9 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                             name='COEE_EEndTime'
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>End Time <span className='text-destructive'>*</span></FormLabel>
+                                    <FormLabel>
+                                        End Time <span className='text-destructive'>*</span>
+                                    </FormLabel>
                                     <FormControl>
                                         <Input placeholder='05:00 PM' {...field} />
                                     </FormControl>
@@ -292,7 +318,9 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                             name='COEE_StudentFlag'
                             render={({ field }) => (
                                 <FormItem className='flex items-center space-x-3 space-y-0'>
-                                    <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                                    <FormControl>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                    </FormControl>
                                     <FormLabel>Student</FormLabel>
                                 </FormItem>
                             )}
@@ -302,7 +330,9 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                             name='COEE_EmployeeFlag'
                             render={({ field }) => (
                                 <FormItem className='flex items-center space-x-3 space-y-0'>
-                                    <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                                    <FormControl>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                    </FormControl>
                                     <FormLabel>Employee</FormLabel>
                                 </FormItem>
                             )}
@@ -312,7 +342,9 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                             name='COEE_AlumniFlag'
                             render={({ field }) => (
                                 <FormItem className='flex items-center space-x-3 space-y-0'>
-                                    <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                                    <FormControl>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                    </FormControl>
                                     <FormLabel>Alumni</FormLabel>
                                 </FormItem>
                             )}
@@ -322,7 +354,9 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                             name='COEE_OtherFlag'
                             render={({ field }) => (
                                 <FormItem className='flex items-center space-x-3 space-y-0'>
-                                    <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                                    <FormControl>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                    </FormControl>
                                     <FormLabel>Other</FormLabel>
                                 </FormItem>
                             )}
@@ -332,16 +366,18 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                             name='COEE_ManagementFlag'
                             render={({ field }) => (
                                 <FormItem className='flex items-center space-x-3 space-y-0'>
-                                    <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                                    <FormControl>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                    </FormControl>
                                     <FormLabel>Management</FormLabel>
                                 </FormItem>
                             )}
                         />
                     </div>
 
-                    <div className='grid grid-cols-1 gap-6 mt-6'>
+                    <div className='mt-6 grid grid-cols-1 gap-6'>
                         {form.watch('COEE_StudentFlag') && (
-                            <div className='space-y-4 p-4 border rounded-md bg-muted/20'>
+                            <div className='space-y-4 rounded-md border bg-muted/20 p-4'>
                                 <FormLabel className='block font-semibold'>Select Classes</FormLabel>
                                 <FormField
                                     control={form.control}
@@ -352,8 +388,10 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                                                 label: c.asmcL_ClassName || c.ASMCL_ClassName,
                                                 value: (c.asmcL_Id || c.ASMCL_Id).toString()
                                             }))}
-                                            defaultValue={field.value?.map(item => (item.ASMCL_Id || (item as any).asmcL_Id || '').toString()) || []}
-                                            onValueChange={(val) => field.onChange(val.map(id => ({ ASMCL_Id: Number(id) })))}
+                                            defaultValue={
+                                                field.value?.map((item) => (item.ASMCL_Id || (item as any).asmcL_Id || '').toString()) || []
+                                            }
+                                            onValueChange={(val) => field.onChange(val.map((id) => ({ ASMCL_Id: Number(id) })))}
                                             placeholder='Select Classes'
                                         />
                                     )}
@@ -362,7 +400,7 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                         )}
 
                         {form.watch('COEE_EmployeeFlag') && (
-                            <div className='space-y-4 p-4 border rounded-md bg-muted/20'>
+                            <div className='space-y-4 rounded-md border bg-muted/20 p-4'>
                                 <FormLabel className='block font-semibold'>Select Departments</FormLabel>
                                 <FormField
                                     control={form.control}
@@ -373,8 +411,10 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                                                 label: d.hrmD_DepartmentName || d.HRMD_DepartmentName,
                                                 value: (d.hrmD_Id || d.HRMD_Id).toString()
                                             }))}
-                                            defaultValue={field.value?.map(item => (item.HRMD_Id || (item as any).hrmD_Id || '').toString()) || []}
-                                            onValueChange={(val) => field.onChange(val.map(id => ({ HRMD_Id: Number(id) })))}
+                                            defaultValue={
+                                                field.value?.map((item) => (item.HRMD_Id || (item as any).hrmD_Id || '').toString()) || []
+                                            }
+                                            onValueChange={(val) => field.onChange(val.map((id) => ({ HRMD_Id: Number(id) })))}
                                             placeholder='Select Departments'
                                         />
                                     )}
@@ -391,12 +431,19 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                             <div className='flex items-center gap-4'>
                                 <Input type='file' onChange={handleFileUpload} accept='image/*' />
                             </div>
-                            <div className='flex flex-wrap gap-2 mt-4'>
+                            <div className='mt-4 flex flex-wrap gap-2'>
                                 {imageFields.map((field, idx) => (
-                                    <div key={field.id} className='flex items-center gap-2 p-2 border rounded bg-muted/30'>
+                                    <div key={field.id} className='flex items-center gap-2 rounded border bg-muted/30 p-2'>
                                         <ImageIcon className='h-4 w-4 text-primary' />
-                                        <span className='text-xs truncate max-w-[150px]'>{form.watch(`images_listCoe.${idx}.COEEI_Images`)}</span>
-                                        <Button type='button' variant='ghost' size='icon' className='h-6 w-6' onClick={() => removeImage(idx)}>
+                                        <span className='max-w-[150px] truncate text-xs'>
+                                            {form.watch(`images_listCoe.${idx}.COEEI_Images`)}
+                                        </span>
+                                        <Button
+                                            type='button'
+                                            variant='ghost'
+                                            size='icon'
+                                            className='h-6 w-6'
+                                            onClick={() => removeImage(idx)}>
                                             <Trash2 className='h-3 w-3 text-destructive' />
                                         </Button>
                                     </div>
@@ -419,7 +466,7 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                                             <FormItem className='flex-1'>
                                                 <FormControl>
                                                     <div className='relative'>
-                                                        <Video className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                                                        <Video className='absolute top-2.5 left-3 h-4 w-4 text-muted-foreground' />
                                                         <Input placeholder='YouTube/Vimeo URL' className='pl-9' {...field} />
                                                     </div>
                                                 </FormControl>

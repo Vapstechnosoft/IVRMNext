@@ -10,42 +10,42 @@ export default function StudentCredentialsReport({ students }: StudentCredential
     if (students.length === 0) return null;
 
     return (
-        <div className="print-only print-root p-4">
-            <div className="text-center mb-4">
-                <h1 className="text-xl font-bold uppercase">Student Credentials Report</h1>
-                <p className="text-[10px] text-muted-foreground">Generated on {new Date().toLocaleDateString()}</p>
+        <div className='print-only print-root p-4'>
+            <div className='mb-4 text-center'>
+                <h1 className='font-bold text-xl uppercase'>Student Credentials Report</h1>
+                <p className='text-[10px] text-muted-foreground'>Generated on {new Date().toLocaleDateString()}</p>
             </div>
 
-            <table className="w-full border-collapse border border-black text-[11px]">
+            <table className='w-full border-collapse border border-black text-[11px]'>
                 <thead>
-                    <tr className="bg-gray-100">
-                        <th className="border border-black p-1 text-center w-[5%]">Sl. No</th>
-                        <th className="border border-black p-1 text-left w-[20%]">Student Name</th>
-                        <th className="border border-black p-1 text-left w-[12%]">Adm No</th>
-                        <th className="border border-black p-1 text-left w-[12%]">User Name</th>
-                        <th className="border border-black p-1 text-left w-[13%]">Password</th>
-                        <th className="border border-black p-1 text-left w-[13%]">Class</th>
-                        <th className="border border-black p-1 text-left w-[10%]">Section</th>
-                        <th className="border border-black p-1 text-left w-[15%]">Mobile</th>
+                    <tr className='bg-gray-100'>
+                        <th className='w-[5%] border border-black p-1 text-center'>Sl. No</th>
+                        <th className='w-[20%] border border-black p-1 text-left'>Student Name</th>
+                        <th className='w-[12%] border border-black p-1 text-left'>Adm No</th>
+                        <th className='w-[12%] border border-black p-1 text-left'>User Name</th>
+                        <th className='w-[13%] border border-black p-1 text-left'>Password</th>
+                        <th className='w-[13%] border border-black p-1 text-left'>Class</th>
+                        <th className='w-[10%] border border-black p-1 text-left'>Section</th>
+                        <th className='w-[15%] border border-black p-1 text-left'>Mobile</th>
                     </tr>
                 </thead>
                 <tbody>
                     {students.map((student, idx) => (
                         <tr key={idx}>
-                            <td className="border border-black p-1 text-center">{idx + 1}</td>
-                            <td className="border border-black p-1">{student.studentname}</td>
-                            <td className="border border-black p-1">{student.amsT_AdmNo}</td>
-                            <td className="border border-black p-1">{student.username}</td>
-                            <td className="border border-black p-1">{student.password}</td>
-                            <td className="border border-black p-1">{student.asmcL_ClassName}</td>
-                            <td className="border border-black p-1">{student.asmC_SectionName}</td>
-                            <td className="border border-black p-1">{student.amsT_MobileNo}</td>
+                            <td className='border border-black p-1 text-center'>{idx + 1}</td>
+                            <td className='border border-black p-1'>{student.studentname}</td>
+                            <td className='border border-black p-1'>{student.amsT_AdmNo}</td>
+                            <td className='border border-black p-1'>{student.username}</td>
+                            <td className='border border-black p-1'>{student.password}</td>
+                            <td className='border border-black p-1'>{student.asmcL_ClassName}</td>
+                            <td className='border border-black p-1'>{student.asmC_SectionName}</td>
+                            <td className='border border-black p-1'>{student.amsT_MobileNo}</td>
                         </tr>
                     ))}
                 </tbody>
             </table>
 
-            <div className="mt-4 flex justify-between text-[10px]">
+            <div className='mt-4 flex justify-between text-[10px]'>
                 <p>Total Records: {students.length}</p>
                 <p>Authorized Signature</p>
             </div>

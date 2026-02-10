@@ -1,17 +1,17 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { mobileMasterPageSchema, type MobileMasterPageFormData } from '@/schemas/super-admin/configuration-setting/mobilemasterpage';
+import { Input } from '@/components/ui/input';
+import { type MobileMasterPageFormData, mobileMasterPageSchema } from '@/schemas/super-admin/configuration-setting/mobilemasterpage';
 import { saveMobileMasterPage } from '@/server/super-admin/configuration-setting/mobilemasterpage';
-import { toast } from 'sonner';
-import { useEffect, useState } from 'react';
-import { Loader2, Save, X } from 'lucide-react';
 import type { IMobileMasterPage } from '@/types/super-admin/configuration-setting/mobilemasterpage';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2, Save, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 interface MobileMasterPageFormProps {
     selectedRow?: IMobileMasterPage | null;
@@ -22,14 +22,19 @@ interface MobileMasterPageFormProps {
 export function MobileMasterPageForm({ selectedRow, onSuccess, onCancel }: MobileMasterPageFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const { register, handleSubmit, reset, formState: { errors } } = useForm<MobileMasterPageFormData>({
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors }
+    } = useForm<MobileMasterPageFormData>({
         resolver: zodResolver(mobileMasterPageSchema),
         defaultValues: {
             ivrmmaP_AppPageName: '',
             ivrmmaP_Displayname: '',
             ivrmmaP_AppPageDesc: '',
-            ivrmmaP_AppPageURL: '',
-        },
+            ivrmmaP_AppPageURL: ''
+        }
     });
 
     useEffect(() => {
@@ -38,14 +43,14 @@ export function MobileMasterPageForm({ selectedRow, onSuccess, onCancel }: Mobil
                 ivrmmaP_AppPageName: selectedRow.ivrmmaP_AppPageName,
                 ivrmmaP_Displayname: selectedRow.ivrmmaP_Displayname,
                 ivrmmaP_AppPageDesc: selectedRow.ivrmmaP_AppPageDesc || '',
-                ivrmmaP_AppPageURL: selectedRow.ivrmmaP_AppPageURL || '',
+                ivrmmaP_AppPageURL: selectedRow.ivrmmaP_AppPageURL || ''
             });
         } else {
             reset({
                 ivrmmaP_AppPageName: '',
                 ivrmmaP_Displayname: '',
                 ivrmmaP_AppPageDesc: '',
-                ivrmmaP_AppPageURL: '',
+                ivrmmaP_AppPageURL: ''
             });
         }
     }, [selectedRow, reset]);
@@ -55,7 +60,7 @@ export function MobileMasterPageForm({ selectedRow, onSuccess, onCancel }: Mobil
         try {
             const payload = {
                 ...data,
-                ivrmmaP_Id: selectedRow?.ivrmmaP_Id || 0,
+                ivrmmaP_Id: selectedRow?.ivrmmaP_Id || 0
             };
 
             const result = await saveMobileMasterPage(payload);
@@ -75,80 +80,63 @@ export function MobileMasterPageForm({ selectedRow, onSuccess, onCancel }: Mobil
     }
 
     return (
-        <Card className="w-full">
+        <Card className='w-full'>
             <CardHeader>
-                <CardTitle className="text-xl font-bold text-[#7C3AED]">
+                <CardTitle className='font-bold text-[#7C3AED] text-xl'>
                     {selectedRow ? 'Edit Mobile App Master Page' : 'Add Mobile App Master Page'}
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label className="text-sm font-semibold">Page Name <span className="text-red-500">*</span></Label>
-                            <Input
-                                {...register('ivrmmaP_AppPageName')}
-                                placeholder="Enter page name"
-                            />
-                            {errors.ivrmmaP_AppPageName?.message && (
-                                <FormError>{errors.ivrmmaP_AppPageName.message}</FormError>
-                            )}
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                        <div className='space-y-2'>
+                            <Label className='font-semibold text-sm'>
+                                Page Name <span className='text-red-500'>*</span>
+                            </Label>
+                            <Input {...register('ivrmmaP_AppPageName')} placeholder='Enter page name' />
+                            {errors.ivrmmaP_AppPageName?.message && <FormError>{errors.ivrmmaP_AppPageName.message}</FormError>}
                         </div>
-                        <div className="space-y-2">
-                            <Label className="text-sm font-semibold">Page Displayname <span className="text-red-500">*</span></Label>
-                            <Input
-                                {...register('ivrmmaP_Displayname')}
-                                placeholder="Enter display name"
-                            />
-                            {errors.ivrmmaP_Displayname?.message && (
-                                <FormError>{errors.ivrmmaP_Displayname.message}</FormError>
-                            )}
+                        <div className='space-y-2'>
+                            <Label className='font-semibold text-sm'>
+                                Page Displayname <span className='text-red-500'>*</span>
+                            </Label>
+                            <Input {...register('ivrmmaP_Displayname')} placeholder='Enter display name' />
+                            {errors.ivrmmaP_Displayname?.message && <FormError>{errors.ivrmmaP_Displayname.message}</FormError>}
                         </div>
-                        <div className="space-y-2">
-                            <Label className="text-sm font-semibold">Page Icon/Description <span className="text-red-500">*</span></Label>
-                            <Input
-                                {...register('ivrmmaP_AppPageDesc')}
-                                placeholder="Enter page icon path/description"
-                            />
-                            {errors.ivrmmaP_AppPageDesc?.message && (
-                                <FormError>{errors.ivrmmaP_AppPageDesc.message}</FormError>
-                            )}
+                        <div className='space-y-2'>
+                            <Label className='font-semibold text-sm'>
+                                Page Icon/Description <span className='text-red-500'>*</span>
+                            </Label>
+                            <Input {...register('ivrmmaP_AppPageDesc')} placeholder='Enter page icon path/description' />
+                            {errors.ivrmmaP_AppPageDesc?.message && <FormError>{errors.ivrmmaP_AppPageDesc.message}</FormError>}
                         </div>
-                        <div className="space-y-2">
-                            <Label className="text-sm font-semibold">Page Keyword/URL <span className="text-red-500">*</span></Label>
-                            <Input
-                                {...register('ivrmmaP_AppPageURL')}
-                                placeholder="Enter page keyword/URL"
-                            />
-                            {errors.ivrmmaP_AppPageURL?.message && (
-                                <FormError>{errors.ivrmmaP_AppPageURL.message}</FormError>
-                            )}
+                        <div className='space-y-2'>
+                            <Label className='font-semibold text-sm'>
+                                Page Keyword/URL <span className='text-red-500'>*</span>
+                            </Label>
+                            <Input {...register('ivrmmaP_AppPageURL')} placeholder='Enter page keyword/URL' />
+                            {errors.ivrmmaP_AppPageURL?.message && <FormError>{errors.ivrmmaP_AppPageURL.message}</FormError>}
                         </div>
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-4 border-t">
+                    <div className='flex justify-end gap-3 border-t pt-4'>
                         <Button
-                            type="button"
-                            variant="outline"
+                            type='button'
+                            variant='outline'
                             onClick={onCancel}
-                            className="px-6 border-[#7C3AED] text-[#7C3AED] hover:bg-[#F3E8FF]"
-                        >
-                            <X className="w-4 h-4 mr-2" />
+                            className='border-[#7C3AED] px-6 text-[#7C3AED] hover:bg-[#F3E8FF]'>
+                            <X className='mr-2 h-4 w-4' />
                             Cancel
                         </Button>
-                        <Button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="px-6 bg-[#7C3AED] hover:bg-[#6D28D9] text-white"
-                        >
+                        <Button type='submit' disabled={isSubmitting} className='bg-[#7C3AED] px-6 text-white hover:bg-[#6D28D9]'>
                             {isSubmitting ? (
                                 <>
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                                     Saving...
                                 </>
                             ) : (
                                 <>
-                                    <Save className="w-4 h-4 mr-2" />
+                                    <Save className='mr-2 h-4 w-4' />
                                     {selectedRow ? 'Update' : 'Save'}
                                 </>
                             )}

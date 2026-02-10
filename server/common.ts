@@ -3894,6 +3894,14 @@ export async function getUserAccessibleModules() {
                                             url: '/inventory/inventory-module/reports/inv-r-item-consumption',
                                             title: 'Item Consumption Report',
                                             description: 'Generate Item Consumption Reports'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Inventory Month End Report',
+                                            icon: 'FileText',
+                                            url: '/inventory/inventory-module/reports/inv-r-month-end-report',
+                                            title: 'Inventory Month End Report',
+                                            description: 'Generate Inventory Month End Reports'
                                         }
                                     ]
                                 }

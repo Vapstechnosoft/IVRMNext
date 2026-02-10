@@ -859,7 +859,7 @@ export default function FeeDefaulterReport() {
                     term_group: term_group,
                     Select_Button: filters.userType,
                     yearid: 0,
-                    studenttype: 'active',
+                    studenttype: 'active'
                 };
             }
 

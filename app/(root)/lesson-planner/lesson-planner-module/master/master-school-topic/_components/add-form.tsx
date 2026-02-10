@@ -2,22 +2,22 @@
 
 import { Button } from '@/components/ui/button';
 import { InputText } from '@/components/ui/extension/input-text';
-import { saveSchoolTopic, getClassesByYear, getSubjectsByClass } from '@/server/lesson-planner/master/school-topic';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getClassesByYear, getSubjectsByClass, saveSchoolTopic } from '@/server/lesson-planner/master/school-topic';
+import type {
+    IMasterClass,
+    IMasterSchoolTopic,
+    IMasterSubject,
+    IMasterUnit,
+    IMasterYear
+} from '@/types/lesson-planner/master/school-topic';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { type MasterSchoolTopicSchema, masterSchoolTopicSchema } from './schema';
-import type { IMasterSchoolTopic, IMasterYear, IMasterUnit, IMasterClass, IMasterSubject } from '@/types/lesson-planner/master/school-topic';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, Form } from '@/components/ui/form';
 
 interface AddMasterSchoolTopicFormProps {
     masterYear: IMasterYear[];
@@ -46,7 +46,7 @@ export default function AddMasterSchoolTopicForm({
     const findValue = (obj: any, keys: string[]) => {
         if (!obj) return 0;
         for (const key of keys) {
-            if (obj[key] !== undefined && obj[key] !== null && obj[key] !== "") return obj[key];
+            if (obj[key] !== undefined && obj[key] !== null && obj[key] !== '') return obj[key];
         }
         return 0;
     };
@@ -57,12 +57,49 @@ export default function AddMasterSchoolTopicForm({
         defaultValues: {
             lpmmT_Id: findValue(initialData, ['lpmmT_Id', 'LPMMT_Id', 'lpmmT_ID', 'LPMMT_ID']),
             lpmmT_TopicName: findValue(initialData, ['lpmmT_TopicName', 'LPMMT_TopicName', 'lpmmT_Topicname', 'LPMMT_Topicname']) || '',
-            lpmmT_TopicDescription: findValue(initialData, ['lpmmT_TopicDescription', 'LPMMT_TopicDescription', 'lpmmT_Topicdescription', 'LPMMT_Topicdescription']) || '',
+            lpmmT_TopicDescription:
+                findValue(initialData, [
+                    'lpmmT_TopicDescription',
+                    'LPMMT_TopicDescription',
+                    'lpmmT_Topicdescription',
+                    'LPMMT_Topicdescription'
+                ]) || '',
             lpmmT_TotalHrs: findValue(initialData, ['lpmmT_TotalHrs', 'LPMMT_TotalHrs', 'lpmmT_Totalhrs', 'LPMMT_Totalhrs']) || null,
-            lpmmT_TotalPeriods: findValue(initialData, ['lpmmT_TotalPeriods', 'LPMMT_TotalPeriods', 'lpmmT_Totalperiods', 'LPMMT_Totalperiods']) || null,
-            asmaY_Id: findValue(initialData, ['asmaY_Id', 'ASMAY_Id', 'asmaY_ID', 'ASMAY_ID', 'asmaY_id', 'asmay_id', 'yearId', 'asmA_Id', 'ASMA_Id']),
-            asmcL_Id: findValue(initialData, ['asmcL_Id', 'ASMCL_Id', 'asmcL_ID', 'ASMCL_ID', 'asmcL_id', 'asmcl_id', 'classId', 'asmC_Id', 'ASMC_Id']),
-            ismS_Id: findValue(initialData, ['ismS_Id', 'ISMS_Id', 'ismS_ID', 'ISMS_ID', 'ismS_id', 'isms_id', 'subjectId', 'ismS_ID', 'ISMS_ID']),
+            lpmmT_TotalPeriods:
+                findValue(initialData, ['lpmmT_TotalPeriods', 'LPMMT_TotalPeriods', 'lpmmT_Totalperiods', 'LPMMT_Totalperiods']) || null,
+            asmaY_Id: findValue(initialData, [
+                'asmaY_Id',
+                'ASMAY_Id',
+                'asmaY_ID',
+                'ASMAY_ID',
+                'asmaY_id',
+                'asmay_id',
+                'yearId',
+                'asmA_Id',
+                'ASMA_Id'
+            ]),
+            asmcL_Id: findValue(initialData, [
+                'asmcL_Id',
+                'ASMCL_Id',
+                'asmcL_ID',
+                'ASMCL_ID',
+                'asmcL_id',
+                'asmcl_id',
+                'classId',
+                'asmC_Id',
+                'ASMC_Id'
+            ]),
+            ismS_Id: findValue(initialData, [
+                'ismS_Id',
+                'ISMS_Id',
+                'ismS_ID',
+                'ISMS_ID',
+                'ismS_id',
+                'isms_id',
+                'subjectId',
+                'ismS_ID',
+                'ISMS_ID'
+            ]),
             lpmU_Id: findValue(initialData, ['lpmU_Id', 'LPMU_Id', 'lpmU_ID', 'LPMU_ID', 'lpmU_id', 'lpmu_id', 'unitId'])
         }
     });
@@ -178,11 +215,10 @@ export default function AddMasterSchoolTopicForm({
                             name='asmaY_Id'
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Academic Year <span className='text-red-500'>*</span></FormLabel>
-                                    <Select
-                                        onValueChange={field.onChange}
-                                        value={field.value?.toString()}
-                                    >
+                                    <FormLabel>
+                                        Academic Year <span className='text-red-500'>*</span>
+                                    </FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Year' />
@@ -190,8 +226,23 @@ export default function AddMasterSchoolTopicForm({
                                         </FormControl>
                                         <SelectContent>
                                             {masterYear.map((year) => {
-                                                const yearId = findValue(year, ['asmaY_Id', 'ASMAY_Id', 'asmaY_ID', 'ASMAY_ID', 'asmaY_id', 'asmay_id', 'yearId']);
-                                                const yearName = findValue(year, ['asmaY_Year', 'ASMAY_Year', 'asmaY_year', 'ASMAY_YEAR', 'yearName', 'year']);
+                                                const yearId = findValue(year, [
+                                                    'asmaY_Id',
+                                                    'ASMAY_Id',
+                                                    'asmaY_ID',
+                                                    'ASMAY_ID',
+                                                    'asmaY_id',
+                                                    'asmay_id',
+                                                    'yearId'
+                                                ]);
+                                                const yearName = findValue(year, [
+                                                    'asmaY_Year',
+                                                    'ASMAY_Year',
+                                                    'asmaY_year',
+                                                    'ASMAY_YEAR',
+                                                    'yearName',
+                                                    'year'
+                                                ]);
                                                 return (
                                                     <SelectItem key={yearId} value={yearId.toString()}>
                                                         {yearName}
@@ -211,11 +262,10 @@ export default function AddMasterSchoolTopicForm({
                             name='asmcL_Id'
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Class <span className='text-red-500'>*</span></FormLabel>
-                                    <Select
-                                        onValueChange={field.onChange}
-                                        value={field.value?.toString()}
-                                    >
+                                    <FormLabel>
+                                        Class <span className='text-red-500'>*</span>
+                                    </FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Class' />
@@ -223,8 +273,21 @@ export default function AddMasterSchoolTopicForm({
                                         </FormControl>
                                         <SelectContent>
                                             {classes.map((cls) => {
-                                                const classId = findValue(cls, ['asmcL_Id', 'ASMCL_Id', 'asmcL_ID', 'ASMCL_ID', 'asmcL_id', 'classId']);
-                                                const className = findValue(cls, ['asmcL_ClassName', 'ASMCL_ClassName', 'asmcL_Classname', 'className', 'class']);
+                                                const classId = findValue(cls, [
+                                                    'asmcL_Id',
+                                                    'ASMCL_Id',
+                                                    'asmcL_ID',
+                                                    'ASMCL_ID',
+                                                    'asmcL_id',
+                                                    'classId'
+                                                ]);
+                                                const className = findValue(cls, [
+                                                    'asmcL_ClassName',
+                                                    'ASMCL_ClassName',
+                                                    'asmcL_Classname',
+                                                    'className',
+                                                    'class'
+                                                ]);
                                                 return (
                                                     <SelectItem key={classId} value={classId.toString()}>
                                                         {className}
@@ -244,11 +307,10 @@ export default function AddMasterSchoolTopicForm({
                             name='ismS_Id'
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Subject Name <span className='text-red-500'>*</span></FormLabel>
-                                    <Select
-                                        onValueChange={field.onChange}
-                                        value={field.value?.toString()}
-                                    >
+                                    <FormLabel>
+                                        Subject Name <span className='text-red-500'>*</span>
+                                    </FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Subject' />
@@ -256,8 +318,24 @@ export default function AddMasterSchoolTopicForm({
                                         </FormControl>
                                         <SelectContent>
                                             {subjects.map((subj) => {
-                                                const subjectId = findValue(subj, ['ismS_Id', 'ISMS_Id', 'ismS_ID', 'ISMS_ID', 'ismS_id', 'msS_Id', 'isM_Id', 'subjectId']);
-                                                const subjectName = findValue(subj, ['ismS_SubjectName', 'ISMS_SubjectName', 'ismS_subjectName', 'subjectName', 'subject', 'smS_SubjectName']);
+                                                const subjectId = findValue(subj, [
+                                                    'ismS_Id',
+                                                    'ISMS_Id',
+                                                    'ismS_ID',
+                                                    'ISMS_ID',
+                                                    'ismS_id',
+                                                    'msS_Id',
+                                                    'isM_Id',
+                                                    'subjectId'
+                                                ]);
+                                                const subjectName = findValue(subj, [
+                                                    'ismS_SubjectName',
+                                                    'ISMS_SubjectName',
+                                                    'ismS_subjectName',
+                                                    'subjectName',
+                                                    'subject',
+                                                    'smS_SubjectName'
+                                                ]);
                                                 return (
                                                     <SelectItem key={subjectId} value={subjectId.toString()}>
                                                         {subjectName}
@@ -277,11 +355,10 @@ export default function AddMasterSchoolTopicForm({
                             name='lpmU_Id'
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Unit Name <span className='text-red-500'>*</span></FormLabel>
-                                    <Select
-                                        onValueChange={field.onChange}
-                                        value={field.value?.toString()}
-                                    >
+                                    <FormLabel>
+                                        Unit Name <span className='text-red-500'>*</span>
+                                    </FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Unit' />
@@ -289,8 +366,21 @@ export default function AddMasterSchoolTopicForm({
                                         </FormControl>
                                         <SelectContent>
                                             {masterUnit.map((unit) => {
-                                                const unitId = findValue(unit, ['lpmU_Id', 'LPMU_Id', 'lpmU_ID', 'LPMU_ID', 'lpmU_id', 'unitId']);
-                                                const unitName = findValue(unit, ['lpmU_UnitName', 'LPMU_UnitName', 'lpmU_Unitname', 'unitName', 'unit']);
+                                                const unitId = findValue(unit, [
+                                                    'lpmU_Id',
+                                                    'LPMU_Id',
+                                                    'lpmU_ID',
+                                                    'LPMU_ID',
+                                                    'lpmU_id',
+                                                    'unitId'
+                                                ]);
+                                                const unitName = findValue(unit, [
+                                                    'lpmU_UnitName',
+                                                    'LPMU_UnitName',
+                                                    'lpmU_Unitname',
+                                                    'unitName',
+                                                    'unit'
+                                                ]);
                                                 return (
                                                     <SelectItem key={unitId} value={unitId.toString()}>
                                                         {unitName}
@@ -305,12 +395,7 @@ export default function AddMasterSchoolTopicForm({
                         />
 
                         {/* Topic Name */}
-                        <InputText
-                            label='Topic Name'
-                            required
-                            {...register('lpmmT_TopicName')}
-                            error={errors.lpmmT_TopicName?.message}
-                        />
+                        <InputText label='Topic Name' required {...register('lpmmT_TopicName')} error={errors.lpmmT_TopicName?.message} />
 
                         {/* Topic Description */}
                         <InputText

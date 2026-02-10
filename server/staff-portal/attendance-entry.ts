@@ -1,21 +1,16 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type {
-    IAttendanceEntryInitialData,
-    ISaveAttendanceRequest,
-    IStudentDataResponse,
-    IViewHistoryResponse
-} from '@/types/staff-portal/attendance-entry';
+import type { ISaveAttendanceRequest, IStudentDataResponse, IViewHistoryResponse } from '@/types/staff-portal/attendance-entry';
 
 /**
  * Load initial data for attendance entry
  */
 export async function getInitialData(ASMAY_Id: number) {
     const payload = { ASMAY_Id };
-    const url =  '/StaffAttendanceEntry/get-staff-initial-data';
+    const url = '/StaffAttendanceEntry/get-staff-initial-data';
     //return await api.post<IAttendanceEntryInitialData>('portal', url);
-     return await api.post('portal', url, payload);
+    return await api.post('portal', url, payload);
 }
 
 /**

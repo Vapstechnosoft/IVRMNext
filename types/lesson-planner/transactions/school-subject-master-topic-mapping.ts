@@ -1,4 +1,3 @@
-
 export interface ISchoolSubjectTopicMapping {
     lpmT_Id: number;
     lpmmT_Id: number;

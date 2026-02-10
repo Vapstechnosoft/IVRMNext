@@ -17,7 +17,7 @@ import {
 import type { IStudentYearlyAttendenceReportList } from '@/types/admission/preadmission/reports';
 import { FileText, Printer, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { use, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useDateOfBirth, useadmissionStudentsDropdown } from '@/hooks/admission/preadmission/useReports';
@@ -29,7 +29,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function BirthCertificatePageReport(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const router = useRouter();
     const pathname = usePathname();
 
@@ -98,45 +98,22 @@ export default function BirthCertificatePageReport(props: {
             return [];
         }
 
-        const attendanceData = response.data as any;
+        // DOB Certificate API returns data directly as an array
+        const data = response.data as any;
 
-        if (!attendanceData.studentAttendanceList || !attendanceData.monthList) {
-            return [];
+        // If it's an array, return it directly
+        if (Array.isArray(data)) {
+            return data;
         }
 
-        const { studentAttendanceList, monthList } = attendanceData;
+        // If data has a nested array property (e.g., $values), extract it
+        if (data?.$values) {
+            return data.$values;
+        }
 
-        const studentMap = new Map<number, IStudentYearlyAttendenceReportList>();
-
-        studentAttendanceList.forEach((record: any) => {
-            if (!studentMap.has(record.RowNo)) {
-                studentMap.set(record.RowNo, {
-                    RowNo: record.RowNo,
-                    name: record.name,
-                    AMST_AdmNo: record.AMST_AdmNo,
-                    AMST_RegistrationNo: record.AMST_RegistrationNo,
-                    AMAY_RollNo: record.AMAY_RollNo,
-                    monthlyAttendance: {},
-                    totalPresent: 0,
-                    percentage: '0.00',
-                    AMST_Id: 0
-                });
-            }
-
-            const student = studentMap.get(record.RowNo)!;
-            const monthKey = `${record.yearidname}-${record.monthidname}`;
-
-            student.monthlyAttendance[monthKey] = record.TOTAL_PRESENT;
-            student.totalPresent += record.TOTAL_PRESENT;
-        });
-
-        const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
-
-        return Array.from(studentMap.values()).map((student) => ({
-            ...student,
-            percentage: totalWorkingDays > 0 ? ((student.totalPresent / totalWorkingDays) * 100).toFixed(2) : '0.00'
-        }));
+        return [];
     }, [response?.data, showReport]);
+
 
     const tableProps = useDataTableProps({
         ...response,
@@ -191,8 +168,8 @@ export default function BirthCertificatePageReport(props: {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -469,7 +446,7 @@ export default function BirthCertificatePageReport(props: {
                             variant='outline'
                             size='md'
                             className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                            <GenericDataTable<IStudentYearlyAttendenceReportList>
+                            <GenericDataTable<any>
                                 {...tableProps}
                                 ref={tableRef}
                                 columns={birthCertificateColumns}

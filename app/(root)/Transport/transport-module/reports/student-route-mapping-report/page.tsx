@@ -2,19 +2,11 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
-import { Check, FileSpreadsheet, Loader2, Printer, Search, X } from 'lucide-react';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import { z } from 'zod';
-import * as XLSX from 'xlsx';
 import {
     useFeeBusRouteDefaulterreport,
     useFeeClassListDefaulterreport,
@@ -24,7 +16,14 @@ import {
 } from '@/hooks/fees/useReports';
 import { useSessionDropDown } from '@/hooks/transport/transportmodule/usetransaction';
 import { StudentRouteMappingReportData } from '@/server/transport/transport-module/reports/fee-student-route-mapping-report';
-
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
+import { FileSpreadsheet, Loader2, Printer } from 'lucide-react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
+import { z } from 'zod';
 
 const formSchema = z.object({
     asmaY_Id: z.string().min(1, 'Academic Year is required'),
@@ -34,7 +33,7 @@ const formSchema = z.object({
     TRMS_Id: z.string().min(1, 'Session is required'),
     feeGroupWise: z.boolean().default(false),
     FMG_Id: z.string().optional(),
-    routeType: z.enum(['0', '1', '2', '3']).default('0'), // 0: ALL, 1: TWO WAY, 2: ONE WAY - PICK UP, 3: ONE WAY - DROP
+    routeType: z.enum(['0', '1', '2', '3']).default('0') // 0: ALL, 1: TWO WAY, 2: ONE WAY - PICK UP, 3: ONE WAY - DROP
 });
 
 export default function StudentRouteMappingReportPage() {
@@ -61,7 +60,7 @@ export default function StudentRouteMappingReportPage() {
     const { mutate: generateReport, isPending: isGenerating } = useMutation({
         mutationFn: StudentRouteMappingReportData,
         onSuccess: (response: any) => {
-            console.log("Report Response:", response); // Keep for debugging data structure
+            console.log('Report Response:', response); // Keep for debugging data structure
             if (response.success) {
                 if (response.data && response.data.length > 0) {
                     setReportData(response.data);
@@ -94,7 +93,7 @@ export default function StudentRouteMappingReportPage() {
             TRMS_Id: '',
             feeGroupWise: false,
             FMG_Id: '0',
-            routeType: '0',
+            routeType: '0'
         }
     });
 
@@ -112,10 +111,10 @@ export default function StudentRouteMappingReportPage() {
             TRMS_Id: Number(values.TRMS_Id),
             ASTA_ApplStatus: values.routeType,
             feeflag: values.feeGroupWise,
-            FMG_Id: values.feeGroupWise ? Number(values.FMG_Id) : 0,
+            FMG_Id: values.feeGroupWise ? Number(values.FMG_Id) : 0
         };
 
-        console.log("Report Payload:", payload);
+        console.log('Report Payload:', payload);
         generateReport(payload);
     };
 
@@ -128,7 +127,7 @@ export default function StudentRouteMappingReportPage() {
             TRMS_Id: '',
             feeGroupWise: false,
             FMG_Id: '0',
-            routeType: '0',
+            routeType: '0'
         });
         setFeeGroupWise(false);
         setReportData([]);
@@ -137,11 +136,7 @@ export default function StudentRouteMappingReportPage() {
     };
 
     const toggleRow = (index: number) => {
-        setSelectedRows(prev =>
-            prev.includes(index)
-                ? prev.filter(i => i !== index)
-                : [...prev, index]
-        );
+        setSelectedRows((prev) => (prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]));
     };
 
     const toggleSelectAll = () => {
@@ -166,12 +161,15 @@ export default function StudentRouteMappingReportPage() {
             headerHtml = clonedHeaderRow.outerHTML;
         }
 
-        const selectedRowsHtml = selectedRows.sort((a, b) => a - b).map(index => {
-            const row = document.querySelectorAll('#report-table tbody tr')[index];
-            const clonedRow = row.cloneNode(true) as HTMLElement;
-            if (clonedRow.firstElementChild) clonedRow.removeChild(clonedRow.firstElementChild); // Remove checkbox
-            return clonedRow.outerHTML;
-        }).join('');
+        const selectedRowsHtml = selectedRows
+            .sort((a, b) => a - b)
+            .map((index) => {
+                const row = document.querySelectorAll('#report-table tbody tr')[index];
+                const clonedRow = row.cloneNode(true) as HTMLElement;
+                if (clonedRow.firstElementChild) clonedRow.removeChild(clonedRow.firstElementChild); // Remove checkbox
+                return clonedRow.outerHTML;
+            })
+            .join('');
 
         const popupWin = window.open('', '_blank', 'width=1000,height=1000');
         if (popupWin) {
@@ -207,39 +205,41 @@ export default function StudentRouteMappingReportPage() {
             return;
         }
 
-        // We construct a specific data array for export to ensure we get exactly what we want, 
+        // We construct a specific data array for export to ensure we get exactly what we want,
         // including dynamic columns.
-        const exportData = selectedRows.sort((a, b) => a - b).map(index => {
-            const item = reportData[index];
-            const row: any = {
-                'SL. No.': index + 1,
-                'Name': item.studentName,
-                'Adm No': item.amsT_AdmNo,
-                'Class': item.asmcL_ClassName,
-                'Section': item.asmC_SectionName,
-                'Mobile Number': item.amsT_FatherMobile_No,
-                'Pick Up Location': item.pickUp_Location || '--',
-                'Drop Location': item.drop_Location || '--',
-                'Pick Up Route': item.pickUp_RouteName || '--',
-                'Drop Route': item.drop_RouteName || '--',
-                'Pick Up Session': item.pickUp_Session || '--',
-                'Drop Session': item.drop_Session || '--',
-                'Roll No': item.amaY_RollNo,
-                'App No': item.trsR_ApplicationNo,
-                'Address': item.address,
-            };
+        const exportData = selectedRows
+            .sort((a, b) => a - b)
+            .map((index) => {
+                const item = reportData[index];
+                const row: any = {
+                    'SL. No.': index + 1,
+                    Name: item.studentName,
+                    'Adm No': item.amsT_AdmNo,
+                    Class: item.asmcL_ClassName,
+                    Section: item.asmC_SectionName,
+                    'Mobile Number': item.amsT_FatherMobile_No,
+                    'Pick Up Location': item.pickUp_Location || '--',
+                    'Drop Location': item.drop_Location || '--',
+                    'Pick Up Route': item.pickUp_RouteName || '--',
+                    'Drop Route': item.drop_RouteName || '--',
+                    'Pick Up Session': item.pickUp_Session || '--',
+                    'Drop Session': item.drop_Session || '--',
+                    'Roll No': item.amaY_RollNo,
+                    'App No': item.trsR_ApplicationNo,
+                    Address: item.address
+                };
 
-            if (feeGroupWise) {
-                row['Fee Group'] = item.fmG_GroupName;
-            }
+                if (feeGroupWise) {
+                    row['Fee Group'] = item.fmG_GroupName;
+                }
 
-            // Dynamic Installment Columns
-            installments.forEach(inst => {
-                row[inst.ftI_Name] = item[inst.ftI_Name] || 0;
+                // Dynamic Installment Columns
+                installments.forEach((inst) => {
+                    row[inst.ftI_Name] = item[inst.ftI_Name] || 0;
+                });
+
+                return row;
             });
-
-            return row;
-        });
 
         const ws = XLSX.utils.json_to_sheet(exportData);
         const wb = XLSX.utils.book_new();
@@ -265,7 +265,9 @@ export default function StudentRouteMappingReportPage() {
                                     name='asmaY_Id'
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Academic Year <span className='text-red-500'>*</span></FormLabel>
+                                            <FormLabel>
+                                                Academic Year <span className='text-red-500'>*</span>
+                                            </FormLabel>
                                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
@@ -291,7 +293,9 @@ export default function StudentRouteMappingReportPage() {
                                     name='asmcL_Id'
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Class <span className='text-red-500'>*</span></FormLabel>
+                                            <FormLabel>
+                                                Class <span className='text-red-500'>*</span>
+                                            </FormLabel>
                                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
@@ -318,7 +322,9 @@ export default function StudentRouteMappingReportPage() {
                                     name='asmS_Id'
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Section <span className='text-red-500'>*</span></FormLabel>
+                                            <FormLabel>
+                                                Section <span className='text-red-500'>*</span>
+                                            </FormLabel>
                                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
@@ -345,7 +351,9 @@ export default function StudentRouteMappingReportPage() {
                                     name='trmR_Id'
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Route Name <span className='text-red-500'>*</span></FormLabel>
+                                            <FormLabel>
+                                                Route Name <span className='text-red-500'>*</span>
+                                            </FormLabel>
                                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
@@ -372,7 +380,9 @@ export default function StudentRouteMappingReportPage() {
                                     name='TRMS_Id'
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Session Name <span className='text-red-500'>*</span></FormLabel>
+                                            <FormLabel>
+                                                Session Name <span className='text-red-500'>*</span>
+                                            </FormLabel>
                                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
@@ -395,7 +405,7 @@ export default function StudentRouteMappingReportPage() {
                             </div>
 
                             {/* Fee Group Checkbox and Dropdown */}
-                            <div className='grid grid-cols-1 md:grid-cols-2 gap-6 pt-2'>
+                            <div className='grid grid-cols-1 gap-6 pt-2 md:grid-cols-2'>
                                 <div className='flex items-center space-x-2 pt-8'>
                                     <FormField
                                         control={form.control}
@@ -411,7 +421,7 @@ export default function StudentRouteMappingReportPage() {
                                                         }}
                                                     />
                                                 </FormControl>
-                                                <FormLabel className='font-normal text-base cursor-pointer'>
+                                                <FormLabel className='cursor-pointer font-normal text-base'>
                                                     Fee Group Wise Report
                                                 </FormLabel>
                                             </FormItem>
@@ -425,7 +435,9 @@ export default function StudentRouteMappingReportPage() {
                                         name='FMG_Id'
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Fee Group <span className='text-red-500'>*</span></FormLabel>
+                                                <FormLabel>
+                                                    Fee Group <span className='text-red-500'>*</span>
+                                                </FormLabel>
                                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                     <FormControl>
                                                         <SelectTrigger>
@@ -459,23 +471,30 @@ export default function StudentRouteMappingReportPage() {
                                                 <RadioGroup
                                                     onValueChange={field.onChange}
                                                     defaultValue={field.value}
-                                                    className='flex flex-wrap justify-center gap-6'
-                                                >
+                                                    className='flex flex-wrap justify-center gap-6'>
                                                     <div className='flex items-center space-x-2'>
                                                         <RadioGroupItem value='0' id='r-all' />
-                                                        <FormLabel htmlFor='r-all' className='cursor-pointer'>ALL</FormLabel>
+                                                        <FormLabel htmlFor='r-all' className='cursor-pointer'>
+                                                            ALL
+                                                        </FormLabel>
                                                     </div>
                                                     <div className='flex items-center space-x-2'>
                                                         <RadioGroupItem value='1' id='r-two-way' />
-                                                        <FormLabel htmlFor='r-two-way' className='cursor-pointer'>TWO WAY</FormLabel>
+                                                        <FormLabel htmlFor='r-two-way' className='cursor-pointer'>
+                                                            TWO WAY
+                                                        </FormLabel>
                                                     </div>
                                                     <div className='flex items-center space-x-2'>
                                                         <RadioGroupItem value='2' id='r-pickup' />
-                                                        <FormLabel htmlFor='r-pickup' className='cursor-pointer'>ONE WAY - PICK UP</FormLabel>
+                                                        <FormLabel htmlFor='r-pickup' className='cursor-pointer'>
+                                                            ONE WAY - PICK UP
+                                                        </FormLabel>
                                                     </div>
                                                     <div className='flex items-center space-x-2'>
                                                         <RadioGroupItem value='3' id='r-drop' />
-                                                        <FormLabel htmlFor='r-drop' className='cursor-pointer'>ONE WAY - DROP</FormLabel>
+                                                        <FormLabel htmlFor='r-drop' className='cursor-pointer'>
+                                                            ONE WAY - DROP
+                                                        </FormLabel>
                                                     </div>
                                                 </RadioGroup>
                                             </FormControl>
@@ -523,69 +542,64 @@ export default function StudentRouteMappingReportPage() {
 
             {/* Results Grid */}
             {reportData.length > 0 && (
-                <Card className='w-full shadow-lg animate-in fade-in-50 slide-in-from-bottom-5'>
+                <Card className='fade-in-50 slide-in-from-bottom-5 w-full animate-in shadow-lg'>
                     <CardHeader className='pb-2'>
                         <div className='flex items-center justify-between'>
-                            <CardTitle className='text-lg font-semibold uppercase'>
-                                Report Result ({reportData.length} records)
-                            </CardTitle>
-                            <div className='text-sm text-muted-foreground'>
-                                Selected: {selectedRows.length}
-                            </div>
+                            <CardTitle className='font-semibold text-lg uppercase'>Report Result ({reportData.length} records)</CardTitle>
+                            <div className='text-muted-foreground text-sm'>Selected: {selectedRows.length}</div>
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div className='overflow-auto max-h-[600px] border rounded-md'>
-                            <Table id="report-table">
-                                <TableHeader className='bg-primary/5 sticky top-0 z-10'>
+                        <div className='max-h-[600px] overflow-auto rounded-md border'>
+                            <Table id='report-table'>
+                                <TableHeader className='sticky top-0 z-10 bg-primary/5'>
                                     <TableRow>
-                                        <TableHead className="w-[50px] text-center">
+                                        <TableHead className='w-[50px] text-center'>
                                             <Checkbox
                                                 checked={reportData.length > 0 && selectedRows.length === reportData.length}
                                                 onCheckedChange={toggleSelectAll}
-                                                aria-label="Select all"
+                                                aria-label='Select all'
                                             />
                                         </TableHead>
                                         <TableHead className='text-center font-bold'>SL.No.</TableHead>
                                         <TableHead className='text-center font-bold'>Photo</TableHead>
-                                        <TableHead className='text-center font-bold min-w-[150px]'>NAME</TableHead>
+                                        <TableHead className='min-w-[150px] text-center font-bold'>NAME</TableHead>
                                         <TableHead className='text-center font-bold'>ADM NO.</TableHead>
                                         <TableHead className='text-center font-bold'>CLASS</TableHead>
                                         <TableHead className='text-center font-bold'>SECTION</TableHead>
                                         <TableHead className='text-center font-bold'>MOBILE</TableHead>
-                                        <TableHead className='text-center font-bold min-w-[120px]'>PICK UP LOCATION</TableHead>
-                                        <TableHead className='text-center font-bold min-w-[120px]'>DROP LOCATION</TableHead>
-                                        <TableHead className='text-center font-bold min-w-[120px]'>PICK UP ROUTE</TableHead>
-                                        <TableHead className='text-center font-bold min-w-[120px]'>DROP ROUTE</TableHead>
+                                        <TableHead className='min-w-[120px] text-center font-bold'>PICK UP LOCATION</TableHead>
+                                        <TableHead className='min-w-[120px] text-center font-bold'>DROP LOCATION</TableHead>
+                                        <TableHead className='min-w-[120px] text-center font-bold'>PICK UP ROUTE</TableHead>
+                                        <TableHead className='min-w-[120px] text-center font-bold'>DROP ROUTE</TableHead>
                                         <TableHead className='text-center font-bold'>PICK UP SESSION</TableHead>
                                         <TableHead className='text-center font-bold'>DROP SESSION</TableHead>
                                         <TableHead className='text-center font-bold'>ROLL NO.</TableHead>
                                         <TableHead className='text-center font-bold'>APP NO.</TableHead>
-                                        <TableHead className='text-center font-bold min-w-[150px]'>ADDRESS</TableHead>
-                                        {feeGroupWise && (
-                                            <TableHead className='text-center font-bold'>FEE GROUP</TableHead>
-                                        )}
+                                        <TableHead className='min-w-[150px] text-center font-bold'>ADDRESS</TableHead>
+                                        {feeGroupWise && <TableHead className='text-center font-bold'>FEE GROUP</TableHead>}
                                         {installments.map((inst: any, idx: number) => (
-                                            <TableHead key={idx} className='text-center font-bold'>{inst.ftI_Name}</TableHead>
+                                            <TableHead key={idx} className='text-center font-bold'>
+                                                {inst.ftI_Name}
+                                            </TableHead>
                                         ))}
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {reportData.map((item, index) => (
                                         <TableRow key={index} className='hover:bg-muted/50'>
-                                            <TableCell className="text-center">
-                                                <Checkbox
-                                                    checked={selectedRows.includes(index)}
-                                                    onCheckedChange={() => toggleRow(index)}
-                                                />
+                                            <TableCell className='text-center'>
+                                                <Checkbox checked={selectedRows.includes(index)} onCheckedChange={() => toggleRow(index)} />
                                             </TableCell>
                                             <TableCell className='text-center'>{index + 1}</TableCell>
                                             <TableCell className='text-center'>
                                                 <img
                                                     src={item.amsT_Photoname}
-                                                    alt="Student"
-                                                    className="h-10 w-10 object-cover rounded-full mx-auto"
-                                                    onError={(e) => { (e.target as HTMLImageElement).src = '/assets/images/placeholder.png'; }}
+                                                    alt='Student'
+                                                    className='mx-auto h-10 w-10 rounded-full object-cover'
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).src = '/assets/images/placeholder.png';
+                                                    }}
                                                 />
                                             </TableCell>
                                             <TableCell>{item.studentName}</TableCell>
@@ -602,11 +616,11 @@ export default function StudentRouteMappingReportPage() {
                                             <TableCell className='text-center'>{item.amaY_RollNo}</TableCell>
                                             <TableCell className='text-center'>{item.trsR_ApplicationNo}</TableCell>
                                             <TableCell>{item.address}</TableCell>
-                                            {feeGroupWise && (
-                                                <TableCell className='text-center'>{item.fmG_GroupName}</TableCell>
-                                            )}
+                                            {feeGroupWise && <TableCell className='text-center'>{item.fmG_GroupName}</TableCell>}
                                             {installments.map((inst: any, idx: number) => (
-                                                <TableCell key={idx} className='text-center'>{item[inst.ftI_Name] || 0}</TableCell>
+                                                <TableCell key={idx} className='text-center'>
+                                                    {item[inst.ftI_Name] || 0}
+                                                </TableCell>
                                             ))}
                                         </TableRow>
                                     ))}

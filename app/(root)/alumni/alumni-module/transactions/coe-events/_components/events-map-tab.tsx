@@ -1,32 +1,31 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { eventsMapSchema, type IEventsMapFormValues } from './schema';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-    FormDescription
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Save, RotateCcw, Plus, Trash2, Upload, FileText, Image as ImageIcon, Video, Link as LinkIcon, Pencil, ToggleLeft, ToggleRight, Eye } from 'lucide-react';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { toast } from 'sonner';
-import { getPageDetails, getStudentBYYear, saveEventsMapData, deactivateEvent, switch2, getCOEMappingDetails, getViewRecords, getPageDetailsMap, getEventDetails } from '@/server/alumni/master-coe';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { DatePicker } from '@/components/ui/date-picker';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Input } from '@/components/ui/input';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    deactivateEvent,
+    getCOEMappingDetails,
+    getEventDetails,
+    getPageDetailsMap,
+    getViewRecords,
+    saveEventsMapData,
+    switch2
+} from '@/server/alumni/master-coe';
 import { uploadDocument } from '@/server/document_upload';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Eye, Image as ImageIcon, Pencil, Plus, RotateCcw, Save, ToggleLeft, ToggleRight, Trash2, Video } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { type IEventsMapFormValues, eventsMapSchema } from './schema';
 
 interface EventsMapTabProps {
     initialData: any;
@@ -80,16 +79,23 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
         }
     });
 
-    const { fields: imageFields, append: appendImage, remove: removeImage } = useFieldArray({
+    const {
+        fields: imageFields,
+        append: appendImage,
+        remove: removeImage
+    } = useFieldArray({
         control: form.control,
         name: 'images_listCoe'
     });
 
-    const { fields: videoFields, append: appendVideo, remove: removeVideo } = useFieldArray({
+    const {
+        fields: videoFields,
+        append: appendVideo,
+        remove: removeVideo
+    } = useFieldArray({
         control: form.control,
         name: 'videos_list'
     });
-
 
     const watchEvent = form.watch('COEME_Id');
     const watchYear = form.watch('ASMAY_Id');
@@ -120,7 +126,7 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
                 ASMAY_Id: Number(values.ASMAY_Id),
                 COEE_EStartDate: values.COEE_EStartDate.toISOString(),
                 COEE_EEndDate: values.COEE_EEndDate.toISOString(),
-                videos_list: values.videos_list.map(v => v.COEEV_VideoURL)
+                videos_list: values.videos_list.map((v) => v.COEEV_VideoURL)
             };
 
             const res = await saveEventsMapData(payload);
@@ -164,22 +170,27 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
             header: 'Actions',
             id: 'actions',
             cell: ({ row }: { row: any }) => (
-                <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => handleEdit(row.original)} title="Edit">
-                        <Pencil className="h-4 w-4" />
+                <div className='flex gap-2'>
+                    <Button variant='ghost' size='icon' onClick={() => handleEdit(row.original)} title='Edit'>
+                        <Pencil className='h-4 w-4' />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleView(row.original)} title="View Details">
-                        <Eye className="h-4 w-4" />
+                    <Button variant='ghost' size='icon' onClick={() => handleView(row.original)} title='View Details'>
+                        <Eye className='h-4 w-4' />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleToggleStatus(row.original)} title="Toggle Status">
+                    <Button variant='ghost' size='icon' onClick={() => handleToggleStatus(row.original)} title='Toggle Status'>
                         {row.original.COEE_ActiveFlag ? (
-                            <ToggleRight className="h-4 w-4 text-green-500" />
+                            <ToggleRight className='h-4 w-4 text-green-500' />
                         ) : (
-                            <ToggleLeft className="h-4 w-4 text-destructive" />
+                            <ToggleLeft className='h-4 w-4 text-destructive' />
                         )}
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDeactivate(row.original)} title="Deactivate" className="text-destructive">
-                        <Trash2 className="h-4 w-4" />
+                    <Button
+                        variant='ghost'
+                        size='icon'
+                        onClick={() => handleDeactivate(row.original)}
+                        title='Deactivate'
+                        className='text-destructive'>
+                        <Trash2 className='h-4 w-4' />
                     </Button>
                 </div>
             )
@@ -262,22 +273,30 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
     };
 
     return (
-        <div className="space-y-8">
+        <div className='space-y-8'>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    <CollapsibleSection title="Event Information">
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+                    <CollapsibleSection title='Event Information'>
+                        <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
                             <FormField
                                 control={form.control}
-                                name="ASMAY_Id"
+                                name='ASMAY_Id'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Academic Year <span className="text-destructive">*</span></FormLabel>
+                                        <FormLabel>
+                                            Academic Year <span className='text-destructive'>*</span>
+                                        </FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value}>
-                                            <FormControl><SelectTrigger><SelectValue placeholder="Select Year" /></SelectTrigger></FormControl>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder='Select Year' />
+                                                </SelectTrigger>
+                                            </FormControl>
                                             <SelectContent>
                                                 {(initialData?.yearlist || initialData?.year_list)?.map((y: any) => (
-                                                    <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>{y.asmaY_Year}</SelectItem>
+                                                    <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
+                                                        {y.asmaY_Year}
+                                                    </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
@@ -287,15 +306,25 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
                             />
                             <FormField
                                 control={form.control}
-                                name="COEME_Id"
+                                name='COEME_Id'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Event Name <span className="text-destructive">*</span></FormLabel>
+                                        <FormLabel>
+                                            Event Name <span className='text-destructive'>*</span>
+                                        </FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value}>
-                                            <FormControl><SelectTrigger><SelectValue placeholder="Select Event" /></SelectTrigger></FormControl>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder='Select Event' />
+                                                </SelectTrigger>
+                                            </FormControl>
                                             <SelectContent>
                                                 {(initialData?.mapped_eventlist || initialData?.master_event_list)?.map((e: any) => (
-                                                    <SelectItem key={e.coemE_Id || e.COEME_Id} value={(e.coemE_Id || e.COEME_Id).toString()}>{e.coemE_EventName || e.COEME_EventName}</SelectItem>
+                                                    <SelectItem
+                                                        key={e.coemE_Id || e.COEME_Id}
+                                                        value={(e.coemE_Id || e.COEME_Id).toString()}>
+                                                        {e.coemE_EventName || e.COEME_EventName}
+                                                    </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
@@ -306,14 +335,16 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
                         </div>
                     </CollapsibleSection>
 
-                    <CollapsibleSection title="Schedule Details">
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
+                    <CollapsibleSection title='Schedule Details'>
+                        <div className='grid grid-cols-1 gap-6 md:grid-cols-4'>
                             <FormField
                                 control={form.control}
-                                name="COEE_EStartDate"
+                                name='COEE_EStartDate'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Start Date <span className="text-destructive">*</span></FormLabel>
+                                        <FormLabel>
+                                            Start Date <span className='text-destructive'>*</span>
+                                        </FormLabel>
                                         <DatePicker date={field.value} setDate={field.onChange} />
                                         <FormMessage />
                                     </FormItem>
@@ -321,10 +352,12 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
                             />
                             <FormField
                                 control={form.control}
-                                name="COEE_EEndDate"
+                                name='COEE_EEndDate'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>End Date <span className="text-destructive">*</span></FormLabel>
+                                        <FormLabel>
+                                            End Date <span className='text-destructive'>*</span>
+                                        </FormLabel>
                                         <DatePicker date={field.value} setDate={field.onChange} />
                                         <FormMessage />
                                     </FormItem>
@@ -332,22 +365,30 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
                             />
                             <FormField
                                 control={form.control}
-                                name="COEE_EStartTime"
+                                name='COEE_EStartTime'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Start Time <span className="text-destructive">*</span></FormLabel>
-                                        <FormControl><Input placeholder="09:00 AM" {...field} /></FormControl>
+                                        <FormLabel>
+                                            Start Time <span className='text-destructive'>*</span>
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input placeholder='09:00 AM' {...field} />
+                                        </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
                             <FormField
                                 control={form.control}
-                                name="COEE_EEndTime"
+                                name='COEE_EEndTime'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>End Time <span className="text-destructive">*</span></FormLabel>
-                                        <FormControl><Input placeholder="05:00 PM" {...field} /></FormControl>
+                                        <FormLabel>
+                                            End Time <span className='text-destructive'>*</span>
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input placeholder='05:00 PM' {...field} />
+                                        </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -355,54 +396,64 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
                         </div>
                     </CollapsibleSection>
 
-                    <CollapsibleSection title="Participants Mapping">
-                        <div className="flex flex-wrap gap-8 border-t pt-4">
+                    <CollapsibleSection title='Participants Mapping'>
+                        <div className='flex flex-wrap gap-8 border-t pt-4'>
                             <FormField
                                 control={form.control}
-                                name="COEE_StudentFlag"
+                                name='COEE_StudentFlag'
                                 render={({ field }) => (
-                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                        <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                                    <FormItem className='flex items-center space-x-3 space-y-0'>
+                                        <FormControl>
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                        </FormControl>
                                         <FormLabel>Student</FormLabel>
                                     </FormItem>
                                 )}
                             />
                             <FormField
                                 control={form.control}
-                                name="COEE_EmployeeFlag"
+                                name='COEE_EmployeeFlag'
                                 render={({ field }) => (
-                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                        <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                                    <FormItem className='flex items-center space-x-3 space-y-0'>
+                                        <FormControl>
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                        </FormControl>
                                         <FormLabel>Employee</FormLabel>
                                     </FormItem>
                                 )}
                             />
                             <FormField
                                 control={form.control}
-                                name="COEE_AlumniFlag"
+                                name='COEE_AlumniFlag'
                                 render={({ field }) => (
-                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                        <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                                    <FormItem className='flex items-center space-x-3 space-y-0'>
+                                        <FormControl>
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                        </FormControl>
                                         <FormLabel>Alumni</FormLabel>
                                     </FormItem>
                                 )}
                             />
                             <FormField
                                 control={form.control}
-                                name="COEE_OtherFlag"
+                                name='COEE_OtherFlag'
                                 render={({ field }) => (
-                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                        <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                                    <FormItem className='flex items-center space-x-3 space-y-0'>
+                                        <FormControl>
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                        </FormControl>
                                         <FormLabel>Other</FormLabel>
                                     </FormItem>
                                 )}
                             />
                             <FormField
                                 control={form.control}
-                                name="COEE_ManagementFlag"
+                                name='COEE_ManagementFlag'
                                 render={({ field }) => (
-                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                        <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                                    <FormItem className='flex items-center space-x-3 space-y-0'>
+                                        <FormControl>
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                        </FormControl>
                                         <FormLabel>Management</FormLabel>
                                     </FormItem>
                                 )}
@@ -410,17 +461,22 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
                         </div>
 
                         {form.watch('COEE_StudentFlag') && (
-                            <div className="mt-4 p-4 border rounded-md bg-muted/20">
-                                <FormLabel className="mb-2 block font-semibold">Select Classes</FormLabel>
+                            <div className='mt-4 rounded-md border bg-muted/20 p-4'>
+                                <FormLabel className='mb-2 block font-semibold'>Select Classes</FormLabel>
                                 <FormField
                                     control={form.control}
-                                    name="stu_class_list"
+                                    name='stu_class_list'
                                     render={({ field }) => (
                                         <MultiSelect
-                                            options={initialData?.class_list?.map((c: any) => ({ label: c.asmcL_ClassName, value: c.asmcL_Id.toString() })) || []}
-                                            defaultValue={field.value?.map(item => item.ASMCL_Id.toString()) || []}
-                                            onValueChange={(val) => field.onChange(val.map(id => ({ ASMCL_Id: Number(id) })))}
-                                            placeholder="Select Classes"
+                                            options={
+                                                initialData?.class_list?.map((c: any) => ({
+                                                    label: c.asmcL_ClassName,
+                                                    value: c.asmcL_Id.toString()
+                                                })) || []
+                                            }
+                                            defaultValue={field.value?.map((item) => item.ASMCL_Id.toString()) || []}
+                                            onValueChange={(val) => field.onChange(val.map((id) => ({ ASMCL_Id: Number(id) })))}
+                                            placeholder='Select Classes'
                                         />
                                     )}
                                 />
@@ -428,17 +484,22 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
                         )}
 
                         {form.watch('COEE_EmployeeFlag') && (
-                            <div className="mt-4 p-4 border rounded-md bg-muted/20">
-                                <FormLabel className="mb-2 block font-semibold">Select Employee Types</FormLabel>
+                            <div className='mt-4 rounded-md border bg-muted/20 p-4'>
+                                <FormLabel className='mb-2 block font-semibold'>Select Employee Types</FormLabel>
                                 <FormField
                                     control={form.control}
-                                    name="emp_type_list"
+                                    name='emp_type_list'
                                     render={({ field }) => (
                                         <MultiSelect
-                                            options={initialData?.department_list?.map((d: any) => ({ label: d.hrmD_DepartmentName, value: d.hrmD_Id.toString() })) || []}
-                                            defaultValue={field.value?.map(item => item.HRMD_Id.toString()) || []}
-                                            onValueChange={(val) => field.onChange(val.map(id => ({ HRMD_Id: Number(id) })))}
-                                            placeholder="Select Departments"
+                                            options={
+                                                initialData?.department_list?.map((d: any) => ({
+                                                    label: d.hrmD_DepartmentName,
+                                                    value: d.hrmD_Id.toString()
+                                                })) || []
+                                            }
+                                            defaultValue={field.value?.map((item) => item.HRMD_Id.toString()) || []}
+                                            onValueChange={(val) => field.onChange(val.map((id) => ({ HRMD_Id: Number(id) })))}
+                                            placeholder='Select Departments'
                                         />
                                     )}
                                 />
@@ -446,50 +507,57 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
                         )}
                     </CollapsibleSection>
 
-                    <CollapsibleSection title="Media Assets">
-                        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                            <div className="space-y-4">
+                    <CollapsibleSection title='Media Assets'>
+                        <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
+                            <div className='space-y-4'>
                                 <FormLabel>Photos/Images</FormLabel>
-                                <div className="flex items-center gap-4">
-                                    <Input type="file" onChange={handleFileUpload} accept="image/*" />
+                                <div className='flex items-center gap-4'>
+                                    <Input type='file' onChange={handleFileUpload} accept='image/*' />
                                 </div>
-                                <div className="flex flex-wrap gap-2">
+                                <div className='flex flex-wrap gap-2'>
                                     {imageFields.map((field, idx) => (
-                                        <div key={field.id} className="flex items-center gap-2 p-2 border rounded bg-muted/30">
-                                            <ImageIcon className="h-4 w-4" />
-                                            <span className="text-xs truncate max-w-[150px]">{form.watch(`images_listCoe.${idx}.COEEI_Images`)}</span>
-                                            <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeImage(idx)}>
-                                                <Trash2 className="h-3 w-3" />
+                                        <div key={field.id} className='flex items-center gap-2 rounded border bg-muted/30 p-2'>
+                                            <ImageIcon className='h-4 w-4' />
+                                            <span className='max-w-[150px] truncate text-xs'>
+                                                {form.watch(`images_listCoe.${idx}.COEEI_Images`)}
+                                            </span>
+                                            <Button
+                                                type='button'
+                                                variant='ghost'
+                                                size='icon'
+                                                className='h-6 w-6'
+                                                onClick={() => removeImage(idx)}>
+                                                <Trash2 className='h-3 w-3' />
                                             </Button>
                                         </div>
                                     ))}
                                 </div>
                             </div>
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between">
+                            <div className='space-y-4'>
+                                <div className='flex items-center justify-between'>
                                     <FormLabel>Video URLs</FormLabel>
-                                    <Button type="button" size="sm" variant="outline" onClick={() => appendVideo({ COEEV_VideoURL: '' })}>
-                                        <Plus className="mr-2 h-4 w-4" /> Add Video URL
+                                    <Button type='button' size='sm' variant='outline' onClick={() => appendVideo({ COEEV_VideoURL: '' })}>
+                                        <Plus className='mr-2 h-4 w-4' /> Add Video URL
                                     </Button>
                                 </div>
                                 {videoFields.map((field, idx) => (
-                                    <div key={field.id} className="flex gap-2">
+                                    <div key={field.id} className='flex gap-2'>
                                         <FormField
                                             control={form.control}
                                             name={`videos_list.${idx}.COEEV_VideoURL`}
                                             render={({ field }) => (
-                                                <FormItem className="flex-1">
+                                                <FormItem className='flex-1'>
                                                     <FormControl>
-                                                        <div className="relative">
-                                                            <Video className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                                                            <Input placeholder="YouTube/Vimeo URL" className="pl-9" {...field} />
+                                                        <div className='relative'>
+                                                            <Video className='absolute top-2.5 left-3 h-4 w-4 text-muted-foreground' />
+                                                            <Input placeholder='YouTube/Vimeo URL' className='pl-9' {...field} />
                                                         </div>
                                                     </FormControl>
                                                 </FormItem>
                                             )}
                                         />
-                                        <Button type="button" variant="ghost" size="icon" onClick={() => removeVideo(idx)}>
-                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                        <Button type='button' variant='ghost' size='icon' onClick={() => removeVideo(idx)}>
+                                            <Trash2 className='h-4 w-4 text-destructive' />
                                         </Button>
                                     </div>
                                 ))}
@@ -497,62 +565,70 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
                         </div>
                     </CollapsibleSection>
 
-                    <div className="flex justify-center gap-4 pt-8">
-                        <Button type="submit" className="w-40 bg-primary" disabled={form.formState.isSubmitting}>
+                    <div className='flex justify-center gap-4 pt-8'>
+                        <Button type='submit' className='w-40 bg-primary' disabled={form.formState.isSubmitting}>
                             {form.formState.isSubmitting ? (
                                 <>
-                                    <RotateCcw className="mr-2 h-4 w-4 animate-spin" /> Saving...
+                                    <RotateCcw className='mr-2 h-4 w-4 animate-spin' /> Saving...
                                 </>
                             ) : (
                                 <>
-                                    <Save className="mr-2 h-4 w-4" /> Save Mapping
+                                    <Save className='mr-2 h-4 w-4' /> Save Mapping
                                 </>
                             )}
                         </Button>
-                        <Button type="button" variant="outline" className="w-40" onClick={() => form.reset()}>
-                            <RotateCcw className="mr-2 h-4 w-4" /> Clear
+                        <Button type='button' variant='outline' className='w-40' onClick={() => form.reset()}>
+                            <RotateCcw className='mr-2 h-4 w-4' /> Clear
                         </Button>
                     </div>
                 </form>
             </Form>
 
-            <CollapsibleSection title="Mapped Events List" defaultOpen={true}>
-                <GenericDataTable
-                    columns={columns}
-                    data={mappingData}
-                    isLoading={false}
-                />
+            <CollapsibleSection title='Mapped Events List' defaultOpen={true}>
+                <GenericDataTable columns={columns} data={mappingData} isLoading={false} />
             </CollapsibleSection>
 
             <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
-                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                <DialogContent className='max-h-[80vh] max-w-4xl overflow-y-auto'>
                     <DialogHeader>
                         <DialogTitle>Event Record Details</DialogTitle>
                         <DialogDescription>Viewing detailed information for the mapped event.</DialogDescription>
                     </DialogHeader>
                     {isLoadingDetails ? (
-                        <div className="flex h-32 items-center justify-center"><RotateCcw className="h-8 w-8 animate-spin text-primary" /></div>
+                        <div className='flex h-32 items-center justify-center'>
+                            <RotateCcw className='h-8 w-8 animate-spin text-primary' />
+                        </div>
                     ) : (
-                        <div className="space-y-4">
+                        <div className='space-y-4'>
                             {viewDetails.length > 0 ? (
                                 <GenericDataTable
                                     isLoading={isLoadingDetails}
                                     columns={[
                                         { header: 'Event Name', accessorKey: 'COEME_EventName' },
-                                        { header: 'Start Date', accessorKey: 'COEE_EStartDate', cell: (info) => new Date(info.getValue() as string).toLocaleDateString() },
-                                        { header: 'End Date', accessorKey: 'COEE_EEndDate', cell: (info) => new Date(info.getValue() as string).toLocaleDateString() },
+                                        {
+                                            header: 'Start Date',
+                                            accessorKey: 'COEE_EStartDate',
+                                            cell: (info) => new Date(info.getValue() as string).toLocaleDateString()
+                                        },
+                                        {
+                                            header: 'End Date',
+                                            accessorKey: 'COEE_EEndDate',
+                                            cell: (info) => new Date(info.getValue() as string).toLocaleDateString()
+                                        },
                                         { header: 'Year', accessorKey: 'ASMAY_Year' }
                                         // Add more detail columns if necessary based on API response
                                     ]}
                                     data={viewDetails}
                                 />
                             ) : (
-                                <div className="text-center p-8 text-muted-foreground">No detailed records found.</div>
+                                <div className='p-8 text-center text-muted-foreground'>No detailed records found.</div>
                             )}
                         </div>
                     )}
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsViewOpen(false)}>Close</Button>
+                        <Button variant='outline' onClick={() => setIsViewOpen(false)}>
+                            Close
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

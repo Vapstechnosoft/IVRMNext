@@ -364,8 +364,8 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                                     field.value === 'All'
                                                         ? 'All'
                                                         : field.value && field.value !== 0
-                                                            ? String(field.value)
-                                                            : undefined
+                                                          ? String(field.value)
+                                                          : undefined
                                                 }
                                                 onValueChange={(v) => field.onChange(v === 'All' ? 'All' : Number(v))}>
                                                 <SelectTrigger>

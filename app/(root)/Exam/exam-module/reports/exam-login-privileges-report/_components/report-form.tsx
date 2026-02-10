@@ -130,10 +130,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         const fetchSections = async () => {
             try {
                 setLoadingSections(true);
-                const { data } = await getSectionsDropDownByAcademicYearandClasslist(
-                    Number(watchYear),
-                    Number(watchClass)
-                );
+                const { data } = await getSectionsDropDownByAcademicYearandClasslist(Number(watchYear), Number(watchClass));
 
                 const sectionList = Array.isArray(data) ? data : [];
                 setSections(sectionList);
@@ -400,11 +397,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     name='HRME_Id'
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Select
-                                                onValueChange={field.onChange}
-                                                value={field.value}
-                                                disabled={!watchEmployeeChecked}
-                                            >
+                                            <Select onValueChange={field.onChange} value={field.value} disabled={!watchEmployeeChecked}>
                                                 <SelectTrigger className={!watchEmployeeChecked ? 'bg-gray-100' : ''}>
                                                     <SelectValue placeholder='Select Employee' />
                                                 </SelectTrigger>

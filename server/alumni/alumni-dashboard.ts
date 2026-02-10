@@ -1,15 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type {
-    IDashboardData,
-    IGallery,
-    INotice,
-    IYearwiseCount,
-    IClasswiseStudent,
-    IAlumniBirthday,
-    IAlumniGalleryDetail
-} from '@/types/alumni/alumni-dashboard';
+import type { IClasswiseStudent, IYearwiseCount } from '@/types/alumni/alumni-dashboard';
 
 export async function getDashboardData(roleId = 30) {
     const response = await api.get<any>('alumni', `/SchoolALUDASH/getloaddata?roleId=${roleId}`);
@@ -21,7 +13,7 @@ export async function getDashboardData(roleId = 30) {
                 ASMAY_From_Date: item.asmay_from_date,
                 ASMAY_To_Date: item.asmay_to_date,
                 NOofstudents: item.noofstudents,
-                ASMAY_Id: item.asmay_id,
+                ASMAY_Id: item.asmay_id
             }));
         }
 
@@ -31,7 +23,7 @@ export async function getDashboardData(roleId = 30) {
                 ASMAY_Year: item.asmay_year,
                 ALMST_AdmNo: item.almst_admno,
                 classname: item.classname,
-                ALMST_MobileNo: item.almst_mobileno,
+                ALMST_MobileNo: item.almst_mobileno
             }));
         }
 
@@ -78,9 +70,14 @@ export async function getYearwiseList(asmaY_Id: number) {
             ...item,
             BATCHES: item.batches || item.BATCHES || item.asmay_year || '',
             classname: item.classname || item.CLASSNAME || '',
-            NOofstudents: item.noofstudents !== undefined ? item.noofstudents : (item.NOofstudents !== undefined ? item.NOofstudents : (item.studentcount || 0)),
+            NOofstudents:
+                item.noofstudents !== undefined
+                    ? item.noofstudents
+                    : item.NOofstudents !== undefined
+                      ? item.NOofstudents
+                      : item.studentcount || 0,
             ASMAY_Id: item.asmay_id || item.ASMAY_Id || asmaY_Id,
-            ASMCL_Id: item.asmcL_Id || item.asmcl_id || item.ASMCL_Id || 0,
+            ASMCL_Id: item.asmcL_Id || item.asmcl_id || item.ASMCL_Id || 0
         })) as IYearwiseCount[];
 
         if (!response.success) {
@@ -92,7 +89,11 @@ export async function getYearwiseList(asmaY_Id: number) {
 }
 
 export async function getClasswiseStudent(asmaY_Id: number, asmcL_Id: number) {
-    const response = await api.post<IClasswiseStudent[]>('alumni', `/SchoolALUDASH/classwisestudent?ASMAY_Id=${asmaY_Id}&ASMCL_Id=${asmcL_Id}`, {});
+    const response = await api.post<IClasswiseStudent[]>(
+        'alumni',
+        `/SchoolALUDASH/classwisestudent?ASMAY_Id=${asmaY_Id}&ASMCL_Id=${asmcL_Id}`,
+        {}
+    );
 
     // Ensure we return the data array even if success is false but data is present
     if (!response.success && response.data && response.data.length > 0) {

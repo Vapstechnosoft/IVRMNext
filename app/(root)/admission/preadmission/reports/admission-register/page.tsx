@@ -17,7 +17,7 @@ import { getExcelAdmissionRegistrationReport } from '@/server/admission/preadmis
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, FileSpreadsheet, FileText, Printer, RotateCcw, Search, Square, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { use, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -99,7 +99,7 @@ const FIELD_OPTIONS = [
 export default function AdmissionReportPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const router = useRouter();
     const currentSearchParams = useSearchParams();
     const tableRef = useRef<DataTableRef>(null);
@@ -178,8 +178,8 @@ export default function AdmissionReportPage(props: {
                 typeof response.data === 'object' && response.data !== null && 'searchstudentDetails' in response.data
                     ? response.data.searchstudentDetails
                     : Array.isArray(response.data)
-                        ? response.data
-                        : [],
+                      ? response.data
+                      : [],
             total: response.total,
             page: response.page,
             page_size: response.page_size
@@ -197,8 +197,8 @@ export default function AdmissionReportPage(props: {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    });
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);

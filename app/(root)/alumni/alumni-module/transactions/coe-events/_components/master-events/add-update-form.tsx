@@ -11,7 +11,7 @@ import { RotateCcw, Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { masterEventsSchema, type MasterEventsFormValues } from './schema';
+import { type MasterEventsFormValues, masterEventsSchema } from './schema';
 
 interface MasterEventsFormProps {
     onSuccess?: () => void;
@@ -50,7 +50,8 @@ export default function MasterEventsForm({ onSuccess, parameterlist, editData }:
                         const data = list[0];
                         form.reset({
                             COEME_Id: data.coemE_Id || data.COEME_Id,
-                            radiotype: (data.coemE_ManualDefault_Flag || data.COEME_ManualDefault_Flag) === 'Default' ? 'Default' : 'Manual',
+                            radiotype:
+                                (data.coemE_ManualDefault_Flag || data.COEME_ManualDefault_Flag) === 'Default' ? 'Default' : 'Manual',
                             COEME_EventName: data.coemE_EventName || data.COEME_EventName || '',
                             COEME_EventDesc: data.coemE_EventDesc || data.COEME_EventDesc || '',
                             COEME_SMSMessage: data.coemE_SMSMessage || data.COEME_SMSMessage || '',

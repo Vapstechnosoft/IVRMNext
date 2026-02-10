@@ -1,16 +1,20 @@
 'use client';
 
-import { useFormContext } from 'react-hook-form';
-import { FormField, FormItem, FormLabel, FormMessage, FormControl } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { useTransition, useState, useEffect } from 'react';
-import { getTransactionEmployeeClasses, getTransactionEmployeeSections, getTransactionEmployeeSubjects } from '@/server/lesson-planner/transactions/school-staff-period-transaction';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    getTransactionEmployeeClasses,
+    getTransactionEmployeeSections,
+    getTransactionEmployeeSubjects
+} from '@/server/lesson-planner/transactions/school-staff-period-transaction';
+import { useEffect, useState, useTransition } from 'react';
+import { useFormContext } from 'react-hook-form';
 
 export default function SearchForm({
     masterYear,
     employees,
-    onSearch,
+    onSearch
 }: {
     masterYear: any[];
     employees: any[];
@@ -73,76 +77,146 @@ export default function SearchForm({
     }, [selectedYear, selectedEmployee, selectedClass, selectedSection, setValue]);
 
     return (
-        <div className="space-y-4 p-4 border rounded-md bg-card">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <FormField control={control} name="ASMAY_Id" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Academic Year <span className="text-red-500">*</span></FormLabel>
-                        <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
-                            <FormControl><SelectTrigger><SelectValue placeholder="Select Year" /></SelectTrigger></FormControl>
-                            <SelectContent>
-                                {masterYear?.map((y: any) => <SelectItem key={y.asmaY_Id} value={y.asmaY_Id?.toString() || ''}>{y.asmaY_Year}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                    </FormItem>
-                )} />
+        <div className='space-y-4 rounded-md border bg-card p-4'>
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+                <FormField
+                    control={control}
+                    name='ASMAY_Id'
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>
+                                Academic Year <span className='text-red-500'>*</span>
+                            </FormLabel>
+                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select Year' />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {masterYear?.map((y: any) => (
+                                        <SelectItem key={y.asmaY_Id} value={y.asmaY_Id?.toString() || ''}>
+                                            {y.asmaY_Year}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
-                <FormField control={control} name="HRME_Id" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Employee <span className="text-red-500">*</span></FormLabel>
-                        <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
-                            <FormControl><SelectTrigger><SelectValue placeholder="Select Employee" /></SelectTrigger></FormControl>
-                            <SelectContent>
-                                {employees?.map((e: any) => <SelectItem key={e.hrmE_Id} value={e.hrmE_Id?.toString() || ''}>{e.employeename || e.username || `Employee ID: ${e.hrmE_Id}`}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                    </FormItem>
-                )} />
+                <FormField
+                    control={control}
+                    name='HRME_Id'
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>
+                                Employee <span className='text-red-500'>*</span>
+                            </FormLabel>
+                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select Employee' />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {employees?.map((e: any) => (
+                                        <SelectItem key={e.hrmE_Id} value={e.hrmE_Id?.toString() || ''}>
+                                            {e.employeename || e.username || `Employee ID: ${e.hrmE_Id}`}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
-                <FormField control={control} name="ASMCL_Id" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Class <span className="text-red-500">*</span></FormLabel>
-                        <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
-                            <FormControl><SelectTrigger><SelectValue placeholder="Select Class" /></SelectTrigger></FormControl>
-                            <SelectContent>
-                                {classes?.map((c: any) => <SelectItem key={c.asmcL_Id} value={c.asmcL_Id?.toString() || ''}>{c.asmcL_ClassName}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                    </FormItem>
-                )} />
+                <FormField
+                    control={control}
+                    name='ASMCL_Id'
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>
+                                Class <span className='text-red-500'>*</span>
+                            </FormLabel>
+                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select Class' />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {classes?.map((c: any) => (
+                                        <SelectItem key={c.asmcL_Id} value={c.asmcL_Id?.toString() || ''}>
+                                            {c.asmcL_ClassName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
-                <FormField control={control} name="ASMS_Id" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Section <span className="text-red-500">*</span></FormLabel>
-                        <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
-                            <FormControl><SelectTrigger><SelectValue placeholder="Select Section" /></SelectTrigger></FormControl>
-                            <SelectContent>
-                                {sections?.map((s: any) => <SelectItem key={s.asmS_Id} value={s.asmS_Id?.toString() || ''}>{s.asmC_SectionName}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                    </FormItem>
-                )} />
+                <FormField
+                    control={control}
+                    name='ASMS_Id'
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>
+                                Section <span className='text-red-500'>*</span>
+                            </FormLabel>
+                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select Section' />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {sections?.map((s: any) => (
+                                        <SelectItem key={s.asmS_Id} value={s.asmS_Id?.toString() || ''}>
+                                            {s.asmC_SectionName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
-                <FormField control={control} name="ISMS_Id" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Subject <span className="text-red-500">*</span></FormLabel>
-                        <Select onValueChange={(val) => setValue('ISMS_Id', Number(val))} value={field.value?.toString() || ''}>
-                            <FormControl><SelectTrigger><SelectValue placeholder="Select Subject" /></SelectTrigger></FormControl>
-                            <SelectContent>
-                                {subjects?.map((s: any) => <SelectItem key={s.ismS_Id} value={s.ismS_Id?.toString() || ''}>{s.ismS_SubjectName}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                    </FormItem>
-                )} />
+                <FormField
+                    control={control}
+                    name='ISMS_Id'
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>
+                                Subject <span className='text-red-500'>*</span>
+                            </FormLabel>
+                            <Select onValueChange={(val) => setValue('ISMS_Id', Number(val))} value={field.value?.toString() || ''}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select Subject' />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {subjects?.map((s: any) => (
+                                        <SelectItem key={s.ismS_Id} value={s.ismS_Id?.toString() || ''}>
+                                            {s.ismS_SubjectName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
             </div>
 
-            <div className="flex justify-center">
-                <Button type="button" onClick={handleSubmit(onSearch)} disabled={isPending}>
+            <div className='flex justify-center'>
+                <Button type='button' onClick={handleSubmit(onSearch)} disabled={isPending}>
                     {isPending ? 'Loading...' : 'Get Details'}
                 </Button>
             </div>

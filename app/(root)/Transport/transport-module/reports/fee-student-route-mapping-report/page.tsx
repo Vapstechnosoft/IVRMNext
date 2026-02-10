@@ -2,20 +2,25 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Checkbox } from '@/components/ui/checkbox';
+import {
+    useFeeBusRouteDefaulterreport,
+    useFeeClassListDefaulterreport,
+    useFeeDefaulterReport,
+    useFeeSectionListDefaulterreport
+} from '@/hooks/fees/useReports';
+import { getStudentRouteMappingReportData } from '@/server/transport/transport-module/reports/fee-student-route-mapping-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FileSpreadsheet, Loader2, Printer, Search, X } from 'lucide-react';
+import { FileSpreadsheet, Loader2, Printer, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
 import * as XLSX from 'xlsx';
-import { Input } from '@/components/ui/input';
-import { useFeeBusRouteDefaulterreport, useFeeClassListDefaulterreport, useFeeDefaulterReport, useFeeSectionListDefaulterreport } from '@/hooks/fees/useReports';
-import { getStudentRouteMappingReportData } from '@/server/transport/transport-module/reports/fee-student-route-mapping-report';
+import { z } from 'zod';
 
 // Types derived from Angular usage
 interface Year {
@@ -54,11 +59,10 @@ const formSchema = z.object({
     asmaY_Id: z.string().min(1, 'Please Select the Academic Year'),
     asmcL_Id: z.string().min(1, 'Please Select the Class'),
     asmS_Id: z.string().min(1, 'Please Select the Section'),
-    trmR_Id: z.string().min(1, 'Please Select Route'),
+    trmR_Id: z.string().min(1, 'Please Select Route')
 });
 
 export default function FeeStudentRouteMappingReportPage() {
-
     // Hooks for Dropdowns - Load all data on load
     const { data: academicYearData } = useFeeDefaulterReport();
     const { data: classListResponse } = useFeeClassListDefaulterreport();
@@ -79,7 +83,7 @@ export default function FeeStudentRouteMappingReportPage() {
             asmaY_Id: '',
             asmcL_Id: '',
             asmS_Id: '',
-            trmR_Id: '',
+            trmR_Id: ''
         }
     });
 
@@ -94,13 +98,12 @@ export default function FeeStudentRouteMappingReportPage() {
             ASMS_Id: Number(values.asmS_Id),
             trmR_Id: Number(values.trmR_Id)
         };
-        console.log("payload", payload);
+        console.log('payload', payload);
         try {
             const res = await getStudentRouteMappingReportData(payload);
-            console.log("res", res);
+            console.log('res', res);
             if (res && res.data && res.data.length > 0) {
                 setReportData(res.data);
-
             } else {
                 setReportData([]);
                 toast.warning('Record Not Found !!');
@@ -125,10 +128,11 @@ export default function FeeStudentRouteMappingReportPage() {
     };
 
     // Filter Logic
-    const filteredData = reportData.filter(item =>
-        (item.studentName && item.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (item.className && item.className.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (item.pickupLocation && item.pickupLocation.toLowerCase().includes(searchTerm.toLowerCase()))
+    const filteredData = reportData.filter(
+        (item) =>
+            (item.studentName && item.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (item.className && item.className.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (item.pickupLocation && item.pickupLocation.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     // Totals
@@ -137,11 +141,7 @@ export default function FeeStudentRouteMappingReportPage() {
 
     // Selection Logic
     const toggleRow = (index: number) => {
-        setSelectedRows(prev =>
-            prev.includes(index)
-                ? prev.filter(i => i !== index)
-                : [...prev, index]
-        );
+        setSelectedRows((prev) => (prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]));
     };
 
     const toggleSelectAll = () => {
@@ -193,7 +193,9 @@ export default function FeeStudentRouteMappingReportPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                ${selectedItems.map((item, index) => `
+                                ${selectedItems
+                                    .map(
+                                        (item, index) => `
                                     <tr>
                                         <td>${index + 1}</td>
                                         <td>${item.studentName}</td>
@@ -202,7 +204,9 @@ export default function FeeStudentRouteMappingReportPage() {
                                         <td>${item.pickupLocation}</td>
                                         <td>${item.transportation_Fee}</td>
                                     </tr>
-                                `).join('')}
+                                `
+                                    )
+                                    .join('')}
                                 <tr class="footer-row">
                                     <td colspan="3">Total</td>
                                     <td>${totalRoute}</td>
@@ -233,7 +237,7 @@ export default function FeeStudentRouteMappingReportPage() {
             'Student Name': item.studentName,
             'Class/Section': item.className,
             'Route Fee': item.route_Fee,
-            'Route': item.pickupLocation,
+            Route: item.pickupLocation,
             'Transportation Fee': item.transportation_Fee
         }));
 
@@ -243,7 +247,7 @@ export default function FeeStudentRouteMappingReportPage() {
             'Student Name': '',
             'Class/Section': '',
             'Route Fee': selectedItems.reduce((s, i) => s + (i.route_Fee || 0), 0),
-            'Route': '',
+            Route: '',
             'Transportation Fee': selectedItems.reduce((s, i) => s + (i.transportation_Fee || 0), 0)
         } as any);
 
@@ -268,14 +272,16 @@ export default function FeeStudentRouteMappingReportPage() {
                 <CardContent className='pt-6'>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
-                            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                 {/* Academic Year */}
                                 <FormField
                                     control={form.control}
                                     name='asmaY_Id'
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Academic Year <span className='text-red-500'>*</span></FormLabel>
+                                            <FormLabel>
+                                                Academic Year <span className='text-red-500'>*</span>
+                                            </FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
@@ -301,7 +307,9 @@ export default function FeeStudentRouteMappingReportPage() {
                                     name='asmcL_Id'
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Class Name <span className='text-red-500'>*</span></FormLabel>
+                                            <FormLabel>
+                                                Class Name <span className='text-red-500'>*</span>
+                                            </FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
@@ -309,7 +317,7 @@ export default function FeeStudentRouteMappingReportPage() {
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value="0">ALL</SelectItem>
+                                                    <SelectItem value='0'>ALL</SelectItem>
                                                     {classList.map((cls) => (
                                                         <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
                                                             {cls.asmcL_ClassName}
@@ -328,7 +336,9 @@ export default function FeeStudentRouteMappingReportPage() {
                                     name='asmS_Id'
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Section Name <span className='text-red-500'>*</span></FormLabel>
+                                            <FormLabel>
+                                                Section Name <span className='text-red-500'>*</span>
+                                            </FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
@@ -336,7 +346,7 @@ export default function FeeStudentRouteMappingReportPage() {
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value="0">ALL</SelectItem>
+                                                    <SelectItem value='0'>ALL</SelectItem>
                                                     {sectionList.map((sec) => (
                                                         <SelectItem key={sec.asmS_Id} value={sec.asmS_Id.toString()}>
                                                             {sec.asmC_SectionName}
@@ -355,7 +365,9 @@ export default function FeeStudentRouteMappingReportPage() {
                                     name='trmR_Id'
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Bus Name <span className='text-red-500'>*</span></FormLabel>
+                                            <FormLabel>
+                                                Bus Name <span className='text-red-500'>*</span>
+                                            </FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
@@ -366,7 +378,8 @@ export default function FeeStudentRouteMappingReportPage() {
                                                     {/* <SelectItem value="0">ALL</SelectItem> */}
                                                     {routeList.map((route) => (
                                                         <SelectItem key={route.trmR_Id} value={route.trmR_Id.toString()}>
-                                                            {route.trmR_RouteNo ? `${route.trmR_RouteNo}::` : ''}{route.trmR_RouteName}
+                                                            {route.trmR_RouteNo ? `${route.trmR_RouteNo}::` : ''}
+                                                            {route.trmR_RouteName}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
@@ -378,8 +391,6 @@ export default function FeeStudentRouteMappingReportPage() {
                             </div>
 
                             <div className='flex justify-center gap-4 border-t pt-4'>
-
-
                                 <Button type='submit' disabled={isGenerating} className='min-w-32'>
                                     {isGenerating ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
                                     {isGenerating ? 'Generating...' : 'Report'}
@@ -390,11 +401,19 @@ export default function FeeStudentRouteMappingReportPage() {
                                 </Button>
                                 {reportData.length > 0 && (
                                     <>
-                                        <Button type='button' variant='outline' onClick={handleExportExcel} className='w-40 border-green-600 text-green-600 hover:bg-green-50'>
+                                        <Button
+                                            type='button'
+                                            variant='outline'
+                                            onClick={handleExportExcel}
+                                            className='w-40 border-green-600 text-green-600 hover:bg-green-50'>
                                             <FileSpreadsheet className='mr-2 h-4 w-4' />
                                             Export Excel
                                         </Button>
-                                        <Button type='button' variant='outline' onClick={handlePrint} className='w-32 border-primary text-primary hover:bg-primary/10'>
+                                        <Button
+                                            type='button'
+                                            variant='outline'
+                                            onClick={handlePrint}
+                                            className='w-32 border-primary text-primary hover:bg-primary/10'>
                                             <Printer className='mr-2 h-4 w-4' />
                                             Print
                                         </Button>
@@ -410,31 +429,29 @@ export default function FeeStudentRouteMappingReportPage() {
             {reportData.length > 0 && (
                 <Card className='fade-in-50 slide-in-from-bottom-5 w-full animate-in shadow-lg'>
                     <CardHeader className='pb-2'>
-                        <div className='flex justify-between items-center'>
-                            <CardTitle className='text-lg font-semibold uppercase'>Student Route Status Report</CardTitle>
-                            <div className="relative w-72">
-                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <div className='flex items-center justify-between'>
+                            <CardTitle className='font-semibold text-lg uppercase'>Student Route Status Report</CardTitle>
+                            <div className='relative w-72'>
+                                <Search className='absolute top-2.5 left-2 h-4 w-4 text-muted-foreground' />
                                 <Input
-                                    placeholder="Search..."
+                                    placeholder='Search...'
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-8"
+                                    className='pl-8'
                                 />
                             </div>
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div className='flex gap-4 mb-4 text-sm font-medium'>
-                            <div className='rounded-md border p-2 bg-muted/20'>
-                                Total Records: {filteredData.length}
-                            </div>
+                        <div className='mb-4 flex gap-4 font-medium text-sm'>
+                            <div className='rounded-md border bg-muted/20 p-2'>Total Records: {filteredData.length}</div>
                         </div>
 
-                        <div className='overflow-auto max-h-[600px] border rounded-md'>
+                        <div className='max-h-[600px] overflow-auto rounded-md border'>
                             <Table>
-                                <TableHeader className='bg-primary/10 sticky top-0'>
+                                <TableHeader className='sticky top-0 bg-primary/10'>
                                     <TableRow>
-                                        <TableHead className="w-[50px] text-center">
+                                        <TableHead className='w-[50px] text-center'>
                                             <Checkbox
                                                 checked={filteredData.length > 0 && selectedRows.length === filteredData.length}
                                                 onCheckedChange={toggleSelectAll}
@@ -452,11 +469,8 @@ export default function FeeStudentRouteMappingReportPage() {
                                 <TableBody>
                                     {filteredData.map((item, index) => (
                                         <TableRow key={index} className='hover:bg-muted/50'>
-                                            <TableCell className="text-center">
-                                                <Checkbox
-                                                    checked={selectedRows.includes(index)}
-                                                    onCheckedChange={() => toggleRow(index)}
-                                                />
+                                            <TableCell className='text-center'>
+                                                <Checkbox checked={selectedRows.includes(index)} onCheckedChange={() => toggleRow(index)} />
                                             </TableCell>
                                             <TableCell className='text-center'>{index + 1}</TableCell>
                                             <TableCell>{item.studentName}</TableCell>
@@ -467,9 +481,11 @@ export default function FeeStudentRouteMappingReportPage() {
                                         </TableRow>
                                     ))}
                                     {filteredData.length > 0 && (
-                                        <TableRow className="font-bold bg-muted/20">
+                                        <TableRow className='bg-muted/20 font-bold'>
                                             <TableCell colSpan={2}></TableCell>
-                                            <TableCell colSpan={2} className="text-right">Total</TableCell>
+                                            <TableCell colSpan={2} className='text-right'>
+                                                Total
+                                            </TableCell>
                                             <TableCell>{totalRouteFee}</TableCell>
                                             <TableCell></TableCell>
                                             <TableCell>{totalTransportFee}</TableCell>
@@ -484,4 +500,3 @@ export default function FeeStudentRouteMappingReportPage() {
         </div>
     );
 }
-

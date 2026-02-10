@@ -5,9 +5,9 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterLeave, useUpdateMasterLeave, useMasterLeaveForEdit } from '@/hooks/hrms/leave-management/useMasters';
+import { useMasterLeave, useMasterLeaveForEdit, useUpdateMasterLeave } from '@/hooks/hrms/leave-management/useMasters';
 import { MASTER_LEAVE_VALIDATION } from '@/lib/validation/hrms-master-validation';
-import { Save, X, Loader2 } from 'lucide-react';
+import { Loader2, Save, X } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { MasterLeave } from './columns';
@@ -23,7 +23,7 @@ const LEAVE_TYPE_OPTIONS = [
     { value: 'Comp_Off', label: 'Comp Off' },
     { value: 'LWP', label: 'LWP' },
     { value: 'On_Duty', label: 'On Duty' },
-    { value: 'Sat_Off', label: 'Sat Off' },
+    { value: 'Sat_Off', label: 'Sat Off' }
 ];
 
 export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className = '', selectedRow: row }: UpdateMasterLeaveFormProps) {
@@ -134,9 +134,7 @@ export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className =
                                                     </SelectItem>
                                                 ))
                                             ) : (
-                                                <div className='px-2 py-1.5 text-muted-foreground text-sm'>
-                                                    No options available
-                                                </div>
+                                                <div className='px-2 py-1.5 text-muted-foreground text-sm'>No options available</div>
                                             )}
                                         </SelectContent>
                                     </Select>
@@ -197,7 +195,9 @@ export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className =
                                         Apply Criteria <span className='text-red-500'>*</span>
                                     </label>
                                     <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger id='leaveApplyCriteria' className={errors.leaveApplyCriteria ? 'border-red-500' : ''}>
+                                        <SelectTrigger
+                                            id='leaveApplyCriteria'
+                                            className={errors.leaveApplyCriteria ? 'border-red-500' : ''}>
                                             <SelectValue placeholder='Select Criteria' />
                                         </SelectTrigger>
                                         <SelectContent>
