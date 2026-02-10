@@ -3,11 +3,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DateField } from '@/components/ui/dateField';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { Label, FormError } from '@/components/ui/extension/field';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useStateDropdown } from '@/hooks/hrms/useEmployeeRegister';
 import {
     useBankDropdown,
@@ -19,6 +19,7 @@ import {
     useCourseDropdown,
     useDepartmentDropdown,
     useDesignationDropdown,
+    useEmployeeRegisterOnload,
     useEmployeeTypeDropdown,
     useGenderDropdown,
     useGradeDropdown,
@@ -35,16 +36,14 @@ import {
     useSaveEmployeeMedical,
     useSaveEmployeeOtherDetails,
     useSaveEmployeeQualification,
+    useSaveEmployeeSalaryDetails,
     useScoreTypeDropdown,
     useSpecializationDropdown,
-    useTeachingTypeDropdown,
-    useEmployeeRegisterOnload,
-    useSaveEmployeeSalaryDetails
+    useTeachingTypeDropdown
 } from '@/hooks/hrms/useEmployeeRegister';
 import { getIconByName } from '@/lib/lucide-icon-registry';
 import { cn } from '@/lib/utils';
 import { employeeRegisterSchemas } from '@/schemas/hrms/employee-register-schemas';
-import type { SavePersonalDetailsApiRequest } from '@/types/hrms/employee-register';
 import type {
     IBankDropdown,
     IBloodGroupDropdown,
@@ -87,7 +86,6 @@ import {
     tabFieldMap
 } from './employee-register-helper';
 import { PayrollTab } from './payroll-tab';
-
 
 // Helper component for Qualification State Dropdown
 function QualificationStateDropdown({
@@ -175,11 +173,7 @@ function QualificationStateDropdown({
                             )}
                         </SelectContent>
                     </Select>
-                    {fieldState.error && (
-                        <div className='font-medium text-[0.8rem] text-destructive'>
-                            {fieldState.error.message}
-                        </div>
-                    )}
+                    {fieldState.error && <div className='font-medium text-[0.8rem] text-destructive'>{fieldState.error.message}</div>}
                 </div>
             )}
         />
@@ -247,7 +241,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         formState // Expose formState directly
     } = useForm<FormFields>({
         resolver: zodResolver(employeeRegisterSchemas.add),
-        mode: 'onChange',
+        mode: 'onChange'
         // defaultValues: formDefaultValues // We need to move defaultValues here or define them before useForm
     });
 
@@ -259,7 +253,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
 
     // Fetch onload data for new employee (to get salary heads etc)
     const { data: onloadData } = useEmployeeRegisterOnload(HRMS_MI_ID, 0);
-
 
     // Grade dropdown - API: /api/MasterDropDown/GetGradeList
     const { data: gradeDropdownResponse, isLoading: isLoadingGrades } = useGradeDropdown();
@@ -299,7 +292,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     // Department dropdown - API: /api/MasterDropDown/GetDepartments
     const { data: departmentDropdownResponse, isLoading: isLoadingDepartments } = useDepartmentDropdown();
     const departmentDropdown: IDepartmentDropdown[] = useMemo(() => {
-        const rawData = Array.isArray(departmentDropdownResponse) ? departmentDropdownResponse : (departmentDropdownResponse as any)?.data || [];
+        const rawData = Array.isArray(departmentDropdownResponse)
+            ? departmentDropdownResponse
+            : (departmentDropdownResponse as any)?.data || [];
         console.log('🔍 [DEBUG] Department Raw Data:', rawData);
         return rawData
             .map((item: any) => {
@@ -349,7 +344,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 if (item.key !== undefined && item.value !== undefined) return item;
                 if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Religion Item:', item);
                 return {
-                    key: String(item.ivrmmR_Id ?? item.IVRMMR_Id ?? item.hrmR_Id ?? item.religionId ?? item.ReligionId ?? item.id ?? item.key ?? ''),
+                    key: String(
+                        item.ivrmmR_Id ?? item.IVRMMR_Id ?? item.hrmR_Id ?? item.religionId ?? item.ReligionId ?? item.id ?? item.key ?? ''
+                    ),
                     value: String(
                         item.ivrmmR_Name ??
                         item.IVRMMR_Name ??
@@ -370,7 +367,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     // API: /api/MasterDropDown/caste_category_drop_down_by_religion/{id}
     const { data: casteCategoryDropdownResponse, isLoading: isLoadingCasteCategories } = useCasteCategoryDropdown(selectedReligion);
     const casteCategoryDropdown: ICasteCategoryDropdown[] = useMemo(() => {
-        const rawData = Array.isArray(casteCategoryDropdownResponse) ? casteCategoryDropdownResponse : (casteCategoryDropdownResponse as any)?.data || [];
+        const rawData = Array.isArray(casteCategoryDropdownResponse)
+            ? casteCategoryDropdownResponse
+            : (casteCategoryDropdownResponse as any)?.data || [];
         console.log('🔍 [DEBUG] Caste Category Raw Data:', rawData);
         return rawData
             .map((item: any) => {
@@ -379,13 +378,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 return {
                     key: String(item.ivrmmCC_Id ?? item.IVRMMCC_Id ?? item.imcC_Id ?? item.IMCC_Id ?? item.id ?? item.key ?? ''),
                     value: String(
-                        item.ivrmmCC_Name ??
-                        item.IVRMMCC_Name ??
-                        item.imcC_CategoryName ??
-                        item.name ??
-                        item.value ??
-                        item.label ??
-                        ''
+                        item.ivrmmCC_Name ?? item.IVRMMCC_Name ?? item.imcC_CategoryName ?? item.name ?? item.value ?? item.label ?? ''
                     )
                 };
             })
@@ -404,15 +397,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Caste Item:', item);
                 return {
                     key: String(item.ivrmmC_Id ?? item.IVRMMC_Id ?? item.imC_Id ?? item.IMC_Id ?? item.id ?? item.key ?? ''),
-                    value: String(
-                        item.ivrmmC_Name ??
-                        item.IVRMMC_Name ??
-                        item.imC_CasteName ??
-                        item.name ??
-                        item.value ??
-                        item.label ??
-                        ''
-                    )
+                    value: String(item.ivrmmC_Name ?? item.IVRMMC_Name ?? item.imC_CasteName ?? item.name ?? item.value ?? item.label ?? '')
                 };
             })
             .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
@@ -439,7 +424,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     // Specialization dropdown - API: /api/MasterDropDown/GetSpecialisationList
     const { data: specializationDropdownResponse, isLoading: isLoadingSpecializations } = useSpecializationDropdown();
     const specializationDropdown: ISpecializationDropdown[] = useMemo(() => {
-        const rawData = Array.isArray(specializationDropdownResponse) ? specializationDropdownResponse : (specializationDropdownResponse as any)?.data || [];
+        const rawData = Array.isArray(specializationDropdownResponse)
+            ? specializationDropdownResponse
+            : (specializationDropdownResponse as any)?.data || [];
         console.log('🔍 [DEBUG] Specialization Raw Data:', rawData);
         return rawData
             .map((item: any) => {
@@ -680,7 +667,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         return mapFormDataToApiFormatWithoutAddress(data, empId, selectedPhoto);
     };
 
-
     // Helper to get current tab key from step
     const getCurrentTabKey = () => steps.find((s) => s.id === currentStep)?.tabKey || 'employee';
 
@@ -743,9 +729,10 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
 
         // Apply robust payment mode fix to ensure the name is sent to API and bank details are cleared for non-bank modes
         const fixPaymentMode = (p: any) => {
-            const paymentModeObj = (options.modeOfPayment as any[])?.find((m: any) =>
-                String(m.key || m.ivrmmod_Id || '') === String(data.modeOfPayment) ||
-                String(m.value || m.ivrmmod_ModeOfPayment || '').toLowerCase() === String(data.modeOfPayment).toLowerCase()
+            const paymentModeObj = (options.modeOfPayment as any[])?.find(
+                (m: any) =>
+                    String(m.key || m.ivrmmod_Id || '') === String(data.modeOfPayment) ||
+                    String(m.value || m.ivrmmod_ModeOfPayment || '').toLowerCase() === String(data.modeOfPayment).toLowerCase()
             );
             const paymentModeName = paymentModeObj?.value || paymentModeObj?.ivrmmod_ModeOfPayment || data.modeOfPayment;
 
@@ -755,7 +742,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
 
             if (paymentModeName && String(paymentModeName).toLowerCase() !== 'bank') {
                 if (p.employee) {
-                    p.employee.hrmE_BankAccountNo = "";
+                    p.employee.hrmE_BankAccountNo = '';
                 }
                 // Ensure bankRequest is passed with empty array as requested by user
                 p.bankRequest = {
@@ -936,7 +923,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         if (response.message) toast.success(response.message);
 
                         // API returns hrmE_Id (lowercase) in response
-                        const employeeId = response?.data?.hrmE_Id || response?.data?.HRME_Id || response?.hrmE_Id || response?.HRME_Id || 0;
+                        const employeeId =
+                            response?.data?.hrmE_Id || response?.data?.HRME_Id || response?.hrmE_Id || response?.HRME_Id || 0;
                         console.log('🔍 [DEBUG] Tab 1 - Extracted Employee ID:', employeeId);
 
                         if (employeeId && employeeId > 0) {
@@ -1539,19 +1527,22 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         toast.success(response.message || 'Other details saved successfully');
                         // Call salary details save API as requested by user
                         if (savedEmployeeId) {
-                            saveSalaryDetails({ hrme_id: savedEmployeeId, MI_Id: HRMS_MI_ID }, {
-                                onSuccess: (salaryResponse: any) => {
-                                    console.log('✅ [API DEBUG] Tab 7 (Salary Save) - Success:', salaryResponse);
-                                    setCurrentStep(8);
-                                },
-                                onError: (salaryError: any) => {
-                                    console.error('❌ [API DEBUG] Tab 7 (Salary Save) - Error:', salaryError);
-                                    // Still move to next step but with a warning? 
-                                    // User said "i want to call one api because i want to save salaary details"
-                                    // So it might be critical.
-                                    setCurrentStep(8);
+                            saveSalaryDetails(
+                                { hrme_id: savedEmployeeId, MI_Id: HRMS_MI_ID },
+                                {
+                                    onSuccess: (salaryResponse: any) => {
+                                        console.log('✅ [API DEBUG] Tab 7 (Salary Save) - Success:', salaryResponse);
+                                        setCurrentStep(8);
+                                    },
+                                    onError: (salaryError: any) => {
+                                        console.error('❌ [API DEBUG] Tab 7 (Salary Save) - Error:', salaryError);
+                                        // Still move to next step but with a warning?
+                                        // User said "i want to call one api because i want to save salaary details"
+                                        // So it might be critical.
+                                        setCurrentStep(8);
+                                    }
                                 }
-                            });
+                            );
                         } else {
                             setCurrentStep(8);
                         }
@@ -1613,7 +1604,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         []
     );
 
-
     // Watch for country changes
     const contactCountry = useWatch({ control, name: 'contactCountry' });
     const permanentCountry = useWatch({ control, name: 'permanentCountry' });
@@ -1664,7 +1654,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     // where permanent states are still loading when the sync happens
     const availablePermanentStates: IStateDropdown[] = sameAsCommunicationAddress
         ? availableContactStates
-        : (permanentCountryId ? (Array.isArray(permanentStates) ? permanentStates : []) : []);
+        : permanentCountryId
+            ? Array.isArray(permanentStates)
+                ? permanentStates
+                : []
+            : [];
 
     // Sync communication address to permanent address when "Same As Communication Address" is checked
     useEffect(() => {
@@ -1685,7 +1679,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             setValue('permanentPincode', contactPincode || '', { shouldValidate: true, shouldDirty: true });
             setValue('permanentCountry', contactCountry || '', { shouldValidate: true, shouldDirty: true });
 
-            // Set state with a tiny timeout to ensure the country change and options sharing 
+            // Set state with a tiny timeout to ensure the country change and options sharing
             // has propagated through the form state
             setTimeout(() => {
                 setValue('permanentState', contactState || '', { shouldValidate: true, shouldDirty: true });
@@ -1701,16 +1695,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 contactCountry
             };
         }
-    }, [
-        sameAsCommunicationAddress,
-        contactAddress,
-        contactArea,
-        contactCity,
-        contactState,
-        contactPincode,
-        contactCountry,
-        setValue
-    ]);
+    }, [sameAsCommunicationAddress, contactAddress, contactArea, contactCity, contactState, contactPincode, contactCountry, setValue]);
 
     // Auto-calculate retirement date from DOB
     useEffect(() => {
@@ -1728,8 +1713,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             }
         }
     }, [dateOfBirth, setValue]);
-
-
 
     // Watch documentList for file handling
     const watchDocuments = watch('documentList');
@@ -1815,7 +1798,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         name: 'documentList'
     });
 
-
     // Custom submit handler - now only handles the final step or redirects to nextStep
     const onFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -1881,7 +1863,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             reader.readAsDataURL(file);
         }
     };
-
 
     // Form UI - standalone add form (no edit mode references)
     // Form renders immediately, dropdowns load in background and populate as data arrives
@@ -3082,11 +3063,26 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                 );
                                                                                             })
                                                                                             .map((item: any) => {
-                                                                                                const val = getSafeValue(item.key || item.value || item.id);
+                                                                                                const val = getSafeValue(
+                                                                                                    item.key || item.value || item.id
+                                                                                                );
                                                                                                 if (!val) return null;
                                                                                                 return (
-                                                                                                    <SelectItem key={item.key || item.value || item.id} value={val}>
-                                                                                                        {item.value || item.label || item.name || String(item.key || item.value || item.id)}
+                                                                                                    <SelectItem
+                                                                                                        key={
+                                                                                                            item.key ||
+                                                                                                            item.value ||
+                                                                                                            item.id
+                                                                                                        }
+                                                                                                        value={val}>
+                                                                                                        {item.value ||
+                                                                                                            item.label ||
+                                                                                                            item.name ||
+                                                                                                            String(
+                                                                                                                item.key ||
+                                                                                                                item.value ||
+                                                                                                                item.id
+                                                                                                            )}
                                                                                                     </SelectItem>
                                                                                                 );
                                                                                             })
@@ -3159,11 +3155,26 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                 );
                                                                                             })
                                                                                             .map((item: any) => {
-                                                                                                const val = getSafeValue(item.key || item.value || item.id);
+                                                                                                const val = getSafeValue(
+                                                                                                    item.key || item.value || item.id
+                                                                                                );
                                                                                                 if (!val) return null;
                                                                                                 return (
-                                                                                                    <SelectItem key={item.key || item.value || item.id} value={val}>
-                                                                                                        {item.value || item.label || item.name || String(item.key || item.value || item.id)}
+                                                                                                    <SelectItem
+                                                                                                        key={
+                                                                                                            item.key ||
+                                                                                                            item.value ||
+                                                                                                            item.id
+                                                                                                        }
+                                                                                                        value={val}>
+                                                                                                        {item.value ||
+                                                                                                            item.label ||
+                                                                                                            item.name ||
+                                                                                                            String(
+                                                                                                                item.key ||
+                                                                                                                item.value ||
+                                                                                                                item.id
+                                                                                                            )}
                                                                                                     </SelectItem>
                                                                                                 );
                                                                                             })
@@ -3427,7 +3438,13 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     variant='outline'
                                                                     className='w-full bg-gray-100'
                                                                     onClick={() => document.getElementById('employeePhoto')?.click()}>
-                                                                    {selectedPhoto ? 'Change Photo' : (<span>Upload Employee Photo <span className='text-red-500'>*</span></span>)}
+                                                                    {selectedPhoto ? (
+                                                                        'Change Photo'
+                                                                    ) : (
+                                                                        <span>
+                                                                            Upload Employee Photo <span className='text-red-500'>*</span>
+                                                                        </span>
+                                                                    )}
                                                                 </Button>
                                                                 {selectedPhoto && (
                                                                     <Button
@@ -3462,11 +3479,13 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     EMPLOYEE BANK DETAILS: <span className='text-red-500'>*</span>
                                                                 </h3>
                                                             </div>
-                                                            {(errors.bankDetails || (watch('modeOfPayment') === 'Bank' && bankFields.length === 0)) && (
-                                                                <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                    {(errors.bankDetails as any)?.message || 'Bank Details are required when Mode of Payment is Bank'}
-                                                                </div>
-                                                            )}
+                                                            {(errors.bankDetails ||
+                                                                (watch('modeOfPayment') === 'Bank' && bankFields.length === 0)) && (
+                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                        {(errors.bankDetails as any)?.message ||
+                                                                            'Bank Details are required when Mode of Payment is Bank'}
+                                                                    </div>
+                                                                )}
                                                             <div className='rounded-lg border bg-card'>
                                                                 <div className='rounded-t-lg bg-gray-200 px-4 py-2 text-gray-900'>
                                                                     <div className='grid grid-cols-5 gap-2 font-semibold text-sm'>
@@ -3499,15 +3518,17 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                     <SelectValue placeholder='--Select--' />
                                                                                                 </SelectTrigger>
                                                                                                 <SelectContent>
-                                                                                                    {(memoizedBankOptions || []).map((bank: any) => {
-                                                                                                        return (
-                                                                                                            <SelectItem
-                                                                                                                key={bank.id}
-                                                                                                                value={bank.value}>
-                                                                                                                {bank.name}
-                                                                                                            </SelectItem>
-                                                                                                        );
-                                                                                                    })}
+                                                                                                    {(memoizedBankOptions || []).map(
+                                                                                                        (bank: any) => {
+                                                                                                            return (
+                                                                                                                <SelectItem
+                                                                                                                    key={bank.id}
+                                                                                                                    value={bank.value}>
+                                                                                                                    {bank.name}
+                                                                                                                </SelectItem>
+                                                                                                            );
+                                                                                                        }
+                                                                                                    )}
                                                                                                 </SelectContent>
                                                                                             </Select>
                                                                                             {fieldState.error && (
@@ -3545,17 +3566,34 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                     <SelectValue placeholder='Select' />
                                                                                                 </SelectTrigger>
                                                                                                 <SelectContent>
-                                                                                                    {(options?.contactTypes || []).map((item: any) => {
-                                                                                                        const val = getSafeValue(item.key || item.value || item.id);
-                                                                                                        if (!val) return null;
-                                                                                                        return (
-                                                                                                            <SelectItem
-                                                                                                                key={item.key || item.value || item.id}
-                                                                                                                value={val}>
-                                                                                                                {item.value || item.label || item.name || String(item.key || item.value || item.id)}
-                                                                                                            </SelectItem>
-                                                                                                        );
-                                                                                                    })}
+                                                                                                    {(options?.contactTypes || []).map(
+                                                                                                        (item: any) => {
+                                                                                                            const val = getSafeValue(
+                                                                                                                item.key ||
+                                                                                                                item.value ||
+                                                                                                                item.id
+                                                                                                            );
+                                                                                                            if (!val) return null;
+                                                                                                            return (
+                                                                                                                <SelectItem
+                                                                                                                    key={
+                                                                                                                        item.key ||
+                                                                                                                        item.value ||
+                                                                                                                        item.id
+                                                                                                                    }
+                                                                                                                    value={val}>
+                                                                                                                    {item.value ||
+                                                                                                                        item.label ||
+                                                                                                                        item.name ||
+                                                                                                                        String(
+                                                                                                                            item.key ||
+                                                                                                                            item.value ||
+                                                                                                                            item.id
+                                                                                                                        )}
+                                                                                                                </SelectItem>
+                                                                                                            );
+                                                                                                        }
+                                                                                                    )}
                                                                                                 </SelectContent>
                                                                                             </Select>
                                                                                             {fieldState.error && (
@@ -3676,9 +3714,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                 );
                                                                                             }
                                                                                             return (
-                                                                                                <SelectItem
-                                                                                                    key={country.key}
-                                                                                                    value={val}>
+                                                                                                <SelectItem key={country.key} value={val}>
                                                                                                     {displayValue}
                                                                                                 </SelectItem>
                                                                                             );
@@ -3845,7 +3881,10 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     render={({ field, fieldState }) => (
                                                                         <div className='flex flex-col gap-1.5'>
                                                                             <Label>
-                                                                                Country {!sameAsCommunicationAddress && <span className='text-red-500'>*</span>}
+                                                                                Country{' '}
+                                                                                {!sameAsCommunicationAddress && (
+                                                                                    <span className='text-red-500'>*</span>
+                                                                                )}
                                                                             </Label>
                                                                             <Select
                                                                                 onValueChange={field.onChange}
@@ -3881,9 +3920,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                 );
                                                                                             }
                                                                                             return (
-                                                                                                <SelectItem
-                                                                                                    key={country.key}
-                                                                                                    value={val}>
+                                                                                                <SelectItem key={country.key} value={val}>
                                                                                                     {displayValue}
                                                                                                 </SelectItem>
                                                                                             );
@@ -3907,7 +3944,10 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     render={({ field, fieldState }) => (
                                                                         <div className='flex flex-col gap-1.5'>
                                                                             <Label>
-                                                                                State {!sameAsCommunicationAddress && <span className='text-red-500'>*</span>}
+                                                                                State{' '}
+                                                                                {!sameAsCommunicationAddress && (
+                                                                                    <span className='text-red-500'>*</span>
+                                                                                )}
                                                                             </Label>
                                                                             <Select
                                                                                 onValueChange={field.onChange}
@@ -4303,7 +4343,10 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                         field.onChange(val);
                                                                                         // Clear both fields when type changes to avoid validation issues
                                                                                         setValue(`qualificationDetails.${index}.cgpa`, '');
-                                                                                        setValue(`qualificationDetails.${index}.percentage`, '');
+                                                                                        setValue(
+                                                                                            `qualificationDetails.${index}.percentage`,
+                                                                                            ''
+                                                                                        );
                                                                                     }}
                                                                                     value={field.value || 'CGPA'}>
                                                                                     <SelectTrigger
@@ -4328,9 +4371,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                 const val = getSafeValue(st.key);
                                                                                                 if (!val) return null;
                                                                                                 return (
-                                                                                                    <SelectItem
-                                                                                                        key={st.key}
-                                                                                                        value={val}>
+                                                                                                    <SelectItem key={st.key} value={val}>
                                                                                                         {st.value || String(st.key)}
                                                                                                     </SelectItem>
                                                                                                 );
@@ -5291,8 +5332,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             </div>
                         </div>
                     </div>
-                </div >
-            </form >
-        </div >
+                </div>
+            </form>
+        </div>
     );
 }

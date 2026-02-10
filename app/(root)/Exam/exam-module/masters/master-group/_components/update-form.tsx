@@ -59,7 +59,6 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
         mode: 'onChange',
         defaultValues: {
             emG_Id: initialData?.emG_Id || 0,
-            mI_Id: 30,
             emG_GroupName: initialData?.emG_GroupName || '',
             emG_TotSubjects: initialData?.emG_TotSubjects || 0,
             emG_MaxAplSubjects: initialData?.emG_MaxAplSubjects || 1,
@@ -89,7 +88,6 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
 
         const payload = {
             emG_Id: initialData?.emG_Id ?? 0,
-            mI_Id: 30, // hardcoded or pass from context
             emG_GroupName: data.emG_GroupName,
             emG_TotSubjects: data.emG_TotSubjects,
             emG_MaxAplSubjects: data.emG_MaxAplSubjects,
@@ -171,12 +169,11 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
             {/* Actions */}
             <div className='flex w-fit items-center justify-center gap-3'>
                 <Button
-                    type="button"
-                    variant="outline"
+                    type='button'
+                    variant='outline'
                     onClick={() => {
                         reset({
                             emG_Id: initialData?.emG_Id || 0,
-                            mI_Id: 30,
                             emG_GroupName: initialData?.emG_GroupName || '',
                             emG_TotSubjects: initialData?.emG_TotSubjects || 0,
                             emG_MaxAplSubjects: initialData?.emG_MaxAplSubjects || 1,
@@ -192,11 +189,10 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
                     Reset
                 </Button>
 
-                <Button type="submit" disabled={isSubmitting} isLoading={isSubmitting} loadingText="Updating...">
+                <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting} loadingText='Updating...'>
                     Update
                 </Button>
             </div>
-
         </form>
     );
 }

@@ -6,7 +6,7 @@ import type { IYearlyCategorySubjectMapping, IYearlyCategorySubjectMappingViewDe
 
 export async function getYearlyCategorySubjectMapping(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `category_subject_mapping/30?${urlParams}`;
+    const url = `category_subject_mapping/?${urlParams}`;
     const response = await api.get<IYearlyCategorySubjectMapping>('exam', url);
 
     return {
@@ -24,7 +24,7 @@ export async function addOrUpdateYearlyCategorySubjectMapping(data: any) {
     return await api.post<any>('exam', url, data);
 }
 
-export async function toggleYearlyCategorySubjectMapping(mI_Id: number, eycg_id: number) {
-    const url = `/category_subject_mapping/toggle_yearly_category_subjects/${mI_Id}/${eycg_id}`;
+export async function toggleYearlyCategorySubjectMapping(eycg_id: number) {
+    const url = `/category_subject_mapping/toggle_yearly_category_subjects/${eycg_id}`;
     return await api.put('exam', url);
 }

@@ -15,7 +15,6 @@ import {
 } from '@/server/exam/exam-module/masters/category-class-mapping';
 import type { ICategoryMapping } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { set } from 'date-fns';
 import { Edit, Save, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -45,7 +44,6 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
     } = useForm<FormFields>({
         resolver: zodResolver(categoryClassMappingSchema.addOrUpdate),
         defaultValues: {
-            mI_Id: 30,
             ecaC_Id: selectedRow?.ecaC_Id ?? 0,
             asmaY_Id: selectedRow?.asmaY_Id ?? undefined,
             emcA_Id: selectedRow?.emcA_Id ?? 0,
@@ -90,7 +88,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
 
     useEffect(() => {
         if (mappingList.length > 0) {
-            tableRef.current?.scrollIntoView({ behavior: "smooth" });
+            tableRef.current?.scrollIntoView({ behavior: 'smooth' });
             setTimeout(scrollToBottom, 50);
         }
     }, [mappingList]);
@@ -106,11 +104,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
     }, [selectedRow, classes.length, categories.length, academicYears.length]);
 
     // Academic years hook
-    const {
-        data: academicYear,
-        isLoading: academicYearLoading,
-        error: academicYearError,
-    } = useAcademicYearDropdown();
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
     // Load categories & classes
     useEffect(() => {
@@ -168,8 +162,8 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                 const classSections = Array.isArray(classSectionsRes)
                     ? classSectionsRes
                     : Array.isArray(classSectionsRes?.data)
-                        ? classSectionsRes.data
-                        : [];
+                      ? classSectionsRes.data
+                      : [];
 
                 // fetch category mapped sections (the server mapping for the given year+category+class)
                 const catMappedRes = await getCategoryMappedSections(selectedRow.asmaY_Id, selectedRow.emcA_Id, selectedRow.asmcL_Id);
@@ -259,8 +253,8 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                     const classSections = Array.isArray(classSectionsRes)
                         ? classSectionsRes
                         : Array.isArray(classSectionsRes?.data)
-                            ? classSectionsRes.data
-                            : [];
+                          ? classSectionsRes.data
+                          : [];
 
                     // build section objects for form and mappingList rows
                     const sectionOptions: SectionItem[] = classSections.map((s: any) => ({
@@ -415,7 +409,6 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
         }
 
         const payload: any = {
-            MI_Id: 30,
             ECAC_Id: selectedRow?.ecaC_Id ?? 0,
             YearClassCategory: mappingList.map((m) => ({
                 ASMAY_Id: Number(m.asmaY_Id),
@@ -685,5 +678,3 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
         </form>
     );
 }
-
-

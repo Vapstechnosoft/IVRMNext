@@ -1,9 +1,7 @@
 'use server';
 
-import { getSearchParamsUrl } from '@/lib/apiService';
-import { auth } from '@/lib/auth';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import axios from 'axios';
 import { format } from 'date-fns';
 const formatDate = (date?: Date | null) => (date ? format(date, 'yyyy-MM-dd') : undefined);
 
@@ -20,24 +18,11 @@ export async function getExcelAdmissionRegistrationReport(
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
 
-    const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
-    const url = `${baseUrl}/AdmissionRegister/ExportAdmissionRegisterReportToExcel?ASMAY_Id=${ASMAY_Id}&AttendanceType=${AttendanceType}&TempararyArrayListclass=${encodeURIComponent(JSON.stringify(payload.tempararyArrayListclass))}&TempararyArrayListcoloumn=${encodeURIComponent(JSON.stringify(payload.tempararyArrayListcoloumn))}&${urlParams}`;
+    const url = `/AdmissionRegister/ExportAdmissionRegisterReportToExcel?ASMAY_Id=${ASMAY_Id}&AttendanceType=${AttendanceType}&TempararyArrayListclass=${encodeURIComponent(JSON.stringify(payload.TempararyArrayListclass))}&TempararyArrayListcoloumn=${encodeURIComponent(JSON.stringify(payload.TempararyArrayListcoloumn))}&${urlParams}`;
 
     try {
-        const session = await auth();
-
-        const response = await axios.post(url, null, {
-            responseType: 'arraybuffer',
-            timeout: 60000,
-            headers: {
-                Authorization: `Bearer ${session?.token || ''}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        // Convert to regular Array to be serializable across server/client boundary
-        const uint8Array = new Uint8Array(response.data);
-        return Array.from(uint8Array);
+        const data = await api.postBinary('admission', url);
+        return Array.from(new Uint8Array(data));
     } catch (error) {
         console.error('Excel export error:', error);
         throw error;
@@ -49,24 +34,11 @@ export async function getExcelMonthEndReport(data: {
     month: string;
     year: number;
 }) {
-    const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
-    const url = `${baseUrl}/monthendreport/ExportMonthEndReportToExcel?AcayId=${data.ASMAY_Id}&Month=${data.month}&Year=${data.year}`;
+    const url = `/monthendreport/ExportMonthEndReportToExcel?AcayId=${data.ASMAY_Id}&Month=${data.month}&Year=${data.year}`;
 
     try {
-        const session = await auth();
-
-        const response = await axios.post(url, null, {
-            responseType: 'arraybuffer',
-            timeout: 60000,
-            headers: {
-                Authorization: `Bearer ${session?.token || ''}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        // Convert to regular Array to be serializable across server/client boundary
-        const uint8Array = new Uint8Array(response.data);
-        return Array.from(uint8Array);
+        const responseData = await api.postBinary('admission', url);
+        return Array.from(new Uint8Array(responseData));
     } catch (error) {
         console.error('Excel export error:', error);
         throw error;
@@ -75,24 +47,11 @@ export async function getExcelMonthEndReport(data: {
 export async function getExcelClassTeacherReport(ASMAY_Id: number, flag: number, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
 
-    const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
-    const url = `${baseUrl}/ClassTeacherReportAttendance/ExportClassTeacherReportAttendanceToExcel?ASMAY_Id=${ASMAY_Id}&flag=${flag}&${urlParams}`;
+    const url = `/ClassTeacherReportAttendance/ExportClassTeacherReportAttendanceToExcel?ASMAY_Id=${ASMAY_Id}&flag=${flag}&${urlParams}`;
 
     try {
-        const session = await auth();
-
-        const response = await axios.post(url, null, {
-            responseType: 'arraybuffer',
-            timeout: 60000,
-            headers: {
-                Authorization: `Bearer ${session?.token || ''}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        // Convert to regular Array to be serializable across server/client boundary
-        const uint8Array = new Uint8Array(response.data);
-        return Array.from(uint8Array);
+        const responseData = await api.postBinary('admission', url);
+        return Array.from(new Uint8Array(responseData));
     } catch (error) {
         console.error('Excel export error:', error);
         throw error;
@@ -107,24 +66,11 @@ export async function getExcelStudentYearlyReport(
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
 
-    const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
-    const url = `${baseUrl}/StudentYearlyAttendance/ExportStudentYearlyAttendanceToExcel?AcayId=${academicYearId}&ClassId=${classId}&SectionId=${sectionId}&AllOrIndiFlag=${'all'}&${urlParams}`;
+    const url = `/StudentYearlyAttendance/ExportStudentYearlyAttendanceToExcel?AcayId=${academicYearId}&ClassId=${classId}&SectionId=${sectionId}&AllOrIndiFlag=${'all'}&${urlParams}`;
 
     try {
-        const session = await auth();
-
-        const response = await axios.post(url, null, {
-            responseType: 'arraybuffer',
-            timeout: 60000,
-            headers: {
-                Authorization: `Bearer ${session?.token || ''}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        // Convert to regular Array to be serializable across server/client boundary
-        const uint8Array = new Uint8Array(response.data);
-        return Array.from(uint8Array);
+        const responseData = await api.postBinary('admission', url);
+        return Array.from(new Uint8Array(responseData));
     } catch (error) {
         console.error('Excel export error:', error);
         throw error;
@@ -132,24 +78,13 @@ export async function getExcelStudentYearlyReport(
 }
 
 export async function getExcelStudentTcReport(requestData: any) {
-    const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
-
-    const url = `${baseUrl}/StudentTcReport/ExportAdmissionTcReportToExcel`;
+    const url = '/StudentTcReport/ExportAdmissionTcReportToExcel';
 
     try {
-        const session = await auth();
-
-        const response = await axios.post(url, requestData, {
-            responseType: 'arraybuffer',
-            timeout: 60000,
-            headers: {
-                Authorization: `Bearer ${session?.token || ''}`,
-                'Content-Type': 'application/json'
-            }
-        });
+        const responseData = await api.postBinary('admission', url, requestData);
 
         // Make it serializable
-        return Array.from(new Uint8Array(response.data));
+        return Array.from(new Uint8Array(responseData));
     } catch (error) {
         console.error('Excel export error:', error);
         throw error;
@@ -165,9 +100,7 @@ export async function getExcelClassWiseStudentReport(
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
 
-    const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
-
-    const url = `${baseUrl}/Classwisestudentdetails/ExportClasswiseStudentDetailsToExcel?ASMAY_Id=${ASMAY_Id}
+    const url = `/Classwisestudentdetails/ExportClasswiseStudentDetailsToExcel?ASMAY_Id=${ASMAY_Id}
     &AMST_Id=0
     &flag=${studentScope}
     &Concession_Id=${fmcC_Id}
@@ -177,17 +110,8 @@ export async function getExcelClassWiseStudentReport(
     &${urlParams}`;
 
     try {
-        const session = await auth();
-
-        const response = await axios.post(url, null, {
-            responseType: 'arraybuffer',
-            timeout: 60000,
-            headers: {
-                Authorization: `Bearer ${session?.token || ''}`
-            }
-        });
-
-        return Array.from(new Uint8Array(response.data));
+        const responseData = await api.postBinary('admission', url);
+        return Array.from(new Uint8Array(responseData));
     } catch (error) {
         console.error('Excel export error:', error);
         throw error;
@@ -204,24 +128,11 @@ export async function getExcelTotalStrengthReport(data: {
     withdeactive: string;
     electivearray: ElectiveItem[];
 }) {
-    const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
-    const url = `${baseUrl}/TotalStrengthReport/ExportTotalStrengthReportToExcel?ASMAY_Id=${data.asmay_Id}&AMST_SOL=${data.amsT_SOL}&Status_Flag=${data.statusFlag}&withtc=${data.withtc}&withdeactive=${data.withdeactive}&ASMCL_Id=${data.asmcL_Id}&AMC_Id=${data.amC_Id}&electivearray=${encodeURIComponent(JSON.stringify(data.electivearray))}`;
+    const url = `/TotalStrengthReport/ExportTotalStrengthReportToExcel?ASMAY_Id=${data.asmay_Id}&AMST_SOL=${data.amsT_SOL}&Status_Flag=${data.statusFlag}&withtc=${data.withtc}&withdeactive=${data.withdeactive}&ASMCL_Id=${data.asmcL_Id}&AMC_Id=${data.amC_Id}&electivearray=${encodeURIComponent(JSON.stringify(data.electivearray))}`;
 
     try {
-        const session = await auth();
-
-        const response = await axios.post(url, null, {
-            responseType: 'arraybuffer',
-            timeout: 60000,
-            headers: {
-                Authorization: `Bearer ${session?.token || ''}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        // Convert to regular Array to be serializable across server/client boundary
-        const uint8Array = new Uint8Array(response.data);
-        return Array.from(uint8Array);
+        const responseData = await api.postBinary('admission', url);
+        return Array.from(new Uint8Array(responseData));
     } catch (error) {
         console.error('Excel export error:', error);
         throw error;
@@ -236,24 +147,11 @@ export async function getExcelAttendanceAbsentSmsReport(
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');
 
-    const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
-    const url = `${baseUrl}/OveralldailyattendanceabsentsmsFacade/ExportOverallDailyAttendanceToExcel?${urlParams}&ASMAY_Id=${ASMAY_Id}&FromDate=${from_date}&Flag=${frequency}`;
+    const url = `/OveralldailyattendanceabsentsmsFacade/ExportOverallDailyAttendanceToExcel?${urlParams}&ASMAY_Id=${ASMAY_Id}&FromDate=${from_date}&Flag=${frequency}`;
 
     try {
-        const session = await auth();
-
-        const response = await axios.post(url, null, {
-            responseType: 'arraybuffer',
-            timeout: 60000,
-            headers: {
-                Authorization: `Bearer ${session?.token || ''}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        // Convert to regular Array to be serializable across server/client boundary
-        const uint8Array = new Uint8Array(response.data);
-        return Array.from(uint8Array);
+        const responseData = await api.postBinary('admission', url);
+        return Array.from(new Uint8Array(responseData));
     } catch (error) {
         console.error('Excel export error:', error);
         throw error;
@@ -261,24 +159,11 @@ export async function getExcelAttendanceAbsentSmsReport(
 }
 
 export async function getExcelStudyCertificateReport(data: any) {
-    const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
-    const url = `${baseUrl}/StudyCertificateReport/ExportStudyCertificateReportToExcel?&ASMAY_Id=${data.ASMAY_Id}&AllOrInd=${data.AllOrInd}&ASMCL_Id=${data.ASMCL_Id}&ASMC_Id=${data.ASMC_Id}&AMST_Id=${data.AMST_Id}`;
+    const url = `/StudyCertificateReport/ExportStudyCertificateReportToExcel?&ASMAY_Id=${data.ASMAY_Id}&AllOrInd=${data.AllOrInd}&ASMCL_Id=${data.ASMCL_Id}&ASMC_Id=${data.ASMC_Id}&AMST_Id=${data.AMST_Id}`;
 
     try {
-        const session = await auth();
-
-        const response = await axios.post(url, null, {
-            responseType: 'arraybuffer',
-            timeout: 60000,
-            headers: {
-                Authorization: `Bearer ${session?.token || ''}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        // Convert to regular Array to be serializable across server/client boundary
-        const uint8Array = new Uint8Array(response.data);
-        return Array.from(uint8Array);
+        const responseData = await api.postBinary('admission', url);
+        return Array.from(new Uint8Array(responseData));
     } catch (error) {
         console.error('Excel export error:', error);
         throw error;
@@ -293,24 +178,11 @@ export async function getExcelOverallAttendanceReport(
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');
 
-    const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
-    const url = `${baseUrl}/OverallAttendance/ExportOverallDailyAttendanceSimpleToExcel?${urlParams}&ASMAY_Id=${ASMAY_Id}&FromDate=${from_date}&Flag=${frequency}`;
+    const url = `/OverallAttendance/ExportOverallDailyAttendanceSimpleToExcel?${urlParams}&ASMAY_Id=${ASMAY_Id}&FromDate=${from_date}&Flag=${frequency}`;
 
     try {
-        const session = await auth();
-
-        const response = await axios.post(url, null, {
-            responseType: 'arraybuffer',
-            timeout: 60000,
-            headers: {
-                Authorization: `Bearer ${session?.token || ''}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        // Convert to regular Array to be serializable across server/client boundary
-        const uint8Array = new Uint8Array(response.data);
-        return Array.from(uint8Array);
+        const responseData = await api.postBinary('admission', url);
+        return Array.from(new Uint8Array(responseData));
     } catch (error) {
         console.error('Excel export error:', error);
         throw error;
@@ -355,19 +227,8 @@ export async function getExcelStudentAttendanceReport(
     const finalUrl = `${url}&${urlParams}`;
 
     try {
-        const session = await auth();
-
-        const response = await axios.post(finalUrl, null, {
-            responseType: 'arraybuffer',
-            timeout: 60000,
-            headers: {
-                Authorization: `Bearer ${session?.token || ''}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const uint8Array = new Uint8Array(response.data);
-        return Array.from(uint8Array);
+        const responseData = await api.postBinary('admission', finalUrl);
+        return Array.from(new Uint8Array(responseData));
     } catch (error) {
         console.error('Excel export error:', error);
         throw error;
@@ -381,8 +242,7 @@ export async function getExcelRegistrationReport(
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
 
-    const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
-    let url = `${baseUrl}/RegistrationReport/ExportRegistrationReportToExcel?${urlParams}`;
+    let url = `/RegistrationReport/ExportRegistrationReportToExcel?${urlParams}`;
 
     // YEAR WISE
     if (academicIdParam) {
@@ -399,20 +259,8 @@ export async function getExcelRegistrationReport(
     }
 
     try {
-        const session = await auth();
-
-        const response = await axios.post(url, null, {
-            responseType: 'arraybuffer',
-            timeout: 60000,
-            headers: {
-                Authorization: `Bearer ${session?.token || ''}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        // Convert to regular Array to be serializable across server/client boundary
-        const uint8Array = new Uint8Array(response.data);
-        return Array.from(uint8Array);
+        const responseData = await api.postBinary('admission', url);
+        return Array.from(new Uint8Array(responseData));
     } catch (error) {
         console.error('Excel export error:', error);
         throw error;
@@ -426,8 +274,7 @@ export async function getExcelEmailSmsReport(
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
 
-    const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
-    let url = `${baseUrl}/EmailSmsReport/ExportSMSEmailReportToExcel?${urlParams}`;
+    let url = `/EmailSmsReport/ExportSMSEmailReportToExcel?${urlParams}`;
 
     // YEAR WISE
     if (academicIdParam) {
@@ -444,20 +291,8 @@ export async function getExcelEmailSmsReport(
     }
 
     try {
-        const session = await auth();
-
-        const response = await axios.post(url, null, {
-            responseType: 'arraybuffer',
-            timeout: 60000,
-            headers: {
-                Authorization: `Bearer ${session?.token || ''}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        // Convert to regular Array to be serializable across server/client boundary
-        const uint8Array = new Uint8Array(response.data);
-        return Array.from(uint8Array);
+        const responseData = await api.postBinary('admission', url);
+        return Array.from(new Uint8Array(responseData));
     } catch (error) {
         console.error('Excel export error:', error);
         throw error;
@@ -468,24 +303,11 @@ export async function getExcelPreAdmissionMonthEndReport(data: {
     month: string;
     year: string;
 }) {
-    const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
-    const url = `${baseUrl}/PreAdmissionMonthEndReport/ExportPreAdmissionMonthEndReportToExcel`;
+    const url = '/PreAdmissionMonthEndReport/ExportPreAdmissionMonthEndReportToExcel';
 
     try {
-        const session = await auth();
-
-        const response = await axios.post(url, data, {
-            responseType: 'arraybuffer',
-            timeout: 60000,
-            headers: {
-                Authorization: `Bearer ${session?.token || ''}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        // Convert to regular Array to be serializable across server/client boundary
-        const uint8Array = new Uint8Array(response.data);
-        return Array.from(uint8Array);
+        const responseData = await api.postBinary('admission', url, data);
+        return Array.from(new Uint8Array(responseData));
     } catch (error) {
         console.error('Excel export error:', error);
         throw error;
@@ -501,24 +323,11 @@ export async function getExcelDOBReport(
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
 
-    const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
-    const url = `${baseUrl}/DOBcertificate/ExportAdmDobCertificateToExcel?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}&AMST_Id=${AMST_Id}&${urlParams}`;
+    const url = `/DOBcertificate/ExportAdmDobCertificateToExcel?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}&AMST_Id=${AMST_Id}&${urlParams}`;
 
     try {
-        const session = await auth();
-
-        const response = await axios.post(url, null, {
-            responseType: 'arraybuffer',
-            timeout: 60000,
-            headers: {
-                Authorization: `Bearer ${session?.token || ''}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        // Convert to regular Array to be serializable across server/client boundary
-        const uint8Array = new Uint8Array(response.data);
-        return Array.from(uint8Array);
+        const responseData = await api.postBinary('admission', url);
+        return Array.from(new Uint8Array(responseData));
     } catch (error) {
         console.error('Excel export error:', error);
         throw error;

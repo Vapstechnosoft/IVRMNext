@@ -285,8 +285,27 @@ export default function DailyFeeCollectionReportForm() {
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         setSubmitClicked(true);
 
-        if (!isClassRequired && (data.asmcL_Id === 0 || data.asmcL_Id === null || data.asmcL_Id === undefined)) {
-            toast.error('Please select Class');
+        // if (!isClassRequired && (data.asmcL_Id === 0 || data.asmcL_Id === null || data.asmcL_Id === undefined)) {
+        //     toast.error('Please select Class');
+        //     return;
+        // }
+        if (rpttyp === 'Individual') {
+            if (enableAllClasses === true) {
+                toast.error('Please select Class');
+                return;
+            }
+        }
+
+        if (
+            reportdate === 'transdate' &&
+            rpttyp === 'All' &&
+            (report === 'All' || report === 'students') &&
+            !chequeDate &&
+            !acdmyr &&
+            !headwise &&
+            !paymentwise
+        ) {
+            toast.error('Please select at least one checkbox Cheque Date/Add Year Wise Report/Headwise/Paymentwise');
             return;
         }
 
@@ -342,6 +361,10 @@ export default function DailyFeeCollectionReportForm() {
         // ===================================================
         // API CALL
         // ===================================================
+
+        if (data.Fmc_allorsudentorother === 'all') {
+            data.Fmc_allorsudentorother = 'multiplepaymentmode';
+        }
         try {
             setShowTable(false);
             setLoading(true);
@@ -874,13 +897,13 @@ export default function DailyFeeCollectionReportForm() {
                             )}
 
                             {/* ERROR MESSAGE */}
-                            {reportdate === 'transdate' &&
+                            {/* {reportdate === 'transdate' &&
                                 rpttyp === 'All' &&
                                 (report === 'All' || report === 'students') &&
                                 !chequeDate &&
                                 !acdmyr &&
                                 !headwise &&
-                                !paymentwise && <div className='text-red-500 text-sm'>Please select at least one checkbox</div>}
+                                !paymentwise && <div className='text-red-500 text-sm'>Please select at least one checkbox</div>} */}
                         </div>
                     </div>
 

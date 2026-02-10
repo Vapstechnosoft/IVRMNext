@@ -1,9 +1,5 @@
 import { z } from 'zod';
-import {
-    createOptionalAlphaNumericSchema,
-    createStringOnlySchema,
-    createEmailSchema
-} from '../validationSchemas';
+import { createStringOnlySchema } from '../validationSchemas';
 
 /**
  * HRMS Employee Register Zod Schemas
@@ -121,10 +117,7 @@ export const experienceDetailSchema = z
     .object({
         hrmeE_Id: z.number().optional(), // ID for updates
         organisationName: z.string().max(255, 'Organisation Name must not exceed 255 characters').optional(),
-        organisationAddress: z
-            .string()
-            .max(500, 'Organisation Address must not exceed 500 characters')
-            .optional(),
+        organisationAddress: z.string().max(500, 'Organisation Address must not exceed 500 characters').optional(),
         department: z.string().max(100, 'Department must not exceed 100 characters').optional(),
         designation: z.string().max(100, 'Designation must not exceed 100 characters').optional(),
         joinDate: z.string().optional(),

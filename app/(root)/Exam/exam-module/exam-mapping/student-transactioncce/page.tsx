@@ -290,7 +290,7 @@ function StudentTransactionContent() {
             setLoadingNames(true);
             try {
                 if (watchSkillActivity === 'Skills') {
-                    const response = await getMasterLifeSkillDrpdownList(30);
+                    const response = await getMasterLifeSkillDrpdownList();
                     const skillsList = Array.isArray(response.data) ? response.data : [];
                     setSkillNames(skillsList);
                     console.log('skillsList', skillsList);
@@ -698,10 +698,11 @@ function StudentTransactionContent() {
                                         <>
                                             <button
                                                 type='button'
-                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'TermWise'
-                                                    ? 'bg-purple-600 text-white'
-                                                    : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                                    }`}
+                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
+                                                    field.value === 'TermWise'
+                                                        ? 'bg-purple-600 text-white'
+                                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                                }`}
                                                 onClick={() => {
                                                     field.onChange('TermWise');
                                                     setValue('emE_Id', 0);
@@ -712,10 +713,11 @@ function StudentTransactionContent() {
                                             </button>
                                             <button
                                                 type='button'
-                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'ExamWise'
-                                                    ? 'bg-purple-600 text-white'
-                                                    : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                                    }`}
+                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
+                                                    field.value === 'ExamWise'
+                                                        ? 'bg-purple-600 text-white'
+                                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                                }`}
                                                 onClick={() => {
                                                     field.onChange('ExamWise');
                                                     setValue('examTermId', 0);

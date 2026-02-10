@@ -18,8 +18,9 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '
 import { cn } from '@/lib/utils';
 import { useMemo, useState, useEffect } from 'react';
 
+
 interface ReportFormProps {
-    onReportGenerated: (data: any, optionflag: string, overallflag: boolean) => void;
+    onReportGenerated: (data: any, payload: any, total: number) => void;
 }
 
 export default function ReportForm({ onReportGenerated }: ReportFormProps) {
@@ -72,19 +73,25 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
     })) || [], [detailsData]);
 
 
+
     const onSubmit = (data: InvRStockSchema) => {
         generateReportMutation.mutate(data as any, {
             onSuccess: (res) => {
                 if (res.success) {
-                    onReportGenerated(res.data.get_StockReport, data.optionflag, data.overallflag);
+                    onReportGenerated(res.data.get_StockReport, data, res.total || 0);
+                } else {
+                    onReportGenerated([], null, 0);
                 }
+            },
+            onError: () => {
+                onReportGenerated([], null, 0);
             }
         });
     };
 
     const handleCancel = () => {
         reset();
-        onReportGenerated([], 'All', false);
+        onReportGenerated([], null, 0);
     };
 
     // Generic Combobox for Single Selects
@@ -132,7 +139,7 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <CollapsibleSection title="Stock Report Configuration"  defaultOpen={true}>
+            <CollapsibleSection title="Stock Report Configuration" defaultOpen={true}>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
 
                     {/* Report Type */}

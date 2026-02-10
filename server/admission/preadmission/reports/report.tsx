@@ -146,7 +146,7 @@ export async function getStudentAttendanceReport(
     }
 
     if (studentStatus === 1) {
-        baseUrl += `&MonthId=${monthId}&DateWise=${monthDateWise}`;
+        baseUrl += `&MonthId=${monthId ?? 0}&DateWise=${monthDateWise ?? 0}`;
     }
 
     if (studentStatus === 2 && fromDate && toDate) {

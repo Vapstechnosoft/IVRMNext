@@ -3,11 +3,10 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useDeleteMasterLeave, useMasterLeave, useUpdateMasterLeave, useToggleMasterLeave } from '@/hooks/hrms/leave-management/useMasters';
+import { useDeleteMasterLeave, useMasterLeave, useToggleMasterLeave, useUpdateMasterLeave } from '@/hooks/hrms/leave-management/useMasters';
 import { useQueryClient } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
-import { toast } from 'sonner';
 import AddMasterLeaveForm from './_components/add-form';
 import { type MasterLeave, getMasterLeaveColumns } from './_components/columns';
 import UpdateMasterLeaveForm from './_components/update-form';
@@ -214,9 +213,14 @@ function FormSections() {
                                 variant={selectedRow.isActive ? 'default' : 'destructive'}
                                 onClick={handleToggleStatus}
                                 disabled={isToggling}
-                                className={selectedRow.isActive ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
-                            >
-                                {isToggling ? (selectedRow.isActive ? 'Activating...' : 'Deactivating...') : (selectedRow.isActive ? 'Activate' : 'Deactivate')}
+                                className={selectedRow.isActive ? 'bg-green-600 text-white hover:bg-green-700' : ''}>
+                                {isToggling
+                                    ? selectedRow.isActive
+                                        ? 'Activating...'
+                                        : 'Deactivating...'
+                                    : selectedRow.isActive
+                                      ? 'Activate'
+                                      : 'Deactivate'}
                             </Button>
                         </div>
                     </div>

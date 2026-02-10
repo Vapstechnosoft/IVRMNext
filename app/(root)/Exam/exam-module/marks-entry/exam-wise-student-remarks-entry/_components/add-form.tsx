@@ -1,4 +1,3 @@
-
 import { Loader2 } from 'lucide-react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -165,7 +164,11 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
 
                 // Fetch Exams
                 setLoadingExams(true);
-                const examRes = await getExamsDropDownByAcademicYearandClassandSectionlist(rowData.asmaY_Id, rowData.asmcL_Id, rowData.asmS_Id);
+                const examRes = await getExamsDropDownByAcademicYearandClassandSectionlist(
+                    rowData.asmaY_Id,
+                    rowData.asmcL_Id,
+                    rowData.asmS_Id
+                );
                 const examData = Array.isArray(examRes.data) ? examRes.data : [];
                 setExams(examData);
                 // Set Exam Value AFTER data is loaded
@@ -174,8 +177,10 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
 
                 // Fetch Students
                 setIsLoading(true);
-                const studentRes = await getStudentDetails(rowData.asmaY_Id, rowData.asmcL_Id, rowData.asmS_Id, rowData.emE_Id, 30);
-                const studentList = Array.isArray(studentRes.data) ? studentRes.data.map((s: any) => ({ ...s, emeR_Remarks: s.emeR_Remarks || '' })) : [];
+                const studentRes = await getStudentDetails(rowData.asmaY_Id, rowData.asmcL_Id, rowData.asmS_Id, rowData.emE_Id);
+                const studentList = Array.isArray(studentRes.data)
+                    ? studentRes.data.map((s: any) => ({ ...s, emeR_Remarks: s.emeR_Remarks || '' }))
+                    : [];
 
                 const preSelected = studentList.reduce<string[]>((acc, s, ind) => {
                     if (s.emeR_Remarks && s.emeR_Remarks.trim().length > 0) {
@@ -203,10 +208,9 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
 
                 setIsStudentsGridOpen(true);
                 setIsLoading(false);
-
             } catch (e) {
-                console.error("Failed to load edit details", e);
-                toast.error("Failed to load edit details");
+                console.error('Failed to load edit details', e);
+                toast.error('Failed to load edit details');
             } finally {
                 setIsLoadingEditData(false);
             }
@@ -347,7 +351,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
         setIsLoading(true);
         setIsStudentsGridOpen(true);
         try {
-            const { data } = await getStudentDetails(asmaY_Id, asmcL_Id, asmS_Id, emE_Id, 30);
+            const { data } = await getStudentDetails(asmaY_Id, asmcL_Id, asmS_Id, emE_Id);
             const studentList = Array.isArray(data) ? data.map((s: any) => ({ ...s, emeR_Remarks: s.emeR_Remarks || '' })) : [];
 
             const preSelectedStudentIds = studentList.reduce<string[]>((acc, s, ind) => {
@@ -491,11 +495,11 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
 
     return (
         <FormProvider {...methods}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 rounded-xl bg-white p-6 shadow-md relative'>
+            <form onSubmit={handleSubmit(onSubmit)} className='relative space-y-6 rounded-xl bg-white p-6 shadow-md'>
                 {isLoadingEditData && (
-                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-xl bg-white">
-                        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                        <p className="mt-2 text-sm font-medium text-muted-foreground">Loading edit details...</p>
+                    <div className='absolute inset-0 z-10 flex flex-col items-center justify-center rounded-xl bg-white'>
+                        <Loader2 className='h-10 w-10 animate-spin text-primary' />
+                        <p className='mt-2 font-medium text-muted-foreground text-sm'>Loading edit details...</p>
                     </div>
                 )}
                 <div className='grid grid-cols-2 gap-6'>
@@ -514,8 +518,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                         onValueChange={(val) => {
                                             field.onChange(Number(val));
                                         }}
-                                        value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                    >
+                                        value={field.value && field.value !== 0 ? String(field.value) : ''}>
                                         <SelectTrigger>
                                             <SelectValue placeholder={loadingYears ? 'Loading Academic Year...' : 'Select Academic Year'} />
                                         </SelectTrigger>
@@ -558,16 +561,9 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                         onValueChange={(val) => {
                                             field.onChange(Number(val));
                                         }}
-                                        value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                    >
+                                        value={field.value && field.value !== 0 ? String(field.value) : ''}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={
-                                                    loadingClasses
-                                                        ? 'Loading classes...'
-                                                        : 'Select Class'
-                                                }
-                                            />
+                                            <SelectValue placeholder={loadingClasses ? 'Loading classes...' : 'Select Class'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {loadingClasses ? (
@@ -608,16 +604,9 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                         onValueChange={(val) => {
                                             field.onChange(Number(val));
                                         }}
-                                        value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                    >
+                                        value={field.value && field.value !== 0 ? String(field.value) : ''}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={
-                                                    loadingSections
-                                                        ? 'Loading sections...'
-                                                        : 'Select Section'
-                                                }
-                                            />
+                                            <SelectValue placeholder={loadingSections ? 'Loading sections...' : 'Select Section'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {loadingSections ? (
@@ -658,14 +647,9 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                         onValueChange={(val) => {
                                             field.onChange(Number(val));
                                         }}
-                                        value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                    >
+                                        value={field.value && field.value !== 0 ? String(field.value) : ''}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={
-                                                    loadingExams ? 'Loading exams...' : 'Select Exam'
-                                                }
-                                            />
+                                            <SelectValue placeholder={loadingExams ? 'Loading exams...' : 'Select Exam'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {loadingExams ? (
@@ -695,10 +679,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                         <Button type='button' variant='outline' onClick={handleReset}>
                             Reset
                         </Button>
-                        <Button
-                            type='button'
-                            onClick={handleSearch}
-                        >
+                        <Button type='button' onClick={handleSearch}>
                             Search Students
                         </Button>
                     </div>
@@ -723,7 +704,6 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                         </div>
 
                         <div className='flex w-fit justify-center gap-2'>
-
                             <Button type='submit' disabled={isSaving}>
                                 {isSaving ? 'Saving...' : 'Save Student Remarks'}
                             </Button>
@@ -734,4 +714,3 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
         </FormProvider>
     );
 }
-

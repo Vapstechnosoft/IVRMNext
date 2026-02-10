@@ -192,7 +192,7 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
     const onSubmit = async (data: FormFields) => {
         try {
             const payload: any = {
-                mi_Id: 30,
+                // mi_Id: 30,
                 ASMAY_Id: data.asmaY_Id,
                 Type: data.Type,
                 mob_flg: data.mob_flg ? 1 : 0,

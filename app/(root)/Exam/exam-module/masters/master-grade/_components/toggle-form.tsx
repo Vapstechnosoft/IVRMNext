@@ -38,7 +38,7 @@ export default function ToggleMasterGradeForm({ rowData, onClose }: ToggleMaster
 
     const onSubmit: SubmitHandler<FormFields> = async (formData) => {
         try {
-            const response = await toggleMasterGrade(30, Number(formData.emgR_Id)); // <-- convert back to number
+            const response = await toggleMasterGrade(Number(formData.emgR_Id)); // <-- convert back to number
             if (response.success) {
                 toast.success(response.message || `Grade ${rowData?.emgR_ActiveFlag ? 'deactivated' : 'activated'} successfully`);
                 refetchAll();

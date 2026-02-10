@@ -30,20 +30,24 @@ export async function getMasterLeaveDropdowns(request: { MI_Id?: number }): Prom
     let leaveTypes: Array<{ value: string; label: string }> = [];
     const responseData = response.data as any;
     if (responseData?.master_eventlist && Array.isArray(responseData.master_eventlist)) {
-        leaveTypes = responseData.master_eventlist.map((item: any) => {
-            const value = item.value || item.LeaveType || item.HRML_LeaveType || item.type || '';
-            const label = item.label || item.LeaveTypeName || item.HRML_LeaveName || item.name || value;
-            return { value: String(value), label: String(label) };
-        }).filter((item: { value: string; label: string }) => item.value && item.label);
+        leaveTypes = responseData.master_eventlist
+            .map((item: any) => {
+                const value = item.value || item.LeaveType || item.HRML_LeaveType || item.type || '';
+                const label = item.label || item.LeaveTypeName || item.HRML_LeaveName || item.name || value;
+                return { value: String(value), label: String(label) };
+            })
+            .filter((item: { value: string; label: string }) => item.value && item.label);
     }
     // Extract leave orders
     let leaveOrders: Array<{ value: number; label: string }> = [];
     if (responseData?.leaveorderlist && Array.isArray(responseData.leaveorderlist)) {
-        leaveOrders = responseData.leaveorderlist.map((item: any) => {
-            const value = item.value || item.Order || item.HRML_LateDeductOrder || item.order || 0;
-            const label = item.label || item.OrderName || String(value);
-            return { value: Number(value), label: String(label) };
-        }).filter((item: { value: number; label: string }) => item.value !== undefined);
+        leaveOrders = responseData.leaveorderlist
+            .map((item: any) => {
+                const value = item.value || item.Order || item.HRML_LateDeductOrder || item.order || 0;
+                const label = item.label || item.OrderName || String(value);
+                return { value: Number(value), label: String(label) };
+            })
+            .filter((item: { value: number; label: string }) => item.value !== undefined);
     }
     return {
         leaveTypes,
@@ -53,7 +57,7 @@ export async function getMasterLeaveDropdowns(request: { MI_Id?: number }): Prom
 /**
  * Get master leave for editing
  * GET /api/MasterLeave/get_master_leave_by_id/{hrml_id}
- * 
+ *
  * @param HRML_Id - Leave ID to edit
  * @returns Master leave data for editing
  */
@@ -90,17 +94,18 @@ export async function getMasterLeaveForEdit(HRML_Id: number): Promise<ApiRespons
         throw new Error(errorMessage);
     }
 }
-import { getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 
 /**
  * Get master leave details
  * GET /api/MasterLeave/get_master_leave_details
- * 
+ *
  * @param searchParams - Search parameters for filtering
  * @returns Master leave data
  */
-export async function getMasterLeave(searchParams?: ApiSearchparams & { MI_Id?: string | number; HRML_Id?: number }): Promise<ApiResponse<MasterLeaveListItem[] | MasterLeaveGetResponseData>> {
+export async function getMasterLeave(
+    searchParams?: ApiSearchparams & { MI_Id?: string | number; HRML_Id?: number }
+): Promise<ApiResponse<MasterLeaveListItem[] | MasterLeaveGetResponseData>> {
     const miId = searchParams?.MI_Id || HRMS_MI_ID;
 
     // Construct query parameters manually for better control
@@ -167,7 +172,7 @@ export async function getMasterLeave(searchParams?: ApiSearchparams & { MI_Id?: 
 /**
  * Save or update master leave
  * POST /api/MasterLeave/add_or_update_master_leave
- * 
+ *
  * @param data - Master leave data to save or update
  * @returns Save/Update response
  */
@@ -227,7 +232,7 @@ export async function saveMasterLeave(data: MasterLeaveSaveRequest): Promise<Api
 /**
  * Toggle active status of master leave
  * PUT /api/MasterLeave/toggle_master_leave/{hrml_id}
- * 
+ *
  * @param HRML_Id - Leave ID to toggle
  * @returns Success response
  */
@@ -255,7 +260,7 @@ export async function toggleMasterLeave(HRML_Id: number): Promise<ApiResponse<an
 /**
  * Update master leave display order
  * PUT /api/MasterLeave/update_master_leave_order
- * 
+ *
  * @param orders - Array of {id, order} objects
  * @returns Success response
  */
@@ -283,7 +288,7 @@ export async function updateMasterLeaveOrder(orders: Array<{ id: number; order: 
 /**
  * Delete master leave
  * DELETE /api/MasterLeave/delete_master_leave_by_id/{hrml_id}
- * 
+ *
  * @param HRML_Id - Leave ID to delete
  * @returns Delete response
  */

@@ -1008,6 +1008,7 @@ export interface StudentPrintDetails {
     fyp_date: string;
     feeAmount: number;
     asmay_Year: string;
+    fmt_name: string;
 }
 
 export interface CurrentPaymentDetails {

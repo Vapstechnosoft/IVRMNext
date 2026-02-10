@@ -6,6 +6,8 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { saveAlumniInteraction, searchAlumniForInteraction } from '@/server/alumni/alumni-interactions';
+import { uploadDocument } from '@/server/document_upload';
 import type { IAlumniInteractionAlumni } from '@/types/alumni/alumni-interactions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, FileText, Loader2, Plus, Send, X } from 'lucide-react';
@@ -21,51 +23,6 @@ interface AddInteractionFormProps {
     onSuccess?: () => void;
     className?: string;
 }
-
-// Static alumni list
-const staticAlumniList: IAlumniInteractionAlumni[] = [
-    { ALMST_Id: 101, alumniname: 'John Smith', tck: false },
-    { ALMST_Id: 102, alumniname: 'Sarah Johnson', tck: false },
-    { ALMST_Id: 103, alumniname: 'Michael Chen', tck: false },
-    { ALMST_Id: 104, alumniname: 'Priya Sharma', tck: false },
-    { ALMST_Id: 105, alumniname: 'David Wilson', tck: false },
-    { ALMST_Id: 106, alumniname: 'Emma Watson', tck: false },
-    { ALMST_Id: 107, alumniname: 'Robert Brown', tck: false },
-    { ALMST_Id: 108, alumniname: 'Lisa Anderson', tck: false },
-    { ALMST_Id: 109, alumniname: 'Alex Turner', tck: false },
-    { ALMST_Id: 110, alumniname: 'Maria Garcia', tck: false }
-];
-
-// Mock API functions
-// biome-ignore lint/correctness/noUnusedVariables: <explanation>
-const mockGetAlumniDetails = async ({ userflag }: { userflag: string }) => {
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    return {
-        success: true,
-        data: {
-            getdetails: staticAlumniList
-        }
-    };
-};
-
-const mockSaveAlumniInteraction = async (payload: any) => {
-    console.info('Saving interaction:', payload);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    return { success: true, message: 'Message sent successfully' };
-};
-
-const mockUploadDocument = async (formData: FormData) => {
-    const file = formData.get('File');
-    console.info('Uploading file:', file);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    const timestamp = Date.now();
-    const fileName = file?.toString() || 'file';
-    return {
-        path: `/uploads/interactions/${timestamp}-${fileName}`,
-        data: [{ path: `/uploads/interactions/${timestamp}-${fileName}` }]
-    };
-};
 
 export default function AddInteractionForm({ interactionType, roleFlg, onSuccess, className = '' }: AddInteractionFormProps) {
     const [uploading, setUploading] = useState(false);
@@ -102,11 +59,10 @@ export default function AddInteractionForm({ interactionType, roleFlg, onSuccess
         const fetchAlumni = async () => {
             setLoadingAlumni(true);
             try {
-                const res = await mockGetAlumniDetails({ userflag });
+                const res = await searchAlumniForInteraction({ userflag });
                 if (res.success && res.data) {
                     setAlumniList(res.data.getdetails || []);
                 }
-                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
             } catch (error) {
                 toast.error('Failed to load alumni list');
             } finally {
@@ -126,16 +82,11 @@ export default function AddInteractionForm({ interactionType, roleFlg, onSuccess
             formData.append('folder', 'Alumni_Interaction');
 
             try {
-                const response = await mockUploadDocument(formData);
-                const res: any = response;
+                const res = await uploadDocument(formData);
                 let path = '';
 
-                if (Array.isArray(res) && res.length > 0) {
-                    path = res[0].path || res[0];
-                } else if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
-                    path = res.data[0].path || res.data[0];
-                } else if (res?.path) {
-                    path = res.path;
+                if (res?.success && res.data) {
+                    path = res.data;
                 }
 
                 if (path) {
@@ -144,7 +95,6 @@ export default function AddInteractionForm({ interactionType, roleFlg, onSuccess
                     toast.success('File uploaded');
                 }
             } catch (err: any) {
-                // biome-ignore lint/style/useTemplate: <explanation>
                 toast.error('Upload failed: ' + err.message);
             } finally {
                 setUploading(false);
@@ -185,7 +135,7 @@ export default function AddInteractionForm({ interactionType, roleFlg, onSuccess
                 }
             }
 
-            const res = await mockSaveAlumniInteraction(payload);
+            const res = await saveAlumniInteraction(payload);
             if (res.success) {
                 toast.success('Message sent successfully');
                 reset();
@@ -343,7 +293,6 @@ export default function AddInteractionForm({ interactionType, roleFlg, onSuccess
                                         className='group relative rounded-lg border border-green-200 bg-white p-3 shadow-sm transition-all hover:shadow-md'>
                                         <div className='mb-2 flex items-center justify-between'>
                                             <span className='max-w-[80%] truncate font-medium text-green-800 text-xs' title={file.name}>
-                                                {/* biome-ignore lint/style/useTemplate: <explanation> */}
                                                 {file.name.length > 15 ? file.name.substring(0, 12) + '...' : file.name}
                                             </span>
                                             <button

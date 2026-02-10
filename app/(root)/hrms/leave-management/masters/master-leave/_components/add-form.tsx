@@ -19,7 +19,7 @@ const LEAVE_TYPE_OPTIONS = [
     { value: 'Comp_Off', label: 'Comp Off' },
     { value: 'LWP', label: 'LWP' },
     { value: 'On_Duty', label: 'On Duty' },
-    { value: 'Sat_Off', label: 'Sat Off' },
+    { value: 'Sat_Off', label: 'Sat Off' }
 ];
 
 export default function AddMasterLeaveForm({ onSuccess, onCancel, className = '' }: AddMasterLeaveFormProps) {
@@ -118,9 +118,7 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                                                     </SelectItem>
                                                 ))
                                             ) : (
-                                                <div className='px-2 py-1.5 text-muted-foreground text-sm'>
-                                                    No options available
-                                                </div>
+                                                <div className='px-2 py-1.5 text-muted-foreground text-sm'>No options available</div>
                                             )}
                                         </SelectContent>
                                     </Select>

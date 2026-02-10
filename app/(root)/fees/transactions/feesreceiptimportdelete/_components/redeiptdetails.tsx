@@ -24,30 +24,36 @@ export const feereceiptimportdeleteColumns: ColumnDef<IFeeReceiptImportDelate>[]
         enableHiding: false
     },
     {
-        accessorKey: 'admissionnumber',
+        accessorKey: 'amst_admno',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Admission No' />,
-        cell: ({ row }) => <div>{row.getValue('admissionnumber')}</div>,
+        cell: ({ row }) => <div>{row.getValue('amst_admno')}</div>,
         enableSorting: false,
         enableHiding: false
     },
     {
-        accessorKey: 'date',
+        accessorKey: 'fyp_date',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
-        cell: ({ row }) => <div>{row.getValue('date')}</div>,
-        enableSorting: false,
-        enableHiding: false
+        cell: ({ row }) => (
+            <div>
+                {new Date(row.getValue('fyp_date')).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                })}
+            </div>
+        )
     },
     {
-        accessorKey: 'receiptno',
+        accessorKey: 'fyp_receipt_no',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Receipt No' />,
-        cell: ({ row }) => <div>{row.getValue('receiptno')}</div>,
+        cell: ({ row }) => <div>{row.getValue('fyp_receipt_no')}</div>,
         enableSorting: false,
         enableHiding: false
     },
     {
-        accessorKey: 'amount',
+        accessorKey: 'fyp_tot_amount',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Amount' />,
-        cell: ({ row }) => <div>₹{Number(row.getValue('amount')).toLocaleString('en-IN')}</div>,
+        cell: ({ row }) => <div>₹{Number(row.getValue('fyp_tot_amount')).toLocaleString('en-IN')}</div>,
         enableSorting: false,
         enableHiding: false
     }

@@ -1427,7 +1427,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                         <td className='border p-2'>
                                             <input
                                                 type='number'
-                                                value={openingBalance[f.fmA_Id] ?? f.fsS_OBAsPerFY ?? ''}
+                                                value={openingBalance[f.fmA_Id] ?? f.fsS_OBArrearAmount ?? ''}
                                                 disabled
                                                 onChange={(e) => {
                                                     const v = e.target.value;

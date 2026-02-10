@@ -14,7 +14,7 @@ export async function getPreAdmissionYear(searchParams?: ApiSearchparams) {
 }
 
 export async function getPreAdmissionSetOrder() {
-    const url = '/configuration/academic_year_set_order_list';
+    const url = '/configuration/academic_year/set_order_list';
     return await api.get<IMasterSetOrderList[]>('preadmission', url);
 }
 

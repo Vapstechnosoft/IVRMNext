@@ -39,7 +39,7 @@ function ExamStandardPageContent({
 
         defaultValues: {
             ExmConfig_Id: null,
-            mI_Id: 30,
+            // mI_Id: 30,
             ExmConfig_RankingMethod: 'Dense',
             ExmConfig_Remarks: 'General',
             ExmConfig_PassFailRankFlag: '0',
@@ -84,7 +84,7 @@ function ExamStandardPageContent({
         if (response?.data) {
             reset({
                 ExmConfig_Id: response.data.exmConfig_Id ?? null,
-                mI_Id: 30,
+                // mI_Id: 30,
 
                 ExmConfig_RankingMethod:
                     response.data.exmConfig_RankingMethod === 'Dense' || response.data.exmConfig_RankingMethod === 'Standard'

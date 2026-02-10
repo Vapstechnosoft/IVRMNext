@@ -112,7 +112,7 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
         if (!asmaY_Id) return;
         async function fetchRelated() {
             try {
-                const { data: cats } = await getCategoryDropDownByAcademicYearlist(orgId, asmaY_Id);
+                const { data: cats } = await getCategoryDropDownByAcademicYearlist(asmaY_Id);
                 const validCats = Array.isArray(cats) ? cats : [];
                 setCategories(validCats);
                 if (rowData?.emcA_Id && validCats.length > 0) {
@@ -164,7 +164,7 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
         error: detailsError,
         isLoading: detailsLoading,
         refetch: refetchDetails
-    } = useExamTermAndExamMappingDetails(orgId, rowData?.asmaY_Id ?? 0, rowData?.emcA_Id ?? 0, rowData?.ecT_Id ?? 0);
+    } = useExamTermAndExamMappingDetails(rowData?.asmaY_Id ?? 0, rowData?.emcA_Id ?? 0, rowData?.ecT_Id ?? 0);
     useEffect(() => {
         refetchDetails();
     }, [rowData]);
