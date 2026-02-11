@@ -11,8 +11,18 @@ export async function getInvMasterTax(searchParams?: ApiSearchparams): Promise<A
     console.log(`getInvMasterTax: Making GET request to ${url} using 'inventory' client`);
 
     try {
-        const response = await api.get<any>('inventory', url);
+        const response: any = await api.get<any>('inventory', url);
         console.log("getInvMasterTax: API call successful", response ? Object.keys(response) : "null");
+
+        // Handle success: false but with message (Search query with no results)
+        if (response.success === false && response.message === "No tax records found") {
+            return {
+                success: true,
+                data: [],
+                total: 0,
+                message: response.message
+            };
+        }
 
         // Ensure data exists
         if (!response.data) {

@@ -15,9 +15,9 @@ export interface ITrustMaster {
     mO_ActiveFlag: number; // API returns 0 or 1
     mT_Currency: string;
     mT_Domain_name: string;
-    mO_AboutInstitute: string;
-    mO_ContactDetails: string;
-    mO_Logo: string;
+    mO_AboutInstitute: string | null;
+    mO_ContactDetails: string | null;
+    mO_Logo: string | null;
     createdDate: string;
     updatedDate: string;
 }

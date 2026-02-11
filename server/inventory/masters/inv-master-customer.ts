@@ -9,7 +9,18 @@ export async function getInvMasterCustomer(searchParams?: ApiSearchparams) {
     const url = `/INV_MasterCustomerFacade/getloaddata?${urlParams}`;
 
     try {
-        const response = await api.get<any>('inventory', url);
+        const response: any = await api.get<any>('inventory', url);
+
+        if (response.success === false && response.total === 0) {
+            return {
+                success: true,
+                data: {
+                    get_customer: [],
+                    total: 0
+                },
+                message: response.message
+            };
+        }
 
         // User response structure direct data array
         const rawData = response.data || [];

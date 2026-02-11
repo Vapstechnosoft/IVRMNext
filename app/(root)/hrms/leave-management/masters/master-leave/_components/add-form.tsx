@@ -7,7 +7,7 @@ import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterLeave, useSaveMasterLeave } from '@/hooks/hrms/leave-management/useMasters';
 import { MASTER_LEAVE_VALIDATION } from '@/lib/validation/hrms-master-validation';
-import { Save, X } from 'lucide-react';
+import { Loader2, RotateCcw, Save, X } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { MasterLeave } from './columns';
 interface AddMasterLeaveFormProps {
@@ -70,6 +70,7 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
     const handleReset = () => {
         reset();
     };
+    const mastersLoading = isPending || isSubmitting;
     return (
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -100,7 +101,12 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                                     <label htmlFor='leaveType' className='mb-2 block font-medium text-sm'>
                                         Leave Type <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange}>
+                                    <Select
+                                        key={field.value || 'empty'}
+                                        onValueChange={(value) => {
+                                            field.onChange(value || '');
+                                        }}
+                                        value={field.value?.toString() || undefined}>
                                         <SelectTrigger id='leaveType' className={errors.leaveType ? 'border-red-500' : ''}>
                                             <SelectValue placeholder='Select Leave Type' />
                                         </SelectTrigger>
@@ -172,10 +178,13 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                                     <label htmlFor='leaveApplyCriteria' className='mb-2 block font-medium text-sm'>
                                         Apply Criteria <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger
-                                            id='leaveApplyCriteria'
-                                            className={errors.leaveApplyCriteria ? 'border-red-500' : ''}>
+                                    <Select
+                                        key={field.value || 'empty'}
+                                        onValueChange={(value) => {
+                                            field.onChange(value || '');
+                                        }}
+                                        value={field.value?.toString() || undefined}>
+                                        <SelectTrigger id='leaveApplyCriteria' className={errors.leaveApplyCriteria ? 'border-red-500' : ''}>
                                             <SelectValue placeholder='Select Criteria' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -216,8 +225,10 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                         </Button>
                     )}
                     <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
+                        <RotateCcw className='mr-1.5 h-4 w-4' />
                         Reset
                     </Button>
+                    {mastersLoading && <Loader2 className='h-4 w-4 animate-spin text-purple-500' />}
                     <Button type='submit' disabled={isPending || isSubmitting}>
                         <Save className='mr-2 h-4 w-4' />
                         {isPending || isSubmitting ? 'Saving...' : 'Save'}

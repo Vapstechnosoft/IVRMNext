@@ -5,14 +5,27 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useDeleteLeaveAuthorization, useLeaveAuthorization } from '@/hooks/hrms/leave-management/useMasters';
 import { Plus, X } from 'lucide-react';
-import { use } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import AddLeaveAuthorizationForm from './_components/add-form';
 import { type LeaveAuthorization, getLeaveAuthorizationColumns } from './_components/columns';
 import UpdateLeaveAuthorizationForm from './_components/update-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function LeaveAuthorizationPage(props: { searchParams: SearchParams }) {
-    const _searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useLeaveAuthorization();
+    const [initialSearchParams, setInitialSearchParams] = useState<any>({});
+
+    useEffect(() => {
+        const fetchParams = async () => {
+            const params = await props.searchParams;
+            setInitialSearchParams(params);
+        };
+        fetchParams();
+    }, [props.searchParams]);
+
+    const searchParams = useMemo(() => {
+        return initialSearchParams;
+    }, [initialSearchParams]);
+
+    const { data: response, isLoading, error } = useLeaveAuthorization(searchParams);
     return (
         <FormProvider<LeaveAuthorization>>
             <LeaveAuthorizationPageContent response={response} isLoading={isLoading} error={error} />
@@ -97,6 +110,7 @@ function FormSections() {
             // Extract HRLA_Id from the row data if available, otherwise use 0
             const HRLA_Id = (selectedRow as any)._HRLA_Id || 0;
             const HRLAON_Id = selectedRow.id || 0;
+            console.log(`🗑️ Deleting Auth - HRLA_Id: ${HRLA_Id}, HRLAON_Id: ${HRLAON_Id}`);
             deleteLeaveAuthorization(
                 {
                     HRLA_Id: HRLA_Id,

@@ -23,9 +23,9 @@ export const InstitutionSubscriptionColumns: ColumnDef<IInstitutionSubscription>
         enableSorting: false
     },
     {
-        accessorKey: 'institution.mI_Name', // Access nested property
+        accessorKey: 'institutionName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Institute Name' />,
-        cell: ({ row }) => <div>{row.original.institution?.mI_Name || 'N/A'}</div>,
+        cell: ({ row }) => <div>{row.original.institutionName || 'N/A'}</div>,
         enableSorting: true,
         enableHiding: false
     },
