@@ -456,7 +456,7 @@ export default function FeeConcessionReport() {
 
         const rowsToPrint = selectedRows.map((row, index) => ({
             'Sl No': index + 1,
-            ClassName: row.classname,
+            ClassName: row.reportname,
             concessionAmount: `₹ ${row.concession.toLocaleString('en-IN')}`
         }));
         const totalAmount = selectedRows.reduce((sum, row) => sum + row.concession, 0);
@@ -480,7 +480,7 @@ export default function FeeConcessionReport() {
 
         const rowsToPrint = selectedRows.map((row, index) => ({
             'Sl No': index + 1,
-            'Student Name': row.studentname,
+            'Student Name': row.reportname,
             ClassName: row.classname,
             concessionAmount: `₹ ${row.concession.toLocaleString('en-IN')}`
         }));
@@ -826,8 +826,8 @@ export default function FeeConcessionReport() {
                                 </div>
 
                                 {showReport && reportData.length > 0 && (
-                                    <CollapsibleSection defaultOpen={true}>
-                                        <div className='mt-10 overflow-hidden rounded-lg border bg-white shadow-lg'>
+                                    <CollapsibleSection defaultOpen={true} className='mt-10'>
+                                        <div className='mt-5 overflow-hidden rounded-lg border bg-white shadow-lg'>
                                             <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
                                                 <div className='mb-6 text-center'>
                                                     <h2 className='font-bold text-2xl text-primary'>Fee Concession Report</h2>
@@ -1027,7 +1027,7 @@ export default function FeeConcessionReport() {
                                                                         />
                                                                     </td>
                                                                     <td className='border px-4 py-2 text-center'>{row.id}</td>
-                                                                    <td className='border px-4 py-2 font-medium'>{row.classname}</td>
+                                                                    <td className='border px-4 py-2 font-medium'>{row.reportname}</td>
                                                                     <td className='border px-4 py-2 text-right font-semibold'>
                                                                         ₹ {row.concession.toLocaleString('en-IN')}
                                                                     </td>
@@ -1095,7 +1095,7 @@ export default function FeeConcessionReport() {
                                                                         />
                                                                     </td>
                                                                     <td className='border px-4 py-2 text-center'>{row.id}</td>
-                                                                    <td className='border px-4 py-2 font-medium'>{row.studentname}</td>
+                                                                    <td className='border px-4 py-2 font-medium'>{row.reportname}</td>
                                                                     <td className='border px-4 py-2 font-medium'>{row.classname}</td>
                                                                     <td className='border px-4 py-2 text-right font-semibold'>
                                                                         ₹ {row.concession.toLocaleString('en-IN')}
