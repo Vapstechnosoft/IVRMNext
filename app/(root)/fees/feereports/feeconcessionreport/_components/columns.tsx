@@ -111,7 +111,7 @@ export function printTable(columns: string[], rows: any[], sumRow?: any) {
             </style>
         </head>
         <body>
-            <h2>Fee Audit Report</h2>
+            <h2>Fee Concession Report</h2>
             <table>
                 <thead>
                     <tr>${tableHead}</tr>
@@ -207,7 +207,7 @@ export function exportToExcelforFCW(rows: IFeeConcessionReport[], fileName: stri
 
     const dataForExcel = rows.map((row, index) => ({
         'Sl No': index + 1,
-        ClassName: row.classname,
+        ClassName: row.reportname,
         concessionAmount: row.concession
     }));
 
@@ -243,7 +243,7 @@ export function exportToExcelforFSW(rows: IFeeConcessionReport[], fileName: stri
 
     const dataForExcel = rows.map((row, index) => ({
         'Sl No': index + 1,
-        'Student Name': row.studentname,
+        'Student Name': row.reportname,
         'Class:Section': row.classname,
         concessionAmount: row.concession
     }));

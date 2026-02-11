@@ -83,34 +83,12 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
     const [studentDetails, SetStudentDetails] = useState<IStudentTDetails[]>([]);
     const [feeDetails, SetFeeDetails] = useState<IFeeTDetails[]>([]);
     const [studentUserNameDetails, SetStudentUserNameDetails] = useState<IFeeTDetails[]>([]);
-    // const [studentAmountDetails, SetStudentAmountDetails] = useState<IFeeTDetails[]>([]);
     const [feeHeads, setFeeHeads] = useState<IFeeTermDetails[]>([]);
     const [masternarration, setMasternarration] = useState<MasterNarration[]>([]);
     const [masterModeofPaymentList, setMasterModeofPaymentList] = useState<MasterModeofPayment[]>([]);
     const [loadingFeeHead, setLoadingFeeHead] = useState(false);
     const [selectedHeads, setSelectedHeads] = useState<Record<number, boolean>>({});
-    const [currentCharges, setCurrentCharges] = useState<{
-        [key: number]: string;
-    }>({});
-    const [toatlAdjusted, setToatlAdjusted] = useState<{
-        [key: number]: string;
-    }>({});
-    const [totalCharges, setTotalCharges] = useState<{
-        [key: number]: string;
-    }>({});
-    const [concession, setConcession] = useState<{
-        [key: number]: string;
-    }>({});
-    const [openingBalance, setOpeningBalance] = useState<{
-        [key: number]: string;
-    }>({});
     const [payableAmount, setPayableAmount] = useState<{
-        [key: number]: string;
-    }>({});
-    const [netAmount, setNetAmount] = useState<{
-        [key: number]: string;
-    }>({});
-    const [rebateAmount, setRebateAmount] = useState<{
         [key: number]: string;
     }>({});
     const [TotalCurrentFee, setTotalCurrentFee] = useState<number>();
@@ -122,7 +100,6 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
     const [Totalfine, setTotalFine] = useState<number>();
     const [TotalPaying, setTotalPaying] = useState<number>(0);
     const [fineAmount, setFineAmount] = useState<number>();
-    // const [totalAmount, settotalAmount] = useState<number>(0);
     const [TotalOutStanding, setTotalOutStanding] = useState<number>();
     const [chequeNo, setChequeNo] = useState<{
         [key: number]: string;
@@ -143,11 +120,9 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
     const [section, setSection] = useState(false);
     const [amountCheck, setAmountCheck] = useState(false);
     const [amountforTerm, setAmountforTerm] = useState('');
-    const [selectAll, setSelectAll] = useState(false);
     const [sms, setSms] = useState(false);
     const [email, setEmail] = useState(false);
     const [openFeeDetails, setOpenFeeDetails] = useState(false);
-
     const [openStudentDetails, setOpenStudentDetails] = useState(false);
     const [challenSearch, setChallenSearch] = useState('');
     const [todaysDate, setTodaysDate] = useState<Date | undefined>(new Date());
@@ -155,6 +130,10 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
     const [narrationRemark, setNarrationRemark] = useState('');
     const [masterBanks, setMasterBanks] = useState<masterBankList[]>([]);
     const [isLoadingmasterBanks, setIsLoadingMasterBanks] = useState(false);
+    const [amountForInstallment, setAmountForInstallment] = useState<{
+        [key: string]: string;
+    }>({});
+    const [selectedTerms, setSelectedTerms] = useState<Set<number>>(new Set());
 
     const filterOptions = [
         { value: 'regular', label: 'Regular' },
@@ -204,9 +183,7 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
         setFeeHeads([]);
         setSelectedHeads([]);
         setSelectedNarration(null);
-        setSelectAll(false);
         setPayableAmount({});
-        setToatlAdjusted({});
     }, [selectedTerm]);
 
     useEffect(() => {
@@ -283,7 +260,7 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
                     asmaY_Id: selectedAsmayId
                 };
 
-                console.log('term details payload', JSON.stringify(payload));
+                // console.log('term details payload', JSON.stringify(payload));
                 const termArray = await getStudentDetails(payload);
                 const termList = JSON.parse(JSON.stringify(termArray.masterGroupDetails || []));
                 const disableTerms = JSON.parse(JSON.stringify(termArray.termDetails || []));
@@ -434,30 +411,6 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
         setTotalPaying(totalpaying);
     }, [selectedHeads, feeHeads, payableAmount]);
 
-    const toggleRow = (id: number, checked: boolean) => {
-        setSelectedHeads((prev) => {
-            const updated = { ...prev, [id]: checked };
-            if (!checked) {
-                setSelectAll(false);
-            } else {
-                const allChecked = feeHeads.every((item) => updated[item.fmA_Id]);
-                setSelectAll(allChecked);
-            }
-
-            return updated;
-        });
-    };
-
-    const handleSelectAll = (checked: boolean) => {
-        setSelectAll(checked);
-        const newState: Record<number, boolean> = {};
-        feeHeads.forEach((f) => {
-            newState[f.fmA_Id] = checked;
-        });
-
-        setSelectedHeads(newState);
-    };
-
     const handleTermChange = (newSelectedValues: string[]) => {
         const isSelectAll = newSelectedValues.length === terms.length || newSelectedValues.length === 0;
 
@@ -548,6 +501,18 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
         SetStudentDetails([]);
         SetFeeDetails([]);
         setselectedTerm([]);
+    };
+
+    const handleTermCheckboxChange = (termId: number) => {
+        setSelectedTerms((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(termId)) {
+                newSet.delete(termId);
+            } else {
+                newSet.add(termId);
+            }
+            return newSet;
+        });
     };
 
     const onSubmit = async () => {
@@ -706,17 +671,17 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
                     ftI_Name: fee.ftI_Name,
                     fmH_Id: fee.fmH_Id,
                     ftI_Id: fee.ftI_Id,
-                    totalamount: Number(netAmount[fee.fmA_Id] ?? fee.fsS_CurrentYrCharges),
+                    totalamount: Number(fee.fsS_CurrentYrCharges),
                     fsS_ToBePaid: Number(payableAmount[fee.fmA_Id] ?? fee.fsS_ToBePaid),
-                    fsS_ConcessionAmount: Number(concession[fee.fmA_Id] ?? fee.fsS_ConcessionAmount),
+                    fsS_ConcessionAmount: Number(fee.fsS_ConcessionAmount),
                     fsS_FineAmount: fee.fsS_FineAmount,
-                    fsS_CurrentYrCharges: Number(currentCharges[fee.fmA_Id] ?? fee.fsS_CurrentYrCharges),
-                    fsS_TotalToBePaid: Number(totalCharges[fee.fmA_Id] ?? fee.fsS_TotalToBePaid),
+                    fsS_CurrentYrCharges: Number(fee.fsS_CurrentYrCharges),
+                    fsS_TotalToBePaid: Number(fee.fsS_TotalToBePaid),
                     fmG_Id: fee.fmG_Id,
                     fmG_GroupName: fee.fmG_GroupName,
                     fsS_OBArrearAmount: fee.fsS_OBArrearAmount,
                     fmT_Id: fee.fmT_Id,
-                    fsS_RebateAmount: Number(rebateAmount[fee.fmA_Id] ?? fee.fsS_RebateAmount),
+                    fsS_RebateAmount: Number(fee.fsS_RebateAmount),
                     fsS_WaivedAmount: fee.fsS_WaivedAmount
                 }));
 
@@ -743,7 +708,6 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
                 smsconfig: sms,
                 emailconfig: email
             };
-            console.log('save fee transaction payload', JSON.stringify(payload));
             const response = await saveFeeTransaction(payload);
 
             if (response?.displaymessage) {
@@ -1292,11 +1256,11 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
                                     {selectedTermStThomas.map((term, index) => (
                                         <th key={index + 1} className='border p-2'>
                                             <div className='flex flex-col items-center gap-1'>
-                                                <Checkbox
-                                                    checked={false}
-                                                    // onCheckedChange={() => handleTermCheckboxChange(term.fmT_Id)}
-                                                />
                                                 <span>{term.fmG_GroupName}</span>
+                                                <Checkbox
+                                                    checked={selectedTerms.has(term.fmT_Id)}
+                                                    onCheckedChange={() => handleTermCheckboxChange(term.fmT_Id)}
+                                                />
                                             </div>
                                         </th>
                                     ))}
@@ -1307,8 +1271,39 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
                                 {feeHeads.map((f, index) => (
                                     <tr key={f.fmA_Id}>
                                         <td className='border p-2'>{index + 1}</td>
-                                        <td className='border p-2'>{f.fmG_GroupName}</td>
-                                        <td className='border p-2'>{f.ftI_Name}</td>
+                                        <td className='border p-2'>{f.fmH_FeeName}</td>
+                                        {selectedTermStThomas.map((term, termIndex) => {
+                                            const cellKey = `${f.fmA_Id}-${term.fmT_Id}`;
+                                            return (
+                                                <td key={`${termIndex}-${term.fmT_Id}`} className='border p-2'>
+                                                    <input
+                                                        type='number'
+                                                        value={
+                                                            amountForInstallment[cellKey] ??
+                                                            (termIndex === 0 ? f.fsS_CurrentYrCharges : '') ??
+                                                            ''
+                                                        }
+                                                        onChange={(e) => {
+                                                            const v = e.target.value;
+                                                            if (v === '') {
+                                                                setAmountForInstallment((prev) => ({
+                                                                    ...prev,
+                                                                    [cellKey]: ''
+                                                                }));
+                                                                return;
+                                                            }
+                                                            if (/^\d*\.?\d*$/.test(v)) {
+                                                                setAmountForInstallment((prev) => ({
+                                                                    ...prev,
+                                                                    [cellKey]: v
+                                                                }));
+                                                            }
+                                                        }}
+                                                        className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                                    />
+                                                </td>
+                                            );
+                                        })}
                                     </tr>
                                 ))}
                             </tbody>

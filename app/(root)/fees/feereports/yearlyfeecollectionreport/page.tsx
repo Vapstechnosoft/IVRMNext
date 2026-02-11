@@ -19,6 +19,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useFeeMasterConfiguration } from '@/hooks/fees/useTrasactions';
 import { yearlyFeeCollectionSchema } from '@/schemas/fees/reports';
 import { getFeeYearlyCollectionReport } from '@/server/fees/reports/fee_yearlyCollectionReport';
 import type {
@@ -172,6 +173,10 @@ export default function FeeYearlyCollectionReport() {
         isLoading: feeInstallmentLoading,
         error: feeInstallmentError
     } = useFeeTransInstallmentYearlyfeecollectionreport();
+
+    const { data: masterConfiguration } = useFeeMasterConfiguration();
+
+    const config = masterConfiguration?.data?.[0]?.fmC_GroupOrTermFlg ?? 'T';
 
     // Load data effects (unchanged)
 
@@ -455,7 +460,7 @@ export default function FeeYearlyCollectionReport() {
                 To_Date: filters.viewMode === 'date' ? format(filters.toDate, 'yyyy-MM-dd') : format(today, 'yyyy-MM-dd'),
 
                 // Term Group (Hardcoded / configurable)
-                term_group: 'T',
+                term_group: config.toString(),
                 //filters.breakdown === 'INMW' ? 'I' : 'T',
 
                 // Category / Class / Section
