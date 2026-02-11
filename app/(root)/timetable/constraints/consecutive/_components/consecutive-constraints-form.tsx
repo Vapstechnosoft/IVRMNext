@@ -6,17 +6,15 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-    useAcademicYearDropDownMasterDayClasswise,
-    useCategtoryDropDownMasterDayClasswise,
-    useClassDropDownMasterDayClasswise,
-    useSectionDropDownMasterDayClasswise,
-    useStaffDropDownMasterDayClasswise,
-    useSubjectDropDownMasterDayClasswise
-} from '@/hooks/timetable/constraints/consecutive';
+import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
 import { type ConsecutiveConstraintsSchema, consecutiveConstraintsSchema } from '@/schemas/timetable/constraints/consecutive';
 import {
+    getCategoryDropDownMasterDayClasswise,
     getConsecutiveConstraintsEditDetails,
+    getSectionDetails,
+    getStaffDropDownMasterDayClasswise,
+    getSubjectDropDownMasterDayClasswise,
+    getTransactionClassDropdown,
     saveConsecutiveConstraintsDetail
 } from '@/server/timetable/constraints/consecutive';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,15 +23,36 @@ import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
-const extractList = (data: any) => {
+const extractList = (data: any, preferredKey?: string) => {
     if (!data) return [];
     if (Array.isArray(data)) return data;
-    if (data.data && Array.isArray(data.data)) return data.data;
-    // Handle legacy/alternate keys
-    const keys = ['academiclist', 'catelist', 'classlist', 'sectionlist', 'stafflist', 'subjectlist', 'staffbyall', 'subjectbystaff', 'sectionbyclass', 'classbycategory'];
+
+    // Identify the actual data object (handle ApiResponse wrapper)
+    const target = data?.data !== undefined ? data.data : data;
+    if (Array.isArray(target)) return target;
+    if (!target) return [];
+
+    // If a preferred key is provided, try that first
+    if (preferredKey && Array.isArray(target[preferredKey])) return target[preferredKey];
+
+    // Try known backend list keys
+    const keys = [
+        'academiclist',
+        'catelist',
+        'classlist',
+        'sectionlist',
+        'stafflist',
+        'subjectlist',
+        'staffbyall',
+        'subjectbystaff',
+        'sectionbyclass',
+        'classbycategory',
+        'categorylist'
+    ];
     for (const key of keys) {
-        if (data[key] && Array.isArray(data[key])) return data[key];
+        if (Array.isArray(target[key])) return target[key];
     }
+
     return [];
 };
 
@@ -45,14 +64,11 @@ interface ConsecutiveConstraintsFormProps {
 }
 
 export default function ConsecutiveConstraintsForm({ initialData, editData, onSuccess, onCancel }: ConsecutiveConstraintsFormProps) {
-    // const academicList = initialData?.academiclist || []; // Replaced by hook
-    // const categoryList = initialData?.catelist || []; // Replaced by hook
-
-    // Local state for dependent dropdowns - REMOVED
-    // const [classList, setClassList] = useState<any[]>([]);
-    // const [sectionList, setSectionList] = useState<any[]>(initialData?.sectDrpDwn || []); // Replaced by hook
-    // const [staffList, setStaffList] = useState<any[]>([]);
-    // const [subjectList, setSubjectList] = useState<any[]>([]);
+    const [categoryList, setCategoryList] = useState<any[]>(extractList(initialData, 'catelist'));
+    const [classList, setClassList] = useState<any[]>([]);
+    const [sectionList, setSectionList] = useState<any[]>([]);
+    const [staffList, setStaffList] = useState<any[]>([]);
+    const [subjectList, setSubjectList] = useState<any[]>([]);
 
     // For max value of period validation (optional, from generic API result)?
     // The legacy code referenced `maxvalue`. If it's not in initialData, we might assume a default or fetch it.
@@ -63,12 +79,12 @@ export default function ConsecutiveConstraintsForm({ initialData, editData, onSu
         mode: 'onChange',
         defaultValues: {
             TTC_Id: 0,
-            ASMAY_Id: 0,
-            TTMC_Id: 0,
-            ASMCL_Id: 0,
-            ASMS_Id: 0,
-            HRME_Id: 0,
-            ISMS_Id: 0,
+            ASMAY_Id: undefined,
+            TTMC_Id: undefined,
+            ASMCL_Id: undefined,
+            ASMS_Id: undefined,
+            HRME_Id: undefined,
+            ISMS_Id: undefined,
             TTC_NoOfConDays: 1,
             TTC_NoOfConPeriods: 1,
             TTC_NoOfPeriods: 1,
@@ -88,45 +104,83 @@ export default function ConsecutiveConstraintsForm({ initialData, editData, onSu
         formState: { errors, isSubmitting }
     } = form;
 
-    const watchedAcademicYear = Number(watch('ASMAY_Id') || 0);
-    const watchedCategory = Number(watch('TTMC_Id') || 0);
-    const watchedClass = Number(watch('ASMCL_Id') || 0);
-    const watchedSection = Number(watch('ASMS_Id') || 0);
-    const watchedStaff = Number(watch('HRME_Id') || 0);
-
     const watchedConDays = watch('TTC_NoOfConDays');
     const watchedConPeriods = watch('TTC_NoOfConPeriods');
     const watchedBefAftFlag = watch('TTC_BefAftApplFlag');
 
     // Hooks for cascading data
-    const { data: academicData, isLoading: academicLoading } = useAcademicYearDropDownMasterDayClasswise();
-    const academicList = extractList(academicData);
+    const { data: academicData, isLoading: academicLoading } = usebifurcationAcademicYear();
+    const academicList = extractList(academicData, 'academiclist');
 
-    const { data: categoryData, isLoading: categoryLoading } = useCategtoryDropDownMasterDayClasswise();
-    const categoryList = extractList(categoryData);
-
-    const { data: classData, isLoading: classLoading } = useClassDropDownMasterDayClasswise();
-    const classList = extractList(classData);
-
-    const { data: sectionData, isLoading: sectionLoading } = useSectionDropDownMasterDayClasswise();
-    const sectionList = extractList(sectionData);
-
-    const { data: staffData, isLoading: staffLoading } = useStaffDropDownMasterDayClasswise();
-    const staffList = extractList(staffData);
-
-    const { data: subjectData, isLoading: subjectLoading } = useSubjectDropDownMasterDayClasswise();
-    const subjectList = extractList(subjectData);
-
-    // Debugging logs
     useEffect(() => {
-        console.log('--- API DATA DEBUG ---');
-        console.log('Academic Data:', academicData, 'Extracted:', academicList);
-        console.log('Category Data:', categoryData, 'Extracted:', categoryList);
-        console.log('Class Data:', classData, 'Extracted:', classList);
-        console.log('Section Data:', sectionData, 'Extracted:', sectionList);
-        console.log('Staff Data:', staffData, 'Extracted:', staffList);
-        console.log('Subject Data:', subjectData, 'Extracted:', subjectList);
-    }, [academicData, categoryData, classData, sectionData, staffData, subjectData]);
+        const loadInitialLists = async () => {
+            try {
+                if (categoryList.length === 0) {
+                    const res = await getCategoryDropDownMasterDayClasswise();
+                    setCategoryList(extractList(res, 'catelist'));
+                }
+                // Pre-load others if needed or for fallback
+                if (classList.length === 0) {
+                    const res = await getTransactionClassDropdown();
+                    if (res) setClassList(extractList(res, 'classlist'));
+                }
+                if (sectionList.length === 0) {
+                    const res = await getSectionDetails();
+                    if (res) setSectionList(extractList(res, 'sectionlist'));
+                }
+                if (staffList.length === 0) {
+                    const res = await getStaffDropDownMasterDayClasswise();
+                    if (res) setStaffList(extractList(res, 'stafflist'));
+                }
+                if (subjectList.length === 0) {
+                    const res = await getSubjectDropDownMasterDayClasswise();
+                    if (res) setSubjectList(extractList(res, 'subjectlist'));
+                }
+            } catch (error) {
+                console.error('Failed to load initial dropdowns:', error);
+            }
+        };
+        loadInitialLists();
+    }, [initialData]);
+
+    const handleAcademicYearChange = (yearId: number) => {
+        setValue('ASMAY_Id', yearId);
+        setValue('TTMC_Id', 0);
+        setValue('ASMCL_Id', 0);
+        setValue('ASMS_Id', 0);
+        setValue('HRME_Id', 0);
+        setValue('ISMS_Id', 0);
+        setClassList([]);
+        setSectionList([]);
+        setStaffList([]);
+        setSubjectList([]);
+    };
+
+    const handleCategoryChange = async (categoryId: number) => {
+        setValue('TTMC_Id', categoryId);
+        setValue('ASMCL_Id', 0);
+        setValue('ASMS_Id', 0);
+        setValue('HRME_Id', 0);
+        setValue('ISMS_Id', 0);
+    };
+
+    const handleClassChange = async (classId: number) => {
+        setValue('ASMCL_Id', classId);
+        setValue('ASMS_Id', 0);
+        setValue('HRME_Id', 0);
+        setValue('ISMS_Id', 0);
+    };
+
+    const handleSectionChange = async (sectionId: number) => {
+        setValue('ASMS_Id', sectionId);
+        setValue('HRME_Id', 0);
+        setValue('ISMS_Id', 0);
+    };
+
+    const handleStaffChange = async (staffId: number) => {
+        setValue('HRME_Id', staffId);
+        setValue('ISMS_Id', 0);
+    };
 
     // Calculate Total Periods
     useEffect(() => {
@@ -138,19 +192,13 @@ export default function ConsecutiveConstraintsForm({ initialData, editData, onSu
     // Edit Mode Data Fetching - Only for setting form values
     useEffect(() => {
         const fetchEditDetails = async () => {
-            if (Array.isArray(editData) && editData && editData[0].ttC_Id) {
+            const editId = editData?.ttC_Id || (Array.isArray(editData) && editData[0]?.ttC_Id);
+            if (editId) {
                 try {
-                    const apiResponse = await getConsecutiveConstraintsEditDetails(editData[0].ttC_Id);
-                    const editRecord = (apiResponse as any).consecutivelstedit?.[0];
+                    const apiResponse = await getConsecutiveConstraintsEditDetails(editId);
+                    const editRecord = extractList(apiResponse, 'consecutivelstedit')?.[0];
 
                     if (editRecord) {
-                        // We need to populate dropdowns sequentially or set states if we have data
-                        // Ideally we should trigger the fetch functions or manually set lists if they are returned
-
-                        // Note: Legacy `getdetails` returns just the record.
-                        // But we also need the dropdown items to be populated to show the selected value.
-                        // We might need to call the fetch helper functions for Class, Staff, Subject based on the IDs.
-
                         // 1. Set simple fields
                         reset({
                             TTC_Id: editRecord.ttC_Id,
@@ -168,8 +216,7 @@ export default function ConsecutiveConstraintsForm({ initialData, editData, onSu
                             TTC_BefAftPeriod: editRecord.ttC_BefAftPeriod
                         });
 
-                        // Dropdowns will auto-populate because the watched values change, triggering hooks.
-                        // Manual fetching of lists is no longer needed here.
+                        // Dropdowns are already pre-loaded or loaded from initialData
                     }
                 } catch (err) {
                     console.error('Failed to fetch edit details', err);
@@ -182,7 +229,6 @@ export default function ConsecutiveConstraintsForm({ initialData, editData, onSu
             fetchEditDetails();
         }
     }, [editData, reset]);
-
 
     const onSubmit: SubmitHandler<ConsecutiveConstraintsSchema> = async (data) => {
         try {
@@ -222,25 +268,20 @@ export default function ConsecutiveConstraintsForm({ initialData, editData, onSu
                             control={control}
                             name='ASMAY_Id'
                             render={({ field }) => (
-                                <Select onValueChange={(val) => {
-                                    field.onChange(Number(val));
-                                    // Reset all downstream
-                                    setValue('TTMC_Id', 0);
-                                    setValue('ASMCL_Id', 0);
-                                    setValue('ASMS_Id', 0);
-                                    setValue('HRME_Id', 0);
-                                    setValue('ISMS_Id', 0);
-                                }} value={field.value?.toString()}>
+                                <Select onValueChange={(val) => handleAcademicYearChange(Number(val))} value={field.value?.toString()}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {academicLoading ? <SelectItem value='loading'>Loading...</SelectItem> :
+                                        {academicLoading ? (
+                                            <SelectItem value='loading'>Loading...</SelectItem>
+                                        ) : (
                                             academicList.map((item: any) => (
                                                 <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                     {item.asmaY_Year}
                                                 </SelectItem>
-                                            ))}
+                                            ))
+                                        )}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -256,24 +297,16 @@ export default function ConsecutiveConstraintsForm({ initialData, editData, onSu
                             control={control}
                             name='ASMCL_Id'
                             render={({ field }) => (
-                                <Select
-                                    onValueChange={(val) => {
-                                        field.onChange(Number(val));
-                                        setValue('ASMS_Id', 0);
-                                        setValue('HRME_Id', 0);
-                                        setValue('ISMS_Id', 0);
-                                    }}
-                                    value={field.value?.toString()}>
+                                <Select onValueChange={(val) => handleClassChange(Number(val))} value={field.value?.toString()}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {classLoading ? <SelectItem value='loading'>Loading...</SelectItem> :
-                                            classList.map((item: any) => (
-                                                <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                                    {item.asmcL_ClassName}
-                                                </SelectItem>
-                                            ))}
+                                        {classList.map((item: any) => (
+                                            <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                                {item.asmcL_ClassName}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -289,20 +322,16 @@ export default function ConsecutiveConstraintsForm({ initialData, editData, onSu
                             control={control}
                             name='HRME_Id'
                             render={({ field }) => (
-                                <Select onValueChange={(val) => {
-                                    field.onChange(Number(val));
-                                    setValue('ISMS_Id', 0);
-                                }} value={field.value?.toString()}>
+                                <Select onValueChange={(val) => handleStaffChange(Number(val))} value={field.value?.toString()}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {staffLoading ? <SelectItem value='loading'>Loading...</SelectItem> :
-                                            staffList.map((item: any) => (
-                                                <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
-                                                    {item.staffName}
-                                                </SelectItem>
-                                            ))}
+                                        {staffList.map((item: any) => (
+                                            <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
+                                                {item.staffName || item.hrmE_EmployeeFirstName}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -328,13 +357,7 @@ export default function ConsecutiveConstraintsForm({ initialData, editData, onSu
                             control={control}
                             name='TTMC_Id'
                             render={({ field }) => (
-                                <Select onValueChange={(val) => {
-                                    field.onChange(Number(val));
-                                    setValue('ASMCL_Id', 0);
-                                    setValue('ASMS_Id', 0);
-                                    setValue('HRME_Id', 0);
-                                    setValue('ISMS_Id', 0);
-                                }} value={field.value?.toString()}>
+                                <Select onValueChange={(val) => handleCategoryChange(Number(val))} value={field.value?.toString()}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
@@ -359,21 +382,16 @@ export default function ConsecutiveConstraintsForm({ initialData, editData, onSu
                             control={control}
                             name='ASMS_Id'
                             render={({ field }) => (
-                                <Select onValueChange={(val) => {
-                                    field.onChange(Number(val));
-                                    setValue('HRME_Id', 0);
-                                    setValue('ISMS_Id', 0);
-                                }} value={field.value?.toString()}>
+                                <Select onValueChange={(val) => handleSectionChange(Number(val))} value={field.value?.toString()}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {sectionLoading ? <SelectItem value='loading'>Loading...</SelectItem> :
-                                            sectionList.map((item: any) => (
-                                                <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
-                                                    {item.asmC_SectionName}
-                                                </SelectItem>
-                                            ))}
+                                        {sectionList.map((item: any) => (
+                                            <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
+                                                {item.asmS_SectionName || item.asmC_SectionName}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -394,12 +412,11 @@ export default function ConsecutiveConstraintsForm({ initialData, editData, onSu
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {subjectLoading ? <SelectItem value='loading'>Loading...</SelectItem> :
-                                            subjectList.map((item: any) => (
-                                                <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
-                                                    {item.ismS_SubjectName}
-                                                </SelectItem>
-                                            ))}
+                                        {subjectList.map((item: any) => (
+                                            <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
+                                                {item.ismS_SubjectName}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             )}

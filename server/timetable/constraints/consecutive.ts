@@ -1,11 +1,10 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { consecutive } from '@/types/timetable/constraints/consecutive';
 
 // Load initial data (Grid and Dropdowns)
 export async function getConsecutiveConstraintsDetails() {
-    const url = '/BifurcationFacade/BifurcationConstraintsGridData';
+    const url = '/Consecutive/getdetails/0';
     const response = await api.get<any>('timetable', url);
     return response.data;
 }
@@ -40,8 +39,6 @@ export async function deactivateConsecutiveConstraints(data: any) {
     return response.data;
 }
 
-
-
 //api calls
 
 //academic Year
@@ -51,14 +48,12 @@ export async function getAcademicYearDropDropDownMasterDayClasswise() {
     return response.data;
 }
 
-
 //Category
 export async function getCategoryDropDownMasterDayClasswise() {
     const url = '/TimeTableCommon/GetCategoryDetails';
     const response = await api.get<any[]>('timetable', url);
     return response.data;
 }
-
 
 //class
 export async function getTransactionClassDropdown() {
@@ -80,7 +75,6 @@ export async function getStaffDropDownMasterDayClasswise() {
     const response = await api.get<any[]>('timetable', url);
     return response.data;
 }
-
 
 //subject
 export async function getSubjectDropDownMasterDayClasswise() {

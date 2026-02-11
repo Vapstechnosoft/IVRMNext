@@ -9,10 +9,10 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
+import { useDaySubjectGridData } from '@/hooks/timetable/constraints/fixingData';
 import { type FixingDaySubjectSchema, fixingDaySubjectSchema } from '@/schemas/timetable/constraints/fixing';
-import {
-    getSubjectDropDown
-} from '@/server/timetable/constraints/FixingForm';
+import { getSubjectDropDown } from '@/server/timetable/constraints/FixingForm';
 import {
     deactivateFixingDaySubject,
     getClassByCategory,
@@ -24,13 +24,11 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Plus, X } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { type IFixingDaySubjectList, daySubjectColumns } from './columns';
+import { daySubjectColumns } from './columns';
 import { FixingViewModal } from './fixing-view-modal';
-import { useDaySubjectGridData } from '@/hooks/timetable/constraints/fixingData';
-import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
 
 interface DaySubjectTabProps {
     initialData: any;
@@ -100,14 +98,12 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
     useEffect(() => {
         const loadDropdowns = async () => {
             try {
-                const [subject] = await Promise.all([
-                    getSubjectDropDown()
-                ]);
+                const [subject] = await Promise.all([getSubjectDropDown()]);
 
                 setSubjectList(subject || []);
             } catch (error) {
-                console.error("Failed to load dropdowns:", error);
-                toast.error("Failed to load dropdown options");
+                console.error('Failed to load dropdowns:', error);
+                toast.error('Failed to load dropdown options');
             }
         };
 
@@ -147,6 +143,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         if (ASMAY_Id && categoryId) {
             try {
                 const res = await getClassByCategory({ ASMAY_Id, TTMC_Id: categoryId });
+                // biome-ignore lint/complexity/useOptionalChain: <explanation>
                 if (res && res.classbycategory) setClassList(res.classbycategory as any[]);
             } catch (e) {
                 console.error(e);
@@ -163,6 +160,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         if (ASMAY_Id && selectedCategory && classId) {
             try {
                 const res = await getSectionByClass({ ASMAY_Id, ASMCL_Id: classId, TTMC_Id: selectedCategory });
+                // biome-ignore lint/complexity/useOptionalChain: <explanation>
                 if (res && res.sectionlist) setSectionList(res.sectionlist as any[]);
             } catch (e) {
                 console.error(e);
@@ -182,6 +180,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                     ASMCL_Id: selectedClass,
                     ASMS_Id: sectionId
                 });
+                // biome-ignore lint/complexity/useOptionalChain: <explanation>
                 if (res && res.staffbyall) setSubStaffList(res.staffbyall as any[]);
             } catch (e) {
                 console.error(e);
@@ -393,11 +392,13 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {academicList.filter((item: any) => item.asmaY_Id).map((item: any) => (
-                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                                {item.asmaY_Year}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {academicList
+                                                            .filter((item: any) => item.asmaY_Id)
+                                                            .map((item: any) => (
+                                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                    {item.asmaY_Year}
+                                                                </SelectItem>
+                                                            ))}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -443,11 +444,13 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {subjectList.filter((item: any) => item.ismS_Id).map((item: any) => (
-                                                            <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
-                                                                {item.ismS_SubjectName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {subjectList
+                                                            .filter((item: any) => item.ismS_Id)
+                                                            .map((item: any) => (
+                                                                <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
+                                                                    {item.ismS_SubjectName}
+                                                                </SelectItem>
+                                                            ))}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />

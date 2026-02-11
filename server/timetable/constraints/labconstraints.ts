@@ -9,16 +9,16 @@ export async function getLabConstraintsDetails() {
 }
 
 // Get Class details based on Academic Year and Category
-export async function getClassDetails(data: { ASMAY_Id: number; TTMC_Id: number }) {
-    const url = '/Lab/getClassdetails';
-    return await api.post<any>('timetable', url, data);
-}
+// export async function getClassDetails(data: { ASMAY_Id: number; TTMC_Id: number }) {
+//     const url = '/Lab/getClassdetails';
+//     return await api.post<any>('timetable', url, data);
+// }
 
-// Get Section details based on Class
-export async function getSectionDetails(data: { ASMAY_Id: number; ASMCL_Id: number; TTMC_Id: number }) {
-    const url = '/Lab/getSectiondetails';
-    return await api.post<any>('timetable', url, data);
-}
+// // Get Section details based on Class
+// export async function getSectionDetails(data: { ASMAY_Id: number; ASMCL_Id: number; TTMC_Id: number }) {
+//     const url = '/Lab/getSectiondetails';
+//     return await api.post<any>('timetable', url, data);
+// }
 
 // Get Lab (Subject?) details based on Class/Section
 export async function getLabDetails(data: { ASMAY_Id: number; ASMCL_Id: number; ASMS_Id: number; TTMC_Id: number }) {
@@ -42,4 +42,34 @@ export async function getLabConstraintsEditDetails(id: number) {
 export async function deleteLabConstraintsDetail(id: number) {
     const url = `/Lab/deletedetails/${id}`;
     return await api.delete<any>('timetable', url);
+}
+
+//form pages
+
+//academic Year
+export async function getAcademicYearDropDown() {
+    const url = '/TimeTableCommon/GetAcademicYearData';
+    const response = await api.get<any[]>('timetable', url);
+    return response.data;
+}
+
+//Category
+export async function getCategoryDropDown() {
+    const url = '/TimeTableCommon/GetCategoryDetails';
+    const response = await api.get<any[]>('timetable', url);
+    return response.data;
+}
+
+//class
+export async function getClassDetails() {
+    const url = '/TimeTableCommon/GetClassData';
+    const response = await api.get<any[]>('timetable', url);
+    return response.data;
+}
+
+//section
+export async function getSectionDetails() {
+    const url = '/TimeTableCommon/section-details';
+    const response = await api.get<any[]>('timetable', url);
+    return response.data;
 }

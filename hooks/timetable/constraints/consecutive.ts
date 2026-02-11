@@ -1,17 +1,14 @@
-import { TIMETABLE_QUERY_KEYS } from "@/constants/Timetable-query-keys";
+import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
 import {
     getAcademicYearDropDropDownMasterDayClasswise,
     getCategoryDropDownMasterDayClasswise,
+    getSectionDetails,
     getStaffDropDownMasterDayClasswise,
     getSubjectDropDownMasterDayClasswise,
-    getTransactionClassDropdown,
-    getSectionDetails,
-
-} from "@/server/timetable/constraints/consecutive";
-import { ApiSearchparams } from "@/types";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-
-
+    getTransactionClassDropdown
+} from '@/server/timetable/constraints/consecutive';
+import type { ApiSearchparams } from '@/types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 //academic Year
 export const useAcademicYearDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
@@ -31,7 +28,6 @@ export const useAcademicYearDropDownMasterDayClasswise = (searchParams?: ApiSear
         }
     };
 };
-
 
 //category
 export const useCategtoryDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
@@ -72,6 +68,8 @@ export const useStaffDropDownMasterDayClasswise = (searchParams?: ApiSearchparam
     };
 };
 
+//subject
+
 export const useSubjectDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
@@ -90,6 +88,7 @@ export const useSubjectDropDownMasterDayClasswise = (searchParams?: ApiSearchpar
     };
 };
 
+//section
 export const useSectionDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
@@ -108,6 +107,7 @@ export const useSectionDropDownMasterDayClasswise = (searchParams?: ApiSearchpar
     };
 };
 
+//class
 export const useClassDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
@@ -161,4 +161,3 @@ export const useClassDropDownMasterDayClasswise = (searchParams?: ApiSearchparam
 //         staleTime: 0
 //     });
 // };
-

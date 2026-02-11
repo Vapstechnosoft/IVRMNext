@@ -4,12 +4,12 @@ export const dayPeriodSchema = z.object({
     TTRDP_Id: z.number().optional(),
     ASMAY_Id: z.number().min(1, 'Academic Year is required'),
     TTMC_Id: z.number().min(1, 'Category is required'),
-    ASMCL_Id: z.number().min(1, 'Class is required'),
-    ASMS_Id: z.number().min(1, 'Section is required'),
-    HRME_Id: z.number().min(1, 'Staff is required'),
-    ISMS_Id: z.number().min(1, 'Subject is required'),
-    TTMD_Id: z.number().min(1, 'Day is required'),
-    TTMP_Id: z.number().min(1, 'Period is required'),
+    ASMCL_Id: z.number().optional(),
+    ASMS_Id: z.number().optional(),
+    HRME_Id: z.number().optional(),
+    ISMS_Id: z.number().optional(),
+    TTMD_Id: z.number().optional(),
+    TTMP_Id: z.number().optional(),
     TTRDP_SUbSelcFlag: z.boolean().optional(),
     combinationlist: z
         .array(
@@ -27,7 +27,7 @@ export const dayPeriodSchema = z.object({
 export const dayStaffSchema = z.object({
     TTRDS_Id: z.number().optional(),
     ASMAY_Id: z.number().min(1, 'Academic Year is required'),
-    TTMD_Id: z.number().min(1, 'Day is required'),
+    TTMD_Id: z.number().optional(),
     HRME_Id: z.number().min(1, 'Staff is required'),
     TTRDS_SUbSelcFlag: z.boolean().optional(),
     combinationlist: z

@@ -2,32 +2,26 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { InputText } from '@/components/ui/extension/input-text';
+import {
+    useAcademicYearDropDownMasterDayClasswise,
+    useCategtoryDropDownMasterDayClasswise,
+    useStaffDropDownDayStaff,
+    useSubjectDropDownMasterDayClasswise,
+    useSubjectRestrictionDaySubjectGridData
+} from '@/hooks/timetable/constraints/subjectrestriction';
 import { daySubjectSchema } from '@/schemas/timetable/constraints/subjectrestriction';
-import {
-    getDaySubjectEditDetails,
-    saveDaySubjectDetail,
-} from '@/server/timetable/constraints/subjectrestriction';
-import {
-    getCategoryDropDown,
-    getClassDropdown,
-    getSectionDropDown,
-    getStaffDropDown,
-    getSubjectDropDown
-} from '@/server/timetable/constraints/FixingForm';
-import { useSubjectRestrictionDaySubjectGridData } from '@/hooks/timetable/constraints/subjectrestriction';
-import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Save, Trash, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import type { z } from 'zod';
 import DaySubjectList from './day-subject-list';
 
 type DaySubjectSchema = z.infer<typeof daySubjectSchema>;
@@ -35,6 +29,19 @@ type DaySubjectSchema = z.infer<typeof daySubjectSchema>;
 interface DaySubjectTabProps {
     initialData: any;
 }
+
+const extractList = (data: any, preferredKey?: string) => {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    const target = data?.data !== undefined ? data.data : data;
+    if (Array.isArray(target)) return target;
+    if (preferredKey && Array.isArray(target[preferredKey])) return target[preferredKey];
+    const keys = ['yearlist', 'categorylist', 'daylist', 'periodlist', 'classlist', 'sectionlist', 'stafflist', 'subjectlist'];
+    for (const key of keys) {
+        if (Array.isArray(target[key])) return target[key];
+    }
+    return [];
+};
 
 export default function DaySubjectTab({ initialData }: DaySubjectTabProps) {
     return (
@@ -45,27 +52,24 @@ export default function DaySubjectTab({ initialData }: DaySubjectTabProps) {
 }
 
 function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        openAddForm,
-        closeAddForm,
-        closeEditForm,
-        selectedRow,
-        closeToggleForm,
-        isToggleFormOpen
-    } = useFormContext();
+    const { isAddFormOpen, isEditFormOpen, openAddForm, closeAddForm, closeEditForm, selectedRow, closeToggleForm, isToggleFormOpen } =
+        useFormContext();
 
-    const { data: academicData } = usebifurcationAcademicYear();
-    const academicList = (academicData as any)?.data || [];
+    // Use hooks for dropdowns
+    const { data: academicYearData, isLoading: academicLoading } = useAcademicYearDropDownMasterDayClasswise();
+    const { data: categoryData, isLoading: categoryLoading } = useCategtoryDropDownMasterDayClasswise();
+    const { data: staffData, isLoading: staffLoading } = useStaffDropDownDayStaff();
+    const { data: subjectsData, isLoading: subjectsLoading } = useSubjectDropDownMasterDayClasswise();
 
-    const [categoryList, setCategoryList] = useState<any[]>([]);
-    const [dayList, setDayList] = useState<any[]>(initialData?.daylist || []);
+    const academicList = extractList(academicYearData) || extractList(initialData, 'yearlist');
+    const categoryList = extractList(categoryData) || extractList(initialData, 'categorylist');
+    const staffList = extractList(staffData) || extractList(initialData, 'stafflist');
+    const subjectList = extractList(subjectsData) || extractList(initialData, 'subjectlist');
+    const dayList = initialData?.daylist || [];
 
+    // Local state for Class/Section since they might still need the old fetchers or be added later
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
-    const [staffList, setStaffList] = useState<any[]>([]);
-    const [subjectList, setSubjectList] = useState<any[]>([]);
 
     const form = useForm<DaySubjectSchema>({
         resolver: zodResolver(daySubjectSchema),
@@ -124,28 +128,19 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         setTempInput({ ASMCL_Id: 0, ASMS_Id: 0, HRME_Id: 0, TTRDSUCC_Periods: 0 });
     };
 
-    // Load Dropdowns Generically as requested
+    // Load Class and Section Dropdowns
     useEffect(() => {
-        const loadDropdowns = async () => {
+        const loadClassSection = async () => {
             try {
-                const [category, classes, sections, staff, subjects] = await Promise.all([
-                    getCategoryDropDown(),
-                    getClassDropdown(),
-                    getSectionDropDown(),
-                    getStaffDropDown(),
-                    getSubjectDropDown()
-                ]);
-                setCategoryList(category || []);
+                const { getClassDropdown, getSectionDropDown } = await import('@/server/timetable/constraints/FixingForm');
+                const [classes, sections] = await Promise.all([getClassDropdown(), getSectionDropDown()]);
                 setClassList(classes || []);
                 setSectionList(sections || []);
-                setStaffList(staff || []);
-                setSubjectList(subjects || []);
             } catch (error) {
-                console.error('Failed to load dropdowns:', error);
-                toast.error('Failed to load dropdown options');
+                console.error('Failed to load class/section dropdowns:', error);
             }
         };
-        loadDropdowns();
+        loadClassSection();
     }, []);
 
     // Effect to populate form on Edit
@@ -157,34 +152,40 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
 
     // Effect to handle Toggle (Active/Deactive)
 
-
     const onEdit = async (item: any) => {
         try {
+            const { getDaySubjectEditDetails } = await import('@/server/timetable/constraints/subjectrestriction');
             const res = await getDaySubjectEditDetails(item.ttrdsU_Id);
-            const details = (res as any)?.editdetails || (res as any)?.data || (Array.isArray(res) ? res : []);
-            if (details && details.length > 0) {
-                const d = details[0];
-                reset({
-                    TTRDSU_Id: d.ttrdsU_Id,
-                    ASMAY_Id: d.asmaY_Id,
-                    TTMC_Id: d.ttmC_Id,
-                    TTMD_Id: d.ttmD_Id,
-                    ISMS_Id: d.ismS_Id,
-                    TTRDSU_SUbSelcFlag: d.ttrdsU_SUbSelcFlag,
-                    combinationlist: d.combinationlist || []
-                });
-            }
+            const details =
+                (res as any)?.editdetails ||
+                (res as any)?.dayperiodlist?.[0] ||
+                (res as any)?.data?.[0] ||
+                (res as any)?.daysubjectlist?.[0];
+            const d = details || item;
+            reset({
+                TTRDSU_Id: d.ttrdsU_Id,
+                ASMAY_Id: d.asmaY_Id,
+                TTMC_Id: d.ttmC_Id,
+                TTMD_Id: d.ttmD_Id,
+                ISMS_Id: d.ismS_Id,
+                TTRDSU_SUbSelcFlag: d.ttrdsU_SUbSelcFlag === 1 || d.ttrdsU_SUbSelcFlag === true,
+                combinationlist: d.combinationlist || []
+            });
         } catch (e) {
             console.error(e);
             toast.error('Failed to load edit details');
         }
     };
 
-
     const onSubmit: SubmitHandler<DaySubjectSchema> = async (data) => {
         try {
-            const res = await saveDaySubjectDetail(data);
-            if (res.returnval === true) {
+            const { saveDaySubjectDetail } = await import('@/server/timetable/constraints/subjectrestriction');
+            const payload = {
+                ...data,
+                TTRDSU_SUbSelcFlag: data.TTRDSU_SUbSelcFlag ? 1 : 0
+            };
+            const res = await saveDaySubjectDetail(payload);
+            if (res.success || res.returnval === true) {
                 toast.success('Saved Successfully');
                 window.location.reload();
             } else if (res.returnfixstatus === 'Fixed') {
@@ -225,6 +226,8 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                         []
                     }
                     isLoading={isLoading}
+                    asmaY_Id={watchedYear}
+                    ttmC_Id={watchedCategory}
                 />
 
                 {(isAddFormOpen || isEditFormOpen) && (
@@ -258,14 +261,18 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                                                     onValueChange={(val) => field.onChange(Number(val))}
                                                     value={field.value?.toString()}>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder='--Select--' />
+                                                        <SelectValue placeholder={academicLoading ? 'Loading...' : '--Select--'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {academicList.map((item: any) => (
-                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                                {item.asmaY_Year}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {academicList.map((item: any) => {
+                                                            const id = item.asmaY_Id || item.ASMAY_Id || item.id;
+                                                            const year = item.asmaY_Year || item.asmay_Year || item.year;
+                                                            return (
+                                                                <SelectItem key={id} value={id?.toString()}>
+                                                                    {year}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             )}
@@ -283,14 +290,18 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                                                     onValueChange={(val) => field.onChange(Number(val))}
                                                     value={field.value?.toString()}>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder='--Select--' />
+                                                        <SelectValue placeholder={categoryLoading ? 'Loading...' : '--Select--'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {categoryList.map((item: any) => (
-                                                            <SelectItem key={item.ttmC_Id} value={item.ttmC_Id.toString()}>
-                                                                {item.ttmC_CategoryName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {categoryList.map((item: any) => {
+                                                            const id = item.ttmC_Id || item.TTMC_Id || item.id;
+                                                            const name = item.ttmC_CategoryName || item.categoryName;
+                                                            return (
+                                                                <SelectItem key={id} value={id?.toString()}>
+                                                                    {name}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             )}
@@ -333,14 +344,18 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                                                     onValueChange={(val) => field.onChange(Number(val))}
                                                     value={field.value?.toString()}>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder='--Select--' />
+                                                        <SelectValue placeholder={subjectsLoading ? 'Loading...' : '--Select--'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {subjectList.map((item: any) => (
-                                                            <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
-                                                                {item.ismS_SubjectName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {subjectList.map((item: any) => {
+                                                            const id = item.ismS_Id || item.ISMS_Id || item.id;
+                                                            const name = item.ismS_SubjectName || item.subjectName;
+                                                            return (
+                                                                <SelectItem key={id} value={id?.toString()}>
+                                                                    {name}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             )}
@@ -404,14 +419,18 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                                                     value={tempInput.HRME_Id.toString()}
                                                     onValueChange={(val) => setTempInput((prev) => ({ ...prev, HRME_Id: Number(val) }))}>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder='--Select--' />
+                                                        <SelectValue placeholder={staffLoading ? 'Loading...' : '--Select--'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {staffList.map((item: any) => (
-                                                            <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
-                                                                {item.staffName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {staffList.map((item: any) => {
+                                                            const id = item.hrmE_Id || item.HRME_Id || item.id;
+                                                            const name = item.staffName || item.hrmE_EmployeeFirstName || item.employeeName;
+                                                            return (
+                                                                <SelectItem key={id} value={id?.toString()}>
+                                                                    {name}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -446,13 +465,16 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                                                 {fields.map((field: any, index) => (
                                                     <TableRow key={field.id}>
                                                         <TableCell>
-                                                            {classList.find((c) => c.asmcL_Id === field.ASMCL_Id)?.asmcL_ClassName || field.ASMCL_Id}
+                                                            {classList.find((c) => c.asmcL_Id === field.ASMCL_Id)?.asmcL_ClassName ||
+                                                                field.ASMCL_Id}
                                                         </TableCell>
                                                         <TableCell>
-                                                            {sectionList.find((s) => s.asmS_Id === field.ASMS_Id)?.asmC_SectionName || field.ASMS_Id}
+                                                            {sectionList.find((s) => s.asmS_Id === field.ASMS_Id)?.asmC_SectionName ||
+                                                                field.ASMS_Id}
                                                         </TableCell>
                                                         <TableCell>
-                                                            {staffList.find((st) => st.hrmE_Id === field.HRME_Id)?.staffName || field.HRME_Id}
+                                                            {staffList.find((st) => st.hrmE_Id === field.HRME_Id)?.staffName ||
+                                                                field.HRME_Id}
                                                         </TableCell>
                                                         <TableCell>{field.TTRDSUCC_Periods}</TableCell>
                                                         <TableCell>

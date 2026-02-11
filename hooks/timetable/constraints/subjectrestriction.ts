@@ -1,13 +1,17 @@
-import { TIMETABLE_QUERY_KEYS } from "@/constants/Timetable-query-keys";
+import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
 import {
+    getAcademicYearSubject,
+    getCategorySubject,
+    getStaffDropDownDayStaff,
+    getSubjectDaySubject,
     getSubjectRestrictionDayPeriodGridData,
-    getSubjectRestrictionDaySubjectGridData,
     getSubjectRestrictionDayStaffGridData,
+    getSubjectRestrictionDaySubjectGridData,
     getSubjectRestrictionPeriodStaffGridData,
-    getSubjectRestrictionPeriodSubjectGridData,
-
-} from "@/server/timetable/constraints/subjectrestriction";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+    getSubjectRestrictionPeriodSubjectGridData
+} from '@/server/timetable/constraints/subjectrestriction';
+import type { ApiSearchparams } from '@/types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface SubjectRestrictionParams {
     ASMAY_Id: number;
@@ -110,3 +114,79 @@ export const useSubjectRestrictionPeriodSubjectGridData = (params: SubjectRestri
     };
 };
 
+//academic year
+export const useAcademicYearDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.ACADEMIC_YEAR_DROPDOWN_MASTERDAYCLASSWISE, searchParams ?? {}],
+            queryFn: async () => getAcademicYearSubject(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.ACADEMIC_YEAR_DROPDOWN_MASTERDAYCLASSWISE]
+            });
+        }
+    };
+};
+
+//category
+export const useCategtoryDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.CATEGORY_DROPDOWN_MASTERDAYCLASSWISE, searchParams ?? {}],
+            queryFn: async () => getCategorySubject(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.CATEGORY_DROPDOWN_MASTERDAYCLASSWISE]
+            });
+        }
+    };
+};
+
+//staff
+export const useStaffDropDownDayStaff = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_STAFF_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getStaffDropDownDayStaff(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_STAFF_DROPDOWN]
+            });
+        }
+    };
+};
+
+//subject
+
+export const useSubjectDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_SUBJECT_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getSubjectDaySubject(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_SUBJECT_DROPDOWN]
+            });
+        }
+    };
+};

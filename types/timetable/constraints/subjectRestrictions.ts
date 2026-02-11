@@ -17,7 +17,7 @@ export interface SubjectRestrictionDaySubjectGridData {
     ismS_SubjectName: string; //subject
     ttmD_Id: number; //day
     ttmD_DayName: string; //day
-    ttrdsU_SUbSelcFlag: boolean;  //action
+    ttrdsU_SUbSelcFlag: boolean; //action
     ttrdsU_ActiveFlag: boolean; //action
 }
 
@@ -27,7 +27,7 @@ export interface SubjectRestrictionDayStaffGridData {
     staffName: string; //staff
     ttmD_Id: number; //day
     ttmD_DayName: string; //day
-    ttrdsU_SUbSelcFlag: boolean;  //action
+    ttrdsU_SUbSelcFlag: boolean; //action
     ttrdsU_ActiveFlag: boolean; //action
 }
 
@@ -37,7 +37,7 @@ export interface SubjectRestrictionPeriodStaffGridData {
     staffName: string; //staff
     ttmD_Id: number; //day
     ttmP_PeriodName: string; //period
-    ttrpS_SUbSelcFlag: boolean;  //action
+    ttrpS_SUbSelcFlag: boolean; //action
     ttrpS_ActiveFlag: boolean; //action
 }
 
@@ -47,21 +47,26 @@ export interface SubjectRestrictionPeriodSubjectGridData {
     ismS_SubjectName: string; //subject
     ttmP_Id: number; //day
     ttmP_PeriodName: string; //period
-    ttrpsU_SUbSelcFlag: boolean;  //action
+    ttrpsU_SUbSelcFlag: boolean; //action
     ttrpsU_ActiveFlag: boolean; //action
 }
 
-// TTRPSU_Id = g.TTRPSU_Id,
-// ASMAY_Year = a.ASMAY_Year,
-// ISMS_SubjectName = e.ISMS_SubjectName,
-// TTMP_Id = g.TTMP_Id,
-// TTMP_PeriodName = b.TTMP_PeriodName,
-// TTRPSU_SUbSelcFlag = g.TTRPSU_SUbSelcFlag,
-// TTRPSU_ActiveFlag = g.TTRPSU_ActiveFlag,
+export interface subjectRestriction_types {
+    ttfG_Id: number; //AcademicYear
+    asmaY_Year: string; //AcademicYear
 
-    // ttrdsU_Id
-    // asmaY_Year
-    // staffName
-    // ttmD_Id
-    // ttrdsU_SUbSelcFlag
-    // ttrdsU_ActiveFlag
+    ttmC_Id: number; //category
+    ttmC_CategoryName: string; //category
+
+    asmcL_Id: number; //class
+    asmcL_ClassName: string; //class
+
+    asms_Id: number; //section
+    asms_SectionName: string; //section
+
+    hrmE_Id: number; //staff
+    staffName: string; //staff
+
+    ismS_Id: number; //subject
+    ismS_SubjectName: string; //subject
+}
