@@ -5,7 +5,7 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterGroupList } from '@/types/fees/masters/masters';
 
 export async function getMasterGroup(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'fmG_GroupName,fmG_Remarks,fmG_CompulsoryFlag');
     const url = `/fee_group/getdata?${urlParams}`;
     return await api.get<IMasterGroupList[]>('fees', url);
 }

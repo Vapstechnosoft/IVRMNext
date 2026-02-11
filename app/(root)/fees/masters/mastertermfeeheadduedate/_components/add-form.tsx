@@ -73,7 +73,7 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
 
                         if (response.data.length > 0) {
                             setGridData(response.data);
-                            toast.success('Due Date details loaded successfully', {
+                            toast.success(response.message, {
                                 id: loadingToast
                             });
                         } else {
