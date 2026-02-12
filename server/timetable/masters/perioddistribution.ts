@@ -31,6 +31,6 @@ export async function getClassByCategory(data: any) {
     return await api.post<any>('timetable', url, data);
 }
 export async function ActivedeactivatePeriodDistribution(id: number) {
-    const url = `/ClassMaster/period-distribution-deactivate/${id}`;
+    const url = `/ClassMasterFacade/period-distribution-deactivate/${id}`;
     return await api.put<any>('timetable', url);
 }
