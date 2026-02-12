@@ -14,6 +14,21 @@ export async function getInvItemStoreMappingLoadData(searchParams?: ApiSearchpar
             return response;
         }
 
+        if (response.success === false && (response as any).total === 0) {
+            return {
+                success: true,
+                message: response.message,
+                data: {
+                    get_store: [],
+                    get_maingroup: [],
+                    get_usergroup: [],
+                    get_itemgroup: [],
+                    get_item: [],
+                    get_mapped_items: []
+                }
+            };
+        }
+
         // Dummy Data Fallback
         return {
             success: true,

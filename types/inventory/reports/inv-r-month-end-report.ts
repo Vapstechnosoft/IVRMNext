@@ -15,7 +15,7 @@ export interface IInvRMonthEndReportMonth {
 
 export interface IInvRMonthEndReportPayload {
     ASMAY_Id: number;
-    month: number; // IVRM_Month_Id
+    month: string | number; // IVRM_Month_Id
     year: string; // The split year string (e.g., "2023" or "2024")
     IE_Name?: string; // Optional field for report header
 }

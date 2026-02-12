@@ -16,7 +16,7 @@ import {
 import { getOpeningClassDropdownData } from '@/server/fees/trasactions/fee_opening_balance';
 import type { ICategoryMapping } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Edit, Save, Trash2, X } from 'lucide-react';
+import { Edit, Save, Trash2, X, RefreshCw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -61,6 +61,8 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
     const [initialSelectedSections, setInitialSelectedSections] = useState<SectionItem[]>([]);
     const [loadingSections, setLoadingSections] = useState(false);
     const { refetchAll } = useMasterCategoryClassMapping();
+
+    const [isLoading, setIsLoading] = useState(false);
 
     // Local mapping list (table) and edit state
     const [mappingList, setMappingList] = useState<
@@ -147,8 +149,10 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
     useEffect(() => {
         let mounted = true;
         const loadInitialRow = async () => {
+            setIsLoading(true);
             if (!selectedRow) {
                 setMappingList([]);
+                setIsLoading(false);
                 return;
             }
 
@@ -213,6 +217,8 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
             } catch (err: any) {
                 toast.error(err?.message || 'Failed to load mapping details');
                 setMappingList([]);
+            } finally {
+                if (mounted) setIsLoading(false);
             }
         };
 
@@ -433,6 +439,8 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
         }
     };
 
+
+
     // Safe arrays to avoid undefined.map errors
     const safeAcademicYears = Array.isArray(academicYear?.data) ? academicYear.data : [];
     const safeCategories = Array.isArray(categories) ? categories : [];
@@ -440,6 +448,14 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
     const safeSections = Array.isArray(sections) ? sections : [];
     const safeMappingList = Array.isArray(mappingList) ? mappingList : [];
 
+    if (sections.length === 0 || isLoading || safeMappingList.length === 0) {
+        return (
+            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
+                <RefreshCw className='h-8 w-8 animate-spin text-secondary' />
+                <p className='text-muted-foreground text-sm'>Loading data...</p>
+            </div>
+        );
+    }
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='grid grid-cols-1 gap-6 md:grid-cols-2'>
             {/* LEFT */}
@@ -544,7 +560,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                     control={control}
                     name='section_list'
                     render={({ field }) =>
-                        loadingSections ? (
+                        sections.length === 0 ? (
                             <p>Loading sections...</p>
                         ) : safeSections.length ? (
                             <CustomMultiSelectBox
