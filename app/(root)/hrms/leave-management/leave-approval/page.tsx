@@ -3,6 +3,7 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { AdaptiveDialog } from '@/components/ui/extension/adaptive-dialog';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useAdminOnDutyApplyList } from '@/hooks/hrms/leave-management/useAdminOnDutyApply';
 import { useLeaveApprovalStatus } from '@/hooks/hrms/leave-management/useLeaveApproval';
 import { use, useMemo } from 'react';
 import { toast } from 'sonner';
@@ -11,17 +12,32 @@ import { LeaveApprovalForm, type LeaveApprovalFormData } from './_components/lea
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function LeaveApprovalPage(props: { searchParams: SearchParams }) {
     const _searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useLeaveApprovalStatus();
+    const { data: response, isLoading, error } = useAdminOnDutyApplyList();
+
+    // Map AdminOnDutyApply to LeaveApprovalRow shape
+    const mappedData = (response?.data || []).map((item: any) => ({
+        id: item.id,
+        leaveId: item.leaveId,
+        studentName: item.employeeName, // Depending on what LeaveApprovalRow expects. Assuming it might be employeeName
+        employeeName: item.employeeName,
+        leaveType: item.leaveName,
+        fromDate: item.fromDate,
+        toDate: item.toDate,
+        noOfDays: item.totalDays,
+        leaveStatus: item.status,
+        leaveReason: item.leaveReason
+    }));
+
     // Create response for useDataTableProps
     const mockResponse = {
-        data: response?.data || [],
-        total: response?.data?.length || 0,
+        data: mappedData,
+        total: response?.total || 0,
         page: 1,
         pageSize: 10
     };
     return (
         <FormProvider<LeaveApprovalRow>>
-            <LeaveApprovalPageContent response={response} isLoading={isLoading} error={error} mockResponse={mockResponse} />
+            <LeaveApprovalPageContent response={mockResponse} isLoading={isLoading} error={error} mockResponse={mockResponse} />
         </FormProvider>
     );
 }
@@ -38,7 +54,7 @@ function LeaveApprovalPageContent({
 }) {
     const { openEditForm } = useFormContext<LeaveApprovalRow>();
     const tableProps = useDataTableProps(mockResponse);
-    const { refetchAll: _refetchApprovalStatus } = useLeaveApprovalStatus();
+    const { refetchAll: _refetchApprovalStatus } = useAdminOnDutyApplyList();
     const handleApprove = (row: LeaveApprovalRow) => {
         openEditForm(row);
     };
