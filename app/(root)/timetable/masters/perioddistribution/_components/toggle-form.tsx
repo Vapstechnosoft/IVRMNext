@@ -5,7 +5,7 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { usePeriodDistributionDetails } from '@/hooks/timetable/useMasters';
 import { periodDistributionSchema } from '@/schemas/timetable/masters';
-import { ToggleMasterDay } from '@/server/timetable/masters/masterday';
+import { ActivedeactivatePeriodDistribution } from '@/server/timetable/masters/perioddistribution';
 import type { PeriodDistributionColumn } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
@@ -40,7 +40,7 @@ export default function TogglePeriodDistributionForm({ rowData, onClose }: Toggl
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await ToggleMasterDay(Number(rowData.ttfpD_Id));
+            const response = await ActivedeactivatePeriodDistribution(Number(rowData.ttfpD_Id));
 
             if (response.success) {
                 toast.success(response.message);
