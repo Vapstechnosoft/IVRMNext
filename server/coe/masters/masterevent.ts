@@ -24,9 +24,7 @@ export async function toggleUploadEvent(id: number) {
     return await api.put('coe', url);
 }
 
-
 export async function getCoeInitialData(searchParams?: ApiSearchparams) {
-
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/master_coe/event_mapped_details_grid?${urlParams}`;
 
@@ -39,15 +37,12 @@ export async function EventDetailsById(id: number) {
     return await api.get<MasterEventCoe[]>('coe', url);
 }
 
-
 export async function saveMappedEvent(payload: any) {
     const url = '/master_coe/addOrUpdate_mapped_coe_event';
     return await api.post<any[]>('coe', url, payload);
 }
 
-export async function toggleMappedEvent(id: number) {
+export async function toggleMappedEvent(id: number, coee_Id: number) {
     const url = `/master_coe/active_deactive_coe_event/${id}`;
     return await api.put('coe', url);
 }
-
-
