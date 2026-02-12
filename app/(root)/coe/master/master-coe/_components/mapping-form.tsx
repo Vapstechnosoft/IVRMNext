@@ -140,7 +140,7 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
             if (watchEventId) {
                 setIsLoadingDetails(true);
                 const res = await EventDetailsById(watchEventId);
-                if (res && res.data && res.data.length > 0) {
+                if (res?.data && res.data.length > 0) {
                     const details = res.data[0];
                     setEventDetails({
                         smsMessage: details.coemE_SMSMessage,
@@ -396,7 +396,7 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
                                                 onChange={(e) => {
                                                     const date = new Date();
                                                     const [hours, minutes] = e.target.value.split(':');
-                                                    date.setHours(parseInt(hours), parseInt(minutes));
+                                                    date.setHours(Number.parseInt(hours), Number.parseInt(minutes));
                                                     field.onChange(date);
                                                 }}
                                             />
@@ -423,7 +423,7 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
                                                 onChange={(e) => {
                                                     const date = new Date();
                                                     const [hours, minutes] = e.target.value.split(':');
-                                                    date.setHours(parseInt(hours), parseInt(minutes));
+                                                    date.setHours(Number.parseInt(hours), Number.parseInt(minutes));
                                                     field.onChange(date);
                                                 }}
                                             />
