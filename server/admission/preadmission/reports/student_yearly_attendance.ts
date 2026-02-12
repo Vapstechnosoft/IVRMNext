@@ -21,7 +21,8 @@ export interface TotalStrengthParams {
 
 export async function GetStudentYearlyAttendance(ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'name,AMST_AdmNo,AMST_RegistrationNo,AMAY_RollNo,yearidname');
-    const url = `/StudentYearlyAttendance/GetStudentYearlyAttendance?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}&AllOrIndiFlag=${'indi'}&${urlParams}`;
+    const flag = ASMS_Id === 0 ? 'all' : 'indi';
+    const url = `/StudentYearlyAttendance/GetStudentYearlyAttendance?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}&AllOrIndiFlag=${flag}&${urlParams}`;
 
     return await api.post<IPreadmissionClassDropdown[]>('admission', url);
 }

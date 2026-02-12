@@ -15,7 +15,8 @@ import {
     getSourceDropdown,
     getStateDropdown,
     getStudentApplicationForm,
-    getStudentApplicationList
+    getStudentApplicationList,
+    getDistrictDropdown
 } from '@/server/admission/preadmission/transactions/application_form';
 import { getDocumentView, getDocumentpdf } from '@/server/admission/preadmission/transactions/document-view';
 import { getExportPreadmissionStudentList } from '@/server/admission/preadmission/transactions/export_preadmission';
@@ -84,6 +85,7 @@ export const useCountryDropdown = () => {
     };
 };
 
+
 export const useStateDropdown = (country_id: number) => {
     const queryClient = useQueryClient();
 
@@ -101,6 +103,25 @@ export const useStateDropdown = (country_id: number) => {
         }
     };
 };
+
+export const useDistrictDropdown = (state_id: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: ['district_dropdown', state_id],
+            queryFn: async () => getDistrictDropdown(state_id),
+            staleTime: 0,
+            enabled: !!state_id
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: ['district_dropdown']
+            });
+        }
+    };
+};
+
 
 export const useGenderDropdown = () => {
     const queryClient = useQueryClient();
@@ -152,6 +173,9 @@ export const useReferenceDropdown = () => {
         }
     };
 };
+
+
+
 
 export const usePreadmissionDocumentsDropdown = () => {
     const queryClient = useQueryClient();
