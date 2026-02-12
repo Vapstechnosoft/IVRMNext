@@ -7,17 +7,15 @@ import { loginSchema } from '@/schemas/admission/preadmission/masters';
 import { login } from '@/server/user';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-    Activity,
     ArrowRight,
     Cloud,
     Code,
-    Database,
     Eye,
     EyeOff,
+    GraduationCap,
     Laptop,
     Lock,
     Monitor,
-    Orbit,
     Phone,
     Server,
     Smartphone,
@@ -101,9 +99,9 @@ export default function SigninForm() {
                 <div className='blob blob-pink' />
             </div>
 
-            {/* 4. Floating Infrastructure Icons (Ultra-Low Opacity) */}
+            {/* 4. Floating Computer Tech Icons (Ultra-Low Opacity) */}
             <div className='bg-icons-immersive'>
-                <Database className='bg-icon' style={{ top: '10%', left: '5%', '--d': '12s' } as React.CSSProperties} size={140} />
+                <GraduationCap className='bg-icon' style={{ top: '10%', left: '5%', '--d': '12s' } as React.CSSProperties} size={140} />
                 <Terminal
                     className='bg-icon'
                     style={{ top: '65%', left: '8%', '--d': '15s', animationDelay: '-2s' } as React.CSSProperties}
@@ -114,7 +112,7 @@ export default function SigninForm() {
                     style={{ top: '15%', right: '7%', '--d': '18s', animationDelay: '-4s' } as React.CSSProperties}
                     size={90}
                 />
-                <Activity
+                <Server
                     className='bg-icon'
                     style={{ bottom: '20%', right: '10%', '--d': '14s', animationDelay: '-6s' } as React.CSSProperties}
                     size={120}
@@ -176,15 +174,10 @@ export default function SigninForm() {
                             <p className='welcome-tagline'>Where education meets innovation, seamlessly.</p>
 
                             <div className='welcome-illustration'>
-                                <div className='tech-core-container'>
-                                    <div className='core-energy-glow' />
-                                    <div className='core-rings'>
-                                        <div className='energy-ring ring-1' />
-                                        <div className='energy-ring ring-2' />
-                                        <div className='energy-ring ring-3' />
-                                    </div>
-                                    <div className='main-illus tech-centerpiece'>
-                                        <Orbit size={160} className='main-orbit-icon text-lavender-purple' />
+                                <div className='illus-container'>
+                                    <div className='illus-glow' />
+                                    <div className='main-illus'>
+                                        <GraduationCap size={160} className='main-cap text-lavender-purple' />
                                         <div className='floating-elements'>
                                             <div className='float-item item-1' title='Digital Campus'>
                                                 <Monitor size={24} />
@@ -200,7 +193,7 @@ export default function SigninForm() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className='core-base' />
+                                    <div className='illus-base' />
                                 </div>
                             </div>
 
