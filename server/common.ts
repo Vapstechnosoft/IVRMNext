@@ -2587,24 +2587,24 @@ export async function getUserAccessibleModules() {
                             sub_menu: [
                                 {
                                     id: 1,
-                                    name: 'IFrame',
+                                    name: 'AI Tools',
                                     icon: 'Database',
                                     pages: [
                                         {
                                             id: 1,
-                                            name: 'AI Assignment',
-                                            icon: 'BookOpen',
-                                            url: '/iframe/ai-assignment',
-                                            title: 'IFrame',
-                                            description: 'Manage AI Assignment Details'
+                                            name: 'Question Paper Generator',
+                                            icon: 'FileText',
+                                            url: '/iframe/ai-question-paper-generator',
+                                            title: 'AI Question Paper Generator',
+                                            description: 'Generate question papers from textbooks using AI'
                                         },
                                         {
                                             id: 2,
-                                            name: 'Question Generator',
-                                            icon: 'BookOpen',
-                                            url: '/iframe/question-generator',
-                                            title: 'IFrame',
-                                            description: 'Manage Question Generator Details'
+                                            name: 'AI Notemaker',
+                                            icon: 'FileText',
+                                            url: '/iframe/ai-notemaker',
+                                            title: 'AI Notemaker',
+                                            description: 'Summarize and create structured notes from textbooks using AI'
                                         }
                                     ]
                                 }

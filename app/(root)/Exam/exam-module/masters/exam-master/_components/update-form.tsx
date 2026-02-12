@@ -9,8 +9,8 @@ import { masterExamSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterExam } from '@/server/exam/exam-module/masters/exam';
 import type { IMasterExam } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { Save, RefreshCw } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -25,7 +25,7 @@ interface UpdateMasterExamFormProps {
 
 export default function UpdateMasterExamForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterExamFormProps) {
     const { refetchAll } = useMasterExam();
-
+    const [isLoading, setIsLoading] = useState(false);
     const {
         control,
         register,
@@ -99,6 +99,24 @@ export default function UpdateMasterExamForm({ onSuccess, className = '', select
             });
         }
     };
+
+    useEffect(() => {
+        setIsLoading(true);
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 500)
+        return () => clearTimeout(timer);
+    }, [row])
+
+    if (isLoading) {
+        return (
+            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
+                <RefreshCw className='h-8 w-8 animate-spin text-secondary' />
+                <p className='text-muted-foreground text-sm'>Loading data...</p>
+            </div>
+        );
+    }
+
 
     return (
         <div className={className}>
