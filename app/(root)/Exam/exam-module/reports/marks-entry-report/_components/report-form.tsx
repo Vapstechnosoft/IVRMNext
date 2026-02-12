@@ -151,8 +151,11 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
 
     const onSubmit = async (data: MarksEntryReportSchema) => {
         try {
+            console.log(data);
             const result = await getReportDetails(data);
-            onReportGenerated(result); // result matches the expected data structure directly here
+            console.log('marks entry report data', result);
+            const resultData = Array.isArray(result.data) ? result.data : [];
+            onReportGenerated(resultData); // result matches the expected data structure directly here
         } catch (error) {
             console.error('Error:', error);
         }

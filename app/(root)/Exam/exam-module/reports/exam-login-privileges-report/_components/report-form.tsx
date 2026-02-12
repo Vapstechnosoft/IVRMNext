@@ -12,11 +12,11 @@ import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module
 import { getExamLoginPrivilagesReport } from '@/server/exam/exam-module/reports/exam-login-privileges-report';
 import { getSectionsDropDownByAcademicYearandClasslist } from '@/server/exam/exam-module/reports/tbs-report-school';
 import { getClassDropDownByYearCategoryList } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
+import { ZodEffects, ZodObject, ZodString, ZodEnum, ZodOptional, ZodDefault, ZodBoolean, ZodTypeAny } from 'zod';
 
 interface ReportFormProps {
     onReportGenerated: (data: any) => void;
@@ -441,3 +441,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         </div>
     );
 };
+function zodResolver(examLoginPrivilegesReportSchema: ZodEffects<ZodEffects<ZodObject<{ ASMAY_Id: ZodString; EMCA_Id: ZodString; type: ZodEnum<["all", "individual"]>; ASMCL_Id: ZodOptional<ZodString>; ASMS_Id: ZodOptional<ZodString>; HRME_Id: ZodOptional<ZodString>; employeeChecked: ZodDefault<ZodBoolean>; selectAllEmployees: ZodDefault<ZodBoolean>; }, "strip", ZodTypeAny, { ASMAY_Id: string; EMCA_Id: string; type: "all" | "individual"; employeeChecked: boolean; selectAllEmployees: boolean; ASMCL_Id?: string | undefined; ASMS_Id?: string | undefined; HRME_Id?: string | undefined; }, { ASMAY_Id: string; EMCA_Id: string; type: "all" | "individual"; ASMCL_Id?: string | undefined; ASMS_Id?: string | undefined; HRME_Id?: string | undefined; employeeChecked?: boolean | undefined; selectAllEmployees?: boolean | undefined; }>, { ASMAY_Id: string; EMCA_Id: string; type: "all" | "individual"; employeeChecked: boolean; selectAllEmployees: boolean; ASMCL_Id?: string | undefined; ASMS_Id?: string | undefined; HRME_Id?: string | undefined; }, { ASMAY_Id: string; EMCA_Id: string; type: "all" | "individual"; ASMCL_Id?: string | undefined; ASMS_Id?: string | undefined; HRME_Id?: string | undefined; employeeChecked?: boolean | undefined; selectAllEmployees?: boolean | undefined; }>, { ASMAY_Id: string; EMCA_Id: string; type: "all" | "individual"; employeeChecked: boolean; selectAllEmployees: boolean; ASMCL_Id?: string | undefined; ASMS_Id?: string | undefined; HRME_Id?: string | undefined; }, { ASMAY_Id: string; EMCA_Id: string; type: "all" | "individual"; ASMCL_Id?: string | undefined; ASMS_Id?: string | undefined; HRME_Id?: string | undefined; employeeChecked?: boolean | undefined; selectAllEmployees?: boolean | undefined; }>): import("react-hook-form").Resolver<{ ASMAY_Id: string; EMCA_Id: string; type: "all" | "individual"; employeeChecked: boolean; selectAllEmployees: boolean; ASMCL_Id?: string | undefined; ASMS_Id?: string | undefined; HRME_Id?: string | undefined; }, any> | undefined {
+    throw new Error('Function not implemented.');
+}
+
