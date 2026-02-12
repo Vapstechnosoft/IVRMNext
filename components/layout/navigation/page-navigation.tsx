@@ -74,28 +74,50 @@ export function PageNavigation() {
     return (
         <AnimatePresence>
             <motion.div
-                className='no-print'
+                className='no-print sticky top-14 z-20 w-full bg-background'
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3, ease: 'easeInOut' }}>
                 {/* Horizontal page navigation row hidden for "neat and clean" design */}
-                {/* PolygonBanner with Breadcrumb */}
                 <PolygonBanner
                     title={pageTitle}
                     description={pageDescription || ''}
-                    breadcrumb={
-                        <div className='flex items-center gap-2 text-sm text-white/80'>
-                            <span className='font-medium'>{activeNavigation.module}</span>
-                            <ChevronRight className='h-4 w-4' />
-                            <span>{activeNavigation.menu}</span>
-                            <ChevronRight className='h-4 w-4' />
-                            <span className='font-medium'>{activeNavigation.subMenu}</span>
-                            <ChevronRight className='h-4 w-4' />
-                            <span className='font-bold text-white'>{pageName}</span>
-                        </div>
-                    }
                 />
+
+                {/* Single Line Orange Breadcrumb Section - Integrated below Banner */}
+                <div className='bg-gray-50/50 border-b border-gray-100'>
+                    <div className='container mx-auto px-4 py-3'>
+                        <div className='flex items-center gap-1.5 flex-wrap'>
+                            <div className='flex items-center gap-1.5'>
+                                <span className='text-[10px] uppercase font-black tracking-widest text-orange-400/80'>
+                                    {activeNavigation.module}
+                                </span>
+                                <span className='text-orange-200 text-xs'>/</span>
+                            </div>
+
+                            <div className='flex items-center gap-1.5'>
+                                <span className='text-[13px] font-bold text-orange-600'>
+                                    {activeNavigation.menu}
+                                </span>
+                                <span className='text-orange-200 text-xs'>/</span>
+                            </div>
+
+                            <div className='flex items-center gap-1.5'>
+                                <span className='text-[13px] font-semibold text-orange-500'>
+                                    {activeNavigation.subMenu}
+                                </span>
+                                <span className='text-orange-200 text-xs'>/</span>
+                            </div>
+
+                            <div className='flex items-center gap-1.5'>
+                                <span className='text-[14px] font-black text-orange-700 decoration-orange-300/30 decoration-2 underline-offset-4 underline'>
+                                    {pageName}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </motion.div>
         </AnimatePresence>
     );
