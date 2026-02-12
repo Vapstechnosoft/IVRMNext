@@ -28,6 +28,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { daySubjectColumns } from './columns';
+import { TTDaySubjectGridData } from '@/types/timetable/constraints/fixing';
 import { FixingViewModal } from './fixing-view-modal';
 
 interface DaySubjectTabProps {
@@ -57,7 +58,19 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
 
     // Fetch Grid Data
     const { data: gridResponse } = useDaySubjectGridData();
-    const gridData = (gridResponse as any)?.data || (gridResponse as any)?.fix_day_subject_list || initialData?.fix_day_subject_list || [];
+    let gridData: TTDaySubjectGridData[] = [];
+    if (gridResponse) {
+        if (Array.isArray(gridResponse)) {
+            gridData = gridResponse;
+        } else if (Array.isArray((gridResponse as any)?.data)) {
+            gridData = (gridResponse as any).data;
+        } else if (Array.isArray((gridResponse as any)?.fix_day_subject_list)) {
+            gridData = (gridResponse as any).fix_day_subject_list;
+        }
+    }
+    if (gridData.length === 0 && initialData?.fix_day_subject_list) {
+        gridData = initialData.fix_day_subject_list;
+    }
 
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);

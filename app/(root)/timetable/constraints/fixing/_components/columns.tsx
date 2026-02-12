@@ -7,54 +7,13 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
 // Interfaces for List Data
-export interface IFixingDayPeriodList {
-    ttfdP_Id: number;
-    asmaY_Year: string;
-    ttmC_CategoryName: string;
-    asmcL_ClassName: string;
-    asmC_SectionName: string;
-    staffName: string;
-    ismS_SubjectName: string;
-    ttmD_DayName: string;
-    ttmP_PeriodName: string;
-    ttfdP_ActiveFlag: boolean;
-}
-
-export interface IFixingDayStaffList {
-    ttrdS_Id: number;
-    asmaY_Year: string;
-    staffName: string;
-    ttmD_DayName: string;
-    ttrdS_SUbSelcFlag: boolean;
-    ttrdS_ActiveFlag: boolean;
-}
-
-export interface IFixingDaySubjectList {
-    ttfdsU_Id: number;
-    asmaY_Year: string;
-    ismS_SubjectName: string;
-    ttmD_DayName: string;
-    ttfdsU_SUbSelcFlag: boolean;
-    ttfdsU_ActiveFlag: boolean;
-}
-
-export interface IFixingPeriodStaffList {
-    ttfpS_Id: number;
-    asmaY_Year: string;
-    staffName: string;
-    ttmP_PeriodName: string;
-    ttfpS_SUbSelcFlag: boolean;
-    ttfpS_ActiveFlag: boolean;
-}
-
-export interface IFixingPeriodSubjectList {
-    ttrpsU_Id: number;
-    asmaY_Year: string;
-    ismS_SubjectName: string;
-    ttmP_PeriodName: string;
-    ttrpsU_SUbSelcFlag: boolean;
-    ttrpsU_ActiveFlag: boolean;
-}
+import {
+    TTDayPeriodGridData,
+    TTDayStaffGridData,
+    TTDaySubjectGridData,
+    TTPeriodStaffGridData,
+    TTPeriodSubjectGridData
+} from '@/types/timetable/constraints/fixing';
 
 // --- Action Cell Components ---
 function ActionButtonsCell<T>({
@@ -115,7 +74,7 @@ function ActionButtonsCell<T>({
 
 // 1. Day Period
 // 1. Day Period
-export const dayPeriodColumns: ColumnDef<IFixingDayPeriodList>[] = [
+export const dayPeriodColumns: ColumnDef<TTDayPeriodGridData>[] = [
     {
         accessorKey: 'ttfdP_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
@@ -187,9 +146,9 @@ export const dayPeriodColumns: ColumnDef<IFixingDayPeriodList>[] = [
 ];
 
 // 2. Day Staff
-export const dayStaffColumns: ColumnDef<IFixingDayStaffList>[] = [
+export const dayStaffColumns: ColumnDef<TTDayStaffGridData>[] = [
     {
-        accessorKey: 'ttrdS_Id',
+        accessorKey: 'ttfdS_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -203,20 +162,15 @@ export const dayStaffColumns: ColumnDef<IFixingDayStaffList>[] = [
     { accessorKey: 'staffName', header: ({ column }) => <DataTableColumnHeader column={column} title='Staff' /> },
     { accessorKey: 'ttmD_DayName', header: ({ column }) => <DataTableColumnHeader column={column} title='Day' /> },
     {
-        accessorKey: 'ttrdS_SUbSelcFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class-Section Wise' />,
-        cell: ({ row }) => (row.original.ttrdS_SUbSelcFlag ? 'Yes' : 'No')
-    },
-    {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
         accessorFn: (row) => row,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} idKey='ttrdS_Id' toggleKey='ttrdS_ActiveFlag' showView={true} />
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} idKey='ttfdS_Id' toggleKey='ttfdS_ActiveFlag' showView={true} />
     }
 ];
 
 // 3. Day Subject
-export const daySubjectColumns: ColumnDef<IFixingDaySubjectList>[] = [
+export const daySubjectColumns: ColumnDef<TTDaySubjectGridData>[] = [
     {
         accessorKey: 'ttfdsU_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
@@ -245,7 +199,7 @@ export const daySubjectColumns: ColumnDef<IFixingDaySubjectList>[] = [
 ];
 
 // 4. Period Staff
-export const periodStaffColumns: ColumnDef<IFixingPeriodStaffList>[] = [
+export const periodStaffColumns: ColumnDef<TTPeriodStaffGridData>[] = [
     {
         accessorKey: 'ttfpS_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
@@ -274,7 +228,7 @@ export const periodStaffColumns: ColumnDef<IFixingPeriodStaffList>[] = [
 ];
 
 // 5. Period Subject
-export const periodSubjectColumns: ColumnDef<IFixingPeriodSubjectList>[] = [
+export const periodSubjectColumns: ColumnDef<TTPeriodSubjectGridData>[] = [
     {
         accessorKey: 'ttrpsU_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
@@ -301,3 +255,5 @@ export const periodSubjectColumns: ColumnDef<IFixingPeriodSubjectList>[] = [
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} idKey='ttrpsU_Id' toggleKey='ttrpsU_ActiveFlag' showView={true} />
     }
 ];
+
+

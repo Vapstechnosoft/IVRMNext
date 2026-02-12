@@ -10,6 +10,13 @@ import type {
 } from '@/schemas/timetable/constraints/fixing';
 import type { ApiSearchparams } from '@/types';
 import type { ITTFixingLoadData } from '@/types/timetable/constraints';
+import {
+    TTDayPeriodGridData,
+    TTDayStaffGridData,
+    TTDaySubjectGridData,
+    TTPeriodStaffGridData,
+    TTPeriodSubjectGridData
+} from '@/types/timetable/constraints/fixing';
 
 // Load Initial Data
 // export async function getFixingLoadData() {
@@ -37,10 +44,15 @@ export async function getFixingDayPeriodDetails(id: number) {
     return await api.get<any>('timetable', url);
 }
 
-export async function deactivateFixingDayPeriod(data: { TTFDP_Id: number; TTFDP_ActiveFlag: boolean }) {
+export async function deactivateFixingDayPeriod(TTFDP_Id: number) {
     const url = '/FixingFacade/DayPeriodActiveDeactive';
-    return await api.post<any>('timetable', url, data);
+    return await api.post<any>('timetable', url);
 }
+
+// export async function ToggleMasterDay(ttmd_id: number) {
+//     const url = `/MasterDayFacade/MasterDaydayActivateDeactivate/${ttmd_id}`;
+//     return await api.put<any>('timetable', url);
+// }
 
 // -------------------------------------------------------------------------
 // Tab 2: Day Staff
@@ -56,9 +68,9 @@ export async function getFixingDayStaffDetails(id: number) {
     return await api.get<any>('timetable', url);
 }
 
-export async function deactivateFixingDayStaff(data: { TTFDS_Id: number; TTFDS_ActiveFlag: boolean }) {
+export async function deactivateFixingDayStaff(TTFDS_Id: number) {
     const url = '/FixingFacade/DayStaffActiveDeactive';
-    return await api.post<any>('timetable', url, data);
+    return await api.post<any>('timetable', url);
 }
 
 // -------------------------------------------------------------------------
@@ -94,9 +106,9 @@ export async function getFixingPeriodStaffDetails(id: number) {
     return await api.get<any>('timetable', url);
 }
 
-export async function deactivateFixingPeriodStaff(data: { TTFPS_Id: number; TTFPS_ActiveFlag: boolean }) {
+export async function deactivateFixingPeriodStaff(TTFPS_Id: number) {
     const url = '/FixingFacade/PeriodStaffActiveDeactive';
-    return await api.post<any>('timetable', url, data);
+    return await api.post<any>('timetable', url);
 }
 
 // -------------------------------------------------------------------------
@@ -113,9 +125,9 @@ export async function getFixingPeriodSubjectDetails(id: number) {
     return await api.get<any>('timetable', url);
 }
 
-export async function deactivateFixingPeriodSubject(data: { TTFPSU_Id: number; TTFPSU_ActiveFlag: boolean }) {
+export async function deactivateFixingPeriodSubject(TTFPSU_Id: number) {
     const url = '/FixingFacade/PeriodSubjectActiveDeactive';
-    return await api.post<any>('timetable', url, data);
+    return await api.post<any>('timetable', url);
 }
 
 // -------------------------------------------------------------------------
@@ -158,28 +170,28 @@ export async function getSectionByClass(data: { ASMAY_Id: number; ASMCL_Id: numb
 
 export async function getFixingDayPeriodGridData(searchParams?: any) {
     const url = '/FixingFacade/DayPeriodGridData';
-    return await api.get<any>('timetable', url);
+    return await api.get<TTDayPeriodGridData[]>('timetable', url);
 }
 
 
 export async function getFixingDaySubjectGridData() {
     const url = '/FixingFacade/DaySubjectGridData';
-    return await api.get<any>('timetable', url);
+    return await api.get<TTDaySubjectGridData[]>('timetable', url);
 }
 
 export async function getFixingDayStaffGridData() {
     const url = '/FixingFacade/DayStaffGridData';
-    return await api.get<any>('timetable', url);
+    return await api.get<TTDayStaffGridData[]>('timetable', url);
 }
 
 export async function getFixingPeriodSubjectGridData() {
     const url = '/FixingFacade/PeriodSubjectGridData';
-    return await api.get<any>('timetable', url);
+    return await api.get<TTPeriodSubjectGridData[]>('timetable', url);
 }
 
 export async function getFixingPeriodStaffGridData() {
     const url = '/FixingFacade/PeriodStaffGridData';
-    return await api.get<any>('timetable', url);
+    return await api.get<TTPeriodStaffGridData[]>('timetable', url);
 }
 
 

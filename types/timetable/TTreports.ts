@@ -4,6 +4,10 @@ export interface IstaffLoadDataTTStaffReport {
     CategoryName: string;
     TTLAB_LABLIBName: string;
     TTLAB_ActiveFlag: boolean;
+
+    asmcL_Id: number; //class
+    asmcL_ClassName: string; //classexport async 
+
 }
 
 export interface ISectionDropdown {
@@ -16,4 +20,12 @@ export interface ISectionDropdown {
     asmC_MaxCapacity: number;
     createdDate: string; // ISO date string
     updatedDate: string; // ISO date string
+
+    asmcL_Id: number; //class
+    asmcL_ClassName: string; //classexport async 
+
+}
+export interface IDeputationAcademicYear {
+    ttfG_Id: number;
+    asmaY_Year: string;
 }

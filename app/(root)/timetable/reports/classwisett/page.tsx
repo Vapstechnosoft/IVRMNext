@@ -32,9 +32,123 @@ export default function ClassWiseReportPage() {
     const handleFormSubmit = async (payload: any) => {
         setLoading(true);
         try {
+            // Temporary static data as requested by user
+            const mockPeriodList = [
+                { ped_id: 1, ped_name: '1', is_break: false },
+                { ped_id: 2, ped_name: '2', is_break: false },
+                { ped_id: 3, ped_name: '3', is_break: false },
+                { ped_id: 0, ped_name: 'Break', brk_name: 'INTERVAL', is_break: true },
+                { ped_id: 4, ped_name: '4', is_break: false },
+                { ped_id: 5, ped_name: '5', is_break: false },
+                { ped_id: 6, ped_name: '6', is_break: false },
+                { ped_id: 0, ped_name: 'Break', brk_name: 'LUNCH BREAK', is_break: true },
+                { ped_id: 7, ped_name: '7', is_break: false },
+                { ped_id: 8, ped_name: '8', is_break: false },
+                { ped_id: 9, ped_name: '9', is_break: false },
+            ];
+
+            const mockRows = [
+                {
+                    dayName: 'MONDAY',
+                    cells: [
+                        { content: 'ENG :Simran', color: 'black' },
+                        { content: 'CHEM :Suparna', color: 'black' },
+                        { content: 'Hindi :Anjana && Kan :Nisha S && Fre :Neha', color: 'black' },
+                        { content: 'INTERVAL', color: 'red', is_break: true },
+                        { content: 'H & C :Annette', color: 'black' },
+                        { content: 'ELIT :TENZ', color: 'black' },
+                        { content: '', color: 'black' },
+                        { content: 'LUNCH BREAK', color: 'red', is_break: true },
+                        { content: 'GEO :Aarthi', color: 'black' },
+                        { content: 'BIO :Sneha', color: 'black' },
+                        { content: 'PHYSICS :Alka', color: 'black' },
+                    ]
+                },
+                {
+                    dayName: 'TUESDAY',
+                    cells: [
+                        { content: 'H & C :Annette', color: 'black' },
+                        { content: 'BIO :Sneha', color: 'black' },
+                        { content: '', color: 'black' },
+                        { content: 'INTERVAL', color: 'red', is_break: true },
+                        { content: 'C.A :Varima && Mass Media :Titto && BIO :Maria P J', color: 'black' },
+                        { content: 'PHYSICS :Alka', color: 'black' },
+                        { content: 'ENG :Simran', color: 'black' },
+                        { content: 'LUNCH BREAK', color: 'red', is_break: true },
+                        { content: 'Hindi :Anjana && Kan :Nisha S && Fre :Neha', color: 'black' },
+                        { content: '', color: 'black' },
+                        { content: '', color: 'black' },
+                    ]
+                },
+                {
+                    dayName: 'WEDNESDAY',
+                    cells: [
+                        { content: 'BIO :Sneha', color: 'black' },
+                        { content: '', color: 'black' },
+                        { content: '', color: 'black' },
+                        { content: 'INTERVAL', color: 'red', is_break: true },
+                        { content: 'Hindi :Anjana && Kan :Nisha S && Fre :Neha', color: 'black' },
+                        { content: 'H & C :Annette', color: 'black' },
+                        { content: 'CHEM :Suparna', color: 'black' },
+                        { content: 'LUNCH BREAK', color: 'red', is_break: true },
+                        { content: 'ELIT :TENZ', color: 'black' },
+                        { content: 'GEO :Aarthi', color: 'black' },
+                        { content: 'C.A :Varima && Mass Media :Titto', color: 'black' },
+                    ]
+                },
+                {
+                    dayName: 'THURSDAY',
+                    cells: [
+                        { content: 'PHYSICS :Alka', color: 'black' },
+                        { content: 'GEO :Aarthi', color: 'black' },
+                        { content: 'C.A :Varima && Mass Media :Titto', color: 'black' },
+                        { content: 'INTERVAL', color: 'red', is_break: true },
+                        { content: 'CHEM :Suparna', color: 'black' },
+                        { content: 'Hindi :Anjana && Kan :Nisha S && Fre :Neha', color: 'black' },
+                        { content: '', color: 'black' },
+                        { content: 'LUNCH BREAK', color: 'red', is_break: true },
+                        { content: 'H & C :Annette', color: 'black' },
+                        { content: 'BIO :Sneha', color: 'black' },
+                        { content: '', color: 'black' },
+                    ]
+                },
+                {
+                    dayName: 'FRIDAY',
+                    cells: [
+                        { content: 'ELIT :TENZ', color: 'black' },
+                        { content: 'ENG :Simran', color: 'black' },
+                        { content: '', color: 'black' },
+                        { content: 'INTERVAL', color: 'red', is_break: true },
+                        { content: 'GEO :Aarthi', color: 'black' },
+                        { content: 'PHYSICS :Alka', color: 'black' },
+                        { content: 'C.A :Varima && Mass Media :Titto && BIO :Maria P J', color: 'black' },
+                        { content: 'LUNCH BREAK', color: 'red', is_break: true },
+                        { content: 'CHEM :Suparna', color: 'black' },
+                        { content: '', color: 'black' },
+                        { content: '', color: 'black' },
+                    ]
+                }
+            ];
+
+            const processedList: any[] = [];
+            payload.classarray.forEach((cls: any) => {
+                payload.sectionarray.forEach((sec: any) => {
+                    processedList.push({
+                        header: `Class : ${cls.asmcL_ClassName} & Section : ${sec.asmC_SectionName}`,
+                        periodList: mockPeriodList.map(p => ({ ...p, ped_name: p.is_break ? 'Break' : p.ped_name })),
+                        rows: mockRows
+                    });
+                });
+            });
+
+            setReportData(processedList);
+            setIsReportVisible(true);
+            toast.success('Report generated successfully (Static Data)');
+
+            /* 
+            // Commenting out real API call for temporary static data demonstration
             const response = await getClassWiseReport(payload);
             if ((response as AnalyserOptions) && response.tt) {
-                //&& response.tt.length > 0
                 processReportData(response, payload.classarray, payload.sectionarray);
                 setIsReportVisible(true);
                 toast.success('Report generated successfully');
@@ -43,6 +157,7 @@ export default function ClassWiseReportPage() {
                 setReportData([]);
                 setIsReportVisible(false);
             }
+            */
         } catch (error: any) {
             console.error('Error generating report', error);
             toast.error(error.message || 'Failed to generate report.');

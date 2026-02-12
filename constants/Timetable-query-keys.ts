@@ -61,5 +61,6 @@ export const TIMETABLE_QUERY_KEYS = {
     MASTER_TT_DAYSDROPDOWNDATA: 'master_tt_daysdropdowndata',
     MASTER_TT_SECTIONREPORT: 'master_tt_sectionreport',
     SECTION_DROPDOWN: 'section_dropdown',
-    STAFF_DROPDOWN_STAFFREPORT: 'staff_dropdown_staffreport'
+    STAFF_DROPDOWN_STAFFREPORT: 'staff_dropdown_staffreport',
+    DEPUTATION_ACADEMIC_YEAR: 'deputation_academic_year'
 };

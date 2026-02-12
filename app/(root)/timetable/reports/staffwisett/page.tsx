@@ -42,10 +42,63 @@ export default function StaffWiseReportPage() {
         setError(null);
         setRptTyp(payload.rpttyp);
         try {
-            // const response = await getStaffWiseReport(payload);
-            // processReportData(response, payload.staffarray, payload.rpttyp);
+            // Temporary static data as requested by user
+            const mockPeriodList = [
+                { ttmP_Id: 1, ttmP_PeriodName: '1' },
+                { ttmP_Id: 2, ttmP_PeriodName: '2' },
+                { ttmP_Id: 3, ttmP_PeriodName: '3' },
+                { ttmP_Id: 4, ttmP_PeriodName: '4' },
+                { ttmP_Id: 5, ttmP_PeriodName: '5' },
+                { ttmP_Id: 6, ttmP_PeriodName: '6' },
+                { ttmP_Id: 7, ttmP_PeriodName: '7' },
+                { ttmP_Id: 8, ttmP_PeriodName: '8' },
+                { ttmP_Id: 9, ttmP_PeriodName: '9' },
+            ];
+
+            const sampleContent = [
+                'Geography :8th :DIVISION C',
+                'Moral Science :10th :DIVISION C',
+                'Activity :9th :DIVISION C',
+                'History :9th :DIVISION B',
+                'Civics :10th :DIVISION D',
+                'Geography :10th :DIVISION A',
+                'Activity :8th :DIVISION A',
+                'Social Science :7th :DIVISION B',
+                'Geography :6th :DIVISION D',
+                'Moral Science :5th :DIVISION A'
+            ];
+
+            const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'];
+            const mockRows = days.map((day) => {
+                const cells = mockPeriodList.map((_) => {
+                    // Randomly decide if a cell should be empty (30% chance) or filled
+                    const shouldBeEmpty = Math.random() < 0.3;
+                    const contentValue = shouldBeEmpty ? '' : sampleContent[Math.floor(Math.random() * sampleContent.length)];
+                    return { content: contentValue, color: 'black' };
+                });
+                return { dayName: day, cells };
+            });
+
+            const processedList: any[] = [];
+            setPeriodList(mockPeriodList);
+
+            payload.staffarray.forEach((staff: any) => {
+                processedList.push({
+                    header: staff.staffName,
+                    periodList: mockPeriodList.map((p) => ({
+                        ped_name: p.ttmP_PeriodName,
+                        is_break: false
+                    })),
+                    rows: mockRows
+                });
+            });
+
+            setReportData(processedList);
+            /*
+            const response = await getStaffWiseReport(payload);
+            processReportData(response, payload.staffarray, payload.rpttyp);
+            */
         } catch (error: any) {
-            //console.error('Error generating report', error);
             setError(error.message || 'Failed to generate report.');
             setReportData([]);
         } finally {
@@ -78,7 +131,6 @@ export default function StaffWiseReportPage() {
             gridWeeks.forEach((day: any) => {
                 const rowCells: any[] = [];
                 periodList.forEach((period: any) => {
-                    // Find timetable entry for this staff, day, and period
                     const entries = timetable.filter(
                         (t: any) => t.ttmP_Id === period.ttmP_Id && t.ttmD_Id === day.ttmD_Id && t.hrmE_Id === staff.hrmE_Id
                     );
@@ -88,12 +140,10 @@ export default function StaffWiseReportPage() {
 
                     if (entries.length > 0) {
                         if (rptTyp === 'SAWC') {
-                            // Subject Along With Class
                             cellContent = entries
                                 .map((t: any) => `${t.ismS_SubjectName} : ${t.asmcL_ClassName} : ${t.asmC_SectionName}`)
                                 .join(' && ');
                         } else {
-                            // Subject Not With Class (only Subject)
                             cellContent = entries.map((t: any) => `${t.ismS_SubjectName}`).join(' && ');
                         }
                     }
@@ -110,6 +160,10 @@ export default function StaffWiseReportPage() {
 
             processedList.push({
                 header: staff.staffName,
+                periodList: periodList.map((p: any) => ({
+                    ped_name: p.ttmP_PeriodName,
+                    is_break: false
+                })),
                 rows: tableRows
             });
         });
@@ -131,10 +185,12 @@ export default function StaffWiseReportPage() {
                     <title>Staff Wise TimeTable Report</title>
                     <style>
                         body { font-family: Arial, sans-serif; padding: 20px; }
-                        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                        th, td { border: 1px solid #000; padding: 8px; text-align: center; font-size: 12px; }
-                        th { background-color: #f3f3f3; font-weight: bold; }
-                        h3 { text-align: center; color: green; margin-bottom: 10px; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 2px solid #7e22ce; }
+                        th, td { border: 1px solid #9ca3af; padding: 8px; text-align: center; font-size: 12px; }
+                        th { background-color: #7e22ce; color: white; font-weight: bold; }
+                        td.day-cell { color: #9333ea; font-weight: 500; }
+                        h3 { text-align: center; color: #15803d; margin-bottom: 10px; font-size: 20px; }
+                        .no-print { display: none; }
                         .page-break-after-always { page-break-after: always; }
                     </style>
                 </head>
@@ -157,8 +213,7 @@ export default function StaffWiseReportPage() {
             const wb = XLSX.utils.book_new();
 
             reportData.forEach((table, idx) => {
-                // Header row
-                const headerRow = ['Day / Period', ...periodList.map((p: any) => `Period ${p.ttmP_PeriodName}`)];
+                const headerRow = ['Day / Period', ...table.periodList.map((p: any) => (p.is_break ? 'Break' : `Period ${p.ped_name}`))];
 
                 const sheetData = [headerRow];
 
@@ -169,11 +224,9 @@ export default function StaffWiseReportPage() {
 
                 const ws = XLSX.utils.aoa_to_sheet(sheetData);
 
-                // Sheet name limited to 31 chars
                 let sheetName = table.header.substring(0, 31).replace(/[:\/\\?*\[\]]/g, '');
                 if (sheetName.length === 0) sheetName = `Sheet ${idx + 1}`;
 
-                // Ensure unique sheet names
                 let suffix = 1;
                 const originalName = sheetName;
                 while (wb.SheetNames.includes(sheetName)) {
@@ -192,52 +245,56 @@ export default function StaffWiseReportPage() {
         <div className='container space-y-4 p-1'>
             <CollapsibleSection title='Staff Wise TimeTable Report' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                 <StaffWiseForm initialData={initialData} onSubmit={handleFormSubmit} onCancel={handleCancel} />
-                {/* {error && (
-                    <div className='p-4 text-center text-red-500 text-sm'>
-                        <p>{error}</p>
-                    </div>
-                )} */}
             </CollapsibleSection>
 
             {reportData.length > 0 && (
                 <CollapsibleSection title='Report Grid' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
-                    <div className='mb-4 flex justify-end space-x-2'>
-                        <Button variant='outline' onClick={handleExport}>
-                            <Download className='mr-2 h-4 w-4' />
-                            Export to Excel
-                        </Button>
-                        <Button variant='outline' onClick={handlePrint}>
-                            <Printer className='mr-2 h-4 w-4' />
-                            Print
-                        </Button>
+                    <div className='no-print flex items-center justify-between bg-gray-50 px-4 py-2 text-sm'>
+                        <span style={{ fontSize: '15px', fontWeight: '300' }}></span>
+                        <div className='flex items-center gap-3'>
+                            <Button onClick={handlePrint} size='sm' className='bg-purple-600 hover:bg-blue-700'>
+                                <Printer className='mr-2 h-4 w-4' /> Print
+                            </Button>
+
+                            <Button
+                                onClick={handleExport}
+                                size='sm'
+                                variant='outline'
+                                className='gap-2 border-green-600 text-green-700 hover:bg-green-50'>
+                                <Download className='h-4 w-4' />
+                                Export Excel
+                            </Button>
+                        </div>
                     </div>
 
-                    <div className='overflow-x-auto rounded-lg bg-white p-4' ref={componentRef}>
+                    <div className='mt-6 space-y-12 bg-white p-4' ref={componentRef}>
                         {reportData.map((table, idx) => (
-                            <div key={idx} className='page-break-after-always mb-8'>
-                                <h3 className='mb-2 text-center font-bold text-green-700 text-lg'>Staff Name : {table.header}</h3>
-                                <table className='w-full min-w-[800px] border-collapse border border-gray-300'>
+                            <div key={idx} className='page-break-after-always overflow-x-auto'>
+                                <h3 className='mb-4 text-center font-bold text-green-700 text-xl'>Staff Name : {table.header}</h3>
+                                <table className='w-full border-collapse border-2 border-purple-700'>
                                     <thead>
-                                        <tr className='bg-gray-100'>
-                                            <th className='border border-gray-300 p-2 text-center font-bold'>Day / Period</th>
-                                            {periodList.map((p: any, pIdx: number) => (
-                                                <th key={pIdx} className='border border-gray-300 p-2 text-center font-bold'>
-                                                    Period {p.ttmP_PeriodName}
+                                        <tr className='bg-purple-700 text-white'>
+                                            <th className='border border-purple-700 px-2 py-3'>Day / Period</th>
+                                            {table.periodList?.map((p: any, pIdx: number) => (
+                                                <th key={pIdx} className='border border-purple-700 px-2 py-3'>
+                                                    {p.is_break ? 'Break' : `Period ${p.ped_name}`}
                                                 </th>
                                             ))}
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {table.rows.map((row: any, rIdx: number) => (
-                                            <tr key={rIdx} className={rIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                                <td className='border border-gray-300 p-2 text-center font-medium text-blue-600'>
+                                        {table.rows?.map((row: any, rIdx: number) => (
+                                            <tr key={rIdx} className='hover:bg-gray-50'>
+                                                <td
+                                                    className='day-cell border border-gray-400 px-2 py-2 text-center font-medium text-purple-600'
+                                                    style={{ minWidth: '120px' }}>
                                                     {row.dayName}
                                                 </td>
-                                                {row.cells.map((cell: any, cIdx: number) => (
+                                                {row.cells?.map((cell: any, cIdx: number) => (
                                                     <td
                                                         key={cIdx}
-                                                        className='border border-gray-300 p-2 text-center text-sm'
-                                                        style={{ color: cell.color }}>
+                                                        className='border border-gray-400 p-2 text-center text-sm'
+                                                        style={{ color: cell.color, minWidth: '120px' }}>
                                                         {cell.content}
                                                     </td>
                                                 ))}

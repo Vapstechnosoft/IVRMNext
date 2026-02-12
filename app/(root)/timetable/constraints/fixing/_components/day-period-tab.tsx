@@ -24,7 +24,7 @@ import { Plus, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { type IFixingDayPeriodList, dayPeriodColumns } from './columns';
+import { dayPeriodColumns } from './columns';
 import { TTDayPeriodGridData } from '@/types/timetable/constraints/fixing';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
@@ -228,7 +228,7 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
     const onToggle = async (item: any) => {
         try {
             const payload = { TTFDP_Id: item.ttfdP_Id, TTFDP_ActiveFlag: !item.ttfdP_ActiveFlag };
-            const res = await deactivateFixingDayPeriod(payload);
+            const res = await deactivateFixingDayPeriod(item.ttfdP_Id);
             if (res?.returnval === true) {
                 toast.success('Status Updated');
                 window.location.reload();
@@ -506,7 +506,7 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                                     <Button type='button' variant='outline' onClick={() => reset()}>
                                         Cancel
                                     </Button>
-                                    
+
                                 </div>
                             </form>
                         </Form>

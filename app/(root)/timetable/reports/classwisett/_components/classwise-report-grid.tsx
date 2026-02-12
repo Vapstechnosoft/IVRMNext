@@ -72,7 +72,7 @@ export default function ClassWiseReportGrid({ reportData, onPrint, initialSize =
     return (
         <div className={`screen-only ${fontSizeClass}`}>
             {/* Font Size Selector */}
-            <div className='form-group no-print mb-4 flex items-center gap-3'>
+            {/* <div className='form-group no-print mb-4 flex items-center gap-3'>
                 <span className='control-label font-medium'>Font Size :</span>
                 <select className='form-control rounded border px-3 py-1 text-sm' value={size} onChange={(e) => setSize(e.target.value)}>
                     <option value=''>Select Font Size</option>
@@ -82,13 +82,13 @@ export default function ClassWiseReportGrid({ reportData, onPrint, initialSize =
                         </option>
                     ))}
                 </select>
-            </div>
+            </div> */}
 
             {/* Header Bar */}
-            <div className='no-print flex items-center justify-between border-orange-400 border-b-2 bg-orange-100 px-4 py-2 text-sm'>
-                <span style={{ fontSize: '25px', fontWeight: '600' }}>GRID VIEW</span>
+            <div className='no-print flex items-center justify-between bg-white-100 px-4 py-2 text-sm'>
+                <span style={{ fontSize: '15px', fontWeight: '300' }}></span>
                 <div className='flex items-center gap-3'>
-                    <Button onClick={onPrint} size='sm' className='bg-blue-600 hover:bg-blue-700'>
+                    <Button onClick={onPrint} size='sm' className='bg-purple-600 hover:bg-blue-700'>
                         <Printer className='mr-2 h-4 w-4' /> Print
                     </Button>
 
@@ -108,12 +108,12 @@ export default function ClassWiseReportGrid({ reportData, onPrint, initialSize =
                 {reportData.map((table, idx) => (
                     <div key={idx} className='overflow-x-auto'>
                         <h3 className='mb-4 text-center font-bold text-green-700 text-xl'>{table.header}</h3>
-                        <table className='w-full border-collapse border-2 border-blue-800'>
+                        <table className='w-full border-collapse border-2 border-purple-700'>
                             <thead>
-                                <tr className='bg-blue-800 text-white'>
-                                    <th className='border border-blue-900 px-2 py-3'>Day / Period</th>
+                                <tr className='bg-purple-700 text-white'>
+                                    <th className='border border-purple-700 px-2 py-3'>Day / Period</th>
                                     {table.periodList.map((p: any, pIdx: number) => (
-                                        <th key={pIdx} className='border border-blue-900 px-2 py-3'>
+                                        <th key={pIdx} className='border border-purple-700 px-2 py-3'>
                                             {p.is_break ? 'Break' : `Period ${p.ped_name}`}
                                         </th>
                                     ))}
@@ -123,7 +123,7 @@ export default function ClassWiseReportGrid({ reportData, onPrint, initialSize =
                                 {table.rows.map((row: any, rIdx: number) => (
                                     <tr key={rIdx} className='hover:bg-gray-50'>
                                         <td
-                                            className='border border-gray-400 px-2 py-2 text-center font-medium text-blue-600'
+                                            className='border border-gray-400 px-2 py-2 text-center font-medium text-purple-600'
                                             style={{ minWidth: '120px' }}>
                                             {row.dayName}
                                         </td>

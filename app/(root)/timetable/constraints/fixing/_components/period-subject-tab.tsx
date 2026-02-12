@@ -26,7 +26,7 @@ import { Plus, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { type IFixingPeriodSubjectList, periodSubjectColumns } from './columns';
+import { periodSubjectColumns } from './columns';
 import { FixingViewModal } from './fixing-view-modal';
 import { TTPeriodSubjectGridData } from '@/types/timetable/constraints/fixing';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
@@ -113,7 +113,7 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
     const { data: gridResponse, isLoading: isGridLoading } = usePeriodSubjectGridData();
 
     // Robust data extraction
-    let gridData: IFixingPeriodSubjectList[] = [];
+    let gridData: TTPeriodSubjectGridData[] = [];
     if (gridResponse) {
         if (Array.isArray(gridResponse)) {
             gridData = gridResponse;
@@ -373,7 +373,7 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
     const onToggle = async (item: any) => {
         try {
             const payload = { TTFPSU_Id: item.ttrpsU_Id, TTFPSU_ActiveFlag: !item.ttrpsU_ActiveFlag };
-            const res = await deactivateFixingPeriodSubject(payload);
+            const res = await deactivateFixingPeriodSubject(item.ttrpsU_Id);
             if (res?.returnval === true) {
                 toast.success('Status Updated');
                 window.location.reload();

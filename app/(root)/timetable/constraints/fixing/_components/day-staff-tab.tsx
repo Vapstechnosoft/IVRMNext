@@ -27,7 +27,8 @@ import { Plus, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { type IFixingDayStaffList, dayStaffColumns } from './columns';
+import { dayStaffColumns } from './columns';
+import { TTDayStaffGridData } from '@/types/timetable/constraints/fixing';
 import { FixingViewModal } from './fixing-view-modal';
 import { useDayStaffGridData } from '@/hooks/timetable/constraints/fixingData';
 import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
@@ -60,7 +61,7 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
     const { data: gridResponse, isLoading: isGridLoading } = useDayStaffGridData();
 
     // Robust data extraction
-    let gridData: IFixingDayStaffList[] = [];
+    let gridData: TTDayStaffGridData[] = [];
     if (gridResponse) {
         if (Array.isArray(gridResponse)) {
             gridData = gridResponse;
@@ -96,7 +97,7 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
         }
     });
 
-    const { reset, setValue, watch, handleSubmit, control } = form;
+    const { reset, watch, handleSubmit, control } = form;
     const ASMAY_Id = watch('ASMAY_Id');
     const TTFDS_SUbSelcFlag = watch('TTFDS_SUbSelcFlag');
 
@@ -136,12 +137,12 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
     }, [isEditFormOpen, selectedRow]);
 
     // Effect to handle Toggle (Active/Deactivate)
-    useEffect(() => {
-        if (isToggleFormOpen && selectedRow) {
-            onToggle(selectedRow);
-            closeToggleForm();
-        }
-    }, [isToggleFormOpen, selectedRow]);
+    // useEffect(() => {
+    //     if (isToggleFormOpen && selectedRow) {
+    //         onToggle(selectedRow);
+    //         closeToggleForm();
+    //     }
+    // }, [isToggleFormOpen, selectedRow]);
 
     // Effect to handle View
     useEffect(() => {
@@ -261,16 +262,16 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
 
     const onEdit = async (item: any) => {
         try {
-            const res = await getFixingDayStaffDetails(item.ttrdS_Id);
+            const res = await getFixingDayStaffDetails(item.ttfdS_Id);
             if (res?.fix_day_staff_edit && (res.fix_day_staff_edit as any[]).length > 0) {
                 const d = (res.fix_day_staff_edit as any[])[0];
 
                 reset({
-                    TTFDS_Id: d.ttrdS_Id,
+                    TTFDS_Id: d.ttfdS_Id,
                     ASMAY_Id: d.asmaY_Id,
                     TTMD_Id: d.ttmD_Id,
                     HRME_Id: d.hrmE_Id,
-                    TTFDS_SUbSelcFlag: d.ttrdS_SUbSelcFlag,
+                    TTFDS_SUbSelcFlag: d.ttfdS_SUbSelcFlag,
                     TempararyArrayList: []
                 });
 
@@ -297,7 +298,7 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
         try {
             setIsLoadingView(true);
             setViewDetails([]);
-            const res = await getFixingDayStaffDetails(item.ttrdS_Id);
+            const res = await getFixingDayStaffDetails(item.ttfdS_Id);
             if (res?.fix_day_staff__classecedit) {
                 const details = (res.fix_day_staff__classecedit as any[]).map((sub: any) => ({
                     clsDisplay: sub.asmcL_ClassName,
@@ -314,20 +315,20 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
         }
     };
 
-    const onToggle = async (item: any) => {
-        try {
-            const payload = { TTFDS_Id: item.ttrdS_Id, TTFDS_ActiveFlag: !item.ttrdS_ActiveFlag };
-            const res = await deactivateFixingDayStaff(payload);
-            if (res?.returnval === true) {
-                toast.success('Status Updated');
-                window.location.reload();
-            } else {
-                toast.error('Failed to update status');
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    };
+    // const onToggle = async (item: any) => {
+    //     try {
+    //         const payload = { TTFDS_Id: item.ttfdS_Id, TTFDS_ActiveFlag: !item.ttfdS_ActiveFlag };
+    //         const res = await deactivateFixingDayStaff(payload);
+    //         if (res?.returnval === true) {
+    //             toast.success('Status Updated');
+    //             window.location.reload();
+    //         } else {
+    //             toast.error('Failed to update status');
+    //         }
+    //     } catch (e) {
+    //         console.error(e);
+    //     }
+    // };
 
     const onSubmit = async (data: FixingDayStaffSchema) => {
         try {

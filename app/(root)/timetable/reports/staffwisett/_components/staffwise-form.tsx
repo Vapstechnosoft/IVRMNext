@@ -40,10 +40,10 @@ export default function StaffWiseForm({ initialData, onSubmit, onSuccess, onCanc
         refetchAll: refetchAllstaffdropdowndatattstaffreport
     } = staffdropdowndatattstaffreport();
 
-    const academicList = academicyeardata?.data || [];
+    const academicList = Array.isArray(academicyeardata) ? academicyeardata : (academicyeardata as any)?.data || [];
 
     // Use initialData for these lists
-    const staffList = staffdata?.data || [];
+    const staffList = Array.isArray(staffdata) ? staffdata : (staffdata as any)?.data || [];
     const periodList = initialData?.periodslst || [];
     const daysList = initialData?.dayslst_fix || [];
 
@@ -127,8 +127,8 @@ export default function StaffWiseForm({ initialData, onSubmit, onSuccess, onCanc
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {academicList.map((item: any) => (
-                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                    {academicList?.map((item: any) => (
+                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id?.toString() || ''}>
                                             {item.asmaY_Year}
                                         </SelectItem>
                                     ))}
@@ -187,7 +187,7 @@ export default function StaffWiseForm({ initialData, onSubmit, onSuccess, onCanc
                     <Search className='mr-2 h-4 w-4' />
                     Report
                 </Button>
-                <Button type='button' variant='destructive' onClick={onCancel}>
+                <Button type='button' variant='outline' onClick={onCancel}>
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>

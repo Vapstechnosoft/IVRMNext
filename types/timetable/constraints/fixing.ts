@@ -1,24 +1,42 @@
 export interface TTDayPeriodGridData {
-    ttfdP_Id: number; //id
-    asmaY_Year: string; //academic year
-    ttmC_CategoryName: string; //category
-    asmcL_ClassName: string; //class
-    asmC_SectionName: string //section
-    ismS_SubjectName: string; //subject
-    ttmP_PeriodName: number;  //id
-    ttmD_DayName: string; //days
-    ttfdP_ActiveFlag: boolean; //toggle button
+    ttfdP_Id: number;
+    asmaY_Year: string;
+    ttmC_CategoryName: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    staffName: string;
+    ismS_SubjectName: string;
+    ttmD_DayName: string;
+    ttmP_PeriodName: string;
+    ttfdP_ActiveFlag: boolean;
 }
 
+export interface TTDayStaffGridData {
+    ttfdS_Id: number;
+    asmaY_Year: string;
+    staffName: string;
+    ttmD_Id: number;
+    ttmD_DayName: string;
+    // ttfdS_SUbSelcFlag: boolean;
+    // ttfdS_ActiveFlag: boolean;
+}
 
 export interface TTDaySubjectGridData {
-    ttrdsU_Id: number; //id
-    asmaY_Year: string; //academic year
-    ismS_SubjectName: string; //subject
-    ttmD_Id: number;  //id
-    ttmD_DayName: string; //days
-    ttrdsU_SUbSelcFlag: boolean; //toggle button
-    ttrdsU_ActiveFlag: boolean;  //toggle button
+    ttfdsU_Id: number;
+    asmaY_Year: string;
+    ismS_SubjectName: string;
+    ttmD_DayName: string;
+    ttfdsU_SUbSelcFlag: boolean;
+    ttfdsU_ActiveFlag: boolean;
+}
+
+export interface TTPeriodStaffGridData {
+    ttfpS_Id: number;
+    asmaY_Year: string;
+    staffName: string;
+    ttmP_PeriodName: string;
+    ttfpS_SUbSelcFlag: boolean;
+    ttfpS_ActiveFlag: boolean;
 }
 
 export interface TTPeriodSubjectGridData {
@@ -30,15 +48,3 @@ export interface TTPeriodSubjectGridData {
     ttrpsU_SUbSelcFlag: boolean; //toggle button-TTRPSU_SUbSelcFlag 
     ttrpsU_ActiveFlag: boolean;  //toggle button-TTRPSU_ActiveFlag 
 }
-
-export interface TTPeriodStaffGridData {
-    ttfpS_Id: number;
-    asmaY_Year: string;
-    ttmP_Id: number;
-    ttmP_PeriodName: string;
-    ttfpS_SUbSelcFlag: boolean;
-    ttfpS_ActiveFlag: boolean;
-    staffName?: string;
-}
-
-

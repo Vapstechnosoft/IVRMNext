@@ -101,13 +101,13 @@ export default function CountReportTable({ data }: CountReportTableProps) {
                 />
             </div>
             <div className='rounded-md border'>
-                <Table>
-                    <TableHeader>
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => {
+                <Table className='border-collapse border-2 border-purple-700'>
+                    <TableHeader className='bg-purple-700'>
+                        {table.getHeaderGroups()?.map((headerGroup) => (
+                            <TableRow key={headerGroup.id} className='hover:bg-purple-700'>
+                                {headerGroup.headers?.map((header) => {
                                     return (
-                                        <TableHead key={header.id} className='text-center font-bold text-black'>
+                                        <TableHead key={header.id} className='border border-purple-700 text-center font-bold text-white'>
                                             {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                                         </TableHead>
                                     );
@@ -117,10 +117,10 @@ export default function CountReportTable({ data }: CountReportTableProps) {
                     </TableHeader>
                     <TableBody>
                         {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
-                                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id} className='text-center'>
+                            table.getRowModel().rows?.map((row) => (
+                                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'} className='hover:bg-gray-50'>
+                                    {row.getVisibleCells()?.map((cell) => (
+                                        <TableCell key={cell.id} className='border border-gray-400 text-center'>
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </TableCell>
                                     ))}

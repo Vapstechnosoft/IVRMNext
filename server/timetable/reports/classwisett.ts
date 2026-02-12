@@ -21,3 +21,8 @@ export async function getSectionDetailsTT() {
     const url = '/TimeTableCommon/section-details';
     return await api.get<ISectionDropdown[]>('timetable', url);
 }
+
+export async function getClassDetails() {
+    const url = '/TimeTableCommon/GetClassData';
+    return await api.get<any[]>('timetable', url);
+}

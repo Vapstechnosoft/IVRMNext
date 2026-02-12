@@ -26,8 +26,9 @@ import { Plus, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { type IFixingPeriodStaffList, periodStaffColumns } from './columns';
+import { periodStaffColumns } from './columns';
 import { FixingViewModal } from './fixing-view-modal';
+import { TTPeriodStaffGridData } from '@/types/timetable/constraints/fixing';
 
 interface PeriodStaffTabProps {
     initialData: any;
@@ -57,7 +58,7 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
     const { data: gridResponse, isLoading: isGridLoading } = usePeriodStaffGridData();
 
     // Robust data extraction
-    let gridData: IFixingPeriodStaffList[] = [];
+    let gridData: TTPeriodStaffGridData[] = [];
     if (gridResponse) {
         if (Array.isArray(gridResponse)) {
             gridData = gridResponse;
@@ -313,7 +314,7 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
     const onToggle = async (item: any) => {
         try {
             const payload = { TTFPS_Id: item.ttfpS_Id, TTFPS_ActiveFlag: !item.ttfpS_ActiveFlag };
-            const res = await deactivateFixingPeriodStaff(payload);
+            const res = await deactivateFixingPeriodStaff(item.ttfpS_Id,);
             if (res?.returnval === true) {
                 toast.success('Status Updated');
                 window.location.reload();
