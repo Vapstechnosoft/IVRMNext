@@ -2,6 +2,7 @@
 
 import { AdaptiveBody, AdaptiveDialog } from '@/components/ui/extension/adaptive-dialog';
 import { Bell, CheckCircle2, Clock, FileText } from 'lucide-react';
+import Link from 'next/link';
 
 export default function ApplicationFormSuccessDialog({
     isOpen,
@@ -63,19 +64,21 @@ export default function ApplicationFormSuccessDialog({
                                         </div>
                                     </div>
                                 )}
-                                <div className='rounded-lg border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-md'>
-                                    <div className='flex items-start gap-3'>
-                                        <div className='mt-0.5 rounded-lg bg-blue-500 p-2'>
-                                            <FileText className='h-4 w-4 text-white' />
-                                        </div>
-                                        <div className='flex-1 text-left'>
-                                            <h3 className='mb-1 font-semibold text-slate-900 text-sm'>Track Your Application</h3>
-                                            <p className='text-slate-600 text-xs leading-relaxed'>
-                                                Monitor your application status in your dashboard
-                                            </p>
+                                <Link href='/' className='block cursor-pointer'>
+                                    <div className='rounded-lg border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-md'>
+                                        <div className='flex items-start gap-3'>
+                                            <div className='mt-0.5 rounded-lg bg-blue-500 p-2'>
+                                                <FileText className='h-4 w-4 text-white' />
+                                            </div>
+                                            <div className='flex-1 text-left'>
+                                                <h3 className='mb-1 font-semibold text-slate-900 text-sm'>Track Your Application</h3>
+                                                <p className='text-slate-600 text-xs leading-relaxed'>
+                                                    Monitor your application status in your dashboard
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                </Link>
 
                                 <div className='rounded-lg border border-purple-100 bg-gradient-to-r from-purple-50 to-pink-50 p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-md'>
                                     <div className='flex items-start gap-3'>

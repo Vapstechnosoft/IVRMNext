@@ -9,17 +9,20 @@ import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useStateDropdown } from '@/hooks/hrms/useEmployeeRegister';
 import {
+    useArrearsList,
     useBankDropdown,
     useBloodGroupDropdown,
     useCasteCategoryDropdown,
     useCasteDropdown,
-    useDepartmentDropdown,
-
     useContactTypeDropdown,
     useCountryDropdown,
     useCourseDropdown,
+    useDeductionList,
+    useDepartmentDropdown,
     useDesignationDropdown,
+    useEarningList,
     useEmployeeById,
+    useEmployeeRegisterOnload,
     useEmployeeTypeDropdown,
     useGenderDropdown,
     useGradeDropdown,
@@ -30,22 +33,18 @@ import {
     usePaymentModeDropdown,
     useReligionDropdown,
     useSalaryTypeDropdown,
+    useSaveBankDetails,
     useSaveEmployee,
+    useSaveEmployeeDocument,
     useSaveEmployeeExperience,
+    useSaveEmployeeMedical,
+    useSaveEmployeeOtherDetails,
     useSaveEmployeeQualification,
+    useSaveEmployeeSalaryDetails,
     useScoreTypeDropdown,
     useSpecializationDropdown,
     useTeachingTypeDropdown,
-    useSaveEmployeeDocument,
-    useSaveEmployeeMedical,
-    useSaveEmployeeOtherDetails,
-    useUploadStaffPhoto,
-    useSaveBankDetails,
-    useEmployeeRegisterOnload,
-    useEarningList,
-    useDeductionList,
-    useArrearsList,
-    useSaveEmployeeSalaryDetails
+    useUploadStaffPhoto
 } from '@/hooks/hrms/useEmployeeRegister';
 import { getIconByName } from '@/lib/lucide-icon-registry';
 import { cn } from '@/lib/utils';
@@ -78,7 +77,6 @@ import type {
     ITeachingTypeDropdown
 } from '@/types/hrms/hrms-config/employee';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
 import { Check, ChevronLeft, ChevronRight, Plus, RefreshCw, Save, Trash2, Upload, X } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -89,14 +87,6 @@ import {
     employeeRegisterSteps,
     fileToBase64,
     mapApiResponseToFormFields,
-    mapApiResponseToTab1Fields,
-    mapApiResponseToTab2Fields,
-    mapApiResponseToTab3Fields,
-    mapApiResponseToTab4Fields,
-    mapApiResponseToTab5Fields,
-    mapApiResponseToTab6Fields,
-    mapApiResponseToTab7Fields,
-    mapApiResponseToTab8Fields,
     mapFormDataToApiFormat,
     mapFormDataToApiFormatWithoutAddress,
     mapFormDataToPascalCaseApiFormat,
@@ -171,11 +161,7 @@ function QualificationStateDropdown({
                             )}
                         </SelectContent>
                     </Select>
-                    {fieldState.error && (
-                        <div className='font-medium text-[0.8rem] text-destructive'>
-                            {fieldState.error.message}
-                        </div>
-                    )}
+                    {fieldState.error && <div className='font-medium text-[0.8rem] text-destructive'>{fieldState.error.message}</div>}
                 </div>
             )}
         />
@@ -190,7 +176,7 @@ const getSafeValue = (value: any) => {
 };
 
 // Type definition using imported schema
-type FormFields = z.infer<typeof employeeRegisterSchemas.add>;
+type FormFields = z.infer<typeof employeeRegisterSchemas.update>;
 
 const steps = employeeRegisterSteps;
 
@@ -211,9 +197,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     // Grade dropdown - API: /api/MasterDropDown/GetGradeList
     const { data: gradeDropdownResponse, isLoading: isLoadingGrades } = useGradeDropdown();
     // Memoize dropdown to prevent infinite loops from unstable array references
-    const gradeDropdown: IGradeDropdown[] = useMemo(() =>
-        Array.isArray(gradeDropdownResponse) ? gradeDropdownResponse : (gradeDropdownResponse as any)?.data || [],
-        [gradeDropdownResponse]);
+    const gradeDropdown: IGradeDropdown[] = useMemo(
+        () => (Array.isArray(gradeDropdownResponse) ? gradeDropdownResponse : (gradeDropdownResponse as any)?.data || []),
+        [gradeDropdownResponse]
+    );
 
     // Group Type dropdown - API: /api/MasterDropDown/GroupType
     const { data: groupTypeDropdownResponse, isLoading: isLoadingGroupTypes } = useGroupTypeDropdown();
@@ -255,21 +242,25 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
 
     // Institution dropdown - API: /api/MasterDropDown/GetInstitutionList
     const { data: institutionDropdownResponse, isLoading: isLoadingInstitutions } = useInstitutionDropdown();
-    const institutionDropdown: IInstitutionDropdown[] = useMemo(() =>
-        Array.isArray(institutionDropdownResponse) ? institutionDropdownResponse : (institutionDropdownResponse as any)?.data || [],
-        [institutionDropdownResponse]);
+    const institutionDropdown: IInstitutionDropdown[] = useMemo(
+        () => (Array.isArray(institutionDropdownResponse) ? institutionDropdownResponse : (institutionDropdownResponse as any)?.data || []),
+        [institutionDropdownResponse]
+    );
 
     // Designation dropdown - API: /api/MasterDropDown/GetDesignation
     const { data: designationDropdownResponse, isLoading: isLoadingDesignations } = useDesignationDropdown();
-    const designationDropdown: IDesignationDropdown[] = useMemo(() =>
-        Array.isArray(designationDropdownResponse) ? designationDropdownResponse : (designationDropdownResponse as any)?.data || [],
-        [designationDropdownResponse]);
+    const designationDropdown: IDesignationDropdown[] = useMemo(
+        () => (Array.isArray(designationDropdownResponse) ? designationDropdownResponse : (designationDropdownResponse as any)?.data || []),
+        [designationDropdownResponse]
+    );
 
     // Department dropdown (for School field) - API: /api/MasterDropDown/GetDepartments
     const { data: departmentDropdownResponse, isLoading: isLoadingDepartments } = useDepartmentDropdown();
 
     const departmentDropdown: any[] = useMemo(() => {
-        const rawData = Array.isArray(departmentDropdownResponse) ? departmentDropdownResponse : (departmentDropdownResponse as any)?.data || [];
+        const rawData = Array.isArray(departmentDropdownResponse)
+            ? departmentDropdownResponse
+            : (departmentDropdownResponse as any)?.data || [];
         console.log('🔍 [DEBUG] Department Raw Data:', rawData);
         return rawData
             .map((item: any) => {
@@ -295,19 +286,22 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             .filter((item: any) => item.key != null && item.key !== undefined && item.key !== 0);
     }, [departmentDropdownResponse]);
 
-
-
     // Gender dropdown - API: /api/MasterDropDown/GetGenderList
     const { data: genderDropdownResponse, isLoading: isLoadingGenders } = useGenderDropdown();
-    const genderDropdown: IGenderDropdown[] = useMemo(() =>
-        Array.isArray(genderDropdownResponse) ? genderDropdownResponse : (genderDropdownResponse as any)?.data || [],
-        [genderDropdownResponse]);
+    const genderDropdown: IGenderDropdown[] = useMemo(
+        () => (Array.isArray(genderDropdownResponse) ? genderDropdownResponse : (genderDropdownResponse as any)?.data || []),
+        [genderDropdownResponse]
+    );
 
     // Marital Status dropdown - API: /api/MasterDropDown/GetMaritalStateList
     const { data: maritalStatusDropdownResponse, isLoading: isLoadingMaritalStatuses } = useMaritalStatusDropdown();
-    const maritalStatusDropdown: IMaritalStatusDropdown[] = useMemo(() =>
-        Array.isArray(maritalStatusDropdownResponse) ? maritalStatusDropdownResponse : (maritalStatusDropdownResponse as any)?.data || [],
-        [maritalStatusDropdownResponse]);
+    const maritalStatusDropdown: IMaritalStatusDropdown[] = useMemo(
+        () =>
+            Array.isArray(maritalStatusDropdownResponse)
+                ? maritalStatusDropdownResponse
+                : (maritalStatusDropdownResponse as any)?.data || [],
+        [maritalStatusDropdownResponse]
+    );
 
     // Religion dropdown - API: /api/MasterDropDown/GeAllReligionList
     const { data: religionDropdownResponse, isLoading: isLoadingReligions } = useReligionDropdown();
@@ -320,7 +314,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 if (item.key !== undefined && item.value !== undefined) return item;
                 if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Religion Item:', item);
                 return {
-                    key: Number(item.ivrmmR_Id ?? item.IVRMMR_Id ?? item.hrmR_Id ?? item.religionId ?? item.ReligionId ?? item.id ?? item.key ?? 0),
+                    key: Number(
+                        item.ivrmmR_Id ?? item.IVRMMR_Id ?? item.hrmR_Id ?? item.religionId ?? item.ReligionId ?? item.id ?? item.key ?? 0
+                    ),
                     value: String(
                         item.ivrmmR_Name ??
                         item.IVRMMR_Name ??
@@ -337,30 +333,33 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             .filter((item: any) => item.key != null && item.key !== undefined && item.key !== 0);
     }, [religionDropdownResponse]);
 
-
-
     // Payment Mode dropdown - API: /api/MasterDropDown/GetPaymentModeList
     const { data: paymentModeDropdownResponse, isLoading: isLoadingPaymentModes } = usePaymentModeDropdown();
-    const paymentModeDropdown: IPaymentModeDropdown[] = useMemo(() =>
-        Array.isArray(paymentModeDropdownResponse) ? paymentModeDropdownResponse : (paymentModeDropdownResponse as any)?.data || [],
-        [paymentModeDropdownResponse]);
+    const paymentModeDropdown: IPaymentModeDropdown[] = useMemo(
+        () => (Array.isArray(paymentModeDropdownResponse) ? paymentModeDropdownResponse : (paymentModeDropdownResponse as any)?.data || []),
+        [paymentModeDropdownResponse]
+    );
 
     // Bank dropdown - API: /api/MasterDropDown/GetBankList
     const { data: bankDropdownResponse, isLoading: isLoadingBanks } = useBankDropdown();
-    const bankDropdown: IBankDropdown[] = useMemo(() =>
-        Array.isArray(bankDropdownResponse) ? bankDropdownResponse : (bankDropdownResponse as any)?.data || [],
-        [bankDropdownResponse]);
+    const bankDropdown: IBankDropdown[] = useMemo(
+        () => (Array.isArray(bankDropdownResponse) ? bankDropdownResponse : (bankDropdownResponse as any)?.data || []),
+        [bankDropdownResponse]
+    );
 
     // Country dropdown - API: /api/MasterDropDown/GetCountryList
     const { data: countryDropdownResponse, isLoading: isLoadingCountries } = useCountryDropdown();
-    const countryDropdown: ICountryDropdown[] = useMemo(() =>
-        Array.isArray(countryDropdownResponse) ? countryDropdownResponse : (countryDropdownResponse as any)?.data || [],
-        [countryDropdownResponse]);
+    const countryDropdown: ICountryDropdown[] = useMemo(
+        () => (Array.isArray(countryDropdownResponse) ? countryDropdownResponse : (countryDropdownResponse as any)?.data || []),
+        [countryDropdownResponse]
+    );
 
     // Specialization dropdown - API: /api/MasterDropDown/GetSpecialisationList
     const { data: specializationDropdownResponse, isLoading: isLoadingSpecializations } = useSpecializationDropdown();
     const specializationDropdown: ISpecializationDropdown[] = useMemo(() => {
-        const rawData = Array.isArray(specializationDropdownResponse) ? specializationDropdownResponse : (specializationDropdownResponse as any)?.data || [];
+        const rawData = Array.isArray(specializationDropdownResponse)
+            ? specializationDropdownResponse
+            : (specializationDropdownResponse as any)?.data || [];
         console.log('🔍 [DEBUG] Specialization Raw Data:', rawData);
         return rawData
             .map((item: any) => {
@@ -388,39 +387,46 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
 
     // Leave Reason dropdown - API: /api/MasterDropDown/GetLeaveReasonList
     const { data: leaveReasonDropdownResponse, isLoading: isLoadingLeaveReasons } = useLeaveReasonDropdown();
-    const leaveReasonDropdown: ILeaveReasonDropdown[] = useMemo(() =>
-        Array.isArray(leaveReasonDropdownResponse) ? leaveReasonDropdownResponse : (leaveReasonDropdownResponse as any)?.data || [],
-        [leaveReasonDropdownResponse]);
+    const leaveReasonDropdown: ILeaveReasonDropdown[] = useMemo(
+        () => (Array.isArray(leaveReasonDropdownResponse) ? leaveReasonDropdownResponse : (leaveReasonDropdownResponse as any)?.data || []),
+        [leaveReasonDropdownResponse]
+    );
 
     // Blood Group dropdown - API: /api/MasterDropDown/GetBloodGroupList
     const { data: bloodGroupDropdownResponse, isLoading: isLoadingBloodGroups } = useBloodGroupDropdown();
-    const bloodGroupDropdown: IBloodGroupDropdown[] = useMemo(() =>
-        Array.isArray(bloodGroupDropdownResponse) ? bloodGroupDropdownResponse : (bloodGroupDropdownResponse as any)?.data || [],
-        [bloodGroupDropdownResponse]);
+    const bloodGroupDropdown: IBloodGroupDropdown[] = useMemo(
+        () => (Array.isArray(bloodGroupDropdownResponse) ? bloodGroupDropdownResponse : (bloodGroupDropdownResponse as any)?.data || []),
+        [bloodGroupDropdownResponse]
+    );
 
     // Salary Type dropdown - API: /api/MasterDropDown/GetSalaryTypeList
     const { data: salaryTypeDropdownResponse, isLoading: isLoadingSalaryTypes } = useSalaryTypeDropdown();
-    const salaryTypeDropdown: ISalaryTypeDropdown[] = useMemo(() =>
-        Array.isArray(salaryTypeDropdownResponse) ? salaryTypeDropdownResponse : (salaryTypeDropdownResponse as any)?.data || [],
-        [salaryTypeDropdownResponse]);
+    const salaryTypeDropdown: ISalaryTypeDropdown[] = useMemo(
+        () => (Array.isArray(salaryTypeDropdownResponse) ? salaryTypeDropdownResponse : (salaryTypeDropdownResponse as any)?.data || []),
+        [salaryTypeDropdownResponse]
+    );
 
     // Teaching Type dropdown - API: /api/MasterDropDown/GetTeachingTypeList
     const { data: teachingTypeDropdownResponse, isLoading: isLoadingTeachingTypes } = useTeachingTypeDropdown();
-    const teachingTypeDropdown: ITeachingTypeDropdown[] = useMemo(() =>
-        Array.isArray(teachingTypeDropdownResponse) ? teachingTypeDropdownResponse : (teachingTypeDropdownResponse as any)?.data || [],
-        [teachingTypeDropdownResponse]);
+    const teachingTypeDropdown: ITeachingTypeDropdown[] = useMemo(
+        () =>
+            Array.isArray(teachingTypeDropdownResponse) ? teachingTypeDropdownResponse : (teachingTypeDropdownResponse as any)?.data || [],
+        [teachingTypeDropdownResponse]
+    );
 
     // Score Type dropdown - API: /api/MasterDropDown/ScoreTypeList
     const { data: scoreTypeDropdownResponse, isLoading: isLoadingScoreTypes } = useScoreTypeDropdown();
-    const scoreTypeDropdown: IScoreTypeDropdown[] = useMemo(() =>
-        Array.isArray(scoreTypeDropdownResponse) ? scoreTypeDropdownResponse : (scoreTypeDropdownResponse as any)?.data || [],
-        [scoreTypeDropdownResponse]);
+    const scoreTypeDropdown: IScoreTypeDropdown[] = useMemo(
+        () => (Array.isArray(scoreTypeDropdownResponse) ? scoreTypeDropdownResponse : (scoreTypeDropdownResponse as any)?.data || []),
+        [scoreTypeDropdownResponse]
+    );
 
     // Contact Type dropdown - API: /api/MasterDropDown/GetContactType
     const { data: contactTypeDropdownResponse, isLoading: isLoadingContactTypes } = useContactTypeDropdown();
-    const contactTypeDropdown: IContactTypeDropdown[] = useMemo(() =>
-        Array.isArray(contactTypeDropdownResponse) ? contactTypeDropdownResponse : (contactTypeDropdownResponse as any)?.data || [],
-        [contactTypeDropdownResponse]);
+    const contactTypeDropdown: IContactTypeDropdown[] = useMemo(
+        () => (Array.isArray(contactTypeDropdownResponse) ? contactTypeDropdownResponse : (contactTypeDropdownResponse as any)?.data || []),
+        [contactTypeDropdownResponse]
+    );
 
     // Course dropdown - API: /api/MasterDropDown/GetCourseList
     const { data: courseDropdownResponse, isLoading: isLoadingCourses } = useCourseDropdown();
@@ -446,8 +452,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             })
             .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
     }, [courseDropdownResponse]);
-
-
 
     const { mutate: saveEmployeeMutation, isPending } = useSaveEmployee();
     const { mutate: saveQualificationMutation, isPending: isSavingQualification } = useSaveEmployeeQualification();
@@ -517,7 +521,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
 
     const { control, register, handleSubmit, reset, watch, getValues, setValue, trigger, setError, clearErrors, formState } =
         useForm<FormFields>({
-            resolver: zodResolver(employeeRegisterSchemas.add),
+            resolver: zodResolver(employeeRegisterSchemas.update),
             mode: 'onChange',
             reValidateMode: 'onChange',
             defaultValues: formDefaultValues,
@@ -536,13 +540,13 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         isSavingOther ||
         isSavingSalaryDetails;
 
-
-
-
-
     // Get MI_Id from selectedRow or assume it's available (fallback to 0 which might fail if API is strict)
     const MI_Id = selectedRow?.mI_Id || 0;
-    const { data: onloadData, isLoading: isLoadingEmployee, refetch: refetchEmployee } = useEmployeeRegisterOnload(MI_Id, selectedRow?.hrmE_Id);
+    const {
+        data: onloadData,
+        isLoading: isLoadingEmployee,
+        refetch: refetchEmployee
+    } = useEmployeeRegisterOnload(MI_Id, selectedRow?.hrmE_Id);
 
     // Fetch payroll lists explicitly as requested by user
     const { data: earningListData } = useEarningList();
@@ -559,7 +563,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const { data: casteCategoryDropdownResponse, isLoading: isLoadingCasteCategories } = useCasteCategoryDropdown(selectedReligionId || 0);
 
     const casteCategoryDropdown: ICasteCategoryDropdown[] = useMemo(() => {
-        const rawData = Array.isArray(casteCategoryDropdownResponse) ? casteCategoryDropdownResponse : (casteCategoryDropdownResponse as any)?.data || [];
+        const rawData = Array.isArray(casteCategoryDropdownResponse)
+            ? casteCategoryDropdownResponse
+            : (casteCategoryDropdownResponse as any)?.data || [];
         console.log('🔍 [DEBUG] CasteCategory Raw Data:', rawData);
         return rawData
             .map((item: any) => {
@@ -591,7 +597,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
     }, [casteDropdownResponse]);
 
-
     // Options object - Moved here to have access to dependent dropdowns
     const options = useMemo(() => {
         return {
@@ -620,9 +625,18 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             contactTypes: contactTypeDropdown || [],
             cgpaPercentageTypes: scoreTypeDropdown || [],
             leavingReasons: leaveReasonDropdown || [],
-            earningList: (Array.isArray(earningListData) ? earningListData : (earningListData as any)?.data) || (onloadData as any)?.data?.earningList || [],
-            detectionList: (Array.isArray(deductionListData) ? deductionListData : (deductionListData as any)?.data) || (onloadData as any)?.data?.detectionList || [],
-            arrearList: (Array.isArray(arrearsListData) ? arrearsListData : (arrearsListData as any)?.data) || (onloadData as any)?.data?.arrearList || [],
+            earningList:
+                (Array.isArray(earningListData) ? earningListData : (earningListData as any)?.data) ||
+                (onloadData as any)?.data?.earningList ||
+                [],
+            detectionList:
+                (Array.isArray(deductionListData) ? deductionListData : (deductionListData as any)?.data) ||
+                (onloadData as any)?.data?.detectionList ||
+                [],
+            arrearList:
+                (Array.isArray(arrearsListData) ? arrearsListData : (arrearsListData as any)?.data) ||
+                (onloadData as any)?.data?.arrearList ||
+                [],
             grossList: (onloadData as any)?.data?.grossList || [],
             documentList: [],
             employeedetailList: []
@@ -681,12 +695,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         courses: isLoadingCourses
     };
 
-
-
     // Fetch full employee details when selectedRow changes
     // MOVED HERE: To ensure 'reset' from useForm is defined
     // Use the onload API which returns comprehensive data + dropdowns
-
 
     // Effect to refetch when selectedRow changes (ensures fresh data on repeated edits)
     useEffect(() => {
@@ -699,11 +710,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         }
     }, [selectedRow?.hrmE_Id, refetchEmployee]);
 
-
-
     // SAFETY: Re-hydrate arrays when switching tabs if they appear empty but data exists
-
-
 
     // Define local mapping helpers that were missing
     const mapFormDataToApiFormatLocal = (data: FormFields): SavePersonalDetailsApiRequest => {
@@ -720,7 +727,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const mapFormDataToPascalCaseLocal = (data: any) => {
         return mapFormDataToPascalCaseApiFormat(data, savedEmployeeId || selectedRow?.hrmE_Id || 0, selectedPhoto);
     };
-
 
     // Helper to get current tab key from step
     const getCurrentTabKey = () => steps.find((s) => s.id === currentStep)?.tabKey || 'employee';
@@ -811,9 +817,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
 
         // Apply robust payment mode fix to ensure the name is sent to API and bank details are cleared for non-Bank modes
         const fixPaymentMode = (p: any) => {
-            const paymentModeObj = (options.modeOfPayment as any[])?.find((m: any) =>
-                String(m.key || m.ivrmmod_Id || '') === String(data.modeOfPayment) ||
-                String(m.value || m.ivrmmod_ModeOfPayment || '').toLowerCase() === String(data.modeOfPayment).toLowerCase()
+            const paymentModeObj = (options.modeOfPayment as any[])?.find(
+                (m: any) =>
+                    String(m.key || m.ivrmmod_Id || '') === String(data.modeOfPayment) ||
+                    String(m.value || m.ivrmmod_ModeOfPayment || '').toLowerCase() === String(data.modeOfPayment).toLowerCase()
             );
             const paymentModeName = paymentModeObj?.value || paymentModeObj?.ivrmmod_ModeOfPayment || data.modeOfPayment;
 
@@ -852,8 +859,18 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Payload:', payload);
             console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Employee ID:', payload.employee.hrmE_Id);
             console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Address Fields Check:');
-            console.log('  - Contact Address:', payload.employee.hrmE_LocStreet, payload.employee.hrmE_LocCity, payload.employee.hrmE_LocStateId);
-            console.log('  - Permanent Address:', payload.employee.hrmE_PerStreet, payload.employee.hrmE_PerCity, payload.employee.hrmE_PerStateId);
+            console.log(
+                '  - Contact Address:',
+                payload.employee.hrmE_LocStreet,
+                payload.employee.hrmE_LocCity,
+                payload.employee.hrmE_LocStateId
+            );
+            console.log(
+                '  - Permanent Address:',
+                payload.employee.hrmE_PerStreet,
+                payload.employee.hrmE_PerCity,
+                payload.employee.hrmE_PerStateId
+            );
             console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Calling savePersonalDetails...');
 
             savePersonalDetails(payload as any, {
@@ -1028,7 +1045,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     hrmeQ_Result: qual.result || '',
                     hrmeQ_CGPAOrPerFlag: qual.cgpaOrPercentage || 'CGPA',
                     hrmeQ_CGPA: qual.cgpaOrPercentage === 'CGPA' ? qual.cgpa || '' : '',
-                    hrmeQ_Percentage: qual.cgpaOrPercentage === 'Percentage' ? qual.cgpa || '' : '',
+                    hrmeQ_Percentage: qual.cgpaOrPercentage === 'Percentage' ? qual.percentage || '' : '',
                     hrmeQ_AreaOfSpecialisation: qual.areaOfSpecialisation || qual.specialisation || '',
                     hrmeQ_PHDFlg: qual.phdFlag || false,
                     hrmeQ_StateId: Number(qual.qualificationState) || 0,
@@ -1244,17 +1261,20 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                         toast.success(response.message || 'Other details saved successfully');
                         // Call salary details save API as requested by user
                         if (savedEmployeeId) {
-                            saveSalaryDetails({ hrme_id: savedEmployeeId, MI_Id: MI_Id }, {
-                                onSuccess: (salaryResponse: any) => {
-                                    console.log('✅ [API DEBUG] Tab 7 (Salary Save) - Success:', salaryResponse);
-                                    setCurrentStep(8);
-                                },
-                                onError: (salaryError: any) => {
-                                    console.error('❌ [API DEBUG] Tab 7 (Salary Save) - Error:', salaryError);
-                                    // Move to next step anyway as requested, but warning is fine.
-                                    setCurrentStep(8);
+                            saveSalaryDetails(
+                                { hrme_id: savedEmployeeId, MI_Id: MI_Id },
+                                {
+                                    onSuccess: (salaryResponse: any) => {
+                                        console.log('✅ [API DEBUG] Tab 7 (Salary Save) - Success:', salaryResponse);
+                                        setCurrentStep(8);
+                                    },
+                                    onError: (salaryError: any) => {
+                                        console.error('❌ [API DEBUG] Tab 7 (Salary Save) - Error:', salaryError);
+                                        // Move to next step anyway as requested, but warning is fine.
+                                        setCurrentStep(8);
+                                    }
                                 }
-                            });
+                            );
                         } else {
                             setCurrentStep(8);
                         }
@@ -1269,7 +1289,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     toast.error(errorMessage);
                 }
             });
-
         } else {
             // For other steps, just move to next step without API call
             console.log('🔍 [DEBUG] nextStep - Falling through to else clause (Step 8)');
@@ -1386,9 +1405,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     // Track if we have applied the full detailed data (to override onload data)
     const hasAppliedDetailedData = useRef(false);
 
-
-
-
     // Watch for country changes
     const contactCountry = useWatch({ control, name: 'contactCountry' });
     const permanentCountry = useWatch({ control, name: 'permanentCountry' });
@@ -1420,7 +1436,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     // where permanent states are still loading when the sync happens
     const availablePermanentStates: IStateDropdown[] = sameAsCommunicationAddress
         ? availableContactStates
-        : (permanentCountryId ? (Array.isArray(permanentStates) ? permanentStates : []) : []);
+        : permanentCountryId
+            ? Array.isArray(permanentStates)
+                ? permanentStates
+                : []
+            : [];
 
     // Copy communication address to permanent address when checkbox is checked
     const prevSameAsAddress = useRef(sameAsCommunicationAddress);
@@ -1452,7 +1472,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             setValue('permanentPincode', contactPincode || '', { shouldValidate: true, shouldDirty: true });
             setValue('permanentCountry', contactCountry || '', { shouldValidate: true, shouldDirty: true });
 
-            // Set state with a tiny timeout to ensure the country change and options sharing 
+            // Set state with a tiny timeout to ensure the country change and options sharing
             // has propagated through the form state
             setTimeout(() => {
                 setValue('permanentState', contactState || '', { shouldValidate: true, shouldDirty: true });
@@ -1468,19 +1488,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 contactCountry
             };
         }
-    }, [
-        sameAsCommunicationAddress,
-        contactAddress,
-        contactArea,
-        contactCity,
-        contactState,
-        contactPincode,
-        contactCountry,
-        setValue
-    ]);
-
-
-
+    }, [sameAsCommunicationAddress, contactAddress, contactArea, contactCity, contactState, contactPincode, contactCountry, setValue]);
 
     // Memoize bank options specifically to prevent Select recreation
     const memoizedBankOptions = useMemo(() => {
@@ -1541,7 +1549,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         name: 'mobileDetails'
     });
 
-
     const {
         fields: emailFields,
         append: appendEmail,
@@ -1552,7 +1559,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         name: 'emailDetails'
     });
 
-
     const {
         fields: bankFields,
         append: appendBank,
@@ -1562,7 +1568,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         control,
         name: 'bankDetails'
     });
-
 
     const {
         fields: qualificationFields,
@@ -1594,13 +1599,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         name: 'documentList'
     });
 
-
-
-
-
     // Map form data to API format - use helper functions
     // Map form data to API format - use helper functions
-
 
     // Custom submit handler - same as add-form
 
@@ -1611,7 +1611,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     // Effect to populate form when employeeData is loaded
     useEffect(() => {
         // PRIORITIZE employeeDetailsData (from GetEmployeeDetailsById) over onloadData
-        // But we still need onloadData for everything else to be ready? 
+        // But we still need onloadData for everything else to be ready?
         // Actually, let's try to map WHICHEVER is available and has data.
 
         const sourceData = employeeDetailsData || onloadData;
@@ -1632,7 +1632,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
 
                 if (employeeDetailsData) {
                     console.log('🔍 [UPDATE-FORM DEBUG] Detailed Data Keys:', Object.keys(employeeDetailsData));
-                    if ((employeeDetailsData as any).data) console.log('🔍 [UPDATE-FORM DEBUG] Detailed Data.data Keys:', Object.keys((employeeDetailsData as any).data));
+                    if ((employeeDetailsData as any).data)
+                        console.log('🔍 [UPDATE-FORM DEBUG] Detailed Data.data Keys:', Object.keys((employeeDetailsData as any).data));
                 }
                 if (onloadData) console.log('🔍 [UPDATE-FORM DEBUG] Onload Data Keys:', Object.keys(onloadData));
 
@@ -1669,7 +1670,16 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
 
                         // Bind all fields manually to ensure arrays are populated correctly
                         Object.entries(formData).forEach(([key, value]) => {
-                            if (['mobileDetails', 'emailDetails', 'bankDetails', 'qualificationDetails', 'experienceDetails', 'documentList'].includes(key)) {
+                            if (
+                                [
+                                    'mobileDetails',
+                                    'emailDetails',
+                                    'bankDetails',
+                                    'qualificationDetails',
+                                    'experienceDetails',
+                                    'documentList'
+                                ].includes(key)
+                            ) {
                                 // Arrays - use replace directly
                                 const arrVal = Array.isArray(value) ? value : [];
                                 if (key === 'mobileDetails') replaceMobile(arrVal as any);
@@ -1688,19 +1698,26 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                 }
                             }
                         });
-
                     } else {
                         console.warn('⚠️ [UPDATE-FORM DEBUG] Mapped data appears empty, waiting for more data...');
                     }
-
                 } catch (err) {
                     console.error('❌ [UPDATE-FORM DEBUG] Error mapping data:', err);
                 }
             }
         }
-    }, [onloadData, employeeDetailsData, selectedRow?.hrmE_Id, setValue, replaceMobile, replaceEmail, replaceBank, replaceQualification, replaceExperience, replaceDocument]);
-
-
+    }, [
+        onloadData,
+        employeeDetailsData,
+        selectedRow?.hrmE_Id,
+        setValue,
+        replaceMobile,
+        replaceEmail,
+        replaceBank,
+        replaceQualification,
+        replaceExperience,
+        replaceDocument
+    ]);
 
     // SAFETY: Re-hydrate arrays when switching tabs if they appear empty but data exists
     useEffect(() => {
@@ -1712,7 +1729,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             if (!currentVals || currentVals.length === 0) return;
 
             // Check if fields are empty or if first item is basically empty
-            const needsSync = (!currentFields || currentFields.length === 0) ||
+            const needsSync =
+                !currentFields ||
+                currentFields.length === 0 ||
                 (contentKey && currentFields.length > 0 && !currentFields[0][contentKey] && currentVals[0][contentKey]);
 
             if (needsSync) {
@@ -1746,9 +1765,23 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         if (currentStep === 5) {
             rehydrateIfEmpty('documentList', documentFields, replaceDocument, 'documentName');
         }
-    }, [currentStep, isFormInitialized, mobileFields, emailFields, bankFields, qualificationFields, experienceFields, documentFields, getValues, replaceMobile, replaceEmail, replaceBank, replaceQualification, replaceExperience, replaceDocument]);
-
-
+    }, [
+        currentStep,
+        isFormInitialized,
+        mobileFields,
+        emailFields,
+        bankFields,
+        qualificationFields,
+        experienceFields,
+        documentFields,
+        getValues,
+        replaceMobile,
+        replaceEmail,
+        replaceBank,
+        replaceQualification,
+        replaceExperience,
+        replaceDocument
+    ]);
 
     const onFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -1819,7 +1852,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         }
     };
 
-
     // Show loading for dropdowns or employee details
     if (
         isLoadingGrades ||
@@ -1864,8 +1896,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     }
                 }}
                 className='space-y-6'>
-
-
                 {/* Main Layout: Vertical Stepper + Form */}
                 <div className='flex flex-col gap-6 lg:flex-row'>
                     {/* Stepper - Vertical on desktop, horizontal on mobile */}
@@ -2028,7 +2058,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         {...register('firstName', {
                                                             required: 'First Name is required'
                                                         })}
-                                                        error={errors.firstName?.message}
+                                                        error={errors.firstName?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='Middle Name'
@@ -2063,7 +2093,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                             }
                                                         }}
                                                         {...register('middleName')}
-                                                        error={errors.middleName?.message}
+                                                        error={errors.middleName?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='Last Name'
@@ -2098,7 +2128,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                             }
                                                         }}
                                                         {...register('lastName')}
-                                                        error={errors.lastName?.message}
+                                                        error={errors.lastName?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='Employee Code'
@@ -2108,7 +2138,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         {...register('employeeCode', {
                                                             required: 'Employee code is required'
                                                         })}
-                                                        error={errors.employeeCode?.message}
+                                                        error={errors.employeeCode?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label="Father's Name *"
@@ -2143,7 +2173,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                             }
                                                         }}
                                                         {...register('fatherName')}
-                                                        error={errors.fatherName?.message}
+                                                        error={errors.fatherName?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label="Mother's Name *"
@@ -2178,7 +2208,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                             }
                                                         }}
                                                         {...register('motherName')}
-                                                        error={errors.motherName?.message}
+                                                        error={errors.motherName?.message as string | undefined}
                                                     />
                                                     <Controller
                                                         name='typeOfEmployment'
@@ -2297,11 +2327,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         control={control}
                                                         render={({ field, fieldState }) => {
                                                             const selectValue = field.value ? String(field.value).trim() : '';
-                                                            const availableOptions = (options?.departments || []).filter(
-                                                                (dept: any) => {
-                                                                    return dept.key != null && dept.key !== undefined && dept.key !== 0;
-                                                                }
-                                                            );
+                                                            const availableOptions = (options?.departments || []).filter((dept: any) => {
+                                                                return dept.key != null && dept.key !== undefined && dept.key !== 0;
+                                                            });
                                                             return (
                                                                 <div className='flex flex-col gap-1.5'>
                                                                     <Label>
@@ -2464,7 +2492,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         maxLength={50}
                                                         placeholder='Enter subject taught'
                                                         {...register('subjectTaught')}
-                                                        error={errors.subjectTaught?.message}
+                                                        error={errors.subjectTaught?.message as string | undefined}
                                                     />
                                                     <Controller
                                                         name='grade'
@@ -2620,7 +2648,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 }
                                                             }}
                                                             {...register('recognitionYear')}
-                                                            error={errors.recognitionYear?.message}
+                                                            error={errors.recognitionYear?.message as string | undefined}
                                                         />
                                                     ) : null}
                                                     <Controller
@@ -2738,14 +2766,14 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 id='pfAccNo'
                                                                 maxLength={22}
                                                                 {...register('pfAccNo')}
-                                                                error={errors.pfAccNo?.message}
+                                                                error={errors.pfAccNo?.message as string | undefined}
                                                             />
                                                             <InputText
                                                                 label='UAN Number'
                                                                 id='uanNumber'
                                                                 maxLength={12}
                                                                 {...register('uanNumber')}
-                                                                error={errors.uanNumber?.message}
+                                                                error={errors.uanNumber?.message as string | undefined}
                                                             />
                                                             <Controller
                                                                 name='pfDate'
@@ -2805,14 +2833,14 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     }
                                                                 }}
                                                                 {...register('esiAccNo')}
-                                                                error={errors.esiAccNo?.message}
+                                                                error={errors.esiAccNo?.message as string | undefined}
                                                             />
                                                             <InputText
                                                                 label='Gratuity Acc No.'
                                                                 id='gratuityAccNo'
                                                                 maxLength={25}
                                                                 {...register('gratuityAccNo')}
-                                                                error={errors.gratuityAccNo?.message}
+                                                                error={errors.gratuityAccNo?.message as string | undefined}
                                                             />
                                                             <Controller
                                                                 name='esiDate'
@@ -2856,7 +2884,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                             }
                                                         }}
                                                         {...register('nationalSSN')}
-                                                        error={errors.nationalSSN?.message}
+                                                        error={errors.nationalSSN?.message as string | undefined}
                                                     />
                                                 </div>
                                                 {/* Right Column */}
@@ -3200,7 +3228,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         maxLength={10}
                                                                         {...register(`mobileDetails.${index}.mobileNo`)}
                                                                         className='min-w-[200px] flex-1'
-                                                                        error={(errors.mobileDetails as any)?.[index]?.mobileNo?.message}
+                                                                        error={(errors.mobileDetails as any)?.[index]?.mobileNo?.message as string}
                                                                     />
                                                                     <Button
                                                                         type='button'
@@ -3374,7 +3402,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                             }
                                                         }}
                                                         {...register('aadharNo')}
-                                                        error={errors.aadharNo?.message}
+                                                        error={errors.aadharNo?.message as string}
                                                     />
                                                     <InputText
                                                         label='PAN Card No.'
@@ -3402,7 +3430,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                             }
                                                         }}
                                                         {...register('panCardNo')}
-                                                        error={errors.panCardNo?.message}
+                                                        error={errors.panCardNo?.message as string}
                                                     />
                                                     <Controller
                                                         name='bloodGroup'
@@ -3554,7 +3582,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         <div
                                                             className={cn(
                                                                 'rounded-lg border-2 border-dashed p-4 text-center',
-                                                                errors.employeePhoto ? 'border-destructive bg-destructive/5' : 'border-gray-300'
+                                                                errors.employeePhoto
+                                                                    ? 'border-destructive bg-destructive/5'
+                                                                    : 'border-gray-300'
                                                             )}>
                                                             <div className='mx-auto mb-4 flex h-32 w-32 items-center justify-center overflow-hidden rounded-lg bg-gray-100'>
                                                                 {selectedPhoto ? (
@@ -3590,7 +3620,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         onClick={() => {
                                                                             setSelectedPhoto(null);
                                                                             setPhotoFile(null);
-                                                                            setValue('employeePhoto', '', { shouldValidate: true, shouldDirty: true });
+                                                                            setValue('employeePhoto', '', {
+                                                                                shouldValidate: true,
+                                                                                shouldDirty: true
+                                                                            });
                                                                             const fileInput = document.getElementById(
                                                                                 'employeePhoto'
                                                                             ) as HTMLInputElement;
@@ -3615,11 +3648,13 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     EMPLOYEE BANK DETAILS: <span className='text-red-500'>*</span>
                                                                 </h3>
                                                             </div>
-                                                            {(errors.bankDetails || (watch('modeOfPayment') === 'Bank' && bankFields.length === 0)) && (
-                                                                <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                    {(errors.bankDetails as any)?.message || 'Bank Details are required when Mode of Payment is Bank'}
-                                                                </div>
-                                                            )}
+                                                            {(errors.bankDetails ||
+                                                                (watch('modeOfPayment') === 'Bank' && bankFields.length === 0)) && (
+                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                        {(errors.bankDetails as any)?.message ||
+                                                                            'Bank Details are required when Mode of Payment is Bank'}
+                                                                    </div>
+                                                                )}
                                                             <div className='rounded-lg border bg-card'>
                                                                 <div className='rounded-t-lg bg-gray-200 px-4 py-2 text-gray-900'>
                                                                     <div className='grid grid-cols-5 gap-2 font-semibold text-sm'>
@@ -3652,17 +3687,21 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                     <SelectValue placeholder='--Select--' />
                                                                                                 </SelectTrigger>
                                                                                                 <SelectContent>
-                                                                                                    {memoizedBankOptions.map((bank: any) => {
-                                                                                                        const val = getSafeValue(bank.value);
-                                                                                                        if (!val) return null;
-                                                                                                        return (
-                                                                                                            <SelectItem
-                                                                                                                key={bank.id}
-                                                                                                                value={val}>
-                                                                                                                {bank.name}
-                                                                                                            </SelectItem>
-                                                                                                        );
-                                                                                                    })}
+                                                                                                    {memoizedBankOptions.map(
+                                                                                                        (bank: any) => {
+                                                                                                            const val = getSafeValue(
+                                                                                                                bank.value
+                                                                                                            );
+                                                                                                            if (!val) return null;
+                                                                                                            return (
+                                                                                                                <SelectItem
+                                                                                                                    key={bank.id}
+                                                                                                                    value={val}>
+                                                                                                                    {bank.name}
+                                                                                                                </SelectItem>
+                                                                                                            );
+                                                                                                        }
+                                                                                                    )}
                                                                                                 </SelectContent>
                                                                                             </Select>
                                                                                             {fieldState.error && (
@@ -3706,7 +3745,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         }
                                                                                     }}
                                                                                     {...register(`bankDetails.${index}.bankAccountNo`)}
-                                                                                    error={(errors.bankDetails as any)?.[index]?.bankAccountNo?.message}
+                                                                                    error={(errors.bankDetails as any)?.[index]?.bankAccountNo?.message as string}
                                                                                     className='w-full'
                                                                                 />
                                                                             </div>
@@ -3741,13 +3780,28 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                             );
                                                                                                         })
                                                                                                         .map((item: any) => {
-                                                                                                            const val = getSafeValue(item.key || item.value || item.id);
+                                                                                                            const val = getSafeValue(
+                                                                                                                item.key ||
+                                                                                                                item.value ||
+                                                                                                                item.id
+                                                                                                            );
                                                                                                             if (!val) return null;
                                                                                                             return (
                                                                                                                 <SelectItem
-                                                                                                                    key={item.key || item.value || item.id}
+                                                                                                                    key={
+                                                                                                                        item.key ||
+                                                                                                                        item.value ||
+                                                                                                                        item.id
+                                                                                                                    }
                                                                                                                     value={val}>
-                                                                                                                    {item.value || item.label || item.name || String(item.key || item.value || item.id)}
+                                                                                                                    {item.value ||
+                                                                                                                        item.label ||
+                                                                                                                        item.name ||
+                                                                                                                        String(
+                                                                                                                            item.key ||
+                                                                                                                            item.value ||
+                                                                                                                            item.id
+                                                                                                                        )}
                                                                                                                 </SelectItem>
                                                                                                             );
                                                                                                         })
@@ -3816,14 +3870,14 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 id='contactAddress'
                                                                 maxLength={100}
                                                                 {...register('contactAddress')}
-                                                                error={errors.contactAddress?.message}
+                                                                error={errors.contactAddress?.message as string}
                                                             />
                                                             <InputText
                                                                 label='Area'
                                                                 required
                                                                 id='contactArea'
                                                                 {...register('contactArea')}
-                                                                error={errors.contactArea?.message}
+                                                                error={errors.contactArea?.message as string}
                                                             />
                                                             <div className='space-y-2'>
                                                                 <Controller
@@ -3946,7 +4000,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 required
                                                                 id='contactCity'
                                                                 {...register('contactCity')}
-                                                                error={errors.contactCity?.message}
+                                                                error={errors.contactCity?.message as string}
                                                             />
                                                             <InputText
                                                                 label='Pincode'
@@ -3977,7 +4031,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     }
                                                                 }}
                                                                 {...register('contactPincode')}
-                                                                error={errors.contactPincode?.message}
+                                                                error={errors.contactPincode?.message as string}
                                                             />
                                                         </div>
                                                     </div>
@@ -4011,7 +4065,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 id='permanentAddress'
                                                                 maxLength={100}
                                                                 {...register('permanentAddress')}
-                                                                error={errors.permanentAddress?.message}
+                                                                error={errors.permanentAddress?.message as string}
                                                                 disabled={sameAsCommunicationAddress}
                                                             />
                                                             <InputText
@@ -4019,7 +4073,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 required
                                                                 id='permanentArea'
                                                                 {...register('permanentArea')}
-                                                                error={errors.permanentArea?.message}
+                                                                error={errors.permanentArea?.message as string}
                                                                 disabled={sameAsCommunicationAddress}
                                                             />
                                                             <div className='space-y-2'>
@@ -4060,9 +4114,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                 );
                                                                                             }
                                                                                             return (
-                                                                                                <SelectItem
-                                                                                                    key={country.key}
-                                                                                                    value={val}>
+                                                                                                <SelectItem key={country.key} value={val}>
                                                                                                     {displayValue}
                                                                                                 </SelectItem>
                                                                                             );
@@ -4129,7 +4181,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 label='City'
                                                                 id='permanentCity'
                                                                 {...register('permanentCity')}
-                                                                error={errors.permanentCity?.message}
+                                                                error={errors.permanentCity?.message as string}
                                                                 disabled={sameAsCommunicationAddress}
                                                             />
                                                             <InputText
@@ -4160,7 +4212,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     }
                                                                 }}
                                                                 {...register('permanentPincode')}
-                                                                error={errors.permanentPincode?.message}
+                                                                error={errors.permanentPincode?.message as string}
                                                                 disabled={sameAsCommunicationAddress}
                                                             />
                                                         </div>
@@ -4187,13 +4239,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         EMPLOYEE QUALIFICATION & EDUCATIONAL DETAILS
                                                     </h3>
                                                     <div className='flex items-center gap-2'>
-
                                                         <Button
                                                             type='button'
                                                             className='h-7 w-auto rounded-md bg-secondary px-2.5 py-1.5 text-secondary-foreground text-xs shadow-sm hover:bg-secondary/80'
                                                             onClick={() => {
                                                                 appendQualification({
-
                                                                     hrmeQ_Id: 0, // New record - use lowercase to match form field
                                                                     qualification: '',
                                                                     course: '',
@@ -4270,38 +4320,53 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                 </SelectTrigger>
                                                                                                 <SelectContent>
                                                                                                     {isLoadingCourses ? (
-                                                                                                        <SelectItem value='loading' disabled>
+                                                                                                        <SelectItem
+                                                                                                            value='loading'
+                                                                                                            disabled>
                                                                                                             Loading courses...
                                                                                                         </SelectItem>
                                                                                                     ) : courses.length === 0 ? (
-                                                                                                        <SelectItem value='no-options' disabled>
+                                                                                                        <SelectItem
+                                                                                                            value='no-options'
+                                                                                                            disabled>
                                                                                                             No courses available
                                                                                                         </SelectItem>
                                                                                                     ) : (
                                                                                                         courses
-                                                                                                            .filter((course: ICourseDropdown) => {
-                                                                                                                return (
-                                                                                                                    course.key != null &&
-                                                                                                                    course.key !== undefined &&
-                                                                                                                    course.key !== 0
-                                                                                                                );
-                                                                                                            })
-                                                                                                            .map((course: ICourseDropdown) => {
-                                                                                                                const key = course.key
-                                                                                                                    ?.toString()
-                                                                                                                    .trim();
-                                                                                                                if (!key || key === '') return null;
-                                                                                                                const value =
-                                                                                                                    course.value ||
-                                                                                                                    String(course.key);
-                                                                                                                return (
-                                                                                                                    <SelectItem
-                                                                                                                        key={course.key}
-                                                                                                                        value={key}>
-                                                                                                                        {value}
-                                                                                                                    </SelectItem>
-                                                                                                                );
-                                                                                                            })
+                                                                                                            .filter(
+                                                                                                                (
+                                                                                                                    course: ICourseDropdown
+                                                                                                                ) => {
+                                                                                                                    return (
+                                                                                                                        course.key !=
+                                                                                                                        null &&
+                                                                                                                        course.key !==
+                                                                                                                        undefined &&
+                                                                                                                        course.key !== 0
+                                                                                                                    );
+                                                                                                                }
+                                                                                                            )
+                                                                                                            .map(
+                                                                                                                (
+                                                                                                                    course: ICourseDropdown
+                                                                                                                ) => {
+                                                                                                                    const key = course.key
+                                                                                                                        ?.toString()
+                                                                                                                        .trim();
+                                                                                                                    if (!key || key === '')
+                                                                                                                        return null;
+                                                                                                                    const value =
+                                                                                                                        course.value ||
+                                                                                                                        String(course.key);
+                                                                                                                    return (
+                                                                                                                        <SelectItem
+                                                                                                                            key={course.key}
+                                                                                                                            value={key}>
+                                                                                                                            {value}
+                                                                                                                        </SelectItem>
+                                                                                                                    );
+                                                                                                                }
+                                                                                                            )
                                                                                                             .filter(Boolean)
                                                                                                     )}
                                                                                                 </SelectContent>
@@ -4344,7 +4409,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         'ArrowUp',
                                                                                         'ArrowDown'
                                                                                     ];
-                                                                                    if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                                    if (
+                                                                                        controlKeys.includes(e.key) ||
+                                                                                        e.ctrlKey ||
+                                                                                        e.metaKey
+                                                                                    ) {
                                                                                         return;
                                                                                     }
                                                                                     if (e.key === ' ') {
@@ -4388,16 +4457,24 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                         );
                                                                                                     })
                                                                                                     .map((country: ICountryDropdown) => {
-                                                                                                        const val = getSafeValue(country.key);
+                                                                                                        const val = getSafeValue(
+                                                                                                            country.key
+                                                                                                        );
                                                                                                         if (!val) return null;
                                                                                                         // Remove "Country" prefix if present
                                                                                                         let displayValue =
-                                                                                                            country.value || String(country.key);
-                                                                                                        if (displayValue.startsWith('Country ')) {
-                                                                                                            displayValue = displayValue.replace(
-                                                                                                                /^Country\s+/i,
-                                                                                                                ''
-                                                                                                            );
+                                                                                                            country.value ||
+                                                                                                            String(country.key);
+                                                                                                        if (
+                                                                                                            displayValue.startsWith(
+                                                                                                                'Country '
+                                                                                                            )
+                                                                                                        ) {
+                                                                                                            displayValue =
+                                                                                                                displayValue.replace(
+                                                                                                                    /^Country\s+/i,
+                                                                                                                    ''
+                                                                                                                );
                                                                                                         }
                                                                                                         return (
                                                                                                             <SelectItem
@@ -4436,14 +4513,14 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                 id={`qualificationDetails.${index}.registrationNo`}
                                                                                 maxLength={50}
                                                                                 {...register(`qualificationDetails.${index}.registrationNo`)}
-                                                                                error={errors.qualificationDetails?.[index]?.registrationNo?.message}
+                                                                                error={(errors.qualificationDetails as any)?.[index]?.registrationNo?.message}
                                                                             />
                                                                             <InputText
                                                                                 label='Result *'
                                                                                 id={`qualificationDetails.${index}.result`}
                                                                                 maxLength={20}
                                                                                 {...register(`qualificationDetails.${index}.result`)}
-                                                                                error={errors.qualificationDetails?.[index]?.result?.message}
+                                                                                error={(errors.qualificationDetails as any)?.[index]?.result?.message}
                                                                             />
                                                                         </div>
                                                                         {/* Row 5: CGPA Or Percentage dropdown */}
@@ -4457,8 +4534,14 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         <Select
                                                                                             onValueChange={(val) => {
                                                                                                 field.onChange(val);
-                                                                                                setValue(`qualificationDetails.${index}.cgpa`, '');
-                                                                                                setValue(`qualificationDetails.${index}.percentage`, '');
+                                                                                                setValue(
+                                                                                                    `qualificationDetails.${index}.cgpa`,
+                                                                                                    ''
+                                                                                                );
+                                                                                                setValue(
+                                                                                                    `qualificationDetails.${index}.percentage`,
+                                                                                                    ''
+                                                                                                );
                                                                                             }}
                                                                                             value={field.value || 'CGPA'}>
                                                                                             <SelectTrigger
@@ -4502,7 +4585,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                 )}
                                                                             />
                                                                             <InputText
-                                                                                label={cgpaOrPercentage === 'Percentage' ? 'Percentage' : 'CGPA'}
+                                                                                label={
+                                                                                    cgpaOrPercentage === 'Percentage'
+                                                                                        ? 'Percentage'
+                                                                                        : 'CGPA'
+                                                                                }
                                                                                 id={`qualificationDetails.${index}.${cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa'}`}
                                                                                 maxLength={cgpaOrPercentage === 'Percentage' ? 3 : 4}
                                                                                 onKeyDown={(e) => {
@@ -4517,7 +4604,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         'ArrowUp',
                                                                                         'ArrowDown'
                                                                                     ];
-                                                                                    if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                                    if (
+                                                                                        controlKeys.includes(e.key) ||
+                                                                                        e.ctrlKey ||
+                                                                                        e.metaKey
+                                                                                    ) {
                                                                                         return;
                                                                                     }
                                                                                     if (e.key === ' ') {
@@ -4542,7 +4633,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                     }
                                                                                 }}
                                                                                 {...register(`qualificationDetails.${index}.${cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa'}`)}
-                                                                                error={errors.qualificationDetails?.[index]?.[cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa']?.message}
+                                                                                error={(errors.qualificationDetails as any)?.[index]?.[cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa']?.message}
                                                                             />
                                                                         </div>
                                                                         {/* Row 6: Area Of Specialization */}
@@ -4563,26 +4654,38 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                 </SelectTrigger>
                                                                                                 <SelectContent>
                                                                                                     {specialisations
-                                                                                                        .filter((spec: ISpecializationDropdown) => {
-                                                                                                            return (
-                                                                                                                spec.key != null &&
-                                                                                                                spec.key !== undefined &&
-                                                                                                                spec.key !== 0
-                                                                                                            );
-                                                                                                        })
-                                                                                                        .map((spec: ISpecializationDropdown) => {
-                                                                                                            const val = getSafeValue(spec.key);
-                                                                                                            if (!val) return null;
-                                                                                                            const value =
-                                                                                                                spec.value || String(spec.key);
-                                                                                                            return (
-                                                                                                                <SelectItem
-                                                                                                                    key={spec.key}
-                                                                                                                    value={val}>
-                                                                                                                    {value}
-                                                                                                                </SelectItem>
-                                                                                                            );
-                                                                                                        })
+                                                                                                        .filter(
+                                                                                                            (
+                                                                                                                spec: ISpecializationDropdown
+                                                                                                            ) => {
+                                                                                                                return (
+                                                                                                                    spec.key != null &&
+                                                                                                                    spec.key !==
+                                                                                                                    undefined &&
+                                                                                                                    spec.key !== 0
+                                                                                                                );
+                                                                                                            }
+                                                                                                        )
+                                                                                                        .map(
+                                                                                                            (
+                                                                                                                spec: ISpecializationDropdown
+                                                                                                            ) => {
+                                                                                                                const val = getSafeValue(
+                                                                                                                    spec.key
+                                                                                                                );
+                                                                                                                if (!val) return null;
+                                                                                                                const value =
+                                                                                                                    spec.value ||
+                                                                                                                    String(spec.key);
+                                                                                                                return (
+                                                                                                                    <SelectItem
+                                                                                                                        key={spec.key}
+                                                                                                                        value={val}>
+                                                                                                                        {value}
+                                                                                                                    </SelectItem>
+                                                                                                                );
+                                                                                                            }
+                                                                                                        )
                                                                                                         .filter(Boolean)}
                                                                                                 </SelectContent>
                                                                                             </Select>
@@ -4631,7 +4734,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                 label='Medical Council'
                                                                                 id={`qualificationDetails.${index}.medicalCouncil`}
                                                                                 maxLength={50}
-                                                                                {...register(`qualificationDetails.${index}.medicalCouncil`)}
+                                                                                {...register(
+                                                                                    `qualificationDetails.${index}.medicalCouncil`
+                                                                                )}
                                                                             />
                                                                         </div>
                                                                         {/* Row 9: Registration Year, Guide Name, Qualified Date */}
@@ -4653,7 +4758,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         'ArrowUp',
                                                                                         'ArrowDown'
                                                                                     ];
-                                                                                    if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                                    if (
+                                                                                        controlKeys.includes(e.key) ||
+                                                                                        e.ctrlKey ||
+                                                                                        e.metaKey
+                                                                                    ) {
                                                                                         return;
                                                                                     }
                                                                                     if (e.key === ' ') {
@@ -4664,9 +4773,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         e.preventDefault();
                                                                                     }
                                                                                 }}
-                                                                                {...register(`qualificationDetails.${index}.registrationYear`)}
+                                                                                {...register(
+                                                                                    `qualificationDetails.${index}.registrationYear`
+                                                                                )}
                                                                                 error={
-                                                                                    errors.qualificationDetails?.[index]?.registrationYear?.message
+                                                                                    (errors.qualificationDetails as any)?.[index]?.registrationYear?.message
                                                                                 }
                                                                             />
                                                                             <InputText
@@ -4715,12 +4826,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         PREVIOUS EMPLOYMENT DETAILS
                                                     </h3>
                                                     <div className='flex items-center gap-2'>
-
                                                         <Button
                                                             type='button'
                                                             className='h-7 w-auto rounded-md bg-secondary px-2.5 py-1.5 text-secondary-foreground text-xs shadow-sm hover:bg-secondary/80'
                                                             onClick={() =>
-
                                                                 appendExperience({
                                                                     hrmeE_Id: 0, // New record - use lowercase to match form field
                                                                     organisationName: '',
@@ -4927,7 +5036,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     maxLength={500}
                                                                     minHeight={60}
                                                                     {...register(`experienceDetails.${index}.organisationAddress`)}
-                                                                    error={errors.experienceDetails?.[index]?.organisationAddress?.message}
+                                                                    error={(errors.experienceDetails as any)?.[index]?.organisationAddress?.message}
                                                                     placeholder='Enter organisation address...'
                                                                 />
                                                             </div>
@@ -4938,7 +5047,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     maxLength={500}
                                                                     minHeight={60}
                                                                     {...register(`experienceDetails.${index}.reasonForLeaving`)}
-                                                                    error={errors.experienceDetails?.[index]?.reasonForLeaving?.message}
+                                                                    error={(errors.experienceDetails as any)?.[index]?.reasonForLeaving?.message}
                                                                     placeholder='Enter reason for leaving...'
                                                                 />
                                                             </div>
@@ -5015,7 +5124,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     maxLength={255}
                                                                     {...register(`documentList.${index}.documentName`)}
                                                                     placeholder='Enter document name'
-                                                                    error={errors.documentList?.[index]?.documentName?.message}
+                                                                    error={(errors.documentList as any)?.[index]?.documentName?.message}
                                                                 />
                                                                 <InputText
                                                                     label='Description *'
@@ -5023,7 +5132,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     maxLength={400}
                                                                     {...register(`documentList.${index}.documentDescription`)}
                                                                     placeholder='Enter description'
-                                                                    error={errors.documentList?.[index]?.documentDescription?.message}
+                                                                    error={(errors.documentList as any)?.[index]?.documentDescription?.message}
                                                                 />
                                                                 <div className='space-y-2 md:col-span-2'>
                                                                     <Label>Upload Document</Label>
@@ -5073,9 +5182,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                             </span>
                                                                         )}
                                                                     </div>
-                                                                    {errors.documentList?.[index]?.document?.message && (
+                                                                    {(errors.documentList as any)?.[index]?.document?.message && (
                                                                         <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                            {String(errors.documentList?.[index]?.document?.message)}
+                                                                            {String((errors.documentList as any)?.[index]?.document?.message)}
                                                                         </div>
                                                                     )}
                                                                 </div>
@@ -5140,7 +5249,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                             }
                                                         }}
                                                         {...register('employeeHeight')}
-                                                        error={errors.employeeHeight?.message}
+                                                        error={errors.employeeHeight?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='Unit of measure (Height)'
@@ -5148,7 +5257,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         placeholder='Unit of measure'
                                                         maxLength={10}
                                                         {...register('employeeHeightUnit')}
-                                                        error={errors.employeeHeightUnit?.message}
+                                                        error={errors.employeeHeightUnit?.message as string | undefined}
                                                     />
                                                 </div>
                                                 <InputText
@@ -5156,7 +5265,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                     id='eyeSightIssue'
                                                     maxLength={255}
                                                     {...register('eyeSightIssue')}
-                                                    error={errors.eyeSightIssue?.message}
+                                                    error={errors.eyeSightIssue?.message as string | undefined}
                                                 />
                                                 <div className='grid grid-cols-2 gap-4'>
                                                     <InputText
@@ -5194,7 +5303,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                             }
                                                         }}
                                                         {...register('employeeWeight')}
-                                                        error={errors.employeeWeight?.message}
+                                                        error={errors.employeeWeight?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='Unit of measure (Weight)'
@@ -5202,7 +5311,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         placeholder='Unit of measure'
                                                         maxLength={10}
                                                         {...register('employeeWeightUnit')}
-                                                        error={errors.employeeWeightUnit?.message}
+                                                        error={errors.employeeWeightUnit?.message as string | undefined}
                                                     />
                                                 </div>
                                                 <InputText
@@ -5210,7 +5319,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                     id='anyHealthIssue'
                                                     maxLength={500}
                                                     {...register('anyHealthIssue')}
-                                                    error={errors.anyHealthIssue?.message}
+                                                    error={errors.anyHealthIssue?.message as string | undefined}
                                                 />
                                             </div>
                                             <InputTextarea
@@ -5219,7 +5328,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                 maxLength={255}
                                                 minHeight={80}
                                                 {...register('identificationMark')}
-                                                error={errors.identificationMark?.message}
+                                                error={errors.identificationMark?.message as string | undefined}
                                                 placeholder='Enter identification mark details...'
                                             />
                                         </div>
@@ -5246,21 +5355,21 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         id='biometricCode'
                                                         maxLength={50}
                                                         {...register('biometricCode')}
-                                                        error={errors.biometricCode?.message}
+                                                        error={errors.biometricCode?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='RF card ID'
                                                         id='rfCardId'
                                                         maxLength={50}
                                                         {...register('rfCardId')}
-                                                        error={errors.rfCardId?.message}
+                                                        error={errors.rfCardId?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='MS Teams UserName'
                                                         id='msTeamsUserName'
                                                         maxLength={100}
                                                         {...register('msTeamsUserName')}
-                                                        error={errors.msTeamsUserName?.message}
+                                                        error={errors.msTeamsUserName?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='MS Teams Password'
@@ -5268,7 +5377,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         type='password'
                                                         maxLength={255}
                                                         {...register('msTeamsPassword')}
-                                                        error={errors.msTeamsPassword?.message}
+                                                        error={errors.msTeamsPassword?.message as string | undefined}
                                                     />
                                                 </div>
                                                 <div className='space-y-4'>
@@ -5401,7 +5510,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         </Select>
                                                                         {errors.reasonForLeaving && (
                                                                             <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                                {errors.reasonForLeaving.message}
+                                                                                {errors.reasonForLeaving.message as string | undefined}
                                                                             </div>
                                                                         )}
                                                                     </div>

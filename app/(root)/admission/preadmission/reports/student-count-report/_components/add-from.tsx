@@ -37,7 +37,7 @@ export default function AddStudentCountReportForm({
     searchParams,
     onFilterChange
 }: AddStudentCountReportFormProps) {
-    const [reportType, setReportType] = useState<string>('');
+    const [reportType, setReportType] = useState<string>('2');
     const [rangeType, setRangeType] = useState<string>('between');
     const [fromDate, setFromDate] = useState<string>('');
     const [toDate, setToDate] = useState<string>('');
@@ -118,7 +118,7 @@ export default function AddStudentCountReportForm({
                     // noop
                 }
                 reset();
-                setReportType('');
+                setReportType('2');
                 setRangeType('between');
                 setFromDate('');
                 setToDate('');
@@ -135,8 +135,9 @@ export default function AddStudentCountReportForm({
 
     const handleReset = () => {
         reset();
+        setReportType('2');
+        setRangeType('between');
     };
-
     return (
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -170,7 +171,10 @@ export default function AddStudentCountReportForm({
                                 <div className='mb-3 flex items-center gap-6'>
                                     <RadioGroup
                                         value={rangeType}
-                                        onValueChange={(v) => setRangeType(v)}
+                                        onValueChange={(v) => {
+                                            setRangeType(v);
+                                            setReportType(v === 'yearwise' ? '1' : '2');
+                                        }}
                                         className='flex items-center gap-4'>
                                         <div className='flex items-center gap-2'>
                                             <RadioGroupItem value='yearwise' id='rg-year' />

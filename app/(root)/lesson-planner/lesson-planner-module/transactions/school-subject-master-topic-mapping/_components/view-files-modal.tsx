@@ -1,8 +1,7 @@
 'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface ViewFilesModalProps {
     isOpen: boolean;
@@ -12,7 +11,6 @@ interface ViewFilesModalProps {
 }
 
 export default function ViewFilesModal({ isOpen, onClose, files, type }: ViewFilesModalProps) {
-
     const getFileIcon = (fileName: string) => {
         // Logic to return icon based on extension if needed
         return null;
@@ -31,18 +29,18 @@ export default function ViewFilesModal({ isOpen, onClose, files, type }: ViewFil
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className='max-h-[90vh] max-w-4xl overflow-y-auto'>
                 <DialogHeader>
                     <DialogTitle>View Uploaded Files - {type}</DialogTitle>
                 </DialogHeader>
 
-                <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
+                <div className='overflow-x-auto'>
+                    <table className='w-full border-collapse'>
                         <thead>
-                            <tr className="bg-muted">
-                                <th className="border p-2 text-center">SL.NO</th>
-                                <th className="border p-2 text-left">File Name</th>
-                                <th className="border p-2 text-center">View</th>
+                            <tr className='bg-muted'>
+                                <th className='border p-2 text-center'>SL.NO</th>
+                                <th className='border p-2 text-left'>File Name</th>
+                                <th className='border p-2 text-center'>View</th>
                                 {/* Action (Delete) logic is usually for edit mode, not view-only, but legacy had delete here? 
                                     Legacy had delete in "VIEW UPLOADED FILE" modal. 
                                     If we need delete here, we need a handler. For now, assume read-only or add delete later.
@@ -52,15 +50,14 @@ export default function ViewFilesModal({ isOpen, onClose, files, type }: ViewFil
                         <tbody>
                             {files.length > 0 ? (
                                 files.map((file, index) => (
-                                    <tr key={file.lpmtR_Id || index} className="hover:bg-muted/50">
-                                        <td className="border p-2 text-center">{index + 1}</td>
-                                        <td className="border p-2">{file.lpmtR_FileName}</td>
-                                        <td className="border p-2 text-center">
+                                    <tr key={file.lpmtR_Id || index} className='hover:bg-muted/50'>
+                                        <td className='border p-2 text-center'>{index + 1}</td>
+                                        <td className='border p-2'>{file.lpmtR_FileName}</td>
+                                        <td className='border p-2 text-center'>
                                             <Button
-                                                variant="link"
+                                                variant='link'
                                                 onClick={() => openFile(file.lpmtR_Resources, file.lpmtR_FileName)}
-                                                className="text-blue-600 underline"
-                                            >
+                                                className='text-blue-600 underline'>
                                                 View
                                             </Button>
                                         </td>
@@ -68,7 +65,9 @@ export default function ViewFilesModal({ isOpen, onClose, files, type }: ViewFil
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={3} className="text-center p-4">No files found.</td>
+                                    <td colSpan={3} className='p-4 text-center'>
+                                        No files found.
+                                    </td>
                                 </tr>
                             )}
                         </tbody>

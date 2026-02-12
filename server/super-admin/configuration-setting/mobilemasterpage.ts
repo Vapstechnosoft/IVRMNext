@@ -49,7 +49,7 @@ export async function saveMobileMasterPage(data: any) {
             return {
                 success: false,
                 message: 'Validation failed',
-                errors: validation.error.flatten().fieldErrors,
+                errors: validation.error.flatten().fieldErrors
             };
         }
 
@@ -58,7 +58,7 @@ export async function saveMobileMasterPage(data: any) {
             ivrmmaP_AppPageName: data.ivrmmaP_AppPageName,
             ivrmmaP_Displayname: data.ivrmmaP_Displayname,
             ivrmmaP_AppPageDesc: data.ivrmmaP_AppPageDesc,
-            ivrmmaP_AppPageURL: data.ivrmmaP_AppPageURL,
+            ivrmmaP_AppPageURL: data.ivrmmaP_AppPageURL
         };
 
         const response = await api.post<any>('sadmin', FACADE, payload);
@@ -68,13 +68,13 @@ export async function saveMobileMasterPage(data: any) {
             return {
                 success: true,
                 message: response.message || 'Mobile Master Page saved successfully!',
-                data: response.data,
+                data: response.data
             };
         }
 
         return {
             success: false,
-            message: response.message || 'Failed to save mobile master page',
+            message: response.message || 'Failed to save mobile master page'
         };
     } catch (error) {
         console.error('Error saving mobile master page:', error);
@@ -94,13 +94,13 @@ export async function deleteMobileMasterPage(id: number) {
             revalidatePath('/SuperAdmin/super-admin-module/configuration-setting/mobilemasterpage');
             return {
                 success: true,
-                message: response.message || 'Record deleted successfully',
+                message: response.message || 'Record deleted successfully'
             };
         }
 
         return {
             success: false,
-            message: response.message || 'Failed to delete record',
+            message: response.message || 'Failed to delete record'
         };
     } catch (error) {
         console.error('Error deleting mobile master page:', error);

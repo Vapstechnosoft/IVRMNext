@@ -1,10 +1,10 @@
 'use client';
 
-import AddMasterSchoolTopicForm from './add-form';
-import type { IMasterSchoolTopic, IMasterClass, IMasterSubject } from '@/types/lesson-planner/master/school-topic';
 import { editSchoolTopic } from '@/server/lesson-planner/master/school-topic';
+import type { IMasterClass, IMasterSchoolTopic, IMasterSubject } from '@/types/lesson-planner/master/school-topic';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import AddMasterSchoolTopicForm from './add-form';
 
 interface UpdateMasterSchoolTopicFormProps {
     selectedRow: IMasterSchoolTopic;
@@ -101,7 +101,7 @@ export default function UpdateMasterSchoolTopicForm({
 
     if (isLoading) {
         return (
-            <div className={`flex justify-center items-center p-8 ${className}`}>
+            <div className={`flex items-center justify-center p-8 ${className}`}>
                 <div className='text-muted-foreground'>Loading edit details...</div>
             </div>
         );
@@ -109,7 +109,7 @@ export default function UpdateMasterSchoolTopicForm({
 
     if (!editData) {
         return (
-            <div className={`flex justify-center items-center p-8 ${className}`}>
+            <div className={`flex items-center justify-center p-8 ${className}`}>
                 <div className='text-destructive'>Failed to load edit data</div>
             </div>
         );
@@ -138,4 +138,3 @@ export default function UpdateMasterSchoolTopicForm({
         </div>
     );
 }
-

@@ -1,8 +1,7 @@
-
 // ... (keep existing imports)
 
-import { z } from "zod";
-import { qualificationSchema, readmittedSchema } from "./schema";
+import { z } from 'zod';
+import { qualificationSchema, readmittedSchema } from './schema';
 
 // Existing schema becomes the "Create" schema (strict)
 export const alumnusMembershipSchema = z.object({

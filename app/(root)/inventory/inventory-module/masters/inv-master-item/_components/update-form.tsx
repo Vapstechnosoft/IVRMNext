@@ -72,25 +72,29 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
     });
 
     const isTaxApplied = watch('invmI_TaxAplFlg');
-    const [selectedMainGroupId, setSelectedMainGroupId] = useState<number>(0);
+
+
 
     useEffect(() => {
-        // Resolve parent group for existing invmG_Id
-        if (selectedRow.invmG_Id && dropdowns.get_itemgroup && dropdowns.get_usergroup) {
-            const currentItemGroup = dropdowns.get_itemgroup.find(g => g.invmG_Id === selectedRow.invmG_Id);
-            if (currentItemGroup) {
-                const userGroupId = currentItemGroup.invmG_ParentId;
-                const currentUserGroup = dropdowns.get_usergroup.find(g => g.invmG_Id === userGroupId);
-                if (currentUserGroup) {
-                    setSelectedMainGroupId(currentUserGroup.invmG_ParentId);
+        if (selectedRow.invmG_Id && dropdowns.get_maingroup) {
+            // Check if the current ID is directly in main group
+            const isMainGroup = dropdowns.get_maingroup.some((g: any) => g.invmG_Id === selectedRow.invmG_Id);
+
+            if (isMainGroup) {
+                setValue('invmG_Id', selectedRow.invmG_Id);
+            } else if (dropdowns.get_itemgroup && dropdowns.get_usergroup) {
+                // Try to resolve from item group hierarchy
+                const currentItemGroup = dropdowns.get_itemgroup.find((g: any) => g.invmG_Id === selectedRow.invmG_Id);
+                if (currentItemGroup) {
+                    const userGroupId = currentItemGroup.invmG_ParentId;
+                    const currentUserGroup = dropdowns.get_usergroup.find((g: any) => g.invmG_Id === userGroupId);
+                    if (currentUserGroup) {
+                        setValue('invmG_Id', currentUserGroup.invmG_ParentId);
+                    }
                 }
             }
         }
-    }, [selectedRow, dropdowns]);
-
-    const filteredItemGroups = dropdowns.get_itemgroup?.filter(ig =>
-        dropdowns.get_usergroup?.some(ug => ug.invmG_Id === ig.invmG_ParentId && ug.invmG_ParentId === selectedMainGroupId)
-    ) || [];
+    }, [selectedRow, dropdowns, setValue]);
 
     useEffect(() => {
         const fetchTaxes = async () => {
@@ -167,29 +171,7 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
                 {/* Left Column */}
                 <div className='space-y-4'>
                     <div className='space-y-2'>
-                        <Label>Main Group</Label>
-                        <Select
-                            onValueChange={(val) => {
-                                setSelectedMainGroupId(Number(val));
-                                setValue('invmG_Id', 0);
-                            }}
-                            value={selectedMainGroupId?.toString() || ''}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder='Select Main Group' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {dropdowns.get_maingroup?.map((group: any) => (
-                                    <SelectItem key={group.invmG_Id} value={group.invmG_Id?.toString() || ''}>
-                                        {group.invmG_GroupName}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className='space-y-2'>
-                        <Label>Item Group <span className='text-red-500'>*</span></Label>
+                        <Label>Group <span className='text-red-500'>*</span></Label>
                         <Controller
                             name='invmG_Id'
                             control={control}
@@ -197,13 +179,12 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
                                 <Select
                                     onValueChange={(val) => field.onChange(Number(val))}
                                     value={field.value?.toString() || ''}
-                                    disabled={!selectedMainGroupId}
                                 >
                                     <SelectTrigger className={errors.invmG_Id ? 'border-red-500' : ''}>
-                                        <SelectValue placeholder='Select Item Group' />
+                                        <SelectValue placeholder='Select Group' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {filteredItemGroups.map((group: any) => (
+                                        {dropdowns.get_maingroup?.map((group: any) => (
                                             <SelectItem key={group.invmG_Id} value={group.invmG_Id?.toString() || ''}>
                                                 {group.invmG_GroupName}
                                             </SelectItem>

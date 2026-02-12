@@ -6,7 +6,7 @@ import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useYearlyCategorySubjectMapping } from '@/hooks/exam/exammodule/exam-mapping';
-import { useMasterSubjectGroup, useMasterSubjectGroupDropdownList } from '@/hooks/exam/exammodule/usemasters';
+import { useMasterSubjectGroupDropdownList } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { categorySubjectMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';

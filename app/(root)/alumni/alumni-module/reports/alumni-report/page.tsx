@@ -1,20 +1,16 @@
 'use client';
 
-import { useState, useEffect, useRef } from "react";
-import { useReactToPrint } from "react-to-print";
-import { AlumniReportFilterForm } from "./_components/alumni-report-filter-form";
-import { AlumniReportResultsTable } from "./_components/alumni-report-results-table";
-import { AlumniReportPrint } from "./_components/alumni-report-print";
-import { AddressBookPrint } from "./_components/address-book-print";
-import { AlumniReportFormValues } from "./_components/schema";
-import {
-    getInitialData,
-    getReportData,
-    getDetailsByType
-} from "@/server/alumni/alumni-report";
-import { IAlumniReportInitialData, IAlumniReportResultItem } from "@/types/alumni/alumni-report";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getInitialData, getReportData } from '@/server/alumni/alumni-report';
+import type { IAlumniReportInitialData, IAlumniReportResultItem } from '@/types/alumni/alumni-report';
+import { useEffect, useRef, useState } from 'react';
+import { useReactToPrint } from 'react-to-print';
+import { toast } from 'sonner';
+import { AddressBookPrint } from './_components/address-book-print';
+import { AlumniReportFilterForm } from './_components/alumni-report-filter-form';
+import { AlumniReportPrint } from './_components/alumni-report-print';
+import { AlumniReportResultsTable } from './_components/alumni-report-results-table';
+import type { AlumniReportFormValues } from './_components/schema';
 
 export default function AlumniReportPage() {
     const [initialData, setInitialData] = useState<IAlumniReportInitialData | null>(null);
@@ -33,7 +29,7 @@ export default function AlumniReportPage() {
         const fetchInitialData = async () => {
             try {
                 const initialRes = await getInitialData();
-                console.log("Alumni Report Initial Data Response:", initialRes);
+                console.log('Alumni Report Initial Data Response:', initialRes);
 
                 const iRes = initialRes as any;
                 if (iRes && iRes.success) {
@@ -49,12 +45,12 @@ export default function AlumniReportPage() {
 
                     setInitialData(data);
                 } else {
-                    console.error("Failed response:", initialRes);
-                    toast.error(iRes?.message || "Failed to load initial data");
+                    console.error('Failed response:', initialRes);
+                    toast.error(iRes?.message || 'Failed to load initial data');
                 }
             } catch (err) {
-                console.error("Page fetch error:", err);
-                toast.error("An unexpected error occurred");
+                console.error('Page fetch error:', err);
+                toast.error('An unexpected error occurred');
             }
         };
         fetchInitialData();
@@ -62,7 +58,7 @@ export default function AlumniReportPage() {
 
     const handlePrint = useReactToPrint({
         contentRef: printRef,
-        documentTitle: "Alumni_Report",
+        documentTitle: 'Alumni_Report',
         pageStyle: `
           @page { size: A4; margin: 20mm; }
           @media print { 
@@ -73,7 +69,7 @@ export default function AlumniReportPage() {
 
     const handlePrintAddress = useReactToPrint({
         contentRef: addressBookRef,
-        documentTitle: "Alumni_Address_Book",
+        documentTitle: 'Alumni_Address_Book',
         pageStyle: `
           @page { size: A4; margin: 10mm; }
           @media print { 
@@ -89,13 +85,13 @@ export default function AlumniReportPage() {
         setShowPhone(values.showPhone);
 
         const payload = {
-            Occupation: values.occupation || "",
-            city: values.city || "",
-            statelistarray: values.stateIds?.map(id => ({ IVRMMS_Id: id })) || [],
-            classlistnew: values.classIds?.map(id => ({ ASMCL_Id: id })) || [],
-            countrylistarray: values.countryIds?.map(id => ({ IVRMMC_Id: id })) || [],
-            districtlistarray: values.districtIds?.map(id => ({ IVRMMD_Id: id })) || [],
-            multipleBatchs: values.batchIds.map(id => ({ ASMAY_Id: id }))
+            Occupation: values.occupation || '',
+            city: values.city || '',
+            statelistarray: values.stateIds?.map((id) => ({ IVRMMS_Id: id })) || [],
+            classlistnew: values.classIds?.map((id) => ({ ASMCL_Id: id })) || [],
+            countrylistarray: values.countryIds?.map((id) => ({ IVRMMC_Id: id })) || [],
+            districtlistarray: values.districtIds?.map((id) => ({ IVRMMD_Id: id })) || [],
+            multipleBatchs: values.batchIds.map((id) => ({ ASMAY_Id: id }))
         };
 
         try {
@@ -122,26 +118,26 @@ export default function AlumniReportPage() {
                     LeftClass: item.left_class || item.LeftClass,
                     ALMST_MembershipId: item.almst_membershipid || item.ALMST_MembershipId,
                     ALMMC_MembershipCategory: item.membership_category || item.ALMMC_MembershipCategory,
-                    IVRMMD_Name: item.ivrmmD_Name || item.IVRMMD_Name || (item.almst_district ? item.almst_district.toString() : ""),
+                    IVRMMD_Name: item.ivrmmD_Name || item.IVRMMD_Name || (item.almst_district ? item.almst_district.toString() : ''),
                     amsT_BloodGroup: item.amst_bloodgroup || item.amsT_BloodGroup,
                     ALSPR_Designation: item.alspr_designation || item.ALSPR_Designation,
-                    city: item.city || item.almst_concity || "",
+                    city: item.city || item.almst_concity || '',
                     ALMST_FullAddess: item.almst_fulladdress || item.ALMST_FullAddess,
                     ALMST_ConPincode: item.almst_conpincode || item.ALMST_ConPincode,
-                    ALMST_PerPincode: item.almst_perpincode || item.ALMST_PerPincode || "",
+                    ALMST_PerPincode: item.almst_perpincode || item.ALMST_PerPincode || '',
                     ASMAY_Id_NEW_Left: item.asmay_new_left || item.ASMAY_Id_NEW_Left
                 }));
 
                 setReportData(mappedData);
                 if (mappedData.length === 0) {
-                    toast.info("No records found for the selected filters");
+                    toast.info('No records found for the selected filters');
                 }
             } else {
-                toast.error(response.message || "Failed to fetch report data");
+                toast.error(response.message || 'Failed to fetch report data');
             }
         } catch (error) {
             console.error(error);
-            toast.error("An error occurred while fetching report data");
+            toast.error('An error occurred while fetching report data');
         } finally {
             setLoading(false);
         }
@@ -179,22 +175,17 @@ export default function AlumniReportPage() {
     };
 
     if (!initialData) {
-        return <div className="p-8 text-center">Loading initial data...</div>;
+        return <div className='p-8 text-center'>Loading initial data...</div>;
     }
 
     return (
-        <div className="p-6 space-y-6">
+        <div className='space-y-6 p-6'>
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-2xl font-bold text-primary">Alumni Report</CardTitle>
+                    <CardTitle className='font-bold text-2xl text-primary'>Alumni Report</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <AlumniReportFilterForm
-                        initialData={initialData}
-                        onSubmit={handleSubmit}
-                        onReset={handleReset}
-                        loading={loading}
-                    />
+                    <AlumniReportFilterForm initialData={initialData} onSubmit={handleSubmit} onReset={handleReset} loading={loading} />
                 </CardContent>
             </Card>
 
@@ -217,24 +208,30 @@ export default function AlumniReportPage() {
             )}
 
             {/* Print Templates - Rendered but invisible until printing */}
-            <div style={{ position: 'fixed', top: 0, left: 0, width: 0, height: 0, overflow: 'hidden', opacity: 0, pointerEvents: 'none', zIndex: -1 }}>
+            <div
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: 0,
+                    height: 0,
+                    overflow: 'hidden',
+                    opacity: 0,
+                    pointerEvents: 'none',
+                    zIndex: -1
+                }}>
                 <div ref={printRef}>
                     <AlumniReportPrint
                         data={selectedForPrint}
-                        institutionName="VAPS TECHNOSOFT"
+                        institutionName='VAPS TECHNOSOFT'
                         showEmail={showEmail}
                         showPhone={showPhone}
                     />
                 </div>
                 <div ref={addressBookRef}>
-                    <AddressBookPrint
-                        data={selectedForPrint}
-                        showEmail={showEmail}
-                        showPhone={showPhone}
-                    />
+                    <AddressBookPrint data={selectedForPrint} showEmail={showEmail} showPhone={showPhone} />
                 </div>
             </div>
         </div>
     );
 }
-

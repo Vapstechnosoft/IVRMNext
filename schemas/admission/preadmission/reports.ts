@@ -102,11 +102,13 @@ export const classwiseStudentDetailsSchema = z.object({
 
 export const StudentTcDetailsSchema = z.object({
     ASMAY_Id: z.number().min(1, 'Academic year is required'),
-    AllOrInd: z.number().min(0, 'Please select All or Individual'),
-    ASMCL_Id: z.array(z.number()).min(1, 'Please select at least one section').optional(),
-    ASMC_Id: z.array(z.string()).min(1, 'Please select at least one column').optional(),
-    TempararyArrayheadList: z.array(z.string()).min(1, 'Please select at least one column'),
+    AllOrInd: z.number().min(1, 'Please select All or Individual'),
+    ASMCL_Id: z.number().optional(),
+    ASMC_Id: z.number().optional(),
+    TempararyArrayheadList: z.array(z.object({
+        columnID: z.string(),
+        columnName: z.string().optional()
+    })).min(1, 'Please select at least one column'),
     PermOrTemp: z.number().optional(),
     AMC_Id: z.number().optional()
 });
-

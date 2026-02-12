@@ -268,8 +268,7 @@ function EntryForm({
                                             setSelectedAcademicYearId(Number(value));
                                             setSelectedClasses([]); // Reset classes when year changes
                                         }}
-                                        disabled={true}
-                                        >
+                                        disabled={true}>
                                         <SelectTrigger className='w-full md:w-[280px]'>
                                             <SelectValue placeholder='Select Academic Year' />
                                         </SelectTrigger>

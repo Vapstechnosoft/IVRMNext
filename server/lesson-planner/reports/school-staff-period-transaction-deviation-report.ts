@@ -1,7 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { IDeviationReportResponse, IDeviationReportPayload } from '@/types/lesson-planner/reports/school-staff-period-transaction-deviation-report';
+import type { IDeviationReportResponse } from '@/types/lesson-planner/reports/school-staff-period-transaction-deviation-report';
 
 const BASE_URL = 'lessonplanner';
 

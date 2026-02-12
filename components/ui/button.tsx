@@ -102,18 +102,17 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
                 ) : (
                     <>
                         {/* Conditionally render the prefix or loader */}
-                        {renderPrefix &&
-                            (loading ? <Loader2 className="h-4 w-4 animate-spin" /> : prefix ? <span>{prefix}</span> : null)}
+                        {renderPrefix && (loading ? <Loader2 className='h-4 w-4 animate-spin' /> : prefix ? <span>{prefix}</span> : null)}
 
                         {/* Handle text or children */}
                         {typeof children === 'string' ? (
-                            <span className="truncate">{loading && loadingText ? loadingText : children}</span>
+                            <span className='truncate'>{loading && loadingText ? loadingText : children}</span>
                         ) : (
                             children
                         )}
 
                         {/* Conditionally render the suffix or loader */}
-                        {renderSuffix && <Loader2 className="h-4 w-4 animate-spin" />}
+                        {renderSuffix && <Loader2 className='h-4 w-4 animate-spin' />}
                         {!renderSuffix && suffix && <span>{suffix}</span>}
                     </>
                 )}

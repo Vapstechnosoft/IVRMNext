@@ -472,6 +472,73 @@ export const useLeaveTransactionEmpLop = (request?: {
     };
 };
 /**
+ * Hook to fetch employees for leave transaction
+ * POST /api/LeaveTransactionManualWrapperFacade/GetEmployee
+ */
+export const useLeaveTransactionEmployee = (request?: {
+    MI_Id?: number;
+    EmpTypeIds?: number[];
+    DepartmentIds?: number[];
+    DesignationIds?: number[];
+    EmployeeIds?: number[];
+}, enabled: boolean = true) => {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_TRANSACTION, 'employee', request?.MI_Id, request?.EmpTypeIds, request?.DepartmentIds, request?.DesignationIds, request?.EmployeeIds],
+            queryFn: async () => {
+                try {
+                    const response = await getLeaveTransactionEmployee({
+                        MI_Id: request?.MI_Id || HRMS_MI_ID,
+                        EmpTypeIds: request?.EmpTypeIds || [],
+                        DepartmentIds: request?.DepartmentIds || [],
+                        DesignationIds: request?.DesignationIds || [],
+                        EmployeeIds: request?.EmployeeIds || []
+                    });
+                    if (!response.success || !response.data) {
+                        throw new Error(response.message || 'Failed to fetch employees');
+                    }
+                    // Extract and map employee options from API response
+                    const data = response.data;
+                    // Map EmployeeTempDto, employeeList, or GridviewDetails to employeeOptions
+                    let employeeList: any[] = [];
+                    if (data.EmployeeTempDto && Array.isArray(data.EmployeeTempDto)) {
+                        employeeList = data.EmployeeTempDto;
+                    } else if (data.employeeList && Array.isArray(data.employeeList)) {
+                        employeeList = data.employeeList;
+                    } else if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
+                        employeeList = data.GridviewDetails;
+                    } else if (Array.isArray(data)) {
+                        employeeList = data;
+                    }
+                    const employeeOptions = employeeList.map((item: any) => ({
+                        label: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.label || item.name || '',
+                        value: String(item.HRME_Id || item.value || item.id || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    return {
+                        success: true,
+                        data: {
+                            employeeOptions,
+                            employeeList
+                        },
+                        rawData: data,
+                        message: response.message || 'Employees fetched successfully'
+                    };
+                } catch (error: any) {
+                    throw new Error(error?.message || 'Failed to fetch employees');
+                }
+            },
+            enabled: enabled && request?.MI_Id !== undefined,
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_TRANSACTION, 'employee']
+            });
+        }
+    };
+};
+/**
  * Hook to save leave transaction data
  * POST /api/LeaveTransactionManualWrapperFacade/SaveData
  */
@@ -1534,7 +1601,7 @@ export const useLeaveTransferBasicData = (request?: { MI_Id?: number }) => {
                     throw new Error(error?.message || 'Failed to fetch leave transfer basic data');
                 }
             },
-                    staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+            staleTime: 5 * 60 * 1000 // Cache for 5 minutes
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -2281,7 +2348,7 @@ export const useEmployeOB = (request?: { MI_Id?: number; emptypes?: any[]; empde
 export const useSaveLeaveOpeningBalance = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async (data: { MI_Id?: number; HRME_Id?: number; HRMLY_Id?: number; temp_table_data?: any[]; [key: string]: any }) => {
+        mutationFn: async (data: { MI_Id?: number; HRME_Id?: number; HRMLY_Id?: number; temp_table_data?: any[];[key: string]: any }) => {
             try {
                 const response = await saveLeaveOpeningBalance({
                     MI_Id: data.MI_Id || HRMS_MI_ID,

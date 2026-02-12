@@ -1,8 +1,8 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
+import { Calendar as CalendarIcon } from 'lucide-react';
 
 interface CalendarSectionProps {
     events: any[];
@@ -48,21 +48,21 @@ export default function CalendarSection({ events }: CalendarSectionProps) {
                             const startDate = getStartDate(event);
                             const endDate = getEndDate(event);
                             return (
-                                <div key={idx} className='group relative pl-8 before:absolute before:left-0 before:top-1 before:h-4 before:w-4 before:rounded-full before:bg-primary/20 before:transition-colors hover:before:bg-primary'>
+                                <div
+                                    key={idx}
+                                    className='group relative pl-8 before:absolute before:top-1 before:left-0 before:h-4 before:w-4 before:rounded-full before:bg-primary/20 before:transition-colors hover:before:bg-primary'>
                                     <div className='flex flex-col space-y-1'>
-                                        <span className='text-xs font-semibold text-primary uppercase tracking-wider'>
+                                        <span className='font-semibold text-primary text-xs uppercase tracking-wider'>
                                             {safeFormat(startDate, 'MMMM')}
                                         </span>
-                                        <h4 className='font-bold text-base group-hover:text-primary transition-colors'>
+                                        <h4 className='font-bold text-base transition-colors group-hover:text-primary'>
                                             {getEventName(event)}
                                         </h4>
-                                        <div className='flex items-center space-x-4 text-xs text-muted-foreground'>
+                                        <div className='flex items-center space-x-4 text-muted-foreground text-xs'>
                                             <div className='flex items-center'>
                                                 <CalendarIcon className='mr-1 h-3 w-3' />
                                                 {safeFormat(startDate, 'dd MMM yyyy')}
-                                                {endDate && endDate !== startDate && (
-                                                    <> - {safeFormat(endDate, 'dd MMM yyyy')}</>
-                                                )}
+                                                {endDate && endDate !== startDate && <> - {safeFormat(endDate, 'dd MMM yyyy')}</>}
                                             </div>
                                         </div>
                                     </div>

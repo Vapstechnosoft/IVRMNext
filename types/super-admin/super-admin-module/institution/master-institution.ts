@@ -2,6 +2,7 @@ export interface IMasterInstitution {
     mI_Id: number;
     mO_Id: number;
     mO_Name?: string;
+    organisationName?: string;
     mI_Name: string;
     mI_OrganisationType: string;
     mI_SchoolCollegeFlag?: string;
@@ -61,4 +62,19 @@ export interface IMasterInstitution {
     mI_ActiveFlag: number;
     createdDate: string;
     updatedDate: string;
+}
+
+export interface ICountryDropdown {
+    ivrmmC_Id: number;
+    ivrmmC_CountryName: string;
+}
+
+export interface IStateDropdown {
+    ivrmmS_Id: number;
+    ivrmmS_Name: string;
+}
+
+export interface IInstitutionDropdown {
+    mI_Id: number;
+    mI_Name: string;
 }

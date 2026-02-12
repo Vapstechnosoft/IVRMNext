@@ -18,33 +18,28 @@ export function FileUploader({ onFileSelect, isLoading }: FileUploaderProps) {
     };
 
     return (
-        <Card className="border-dashed border-2">
-            <CardContent className="flex flex-col items-center justify-center py-10 space-y-4">
-                <div className="p-4 bg-primary/10 rounded-full">
-                    <Upload className="w-8 h-8 text-primary" />
+        <Card className='border-2 border-dashed'>
+            <CardContent className='flex flex-col items-center justify-center space-y-4 py-10'>
+                <div className='rounded-full bg-primary/10 p-4'>
+                    <Upload className='h-8 w-8 text-primary' />
                 </div>
-                <div className="text-center space-y-2">
-                    <h3 className="font-semibold text-lg">Upload Class Cumulative Report</h3>
-                    <p className="text-sm text-muted-foreground">
-                        Supported formats: CSV, Excel (.xlsx, .xls)
-                    </p>
+                <div className='space-y-2 text-center'>
+                    <h3 className='font-semibold text-lg'>Upload Class Cumulative Report</h3>
+                    <p className='text-muted-foreground text-sm'>Supported formats: CSV, Excel (.xlsx, .xls)</p>
                 </div>
-                <div className="flex flex-col items-center gap-2">
+                <div className='flex flex-col items-center gap-2'>
                     <input
-                        type="file"
-                        className="hidden"
-                        accept=".csv, .xlsx, .xls"
+                        type='file'
+                        className='hidden'
+                        accept='.csv, .xlsx, .xls'
                         onChange={handleFileChange}
                         disabled={isLoading}
-                        id="file-upload"
+                        id='file-upload'
                     />
-                    <Button
-                        disabled={isLoading}
-                        onClick={() => document.getElementById('file-upload')?.click()}
-                    >
+                    <Button disabled={isLoading} onClick={() => document.getElementById('file-upload')?.click()}>
                         Select File
                     </Button>
-                    {isLoading && <p className="text-xs text-muted-foreground animate-pulse">Processing file...</p>}
+                    {isLoading && <p className='animate-pulse text-muted-foreground text-xs'>Processing file...</p>}
                 </div>
             </CardContent>
         </Card>

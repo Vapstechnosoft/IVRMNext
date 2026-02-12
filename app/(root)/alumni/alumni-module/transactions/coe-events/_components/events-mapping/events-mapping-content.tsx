@@ -1,17 +1,17 @@
 'use client';
 
-import { EventsMappingColumns } from './columns';
-import EventsMappingForm from './add-update-form';
-import ToggleEventsMappingForm from './toggle-form';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import { getCOEMappingDetails, getPageDetailsMap, getViewRecords } from '@/server/alumni/master-coe';
 import type { IEventsMapping } from '@/types/alumni/master-coe';
 import { Plus, X } from 'lucide-react';
-import React, { useState, useEffect, useCallback } from 'react';
-import { getCOEMappingDetails, getViewRecords, getPageDetailsMap } from '@/server/alumni/master-coe';
+import { useCallback, useEffect, useState } from 'react';
 import ViewDetailsDialog from '../view-details-dialog';
+import EventsMappingForm from './add-update-form';
+import { EventsMappingColumns } from './columns';
+import ToggleEventsMappingForm from './toggle-form';
 
 interface EventsMappingContentProps {
     initialData: any;
@@ -89,10 +89,7 @@ export default function EventsMappingContent({ initialData, isLoading = false }:
     return (
         <div className='space-y-6'>
             <div className='flex justify-end'>
-                <Button
-                    onClick={openAddForm}
-                    className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'
-                >
+                <Button onClick={openAddForm} className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                     <Plus className='mr-2 h-4 w-4' /> Map New Event
                 </Button>
             </div>
@@ -105,7 +102,7 @@ export default function EventsMappingContent({ initialData, isLoading = false }:
                                 variant='ghost'
                                 size='sm'
                                 onClick={closeAddForm}
-                                className='absolute right-0 -top-12 text-destructive hover:bg-destructive/10'>
+                                className='-top-12 absolute right-0 text-destructive hover:bg-destructive/10'>
                                 <X className='mr-2 h-4 w-4' /> Close
                             </Button>
                             <EventsMappingForm
@@ -128,7 +125,7 @@ export default function EventsMappingContent({ initialData, isLoading = false }:
                                 variant='ghost'
                                 size='sm'
                                 onClick={closeEditForm}
-                                className='absolute right-0 -top-12 text-destructive hover:bg-destructive/10'>
+                                className='-top-12 absolute right-0 text-destructive hover:bg-destructive/10'>
                                 <X className='mr-2 h-4 w-4' /> Close
                             </Button>
                             <EventsMappingForm
@@ -147,8 +144,7 @@ export default function EventsMappingContent({ initialData, isLoading = false }:
             <CollapsibleSection
                 title='Mapped Events List'
                 defaultOpen={true}
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-            >
+                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                 <GenericDataTable
                     columns={EventsMappingColumns}
                     data={mappingData}
@@ -163,11 +159,7 @@ export default function EventsMappingContent({ initialData, isLoading = false }:
             </CollapsibleSection>
 
             {isToggleFormOpen && selectedRow && (
-                <ToggleEventsMappingForm
-                    rowData={selectedRow}
-                    onClose={closeToggleForm}
-                    onSuccess={fetchMappings}
-                />
+                <ToggleEventsMappingForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={fetchMappings} />
             )}
 
             <ViewDetailsDialog
@@ -178,16 +170,12 @@ export default function EventsMappingContent({ initialData, isLoading = false }:
                 data={viewData}
             />
 
-            <MappingDetailLoader
-                isOpen={isDetailsViewOpen}
-                selectedRow={selectedRow}
-                onLoad={handleOpenDetails}
-            />
+            <MappingDetailLoader isOpen={isDetailsViewOpen} selectedRow={selectedRow} onLoad={handleOpenDetails} />
         </div>
     );
 }
 
-function MappingDetailLoader({ isOpen, selectedRow, onLoad }: { isOpen: boolean, selectedRow: any, onLoad: (row: any) => void }) {
+function MappingDetailLoader({ isOpen, selectedRow, onLoad }: { isOpen: boolean; selectedRow: any; onLoad: (row: any) => void }) {
     useEffect(() => {
         if (isOpen && selectedRow) {
             onLoad(selectedRow);

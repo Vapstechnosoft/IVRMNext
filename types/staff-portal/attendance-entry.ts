@@ -1,4 +1,3 @@
-
 export interface IAcademicYear {
     asmaY_Id: number;
     asmaY_Year: string;
@@ -52,12 +51,11 @@ export interface IStudentAttendance {
     asA_Dailytwice_Flag?: string;
 }
 
-
 // export interface IStudentList {
 //     amsT_Id: number;
-  
+
 //       amaY_RollNo: number,
-//       amsT_AdmNo: string,     
+//       amsT_AdmNo: string,
 //       studentname: string,
 //      // pday: null,
 //      // selected: null,
@@ -71,8 +69,6 @@ export interface IStudentAttendance {
 //       asasB_Id: number,
 //       amsT_RegistrationNo: string
 // }
-
-
 
 export interface IAttendanceConfig {
     asC_Att_Default_OrderFlag: number;
@@ -94,7 +90,7 @@ export interface IAttendanceEntryInitialData {
     batchList: IBatch[];
     periodlist: IPeriod[];
     message: string | null;
-     //studentList: IStudentList[];
+    //studentList: IStudentList[];
 }
 
 export interface IStudentDataResponse {

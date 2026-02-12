@@ -1,10 +1,10 @@
 'use client';
 
+import AddMasterSchoolTopicForm from '@/app/(root)/lesson-planner/lesson-planner-module/master/master-school-topic/_components/add-form';
 import { MasterSchoolTopicColumns } from '@/app/(root)/lesson-planner/lesson-planner-module/master/master-school-topic/_components/columns';
+import OrderMasterSchoolTopicForm from '@/app/(root)/lesson-planner/lesson-planner-module/master/master-school-topic/_components/order-form';
 import ToggleMasterSchoolTopicForm from '@/app/(root)/lesson-planner/lesson-planner-module/master/master-school-topic/_components/toggle-form';
 import UpdateMasterSchoolTopicForm from '@/app/(root)/lesson-planner/lesson-planner-module/master/master-school-topic/_components/update-form';
-import AddMasterSchoolTopicForm from '@/app/(root)/lesson-planner/lesson-planner-module/master/master-school-topic/_components/add-form';
-import OrderMasterSchoolTopicForm from '@/app/(root)/lesson-planner/lesson-planner-module/master/master-school-topic/_components/order-form';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
