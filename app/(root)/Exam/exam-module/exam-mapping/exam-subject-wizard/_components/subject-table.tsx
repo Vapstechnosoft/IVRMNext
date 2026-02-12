@@ -203,6 +203,7 @@ export default function SubjectTableWithValidation({
     const [subjects, setSubjects] = useState<NormalizedSubject[]>([]);
     // errors: { [ismS_Id]: { fieldName: message } }
     const [errors, setErrors] = useState<Record<number, Record<string, string>>>({});
+    const isRemoteUpdate = useRef(false);
 
     // Global header state for checkboxes (Marks Display, Grade Display, Apply to Result)
     const [globalHeader, setGlobalHeader] = useState({
@@ -281,17 +282,25 @@ export default function SubjectTableWithValidation({
             return;
         }
         const normalized = initialSubjects.map((r, i) => normalizeSubject(r, i));
-        console.log('normalized subjects in subject-table', normalized);
-        setSubjects(normalized);
+
+        if (JSON.stringify(normalized) !== JSON.stringify(subjects)) {
+            isRemoteUpdate.current = true;
+            setSubjects(normalized);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialSubjects]);
 
     // ---------- avoid repeated parent updates: only call when payload actually changes ----------
     const lastSentRef = useRef<string | null>(null);
     useEffect(() => {
+        if (isRemoteUpdate.current) {
+            isRemoteUpdate.current = false;
+            return;
+        }
         const mappedBack = subjects.map((s) => ({
             ismS_Id: s.ismS_Id,
             ismS_SubjectName: s.ismS_SubjectName,
+            ismS_SubjectCode: s.ismS_SubjectCode,
             eyceS_MaxMarks: s.eyceS_MaxMarks === '' ? '' : String(s.eyceS_MaxMarks),
             eyceS_MinMarks: s.eyceS_MinMarks === '' ? '' : String(s.eyceS_MinMarks),
             eyceS_MarksEntryMax: s.eyceS_MarksEntryMax === '' ? '' : String(s.eyceS_MarksEntryMax),
