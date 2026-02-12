@@ -8,6 +8,14 @@ export const validateAgeForClass = (
 ): { isValid: boolean; reason?: string } => {
     const cutOffDate = config.ispaC_ApplCutOffDateFlag === 1 ? new Date(config.asmaY_Cut_Of_Date) : new Date();
 
+    // Validate that DOB is not after cutoff date
+    if (dob > cutOffDate) {
+        return {
+            isValid: false,
+            reason: 'Date of birth cannot be after the application cutoff date'
+        };
+    }
+
     const age = calculateAge(dob, cutOffDate);
 
     // Check minimum age if flag is enabled
