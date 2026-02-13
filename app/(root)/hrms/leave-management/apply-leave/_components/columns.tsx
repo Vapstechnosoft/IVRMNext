@@ -17,12 +17,14 @@ export interface LeaveBalanceRow {
 export interface LeaveHistoryRow {
     id: number;
     employeeName?: string;
-    leaveType: string;
+    leaveType?: string;
+    leaveName?: string;
     leaveReason?: string;
-    fromDate: string;
-    toDate: string;
+    fromDate: string | Date;
+    toDate: string | Date;
     noOfDays?: number;
     days?: number;
+    totalDays?: number;
     status: string;
     remark?: string;
     remarks?: string;
@@ -41,6 +43,8 @@ export type ApplyLeave = {
     reason: string;
     contactNumber?: string;
     dateReportingBack?: string;
+    inTime?: string;
+    outTime?: string;
     file?: FileList;
 };
 
@@ -88,7 +92,7 @@ export const createLeaveHistoryColumns = (onDelete?: (id: number) => void): Colu
     {
         accessorKey: 'leaveType',
         header: ({ column }) => <DataTableColumnHeader column={column} title='LEAVE NAME' />,
-        cell: ({ row }) => <div className='font-medium'>{row.getValue('leaveType')}</div>
+        cell: ({ row }) => <div className='font-medium'>{row.original.leaveType || row.original.leaveName || '-'}</div>
     },
     {
         accessorKey: 'leaveReason',
@@ -99,7 +103,7 @@ export const createLeaveHistoryColumns = (onDelete?: (id: number) => void): Colu
         accessorKey: 'fromDate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='From Date' />,
         cell: ({ row }) => {
-            const date = row.getValue('fromDate') as string;
+            const date = row.original.fromDate;
             return <div>{date ? new Date(date).toLocaleDateString('en-GB') : '-'}</div>;
         }
     },
@@ -107,14 +111,14 @@ export const createLeaveHistoryColumns = (onDelete?: (id: number) => void): Colu
         accessorKey: 'toDate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='To Date' />,
         cell: ({ row }) => {
-            const date = row.getValue('toDate') as string;
+            const date = row.original.toDate;
             return <div>{date ? new Date(date).toLocaleDateString('en-GB') : '-'}</div>;
         }
     },
     {
         accessorKey: 'days',
         header: ({ column }) => <DataTableColumnHeader column={column} title='NO. OF DAYS' />,
-        cell: ({ row }) => <div className='text-center'>{row.getValue('days') || row.original.noOfDays || '-'}</div>
+        cell: ({ row }) => <div className='text-center'>{row.original.days || row.original.noOfDays || row.original.totalDays || '-'}</div>
     },
     {
         accessorKey: 'status',

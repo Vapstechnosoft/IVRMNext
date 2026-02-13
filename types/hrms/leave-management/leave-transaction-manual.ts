@@ -10,8 +10,8 @@ export interface LeaveTransactionManual {
     id: number; // hreltD_Id
     employeeName: string; // hrmE_EmployeeFirstName
     leaveName: string; // hrmL_LeaveName
-    fromDate: Date; // hreltD_FromDate
-    toDate: Date; // hreltD_ToDate
+    fromDate: string | Date; // hreltD_FromDate
+    toDate: string | Date; // hreltD_ToDate
     totalDays: number; // hreltD_TotDays
     transactionId: number; // hrelT_Id
     isActive: boolean; // hrelT_ActiveFlag
@@ -57,4 +57,3 @@ export interface LeaveTransactionManualDeleteRequest {
     HRELTD_Id: number;
     HRELT_Id: number;
 }
-
