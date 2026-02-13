@@ -16,8 +16,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { Checkbox } from '@/components/ui/checkbox';
-import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { InputText } from '@/components/ui/extension/input-text';
+import { FeesCustomMultiSelectBox } from '@/components/ui/feesmultiselect';
 import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
 import { useFeeMasterConfiguration, useFeeTransactionList } from '@/hooks/fees/useTrasactions';
 import { feesStaffOtherTransactionSchema } from '@/schemas/fees/trasactions';
@@ -888,7 +888,7 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
                             </div>
 
                             <div className='w-80'>
-                                <CustomMultiSelectBox
+                                <FeesCustomMultiSelectBox
                                     options={terms.map((ex) => ({
                                         label: ex.fmG_GroupName,
                                         value: ex.fmT_Id.toString()

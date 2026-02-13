@@ -82,10 +82,17 @@ export interface IMasterAmountEntryDetails {
     ftdD_Day: string;
     ftdD_Month: string;
     fmA_DueDate: string;
+    ftddE_DueDate: string;
     viewFine: boolean;
     addFine: boolean;
     fmA_PartialRebateApplicableDate: string;
     fyghM_FineApplicableFlag?: string;
+}
+
+export interface TAmountEntryStThomasInstallment {
+    ftI_Id: number;
+    fmH_Id: number;
+    ftI_Name: string;
 }
 
 export interface IFeeTransactionWaivedOffList {
@@ -1001,6 +1008,7 @@ export interface StudentPrintDetails {
     fyp_date: string;
     feeAmount: number;
     asmay_Year: string;
+    fmt_name: string;
 }
 
 export interface CurrentPaymentDetails {
@@ -1070,4 +1078,26 @@ export interface FineSlabItem {
     fmfS_UpdatedBy: number;
     createdDate: string;
     updatedDate: string;
+}
+
+export interface IThirdPartyReceiptFlag {
+    imN_Id: number;
+    mI_Id: number;
+    imN_AutoManualFlag: string;
+    imN_DuplicatesFlag: string;
+    imN_StartingNo: string;
+    imN_WidthNumeric: string;
+    imN_ZeroPrefixFlag: 'Y' | 'N';
+    imN_PrefixAcadYearCode: boolean;
+    imN_PrefixParticular: string;
+    imN_SuffixAcadYearCode: boolean;
+    imN_SuffixParticular: string;
+    imN_RestartNumFlag: 'Y' | 'N';
+    imN_Flag: string;
+    imN_PrefixFinYearCode: boolean;
+    imN_PrefixCalYearCode: boolean;
+    imN_SuffixFinYearCode: boolean;
+    imN_SuffixCalYearCode: boolean;
+    createdDate: string; // ISO Date string
+    updatedDate: string; // ISO Date string
 }

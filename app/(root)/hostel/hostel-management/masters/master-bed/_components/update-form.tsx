@@ -7,11 +7,12 @@ import { FormInput } from '@/components/ui/form/form-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { MasterBedSchema, MasterBedSchemaType } from '@/schemas/hostel/master-bed.schema';
-import { fetchFloors, fetchRooms, IBedDisplay, IFloor, IHostel, IRoom, saveBed } from '@/server/hostel/master-bed/server-action';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { IBedDisplay, IFloor, IHostel, IRoom } from '@/types/hostel/hostel-management/masters';
+import { fetchFloors, fetchRooms, saveBed } from '@/server/hostel/hostel-management/masters/bed';
 
 interface UpdateMasterBedFormProps {
     onSuccess: () => void;

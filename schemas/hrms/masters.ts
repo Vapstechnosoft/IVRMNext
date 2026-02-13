@@ -187,31 +187,61 @@ export const gradeMasterSchema = z
             }
         ),
         hrmG_PayScaleFrom: z
-            .union([z.string(), z.number()])
-            .transform((val) => (typeof val === 'string' ? Number.parseFloat(val) : val))
-            .refine((val) => !Number.isNaN(val) && val >= 0 && val <= 9999999999, {
-                message: 'Pay Scale From must be between 0 and 9999999999'
+            .union([
+                z.number({ invalid_type_error: 'Pay Scale From is required', required_error: 'Pay Scale From is required' }),
+                z.string().transform((val) => {
+                    const parsed = Number.parseFloat(val);
+                    return Number.isNaN(parsed) ? undefined : parsed;
+                })
+            ])
+            .transform((val) => val)
+            .refine((val) => val !== undefined && val !== null && !Number.isNaN(val), {
+                message: 'Pay Scale From is required'
+            })
+            .refine((val) => (val as number) >= 0 && (val as number) <= 999999, {
+                message: 'Pay Scale From must be between 0 and 999999'
             }),
         hrmG_PayScaleTo: z
-            .union([z.string(), z.number()])
-            .transform((val) => (typeof val === 'string' ? Number.parseFloat(val) : val))
-            .refine((val) => !Number.isNaN(val) && val >= 0 && val <= 9999999999, {
-                message: 'Pay Scale To must be between 0 and 9999999999'
+            .union([
+                z.number({ invalid_type_error: 'Pay Scale To is required', required_error: 'Pay Scale To is required' }),
+                z.string().transform((val) => {
+                    const parsed = Number.parseFloat(val);
+                    return Number.isNaN(parsed) ? undefined : parsed;
+                })
+            ])
+            .transform((val) => val)
+            .refine((val) => val !== undefined && val !== null && !Number.isNaN(val), {
+                message: 'Pay Scale To is required'
+            })
+            .refine((val) => (val as number) >= 0 && (val as number) <= 999999, {
+                message: 'Pay Scale To must be between 0 and 999999'
             }),
         hrmG_IncrementOf: z
-            .union([z.string(), z.number()])
-            .transform((val) => (typeof val === 'string' ? Number.parseFloat(val) : val))
-            .refine((val) => !Number.isNaN(val) && val >= 0 && val <= 999, {
-                message: 'Increment must be between 0 and 999'
+            .union([
+                z.number({ invalid_type_error: 'Increment is required', required_error: 'Increment is required' }),
+                z.string().transform((val) => {
+                    const parsed = Number.parseFloat(val);
+                    return Number.isNaN(parsed) ? undefined : parsed;
+                })
+            ])
+            .transform((val) => val)
+            .refine((val) => val !== undefined && val !== null && !Number.isNaN(val), {
+                message: 'Increment is required'
+            })
+            .refine((val) => (val as number) >= 0 && (val as number) <= 999999, {
+                message: 'Increment must be between 0 and 999999'
             }),
         hrmG_Order: z.number().optional()
     })
     .refine(
         (data) => {
-            return data.hrmG_PayScaleFrom < data.hrmG_PayScaleTo;
+            // Pay Scale To must be greater than Pay Scale From
+            // Handle edge cases where values might be undefined
+            if (data.hrmG_PayScaleFrom === undefined || data.hrmG_PayScaleTo === undefined) return true;
+            return data.hrmG_PayScaleTo > data.hrmG_PayScaleFrom;
         },
         {
-            message: 'Pay Scale From must be less than Pay Scale To',
+            message: 'Pay Scale To must be greater than Pay Scale From',
             path: ['hrmG_PayScaleTo']
         }
     );
@@ -427,8 +457,8 @@ export const payrollStandardSchema = z.object({
     // Provident Fund
     HRC_PFAccPrefix: z.string().optional(),
     HRC_PFMaxAmt: z.number().min(0, 'Cannot be negative').optional().or(z.literal(undefined)),
-    HRC_FPFPer: z.number().min(0).max(100).optional().or(z.literal(undefined)),
-    HRC_EPFPer: z.number().min(0).max(100).optional().or(z.literal(undefined)),
+    HRC_FPFPer: z.number().min(0).max(100).refine(val => !val || Number.isInteger(val * 100), 'Max 2 decimal places allowed').optional().or(z.literal(undefined)),
+    HRC_EPFPer: z.number().min(0).max(100).refine(val => !val || Number.isInteger(val * 100), 'Max 2 decimal places allowed').optional().or(z.literal(undefined)),
     HRC_EPFPerAfterRetirement: z.number().min(0).max(100).optional(),
     HRC_EPFPerAfterRetirement2: z.number().min(0).max(100).optional(),
     HRC_AccNo2Per: z.number().min(0).optional(), // Account number, not percentage
@@ -444,7 +474,8 @@ export const payrollStandardSchema = z.object({
     HRC_RetirementYrs: z.number().min(1).max(100),
     // ESI
     HRC_ESIAccPrefix: z.string().optional(),
-    HRC_ESIMax: z.number().min(0).optional().or(z.literal(undefined)),
+    HRC_ESIMax: z.number().min(0, 'Must be at least 0').max(100, 'Cannot exceed 100').refine(val => !val || Number.isInteger(val * 100), 'Max 2 decimal places allowed').optional().or(z.literal(undefined)),
+    HRC_ESIMaxAmount: z.number().min(0).optional().or(z.literal(undefined)),
     HRC_ESIEmplrCont: z.number().min(0).max(100).optional().or(z.literal(undefined)),
     // Arrear Details
     HRC_ArrearSalaryReport: z.enum(['Separate', 'OnlyArrearHead']).optional(),

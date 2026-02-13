@@ -14,6 +14,12 @@ import {
     SelectValue
 } from '@/components/ui/select';
 import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import {
     invTGRNSchema,
     type InvTGRNSchema
 } from '@/schemas/inventory/transactions/inv-t-grn';
@@ -21,9 +27,11 @@ import { useInvTGRN } from '@/hooks/inventory/transactions/use-inv-t-grn';
 import { Plus, Minus, Save, RotateCcw, Calculator, Package, ReceiptIndianRupee, Info } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { getInvTGRNItemTax } from '@/server/inventory/transactions/inv-t-grn';
+import { getItemTaxDetail, getItemDetail } from '@/server/inventory/transactions/inv-t-grn';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Card } from '@/components/ui/card';
+
+const round = (num: number) => Math.round((num + Number.EPSILON) * 100) / 100;
 
 interface AddGRNFormProps {
     onSuccess: () => void;
@@ -32,6 +40,10 @@ interface AddGRNFormProps {
 export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
     const { data: loadData, saveMutation } = useInvTGRN();
     const [discountType, setDiscountType] = useState<'A' | 'P'>('A');
+
+    // Tax Modal State
+    const [isTaxModalOpen, setIsTaxModalOpen] = useState(false);
+    const [selectedTaxRowIndex, setSelectedTaxRowIndex] = useState<number | null>(null);
 
     const form = useForm<InvTGRNSchema>({
         resolver: zodResolver(invTGRNSchema),
@@ -73,49 +85,82 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
         }
     });
 
-    const { control, handleSubmit, register, setValue, watch, reset, formState: { errors } } = form;
+    const { control, handleSubmit, register, setValue, watch, reset, getValues, formState: { errors } } = form;
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'GRNItem'
     });
 
-    const watchedItems = watch('GRNItem');
+    const watchedItems = watch('GRNItem') || [];
 
-    // Calculate totals whenever items change
-    useEffect(() => {
+    const calculateTotals = () => {
+        const items = getValues('GRNItem') || [];
         let totalBasic = 0;
         let totalDiscount = 0;
         let totalTax = 0;
 
-        watchedItems.forEach((item) => {
-            totalBasic += Number(item.invtgrN_Amount) || 0;
-            totalDiscount += Number(item.invtgrN_DiscountAmt) || 0;
-            totalTax += Number(item.invtgrN_TaxAmt) || 0;
-        });
+        if (items && Array.isArray(items)) {
+            items.forEach((item) => {
+                if (!item) return;
+                totalBasic += Number(item.invtgrN_Amount) || 0;
+                totalDiscount += Number(item.invtgrN_DiscountAmt) || 0;
+                totalTax += Number(item.invtgrN_TaxAmt) || 0;
+            });
+        }
+
+        totalBasic = round(totalBasic);
+        totalDiscount = round(totalDiscount);
+        totalTax = round(totalTax);
 
         setValue('invmgrN_TotalAmount', totalBasic);
         setValue('invmgrN_TotDiscount', totalDiscount);
         setValue('invmgrN_TotTaxAmt', totalTax);
-        setValue('invmgrN_PurchaseValue', totalBasic - totalDiscount + totalTax);
-    }, [watchedItems, setValue]);
+        setValue('invmgrN_PurchaseValue', round(totalBasic - totalDiscount + totalTax));
+    };
+
+    // Calculate totals whenever items change (sync with internal state changes that might trigger re-renders)
+    useEffect(() => {
+        calculateTotals();
+    }, [watchedItems]);
 
     const handleItemChange = async (index: number, itemId: number) => {
         const item = loadData?.data?.get_item?.find((i: any) => i.invmI_Id === itemId);
         if (item) {
-            setValue(`GRNItem.${index}.invmuoM_Id`, item.invmuoM_Id);
             try {
-                const taxRes = await getInvTGRNItemTax(item.invmI_Id);
-                if (taxRes.success && taxRes.data) {
-                    const taxes = taxRes.data.get_itemTax || [];
-                    setValue(`GRNItem.${index}.GRNItemTax`, taxes.map((t: any) => ({
+                // Call both APIs concurrently
+                const [itemRes, taxRes] = await Promise.all([
+                    getItemDetail(item.invmI_Id),
+                    getItemTaxDetail(item.invmI_Id)
+                ]);
+
+                if (itemRes.success && itemRes.data) {
+                    const detail = itemRes.data.get_itemDetail?.[0];
+                    if (detail) {
+                        if (detail.invmuoM_UOMName) {
+                            setValue(`GRNItem.${index}.invmuoM_UOMName`, detail.invmuoM_UOMName);
+                        }
+                    }
+                    setValue(`GRNItem.${index}.invmuoM_Id`, item.invmuoM_Id);
+                }
+
+                // Use taxRes for tax details
+                const taxes = (taxRes.success && taxRes.data) ? taxRes.data : [];
+
+                if (taxes.length > 0) {
+                    const mappedTaxes = taxes.map((t: any) => ({
                         invmT_Id: t.invmT_Id,
                         invtgrnT_TaxPer: t.invmiT_TaxValue,
                         invtgrnT_TaxAmt: 0
-                    })));
-                    calculateTax(index);
+                    }));
+                    setValue(`GRNItem.${index}.GRNItemTax`, mappedTaxes);
+                    calculateTax(index, mappedTaxes);
+                } else {
+                    setValue(`GRNItem.${index}.GRNItemTax`, []);
+                    calculateTax(index, []);
                 }
+
             } catch (error) {
-                console.error('Error fetching item tax:', error);
+                console.error('Error fetching item details:', error);
             }
         }
     };
@@ -123,7 +168,7 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
     const calculateItemAmount = (index: number) => {
         const qty = watch(`GRNItem.${index}.invtgrN_Qty`) || 0;
         const rate = watch(`GRNItem.${index}.invtgrN_PurchaseRate`) || 0;
-        const basicAmt = qty * rate;
+        const basicAmt = round(qty * rate);
         setValue(`GRNItem.${index}.invtgrN_Amount`, basicAmt);
         calculateDiscount(index);
     };
@@ -137,25 +182,28 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
             discountAmt = (basicAmt * perc) / 100;
         }
 
+        discountAmt = round(discountAmt);
         setValue(`GRNItem.${index}.invtgrN_DiscountAmt`, discountAmt);
         calculateTax(index);
     };
 
-    const calculateTax = (index: number) => {
+    const calculateTax = (index: number, currentItemTaxes?: any[]) => {
         const basicAmt = watch(`GRNItem.${index}.invtgrN_Amount`) || 0;
         const discountAmt = watch(`GRNItem.${index}.invtgrN_DiscountAmt`) || 0;
         const taxableAmt = basicAmt - discountAmt;
 
-        const itemTaxes = watch(`GRNItem.${index}.GRNItemTax`) || [];
+        const itemTaxes = currentItemTaxes || watch(`GRNItem.${index}.GRNItemTax`) || [];
         let totalItemTax = 0;
 
-        itemTaxes.forEach((tax, taxIdx) => {
-            const taxAmt = (taxableAmt * tax.invtgrnT_TaxPer) / 100;
+        itemTaxes.forEach((tax: any, taxIdx: number) => {
+            if (!tax) return;
+            const taxAmt = round((taxableAmt * (tax.invtgrnT_TaxPer || 0)) / 100);
             setValue(`GRNItem.${index}.GRNItemTax.${taxIdx}.invtgrnT_TaxAmt`, taxAmt);
             totalItemTax += taxAmt;
         });
 
-        setValue(`GRNItem.${index}.invtgrN_TaxAmt`, totalItemTax);
+        setValue(`GRNItem.${index}.invtgrN_TaxAmt`, round(totalItemTax));
+        calculateTotals();
     };
 
     const onSubmit = (data: InvTGRNSchema) => {
@@ -166,6 +214,28 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                     onSuccess();
                 }
             }
+        });
+    };
+
+    const openTaxModal = (index: number) => {
+        setSelectedTaxRowIndex(index);
+        setIsTaxModalOpen(true);
+    };
+
+    const getCurrentRowTaxDetails = () => {
+        if (selectedTaxRowIndex === null) return [];
+        const updateTaxes = watch(`GRNItem.${selectedTaxRowIndex}.GRNItemTax`) || [];
+        const basicAmt = watch(`GRNItem.${selectedTaxRowIndex}.invtgrN_Amount`) || 0;
+        const discountAmt = watch(`GRNItem.${selectedTaxRowIndex}.invtgrN_DiscountAmt`) || 0;
+        const taxableAmt = basicAmt - discountAmt;
+
+        return updateTaxes.map(tax => {
+            const taxMaster = loadData?.data?.get_tax?.find((t: any) => t.invmT_Id === tax.invmT_Id);
+            return {
+                name: taxMaster?.invmT_TaxName || 'Unknown Tax',
+                percent: tax.invtgrnT_TaxPer,
+                amount: (taxableAmt * tax.invtgrnT_TaxPer) / 100
+            };
         });
     };
 
@@ -245,16 +315,55 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                     <InputText label='Invoice No' {...register('invmgrN_InvoiceNo')} placeholder='Enter Invoice Number' />
                     <InputText label='Order No (PO Ref)' {...register('invmgrN_POReference')} placeholder='Enter PO Reference' />
                     <InputText label='Bill Reference' {...register('invmgrN_EWayBillRef')} placeholder='Enter Bill Ref' />
+
+                    <InputText label='Towards Projects' {...register('invmgrN_TowardsProjects')} placeholder='Enter Project Name' />
+                    <InputText label='Challan No' {...register('invmgrN_ChallanNo')} placeholder='Enter Challan No' />
+                    <InputText label='Challan Verified By' {...register('invmgrN_Challanverfied')} placeholder='Verified By' />
+
+                    <div className='space-y-2'>
+                        <Label>PO Date</Label>
+                        <Controller
+                            name='invmgrN_PODate'
+                            control={control}
+                            render={({ field }) => (
+                                <input
+                                    type='date'
+                                    className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200'
+                                    value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
+                                    onChange={(e) => field.onChange(new Date(e.target.value))}
+                                />
+                            )}
+                        />
+                    </div>
+
+                    <InputText label='Prepared By' {...register('invmgrN_Prepared')} placeholder='Prepared By' />
+                    <InputText label='Signed By' {...register('invmgrN_SignedBy')} placeholder='Signed By' />
+
+                    <div className='space-y-2'>
+                        <Label>Challan Date</Label>
+                        <Controller
+                            name='invmgrN_Challandate'
+                            control={control}
+                            render={({ field }) => (
+                                <input
+                                    type='date'
+                                    className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200'
+                                    value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
+                                    onChange={(e) => field.onChange(new Date(e.target.value))}
+                                />
+                            )}
+                        />
+                    </div>
                 </div>
             </CollapsibleSection>
 
             {/* Items Collection */}
             <CollapsibleSection
                 title="GRN Items Collection"
-             
+
                 defaultOpen={true}
                 className="shadow-sm border-primary/10"
-               
+
             >
                 <div className='overflow-x-auto -mx-1 p-1'>
                     <table className='w-full border-collapse text-xs min-w-[1300px]'>
@@ -305,7 +414,7 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                                     </td>
                                     <td className='border p-2'>
                                         <div className='h-8 flex items-center justify-center bg-muted/30 rounded text-[11px] font-semibold text-muted-foreground border border-dashed'>
-                                            {loadData?.data?.get_item.find((i: any) => i.invmI_Id === watch(`GRNItem.${index}.invmI_Id`))?.invmuoM_UOMName || '-'}
+                                            {watch(`GRNItem.${index}.invmuoM_UOMName`) || loadData?.data?.get_item.find((i: any) => i.invmI_Id === watch(`GRNItem.${index}.invmI_Id`))?.invmuoM_UOMName || '-'}
                                         </div>
                                     </td>
                                     <td className='border p-2'>
@@ -313,16 +422,24 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                                     </td>
                                     <td className='border p-2'>
                                         <InputText
-                                            {...register(`GRNItem.${index}.invtgrN_Qty`, { valueAsNumber: true })}
+                                            {...register(`GRNItem.${index}.invtgrN_Qty`, {
+                                                valueAsNumber: true,
+                                                onChange: (e) => {
+                                                    calculateItemAmount(index);
+                                                }
+                                            })}
                                             className='h-8 text-xs text-right font-mono'
-                                            onBlur={() => calculateItemAmount(index)}
                                         />
                                     </td>
                                     <td className='border p-2'>
                                         <InputText
-                                            {...register(`GRNItem.${index}.invtgrN_PurchaseRate`, { valueAsNumber: true })}
+                                            {...register(`GRNItem.${index}.invtgrN_PurchaseRate`, {
+                                                valueAsNumber: true,
+                                                onChange: (e) => {
+                                                    calculateItemAmount(index);
+                                                }
+                                            })}
                                             className='h-8 text-xs text-right font-mono'
-                                            onBlur={() => calculateItemAmount(index)}
                                         />
                                     </td>
                                     <td className='border p-2'>
@@ -333,27 +450,26 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                                     </td>
                                     <td className='border p-2'>
                                         <InputText
-                                            {...register(`GRNItem.${index}.invtgrN_DiscountAmt`, { valueAsNumber: true })}
+                                            {...register(`GRNItem.${index}.invtgrN_DiscountAmt`, {
+                                                valueAsNumber: true,
+                                                onChange: (e) => {
+                                                    calculateDiscount(index);
+                                                }
+                                            })}
                                             className='h-8 text-xs text-right font-mono focus:bg-primary/5 transition-all'
-                                            onBlur={() => calculateDiscount(index)}
                                         />
                                     </td>
                                     <td className='border p-2 text-right font-mono bg-muted/10 text-xs font-semibold'>
                                         {watch(`GRNItem.${index}.invtgrN_Amount`)?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
                                     </td>
                                     <td className='border p-2 bg-green-50/20'>
-                                        <div className='flex items-center gap-1 justify-end font-mono text-green-700 text-xs font-semibold'>
+                                        <div
+                                            className='flex items-center gap-1 justify-end font-mono text-green-700 text-xs font-semibold cursor-pointer hover:bg-green-100/50 p-1 rounded transition-colors'
+                                            onClick={() => openTaxModal(index)}
+                                            title="Click to view Tax Details"
+                                        >
                                             <span>{watch(`GRNItem.${index}.invtgrN_TaxAmt`)?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</span>
-                                            <Button
-                                                type='button'
-                                                variant='ghost'
-                                                size='icon'
-                                                className='h-5 w-5 hover:bg-green-100/50'
-                                                onClick={() => calculateTax(index)}
-                                                title='Recalculate Tax'
-                                            >
-                                                <Calculator className='h-3 w-3 text-green-600' />
-                                            </Button>
+                                            <Calculator className='h-3 w-3 text-green-600' />
                                         </div>
                                     </td>
                                     <td className='border p-2 text-center'>
@@ -400,12 +516,58 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                 </div>
             </CollapsibleSection>
 
+            {/* Tax Details Modal */}
+            <Dialog open={isTaxModalOpen} onOpenChange={setIsTaxModalOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-primary">
+                            <ReceiptIndianRupee className="h-5 w-5" />
+                            Tax Breakdown
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="py-4">
+                        {selectedTaxRowIndex !== null && (
+                            <div className="space-y-4">
+                                <div className="flex justify-between text-sm font-medium border-b pb-2">
+                                    <span>Tax Name</span>
+                                    <div className="flex gap-8">
+                                        <span>Rate (%)</span>
+                                        <span className="w-20 text-right">Amount</span>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    {getCurrentRowTaxDetails().length > 0 ? (
+                                        getCurrentRowTaxDetails().map((tax, i) => (
+                                            <div key={i} className="flex justify-between text-sm">
+                                                <span className="text-muted-foreground">{tax.name}</span>
+                                                <div className="flex gap-8">
+                                                    <span className="font-mono text-xs">{tax.percent}%</span>
+                                                    <span className="w-20 text-right font-mono font-medium">₹{tax.amount.toFixed(2)}</span>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center text-muted-foreground text-sm py-2">No taxes active for this item</div>
+                                    )}
+                                </div>
+                                <div className="flex justify-between text-sm font-bold border-t pt-3 mt-2">
+                                    <span>Total Tax</span>
+                                    <span className="font-mono text-green-600">
+                                        ₹{getCurrentRowTaxDetails().reduce((sum, t) => sum + t.amount, 0).toFixed(2)}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
+
             {/* Footer and Totals */}
             <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
                 <div className='lg:col-span-2'>
                     <CollapsibleSection
                         title="Additional Information"
-                       
+
                         defaultOpen={true}
                         className="h-full shadow-sm border-primary/10"
                     >

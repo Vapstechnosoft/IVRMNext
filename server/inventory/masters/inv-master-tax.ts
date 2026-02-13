@@ -1,129 +1,76 @@
 'use server';
 
-import { api, getSearchParamsUrl } from '@/lib/apiService';
+import { api, getSearchParamsUrl, type ApiResponse } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type { IInvMasterTax, IInvMasterTaxLedger, IInvMasterTaxLedgerDTO } from '@/types/inventory/masters/inv-master-tax';
 
-export async function getInvMasterTax(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/INV_MasterTax/getloaddata?${urlParams}`;
+export async function getInvMasterTax(searchParams?: ApiSearchparams): Promise<ApiResponse<any>> {
+    console.log("getInvMasterTax: Function called");
+    const urlParams = getSearchParamsUrl(searchParams);
+    const url = `/INV_MasterTaxFacade/loadtaxlist?${urlParams}`;
+    console.log(`getInvMasterTax: Making GET request to ${url} using 'inventory' client`);
 
     try {
-        const response = await api.get<{ get_tax: IInvMasterTax[]; getloaddata: IInvMasterTaxLedger[] }>('inventory', url);
+        const response: any = await api.get<any>('inventory', url);
+        console.log("getInvMasterTax: API call successful", response ? Object.keys(response) : "null");
 
-        if (response.success && response.data && response.data.get_tax && response.data.get_tax.length > 0) {
-            return response;
+        // Handle success: false but with message (Search query with no results)
+        if (response.success === false && response.message === "No tax records found") {
+            return {
+                success: true,
+                data: [],
+                total: 0,
+                message: response.message
+            };
         }
 
-        // Return 20 rows of dummy data if API data is empty
-        let dummyTaxes: IInvMasterTax[] = Array.from({ length: 20 }, (_, i) => ({
-            invmT_Id: i + 1,
-            invmT_TaxName: `Tax ${i + 1} (${5 + (i % 5) * 5}%)`,
-            invmT_TaxAliasName: `TAX${i + 1}`,
-            invmT_ActiveFlg: i % 5 !== 0
-        }));
-
-        const dummyLedgers: IInvMasterTaxLedger[] = Array.from({ length: 5 }, (_, i) => ({
-            invmtleD_Id: i + 1,
-            invmT_Id: i + 1,
-            famcomP_Id: 1,
-            famleD_Id: 200 + i + 1,
-            famgrP_Id: 300 + i + 1,
-            invmtleD_TaxName: `Tax Ledger ${i + 1}`,
-            invmT_TaxName: `Tax ${i + 1}`,
-            famcomP_CompanyName: 'Main Company',
-            famleD_LedgerName: `Ledger ${i + 1}`,
-            famgrP_GroupName: 'Taxes and Duties'
-        }));
-
-        // Apply Search
-        const search = searchParams?.search_query?.toString().toLowerCase();
-        if (search) {
-            dummyTaxes = dummyTaxes.filter(item =>
-                item.invmT_TaxName.toLowerCase().includes(search) ||
-                item.invmT_TaxAliasName.toLowerCase().includes(search)
-            );
+        // Ensure data exists
+        if (!response.data) {
+            console.warn("getInvMasterTax: No data received");
+            return { success: false, data: [], total: 0, message: 'No data received' } as ApiResponse<any>;
         }
 
-        const totalItems = dummyTaxes.length;
-
-        // Apply Pagination
-        const page = Number(searchParams?.page) || 1;
-        const pageSize = Number(searchParams?.page_size) || 10;
-        const startIndex = (page - 1) * pageSize;
-        dummyTaxes = dummyTaxes.slice(startIndex, startIndex + pageSize);
-
-        return {
-            success: true,
-            message: 'Data fetched successfully (Expanded Dummy Data)!!',
-            data: {
-                get_tax: dummyTaxes,
-                getloaddata: dummyLedgers,
-                total: totalItems
-            }
-        } as any;
+        return response;
     } catch (error) {
-        console.error('Error fetching Tax data:', error);
-
-        let dummyTaxes: IInvMasterTax[] = Array.from({ length: 20 }, (_, i) => ({
-            invmT_Id: i + 1,
-            invmT_TaxName: `Tax ${i + 1} (${5 + (i % 5) * 5}%) (EF)`,
-            invmT_TaxAliasName: `TAX${i + 1}`,
-            invmT_ActiveFlg: i % 5 !== 0
-        }));
-
-        // Apply Search
-        const search = searchParams?.search_query?.toString().toLowerCase();
-        if (search) {
-            dummyTaxes = dummyTaxes.filter(item =>
-                item.invmT_TaxName.toLowerCase().includes(search) ||
-                item.invmT_TaxAliasName.toLowerCase().includes(search)
-            );
-        }
-
-        const totalItems = dummyTaxes.length;
-
-        // Apply Pagination
-        const page = Number(searchParams?.page) || 1;
-        const pageSize = Number(searchParams?.page_size) || 10;
-        const startIndex = (page - 1) * pageSize;
-        dummyTaxes = dummyTaxes.slice(startIndex, startIndex + pageSize);
-
-        return {
-            success: true,
-            message: 'Data fetched successfully (Expanded Dummy Data - Error Fallback)!!',
-            data: {
-                get_tax: dummyTaxes,
-                getloaddata: [],
-                total: totalItems
-            }
-        } as any;
+        console.error("getInvMasterTax: API call failed", error);
+        // Return a safe fallback so the UI doesn't crash, but logged the error
+        return { success: false, data: [], total: 0, message: 'Error fetching data' } as ApiResponse<any>;
     }
 }
 
 export async function getInvMasterTaxDetails(id: number) {
     const data = { INVMT_Id: id };
-    const url = `/INV_MasterTax/get_Details`;
+    const url = `/INV_MasterTaxFacade/getdetails`;
     return await api.post<any>('inventory', url, data);
 }
 
 export async function getLedgerUnder(famled_id: number) {
     const data = { FAMLED_Id: famled_id };
-    const url = `/INV_MasterTax/getledgerunder`;
+    const url = `/INV_MasterTaxFacade/getledgerunder`;
     return await api.post<any>('inventory', url, data);
 }
 
-export async function saveInvMasterTax(data: IInvMasterTax) {
-    const url = `/INV_MasterTax/savedetails`;
-    return await api.post<any>('inventory', url, data);
+export async function saveInvMasterTax(data: any) {
+    const params = new URLSearchParams();
+    for (const key in data) {
+        if (data[key] !== undefined && data[key] !== null) {
+            params.append(key, data[key].toString());
+        }
+    }
+    const url = `/INV_MasterTaxFacade/savedetails?${params.toString()}`;
+
+    console.log("saveInvMasterTax: Posting with Query Params to", url);
+    return await api.post<any>('inventory', url, {});
 }
 
 export async function saveInvMasterTaxLedger(data: IInvMasterTaxLedgerDTO) {
-    const url = `/INV_MasterTax/saveledger`;
+    const url = `/INV_MasterTaxFacade/saveledger`;
     return await api.post<any>('inventory', url, data);
 }
 
 export async function deactivateInvMasterTax(data: IInvMasterTax) {
-    const url = `/INV_MasterTax/deactive`;
-    return await api.post<any>('inventory', url, data);
+    // User specified: /api/INV_MasterTaxFacade/deactive?id=6
+    // So we use query param 'id'
+    const url = `/INV_MasterTaxFacade/deactive?id=${data.invmT_Id}`;
+    return await api.post<any>('inventory', url, {});
 }

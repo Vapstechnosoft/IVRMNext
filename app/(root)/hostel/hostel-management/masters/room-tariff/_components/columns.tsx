@@ -1,48 +1,70 @@
 'use client';
 
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import { ColumnDef } from '@tanstack/react-table';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { IRoomTariff } from '@/server/hostel/room-tariff/server-action';
+import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
+import { IRoomTariff } from '@/server/hostel/hostel-management/masters/room-tariff';
 import { useFormContext } from '@/components/ui/form/form-provider';
-
-const columnHelper = createColumnHelper<IRoomTariff>();
+import { useCallback } from 'react';
 
 export const roomTariffColumns: ColumnDef<IRoomTariff, any>[] = [
-    columnHelper.display({
-        id: 'slno',
-        header: 'SL NO',
-        cell: (info) => info.row.index + 1,
+    {
+        accessorKey: 'sn',
+        header: ({ column }) => <ColumnHeader column={column} title='Sl.No' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            return <div>{pageIndex * pageSize + row.index + 1}</div>;
+        },
         enableSorting: false,
-    }),
-    columnHelper.accessor('asmaY_Year', {
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Year" />,
-    }),
-    columnHelper.accessor('hrmrM_RoomNo', {
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Room" />,
-    }),
-    columnHelper.accessor('hlmrtF_SORate', {
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Single Bed Rate" />,
-    }),
-    columnHelper.accessor('hlmrtF_RoomRate', {
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Entire Room Rate" />,
-    }),
-    columnHelper.display({
+        enableHiding: false
+    },
+    {
+        accessorKey: 'asmaY_Year',
+        header: ({ column }) => <ColumnHeader column={column} title="Year" />,
+    },
+    {
+        accessorKey: 'hrmrM_RoomNo',
+        header: ({ column }) => <ColumnHeader column={column} title="Room" />,
+    },
+    {
+        accessorKey: 'hlmrtF_SORate',
+        header: ({ column }) => <ColumnHeader column={column} title="Single Bed Rate" />,
+    },
+    {
+        accessorKey: 'hlmrtF_RoomRate',
+        header: ({ column }) => <ColumnHeader column={column} title="Entire Room Rate" />,
+    },
+    {
         id: 'actions',
-        header: 'Action',
+        header: ({ column }) => <ColumnHeader column={column} title='Actions' className='text-center' />,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
-    }),
+    },
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IRoomTariff }) {
     const { openEditForm, openToggleForm } = useFormContext<IRoomTariff>();
 
+    const handleEdit = useCallback(
+        (data: IRoomTariff) => {
+            openEditForm(data);
+        },
+        [openEditForm]
+    );
+
+    const handleToggle = useCallback(
+        (data: IRoomTariff) => {
+            openToggleForm(data);
+        },
+        [openToggleForm]
+    );
+
     return (
         <ActionButtons
             rowData={rowData}
             buttons={{ edit: true, toggle: true }}
-            onEdit={openEditForm}
-            onToggle={openToggleForm}
+            onEdit={handleEdit}
+            onToggle={handleToggle}
             toggleConditionKey="hlmrtF_ActiveFlag"
         />
     );

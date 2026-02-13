@@ -5,7 +5,7 @@ import type { IAcademicYear, IFeeAnalysisData, IFeeDetailsData } from '@/types/s
 // Note: We use the inferred return type from apiService which includes ApiResponse wrapper.
 
 export async function getAcademicYears() {
-    const url = '/api/CumulativeFeeAnalysis/getacademicyear?AMST_Id=17108';
+    const url = '/api/CumulativeFeeAnalysis/getacademicyear';
     return await api.get<IAcademicYear[]>('portal', url);
 }
 

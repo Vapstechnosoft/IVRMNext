@@ -4,69 +4,102 @@ import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type { IInvMasterUOM } from '@/types/inventory/masters/inv-master-uom';
 
-const DUMMY_UOMS: IInvMasterUOM[] = [
-    { invmuoM_Id: 1, invmuoM_UOMName: 'Kilogram', invmuoM_UOMAliasName: 'KG', invmuoM_Qty: '1', invmuoM_ActiveFlg: true },
-    { invmuoM_Id: 2, invmuoM_UOMName: 'Gram', invmuoM_UOMAliasName: 'GM', invmuoM_Qty: '1000', invmuoM_ActiveFlg: true },
-    { invmuoM_Id: 3, invmuoM_UOMName: 'Liter', invmuoM_UOMAliasName: 'LTR', invmuoM_Qty: '1', invmuoM_ActiveFlg: true },
-    { invmuoM_Id: 4, invmuoM_UOMName: 'Meter', invmuoM_UOMAliasName: 'M', invmuoM_Qty: '1', invmuoM_ActiveFlg: true },
-    { invmuoM_Id: 5, invmuoM_UOMName: 'Number', invmuoM_UOMAliasName: 'NOS', invmuoM_Qty: '1', invmuoM_ActiveFlg: true },
-    { invmuoM_Id: 6, invmuoM_UOMName: 'Milliliter', invmuoM_UOMAliasName: 'ML', invmuoM_Qty: '1000', invmuoM_ActiveFlg: true },
-    { invmuoM_Id: 7, invmuoM_UOMName: 'Centimeter', invmuoM_UOMAliasName: 'CM', invmuoM_Qty: '100', invmuoM_ActiveFlg: true },
-    { invmuoM_Id: 8, invmuoM_UOMName: 'Inch', invmuoM_UOMAliasName: 'IN', invmuoM_Qty: '1', invmuoM_ActiveFlg: true },
-    { invmuoM_Id: 9, invmuoM_UOMName: 'Dozen', invmuoM_UOMAliasName: 'DZ', invmuoM_Qty: '12', invmuoM_ActiveFlg: true },
-    { invmuoM_Id: 10, invmuoM_UOMName: 'Box', invmuoM_UOMAliasName: 'BX', invmuoM_Qty: '1', invmuoM_ActiveFlg: true },
-];
-
-export async function fetchInvMasterUOMData(searchParams?: ApiSearchparams) {
+export async function getInvMasterUOM(searchParams?: ApiSearchparams) {
+    console.log("getInvMasterUOM: TRIGGERED (POST Mode).");
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/INV_MasterUOM/getloaddata?${urlParams}`;
+
+    const url = `/INV_MasterUOMFacade/getloaddata?${urlParams}`;
 
     try {
-        const response = await api.get<any>('inventory', url);
-        if (response.success) {
-            return response;
+        const response: any = await api.post<any>('inventory', url, {});
+
+        if (response.success === false && response.total === 0) {
+            return {
+                success: true,
+                data: {
+                    get_uom: [],
+                    total: 0
+                },
+                message: response.message
+            };
         }
 
-        // Dummy Data Fallback
-        return {
-            success: true,
-            message: 'Data fetched successfully (Dummy)',
-            data: {
-                get_uom: DUMMY_UOMS,
-                total: DUMMY_UOMS.length
-            }
+        const extractData = (res: any) => {
+            if (Array.isArray(res)) return res;
+            if (res?.data && Array.isArray(res.data)) return res.data;
+            if (res?.data?.$values && Array.isArray(res.data.$values)) return res.data.$values;
+            if (res?.data?.get_uom && Array.isArray(res.data.get_uom)) return res.data.get_uom;
+            if (res?.get_uom && Array.isArray(res.get_uom)) return res.get_uom;
+            return [];
         };
-    } catch (error) {
-        console.error('Error fetching Master UOM data:', error);
+
+        const rawUOMs = extractData(response);
+
+        const uoms: IInvMasterUOM[] = rawUOMs.map((uom: any) => ({
+            invmuoM_Id: uom.invmuoM_Id || uom.INVMUOM_Id || uom.Id || 0,
+            invmuoM_UOMName: uom.invmuoM_UOMName || uom.INVMUOM_UOMName || '',
+            invmuoM_UOMAliasName: uom.invmuoM_UOMAliasName || uom.INVMUOM_UOMAliasName || '',
+            invmuoM_Qty: uom.invmuoM_Qty || uom.INVMUOM_Qty || '',
+            invmuoM_ActiveFlg: uom.invmuoM_ActiveFlg ?? uom.INVMUOM_ActiveFlg ?? false
+        }));
+
         return {
             success: true,
-            message: 'Data fetched successfully (Dummy Fallback)',
             data: {
-                get_uom: DUMMY_UOMS,
-                total: DUMMY_UOMS.length
+                get_uom: uoms,
+                total: response?.total || rawUOMs.length
             }
+        } as any;
+
+    } catch (error: any) {
+        console.error('getInvMasterUOM: FAILED', error);
+        return {
+            success: false,
+            data: { get_uom: [], total: 0 }
         };
     }
 }
 
 export async function saveInvMasterUOM(data: any) {
-    const url = `/INV_MasterUOM/savedetails`;
-    // const response = await api.post<any>('inventory', url, data);
-    // return response;
+    console.log("saveInvMasterUOM: Incoming data:", JSON.stringify(data));
+    const params = new URLSearchParams();
 
-    // Simulated response
-    return {
-        returnval: true,
-        invmuoM_Id: data.invmuoM_Id || 100,
-        returnduplicatestatus: ''
+    // Mapping internal camelCase keys to PascalCase keys required by API
+    const mapping: Record<string, string> = {
+        invmuoM_Id: 'INVMUOM_Id',
+        invmuoM_UOMName: 'INVMUOM_UOMName',
+        invmuoM_UOMAliasName: 'INVMUOM_UOMAliasName',
+        invmuoM_Qty: 'INVMUOM_Qty',
+        invmuoM_ActiveFlg: 'INVMUOM_ActiveFlg'
     };
+
+    for (const key in data) {
+        const apiKey = mapping[key] || key;
+        const val = data[key];
+
+        // Handling the potential ID binding issue (consistent with Store/Supplier pattern)
+        if (key === 'invmuoM_Id') {
+            if (val !== 0 && val !== null && val !== undefined) {
+                // Send both as fallback to resolve binding ambiguity in facade
+                params.append('INVMUOM_Id', val.toString());
+                params.append('INVMS_Id', val.toString()); // Some facades might reuse this parameter name
+            }
+            continue;
+        }
+
+        if (val !== undefined && val !== null) {
+            params.append(apiKey, val.toString());
+        }
+    }
+
+    const url = `/INV_MasterUOMFacade/savedetails?${params.toString()}`;
+    console.log("saveInvMasterUOM: Posting to", url);
+    return await api.post<any>('inventory', url, {});
 }
 
-export async function deactivateInvMasterUOM(data: any) {
-    const url = `/INV_MasterUOM/deactive`;
-    // const response = await api.post<any>('inventory', url, data);
-    // return response;
-
-    // Simulated response
-    return { returnval: true };
+export async function deactivateInvMasterUOM(data: IInvMasterUOM) {
+    // Standardized deactive pattern with fallback id parameter
+    const url = `/INV_MasterUOMFacade/deactive?id=${data.invmuoM_Id}`;
+    console.log("deactivateInvMasterUOM: Posting to", url);
+    return await api.post<any>('inventory', url, {});
 }

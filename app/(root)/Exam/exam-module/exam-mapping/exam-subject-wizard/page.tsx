@@ -50,7 +50,7 @@ function ExamSubjectWizardPageContent({
         (async () => {
             if (isOrderDetailsOpen && selectedRow?.eycE_Id) {
                 try {
-                    const response = await getExamSubjectWizardDetails(30, selectedRow.eycE_Id);
+                    const response = await getExamSubjectWizardDetails(selectedRow.eycE_Id);
 
                     if (response.success && response.data) {
                         const subjects: IExamSubjectOrder[] = Array.isArray(response.data) ? response.data : [];
@@ -124,7 +124,7 @@ function ExamSubjectWizardPageContent({
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['subject_order', 'actions'] }}
-                        showSearchColumns={true}
+                        //showSearchColumns={true}
                         loadingMessage='Loading exam subject wizard data...'
                         noDataTitle='No Exam Subject Wizard Records Found'
                         noDataDescription='Get started by creating your first exam subject wizard entry'

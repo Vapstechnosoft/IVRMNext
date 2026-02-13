@@ -43,7 +43,11 @@ export type ApiBaseUrlKey =
     | 'sports'
     | 'alumni'
     | 'sadmin'
-    | 'portal';
+    | 'portal'
+    | 'hostel'
+    | 'coe'
+    | 'lessonplanner'
+    | 'transport';
 
 class ApiService {
     private instances: Map<string, AxiosInstance>;
@@ -59,6 +63,7 @@ class ApiService {
             admission: process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             fees: process.env.NEXT_PUBLIC_FEES_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             exam: process.env.NEXT_PUBLIC_EXAM_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            hostel: process.env.NEXT_PUBLIC_HOSTEL_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             hrms: process.env.NEXT_PUBLIC_HRMS_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             hrmsfrontoffice: process.env.NEXT_PUBLIC_HRMS_FRONTOFFICE_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             hmslms: process.env.NEXT_PUBLIC_HRMS_LMS_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
@@ -69,7 +74,10 @@ class ApiService {
             sports: process.env.NEXT_PUBLIC_SPORTS_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             alumni: process.env.NEXT_PUBLIC_ALUMNI_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             sadmin: process.env.NEXT_PUBLIC_SADMIN_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
-            portal: process.env.NEXT_PUBLIC_PORTAL_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
+            coe: process.env.NEXT_PUBLIC_COE_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            portal: process.env.NEXT_PUBLIC_PORTAL_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            lessonplanner: process.env.NEXT_PUBLIC_LESSONPLANNER_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            transport: process.env.NEXT_PUBLIC_TRANSPORT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
         };
 
         // Debug: info base URLs in development
@@ -107,8 +115,7 @@ class ApiService {
 
             // Add SSL bypass for localhost in development mode
             if (isLocalhost && process.env.NODE_ENV === 'development' && typeof window === 'undefined') {
-                // This only runs on server-side (Node.js environment)
-                // Using require here to avoid client-side bundling issues with 'https'
+                // biome-ignore lint/style/useNodejsImportProtocol: <explanation>
                 const https = require('https');
                 config.httpsAgent = new https.Agent({
                     rejectUnauthorized: false // Bypass SSL certificate validation
@@ -271,7 +278,10 @@ class ApiService {
                 status: error?.response?.status,
                 statusText: error?.response?.statusText,
                 data: error?.response?.data,
-                url: error?.config?.url
+                url: error?.config?.url,
+                method: error?.config?.method,
+                stack: error?.stack,
+                rawError: JSON.stringify(error, Object.getOwnPropertyNames(error))
             });
             throw this.handleError(error);
         }
@@ -294,7 +304,7 @@ class ApiService {
             const transformedResponse: ApiResponse<T[]> = {
                 success: response.data.success,
                 message: response.data.message,
-                data: response.data.data?.$values || null,
+                data: response.data.data?.$values ?? (Array.isArray(response.data.data) ? response.data.data : null),
                 total: response.data.total,
                 page: response.data.page,
                 page_Size: response.data.page_Size
@@ -308,6 +318,28 @@ class ApiService {
 
     public async post<T>(baseUrlKey: ApiBaseUrlKey, url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
         return this.request<T>(baseUrlKey, 'POST', url, config, data);
+    }
+
+    public async postBinary(
+        baseUrlKey: ApiBaseUrlKey,
+        url: string,
+        data?: unknown,
+        config?: AxiosRequestConfig
+    ): Promise<any> {
+        try {
+            const instance = this.getOrCreateInstance(baseUrlKey);
+            const response = await instance.request({
+                method: 'POST',
+                url,
+                data,
+                responseType: 'arraybuffer',
+                ...config
+            });
+
+            return response.data;
+        } catch (error) {
+            throw this.handleError(error);
+        }
     }
 
     public async put<T>(baseUrlKey: ApiBaseUrlKey, url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {

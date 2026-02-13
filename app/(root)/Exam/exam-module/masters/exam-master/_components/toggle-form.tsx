@@ -41,7 +41,7 @@ export default function ToggleExamForm({ rowData, onClose }: ToggleExamFormProps
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleMasterExam(30, Number(rowData.emE_Id));
+            const response = await toggleMasterExam(Number(rowData.emE_Id));
 
             if (response.success) {
                 toast.success(response.message);

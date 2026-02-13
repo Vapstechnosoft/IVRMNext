@@ -1,242 +1,240 @@
 'use client';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { usePFChallanReportOnload, useSearchPFChallanReport } from '@/hooks/hrms/useReports';
-import { useEffect, useMemo, useState } from 'react';
+
+import { useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider } from '@/components/ui/form/form-provider';
+import { Label } from '@/components/ui/extension/field';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
+import { exportToExcel } from '@/lib/export-to-file';
+import { usePFChallan, usePFChallanOnload } from '@/hooks/hrms/useReports';
+import { Loader2, Search, Download } from 'lucide-react';
 import { toast } from 'sonner';
-import { PFChallanFilters, type PFChallanFilters as PFChallanFiltersType } from './_components/filters';
-import { PFChallanTemplate } from './_components/pf-challan-template';
-// PF challan data structure
-interface PFChallanRecord {
-    id?: string;
-    employeeCode: string;
-    employeeName: string;
-    pfNumber: string;
-    basicSalary: number;
-    pfEligibleSalary: number;
-    employeePF: number;
-    employerPF: number;
-    totalPF: number;
-    vpfContribution: number;
-    pensionContribution: number;
-    administrationCharges: number;
-    month: string;
+
+const MONTH_LIST = [
+    { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
+    { id: 4, name: 'April' }, { id: 5, name: 'May' }, { id: 6, name: 'June' },
+    { id: 7, name: 'July' }, { id: 8, name: 'August' }, { id: 9, name: 'September' },
+    { id: 10, name: 'October' }, { id: 11, name: 'November' }, { id: 12, name: 'December' }
+];
+
+interface FilterFormValues {
     year: string;
+    month: string;
 }
+
 export default function PFChallanPage() {
-    const roleId = HRMS_MI_ID;
-    // React Query hooks
-    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = usePFChallanReportOnload(roleId);
-    const searchMutation = useSearchPFChallanReport();
-    // State
-    const [pfRecords, setPFRecords] = useState<PFChallanRecord[]>([]);
-    const [showChallan, setShowChallan] = useState(false);
-    const [establishmentName, setEstablishmentName] = useState<string>('');
-    const [establishmentAddress, setEstablishmentAddress] = useState<string>('');
-    const [pincode, setPincode] = useState<string>('');
-    const [filters, setFilters] = useState<PFChallanFiltersType>({
-        month: '',
-        year: ''
+    return (
+        <FormProvider>
+            <PFChallanContent />
+        </FormProvider>
+    );
+}
+
+function PFChallanContent() {
+    const [reportData, setReportData] = useState<any[] | null>(null);
+    const { control, handleSubmit } = useForm<FilterFormValues>({
+        defaultValues: {
+            year: '',
+            month: ''
+        }
     });
-    // Memoize dropdown data from API
-    const months = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).monthdropdown || [];
-    }, [onloadData?.data]);
-    const years = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).leaveyeardropdown || [];
-    }, [onloadData?.data]);
-    // Extract institution details from onload data
-    useEffect(() => {
-        if (onloadData?.data) {
-            const institutionDetails = (onloadData.data as any).institutionDetails;
-            if (institutionDetails) {
-                setEstablishmentName(institutionDetails.MI_Name || '');
-                const addressParts = [];
-                if (institutionDetails.MI_Address1) addressParts.push(institutionDetails.MI_Address1);
-                if (institutionDetails.MI_Address2) addressParts.push(institutionDetails.MI_Address2);
-                if (institutionDetails.MI_Address3) addressParts.push(institutionDetails.MI_Address3);
-                setEstablishmentAddress(addressParts.join(', ') || '');
-                setPincode(institutionDetails.MI_Pincode || '');
-            }
-        }
-    }, [onloadData]);
-    // Show error if API fails
-    useEffect(() => {
-        if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
-            const errorMessage =
-                onloadError?.message ||
-                onloadData?.message ||
-                'Failed to load PF challan report data. Please check if the API endpoint is available.';
-            toast.error(errorMessage);
-        }
-    }, [onloadError, isLoadingOnload, onloadData]);
-    const handleFilterChange = (newFilters: PFChallanFiltersType) => {
-        setFilters(newFilters);
-    };
-    const handleGenerate = () => {
-        // Always show challan template when generate is clicked, even without data or on errors
-        setShowChallan(true);
-        if (!filters.month || !filters.year) {
-            toast.error('Please select month and year');
+
+    // Queries - Using facade onload for ID sync
+    const { data: onloadData } = usePFChallanOnload(30);
+
+    // Using general master for Years as reference Cumulative Report
+    const { data: yearsData } = useLeaveYearDropdown();
+    const monthsData = { data: onloadData?.data?.monthdropdown || [] };
+
+    const { mutate: generateReport, isPending } = usePFChallan();
+
+    const onSubmit = (data: FilterFormValues) => {
+        if (!data.year || !data.month) {
+            toast.error('Please select Year and Month');
             return;
         }
-        // Find month ID from selected month name
-        const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
-        const monthName = selectedMonthObj?.IVRM_Month_Name?.trim() || filters.month;
-        // Prepare search request
-        const searchRequest = {
-            MI_Id: roleId,
-            HRES_Month: monthName,
-            HRES_Year: filters.year
-        };
-        // Call search API to get PF challan data
-        searchMutation.mutate(searchRequest, {
-            onSuccess: (response) => {
-                if (response.success && response.data) {
-                    // Extract institution details from API response if available
-                    const institutionDetails = (response.data as any).institutionDetails || onloadData?.data?.institutionDetails;
-                    if (institutionDetails) {
-                        setEstablishmentName(institutionDetails.MI_Name || '');
-                        const addressParts = [];
-                        if (institutionDetails.MI_Address1) addressParts.push(institutionDetails.MI_Address1);
-                        if (institutionDetails.MI_Address2) addressParts.push(institutionDetails.MI_Address2);
-                        if (institutionDetails.MI_Address3) addressParts.push(institutionDetails.MI_Address3);
-                        setEstablishmentAddress(addressParts.join(', ') || '');
-                        setPincode(institutionDetails.MI_Pincode || '');
-                    }
-                    // Extract PF challan data from response
-                    const pfData = response.data.getpfgriddata || response.data.pfreport || response.data.employeeDetails || [];
-                    if (Array.isArray(pfData) && pfData.length > 0) {
-                        // Map API response to PFChallanRecord format
-                        const mappedRecords: PFChallanRecord[] = pfData.map((item: any, index: number) => {
-                            const basicSalary = item.basicamount || item.basicSalary || item.AmountofWages || 0;
-                            const pfEligibleSalary = item.pfEligibleSalary || Math.min(basicSalary, 15000); // PF ceiling
-                            const employeePF = item.HRES_EPF || item.employeePF || pfEligibleSalary * 0.12; // 12% employee contribution
-                            const employerPF = item.HRES_FPF || item.employerPF || pfEligibleSalary * 0.12; // 12% employer contribution
-                            const vpfContribution = item.VPFAmount || item.vpfContribution || 0;
-                            const pensionContribution = pfEligibleSalary * 0.0833; // 8.33% pension
-                            const administrationCharges = pfEligibleSalary * 0.005; // 0.5% admin charges
-                            const totalPF = employeePF + employerPF + vpfContribution + pensionContribution + administrationCharges;
-                            return {
-                                id: `pf-${item.HRME_Id || item.HRES_Id || index}`,
-                                employeeCode: item.HRME_EmployeeCode || item.EmployeeCode || item.employeeCode || '',
-                                employeeName:
-                                    `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() ||
-                                    item.EmployeeName ||
-                                    '',
-                                pfNumber:
-                                    item.HRME_PFAccNo ||
-                                    item.HRME_PFuAN ||
-                                    item.pfNumber ||
-                                    `PF${(item.HRME_EmployeeCode || '').slice(-3)}${filters.month.slice(0, 3).toUpperCase()}`,
-                                basicSalary: Math.round(basicSalary),
-                                pfEligibleSalary: Math.round(pfEligibleSalary),
-                                employeePF: Math.round(employeePF),
-                                employerPF: Math.round(employerPF),
-                                totalPF: Math.round(totalPF),
-                                vpfContribution: Math.round(vpfContribution),
-                                pensionContribution: Math.round(pensionContribution),
-                                administrationCharges: Math.round(administrationCharges),
-                                month: filters.month,
-                                year: filters.year
-                            };
-                        });
-                        setPFRecords(mappedRecords);
-                        toast.success('PF Challan generated successfully');
-                    } else {
-                        // No data returned, but still show the challan structure
-                        setPFRecords([]);
-                        toast.warning('PF Challan generated but no data found for selected period');
-                    }
+
+
+        const selectedYearObj = yearsData?.data?.find((y: any) => y.hrmlY_Id.toString() === data.year);
+        const yearString = selectedYearObj?.hrmlY_LeaveYear?.split('-')[0] || data.year;
+
+        generateReport({
+            hreS_Year: yearString,
+            hreS_Month: data.month
+        }, {
+            onSuccess: (res) => {
+                if (res.success && res.data) {
+                    // Robust data binding: handle direct array or nested properties
+                    const dataArr = res.data.alldata || res.data.pfreport || (Array.isArray(res.data) ? res.data : []);
+                    setReportData(dataArr);
+                    toast.success('Report generated successfully');
                 } else {
-                    toast.error(response.message || 'Failed to generate PF challan');
+                    toast.error(res.message || 'No data found');
                 }
-            },
-            onError: (error: Error) => {
-                toast.error(error.message || 'Failed to generate PF challan');
             }
         });
     };
-    const handleCancel = () => {
-        setFilters({
-            month: '',
-            year: ''
-        });
-        setPFRecords([]);
-        setShowChallan(false);
-        toast.info('Filters cleared');
+
+    const handleExport = () => {
+        if (!reportData || reportData.length === 0) {
+            toast.error('No data to export');
+            return;
+        }
+
+        const exportColumns = [
+            { label: 'Wages', value: 'amountofWages' },
+            { label: 'EPF', value: 'hreS_EPF' },
+            { label: 'FPF', value: 'hreS_FPF' },
+            { label: 'Ac 21', value: 'hreS_Ac21' },
+            { label: 'Ac 22', value: 'hreS_Ac22' },
+            { label: 'Ac 5', value: 'hreS_Ac5' },
+            { label: 'Ac 10', value: 'hreS_Ac10' },
+            { label: 'PF Amount', value: 'pfAmount' },
+            { label: 'Father/Husband Name', value: 'fatherHusbandName' }
+        ];
+
+        exportToExcel('PF_Challan', JSON.stringify(exportColumns), JSON.stringify(reportData));
     };
-    const handlePrint = () => {
-        window.print();
-        toast.success('Print dialog opened');
-    };
-    // Calculate PF summary for challan template
-    // A/C NO.1 = Employee Share + Employer Share (EPF contributions)
-    // A/C NO.21 = Pension contribution (from employer share)
-    // A/C NO.22 = Administration charges
-    // A/C NO.2 and A/C NO.10 are typically 0 for standard contributions
-    const challanSummary = useMemo(() => {
-        return pfRecords.reduce(
-            (acc, record) => {
-                const employeeShare = record.employeePF;
-                const employerShare = record.employerPF;
-                const pensionContribution = record.pensionContribution;
-                const adminCharges = record.administrationCharges;
-                // A/C NO.1: Employee Share + Employer Share (excluding pension which goes to A/C 21)
-                const account1EmployeeShare = employeeShare;
-                const account1EmployerShare = employerShare - pensionContribution; // Employer share minus pension
-                const account1Total = account1EmployeeShare + account1EmployerShare;
-                return {
-                    totalEmployeeShare: acc.totalEmployeeShare + account1EmployeeShare,
-                    totalEmployerShare: acc.totalEmployerShare + account1EmployerShare,
-                    totalAccount1: acc.totalAccount1 + account1Total,
-                    account2: acc.account2 + 0, // Account 2 for other purposes
-                    account10: acc.account10 + 0, // Account 10 for other purposes
-                    account21: acc.account21 + pensionContribution, // Pension account
-                    account22: acc.account22 + adminCharges, // Admin charges
-                    grandTotal: acc.grandTotal + account1Total + pensionContribution + adminCharges
-                };
-            },
-            {
-                totalEmployeeShare: 0,
-                totalEmployerShare: 0,
-                totalAccount1: 0,
-                account2: 0,
-                account10: 0,
-                account21: 0,
-                account22: 0,
-                grandTotal: 0
-            }
-        );
-    }, [pfRecords]);
+
+    const columns = [
+        {
+            id: 'slNo',
+            header: 'SL.No',
+            cell: ({ row }: any) => row.index + 1
+        },
+        {
+            accessorKey: 'amountofWages',
+            header: 'Wages',
+            cell: ({ row }: any) => Number(row.original.amountofWages || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'hreS_EPF',
+            header: 'EPF',
+            cell: ({ row }: any) => Number(row.original.hreS_EPF || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'hreS_FPF',
+            header: 'FPF',
+            cell: ({ row }: any) => Number(row.original.hreS_FPF || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'hreS_Ac21',
+            header: 'Ac 21',
+            cell: ({ row }: any) => Number(row.original.hreS_Ac21 || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'hreS_Ac22',
+            header: 'Ac 22',
+            cell: ({ row }: any) => Number(row.original.hreS_Ac22 || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'hreS_Ac5',
+            header: 'Ac 5',
+            cell: ({ row }: any) => Number(row.original.hreS_Ac5 || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'hreS_Ac10',
+            header: 'Ac 10',
+            cell: ({ row }: any) => Number(row.original.hreS_Ac10 || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'pfAmount',
+            header: 'PF Amount',
+            cell: ({ row }: any) => Number(row.original.pfAmount || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'fatherHusbandName',
+            header: 'Father/Husband Name',
+        }
+    ];
+
     return (
-        <div className='space-y-6'>
-            {/* Report Configuration Section */}
-            <PFChallanFilters
-                filters={filters}
-                months={months}
-                years={years}
-                onFilterChange={handleFilterChange}
-                onGenerate={handleGenerate}
-                onCancel={handleCancel}
-                isLoading={isLoadingOnload}
-            />
-            {/* Challan Results */}
-            {showChallan && (
-                <PFChallanTemplate
-                    establishmentName={establishmentName}
-                    establishmentAddress={establishmentAddress}
-                    pincode={pincode}
-                    month={filters.month}
-                    year={filters.year}
-                    summary={challanSummary}
-                    isLoading={searchMutation.isPending}
-                    onPrint={handlePrint}
-                    onCancel={handleCancel}
-                />
+        <div className='container min-h-screen space-y-4 p-2'>
+            <div className='flex items-center justify-between'>
+                <h2 className='text-2xl font-bold tracking-tight'>PF Challan Report</h2>
+            </div>
+
+            <CollapsibleSection defaultOpen={true} title="Report Criteria" variant='outline' className='shadow-sm'>
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                    <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
+                        <div className='space-y-2'>
+                            <Label>Year <span className='text-destructive'>*</span></Label>
+                            <Controller name='year' control={control} render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Year" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {yearsData?.data?.map((y: any) => (
+                                            <SelectItem key={y.hrmlY_Id} value={y.hrmlY_Id.toString()}>
+                                                {y.hrmlY_LeaveYear}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )} />
+                        </div>
+
+                        <div className='space-y-2'>
+                            <Label>Month <span className='text-destructive'>*</span></Label>
+                            <Controller name='month' control={control} render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Month" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {monthsData?.data?.length > 0 ? (
+                                            monthsData.data.map((m: any) => (
+                                                <SelectItem key={m.ivrM_Month_Id || m.IVRM_Month_Id} value={m.ivrM_Month_Name || m.IVRM_Month_Name}>
+                                                    {m.ivrM_Month_Name || m.IVRM_Month_Name}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            MONTH_LIST.map((m) => (
+                                                <SelectItem key={m.id} value={m.name}>
+                                                    {m.name}
+                                                </SelectItem>
+                                            ))
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            )} />
+                        </div>
+                    </div>
+
+                    <div className='flex justify-end'>
+                        <Button type='submit' disabled={isPending} className='w-32'>
+                            {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
+                            Generate
+                        </Button>
+                    </div>
+                </form>
+            </CollapsibleSection>
+
+            {reportData && (
+                <CollapsibleSection title="Report Details" defaultOpen={true} className='shadow-md border'
+                    rightElement={
+                        <div className='flex gap-2'>
+                            <Button variant='outline' size='sm' onClick={handleExport} className='gap-2'>
+                                <Download className='h-4 w-4' />
+                                Export
+                            </Button>
+                        </div>
+                    }
+                >
+                    <GenericDataTable
+                        data={reportData}
+                        columns={columns}
+                        totalItems={reportData.length}
+                        isPaginationRequired={false}
+                        isSearchRequired={false}
+                        isLoading={isPending}
+                    />
+                </CollapsibleSection>
             )}
         </div>
     );

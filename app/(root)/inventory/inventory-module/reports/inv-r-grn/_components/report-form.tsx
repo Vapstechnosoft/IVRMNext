@@ -17,7 +17,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { format } from 'date-fns';
 
 interface ReportFormProps {
-    onReportGenerated: (data: any, typeflag: string, optionflag?: string) => void;
+    onReportGenerated: (data: any, payload: any, total: number) => void;
 }
 
 export default function ReportForm({ onReportGenerated }: ReportFormProps) {
@@ -84,11 +84,11 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
     const onSubmit = (data: InvRGRNSchema) => {
         generateReportMutation.mutate(
             // @ts-ignore - casting simpler types for mock payload
-            data,
+            { payload: data },
             {
                 onSuccess: (res) => {
                     if (res.success) {
-                        onReportGenerated(res.data.get_grnreport, data.typeflag, data.optionflag);
+                        onReportGenerated(res.data.get_grnreport, data, res.total || 0);
                     }
                 }
             });
@@ -96,13 +96,13 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
 
     const handleCancel = () => {
         reset();
-        onReportGenerated([], 'All');
+        onReportGenerated([], null, 0);
     };
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <CollapsibleSection
-                title="Report Configuration"              
+                title="Report Configuration"
                 defaultOpen={true}
             >
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2">

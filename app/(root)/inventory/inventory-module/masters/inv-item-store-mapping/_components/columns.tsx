@@ -1,59 +1,62 @@
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
-import { useFormContext } from '@/components/ui/form/form-provider';
-import type { IInvItemStoreMapping } from '@/types/inventory/masters/inv-item-store-mapping';
-import type { ColumnDef } from '@tanstack/react-table';
-import { useCallback } from 'react';
+'use client';
 
-export const InvItemStoreMappingColumns: ColumnDef<IInvItemStoreMapping>[] = [
+import { ColumnDef } from '@tanstack/react-table';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { useInvItemStoreMapping } from '@/hooks/inventory/masters/use-inv-item-store-mapping';
+import type { IInvItemStoreMapping } from '@/types/inventory/masters/inv-item-store-mapping';
+
+export const invItemStoreMappingColumns: ColumnDef<IInvItemStoreMapping>[] = [
     {
-        accessorKey: 'slNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        accessorKey: 'sno',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No.' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             return <div>{pageIndex * pageSize + row.index + 1}</div>;
         },
-        enableHiding: true,
-        enableSorting: false
+        enableSorting: false,
     },
     {
         accessorKey: 'invmsT_StoreName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Store Name' />,
-        cell: ({ row }) => <div>{row.getValue('invmsT_StoreName')}</div>
     },
     {
         accessorKey: 'invmI_ItemName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Item Name' />,
-        cell: ({ row }) => <div>{row.getValue('invmI_ItemName')}</div>
     },
     {
         accessorKey: 'invmG_GroupName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Group' />,
-        cell: ({ row }) => <div>{row.getValue('invmG_GroupName')}</div>
     },
     {
-        id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
-        accessorFn: (row) => row,
-        enableSorting: false,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
-    }
+        accessorKey: 'invmisM_ActiveFlg',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+        cell: ({ row }) => <StatusToggle rowData={row.original} />,
+    },
 ];
 
-function ActionButtonsCell({ rowData }: { rowData: IInvItemStoreMapping }) {
-    const { openEditForm } = useFormContext<IInvItemStoreMapping>();
+function StatusToggle({ rowData }: { rowData: IInvItemStoreMapping }) {
+    const { toggleActiveMutation } = useInvItemStoreMapping();
 
-    const handleEdit = useCallback(() => openEditForm(rowData), [openEditForm, rowData]);
+    const handleToggle = (checked: boolean) => {
+        toggleActiveMutation.mutate({
+            invmisM_Id: rowData.invmisM_Id,
+            invmisM_ActiveFlg: checked
+        });
+    };
 
     return (
-        <div className='flex justify-center gap-2'>
-            <ActionButtons
-                rowData={rowData}
-                buttons={{ edit: true, delete: false, toggle: true }}
-                onEdit={handleEdit}
-                toggleConditionKey='invmisM_ActiveFlg'
+        <div className='flex items-center gap-2'>
+            <Switch
+                checked={rowData.invmisM_ActiveFlg}
+                onCheckedChange={handleToggle}
+                disabled={toggleActiveMutation.isPending}
             />
+            <Badge variant={rowData.invmisM_ActiveFlg ? 'default' : 'destructive'}>
+                {rowData.invmisM_ActiveFlg ? 'Active' : 'Inactive'}
+            </Badge>
         </div>
     );
 }

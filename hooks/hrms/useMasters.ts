@@ -4,49 +4,71 @@
  * All master-related hooks consolidated in one file
  */
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import { getMasterBank } from '@/server/hrms/hrmsConfig/master/bank';
+// import { getMasterBank } from '@/server/hrms/hrmsConfig/master/bank';
+import { getMasterBank, getMasterBankById } from '@/server/hrms/hrmsConfig/master/bank';
 import {
     addOrUpdateMasterCourse,
     getCourseSetOrder,
     getMasterCourse,
     getMasterCourseDetails,
-    toggleMasterCourse
+    toggleMasterCourse,
+    updateCourseSetorder
 } from '@/server/hrms/hrmsConfig/master/course';
-import { getDepartmentSetOrder, getMasterDepartment } from '@/server/hrms/hrmsConfig/master/department';
-import { getDesignationSetOrder, getMasterDesignation } from '@/server/hrms/hrmsConfig/master/designation';
+import { getDepartmentSetOrder, getMasterDepartment, getMasterDepartmentById } from '@/server/hrms/hrmsConfig/master/department';
+import { getDesignationSetOrder, getMasterDesignation, getMasterDesignationById } from '@/server/hrms/hrmsConfig/master/designation';
+// ... previous imports ...
+
+// ... (skipping to line 128 where useMasterDesignation is defined)
+
 import {
     activateDeactivateMasterEarningsDeductions,
     getAmountOrPercentageDropdown,
     getEarningsDeductionsTypeDropdown,
+    getMasterEarningsDeductionsById,
     getMasterEarningsDeductionsList,
+    getMasterEarningsDeductionsOrderList,
     getRoundingTypeDropdown,
     getSalaryComponentTypeDropdown,
-    saveMasterEarningsDeductions
+    saveEarningsDeductionsType,
+    saveMasterEarningsDeductions,
+    saveMasterEarningsDeductionsOrder
 } from '@/server/hrms/hrmsConfig/master/earnings-deductions';
-import { getMasterEmployeeType } from '@/server/hrms/hrmsConfig/master/employee-type';
-import { getMasterGender } from '@/server/hrms/hrmsConfig/master/gender';
-import { getGradeSetOrder, getMasterGrade } from '@/server/hrms/hrmsConfig/master/grade';
+import { getMasterEmployeeType, getMasterEmployeeTypeById } from '@/server/hrms/hrmsConfig/master/employee-type';
+// ... previous imports ...
+
+// ... (skipping to line 291 where useMasterEmployeeType is defined)
+
+import { getMasterGender, getMasterGenderById } from '@/server/hrms/hrmsConfig/master/gender';
+import { getGradeSetOrder, getMasterGrade, getMasterGradeById } from '@/server/hrms/hrmsConfig/master/grade';
 import {
+    deleteGroupDeptDessgMapping,
     getGroupDeptDessgMappingList,
     saveGroupDeptDessgMapping,
     toggleGroupDeptDessgMapping
 } from '@/server/hrms/hrmsConfig/master/group-dept-dessg-mapping';
-import { getGroupTypeSetOrder, getMasterGroupType } from '@/server/hrms/hrmsConfig/master/group-type';
-import { getLeaveYearSetOrder, getMasterLeaveYear } from '@/server/hrms/hrmsConfig/master/leave-year';
-import { getMasterLoan } from '@/server/hrms/hrmsConfig/master/loan';
-import { getMasterMaritalStatus } from '@/server/hrms/hrmsConfig/master/marital-status';
+import { getGroupTypeSetOrder, getMasterGroupType, getMasterGroupTypeById } from '@/server/hrms/hrmsConfig/master/group-type';
+// ... previous imports ...
+
+// ... (skipping to line 433 where useMasterGroupType is defined)
+
+import { getLeaveYearDropdown, getLeaveYearSetOrder, getMasterLeaveYear } from '@/server/hrms/hrmsConfig/master/leave-year';
+import { getMasterLoan, getMasterLoanById } from '@/server/hrms/hrmsConfig/master/loan';
+import { getMasterMaritalStatus, getMasterMaritalStatusById } from '@/server/hrms/hrmsConfig/master/marital-status';
 import {
     getMasterPayrollStandardList,
     getMonthDropdown,
     saveMasterPayrollStandard
 } from '@/server/hrms/hrmsConfig/master/payroll-standard';
-import { getMasterProfessionalTax } from '@/server/hrms/hrmsConfig/master/professional-tax';
+import { getMasterProfessionalTax, getMasterProfessionalTaxById } from '@/server/hrms/hrmsConfig/master/professional-tax';
 import {
+    getCasteCategoryDropdown,
+    getReligionCategoryMappingById,
     getReligionCategoryMappingList,
+    getReligionDropdown,
     saveReligionCategoryMapping,
     toggleReligionCategoryMapping
 } from '@/server/hrms/hrmsConfig/master/religion-category-mapping';
-import { getMasterSpecialization } from '@/server/hrms/hrmsConfig/master/specialization';
+import { getMasterSpecialization, getMasterSpecializationById } from '@/server/hrms/hrmsConfig/master/specialization';
 import type { ApiSearchparams } from '@/types';
 import type { MasterEarningsDeductionsInput } from '@/types/hrms/master-earnings-deductions';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -68,6 +90,14 @@ export function useMasterDepartment(searchParams?: ApiSearchparams) {
             });
         }
     };
+}
+
+export function useMasterDepartmentById(id: number) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.MASTER_DEPARTMENT, 'details', id],
+        queryFn: async () => getMasterDepartmentById(id),
+        enabled: id > 0
+    });
 }
 
 export function useDepartmentSetOrder() {
@@ -106,6 +136,14 @@ export function useMasterDesignation(searchParams?: ApiSearchparams) {
     };
 }
 
+export function useMasterDesignationById(id: number) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.MASTER_DESIGNATION, 'details', id],
+        queryFn: async () => getMasterDesignationById(id),
+        enabled: id > 0
+    });
+}
+
 export function useDesignationSetOrder() {
     const queryClient = useQueryClient();
 
@@ -142,6 +180,14 @@ export function useMasterGrade(searchParams?: ApiSearchparams) {
     };
 }
 
+export function useMasterGradeById(id: number) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.MASTER_GRADE, 'details', id],
+        queryFn: async () => getMasterGradeById(id),
+        enabled: id > 0
+    });
+}
+
 export function useGradeSetOrder() {
     const queryClient = useQueryClient();
 
@@ -176,6 +222,14 @@ export function useMasterBank(searchParams?: ApiSearchparams) {
             });
         }
     };
+}
+
+export function useMasterBankById(id: number) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.MASTER_BANK, 'details', id],
+        queryFn: async () => getMasterBankById(id),
+        enabled: id > 0
+    });
 }
 // ============================================================================
 // COURSE
@@ -217,7 +271,7 @@ export function useMasterCourseLegacy(roleId: number, searchParams?: ApiSearchpa
                 queryKey: [HRMS_QUERY_KEYS.MASTER_COURSE]
             });
         },
-        onError: (error: any) => {}
+        onError: (error: any) => { }
     });
     const toggleMutation = useMutation({
         mutationFn: (data: { HRMC_Id: number; HRMC_ActiveFlag: boolean; MI_Id?: number }) => {
@@ -231,7 +285,7 @@ export function useMasterCourseLegacy(roleId: number, searchParams?: ApiSearchpa
                 queryKey: [HRMS_QUERY_KEYS.MASTER_COURSE]
             });
         },
-        onError: (error: any) => {}
+        onError: (error: any) => { }
     });
     const refetchAll = () => {
         queryClient.invalidateQueries({
@@ -266,26 +320,18 @@ export function useCourseSetOrder() {
             return queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_COURSE_SET_ORDER]
             });
-        }
-    };
-}
-// ============================================================================
-// EMPLOYEE TYPE
-// ============================================================================
-export function useMasterEmployeeType(searchParams?: ApiSearchparams) {
-    const queryClient = useQueryClient();
-
-    return {
-        ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.MASTER_EMPLOYEE_TYPE, searchParams ?? {}],
-            queryFn: async () => getMasterEmployeeType(searchParams),
-            staleTime: 0
-        }),
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.MASTER_EMPLOYEE_TYPE]
-            });
-        }
+        },
+        saveOrderMutation: useMutation({
+            mutationFn: (data: any) => updateCourseSetorder(data),
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.MASTER_COURSE]
+                });
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.MASTER_COURSE_SET_ORDER]
+                });
+            }
+        })
     };
 }
 // ============================================================================
@@ -307,6 +353,14 @@ export function useMasterGender(searchParams?: ApiSearchparams) {
         }
     };
 }
+
+export function useMasterGenderById(id: number) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.MASTER_GENDER, 'details', id],
+        queryFn: async () => getMasterGenderById(id),
+        enabled: id > 0
+    });
+}
 // ============================================================================
 // LOAN
 // ============================================================================
@@ -326,6 +380,17 @@ export function useMasterLoan(searchParams?: ApiSearchparams) {
         }
     };
 }
+
+export function useMasterLoanById(id: number) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.MASTER_LOAN, 'details', id],
+        queryFn: async () => getMasterLoanById(id),
+        enabled: id > 0
+    });
+}
+// ============================================================================
+// MARITAL STATUS
+// ============================================================================
 // ============================================================================
 // MARITAL STATUS
 // ============================================================================
@@ -344,6 +409,14 @@ export function useMasterMaritalStatus(searchParams?: ApiSearchparams) {
             });
         }
     };
+}
+
+export function useMasterMaritalStatusById(id: number) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.MASTER_MARITAL_STATUS, 'details', id],
+        queryFn: async () => getMasterMaritalStatusById(id),
+        enabled: id > 0
+    });
 }
 // ============================================================================
 // SPECIALIZATION
@@ -364,42 +437,15 @@ export function useMasterSpecialization(searchParams?: ApiSearchparams) {
         }
     };
 }
-// ============================================================================
-// GROUP TYPE
-// ============================================================================
-export function useMasterGroupType(searchParams?: ApiSearchparams) {
-    const queryClient = useQueryClient();
 
-    return {
-        ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.MASTER_GROUP_TYPE, searchParams ?? {}],
-            queryFn: async () => getMasterGroupType(searchParams),
-            staleTime: 0
-        }),
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.MASTER_GROUP_TYPE]
-            });
-        }
-    };
+export function useMasterSpecializationById(id: number) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.MASTER_SPECIALIZATION, 'details', id],
+        queryFn: async () => getMasterSpecializationById(id),
+        enabled: id > 0
+    });
 }
 
-export function useGroupTypeSetOrder() {
-    const queryClient = useQueryClient();
-
-    return {
-        ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.MASTER_GROUP_TYPE_SET_ORDER],
-            queryFn: async () => getGroupTypeSetOrder(),
-            staleTime: 0
-        }),
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.MASTER_GROUP_TYPE_SET_ORDER]
-            });
-        }
-    };
-}
 // ============================================================================
 // PROFESSIONAL TAX
 // ============================================================================
@@ -419,6 +465,14 @@ export function useMasterProfessionalTax(searchParams?: ApiSearchparams) {
         }
     };
 }
+
+export function useMasterProfessionalTaxById(id: number) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.MASTER_PROFESSIONAL_TAX, 'details', id],
+        queryFn: async () => getMasterProfessionalTaxById(id),
+        enabled: id > 0
+    });
+}
 // ============================================================================
 // LEAVE YEAR
 // ============================================================================
@@ -434,6 +488,23 @@ export function useMasterLeaveYear(searchParams?: ApiSearchparams) {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR]
+            });
+        }
+    };
+}
+
+export function useLeaveYearDropdown() {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR, 'dropdown'],
+            queryFn: async () => getLeaveYearDropdown(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR, 'dropdown']
             });
         }
     };
@@ -489,6 +560,52 @@ export function useMasterEarningsDeductions(searchParams?: ApiSearchparams) {
             onSuccess: () => {
                 queryClient.invalidateQueries({
                     queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS]
+                });
+            }
+        }),
+        saveTypeMutation: useMutation({
+            mutationFn: (data: any) => {
+                return saveEarningsDeductionsType(data);
+            },
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS, 'dropdown', 'earnings-deductions-type']
+                });
+            }
+        })
+    };
+}
+
+export function useMasterEarningsDeductionsById(id: number) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS, 'details', id],
+        queryFn: async () => getMasterEarningsDeductionsById(id),
+        enabled: id > 0
+    });
+}
+
+export function useMasterEarningsDeductionsOrder() {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS_SET_ORDER],
+            queryFn: async () => getMasterEarningsDeductionsOrderList(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS_SET_ORDER]
+            });
+        },
+        saveOrderMutation: useMutation({
+            mutationFn: (data: any) => saveMasterEarningsDeductionsOrder(data),
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS]
+                });
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS_SET_ORDER]
                 });
             }
         })
@@ -641,6 +758,46 @@ export function useReligionCategoryMapping(searchParams?: ApiSearchparams) {
         })
     };
 }
+
+export function useReligionCategoryMappingById(id: number) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING, 'details', id],
+        queryFn: async () => getReligionCategoryMappingById(id),
+        enabled: id > 0
+    });
+}
+
+export function useMasterReligionDropdown() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING, 'dropdown', 'religion'],
+            queryFn: async () => getReligionDropdown(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING, 'dropdown', 'religion']
+            });
+        }
+    };
+}
+
+export function useMasterCasteCategoryDropdown() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING, 'dropdown', 'caste-category'],
+            queryFn: async () => getCasteCategoryDropdown(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING, 'dropdown', 'caste-category']
+            });
+        }
+    };
+}
 // ============================================================================
 // GROUP DEPT DESSG MAPPING
 // ============================================================================
@@ -673,6 +830,87 @@ export function useGroupDeptDessgMapping(searchParams?: ApiSearchparams) {
                     queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING]
                 });
             }
+        }),
+        deleteMutation: useMutation({
+            mutationFn: (id: number) => deleteGroupDeptDessgMapping(id),
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING]
+                });
+            }
         })
+    };
+}
+
+// ============================================================================
+// EMPLOYEE TYPE
+// ============================================================================
+export function useMasterEmployeeType(searchParams?: ApiSearchparams) {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_EMPLOYEE_TYPE, searchParams ?? {}],
+            queryFn: async () => getMasterEmployeeType(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_EMPLOYEE_TYPE]
+            });
+        }
+    };
+}
+
+export function useMasterEmployeeTypeById(id: number) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.MASTER_EMPLOYEE_TYPE, 'details', id],
+        queryFn: async () => getMasterEmployeeTypeById(id),
+        enabled: id > 0
+    });
+}
+
+// ============================================================================
+// GROUP TYPE
+// ============================================================================
+export function useMasterGroupType(searchParams?: ApiSearchparams) {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_GROUP_TYPE, searchParams ?? {}],
+            queryFn: async () => getMasterGroupType(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_GROUP_TYPE]
+            });
+        }
+    };
+}
+
+export function useMasterGroupTypeById(id: number) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.MASTER_GROUP_TYPE, 'details', id],
+        queryFn: async () => getMasterGroupTypeById(id),
+        enabled: id > 0
+    });
+}
+
+export function useGroupTypeSetOrder() {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_GROUP_TYPE_SET_ORDER],
+            queryFn: async () => getGroupTypeSetOrder(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_GROUP_TYPE_SET_ORDER]
+            });
+        }
     };
 }

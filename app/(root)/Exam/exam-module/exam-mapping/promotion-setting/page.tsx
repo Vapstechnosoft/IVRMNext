@@ -17,7 +17,7 @@ import { use, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import type { IPromotionSetting, IPromotionalSubjectDetails } from '@/types/exam/exam-module/exam-mapping';
-import AddPromotionalSetting from './_components/add-from';
+import AddPromotionalSetting from './_components/add-form';
 import { PromotionSettingColumns } from './_components/columns';
 import PromotionalSettingDetailsPage from './_components/promotional-setting-details-view';
 import TogglePromotionalSettingForm from './_components/toggle-form';
@@ -27,6 +27,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function PromotionalSettingPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = usePromotionalSetting(searchParams);
+    useEffect(() => { console.log(response); }, [response]);
 
     return (
         <FormProvider<IPromotionSetting>>
@@ -155,9 +156,9 @@ function PromotionalSettingPageContent({
                         title='Set Promotional Order'
                         columns={[
                             { key: 'id', label: 'SLNO', className: 'text-center w-12' },
-                            { key: 'promO_Name', label: 'Promotion Name', className: 'text-left' },
-                            { key: 'promO_Code', label: 'Code', className: 'text-left' },
-                            { key: 'promO_Order', label: 'Order', className: 'text-left' }
+                            { key: 'ismS_SubjectName', label: 'Promotion Subject Name', className: 'text-left' },
+                            { key: 'ismS_SubjectCode', label: 'Code', className: 'text-left' },
+                            { key: 'empS_SubjOrder', label: 'Order', className: 'text-left' }
                         ]}
                     />
                 )}
@@ -226,13 +227,13 @@ function FormSections() {
                         <div className='relative'>
                             <Button
                                 type='button'
+                                onClick={closeEditForm}
                                 variant='ghost'
                                 size='sm'
-                                onClick={closeEditForm}
-                                className='-top-[3.5rem] absolute right-12 border p-2 shadow-md hover:bg-red-100'>
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <AddPromotionalSetting rowData={selectedRow} onSuccess={closeEditForm} /> */}
+                            <AddPromotionalSetting rowData={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

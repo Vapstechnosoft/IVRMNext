@@ -450,6 +450,11 @@ export interface IPromotionSetting {
     emP_BestOfApplicableFlg: boolean;
 }
 
+export interface IPromotionCategory {
+    eyC_Id: number;
+    emcA_CategoryName: string;
+}
+
 export interface IExamPromotionalSettingDetails {
     eycsE_Id: number; // Subject Mapping ID  (Row ID)
     eycE_Id: number; // Parent ExamId (FK)
@@ -537,6 +542,7 @@ export interface IPromotionalSubjectDetails {
 
     emcA_CategoryName: string;
     emgR_GradeName: string;
+    emgR_Id: number;
 
     ismS_SubjectName: string;
     ismS_SubjectCode: string;
@@ -552,36 +558,42 @@ export interface IPromotionalSubjectDetails {
 }
 
 export interface IPromotionalGroupDetails {
-    emP_Id: number;
-    eyC_Id: number;
+    empsG_Id: number;
+    emps_Id: number;
 
-    asmaY_Id: number;
-    asmaY_Year: string;
-    asmaY_Order: number;
+    isms_Id: number;
+    isms_SubjectName: string;
+    isms_SubjectCode: string;
 
-    emcA_Id: number;
-    emcA_CategoryName: string;
+    empsG_GroupName: string;
+    empsG_DisplayName: string;
 
-    emgR_Id: number;
-    emgR_GradeName: string;
+    empsG_PercentValue: number;
+    empsG_MarksValue: number;
+    empsG_MaxOff: number;
+    empsG_BestOff: number | null;
 
-    emP_MarksPerFlg: 'M' | 'P';
-    emP_PassToIndSubjectFlg: boolean;
-    emP_PassToOverallFlag: boolean;
+    empsG_ActiveFlag: boolean;
+    empsG_RoundOffFlag: boolean;
 
-    emP_BestOf: number | null;
-    emP_BestOfApplicableFlg: boolean | null;
-
-    emP_ActiveFlag: boolean;
+    empsG_Order: number;
 }
 
+
 export interface IPromotionalGroupMappedExamDetails {
-    slNo: number;
-    examName: string;
-    examCode: string;
-    marksOrPercentage: number;
-    conversionRequired: boolean;
-    isActiveFlag: boolean;
+    empsgE_Id: number;
+
+    emE_Id: number;
+    emE_ExamName: string;
+    emE_ExamCode: string;
+
+    empsG_Id: number;
+    empsG_GroupName: string;
+    empsG_DisplayName: string;
+
+    empsgE_ForMaxMarkrs: number;
+    empsgE_ConvertionReqOrNot: boolean;
+    empsgE_ActiveFlg: boolean;
 }
 
 export interface ISearchMarksEntryParams {
@@ -808,6 +820,12 @@ export interface IExamMaster {
     TotalMarksCount?: number;
 }
 
+export interface ITerm {
+    ecT_Id: number;
+    ecT_TermName: string;
+    Selected?: boolean;
+}
+
 export interface IClass {
     asmcL_Id: number;
     asmcL_ClassName: string;
@@ -890,4 +908,37 @@ export interface SaveCCEMarksParams {
     ecacT_Id?: number;
     ecactA_Id?: number;
     admno: string;
+}
+
+export interface IPromotionalSubGroupDetails {
+    empsG_Id: number;
+    empS_Id: number;
+    empsG_GroupName: string;
+    empsG_DisplayName: string;
+    empsG_PercentValue: number;
+    empsG_MarksValue: number;
+    empsG_MaxOff: number;
+    empsG_BestOff: number;
+    empsG_Order: number;
+    empsG_RoundOffFlag: boolean;
+    empsG_ActiveFlag: boolean;
+}
+
+export interface IPromotionalSubGroupExamDetails {
+    empsgE_Id: number;
+    empsG_Id: number;
+    emE_Id: number;
+    emE_ExamName: string;
+    empsgE_ForMaxMarkrs: number;
+    empsgE_ConvertionReqOrNot: boolean;
+    empsgE_ActiveFlag: boolean;
+}
+
+export interface IPromotionDetailsByIdResponse {
+    categoryDetails: IPromotionSetting;
+    promotionSubjects: {
+        promotion_Subject_List: IPromotionalSubjectDetails[];
+        promotion_SubGroup_List: IPromotionalSubGroupDetails[];
+        group_Exam_List: IPromotionalSubGroupExamDetails[];
+    };
 }

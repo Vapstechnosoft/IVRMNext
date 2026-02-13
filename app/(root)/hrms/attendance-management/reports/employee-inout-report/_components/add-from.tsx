@@ -323,13 +323,13 @@ export default function AddEmployeeInOutReportForm({
                                     control={control}
                                     render={({ field }) => (
                                         <Select
-                                            value={field.value || ''}
-                                            onValueChange={(value) => field.onChange(value === '' ? undefined : value)}>
+                                            value={field.value || 'all'}
+                                            onValueChange={(value) => field.onChange(value === 'all' ? undefined : value)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Time In/Out' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value=''>All</SelectItem>
+                                                <SelectItem value='all'>All</SelectItem>
                                                 <SelectItem value='Time In'>Time In</SelectItem>
                                                 <SelectItem value='Time Out'>Time Out</SelectItem>
                                                 <SelectItem value='In Out'>In Out</SelectItem>

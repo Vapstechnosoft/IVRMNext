@@ -62,7 +62,7 @@ export const yearlyGroupMappingColumns: ColumnDef<IFeeGroupMapping>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Fine Applicable' />,
         cell: ({ row }) => {
             const value = row.getValue('fyghM_FineApplicableFlag');
-            return <div className='text-center'>{value ? 'Yes' : 'No'}</div>;
+            return <div className='text-center'>{value === 'Y' ? 'Yes' : 'No'}</div>;
         },
         enableSorting: true,
         enableHiding: true
@@ -72,7 +72,7 @@ export const yearlyGroupMappingColumns: ColumnDef<IFeeGroupMapping>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Common Amount' />,
         cell: ({ row }) => {
             const value = row.getValue('fyghM_Common_AmountFlag');
-            return <div className='text-center'>{value ? 'Yes' : 'No'}</div>;
+            return <div className='text-center'>{value === 'Y' ? 'Yes' : 'No'}</div>;
         },
         enableSorting: true,
         enableHiding: true

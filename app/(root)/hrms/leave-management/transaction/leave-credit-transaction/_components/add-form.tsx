@@ -16,6 +16,23 @@ import { useEffect } from 'react';
 import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveCreditTransaction } from './columns';
+
+interface LeaveCreditTransactionFormValues extends Omit<LeaveCreditTransaction, 'fromDate' | 'toDate' | 'id' | 'createdAt' | 'transactionId' | 'isActive'> {
+    id?: number;
+    transactionId?: number;
+    isActive?: boolean;
+    type: string[];
+    department: string[];
+    designation: string[];
+    leaveYear: string;
+    fromDate: string;
+    toDate: string;
+    employee: string;
+    lossOfPayType: string;
+    lossOfPayAmount: number;
+    availed: number;
+}
+
 interface AddLeaveCreditTransactionFormProps {
     onSuccess?: () => void;
     className?: string;
@@ -60,7 +77,7 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
         trigger,
         reset,
         formState: { errors, isSubmitting }
-    } = useForm<LeaveCreditTransaction>({
+    } = useForm<LeaveCreditTransactionFormValues>({
         mode: 'onChange',
         defaultValues: {
             type: [],
@@ -122,8 +139,20 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
             setValue('lossOfPayAmount', 0);
         }
     }, [lossOfPayType, totalDays, setValue]);
-    const onSubmit: SubmitHandler<LeaveCreditTransaction> = async (data) => {
-        saveTransaction(data, {
+    const onSubmit: SubmitHandler<LeaveCreditTransactionFormValues> = async (data) => {
+        const payload: LeaveCreditTransaction = {
+            ...data,
+            id: data.id || 0,
+            transactionId: data.transactionId || 0,
+            isActive: data.isActive ?? true,
+            fromDate: new Date(data.fromDate),
+            toDate: new Date(data.toDate),
+            createdAt: new Date(),
+            employeeName: data.employee,
+            employeeId: 0 // This should be mapped if you have employee IDs
+        };
+
+        saveTransaction(payload, {
             onSuccess: () => {
                 reset();
                 refetchAll();

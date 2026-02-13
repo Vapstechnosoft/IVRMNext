@@ -1,9 +1,9 @@
 'use client';
-import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Check, Edit, Trash2, X } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 export interface MasterLeave extends BaseEntity {
     leaveName: string;
     leaveCode: string;
@@ -69,17 +69,14 @@ export const getMasterLeaveColumns = ({ onEdit, onDelete, onToggleStatus }: Mast
         cell: ({ row }) => {
             const entity = row.original;
             return (
-                <div className='flex gap-2'>
-                    <Button variant='outline' size='sm' onClick={() => onEdit(entity)}>
-                        <Edit className='h-4 w-4' />
-                    </Button>
-                    <Button variant='outline' size='sm' onClick={() => onDelete(entity.id)}>
-                        <Trash2 className='h-4 w-4' />
-                    </Button>
-                    <Button variant={entity.isActive ? 'destructive' : 'default'} size='sm' onClick={() => onToggleStatus(entity)}>
-                        {entity.isActive ? 'Deactivate' : 'Activate'}
-                    </Button>
-                </div>
+                <ActionButtons
+                    rowData={entity}
+                    buttons={{ edit: true, delete: true, toggle: true }}
+                    onEdit={onEdit}
+                    onDelete={() => onDelete(entity.id)}
+                    onToggle={() => onToggleStatus(entity)}
+                    toggleConditionKey="isActive"
+                />
             );
         }
     }

@@ -16,24 +16,24 @@ export const PromotionalGroupMappedExamColumns: ColumnDef<IPromotionalGroupMappe
         enableSorting: false
     },
     {
-        accessorKey: 'examName',
+        accessorKey: 'emE_ExamName',
         header: ({ column }) => <DataTableColumnHeader title='Exam Name' column={column} />,
         enableSorting: false
     },
     {
-        accessorKey: 'examCode',
+        accessorKey: 'emE_ExamCode',
         header: ({ column }) => <DataTableColumnHeader title='Exam Code' column={column} />,
         enableSorting: false
     },
     {
-        accessorKey: 'marksOrPercentage',
+        accessorKey: 'empsgE_ForMaxMarkrs',
         header: ({ column }) => <DataTableColumnHeader title='Marks / Percentage' column={column} />,
         enableSorting: false
     },
     {
         accessorKey: 'conversionRequired',
         header: ({ column }) => <DataTableColumnHeader title='Conversion Req Or Not' column={column} />,
-        cell: ({ row }) => getStatusBadge(row.original.conversionRequired ? 'yes' : 'no'),
+        cell: ({ row }) => getStatusBadge(row.original.empsgE_ConvertionReqOrNot ? 'yes' : 'no'),
         enableSorting: false
     },
     {
@@ -59,7 +59,7 @@ function ToggleActionCell({
 
     return (
         <div className='flex justify-center'>
-            <ActionButtons rowData={rowData} buttons={{ toggle: true }} onToggle={handleToggle} toggleConditionKey='isActiveFlag' />
+            <ActionButtons rowData={rowData} buttons={{ toggle: true }} onToggle={handleToggle} toggleConditionKey='empsgE_ActiveFlg' />
         </div>
     );
 }

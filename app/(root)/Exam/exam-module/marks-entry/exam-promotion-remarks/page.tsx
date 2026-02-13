@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
@@ -15,7 +16,8 @@ import {
     getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import type { IPromotionRemarksGrid } from '@/types/exam/exam-module/exam-mapping';
-import { useEffect, useState } from 'react';
+import { Search } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { PromotionRemarksColumns } from './_components/columns';
@@ -80,19 +82,52 @@ function PromotionRemarksContent() {
     // Form errors
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-    // Students
     const [students, setStudents] = useState<IPromotionRemarksGrid[]>([]);
-    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
+    const [selectedStudents, setSelectedStudents] = useState<IPromotionRemarksGrid[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
     const [preSelectedStudentIds, setPreSelectedStudentIds] = useState<string[]>([]);
     const [tableProps, setTableProps] = useState<ReturnType<typeof useDataTableProps> | null>(null);
     const [isStudentsGridOpen, setIsStudentsGridOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [validationErrors, setValidationErrors] = useState<Record<number, string>>({});
 
     // Loading flags
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
     const [loadingTerms, setLoadingTerms] = useState(false);
+    const [filteredStudents, setFilteredStudents] = useState<IPromotionRemarksGrid[]>([]);
+
+    const handleRowSelectionChange = useCallback((rows: IPromotionRemarksGrid[]) => {
+        setSelectedStudents(rows);
+    }, []);
+
+    /* -------------------------
+       Effect for search filtering
+       ------------------------- */
+    useEffect(() => {
+        const filtered = students.filter(
+            (s) =>
+                s.studentName.toLowerCase().includes(searchQuery.toLowerCase()) || s.admNo.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        setFilteredStudents(filtered);
+
+        // Auto-select students who have remarks
+        const preSelected = filtered
+            .map((s, index) => (s.remarks && s.remarks.trim() !== '' ? index.toString() : null))
+            .filter((id): id is string => id !== null);
+
+        setPreSelectedStudentIds(preSelected);
+
+        setTableProps(
+            useDataTableProps({
+                data: filtered,
+                total: filtered.length,
+                pageIndex: 0,
+                pageSize: 10
+            })
+        );
+    }, [students, searchQuery]);
 
     /* -------------------------
        Load academic years
@@ -187,7 +222,7 @@ function PromotionRemarksContent() {
         (async () => {
             setLoadingTerms(true);
             try {
-                const response = await getDropdownTermNamesByIds(MI_ID, selectedAcademicYear, selectedClass, selectedSectionId);
+                const response = await getDropdownTermNamesByIds(selectedAcademicYear, selectedClass, selectedSectionId);
 
                 if (response?.data && Array.isArray(response.data)) {
                     const termData = response.data.map((term: any) => ({
@@ -224,18 +259,18 @@ function PromotionRemarksContent() {
         setFormErrors({});
 
         // Basic validation
-        if (!selectedAcademicYear || !selectedClass || !selectedSectionId) {
+        if (selectedAcademicYear == null || selectedClass == null || selectedSectionId == null) {
             const newErrors: Record<string, string> = {};
-            if (!selectedAcademicYear) newErrors.academicYear = 'Academic year is required';
-            if (!selectedClass) newErrors.class = 'Class is required';
-            if (!selectedSectionId) newErrors.section = 'Section is required';
+            if (selectedAcademicYear == null) newErrors.academicYear = 'Academic year is required';
+            if (selectedClass == null) newErrors.class = 'Class is required';
+            if (selectedSectionId == null) newErrors.section = 'Section is required';
             setFormErrors(newErrors);
             toast.error('Please fill all required fields');
             return;
         }
 
         // For Individual Term Wise, term is required
-        if (activeTab === 0 && !selectedTerm) {
+        if (activeTab === 0 && selectedTerm == null) {
             setFormErrors((prev) => ({ ...prev, term: 'Term is required for Individual Term Wise' }));
             toast.error('Please select a term');
             return;
@@ -273,8 +308,8 @@ function PromotionRemarksContent() {
                 asmaY_Id: selectedAcademicYear!,
                 asmcL_Id: selectedClass!,
                 asmS_Id: selectedSectionId!,
-                ecT_Id: activeTab === 0 ? selectedTerm! : 0, // For overall, we can pass 0 or a special value
-                mI_Id: MI_ID
+                ecT_Id: activeTab === 0 ? selectedTerm! : 0 // For overall, we can pass 0 or a special value
+                // mI_Id: MI_ID
             };
 
             const response = await getStudentListForTermWiseRemarks(requestData);
@@ -291,22 +326,8 @@ function PromotionRemarksContent() {
                     ecT_Id: activeTab === 0 ? selectedTerm! : undefined
                 }));
 
-                console.info('studentList', studentList);
-
-                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
-                const preSelected = studentList.filter((s) => s.remarks && s.remarks.trim() !== '').map((s, index) => index.toString());
-
-                setPreSelectedStudentIds(preSelected);
+                console.log('studentList', studentList);
                 setStudents(studentList);
-
-                setTableProps(
-                    useDataTableProps({
-                        data: studentList,
-                        total: studentList.length,
-                        pageIndex: 0,
-                        pageSize: 10
-                    })
-                );
 
                 toast.success('Student data loaded successfully');
             } else {
@@ -327,50 +348,74 @@ function PromotionRemarksContent() {
     const updateStudent = (id: number, remarks: string) => {
         setStudents((prev) => {
             const updated = prev.map((s) => (s.studentId === id ? { ...s, remarks: remarks } : s));
-
-            // Update table props as well
-            setTableProps((tp: any) => ({
-                ...tp,
-                data: updated
-            }));
-
             return updated;
         });
+
+        // Clear validation error if exists
+        if (remarks && remarks.trim() !== '') {
+            setValidationErrors((prev) => {
+                const newErrors = { ...prev };
+                delete newErrors[id];
+                return newErrors;
+            });
+        }
     };
 
     /* -------------------------
        Save remarks
        ------------------------- */
     const handleSave = async () => {
-        if (!selectedAcademicYear || !selectedClass || !selectedSectionId) {
+        if (selectedAcademicYear == null || selectedClass == null || selectedSectionId == null) {
             toast.error('Please select all required fields');
             return;
         }
 
-        if (activeTab === 0 && !selectedTerm) {
+        if (activeTab === 0 && selectedTerm == null) {
             toast.error('Please select a term for Individual Term Wise');
             return;
         }
 
-        // Filter students who have remarks and ensure remarks is not undefined
-        const studentsWithRemarks = students.filter((s) => s.remarks !== undefined && s.remarks !== null && s.remarks.trim() !== '');
+        // Validate selected students have remarks
+        const currentValidationErrors: Record<number, string> = {};
+        const selectedIds = new Set(selectedStudents.map((s) => s.studentId));
 
-        if (studentsWithRemarks.length === 0) {
-            toast.error('No remarks to save');
+        // Check current main 'students' state for latest remarks using selectedIds
+        students.forEach((student) => {
+            if (selectedIds.has(student.studentId)) {
+                if (!student.remarks || student.remarks.trim() === '') {
+                    currentValidationErrors[student.studentId] = 'Please select remarks';
+                }
+            }
+        });
+
+        if (Object.keys(currentValidationErrors).length > 0) {
+            setValidationErrors(currentValidationErrors);
+            toast.error('Please select remarks for all selected students');
             return;
         }
+
+        // Get only valid students to save
+        const studentsToSave = students.filter((s) => selectedIds.has(s.studentId) && s.remarks && s.remarks.trim() !== '');
+
+        if (studentsToSave.length === 0) {
+            toast.error('No valid students to save');
+            return;
+        }
+
+        // Clear errors if valid
+        setValidationErrors({});
 
         setIsSaving(true);
 
         try {
             const saveData = {
-                mI_Id: MI_ID,
+                // mI_Id: MI_ID,
                 asmcL_Id: selectedClass,
                 asmaY_Id: selectedAcademicYear,
                 asmS_Id: selectedSectionId,
                 indiorfinal: activeTab === 0 ? 'I' : 'F',
                 ecT_Id: activeTab === 0 ? selectedTerm! : 0,
-                studentTerm_Remarks: studentsWithRemarks.map((student) => ({
+                studentTerm_Remarks: studentsToSave.map((student) => ({
                     amsT_Id: student.studentId,
                     ecterE_Remarks: student.remarks || '' // Ensure it's always a string
                 }))
@@ -398,28 +443,48 @@ function PromotionRemarksContent() {
     const handleAcademicYearChange = (value: string) => {
         const numValue = value !== 'none' ? Number(value) : undefined;
         setSelectedAcademicYear(numValue);
+        setClasses([]);
+        setSelectedClass(undefined);
+        setSections([]);
+        setSelectedSectionId(undefined);
+        setTerms([]);
+        setSelectedTerm(undefined);
+        setStudents([]);
+        setIsStudentsGridOpen(false);
         setFormErrors((prev) => ({ ...prev, academicYear: '' }));
     };
 
     const handleClassChange = (value: string) => {
         const numValue = value !== 'none' ? Number(value) : undefined;
         setSelectedClass(numValue);
+        setSections([]);
+        setSelectedSectionId(undefined);
+        setTerms([]);
+        setSelectedTerm(undefined);
+        setStudents([]);
+        setIsStudentsGridOpen(false);
         setFormErrors((prev) => ({ ...prev, class: '' }));
     };
 
     const handleSectionChange = (value: string) => {
         const numValue = value !== 'none' ? Number(value) : undefined;
         setSelectedSectionId(numValue);
+        setTerms([]);
+        setSelectedTerm(undefined);
+        setStudents([]);
+        setIsStudentsGridOpen(false);
         setFormErrors((prev) => ({ ...prev, section: '' }));
     };
 
     const handleTermChange = (value: string) => {
         const numValue = value !== 'none' && value !== 'disabled' ? Number(value) : undefined;
         setSelectedTerm(numValue);
+        setStudents([]);
+        setIsStudentsGridOpen(false);
         setFormErrors((prev) => ({ ...prev, term: '' }));
     };
 
-    const columns = PromotionRemarksColumns(updateStudent);
+    const columns = PromotionRemarksColumns(updateStudent, validationErrors);
 
     /* -------------------------
        Render
@@ -438,6 +503,8 @@ function PromotionRemarksContent() {
                             onClick={() => {
                                 setActiveTab(0);
                                 setSelectedTerm(undefined);
+                                setTerms([]);
+                                setStudents([]);
                                 setFormErrors((prev) => ({ ...prev, term: '' }));
                                 setIsStudentsGridOpen(false);
                             }}>
@@ -451,6 +518,8 @@ function PromotionRemarksContent() {
                             onClick={() => {
                                 setActiveTab(1);
                                 setSelectedTerm(undefined);
+                                setTerms([]);
+                                setStudents([]);
                                 setFormErrors((prev) => ({ ...prev, term: '' }));
                                 setIsStudentsGridOpen(false);
                             }}>
@@ -471,13 +540,13 @@ function PromotionRemarksContent() {
                                 value={selectedAcademicYear ? String(selectedAcademicYear) : ''}
                                 onValueChange={handleAcademicYearChange}>
                                 <SelectTrigger className='h-10' id='academic-year-trigger'>
-                                    <SelectValue placeholder='Select Academic Year' />
+                                    <SelectValue placeholder={loadingAcademic ? 'loading.....' : 'Select Academic Year'} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {loadingAcademic
                                         ? [
                                               <SelectItem value='loading' key='loading'>
-                                                  Loading...
+                                                  loading.....
                                               </SelectItem>
                                           ]
                                         : academicYears.length === 0
@@ -506,7 +575,7 @@ function PromotionRemarksContent() {
                                 onValueChange={handleClassChange}
                                 disabled={!selectedAcademicYear || loadingClasses}>
                                 <SelectTrigger className='h-10' id='class-select-trigger'>
-                                    <SelectValue placeholder='Select Class' />
+                                    <SelectValue placeholder={loadingClasses ? 'loading.....' : 'Select Class'} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {!selectedAcademicYear
@@ -518,7 +587,7 @@ function PromotionRemarksContent() {
                                         : loadingClasses
                                           ? [
                                                 <SelectItem value='loading' key='loading'>
-                                                    Loading classes...
+                                                    loading.....
                                                 </SelectItem>
                                             ]
                                           : classes.length === 0
@@ -547,13 +616,13 @@ function PromotionRemarksContent() {
                                 onValueChange={handleSectionChange}
                                 disabled={!selectedClass || loadingSections}>
                                 <SelectTrigger className='h-10' id='section-select-trigger'>
-                                    <SelectValue placeholder='Select Section' />
+                                    <SelectValue placeholder={loadingSections ? 'loading.....' : 'Select Section'} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {loadingSections
                                         ? [
                                               <SelectItem value='loading' key='loading'>
-                                                  Loading sections...
+                                                  loading.....
                                               </SelectItem>
                                           ]
                                         : sections.length === 0
@@ -584,11 +653,7 @@ function PromotionRemarksContent() {
                                 <SelectTrigger className='h-10' id='term-select-trigger'>
                                     <SelectValue
                                         placeholder={
-                                            activeTab === 1
-                                                ? '-- Disabled for Overall --'
-                                                : loadingTerms
-                                                  ? 'Loading terms...'
-                                                  : 'Select Term'
+                                            activeTab === 1 ? '-- Disabled for Overall --' : loadingTerms ? 'loading.....' : 'Select Term'
                                         }
                                     />
                                 </SelectTrigger>
@@ -602,7 +667,7 @@ function PromotionRemarksContent() {
                                         : loadingTerms
                                           ? [
                                                 <SelectItem value='loading' key='loading'>
-                                                    Loading terms...
+                                                    loading.....
                                                 </SelectItem>
                                             ]
                                           : terms.length === 0
@@ -646,10 +711,23 @@ function PromotionRemarksContent() {
                         variant='default'
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        <div className='mb-4 flex justify-end px-4 pt-4'>
+                            <div className='relative w-full max-w-sm'>
+                                <Search className='absolute top-2.5 left-3 h-4 w-4 text-slate-400' />
+                                <Input
+                                    placeholder='Search by Student Name or Admission No...'
+                                    className='pl-9'
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
+                        </div>
                         <GenericDataTable<IPromotionRemarksGrid>
                             {...tableProps}
                             columns={columns}
                             isLoading={isLoading}
+                            defaultSelectedRowIds={preSelectedStudentIds}
+                            onRowSelectionChange={handleRowSelectionChange}
                             columnPinning={{ right: ['actions'] }}
                             loadingMessage='Loading remarks...'
                             noDataTitle='No Records Found'

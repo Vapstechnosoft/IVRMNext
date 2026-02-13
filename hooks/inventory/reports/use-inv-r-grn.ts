@@ -14,7 +14,7 @@ export const useInvRGRNLoadData = (optionflag: string) => {
 
 export const useInvRGRNReport = () => {
     return useMutation({
-        mutationFn: (payload: IInvRGRNPayload) => getInvRGRNReport(payload),
+        mutationFn: ({ payload, searchParams }: { payload: IInvRGRNPayload, searchParams?: any }) => getInvRGRNReport(payload, searchParams),
         onSuccess: (data) => {
             if (data.success) {
                 toast.success('Report generated successfully');

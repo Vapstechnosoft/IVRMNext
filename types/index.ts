@@ -29,6 +29,7 @@ export type UserResponseData = {
     token: string;
     user: string;
     role: Role;
+    roleId?: number;
     designation: string;
     user_image: string | null;
     amst_id: number;

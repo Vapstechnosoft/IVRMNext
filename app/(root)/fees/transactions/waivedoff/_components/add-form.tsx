@@ -172,6 +172,8 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
             const res = await getHeadList(Number(asmay_Id), Number(amst_Id), refundableType, fineWaiveOff === true ? 1 : 0, {
                 groupIds: selectedGroups
             });
+
+            console.log('res', res);
             setHeadList(res.data ?? []);
             setTableProps(useDataTableProps(res ?? []));
         } catch (error) {
@@ -296,7 +298,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                 fswO_Id: 0,
                 amsT_Id: amst_Id,
                 asmaY_Id: asmay_Id,
-                fswO_Date: formatDateToYMD(data.date),
+                fswO_Date: format(data.date, 'yyyy-MM-dd'),
                 finewaiveoff: fineWaiveOff === true ? 1 : 0,
                 fswO_WaivedOffRemarks: data.remarks || '',
                 completefinewaiveoff: completeFineWaiveOff === true ? 1 : 0,
@@ -417,6 +419,8 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                                     : ''
                                             }
                                             //   disabled={classloading}
+
+                                            disabled={!asmay_Id}
                                         >
                                             <SelectTrigger className='min-w-[400px] text-center'>
                                                 <SelectValue placeholder='--Select Class --' />
@@ -467,6 +471,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                                     : ''
                                             }
                                             //   disabled={secloading}
+                                            disabled={!asmay_Id || !asmcl_Id}
                                         >
                                             <SelectTrigger className='min-w-[400px] text-center'>
                                                 <SelectValue placeholder='--Select Section --' />
@@ -545,7 +550,8 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
 
                                             key={field.value}
                                             value={field.value && field.value !== 0 ? String(field.value) : undefined}
-                                            onValueChange={(val) => field.onChange(Number(val))}>
+                                            onValueChange={(val) => field.onChange(Number(val))}
+                                            disabled={!asmay_Id || !asmcl_Id || !asms_Id}>
                                             <SelectTrigger className='min-w-[400px] text-center'>
                                                 <SelectValue placeholder='--Select student --' />
                                             </SelectTrigger>
@@ -626,7 +632,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                         <PopoverTrigger asChild>
                                             <Button variant='outline' className='w-full justify-start text-left font-normal'>
                                                 <CalendarIcon className='mr-2 h-4 w-4' />
-                                                {field.value ? format(field.value, 'PPP') : 'Select Date'}
+                                                {field.value ? format(field.value, 'yyyy-MM-dd') : 'Select Date'}
                                             </Button>
                                         </PopoverTrigger>
 

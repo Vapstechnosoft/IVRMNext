@@ -11,24 +11,33 @@ import type { IMasterGroupDeptDessgMappingList } from '@/types/hrms/hrms-config/
 export async function getGroupDeptDessgMappingList(searchParams?: ApiSearchparams) {
     const searchableColumns = 'hrmgT_EmployeeGroupType,hrmD_DepartmentName,hrmdeS_DesignationName';
     const urlParams = getSearchParamsUrl(searchParams ?? {}, searchableColumns);
-    const url = `/api/MasterGroupDeptDessgFacade/GetBasicData?${urlParams}`;
+    const url = `/api/MasterGroupDepartmentDesignation?${urlParams}`;
     return await api.get<IMasterGroupDeptDessgMappingList[]>('hrms', url);
 }
 
 /**
  * Save/Update group department designation mapping
- * POST /api/MasterGroupDeptDessgFacade/SaveData
+ * POST /api/MasterGroupDepartmentDesignation
  */
 export async function saveGroupDeptDessgMapping(data: any) {
-    const url = '/api/MasterGroupDeptDessgFacade/SaveUpdate';
+    const url = '/api/MasterGroupDepartmentDesignation';
     return await api.post<any>('hrms', url, data);
 }
 
 /**
  * Toggle group department designation mapping (activate/deactivate)
- * PUT /api/MasterGroupDeptDessgFacade/MasterDeactivate/{id}
+ * PUT /api/MasterGroupDepartmentDesignation/toggle_group_dept_designation/{id}
  */
 export async function toggleGroupDeptDessgMapping(id: number) {
-    const url = `/api/MasterGroupDeptDessgFacade/toggle/${id}`;
+    const url = `/api/MasterGroupDepartmentDesignation/toggle_group_dept_designation/${id}`;
     return await api.put<any>('hrms', url);
+}
+
+/**
+ * Delete group department designation mapping
+ * DELETE /api/MasterGroupDepartmentDesignation/delete_group_dept_designation_by_id/{id}
+ */
+export async function deleteGroupDeptDessgMapping(id: number) {
+    const url = `/api/MasterGroupDepartmentDesignation/delete_group_dept_designation_by_id/${id}`;
+    return await api.delete<any>('hrms', url);
 }

@@ -20,7 +20,7 @@ const labelVariants = cva([
     /* Disabled */
     'data-[disabled]:cursor-not-allowed data-[disabled]:opacity-70',
     /* Invalid */
-    'group-data-[invalid]:text-destructive'
+    'group-data-[invalid]:text-foreground'
 ]);
 
 const Label = ({ className, ...props }: AriaLabelProps) => <AriaLabel className={cn(labelVariants(), className)} {...props} />;
@@ -55,7 +55,7 @@ const fieldGroupVariants = cva('', {
     }
 });
 
-interface GroupProps extends AriaGroupProps, VariantProps<typeof fieldGroupVariants> {}
+interface GroupProps extends AriaGroupProps, VariantProps<typeof fieldGroupVariants> { }
 
 function FieldGroup({ className, variant, ...props }: GroupProps) {
     return (

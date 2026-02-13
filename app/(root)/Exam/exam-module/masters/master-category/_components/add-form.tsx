@@ -43,7 +43,6 @@ export default function AddMasterCategoryForm({ onSuccess, className = '' }: Add
         try {
             //  Build payload as per your backend structure
             const payload = {
-                mI_Id: 30,
                 emcA_CategoryName: data.emcA_CategoryName,
                 emcA_CCECheckingFlg: data.emcA_CCECheckingFlg
             };

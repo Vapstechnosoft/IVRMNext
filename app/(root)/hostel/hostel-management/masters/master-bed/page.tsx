@@ -6,12 +6,13 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { useMasterBed } from '@/hooks/hostel/useMasterBed';
-import { deleteBed, IBedDisplay, IHostel } from '@/server/hostel/master-bed/server-action';
 import { Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import AddMasterBedForm from './_components/add-form';
 import { masterBedColumns } from './_components/columns';
 import UpdateMasterBedForm from './_components/update-form';
+import { IBedDisplay, IHostel } from '@/types/hostel/hostel-management/masters';
+import { deleteBed } from '@/server/hostel/hostel-management/masters/bed';
 
 export default function MasterBedPage() {
     const { bedList, hostels, loading, refetch } = useMasterBed();

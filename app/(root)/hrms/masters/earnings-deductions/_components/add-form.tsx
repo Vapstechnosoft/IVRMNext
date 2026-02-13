@@ -50,37 +50,50 @@ interface AddEarningsDeductionsFormProps {
 export default function AddEarningsDeductionsForm({ onSuccess, className = '' }: AddEarningsDeductionsFormProps) {
     const { refetchAll } = useMasterEarningsDeductions();
 
+    // Helper function to map API response to dropdown items
+    const mapToDropdownItems = (response: any) => {
+        const rawData = Array.isArray(response) ? response : response?.data || [];
+        return rawData.map((item: any) => {
+            // If already has key/value, use them
+            if (item.key !== undefined && item.value !== undefined) {
+                return item;
+            }
+
+            // Find potential ID field (ends with Id or ID, case insensitive)
+            const idField = Object.keys(item).find(k => /Id$/i.test(k));
+            // Find potential Name/Value field (ends with Name, Type, Description, or is specific field)
+            const valueField = Object.keys(item).find(k => /Name$|Type$|Desc$/i.test(k) && !/Id$/i.test(k));
+
+            return {
+                key: item[idField || ''] ?? item.key,
+                value: item[valueField || ''] ?? item.value
+            };
+        });
+    };
+
     // Earnings Deductions Type dropdown
     const { data: earningsDeductionsTypeDropdownResponse, isLoading: isLoadingEarningsDeductionsTypes } =
         useEarningsDeductionsTypeDropdown();
     const earningsDeductionsTypeDropdown: IEarningsDeductionsTypeDropdown[] = useMemo(() => {
-        return Array.isArray(earningsDeductionsTypeDropdownResponse)
-            ? earningsDeductionsTypeDropdownResponse
-            : (earningsDeductionsTypeDropdownResponse as any)?.data || [];
+        return mapToDropdownItems(earningsDeductionsTypeDropdownResponse);
     }, [earningsDeductionsTypeDropdownResponse]);
 
     // Rounding Type dropdown
     const { data: roundingTypeDropdownResponse, isLoading: isLoadingRoundingTypes } = useRoundingTypeDropdown();
     const roundingTypeDropdown: IRoundingTypeDropdown[] = useMemo(() => {
-        return Array.isArray(roundingTypeDropdownResponse)
-            ? roundingTypeDropdownResponse
-            : (roundingTypeDropdownResponse as any)?.data || [];
+        return mapToDropdownItems(roundingTypeDropdownResponse);
     }, [roundingTypeDropdownResponse]);
 
     // Amount Or Percentage dropdown
     const { data: amountOrPercentageDropdownResponse, isLoading: isLoadingAmountOrPercentage } = useAmountOrPercentageDropdown();
     const amountOrPercentageDropdown: IAmountOrPercentageDropdown[] = useMemo(() => {
-        return Array.isArray(amountOrPercentageDropdownResponse)
-            ? amountOrPercentageDropdownResponse
-            : (amountOrPercentageDropdownResponse as any)?.data || [];
+        return mapToDropdownItems(amountOrPercentageDropdownResponse);
     }, [amountOrPercentageDropdownResponse]);
 
     // Salary Component Type dropdown (Earning/Deduction)
     const { data: salaryComponentTypeDropdownResponse, isLoading: isLoadingSalaryComponentType } = useSalaryComponentTypeDropdown();
     const salaryComponentTypeDropdown: ISalaryComponentTypeDropdown[] = useMemo(() => {
-        return Array.isArray(salaryComponentTypeDropdownResponse)
-            ? salaryComponentTypeDropdownResponse
-            : (salaryComponentTypeDropdownResponse as any)?.data || [];
+        return mapToDropdownItems(salaryComponentTypeDropdownResponse);
     }, [salaryComponentTypeDropdownResponse]);
     const {
         register,
@@ -98,9 +111,6 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
         name: 'HRMED_AmountPercentFlag',
         defaultValue: 'Amount'
     });
-    useEffect(() => {
-        trigger('HRMED_AmountPercent');
-    }, [calculationType, trigger]);
     const onSubmit = async (data: MasterEarningsDeductionsInput) => {
         try {
             // Build the request body - map to lowercase field names as per API
@@ -377,17 +387,6 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                                 }
                             })}
                         />
-                    </div>
-                    <div className='group flex flex-col gap-1.5'>
-                        <Label htmlFor='HRMED_Order'>Order</Label>
-                        <Input
-                            type='number'
-                            id='HRMED_Order'
-                            {...register('HRMED_Order', {
-                                valueAsNumber: true
-                            })}
-                        />
-                        {errors.HRMED_Order && <FormError>{errors.HRMED_Order.message}</FormError>}
                     </div>
                     <div className='group flex items-center gap-2'>
                         <Input type='checkbox' id='HRMED_ReviseFlg' className='h-4 w-4' {...register('HRMED_ReviseFlg')} />

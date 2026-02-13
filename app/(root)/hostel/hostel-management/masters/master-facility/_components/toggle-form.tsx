@@ -5,12 +5,12 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { useMasterFacility } from '@/hooks/hostel/useMasterFacility';
 import { masterFacilityDeleteSchema } from '@/schemas/hostel/masters';
-import { deleteMasterFacility } from '@/server/hostel/master-facility/masters/server-action';
 import { IMasterFacility } from '@/schemas/hostel/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+import { toggleMasterFacility } from '@/server/hostel/hostel-management/masters/facility';
 
 type FormFields = z.infer<typeof masterFacilityDeleteSchema>;
 
@@ -38,7 +38,7 @@ export default function ToggleMasterFacilityForm({ rowData, onClose }: ToggleMas
 
     const onSubmit: SubmitHandler<FormFields> = async (formData) => {
         try {
-            const response = await deleteMasterFacility(Number(formData.hlmftY_Id));
+            const response = await toggleMasterFacility(Number(formData.hlmftY_Id));
             if (response.success) {
                 toast.success(response.message);
                 refetchAll();

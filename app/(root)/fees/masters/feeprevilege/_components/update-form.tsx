@@ -43,9 +43,15 @@ interface UpdateFeePrivilegeFormProps {
 type FormFields = z.infer<typeof feePrivilegeSchema.addOrUpdate>;
 
 export default function UpdateFeePrivilegeForm({ onSuccess, selectedRow, className = '' }: UpdateFeePrivilegeFormProps) {
+    console.log('selectedRow', selectedRow);
+
+    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
+
+    const { data: rolesData, isLoading: loadingRoles, error: rolesError } = useRolesDropdown();
+
     const [isInitializing, setIsInitializing] = useState(false);
     const queryClient = useQueryClient();
-
+    console.log('selectedRow', selectedRow);
     const {
         control,
         handleSubmit,
@@ -70,10 +76,6 @@ export default function UpdateFeePrivilegeForm({ onSuccess, selectedRow, classNa
     const headsValue = watch('heads');
     const roles = watch('roles');
     const usersValue = watch('users');
-
-    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
-
-    const { data: rolesData, isLoading: loadingRoles, error: rolesError } = useRolesDropdown();
 
     const {
         data: groupData,

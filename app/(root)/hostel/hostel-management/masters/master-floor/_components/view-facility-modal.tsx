@@ -2,16 +2,15 @@
 
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useMappedFacilities } from '@/hooks/hostel/useMasterFloor';
-import { IFloorDisplay } from '@/server/hostel/master-floor/server-action';
 import { ColumnDef } from '@tanstack/react-table';
-import { IFacility } from '@/server/hostel/master-floor/server-action';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { IFacility } from '@/types/hostel/hostel-management/masters';
+import { IMasterFloor } from './columns';
 
 interface ViewFacilityModalProps {
     isOpen: boolean;
     onClose: () => void;
-    floor: IFloorDisplay | null;
+    floor: IMasterFloor | null;
 }
 
 export default function ViewFacilityModal({ isOpen, onClose, floor }: ViewFacilityModalProps) {
@@ -63,3 +62,7 @@ export default function ViewFacilityModal({ isOpen, onClose, floor }: ViewFacili
         </Dialog>
     );
 }
+function useMappedFacilities(hlmF_Id: any): { data: any; isLoading: any; } {
+    throw new Error('Function not implemented.');
+}
+

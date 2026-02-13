@@ -5,10 +5,15 @@ import type { ApiSearchparams } from '@/types';
 import type { IAlumniNoticeBoard } from '@/types/alumni/alumni-notice-board';
 
 export interface IAlumniNoticeBoardResponse {
-    alumninoticeboardlist: IAlumniNoticeBoard[];
-    asmaY_Id: number;
-    mI_Id: number;
+    success: boolean;
+    message: string;
+    data: IAlumniNoticeBoard[];
+    alumninoticeboardlist?: IAlumniNoticeBoard[]; // Legacy support
     total?: number;
+    page?: number;
+    page_size?: number;
+    asmaY_Id?: number;
+    mI_Id?: number;
 }
 
 export async function getAlumniNoticeBoardData(searchParams?: ApiSearchparams) {
@@ -34,6 +39,6 @@ export async function editAlumniNoticeBoard(id: number) {
 }
 
 export async function viewAlumniNoticeBoard(id: number) {
-    const url = `/Alumni_NoticeBoard/viewData?ALNTB_Id=${id}`;
-    return await api.post<{ attachementlist: any[] }>('alumni', url, {});
+    const url = `/SchoolALUDASH/viewnotice?ALNTB_Id=${id}`;
+    return await api.get<{ attachementlist: any[] }>('alumni', url);
 }

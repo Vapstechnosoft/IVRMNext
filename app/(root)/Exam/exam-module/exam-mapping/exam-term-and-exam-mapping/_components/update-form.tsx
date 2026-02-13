@@ -16,7 +16,7 @@ import { getMasterGrade } from '@/server/exam/exam-module/masters/grade';
 import type { IExamTermAndExamMapping, IExamTermAndExamMappingDetails } from '@/types/exam/exam-module/exam-mapping';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AlertTriangle, Trash2 } from 'lucide-react';
+import { AlertTriangle, Pencil, RefreshCw, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -112,7 +112,7 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
         if (!asmaY_Id) return;
         async function fetchRelated() {
             try {
-                const { data: cats } = await getCategoryDropDownByAcademicYearlist(orgId, asmaY_Id);
+                const { data: cats } = await getCategoryDropDownByAcademicYearlist(asmaY_Id);
                 const validCats = Array.isArray(cats) ? cats : [];
                 setCategories(validCats);
                 if (rowData?.emcA_Id && validCats.length > 0) {
@@ -164,7 +164,7 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
         error: detailsError,
         isLoading: detailsLoading,
         refetch: refetchDetails
-    } = useExamTermAndExamMappingDetails(orgId, rowData?.asmaY_Id ?? 0, rowData?.emcA_Id ?? 0, rowData?.ecT_Id ?? 0);
+    } = useExamTermAndExamMappingDetails(rowData?.asmaY_Id ?? 0, rowData?.emcA_Id ?? 0, rowData?.ecT_Id ?? 0);
     useEffect(() => {
         refetchDetails();
     }, [rowData]);
@@ -303,6 +303,22 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
         replace(updated as any);
     }
 
+    function handleEditRow(index: number) {
+        const row = addedRows[index];
+
+        // Populate entry fields with row data
+        setEntryExamId(row.emE_Id);
+        setEntryMarksFlag(row.ecteX_MarksPerFlag);
+        setEntryValue(row.ecteX_MarksPercentValue);
+        setEntryRoundOff(row.ecteX_RoundOffReqFlg);
+        setEntryConversion(row.ecteX_ConversionReqFlg);
+        setEntryNotApplicable(row.ecteX_NotApplicableToTotal);
+
+        // Remove from list so it can be re-added
+        handleDeleteRow(index);
+        toast.info('Exam loaded for editing');
+    }
+
     // On final submit - update call (keeps same payload mapping you used in Add)
     const onSubmit = async (data: FormFields) => {
         if (!addedRows.length) {
@@ -436,8 +452,19 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
         }
     }
 
+    const isLoading = academicYearLoading || detailsLoading;
+
+    if (isLoading) {
+        return (
+            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
+                <RefreshCw className='h-8 w-8 animate-spin text-secondary' />
+                <p className='text-muted-foreground text-sm'>Loading data...</p>
+            </div>
+        );
+    }
+
     return (
-        <div className='flex w-full flex-col gap-6'>
+        <div className='relative flex w-full flex-col gap-6'>
             <FormProvider {...methods}>
                 <form
                     onSubmit={handleSubmit(onSubmit, (errs) => {
@@ -815,6 +842,13 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
                                                             }}
                                                             className='group h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:bg-red-50 hover:text-red-600'>
                                                             <Trash2 className='h-4 w-4 transition-transform duration-200 group-hover:rotate-12' />
+                                                        </Button>
+                                                        <Button
+                                                            variant='ghost'
+                                                            size='sm'
+                                                            onClick={() => handleEditRow(idx)}
+                                                            className='group h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:bg-blue-50 hover:text-blue-600'>
+                                                            <Pencil className='h-4 w-4 transition-transform duration-200 group-hover:rotate-12' />
                                                         </Button>
                                                     </td>
                                                 </tr>

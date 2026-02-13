@@ -33,16 +33,16 @@ export default function deleteMasterAutoReceiptForm({ rowData, onClose, onSucces
             const response = await MasterfeeMasterGroupwiseAutoReceipt(Number(rowData.fgaR_Id), Number(rowData.asmaY_Id));
 
             if (response.success) {
-                toast.success(`${rowData.fgaR_Name || 'Receipt'} successfully deleted`);
+                toast.success(response.message);
                 await refetch();
                 onSuccess?.();
                 closeDialog();
             } else {
-                toast.error(response.message || 'Failed to delete receipt');
+                toast.error(response.message);
             }
         } catch (error: any) {
             console.error('Delete error:', error);
-            toast.error(error.message || 'Error deleting receipt');
+            toast.error(error.message);
         } finally {
             setIsSubmitting(false);
         }

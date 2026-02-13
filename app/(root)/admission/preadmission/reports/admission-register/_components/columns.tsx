@@ -35,7 +35,7 @@ const FIELD_CONFIG: Record<string, { label: string; isDate?: boolean }> = {
     AMST_MotherTongue: { label: 'Language' },
     AMST_MobileNo: { label: 'Phone number' },
     AMST_emailId: { label: 'Email id' },
-    AMST_PlaceOfBirth: { label: 'Place of Birth' },
+    // AMST_PlaceOfBirth: { label: 'Place of Birth' },
     AMST_AadharNo: { label: 'Aadhar Card Number' },
     IVRMMR_Name: { label: 'Religion' }
 };

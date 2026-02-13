@@ -17,7 +17,6 @@ import {
     getSubjectsForIndividualExam,
     getSubjectsForPromotionalExam
 } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
-import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { IESubject, IExamSubjectGroupMapping, IExamSubjectGroupingDetails } from '@/types/exam/exam-module/exam-mapping';
 import type { ICategory } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -62,17 +61,12 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
     const [subjects, setSubjects] = useState<IESubject[]>([]);
     const [detail, setDetail] = useState<IExamSubjectGroupingDetails | null>(null);
 
-    const {
-        data: academicYear,
-        isLoading: academicYearLoading,
-        error: academicYearError,
-    } = useAcademicYearDropdown();
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
     const esG_ExamPromotionFlag = useWatch({ control, name: 'esG_ExamPromotionFlag' });
     const asmaY_Id = useWatch({ control, name: 'asmaY_Id' });
     const emcA_Id = useWatch({ control, name: 'emcA_Id' });
     const emE_Id = useWatch({ control, name: 'emE_Id' });
-
 
     // Step 2: Load Mapping Details + Pre-fill
     useEffect(() => {
@@ -80,7 +74,6 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
         const loadDetails = async () => {
             try {
                 const res = await getExamSubjectGroupMappingDetails(
-                    mI_Id,
                     selectedRow.esG_CompulsoryFlag,
                     selectedRow.asmaY_Id,
                     selectedRow.esG_Id
@@ -122,7 +115,7 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
 
         const loadCategories = async () => {
             try {
-                const { data } = await getCategoryDropDownByAcademicYearlist(mI_Id, asmaY_Id);
+                const { data } = await getCategoryDropDownByAcademicYearlist(asmaY_Id);
                 const cats = Array.isArray(data) ? data : [];
                 setCategories(cats);
 
@@ -184,10 +177,10 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
             try {
                 if (esG_ExamPromotionFlag === 'IE') {
                     if (!emE_Id) return;
-                    const response = await getSubjectsForIndividualExam(mI_Id, emE_Id, asmaY_Id, emcA_Id);
+                    const response = await getSubjectsForIndividualExam(emE_Id, asmaY_Id, emcA_Id);
                     setSubjects((response?.data || []) as IESubject[]);
                 } else {
-                    const response_ = await getSubjectsForPromotionalExam(mI_Id, asmaY_Id, emcA_Id);
+                    const response_ = await getSubjectsForPromotionalExam(asmaY_Id, emcA_Id);
                     setSubjects((response_?.data || []) as IESubject[]);
                 }
             } catch (err: any) {

@@ -424,13 +424,13 @@ export default function UpdateFeeTransactionWaiveOffForm({
             function formatDateToYMD(date: any) {
                 if (!date) return null;
                 const d = new Date(date);
-                return d.toISOString().split('T')[0];
+                return d.toISOString();
             }
             const payload = {
                 fswO_Id: selectedRow.fswO_Id,
                 amsT_Id: amst_Id,
                 asmaY_Id: asmay_Id,
-                fswO_Date: formatDateToYMD(data.date),
+                fswO_Date: format(data.date, 'yyyy-MM-dd'),
                 finewaiveoff: fineWaiveOff === true ? 1 : 0,
                 fswO_WaivedOffRemarks: data.remarks || '',
                 completefinewaiveoff: completeFineWaiveOff === true ? 1 : 0,
@@ -442,7 +442,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
             const response = await saveFeeWivedOff(payload);
 
             if (response?.success) {
-                toast.success(response.message || 'Updated successfully');
+                toast.success('Fee WaivedOff Updated Successfully');
                 handleReset();
                 onSuccess?.();
                 refetchAll();
@@ -731,7 +731,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                         <PopoverTrigger asChild>
                                             <Button variant='outline' className='w-full justify-start text-left font-normal'>
                                                 <CalendarIcon className='mr-2 h-4 w-4' />
-                                                {field.value ? format(field.value, 'PPP') : 'Select Date'}
+                                                {field.value ? format(field.value, 'yyyy-MM-dd') : 'Select Date'}
                                             </Button>
                                         </PopoverTrigger>
 

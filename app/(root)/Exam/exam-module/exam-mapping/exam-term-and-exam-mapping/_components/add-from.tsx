@@ -23,14 +23,14 @@ import type { z } from 'zod';
 type FormFields = z.infer<typeof ExamTermAndExamMappingSchema.addOrUpdate>;
 
 export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: () => void }) {
-    const orgId = 30;
+    // const orgId = 30;
 
     const methods = useForm<FormFields>({
         resolver: zodResolver(ExamTermAndExamMappingSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
             ecT_Id: 0,
-            mI_Id: orgId,
+            mI_Id: 0,
             asmaY_Id: undefined,
             emcA_Id: 0,
             ecT_TermName: '',
@@ -84,7 +84,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
         if (!asmaY_Id || topLocked) return;
         async function fetchRelated() {
             try {
-                const { data: cats } = await getCategoryDropDownByAcademicYearlist(orgId, asmaY_Id);
+                const { data: cats } = await getCategoryDropDownByAcademicYearlist(asmaY_Id);
                 setCategories(Array.isArray(cats) ? cats : []);
                 if (Array.isArray(cats) && cats.length === 0) {
                     toast.info('No categories found for selected academic year');
@@ -218,7 +218,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
             // Build API payload matching the required structure
             const payload = {
                 ecT_Id: data.ecT_Id ?? 0,
-                mI_Id: 30,
+                mI_Id: 0,
                 asmaY_Id: data.asmaY_Id,
                 emcA_Id: data.emcA_Id,
                 emgR_Id: data.emgR_Id,
@@ -258,7 +258,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
         // Reset all form fields to initial state
         reset({
             ecT_Id: 0,
-            mI_Id: orgId,
+            mI_Id: 0,
             asmaY_Id: undefined,
             emcA_Id: 0,
             ecT_TermName: '',
@@ -491,6 +491,9 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                             label='Term Start Date'
                                             placeholder='Select Date'
                                             fromDate={today}
+                                            toDate={watch('ecT_TermEndDate') ? new Date(watch('ecT_TermEndDate')) : undefined}
+                                            restricted_tofieldName='Term End Date'
+                                            restricted_fromfieldName='Today'
                                         />
                                     )}
                                 />
@@ -507,6 +510,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                             fromDate={
                                                 methods.watch('ecT_TermStartDate') === '' ? today : new Date(watch('ecT_TermStartDate'))
                                             }
+                                            restricted_fromfieldName='Term Start Date'
                                         />
                                     )}
                                 />
@@ -520,6 +524,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                             label='Term Publish Date'
                                             placeholder='Select Date'
                                             fromDate={methods.watch('ecT_TermEndDate') === '' ? today : new Date(watch('ecT_TermEndDate'))}
+                                            restricted_fromfieldName='Term End Date'
                                         />
                                     )}
                                 />
@@ -573,7 +578,10 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                 <Label>
                                     Exam <span className='text-red-500'>*</span>
                                 </Label>
-                                <Select value={entryExamId ? String(entryExamId) : ''} onValueChange={(val) => setEntryExamId(Number(val))}>
+                                <Select
+                                    key={entryExamId}
+                                    value={entryExamId && entryExamId !== 0 ? String(entryExamId) : undefined}
+                                    onValueChange={(val) => setEntryExamId(Number(val))}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='Select Exam' />
                                     </SelectTrigger>

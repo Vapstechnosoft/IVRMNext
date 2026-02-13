@@ -1,6 +1,7 @@
 import { FEES_QUERY_KEYS } from '@/constants/query-keys';
 import { getClassDropDown } from '@/server/fees/reports/daily_fee_collection_report';
 import {
+    FeesTermDropDownForReports,
     getAcademicYeardropdown,
     getFeesBusRoutesDropDown,
     getFeesCustomGroupDropDown,
@@ -10,6 +11,7 @@ import {
     getFeesTermDropDown,
     mastersettinglist
 } from '@/server/fees/reports/fee_DefaulterReport';
+import { getFeesconcessionOnLoadReport } from '@/server/fees/reports/fee_concession_report';
 import {
     getFeeInstallmentReportBusRouteDropdown,
     getFeeInstallmentReportCategoryDropdown,
@@ -74,6 +76,23 @@ export const useFeeTermDefaulterreport = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_TERM_DEFAULTER]
+            });
+        }
+    };
+};
+
+export const useFeeTermDropDownDataForReports = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_TERM_DROPDOWNDATA_REPORTS],
+            queryFn: async () => FeesTermDropDownForReports(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_TERM_DROPDOWNDATA_REPORTS]
             });
         }
     };
@@ -414,6 +433,23 @@ export const usemastersettinglist = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.MASTER_SETTING_LIST]
+            });
+        }
+    };
+};
+
+export const useFeeConCessionOnLoadreport = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_ON_LOAD],
+            queryFn: async () => getFeesconcessionOnLoadReport(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_ON_LOAD]
             });
         }
     };

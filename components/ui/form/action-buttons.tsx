@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Eye, Trash2 } from 'lucide-react';
 
 // Types for the component props
 interface ActionButtonsProps {
@@ -12,6 +12,7 @@ interface ActionButtonsProps {
         edit?: boolean;
         delete?: boolean;
         toggle?: boolean;
+        view?: boolean;
     };
     onEdit?: (data: any) => void;
     onDelete?: (data: any) => void;
@@ -34,6 +35,7 @@ export function ActionButtons({
     onEdit,
     onDelete,
     onToggle,
+
     toggleConditionKey = 'active_flag',
     className = '',
     size = 'sm',
@@ -61,9 +63,13 @@ export function ActionButtons({
         }
     };
 
+
+
     return (
         <TooltipProvider>
             <div className={`flex items-center gap-3 ${className}`}>
+
+
                 {/* Edit Button */}
                 {buttons.edit && (
                     <Tooltip>
@@ -92,7 +98,7 @@ export function ActionButtons({
                         <Switch
                             checked={isActive}
                             onCheckedChange={handleToggle}
-                            className='data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-400'
+                            className='data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500'
                         />
                     </div>
                 )}

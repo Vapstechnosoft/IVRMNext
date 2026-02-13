@@ -1,4 +1,3 @@
-// app/exam/exam-module/student-marks-publish/_components/search-form.tsx
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -6,23 +5,21 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { useFeeGroupDefaulterreport, useFeeTermDefaulterreport } from '@/hooks/fees/useReports';
 import { studentMarksPublishSchema } from '@/schemas/exam/exam-module/marks-entry';
+import { getStudentWisePublishMarksData } from '@/server/exam/exam-module/marks-entry/student-wise-publish-marks';
 import {
     getClassDropDownByAcademicYearlist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
     getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/tbs-report-school';
+import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RotateCcw, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-
-// Import fee-related hooks
-import { useFeeGroupDefaulterreport, useFeeTermDefaulterreport } from '@/hooks/fees/useReports';
-import { getStudentWisePublishMarksData } from '@/server/exam/exam-module/marks-entry/student-wise-publish-marks';
 
 type FormFields = z.infer<typeof studentMarksPublishSchema.search>;
 
@@ -34,24 +31,18 @@ interface Props {
 
 export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Props) {
     const [loading, setLoading] = useState(false);
-    const [processBtnEnabled, setProcessBtnEnabled] = useState(false);
-    const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-    // State for dropdown data
+    // Dropdown Data
+    const [academicYears, setAcademicYears] = useState<any[]>([]);
     const [classes, setClasses] = useState<any[]>([]);
     const [sections, setSections] = useState<any[]>([]);
     const [exams, setExams] = useState<any[]>([]);
-    const [students, setStudents] = useState<any[]>([]);
 
-    // Loading states
+    // Loading States
+    const [loadingYears, setLoadingYears] = useState(true);
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
     const [loadingExams, setLoadingExams] = useState(false);
-
-    // Keys to force re-render of selects
-    const [classKey, setClassKey] = useState(0);
-    const [sectionKey, setSectionKey] = useState(0);
-    const [examKey, setExamKey] = useState(0);
 
     const methods = useForm<FormFields>({
         resolver: zodResolver(studentMarksPublishSchema.search),
@@ -73,202 +64,150 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
     const {
         control,
         handleSubmit,
-        watch,
         setValue,
         reset,
-        formState: { errors, isValid },
-        getValues
+        formState: { errors, isValid }
     } = methods;
 
-    const radiotype = watch('radiotype');
-    const academicYearId = watch('asmaY_Id');
-    const classId = watch('asmcL_Id');
-    const sectionId = watch('asmS_Id');
-    const feeInstallmentCheckbox = watch('feeinstallmentcheckbox');
-
-    const { data: academicYears, isLoading: academicYearLoading } = useAcademicYearDropdown();
+    const watchType = useWatch({ control, name: 'radiotype' });
+    const watchYear = useWatch({ control, name: 'asmaY_Id' });
+    const watchClass = useWatch({ control, name: 'asmcL_Id' });
+    const watchSection = useWatch({ control, name: 'asmS_Id' });
+    const watchFeeCheckbox = useWatch({ control, name: 'feeinstallmentcheckbox' });
+    const watchExam = useWatch({ control, name: 'emE_Id' });
 
     // Fee-related hooks
     const { data: feeGroupsData, isLoading: loadingFeeGroup } = useFeeGroupDefaulterreport();
     const { data: feeTermsData, isLoading: loadingFeeTerm } = useFeeTermDefaulterreport();
-
-    // Get actual data from responses
     const feeGroups = feeGroupsData?.data || [];
     const feeTerms = feeTermsData?.data || [];
 
-    // Reset all dependent dropdowns when academic year changes
+    // 1. Fetch Academic Years on Mount
     useEffect(() => {
-        if (!academicYearId || academicYearId === 0) {
-            // Clear all dependent data
+        const fetchYears = async () => {
+            try {
+                setLoadingYears(true);
+                const response = await getAcademicYearDropdown();
+                if (response.success) {
+                    setAcademicYears(response.data || []);
+                }
+            } catch (error) {
+                console.error(error);
+                toast.error('Failed to load academic years');
+            } finally {
+                setLoadingYears(false);
+            }
+        };
+        fetchYears();
+    }, []);
+
+    // 2. Fetch Classes when Year Changes
+    useEffect(() => {
+        if (watchYear) {
+            const fetchClasses = async () => {
+                try {
+                    setLoadingClasses(true);
+                    // Clear dependents
+                    setClasses([]);
+                    setSections([]);
+                    setExams([]);
+                    setValue('asmcL_Id', 0);
+                    setValue('asmS_Id', 0);
+                    setValue('emE_Id', 0);
+
+                    const res = await getClassDropDownByAcademicYearlist(watchYear);
+                    const data = res.data || [];
+                    setClasses(data);
+
+                    if (data.length === 0) toast.info('No classes found for selected academic year');
+                } catch (error) {
+                    console.error(error);
+                    toast.error('Failed to load classes');
+                    setClasses([]);
+                } finally {
+                    setLoadingClasses(false);
+                }
+            };
+            fetchClasses();
+        } else {
             setClasses([]);
             setSections([]);
             setExams([]);
-            setStudents([]);
-
-            // Reset form values
             setValue('asmcL_Id', 0);
             setValue('asmS_Id', 0);
             setValue('emE_Id', 0);
-
-            // Force re-render of selects
-            setClassKey((prev) => prev + 1);
-            setSectionKey((prev) => prev + 1);
-            setExamKey((prev) => prev + 1);
-
-            setProcessBtnEnabled(false);
-            return;
         }
+    }, [watchYear, setValue]);
 
-        const fetchClasses = async () => {
-            setLoadingClasses(true);
-            try {
-                // Clear previous data first
-                setClasses([]);
-                setValue('asmcL_Id', 0);
-                setClassKey((prev) => prev + 1);
-
-                const res = await getClassDropDownByAcademicYearlist(academicYearId);
-                const classData = res.data || [];
-                setClasses(classData);
-
-                // Clear dependent data
-                setSections([]);
-                setExams([]);
-                setStudents([]);
-                setValue('asmS_Id', 0);
-                setValue('emE_Id', 0);
-                setSectionKey((prev) => prev + 1);
-                setExamKey((prev) => prev + 1);
-
-                if (classData.length === 0) {
-                    toast.info('No classes found for selected academic year');
-                }
-            } catch (error) {
-                console.error('Error loading classes:', error);
-                toast.error('Failed to load classes');
-                setClasses([]);
-            } finally {
-                setLoadingClasses(false);
-            }
-        };
-
-        fetchClasses();
-    }, [academicYearId, setValue]);
-
-    // Handle sections when class changes
+    // 3. Fetch Sections when Class Changes
     useEffect(() => {
-        if (!academicYearId || !classId || classId === 0) {
-            // Clear dependent data
+        if (watchYear && watchClass) {
+            const fetchSections = async () => {
+                try {
+                    setLoadingSections(true);
+                    // Clear dependents
+                    setSections([]);
+                    setExams([]);
+                    setValue('asmS_Id', 0);
+                    setValue('emE_Id', 0);
+
+                    const res = await getSectionsDropDownByAcademicYearandClasslist(watchYear, watchClass);
+                    const data = res.data || [];
+                    setSections(data);
+
+                    if (data.length === 0) toast.info('No sections found for selected class');
+                } catch (error) {
+                    console.error(error);
+                    toast.error('Failed to load sections');
+                    setSections([]);
+                } finally {
+                    setLoadingSections(false);
+                }
+            };
+            fetchSections();
+        } else {
             setSections([]);
             setExams([]);
-            setStudents([]);
-
-            // Reset form values
             setValue('asmS_Id', 0);
             setValue('emE_Id', 0);
-
-            // Force re-render
-            setSectionKey((prev) => prev + 1);
-            setExamKey((prev) => prev + 1);
-
-            setProcessBtnEnabled(false);
-            return;
         }
+    }, [watchYear, watchClass, setValue]);
 
-        const fetchSections = async () => {
-            setLoadingSections(true);
-            try {
-                // Clear previous data first
-                setSections([]);
-                setValue('asmS_Id', 0);
-                setSectionKey((prev) => prev + 1);
-
-                const res = await getSectionsDropDownByAcademicYearandClasslist(academicYearId, classId);
-                const sectionData = res.data || [];
-                setSections(sectionData);
-
-                // Clear dependent data
-                setExams([]);
-                setStudents([]);
-                setValue('emE_Id', 0);
-                setExamKey((prev) => prev + 1);
-
-                if (sectionData.length === 0) {
-                    toast.info('No sections found for selected class');
-                }
-            } catch (error) {
-                console.error('Error loading sections:', error);
-                toast.error('Failed to load sections');
-                setSections([]);
-            } finally {
-                setLoadingSections(false);
-            }
-        };
-
-        fetchSections();
-    }, [academicYearId, classId, setValue]);
-
-    // Handle exams and students when section changes
+    // 4. Fetch Exams when Section Changes
     useEffect(() => {
-        if (!academicYearId || !classId || !sectionId || sectionId === 0) {
-            setExams([]);
-            setStudents([]);
-            setValue('emE_Id', 0);
-            setExamKey((prev) => prev + 1);
-            setProcessBtnEnabled(false);
-            return;
-        }
+        if (watchYear && watchClass && watchSection) {
+            const fetchExams = async () => {
+                try {
+                    setLoadingExams(true);
+                    setValue('emE_Id', 0);
+                    setExams([]);
 
-        const fetchData = async () => {
-            setLoadingExams(true);
-            try {
-                // Clear previous data first
-                setExams([]);
-                setValue('emE_Id', 0);
-                setExamKey((prev) => prev + 1);
-
-                // Load exams (only for Exam Wise mode)
-                if (radiotype === 'Exam') {
-                    const examRes = await getExamsDropDownByAcademicYearandClassandSectionlist(academicYearId, classId, sectionId);
-                    const examData = examRes.data || [];
-                    setExams(examData);
-
-                    if (examData.length === 0) {
-                        toast.info('No exams found for selected section');
+                    if (watchType === 'Exam') {
+                        const res = await getExamsDropDownByAcademicYearandClassandSectionlist(watchYear, watchClass, watchSection);
+                        const data = res.data || [];
+                        setExams(data);
+                        if (data.length === 0) toast.info('No exams found for selected section');
                     }
+                } catch (error) {
+                    console.error(error);
+                    toast.error('Failed to load exams');
+                    setExams([]);
+                } finally {
+                    setLoadingExams(false);
                 }
-                // Enable process button if we have data
-                setTimeout(() => {
-                    setProcessBtnEnabled(true);
-                }, 300);
-            } catch (error) {
-                console.error('Error loading data:', error);
-                toast.error('Failed to load data');
-                setExams([]);
-                setStudents([]);
-            } finally {
-                setLoadingExams(false);
-            }
-        };
-
-        fetchData();
-    }, [academicYearId, classId, sectionId, radiotype, setValue]);
-
-    // Handle radio type change
-    useEffect(() => {
-        if (radiotype !== 'Exam') {
+            };
+            fetchExams();
+        } else {
             setExams([]);
             setValue('emE_Id', 0);
-            setExamKey((prev) => prev + 1);
         }
-    }, [radiotype, setValue]);
+    }, [watchYear, watchClass, watchSection, watchType, setValue]);
 
     const handleSearch = async (formData: FormFields) => {
         setLoading(true);
-
         try {
             const payload = {
-                mI_Id: 30, // or from context/store if dynamic
+                // mI_Id: 30, // or from context/store if dynamic
                 asmaY_Id: formData.asmaY_Id,
                 asmcL_Id: formData.asmcL_Id,
                 asmS_Id: formData.asmS_Id,
@@ -282,15 +221,16 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
             console.log('Payload:', payload);
             const { data: response } = await getStudentWisePublishMarksData(payload);
             const apiStudents = Array.isArray(response) ? response : [];
-            if (isInitialLoad) {
-                onSuccess?.(formData, apiStudents);
-                setIsInitialLoad(false);
-            } else {
-                onRefresh?.(formData, apiStudents);
+
+            // Always trigger onSuccess to ensure UI updates (opens details)
+            if (onSuccess) {
+                onSuccess(formData, apiStudents);
+            }
+            if (onPayloadChange) {
+                onPayloadChange(payload);
             }
 
             toast.success(`${apiStudents.length} students found`);
-            onPayloadChange?.(payload);
         } catch (error: any) {
             console.error('Search error:', error);
             toast.error(error.message || 'Failed to search students');
@@ -314,18 +254,14 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
             FMT_Id: 0
         });
 
-        // Clear state
         setClasses([]);
         setSections([]);
         setExams([]);
-        setStudents([]);
 
-        // Reset keys to force re-render
-        setClassKey((prev) => prev + 1);
-        setSectionKey((prev) => prev + 1);
-        setExamKey((prev) => prev + 1);
-
-        setProcessBtnEnabled(false);
+        // Notify parent to close details
+        if (onRefresh) {
+            onRefresh({}, []);
+        }
     };
 
     return (
@@ -358,7 +294,6 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                                     onClick={() => {
                                         field.onChange('Promotion');
                                         setValue('emE_Id', 0);
-                                        setExamKey((prev) => prev + 1);
                                     }}>
                                     Promotion
                                 </button>
@@ -381,25 +316,23 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                             render={({ field, fieldState }) => (
                                 <>
                                     <Select
+                                        key={field.value} // Force re-render on reset
                                         onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                        disabled={academicYearLoading}>
+                                        value={String(field.value)}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={academicYearLoading ? 'Loading Academic Year...' : 'Select Academic Year'}
-                                            />
+                                            <SelectValue placeholder={loadingYears ? 'Loading Academic Year...' : 'Select Academic Year'} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {academicYearLoading ? (
+                                            {loadingYears ? (
                                                 <SelectItem value='loading' disabled>
                                                     Loading Academic Year...
                                                 </SelectItem>
-                                            ) : academicYears?.data?.length === 0 ? (
+                                            ) : academicYears.length === 0 ? (
                                                 <SelectItem value='none' disabled>
                                                     No academic years available
                                                 </SelectItem>
                                             ) : (
-                                                academicYears?.data?.map((year: any) => (
+                                                academicYears.map((year: any) => (
                                                     <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
                                                         {year.asmaY_Year}
                                                     </SelectItem>
@@ -438,23 +371,15 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                             render={({ field, fieldState }) => (
                                 <>
                                     <Select
+                                        key={field.value}
                                         onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                        disabled={!feeInstallmentCheckbox || loadingFeeTerm}>
+                                        value={String(field.value)}
+                                        disabled={!watchFeeCheckbox}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={
-                                                    loadingFeeTerm
-                                                        ? 'Loading fee terms...'
-                                                        : !feeInstallmentCheckbox
-                                                          ? 'Enable Exclude Fee Defaulters first'
-                                                          : feeTerms.length === 0
-                                                            ? 'No fee terms available'
-                                                            : 'Select Fee Term'
-                                                }
-                                            />
+                                            <SelectValue placeholder={loadingFeeTerm ? 'Loading fee terms...' : 'Select Fee Term'} />
                                         </SelectTrigger>
                                         <SelectContent>
+                                            <SelectItem value='0'>Select Fee Term</SelectItem>
                                             {loadingFeeTerm ? (
                                                 <SelectItem value='loading' disabled>
                                                     Loading fee terms...
@@ -495,16 +420,10 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                                         }))}
                                         onChange={(vals) => field.onChange(vals.map((v: string) => Number(v)))}
                                         value={field.value ? field.value.map((v) => v.toString()) : []}
-                                        placeholder={
-                                            loadingFeeGroup
-                                                ? 'Loading fee groups...'
-                                                : !feeInstallmentCheckbox
-                                                  ? 'Enable Exclude Fee Defaulters first'
-                                                  : 'Search here...'
-                                        }
+                                        placeholder={loadingFeeGroup ? 'Loading fee groups...' : 'Select Fee Group'}
                                         height='150px'
                                         isSearchRequired={true}
-                                        disabled={!feeInstallmentCheckbox || loadingFeeGroup}
+                                        disabled={!watchFeeCheckbox}
                                     />
                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                 </>
@@ -524,22 +443,11 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                             render={({ field, fieldState }) => (
                                 <>
                                     <Select
-                                        key={`class-${classKey}`}
+                                        key={field.value} // Force re-render on reset
                                         onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                        disabled={!academicYearId || loadingClasses}>
+                                        value={String(field.value)}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={
-                                                    loadingClasses
-                                                        ? 'Loading classes...'
-                                                        : !academicYearId
-                                                          ? 'Select Academic Year first'
-                                                          : classes.length === 0
-                                                            ? 'No classes available'
-                                                            : 'Select Class'
-                                                }
-                                            />
+                                            <SelectValue placeholder={loadingClasses ? 'Loading classes...' : 'Select Class'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {loadingClasses ? (
@@ -574,22 +482,11 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                             render={({ field, fieldState }) => (
                                 <>
                                     <Select
-                                        key={`section-${sectionKey}`}
+                                        key={field.value} // Force re-render on reset
                                         onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                        disabled={!classId || loadingSections}>
+                                        value={String(field.value)}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={
-                                                    loadingSections
-                                                        ? 'Loading sections...'
-                                                        : !classId
-                                                          ? 'Select Class first'
-                                                          : sections.length === 0
-                                                            ? 'No sections available'
-                                                            : 'Select Section'
-                                                }
-                                            />
+                                            <SelectValue placeholder={loadingSections ? 'Loading sections...' : 'Select Section'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {loadingSections ? (
@@ -617,31 +514,18 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
 
                     {/* Exam Name (only for Exam Wise) */}
                     <div>
-                        <Label>Exam Name {radiotype === 'Exam' && '*'}</Label>
+                        <Label>Exam Name {watchType === 'Exam' && '*'}</Label>
                         <Controller
                             control={control}
                             name='emE_Id'
                             render={({ field, fieldState }) => (
                                 <>
                                     <Select
-                                        key={`exam-${examKey}`}
+                                        key={field.value} // Force re-render on reset
                                         onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                        disabled={radiotype !== 'Exam' || !sectionId || loadingExams}>
+                                        value={String(field.value)}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={
-                                                    loadingExams
-                                                        ? 'Loading exams...'
-                                                        : radiotype !== 'Exam'
-                                                          ? 'Select Exam Wise mode'
-                                                          : !sectionId
-                                                            ? 'Select Section first'
-                                                            : exams.length === 0
-                                                              ? 'No exams available'
-                                                              : 'Select Exam Name'
-                                                }
-                                            />
+                                            <SelectValue placeholder={loadingExams ? 'Loading exams...' : 'Select Exam Name'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {loadingExams ? (
@@ -673,9 +557,7 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
             <div className='flex justify-center gap-4 pt-4'>
                 <Button
                     type='submit'
-                    disabled={
-                        loading || !isValid || !academicYearId || !classId || !sectionId || (radiotype === 'Exam' && !watch('emE_Id'))
-                    }
+                    disabled={loading || !isValid || !watchYear || !watchClass || !watchSection || (watchType === 'Exam' && !watchExam)}
                     className='min-w-[120px]'>
                     {loading ? (
                         <span className='flex items-center gap-2'>

@@ -2,7 +2,7 @@
 'use client';
 
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import type { IStudentTransaction } from '@/types/exam/exam-module/exam-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
 
@@ -71,35 +71,27 @@ export const StudentTransactionColumns = ({
     },
     {
         accessorKey: 'rollNumber',
-        header: 'Roll No.',
+        header: () => <div className='text-center'>Roll No.</div>,
         cell: ({ row }) => <div className='text-center'>{row.original.rollNumber}</div>,
         size: 100
     },
     {
         accessorKey: 'score',
-        header: 'Score',
+        header: () => <div className='text-center'>Score</div>,
         cell: ({ row }) => {
             const student = row.original;
             const isChecked = selectedStudentIds.includes(student.amsT_Id);
 
             return (
                 <div className='mx-auto w-32'>
-                    <Select
+                    <Input
+                        type='text'
                         value={student.ecsactT_Score || ''}
-                        onValueChange={(value) => onScoreChange(student.amsT_Id, value)}
-                        disabled={!isChecked || hideSaveButton}>
-                        <SelectTrigger className='w-full'>
-                            <SelectValue placeholder='-- Select --' />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value='A+'>A+</SelectItem>
-                            <SelectItem value='A'>A</SelectItem>
-                            <SelectItem value='B'>B</SelectItem>
-                            <SelectItem value='C'>C</SelectItem>
-                            <SelectItem value='D'>D</SelectItem>
-                            <SelectItem value='AB'>AB</SelectItem>
-                        </SelectContent>
-                    </Select>
+                        onChange={(e) => onScoreChange(student.amsT_Id, e.target.value)}
+                        disabled={!isChecked || hideSaveButton}
+                        placeholder='Enter score'
+                        className='w-full text-center'
+                    />
                 </div>
             );
         },

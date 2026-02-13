@@ -16,8 +16,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { Checkbox } from '@/components/ui/checkbox';
-import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { InputText } from '@/components/ui/extension/input-text';
+import { FeesCustomMultiSelectBox } from '@/components/ui/feesmultiselect';
 import { useStudentClassDropDown, useStudentSectionDropDown } from '@/hooks/fees/useMasters';
 import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
 import { useFeeMasterConfiguration, useFeeTransactionList } from '@/hooks/fees/useTrasactions';
@@ -58,6 +58,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
         handleSubmit,
         reset,
         control,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(feesStudentTransactionSchema.addOrUpdate),
@@ -234,6 +235,8 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
 
     const { data: feeSectionData, isLoading: feeSectionDataLoading } = useStudentSectionDropDown(section);
 
+    const asmcLID = watch('asmcl_Id');
+    const asmS_Id = watch('asms_Id');
     useEffect(() => {
         if (!studentSearch.trim()) {
             setStudents([]);
@@ -245,12 +248,14 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
             try {
                 const payload = {
                     asmaY_Id: selectedAsmayId,
-                    filterinitialdata: filterType,
+                    filterinitialdata: left === true || deactive === true ? 'NameAdmno' : filterType,
                     searchfilter: studentSearch,
-                    asmcL_ID: selectedclassId ?? 0,
-                    asmS_Id: selectedSectionId ?? 0,
-                    amsT_SOL: left === false ? 'S' : 'L'
+                    asmcL_ID: classs === true || section === true ? asmcLID : 0,
+                    asmS_Id: section === true ? asmS_Id : 0,
+                    amsT_SOL: left === true ? 'L' : deactive === true ? 'D' : 'S'
                 };
+
+                console.log('student details payload', JSON.stringify(payload));
                 const studentsArray = await searchStudentName(payload);
                 const studentsData = JSON.parse(JSON.stringify(studentsArray.feeStudentSearch || []));
                 setStudents(studentsData || []);
@@ -519,8 +524,12 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
     const handleCheckboxChange = (checked: boolean, type: 'left' | 'inactive' | 'class' | 'section') => {
         if (type === 'left') {
             setLeft(checked);
+            setDeative(false);
+            setFilterType('NameAdmno');
         } else if (type === 'inactive') {
             setDeative(checked);
+            setLeft(false);
+            setFilterType('NameAdmno');
         } else if (type === 'class') {
             setClass(checked);
             if (!checked) {
@@ -534,7 +543,50 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                 setClass(false);
             }
         }
+
+        // Clear student search and reset student selection when filters change
+        setStudentSearch('');
+        setSelectedStudent(null);
+        setStudents([]);
+        setTerms([]);
+        SetStudentDetails([]);
+        SetFeeDetails([]);
+        setselectedTerm([]);
     };
+
+    // // Find this useEffect (around line 298) and update its dependencies
+    // useEffect(() => {
+    //     if (!studentSearch.trim()) {
+    //         setStudents([]);
+    //         return;
+    //     }
+
+    //     const fetchStudents = async () => {
+    //         setLoadingStudents(true);
+    //         try {
+    //             const payload = {
+    //                 asmaY_Id: selectedAsmayId,
+    //                 filterinitialdata: filterType,
+    //                 searchfilter: studentSearch,
+    //                 asmcL_ID: selectedclassId ?? 0,
+    //                 asmS_Id: selectedSectionId ?? 0,
+    //                 amsT_SOL: left === false ? 'S' : 'L',
+    //                 // Add deactive flag if needed by your API
+    //                 amsT_Status: deactive ? 'I' : 'A' // Assuming 'I' for inactive, 'A' for active
+    //             };
+    //             const studentsArray = await searchStudentName(payload);
+    //             const studentsData = JSON.parse(JSON.stringify(studentsArray.feeStudentSearch || []));
+    //             setStudents(studentsData || []);
+    //         } catch (error) {
+    //             console.error('Failed to fetch students:', error);
+    //             setStudents([]);
+    //         } finally {
+    //             setLoadingStudents(false);
+    //         }
+    //     };
+
+    //     fetchStudents();
+    // }, [studentSearch, selectedAsmayId, filterType, selectedclassId, selectedSectionId, left, deactive]); // Add left and deactive to dependencies
 
     const onSubmit = async () => {
         if (feeHeads.filter((f) => selectedHeads[f.fmA_Id]).length === 0) {
@@ -729,7 +781,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                 smsconfig: sms,
                 emailconfig: email
             };
-
+            console.log('save fee transaction payload', JSON.stringify(payload));
             const response = await saveFeeTransaction(payload);
 
             if (response?.displaymessage) {
@@ -1115,7 +1167,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                             </div>
 
                             <div className='w-80'>
-                                <CustomMultiSelectBox
+                                <FeesCustomMultiSelectBox
                                     options={terms.map((ex) => ({
                                         label: ex.fmG_GroupName,
                                         value: ex.fmT_Id.toString(),
@@ -1273,7 +1325,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                             />
                                         </td>
 
-                                        <td className='border p-2'>{f.fmG_GroupName}</td>
+                                        <td className='border p-2'>{f.fmH_FeeName}</td>
                                         <td className='border p-2'>{f.ftI_Name}</td>
                                         <td className='border p-2'>
                                             <input
@@ -1375,7 +1427,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                         <td className='border p-2'>
                                             <input
                                                 type='number'
-                                                value={openingBalance[f.fmA_Id] ?? f.fsS_OBAsPerFY ?? ''}
+                                                value={openingBalance[f.fmA_Id] ?? f.fsS_OBArrearAmount ?? ''}
                                                 disabled
                                                 onChange={(e) => {
                                                     const v = e.target.value;

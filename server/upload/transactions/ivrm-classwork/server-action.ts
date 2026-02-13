@@ -92,6 +92,12 @@ export async function GetHomeWorkUploadedList(data: any, searchParams?: ApiSearc
     return await api.post<IClassWorkDetails[]>('portal', url, data);
 }
 
+// Class work verify using based on  privileges
+export async function SubjectsDropDownByAcademicYearandClassandSection(data: any) {
+    const url = '/ivrm_class_work/subjects_by_class_work_verify';
+    return await api.post<ISubjectDetails>('portal', url, data);
+}
+
 export const fetchClassWorkStudents = async (icW_Id: number): Promise<any[]> => {
     // Simulate API call
     return new Promise((resolve) => {

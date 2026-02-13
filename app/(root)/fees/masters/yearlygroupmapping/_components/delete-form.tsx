@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { Label } from '@/components/ui/extension/field';
-import { useMasterFeeOnlinePaymentHeadGroupTable } from '@/hooks/fees/useMasters';
+import { useMasterAllFeeHead } from '@/hooks/fees/useMasters';
 import { deleteYearlyGroupMapping } from '@/server/fees/masters/yearly_group_mapping';
 import type { IFeeGroupMapping } from '@/types/fees/masters/masters';
 import { useState } from 'react';
@@ -22,7 +22,8 @@ export default function DeleteMasterYearlyGroupForm({
     onClose,
     onSuccess
 }: DeleteMasterOnlinePaymentHeadGroupFormProps) {
-    const { refetchAll } = useMasterFeeOnlinePaymentHeadGroupTable();
+    const asmay_Id = rowData.asmaY_Id;
+    const { refetchAll } = useMasterAllFeeHead(asmay_Id);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const closeDialog = () => {

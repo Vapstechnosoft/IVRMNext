@@ -55,6 +55,8 @@ export async function getConcessionStudentList(
     searchParams?: ApiSearchparams
 ) {
     const url = `FeeConcessionFacade/student-list?radiobtnvalue=${radiobtnvalue}&asmayId=${asmaY_Id || 0}&asmclId=${asmcL_Id || 0}&amcId=${amcId || 0}&fmccId=${fmccId || 0}`;
+
+    console.info('getConcessionStudentList url:', url);
     return await api.get<IFeeConcessionStudentList[]>('fees', url);
 }
 
@@ -99,7 +101,13 @@ export async function getConcessionHeadDetailsList(
 
     const url = `FeeConcessionFacade/head-details?${params.toString()}`;
 
+    console.info('getConcessionHeadDetailsList url:', url);
     return await api.get<IFeeConcessionHeadList[]>('fees', url);
+}
+
+export async function getconcessionheadgriddatadetails(data: any) {
+    const url = '/FeeConcessionFacade/head-details';
+    return await api.post<IFeeConcessionHeadList[]>('fees', url, data);
 }
 
 export async function getFeesCommonSettingConfigSet(asmaY_Id: number) {

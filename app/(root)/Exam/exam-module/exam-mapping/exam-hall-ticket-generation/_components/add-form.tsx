@@ -51,7 +51,7 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
         reValidateMode: 'onChange',
         defaultValues: {
             // Defaults — cast as any to tolerate slight schema mismatches while you iterate.
-            mI_Id: 30,
+            // mI_Id: 30,
             asmaY_Id: 0,
             asmcL_Id: 0,
             classList: [],
@@ -102,21 +102,6 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
         const n = Number(v as any);
         return Number.isFinite(n) ? n : fallback;
     };
-
-    // ---------- Auto-select first academic year if none selected ----------
-    useEffect(() => {
-        if (selectedYear === undefined) return;
-        if (academicYearError) {
-            toast.error('Failed to load academic years');
-            return;
-        }
-        if (academicYear?.data) {
-            const years = academicYear.data.map((i: any) => ({ asmaY_Id: i.asmaY_Id, asmaY_Year: i.asmaY_Year }));
-            if (years.length > 0 && !selectedYear) {
-                setValue('asmaY_Id', years[0].asmaY_Id);
-            }
-        }
-    }, [academicYear, academicYearError, selectedYear, setValue]);
 
     // ---------- Load Classes when year changes ----------
     useEffect(() => {
@@ -329,7 +314,7 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                                         <div className='flex-1'>
                                             <Select
                                                 key={field.value}
-                                                value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                                value={String(field.value)}
                                                 onValueChange={(val) => field.onChange(Number(val))}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Academic Year' />
@@ -369,21 +354,20 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                                         </Label>
                                         <div className='flex-1'>
                                             <Select
-                                                //disabled={!selectedYear || loadingClasses}
                                                 key={field.value}
                                                 onValueChange={(v) => field.onChange(Number(v))}
-                                                value={field.value ? String(field.value) : ''}>
+                                                value={String(field.value)}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Class' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {!selectedYear ? (
-                                                        <SelectItem value='none' disabled>
-                                                            First select Academic Year
-                                                        </SelectItem>
-                                                    ) : loadingClasses ? (
+                                                    {loadingClasses ? (
                                                         <SelectItem value='loading' disabled>
                                                             Loading classes...
+                                                        </SelectItem>
+                                                    ) : classes.length === 0 ? (
+                                                        <SelectItem value='none' disabled>
+                                                            No Classes available
                                                         </SelectItem>
                                                     ) : (
                                                         classes.map((c) => (
@@ -437,28 +421,18 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                                             Exam Name <span className='text-red-500'>*</span>
                                         </Label>
                                         <div className='flex-1'>
-                                            <Select
-                                                onValueChange={(v) => field.onChange(Number(v))}
-                                                value={field.value ? String(field.value) : ''}>
+                                            <Select onValueChange={(v) => field.onChange(Number(v))} value={String(field.value)}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Exam' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {!selectedYear ? (
-                                                        <SelectItem value='loading' disabled>
-                                                            select academic year
-                                                        </SelectItem>
-                                                    ) : !selectedClass ? (
-                                                        <SelectItem value='noclass' disabled>
-                                                            select Class
-                                                        </SelectItem>
-                                                    ) : isEmptyArray(sections) ? (
-                                                        <SelectItem value='nosection' disabled>
-                                                            Select Sections
-                                                        </SelectItem>
-                                                    ) : loadingExams ? (
+                                                    {loadingExams ? (
                                                         <SelectItem value='loading' disabled>
                                                             Loading exams...
+                                                        </SelectItem>
+                                                    ) : exams.length === 0 ? (
+                                                        <SelectItem value='none' disabled>
+                                                            No Exams available
                                                         </SelectItem>
                                                     ) : (
                                                         exams.map((e) => (
@@ -606,13 +580,9 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                             variant='outline'
                             size='lg'
                             onClick={() => {
-                                // Full reset but keep academic year (common UX)
-                                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
-                                const curYear = getValues('asmaY_Id');
                                 reset({
-                                    ...methods.getValues(),
-                                    mI_Id: 0,
-                                    asmaY_Id: undefined,
+                                    // mI_Id: 30,
+                                    asmaY_Id: 0,
                                     asmcL_Id: 0,
                                     classList: [],
                                     sectionList: [],
@@ -625,6 +595,7 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                                 } as any);
                                 setSections([]);
                                 setClasses([]);
+                                setExams([]);
                             }}
                             className='min-w-[120px]'>
                             CANCEL

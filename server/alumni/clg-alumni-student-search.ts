@@ -1,32 +1,44 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { IClgAlumniSearchLoadDataResponse, IClgAlumniSearchResponse } from '@/types/alumni/clg-alumni-student-search';
+import { auth } from '@/lib/auth';
 
-export async function getClgAlumniSearchLoadData() {
-    const url = '/CLGAlumniMembership/get_intial_data/1';
-    return await api.get<IClgAlumniSearchLoadDataResponse>('alumni', url);
+import type {
+    IAcademicYear,
+    IClgAlumniSearchResponse,
+    IClgAlumniStudentSearchPayload
+} from '@/types/alumni/clg-alumni-student-search';
+
+
+export async function getAcademicYear() {
+    const session = await auth();
+    const ivrmrtId = (session as any)?.ivrmrT_Id || 30;
+    const url = `/CLGAlumniApproval/get_intial_data?IVRMRT_Id=${ivrmrtId}`;
+    return await api.get<any>('alumni', url);
 }
 
-export async function getCoursesByYear(asmaY_Id: number) {
-    // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
-    const url = `/ApplicationForm/getCourse/`;
-    return await api.post<any>('alumni', url, { ASMAY_Id: asmaY_Id });
+export async function getCoursesByYear(params: { ASMAY_Id: number; status_type: string }) {
+    const url = `/CLGAlumnistudentsearch/getCourse?status_type=${params.status_type}&ASMAY_Id=${params.ASMAY_Id}`;
+    return await api.get<any>('alumni', url);
 }
 
 export async function getBranchesByCourse(data: { AMCO_Id: number; ASMAY_Id: number }) {
-    // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
-    const url = `/ApplicationForm/getBranch/`;
-    return await api.post<any>('alumni', url, data);
+    const url = `/CLGAlumnistudentsearch/getBranch?AMCO_Id=${data.AMCO_Id}&ASMAY_Id=${data.ASMAY_Id}`;
+    return await api.get<any>('alumni', url);
 }
 
 export async function getSemestersByBranch(data: { AMB_Id: number; ASMAY_Id: number; ACAYCB_Id: number }) {
-    // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
-    const url = `/ApplicationForm/getSemester/`;
-    return await api.post<any>('alumni', url, data);
+    const url = `/CLGAlumnistudentsearch/getsemdata?AMB_Id=${data.AMB_Id}&ASMAY_Id=${data.ASMAY_Id}&ACAYCB_Id=${data.ACAYCB_Id}`;
+    return await api.get<any>('alumni', url);
 }
 
-export async function searchClgAlumniStudents(data: any) {
-    const url = '/CLGAlumnistudentsearch/';
+
+export async function getClgAlumniStudentSearchData(data: IClgAlumniStudentSearchPayload) {
+    const url = '/CLGAlumnistudentsearch/getsearchdata';
     return await api.post<IClgAlumniSearchResponse>('alumni', url, data);
+}
+
+export async function getClgAlumniStudentSemData(params: { AMCO_Id: number; AMB_Id: number; AMSE_Id: number; ASMAY_Id: number; ACAYCB_Id: number }) {
+    const url = `/CLGAlumnistudentsearch/getdata?AMCO_Id=${params.AMCO_Id}&AMB_Id=${params.AMB_Id}&AMSE_Id=${params.AMSE_Id}&ASMAY_Id=${params.ASMAY_Id}&ACAYCB_Id=${params.ACAYCB_Id}`;
+    return await api.get<IClgAlumniSearchResponse>('alumni', url);
 }

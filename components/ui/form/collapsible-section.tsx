@@ -1,6 +1,9 @@
+<<<<<<< HEAD
 'use client';
 
 import { Button } from '@/components/ui/button';
+=======
+>>>>>>> 0694887ec996758bb4a3746b056ce7f4a6afc23b
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronRight } from 'lucide-react';
@@ -20,6 +23,8 @@ interface CollapsibleSectionProps {
     keepContentMounted?: boolean;
     isOpen?: boolean;
     onToggle?: () => void;
+    rightElement?: ReactNode;
+    icon?: ReactNode;
 }
 
 export function CollapsibleSection({
@@ -33,7 +38,9 @@ export function CollapsibleSection({
     contentClassName = '',
     variant = 'default',
     size = 'md',
-    keepContentMounted = true
+    keepContentMounted = true,
+    rightElement,
+    icon
 }: CollapsibleSectionProps) {
     const [isOpen, setIsOpen] = useState(defaultOpen);
     const [hasBeenOpened, setHasBeenOpened] = useState(defaultOpen);
@@ -68,21 +75,27 @@ export function CollapsibleSection({
         <Collapsible open={isOpen} onOpenChange={handleOpenChange} className={className}>
             <Card className={`${variantClasses[variant]} transition-all duration-200 ${className}`}>
                 <CollapsibleTrigger asChild>
-                    <CardHeader
-                        className={`flex cursor-pointer flex-row items-center justify-between transition-colors duration-200 hover:bg-muted/50 ${compactHeader} ${headerClassName}
+                    <div className='w-full' role='button' tabIndex={0}>
+                        <CardHeader
+                            className={`flex cursor-pointer flex-row items-center justify-between transition-colors duration-200 hover:bg-muted/50 ${compactHeader} ${headerClassName}
                         `}>
-                        {(title || description) && (
-                            <div className='space-y-1'>
-                                {title && <div className={`font-semibold tracking-tight ${sizeClasses[size]}`}>{title}</div>}
-                                {description && <p className='text-muted-foreground text-sm'>{description}</p>}
+                            {icon && <div className='mr-3 text-muted-foreground'>{icon}</div>}
+                            {(title || description) && (
+                                <div className='space-y-1'>
+                                    {title && <div className={`font-semibold tracking-tight ${sizeClasses[size]}`}>{title}</div>}
+                                    {description && <p className='text-muted-foreground text-sm'>{description}</p>}
+                                </div>
+                            )}
+                            <div className='ml-auto flex items-center gap-2'>
+                                {rightElement && <div onClick={(e) => e.stopPropagation()}>{rightElement}</div>}
+                                <div className='flex h-8 w-8 items-center justify-center rounded-md transition-colors'>
+                                    <ChevronRight
+                                        className={`h-4 w-4 transform transition-transform duration-200 ${isOpen ? 'rotate-90' : 'rotate-0'}`}
+                                    />
+                                </div>
                             </div>
-                        )}
-                        <Button variant='ghost' size='sm' className='ml-auto h-8 w-8 p-0'>
-                            <ChevronRight
-                                className={`h-4 w-4 transform transition-transform duration-200 ${isOpen ? 'rotate-90' : 'rotate-0'}`}
-                            />
-                        </Button>
-                    </CardHeader>
+                        </CardHeader>
+                    </div>
                 </CollapsibleTrigger>
 
                 <CollapsibleContent

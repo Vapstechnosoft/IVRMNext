@@ -23,6 +23,7 @@ interface GenericDataTableProps<T> {
 
     isSearchRequired?: boolean;
     isPaginationRequired?: boolean;
+    showExportOptions?: boolean;
 
     // Row selection
     maxSelectableRows?: number;
@@ -47,6 +48,9 @@ interface GenericDataTableProps<T> {
     searchQuery?: string;
 
     defaultVisibility?: { [key: string]: boolean };
+    scrollable?: boolean;
+    maxHeight?: string;
+    //manualPagination?: boolean;
 }
 
 export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<any>>(function GenericDataTable<T>(
@@ -71,8 +75,12 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         ErrorIcon = Database,
         LoadingComponent,
         ErrorComponent,
-        showSearchColumns = false
+        showSearchColumns = false,
+        showExportOptions = false,
         // manualPagination = true
+        scrollable = false,
+        maxHeight = '600px'
+        //manualPagination = false
     }: GenericDataTableProps<T>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -133,6 +141,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     isPaginationRequired={isPaginationRequired}
                     columnPinning={columnPinning}
                     showSearchColumns={showSearchColumns}
+                    showExportOptions={showExportOptions}
                     maxSelectableRows={maxSelectableRows}
                     //manualPagination={manualPagination}
                     onRowSelectionChange={(selectedRows) => {
@@ -160,6 +169,8 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                 maxSelectableRows={maxSelectableRows}
                 showSearchColumns={showSearchColumns}
                 //manualPagination={manualPagination}
+                scrollable={scrollable}
+                maxHeight={maxHeight}
                 onRowSelectionChange={(selectedRows) => {
                     if (onRowSelectionChange) {
                         onRowSelectionChange(selectedRows);

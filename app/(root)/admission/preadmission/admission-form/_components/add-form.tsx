@@ -955,6 +955,17 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         }
                     }
                 }
+            } else if (currentStep === 4) {
+                fieldsToValidate = [
+                    'amsT_PlaceOfBirthCountry',
+                    'amsT_PlaceOfBirthState',
+                    'amsT_Distirct',
+                    'amsT_Taluk',
+                    'amsT_Town',
+                    'amsT_Village',
+                    'achievements',
+                    'amsT_OtherInformations'
+                ];
             }
 
             const isValid = await trigger(fieldsToValidate.length > 0 ? fieldsToValidate : []);
@@ -1120,9 +1131,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         tcNumber: school.pasrpS_TcNo || school.tcNumber || '',
                         tcDate: (() => {
                             const d = school.pasrpS_TcDate ?? school.tcDate;
-                            if (!d) return '';
+                            if (!d) return null;
                             const parsed = d instanceof Date ? d : new Date(d);
-                            return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString();
+                            return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
                         })()
                     }));
 
@@ -1600,9 +1611,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                             tcNumber: String(school.pasrpS_TcNo || school.tcNumber || ''),
                             tcDate: (() => {
                                 const d = school.pasrpS_TcDate ?? school.tcDate;
-                                if (!d) return '';
+                                if (!d) return null;
                                 const parsed = d instanceof Date ? d : new Date(d);
-                                return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString();
+                                return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
                             })()
                         }));
 
@@ -1612,6 +1623,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                             userId: 0,
                             activities: activities,
                             achievements: formData.achievements || '',
+                            amsT_OtherInformations: formData.amsT_OtherInformations || '',
                             sourceDetails: sourceDetails,
                             guardian: guardians,
                             siblings: siblingsList,
@@ -1814,23 +1826,23 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             const country = getValues('amsT_ConCountry') ?? '';
             const state = getValues('amsT_ConState');
             const city = getValues('amsT_ConCity') ?? '';
-            const pincode = getValues('amsT_ConPincode');
+            const pincode = getValues('amsT_ConPincode') ?? '';
 
-            setValue('amsT_PerStreet', street);
-            setValue('amsT_PerArea', area);
-            setValue('amsT_PerCountry', country);
-            setValue('amsT_PerState', state ?? undefined);
-            setValue('amsT_PerCity', city);
-            setValue('amsT_PerPincode', pincode ?? undefined);
+            setValue('amsT_PerStreet', street, { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerArea', area, { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerCountry', country, { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerState', state ?? undefined, { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerCity', city, { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerPincode', pincode, { shouldValidate: true, shouldDirty: true });
 
             trigger(['amsT_PerStreet', 'amsT_PerArea', 'amsT_PerCountry', 'amsT_PerState', 'amsT_PerCity', 'amsT_PerPincode']);
         } else {
-            setValue('amsT_PerStreet', '');
-            setValue('amsT_PerArea', '');
-            setValue('amsT_PerCountry', '');
-            setValue('amsT_PerState', 0);
-            setValue('amsT_PerCity', '');
-            setValue('amsT_PerPincode', '');
+            setValue('amsT_PerStreet', '', { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerArea', '', { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerCountry', '', { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerState', 0, { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerCity', '', { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerPincode', '', { shouldValidate: true, shouldDirty: true });
 
             clearErrors(['amsT_PerStreet', 'amsT_PerArea', 'amsT_PerCountry', 'amsT_PerState', 'amsT_PerCity', 'amsT_PerPincode']);
         }
@@ -4029,7 +4041,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     />
                                                                     {conCountryObj && conZipLength && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {` Pin code must be ${conZipLength} digits for ${conCountryObj.ivrmmC_CountryName}`}
+                                                                            {`Pin code must be ${conZipLength} digits for ${conCountryObj.ivrmmC_CountryName}`}
                                                                         </span>
                                                                     )}
                                                                 </>

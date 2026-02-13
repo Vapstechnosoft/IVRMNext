@@ -51,6 +51,8 @@ export default function CumulativeReportPage() {
                 setReportData([]);
                 setSubjects([]);
                 setHeaderInfo({});
+                setCurrentPayload({}); // Avoid loop on pagination if no data
+                toast.error('No records found');
                 return;
             }
 
@@ -134,11 +136,14 @@ export default function CumulativeReportPage() {
         }
     };
 
+    // Re-fetch when pagination changes
     useEffect(() => {
-        if (searchParams && currentPayload) {
+        // Only fetch if we have a valid payload AND api params have changed from default/initial
+        if (currentPayload && Object.keys(currentPayload).length > 0 && Object.keys(searchParams).length > 0) {
             handleReportSuccess(currentPayload, searchParams);
         }
-    }, [searchParams, currentPayload]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams]);
 
     const handlePrint = () => window.print();
     const handleApiSearchParms = (searchParams: ApiSearchparams) => {

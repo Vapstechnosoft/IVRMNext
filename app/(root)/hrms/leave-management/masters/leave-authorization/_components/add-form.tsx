@@ -4,9 +4,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useLeaveAuthorization, useLeaveAuthorizationDropdowns, useSaveLeaveAuthorization } from '@/hooks/hrms/leave-management/useMasters';
+import {
+    useInstitutionsByLoginBased,
+    useLeaveAuthorization,
+    useLeaveAuthorizationDropdowns,
+    useSaveLeaveAuthorization
+} from '@/hooks/hrms/leave-management/useMasters';
 import { LEAVE_AUTHORIZATION_VALIDATION } from '@/lib/validation/hrms-master-validation';
-import { Save, X } from 'lucide-react';
+import { Loader2, RotateCcw, Save, X } from 'lucide-react';
 import { useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveAuthorization } from './columns';
@@ -19,6 +24,23 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
     const { refetchAll } = useLeaveAuthorization();
     const { mutate: saveLeaveAuthorization, isPending } = useSaveLeaveAuthorization();
     const { data: dropdownData, isLoading: isLoadingDropdowns } = useLeaveAuthorizationDropdowns();
+    const { data: institutionsData, isLoading: isLoadingInstitutions } = useInstitutionsByLoginBased();
+
+    const mastersLoading = isLoadingDropdowns || isLoadingInstitutions;
+
+    // Extract institution options from API
+    const institutionOptions = useMemo(() => {
+        if (!institutionsData?.data || !Array.isArray(institutionsData.data)) {
+            return [];
+        }
+        return institutionsData.data
+            .map((item: any) => ({
+                value: String(item.mI_Id || ''),
+                label: String(item.mI_Name || '')
+            }))
+            .filter((item: { value: string; label: string }) => item.value && item.label);
+    }, [institutionsData]);
+
     // Extract dropdown options from API
     const gradeOptions = useMemo(() => {
         if (!dropdownData?.data?.grades || !Array.isArray(dropdownData.data.grades)) {
@@ -67,7 +89,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
     } = useForm<LeaveAuthorization>({
         mode: 'onChange',
         defaultValues: {
-            institution: 'Vaps Knowledge Services Pvt Ltd',
+            institution: '',
             gradeName: '',
             groupTypeName: '',
             departmentName: '',
@@ -82,8 +104,6 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
         saveLeaveAuthorization(data, {
             onSuccess: () => {
                 reset();
-                refetchAll();
-                onSuccess?.();
             }
         });
     };
@@ -95,12 +115,42 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 {/* Institution Field */}
                 <div className='mb-4'>
-                    <label htmlFor='institution-display' className='mb-2 block font-medium text-gray-700 text-sm'>
-                        Institution
-                    </label>
-                    <div id='institution-display' className='rounded-md bg-gray-100 p-3 text-gray-600'>
-                        {watch('institution')}
-                    </div>
+                    <Controller
+                        name='institution'
+                        control={control}
+                        rules={{ required: 'Institution is required' }}
+                        render={({ field }) => (
+                            <div>
+                                <label htmlFor='institution-select' className='mb-2 block font-medium text-gray-700 text-sm'>
+                                    Institution <span className='text-red-500'>*</span>
+                                </label>
+                                <Select
+                                    key={field.value || 'empty'}
+                                    onValueChange={(value) => {
+                                        field.onChange(value || '');
+                                    }}
+                                    value={field.value?.toString() || undefined}>
+                                    <SelectTrigger id='institution-select' className={errors.institution ? 'border-red-500' : ''}>
+                                        <SelectValue placeholder={isLoadingInstitutions ? 'Loading...' : '--Select Institution--'} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {institutionOptions.length > 0 ? (
+                                            institutionOptions.map((option) => (
+                                                <SelectItem key={option.value} value={option.label}>
+                                                    {option.label}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <div className='px-2 py-1.5 text-muted-foreground text-sm'>
+                                                {isLoadingInstitutions ? 'Loading institutions...' : 'No institutions available'}
+                                            </div>
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                                {errors.institution && <FormError>{errors.institution.message}</FormError>}
+                            </div>
+                        )}
+                    />
                 </div>
                 {/* Form Fields Grid */}
                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
@@ -115,7 +165,12 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                     <label htmlFor='grade-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Select Grade <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingDropdowns}>
+                                    <Select
+                                        key={field.value || 'empty'}
+                                        onValueChange={(value) => {
+                                            field.onChange(value || '');
+                                        }}
+                                        value={field.value?.toString() || undefined}>
                                         <SelectTrigger id='grade-select' className={errors.gradeName ? 'border-red-500' : ''}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
@@ -146,7 +201,12 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                     <label htmlFor='group-type-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Group Type <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingDropdowns}>
+                                    <Select
+                                        key={field.value || 'empty'}
+                                        onValueChange={(value) => {
+                                            field.onChange(value || '');
+                                        }}
+                                        value={field.value?.toString() || undefined}>
                                         <SelectTrigger id='group-type-select' className={errors.groupTypeName ? 'border-red-500' : ''}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
@@ -177,7 +237,12 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                     <label htmlFor='department-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Department Type <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingDropdowns}>
+                                    <Select
+                                        key={field.value || 'empty'}
+                                        onValueChange={(value) => {
+                                            field.onChange(value || '');
+                                        }}
+                                        value={field.value?.toString() || undefined}>
                                         <SelectTrigger id='department-select' className={errors.departmentName ? 'border-red-500' : ''}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
@@ -208,7 +273,12 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                     <label htmlFor='designation-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Designation Type <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingDropdowns}>
+                                    <Select
+                                        key={field.value || 'empty'}
+                                        onValueChange={(value) => {
+                                            field.onChange(value || '');
+                                        }}
+                                        value={field.value?.toString() || undefined}>
                                         <SelectTrigger id='designation-select' className={errors.designationName ? 'border-red-500' : ''}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
@@ -242,7 +312,12 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                     <label htmlFor='leave-type-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Leave Type <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingDropdowns}>
+                                    <Select
+                                        key={field.value || 'empty'}
+                                        onValueChange={(value) => {
+                                            field.onChange(value || '');
+                                        }}
+                                        value={field.value?.toString() || undefined}>
                                         <SelectTrigger id='leave-type-select' className={errors.leaveType ? 'border-red-500' : ''}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
@@ -282,7 +357,12 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                     <label htmlFor='approval-person-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Approval Person <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingDropdowns}>
+                                    <Select
+                                        key={field.value || 'empty'}
+                                        onValueChange={(value) => {
+                                            field.onChange(value || '');
+                                        }}
+                                        value={field.value?.toString() || undefined}>
                                         <SelectTrigger
                                             id='approval-person-select'
                                             className={errors.approvalPerson ? 'border-red-500' : ''}>
@@ -326,9 +406,11 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                             CANCEL
                         </Button>
                     )}
-                    <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
+                    <Button type='button' variant='outline' onClick={handleReset} disabled={mastersLoading}>
+                        <RotateCcw className='mr-1.5 h-4 w-4' />
                         Reset
                     </Button>
+                    {mastersLoading && <Loader2 className='h-4 w-4 animate-spin text-purple-500' />}
                     <Button type='submit' disabled={isPending || isSubmitting}>
                         <Save className='mr-2 h-4 w-4' />
                         {isPending || isSubmitting ? 'Saving...' : 'Save'}

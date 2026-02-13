@@ -6,18 +6,15 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type PromotionDetailsReportSchema, promotionDetailsReportSchema } from '@/schemas/exam/exam-module/reports';
-import {
-    getClasses,
-    getDetails,
-    getReportDetails,
-    getSections,
-    getTermsAndStudents
-} from '@/server/exam/exam-module/reports/promotion-details-report';
+import { getClassDropDownByAcademicYearlist, getSectionsDropDownByAcademicYearandClasslist, getStudentsDropDownByAcademicYearandClassandSectionlist } from '@/server/exam/exam-module/reports/cumulative-report';
+import { getClasses, getReportDetails, getSections, getTermsAndStudents } from '@/server/exam/exam-module/reports/promotion-details-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
 
 interface ReportFormProps {
     onReportGenerated: (data: any, isSuperAverage: boolean) => void;
@@ -25,7 +22,8 @@ interface ReportFormProps {
 }
 
 export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
-    const [years, setYears] = useState<any[]>([]);
+    const { data: academicData, isLoading: academicYearLoading } = useAcademicYearDropdown();
+    const academicYears = academicData?.data || [];
     const [classes, setClasses] = useState<any[]>([]);
     const [sections, setSections] = useState<any[]>([]);
     const [terms, setTerms] = useState<any[]>([]);
@@ -33,6 +31,9 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const [filteredStudents, setFilteredStudents] = useState<any[]>([]);
     const [studentSearch, setStudentSearch] = useState('');
     const [loading, setLoading] = useState(true);
+    const [loadingClasses, setLoadingClasses] = useState(false);
+    const [loadingSections, setLoadingSections] = useState(false);
+    const [loadingTerms, setLoadingTerms] = useState(false);
 
     const methods = useForm<PromotionDetailsReportSchema>({
         resolver: zodResolver(promotionDetailsReportSchema),
@@ -56,44 +57,131 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         if (studentSearch.trim() === '') {
             setFilteredStudents(students);
         } else {
-            setFilteredStudents(students.filter((s) => s.studentname.toLowerCase().includes(studentSearch.toLowerCase())));
+            setFilteredStudents(students.filter((s) => s.studentName.toLowerCase().includes(studentSearch.toLowerCase())));
         }
     }, [studentSearch, students]);
 
     // Initial Data
     useEffect(() => {
-        getDetails().then((res) => {
-            setYears(res.acdlist);
-            setLoading(false);
-        });
+        setLoading(false);
     }, []);
-
     // Load Classes
     useEffect(() => {
         if (watchYear) {
-            getClasses(watchYear).then((res) => setClasses(res.ctlist));
+            (async () => {
+                try {
+                    setLoadingClasses(true);
+                    const response = await getClassDropDownByAcademicYearlist(Number(watchYear));
+                    const data = response.data as any;
+                    setClasses(Array.isArray(data) ? data : []);
+                    if (!data || (Array.isArray(data) && data.length === 0)) {
+                        toast.info('No Classes found');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    toast.error('Failed to load classes');
+                } finally {
+                    setLoadingClasses(false);
+                }
+            })();
             setValue('ASMCL_Id', '');
+
+        } else {
+            setClasses([]);
         }
     }, [watchYear, setValue]);
 
     // Load Sections
     useEffect(() => {
-        if (watchClass) {
-            getSections(watchClass).then((res) => setSections(res.seclist));
+        if (watchYear && watchClass) {
+            (async () => {
+                try {
+                    setLoadingSections(true);
+                    const response = await getSectionsDropDownByAcademicYearandClasslist(Number(watchYear), Number(watchClass));
+                    const data = response.data as any;
+                    setSections(Array.isArray(data) ? data : []);
+                    if (!data || (Array.isArray(data) && data.length === 0)) {
+                        toast.info('No Sections found');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    toast.error('Failed to load sections');
+                } finally {
+                    setLoadingSections(false);
+                }
+            })();
             setValue('ASMS_Id', '');
-        }
-    }, [watchClass, setValue]);
 
-    // Load Terms & Students
+        } else {
+            setSections([]);
+        }
+    }, [watchYear, watchClass, setValue]);
+
+    // Load Terms 
     useEffect(() => {
         if (watchSection) {
-            getTermsAndStudents(watchSection).then((res) => {
-                setTerms(res.termlist);
-                setStudents(res.studentlist);
-            });
+            (async () => {
+                try {
+                    setLoadingTerms(true);
+                    const res = await getTermsAndStudents(watchSection);
+                    if (res?.termlist && Array.isArray(res.termlist) && res.termlist.length > 0) {
+                        setTerms(res.termlist);
+                    } else {
+                        setTerms([]);
+                        toast.info('No terms found');
+                    }
+                    // if (res?.studentlist && Array.isArray(res.studentlist) && res.studentlist.length > 0) {
+                    //     setStudents(res.studentlist);
+                    // } else {
+                    //     setStudents([]);
+                    //     toast.info('No students found');
+                    // }
+                } catch (err) {
+                    console.error(err);
+                    toast.error('Failed to load terms and students');
+                } finally {
+                    setLoadingTerms(false);
+                }
+            })();
             setValue('selectedStudents', []);
+        } else {
+            setTerms([]);
         }
     }, [watchSection, setValue]);
+
+    // Load Students
+    useEffect(() => {
+        if (!watchYear || !watchClass || !watchSection) return;
+        (async () => {
+            try {
+
+                const { data } = await getStudentsDropDownByAcademicYearandClassandSectionlist(
+                    Number(watchYear),
+                    Number(watchClass),
+                    Number(watchSection)
+                );
+                const valid = Array.isArray(data)
+                    ? data.filter((s): s is { amsT_AdmNo: number; amsT_Id: number; studentName?: string, amsT_FirstName?: string, amsT_MiddleName?: string, amsT_LastName?: string } => !!s?.amsT_Id)
+                    : [];
+
+                // Map to consistent format if needed, but the cumulative report logic returns objects with amsT_Id and studentName/amsT_FirstName
+                // We'll map them to a structure suitable for the display
+                const mappedStudents = valid.map(s => ({
+                    amsT_Id: s.amsT_Id,
+                    amsT_AdmNo: s.amsT_AdmNo,
+                    studentName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
+                }));
+
+                setStudents(mappedStudents);
+                console.log('Students:', mappedStudents);
+                setValue('selectedStudents', []);
+
+            } catch {
+                toast.error('Failed to load students');
+            } finally {
+            }
+        })();
+    }, [watchYear, watchClass, watchSection, setValue]);
 
     // Super Average Logic
     useEffect(() => {
@@ -128,6 +216,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
             selectedStudents: []
         });
         onReset();
+        setStudents([]);
     };
 
     if (loading)
@@ -145,30 +234,44 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                             {/* Left Column */}
                             <div className='space-y-4'>
-                                {/* Year */}
                                 <div className='space-y-2'>
-                                    <Label>
-                                        Academic Year <span className='text-red-500'>*</span>
-                                    </Label>
                                     <Controller
                                         control={control}
                                         name='ASMAY_Id'
                                         render={({ field, fieldState }) => (
-                                            <>
-                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder='Select Academic Year' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {years.map((year) => (
-                                                            <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
-                                                                {year.asmaY_Year}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                            </>
+                                            <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                                                <Label className='font-medium text-sm sm:w-32'>
+                                                    Academic Year <span className='text-red-500'>*</span>
+                                                </Label>
+                                                <div className='flex-1'>
+                                                    <Select
+                                                        key={field.value}
+                                                        onValueChange={field.onChange}
+                                                        value={field.value ? String(field.value) : ''}>
+                                                        <SelectTrigger className='w-full'>
+                                                            <SelectValue placeholder='Select Academic Year' />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {academicYearLoading ? (
+                                                                <SelectItem value='0' disabled>
+                                                                    Academic Years are loading...
+                                                                </SelectItem>
+                                                            ) : academicYears.length === 0 ? (
+                                                                <SelectItem value='0' disabled>
+                                                                    No Academic Years found
+                                                                </SelectItem>
+                                                            ) : (
+                                                                academicYears.map((y: any) => (
+                                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                                        {y.asmaY_Year}
+                                                                    </SelectItem>
+                                                                ))
+                                                            )}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                </div>
+                                            </div>
                                         )}
                                     />
                                 </div>
@@ -183,16 +286,26 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                         name='ASMCL_Id'
                                         render={({ field, fieldState }) => (
                                             <>
-                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                <Select key={field.value} onValueChange={field.onChange} value={field.value}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='Select Class' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {classes.map((cls) => (
-                                                            <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
-                                                                {cls.asmcL_ClassName}
+                                                        {loadingClasses ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : classes.length === 0 ? (
+                                                            <SelectItem value='empty' disabled>
+                                                                No Classes found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            classes.map((cls) => (
+                                                                <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
+                                                                    {cls.asmcL_ClassName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -211,16 +324,26 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                         name='ASMS_Id'
                                         render={({ field, fieldState }) => (
                                             <>
-                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                <Select key={field.value} onValueChange={field.onChange} value={field.value}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='Select Section' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {sections.map((sec) => (
-                                                            <SelectItem key={sec.asmS_Id} value={String(sec.asmS_Id)}>
-                                                                {sec.asmC_SectionName}
+                                                        {loadingSections ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : sections.length === 0 ? (
+                                                            <SelectItem value='empty' disabled>
+                                                                No Sections found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            sections.map((sec) => (
+                                                                <SelectItem key={sec.asmS_Id} value={String(sec.asmS_Id)}>
+                                                                    {sec.asmC_SectionName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -240,6 +363,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                         render={({ field, fieldState }) => (
                                             <>
                                                 <Select
+                                                    key={field.value}
                                                     onValueChange={field.onChange}
                                                     value={field.value || ''}
                                                     disabled={watchSuperAverage}>
@@ -247,11 +371,21 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                                         <SelectValue placeholder='Select Term' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {terms.map((term, idx) => (
-                                                            <SelectItem key={idx} value={term.empG_GroupName}>
-                                                                {term.empG_GroupName}
+                                                        {loadingTerms ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : terms.length === 0 ? (
+                                                            <SelectItem value='empty' disabled>
+                                                                No Terms found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            terms.map((term, idx) => (
+                                                                <SelectItem key={idx} value={term.empG_GroupName}>
+                                                                    {term.empG_GroupName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -318,7 +452,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                                         />
                                                     )}
                                                 />
-                                                <Label className='w-full cursor-pointer font-normal text-sm'>{student.studentname}</Label>
+                                                <Label className='w-full cursor-pointer font-normal text-sm'>{student.studentName}</Label>
                                             </div>
                                         ))}
                                         {filteredStudents.length === 0 && (

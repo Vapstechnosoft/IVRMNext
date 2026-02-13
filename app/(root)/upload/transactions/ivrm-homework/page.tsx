@@ -95,7 +95,17 @@ function FormSections({
     yearList: any[];
     classList: any[];
 }) {
-    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } = useFormContext<any>();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isToggleFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<any>();
 
     return (
         <>
@@ -163,6 +173,16 @@ function FormSections({
                     </CollapsibleSection>
                 </div>
             )}
+            {/* Toggle Form */}
+            {/* {isToggleFormOpen && selectedRow && (
+                <ToggleHomeWorkForm
+                    rowData={selectedRow}
+                    onClose={() => {
+                        closeToggleForm();
+                        onSuccess();
+                    }}
+                />
+            )} */}
         </>
     );
 }

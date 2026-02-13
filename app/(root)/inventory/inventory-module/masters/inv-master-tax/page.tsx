@@ -40,13 +40,15 @@ function InvMasterTaxPageContent({
     refetchAll: any;
 }) {
     const { openAddForm } = useFormContext<IInvMasterTax>();
-    const tableProps = useDataTableProps(response?.data, {
-        dataKey: 'get_tax',
+
+    // Server action returns: { success: true, data: { get_tax: [...] } }
+    // So 'response' here is that full object.
+    // useDataTableProps expects the object containing the array.
+
+    const tableProps = useDataTableProps(response, {
+        dataKey: 'data',
         totalKey: 'total'
     });
-    // Checking server action: returns { get_tax: ..., getloaddata: ... }
-    // So response.get_tax is the list.
-
     const [isLedgerSheetOpen, setIsLedgerSheetOpen] = useState(false);
     const [selectedTaxForLedger, setSelectedTaxForLedger] = useState<IInvMasterTax | null>(null);
 
@@ -77,7 +79,7 @@ function InvMasterTaxPageContent({
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IInvMasterTax>
                         {...tableProps}
-                        data={response?.data?.get_tax || []}
+                        data={response?.data || []}
                         columns={columns}
                         isLoading={isLoading}
                         error={error}
@@ -87,20 +89,22 @@ function InvMasterTaxPageContent({
                         noDataDescription='Get started by creating your first tax'
                         errorTitle='Error Loading Taxes'
                     />
-                </CollapsibleSection>
+                </CollapsibleSection >
 
                 {/* Tax Ledger Sheet */}
-                {isLedgerSheetOpen && (
-                    <TaxLedgerSheet
-                        isOpen={isLedgerSheetOpen}
-                        onClose={() => setIsLedgerSheetOpen(false)}
-                        tax={selectedTaxForLedger}
-                    />
-                )}
+                {
+                    isLedgerSheetOpen && (
+                        <TaxLedgerSheet
+                            isOpen={isLedgerSheetOpen}
+                            onClose={() => setIsLedgerSheetOpen(false)}
+                            tax={selectedTaxForLedger}
+                        />
+                    )
+                }
 
                 <FormSections />
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
 

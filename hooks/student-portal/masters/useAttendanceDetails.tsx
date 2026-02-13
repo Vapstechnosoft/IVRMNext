@@ -18,9 +18,7 @@ import type { ApiSearchparams } from '@/types';
 export function useAttendanceDetails() {
     const form = useForm<AttendanceDetailsSchema>({
         resolver: zodResolver(attendanceDetailsSchema),
-        defaultValues: {
-            asmaY_Id: ''
-        }
+        defaultValues: {}
     });
 
     const { data: initialData, isLoading: isInitialLoading } = useQuery<IApiResponse<IAttendanceYear[]>>({

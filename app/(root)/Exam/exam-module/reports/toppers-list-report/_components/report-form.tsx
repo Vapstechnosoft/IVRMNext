@@ -39,6 +39,12 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
     const [exams, setExams] = useState<any[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
 
+    const [loadingYears, setLoadingYears] = useState(true);
+    const [loadingCategories, setLoadingCategories] = useState(false);
+    const [loadingClasses, setLoadingClasses] = useState(false);
+    const [loadingSections, setLoadingSections] = useState(false);
+    const [loadingExams, setLoadingExams] = useState(false);
+
     const methods = useForm<ToppersListSchema>({
         resolver: zodResolver(toppersListReportSchema),
         mode: 'onChange',
@@ -75,15 +81,21 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
+                setLoadingYears(true);
                 const response = await getAcademicYearDropdown();
                 if (response.success) {
                     setAcademicYears(response.data || []);
+                    if (!response.data || response.data.length === 0) {
+                        toast.info('No Academic Years found');
+                    }
                 } else {
                     toast.error('Failed to load academic years');
                 }
             } catch (error) {
                 console.error('Error fetching academic years:', error);
                 toast.error('Error loading academic years');
+            } finally {
+                setLoadingYears(false);
             }
         };
         fetchInitialData();
@@ -94,9 +106,10 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
         if (watchYear) {
             const fetchCategories = async () => {
                 try {
+                    setLoadingCategories(true);
                     // Convert string to number for API call
                     const yearId = Number.parseInt(watchYear, 10);
-                    const { data: cats } = await getCategoryDropDownByAcademicYearlist(30, yearId);
+                    const { data: cats } = await getCategoryDropDownByAcademicYearlist(yearId);
                     const validCats = Array.isArray(cats) ? cats : [];
                     setCategories(validCats);
 
@@ -114,6 +127,8 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                     console.error('Error fetching categories:', error);
                     toast.error('Failed to load categories');
                     setCategories([]);
+                } finally {
+                    setLoadingCategories(false);
                 }
             };
             fetchCategories();
@@ -136,6 +151,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
         if (watchYear && watchCategory) {
             const fetchClassesAndExams = async () => {
                 try {
+                    setLoadingExams(true);
                     // Convert strings to numbers for API calls
                     const yearId = Number.parseInt(watchYear, 10);
                     const categoryId = Number.parseInt(watchCategory, 10);
@@ -144,12 +160,16 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                     const examsResponse = await getExamGroupsByCategory(yearId, categoryId);
                     if (examsResponse.success) {
                         setExams(examsResponse.data || []);
+                        if (!examsResponse.data || examsResponse.data.length === 0) {
+                            toast.info('No Exams found');
+                        }
                     } else {
                         setExams([]);
                     }
 
                     // Fetch classes only if type is individual (type=2)
                     if (watchType === '2') {
+                        setLoadingClasses(true);
                         const classesResponse = await getClassDropDownByYearCategoryList(yearId, categoryId);
                         const validClasses = Array.isArray(classesResponse) ? classesResponse : [];
                         setClasses(validClasses);
@@ -178,6 +198,9 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                     toast.error('Failed to load classes and exams');
                     setClasses([]);
                     setExams([]);
+                } finally {
+                    setLoadingExams(false);
+                    setLoadingClasses(false);
                 }
             };
             fetchClassesAndExams();
@@ -197,6 +220,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
         if (watchType === '2' && watchYear && watchCategory && watchClass) {
             const fetchSections = async () => {
                 try {
+                    setLoadingSections(true);
                     // Convert strings to numbers for API call
                     const yearId = Number.parseInt(watchYear, 10);
                     const categoryId = Number.parseInt(watchCategory, 10);
@@ -219,6 +243,8 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                     console.error('Error fetching sections:', error);
                     toast.error('Failed to load sections');
                     setSections([]);
+                } finally {
+                    setLoadingSections(false);
                 }
             };
             fetchSections();
@@ -261,7 +287,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
         try {
             // Prepare payload according to the required structure
             const payload = {
-                mI_Id: 30, // Institution ID - using 30 as per reference
+                // mI_Id: 30, // Institution ID - using 30 as per reference
                 asmaY_Id: Number.parseInt(formValues.ASMAY_Id) || 0,
                 asmcL_Id: formValues.type === '1' ? 0 : Number.parseInt(formValues.ASMCL_Id) || 0,
                 asmS_Id: formValues.type === '1' ? 0 : Number.parseInt(formValues.ASMS_Id || '') || 0,
@@ -342,6 +368,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                     name='ASMAY_Id'
                                     render={({ field }) => (
                                         <Select
+                                            key={field.value}
                                             onValueChange={(val) => {
                                                 field.onChange(val);
                                                 // Trigger validation when changed
@@ -352,11 +379,21 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                                 <SelectValue placeholder='Select Academic Year' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {academicYears.map((item) => (
-                                                    <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
-                                                        {item.asmaY_Year}
+                                                {loadingYears ? (
+                                                    <SelectItem value='0' disabled>
+                                                        Academic Years are loading...
                                                     </SelectItem>
-                                                ))}
+                                                ) : academicYears.length === 0 ? (
+                                                    <SelectItem value='0' disabled>
+                                                        No Academic Years found
+                                                    </SelectItem>
+                                                ) : (
+                                                    academicYears.map((item) => (
+                                                        <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
+                                                            {item.asmaY_Year}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -374,6 +411,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                     name='EMCA_Id'
                                     render={({ field }) => (
                                         <Select
+                                            key={field.value}
                                             onValueChange={(val) => {
                                                 field.onChange(val);
                                                 // Trigger validation when changed
@@ -385,11 +423,21 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                                 <SelectValue placeholder='Select Category' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {categories.map((item) => (
-                                                    <SelectItem key={item.emcA_Id} value={String(item.emcA_Id)}>
-                                                        {item.emcA_CategoryName}
+                                                {loadingCategories ? (
+                                                    <SelectItem value='0' disabled>
+                                                        Categories are loading...
                                                     </SelectItem>
-                                                ))}
+                                                ) : categories.length === 0 ? (
+                                                    <SelectItem value='0' disabled>
+                                                        No Categories found
+                                                    </SelectItem>
+                                                ) : (
+                                                    categories.map((item) => (
+                                                        <SelectItem key={item.emcA_Id} value={String(item.emcA_Id)}>
+                                                            {item.emcA_CategoryName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -407,6 +455,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                     name='ASMCL_Id'
                                     render={({ field }) => (
                                         <Select
+                                            key={field.value}
                                             onValueChange={(val) => {
                                                 field.onChange(val);
                                                 // Trigger validation when changed
@@ -418,11 +467,21 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                                 <SelectValue placeholder='Select Class' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {classes.map((item) => (
-                                                    <SelectItem key={item.asmcL_Id} value={String(item.asmcL_Id)}>
-                                                        {item.asmcL_ClassName}
+                                                {loadingClasses ? (
+                                                    <SelectItem value='0' disabled>
+                                                        Classes are loading...
                                                     </SelectItem>
-                                                ))}
+                                                ) : classes.length === 0 ? (
+                                                    <SelectItem value='0' disabled>
+                                                        No Classes found
+                                                    </SelectItem>
+                                                ) : (
+                                                    classes.map((item) => (
+                                                        <SelectItem key={item.asmcL_Id} value={String(item.asmcL_Id)}>
+                                                            {item.asmcL_ClassName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -440,6 +499,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                     name='ASMS_Id'
                                     render={({ field }) => (
                                         <Select
+                                            key={field.value}
                                             onValueChange={(val) => {
                                                 field.onChange(val);
                                                 // Trigger validation when changed
@@ -451,11 +511,21 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                                 <SelectValue placeholder='Select Section' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {sections.map((item) => (
-                                                    <SelectItem key={item.asmS_Id} value={String(item.asmS_Id)}>
-                                                        {item.asmC_SectionName}
+                                                {loadingSections ? (
+                                                    <SelectItem value='0' disabled>
+                                                        Sections are loading...
                                                     </SelectItem>
-                                                ))}
+                                                ) : sections.length === 0 ? (
+                                                    <SelectItem value='0' disabled>
+                                                        No Sections found
+                                                    </SelectItem>
+                                                ) : (
+                                                    sections.map((item) => (
+                                                        <SelectItem key={item.asmS_Id} value={String(item.asmS_Id)}>
+                                                            {item.asmC_SectionName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -473,6 +543,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                     name='EME_Id'
                                     render={({ field }) => (
                                         <Select
+                                            key={field.value}
                                             onValueChange={(val) => {
                                                 field.onChange(val);
                                                 // Trigger validation when changed
@@ -484,11 +555,21 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                                 <SelectValue placeholder='Select Exam' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {exams.map((item) => (
-                                                    <SelectItem key={item.emE_Id} value={String(item.emE_Id)}>
-                                                        {item.emE_ExamName}
+                                                {loadingExams ? (
+                                                    <SelectItem value='0' disabled>
+                                                        Exams are loading...
                                                     </SelectItem>
-                                                ))}
+                                                ) : exams.length === 0 ? (
+                                                    <SelectItem value='0' disabled>
+                                                        No Exams found
+                                                    </SelectItem>
+                                                ) : (
+                                                    exams.map((item) => (
+                                                        <SelectItem key={item.emE_Id} value={String(item.emE_Id)}>
+                                                            {item.emE_ExamName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -559,6 +640,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                         name='ISMS_Id'
                                         render={({ field }) => (
                                             <Select
+                                                key={field.value}
                                                 onValueChange={(val) => {
                                                     field.onChange(val);
                                                     // Trigger validation when changed
