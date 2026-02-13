@@ -6,7 +6,7 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useInvVendorPayment } from '@/hooks/inventory/transactions/use-inv-vendor-payment';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, CreditCard, PlusCircle, Pencil } from 'lucide-react';
 import type { InvVendorPayment } from '@/types/inventory/transactions/inv-vendor-payment';
 import { use } from 'react';
 import AddVendorPaymentForm from './_components/add-form';
@@ -95,7 +95,8 @@ function InvVendorPaymentContent({
                             defaultOpen={true}
                             variant='outline'
                             size='md'
-                            className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6'>
+                            className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6'
+                            icon={<PlusCircle className='h-5 w-5' />}>
                             <div className='relative'>
                                 <Button
                                     type='button'
@@ -118,7 +119,8 @@ function InvVendorPaymentContent({
                             defaultOpen={true}
                             variant='outline'
                             size='md'
-                            className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6 border-primary/20'>
+                            className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6 border-primary/20'
+                            icon={<Pencil className='h-5 w-5' />}>
                             <div className='relative'>
                                 <Button
                                     type='button'
@@ -143,7 +145,8 @@ function InvVendorPaymentContent({
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg'>
+                    className='shadow-lg'
+                    icon={<CreditCard className='h-5 w-5' />}>
                     <GenericDataTable<InvVendorPayment>
                         {...tableProps}
                         columns={invVendorPaymentColumns}

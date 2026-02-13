@@ -132,7 +132,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
             <div className='overflow-hidden rounded-lg bg-card'>
                 <DataTable
                     ref={ref}
-                    isLoading={false}
+                    isLoading={isLoading}
                     columns={columns}
                     data={[]} // Empty array
                     totalItems={0}
@@ -158,7 +158,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         <div className='overflow-hidden rounded-lg bg-card'>
             <DataTable
                 ref={ref}
-                isLoading={false}
+                isLoading={isLoading}
                 columns={columns}
                 data={data}
                 totalItems={totalItems}

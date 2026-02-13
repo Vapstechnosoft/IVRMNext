@@ -13,7 +13,9 @@ import type {
     IReferenceDropdown,
     IReligionDropdown,
     ISourceDropdown,
-    IStateDropdown
+    IStateDropdown,
+    IMasterCategoryDropDown,
+    IDistrictDropdown
 } from '@/types/admission/preadmission/transactions';
 
 export async function getReligionDropdown() {
@@ -34,6 +36,11 @@ export async function getCountryDropdown() {
 export async function getStateDropdown(country_id: number) {
     const url = `/student_application_form/state_drop_down_list?country_id=${country_id}`;
     return await api.get<IStateDropdown[]>('preadmission', url);
+}
+
+export async function getDistrictDropdown(state_id: number) {
+    const url = `/student_application_form/GetDistrictDropDownList?state_id=${state_id}`;
+    return await api.get<IDistrictDropdown[]>('preadmission', url);
 }
 
 export async function getGenderDropdown() {

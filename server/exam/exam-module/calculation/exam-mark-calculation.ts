@@ -31,5 +31,5 @@ export async function getExamCalculation(
     const response = await api.post<ExamCalculationResponse>('exam', url, params);
     console.info('response', response.data);
     console.info('url', url);
-    return response.data ?? {};
+    return response ?? {};
 }
