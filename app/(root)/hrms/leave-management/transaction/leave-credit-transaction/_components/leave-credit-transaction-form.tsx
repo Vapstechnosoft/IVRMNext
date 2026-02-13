@@ -81,7 +81,7 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                     const days = differenceInDays(end, start) + 1;
                     setValue('totalDays', days, { shouldValidate: true });
                 }
-            } catch (_error) {}
+            } catch (_error) { }
         }
     }, [fromDate, toDate, setValue]);
 
@@ -262,7 +262,7 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                     <Save className='mr-2 h-4 w-4' />
                     SAVE
                 </Button>
-                <Button type='button' variant='outline' onClick={onCancel} className='min-w-[120px]'>
+                <Button type='button' variant='destructive' onClick={onCancel} className='min-w-[120px] bg-red-600 hover:bg-red-700'>
                     <X className='mr-2 h-4 w-4' />
                     CANCEL
                 </Button>

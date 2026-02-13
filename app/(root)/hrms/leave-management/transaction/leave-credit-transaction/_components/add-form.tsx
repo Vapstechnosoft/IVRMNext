@@ -16,6 +16,23 @@ import { useEffect } from 'react';
 import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveCreditTransaction } from './columns';
+
+interface LeaveCreditTransactionFormValues extends Omit<LeaveCreditTransaction, 'fromDate' | 'toDate' | 'id' | 'createdAt' | 'transactionId' | 'isActive'> {
+    id?: number;
+    transactionId?: number;
+    isActive?: boolean;
+    type: string[];
+    department: string[];
+    designation: string[];
+    leaveYear: string;
+    fromDate: string;
+    toDate: string;
+    employee: string;
+    lossOfPayType: string;
+    lossOfPayAmount: number;
+    availed: number;
+}
+
 interface AddLeaveCreditTransactionFormProps {
     onSuccess?: () => void;
     className?: string;
@@ -217,7 +234,7 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                                     Leave Year :<span className='text-red-500'>*</span>
                                 </Label>
                                 <Select value={field.value} onValueChange={field.onChange}>
-                                    <SelectTrigger id='leave-year-select' className={errors.leaveYear ? 'border-red-500' : ''}>
+                                    <SelectTrigger id='leave-year-select' className={(errors as any).leaveYear ? 'border-red-500' : ''}>
                                         <SelectValue placeholder='Year' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -228,7 +245,7 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                {errors.leaveYear && <FormError>{errors.leaveYear.message}</FormError>}
+                                {(errors as any).leaveYear && <FormError>{(errors as any).leaveYear.message}</FormError>}
                             </div>
                         )}
                     />
@@ -242,7 +259,7 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                                     Employee :<span className='text-red-500'>*</span>
                                 </Label>
                                 <Select value={field.value} onValueChange={field.onChange}>
-                                    <SelectTrigger id='employee-select' className={errors.employee ? 'border-red-500' : ''}>
+                                    <SelectTrigger id='employee-select' className={(errors as any).employee ? 'border-red-500' : ''}>
                                         <SelectValue placeholder='Select or search employee in the list...' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -253,7 +270,7 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                {errors.employee && <FormError>{errors.employee.message}</FormError>}
+                                {(errors as any).employee && <FormError>{(errors as any).employee.message}</FormError>}
                             </div>
                         )}
                     />
@@ -274,7 +291,7 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                                             className={cn(
                                                 'w-full justify-start text-left font-normal',
                                                 !field.value && 'text-muted-foreground',
-                                                errors.fromDate && 'border-red-500'
+                                                (errors as any).fromDate && 'border-red-500'
                                             )}>
                                             <CalendarIcon className='mr-2 h-4 w-4' />
                                             {field.value ? format(new Date(field.value), 'PPP') : <span>Pick from date</span>}
@@ -297,7 +314,7 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                                         />
                                     </PopoverContent>
                                 </Popover>
-                                {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
+                                {(errors as any).fromDate && <FormError>{(errors as any).fromDate.message}</FormError>}
                             </div>
                         )}
                     />
@@ -318,7 +335,7 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                                             className={cn(
                                                 'w-full justify-start text-left font-normal',
                                                 !field.value && 'text-muted-foreground',
-                                                errors.toDate && 'border-red-500'
+                                                (errors as any).toDate && 'border-red-500'
                                             )}>
                                             <CalendarIcon className='mr-2 h-4 w-4' />
                                             {field.value ? format(new Date(field.value), 'PPP') : <span>Pick to date</span>}
@@ -342,7 +359,7 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                                         />
                                     </PopoverContent>
                                 </Popover>
-                                {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
+                                {(errors as any).toDate && <FormError>{(errors as any).toDate.message}</FormError>}
                             </div>
                         )}
                     />
@@ -405,7 +422,7 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                         <Save className='mr-2 h-4 w-4' />
                         {isPending || isSubmitting ? 'Saving...' : 'SAVE'}
                     </Button>
-                    <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
+                    <Button type='button' variant='destructive' onClick={handleReset} disabled={isPending || isSubmitting} className='bg-red-600 hover:bg-red-700'>
                         <X className='mr-2 h-4 w-4' />
                         CANCEL
                     </Button>

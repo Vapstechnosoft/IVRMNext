@@ -4,7 +4,8 @@ import {
     getEmployeeOnDutyLeaveApply,
     getLeaveDetailsById,
     saveOnDutyLeaveRequest,
-    viewOnDutyLeaveDetailsById
+    viewOnDutyLeaveDetailsById,
+    toggleActiveStatusOnDuty
 } from '@/server/hrms/leave-management/transaction/admin-on-duty-apply';
 import type { ApiSearchparams } from '@/types';
 import type {
@@ -25,22 +26,34 @@ const ADMIN_ON_DUTY_APPLY_KEYS = {
 };
 
 function mapApiDataToAdminOnDutyApply(
-    apiData: AdminOnDutyApplyApiData
+    apiData: any // Use any to allow case-insensitive access
 ): AdminOnDutyApply {
+    // Helper to get property regardless of casing
+    const getProp = (obj: any, key: string) => {
+        if (!obj) return undefined;
+        if (key in obj) return obj[key];
+        const lowerKey = key.toLowerCase();
+        for (const k in obj) {
+            if (k.toLowerCase() === lowerKey) return obj[k];
+        }
+        return undefined;
+    };
+
     return {
-        id: apiData.hrelaP_Id,
-        employeeName: apiData.hrmE_EmployeeFirstName,
-        leaveName: apiData.hrmL_LeaveName,
-        leaveCode: apiData.hrmL_LeaveCode,
-        fromDate: new Date(apiData.hrelaP_FromDate),
-        toDate: new Date(apiData.hrelaP_ToDate),
-        totalDays: apiData.hreltD_TotDays,
-        status: apiData.hrelaP_ApplicationStatus,
-        leaveReason: apiData.hrelaP_LeaveReason,
-        inTime: apiData.hrelapD_InTime,
-        outTime: apiData.hrelapD_OutTime,
-        leaveId: apiData.hrmL_Id,
-        employeeId: apiData.hrmE_Id
+        id: getProp(apiData, 'hrelaP_Id') || getProp(apiData, 'id'),
+        employeeName: getProp(apiData, 'hrmE_EmployeeFirstName') || getProp(apiData, 'employeeName'),
+        leaveName: getProp(apiData, 'hrmL_LeaveName') || getProp(apiData, 'leaveName'),
+        leaveCode: getProp(apiData, 'hrmL_LeaveCode') || getProp(apiData, 'leaveCode'),
+        fromDate: new Date(getProp(apiData, 'hrelaP_FromDate') || getProp(apiData, 'fromDate')),
+        toDate: new Date(getProp(apiData, 'hrelaP_ToDate') || getProp(apiData, 'toDate')),
+        totalDays: getProp(apiData, 'hreltD_TotDays') || getProp(apiData, 'totalDays') || 0,
+        status: getProp(apiData, 'hrelaP_ApplicationStatus') || getProp(apiData, 'status') || 'Unknown',
+        leaveReason: getProp(apiData, 'hrelaP_LeaveReason') || getProp(apiData, 'leaveReason') || '',
+        inTime: getProp(apiData, 'hrelapD_InTime') || getProp(apiData, 'inTime') || '',
+        outTime: getProp(apiData, 'hrelapD_OutTime') || getProp(apiData, 'outTime') || '',
+        leaveId: getProp(apiData, 'hrmL_Id') || getProp(apiData, 'leaveId'),
+        employeeId: getProp(apiData, 'hrmE_Id') || getProp(apiData, 'employeeId'),
+        isActive: getProp(apiData, 'hrelaP_ActiveFlg') ?? true
     };
 }
 
@@ -195,5 +208,24 @@ export function useViewOnDutyLeaveDetailsById(leaveId: number | null) {
             return response.data;
         },
         enabled: !!leaveId
+    });
+}
+export function useToggleOnDutyStatus() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (leaveId: number) => {
+            const response = await toggleActiveStatusOnDuty(leaveId);
+            if (!response.success) {
+                throw new Error(response.message);
+            }
+            return response;
+        },
+        onSuccess: (data) => {
+            toast.success(data.message);
+            queryClient.invalidateQueries({ queryKey: [ADMIN_ON_DUTY_APPLY_KEYS.LIST] });
+        },
+        onError: (error: Error) => {
+            toast.error(error.message);
+        }
     });
 }
