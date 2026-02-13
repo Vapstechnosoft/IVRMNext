@@ -4,14 +4,14 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command'; // Add this import for Combobox
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { useFormContext as useGlobalFormContext } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'; // Add this for Combobox
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
@@ -30,7 +30,7 @@ import { getconcessionheadgriddatadetails, saveFeeHead } from '@/server/fees/tra
 import type { ColumnDef } from '@tanstack/react-table';
 import { Save, X } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -59,6 +59,8 @@ interface HeadRow {
     concessionValue: number;
     remarks: string;
     checked: boolean;
+    fsciId?: number; // Add this for edit mode
+    fscId?: number; // Add this for edit mode
 }
 
 type AddFeeConcessionFormProps = {
@@ -79,16 +81,16 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
     const [students, setStudents] = useState<StudentRow[]>([]);
     const [heads, setHeads] = useState<HeadRow[]>([]);
     const [saving, setSaving] = useState(false);
-    const [showheads, setShowHeads] = useState(false);
-
     const [selectedStudentAmstId, setSelectedStudentAmstId] = useState<number>(0);
+    const [loadingTermDetails, setLoadingTermDetails] = useState(false);
+
     const searchParams = useSearchParams();
     const academicYearId = watch('academicYearId');
     const classId = watch('classId');
     const categoryId = watch('categoryId');
     const feeCategoryId = watch('feeCategoryId');
     const termIds: string[] = watch('termIds') || [];
-    const admissionNo = watch('admissionNo'); // selected adm no from dropdown
+    const admissionNo = watch('admissionNo');
 
     const { data: configSetData } = useFeeConcessionConfigSet(Number(academicYearId || 0));
     const configSettings = configSetData?.data?.[0];
@@ -102,6 +104,7 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
     const { data: categories, isLoading: loadingCategories } = useFeeConcessionCategoryDropdowndata(MI_ID);
     const { data: feeConcessionCategories, isLoading: loadingfeeConcessionCategories } =
         useFeeConcessionCategoryFeeConcessionDropdowndata();
+
     const selectedAmstIdFromAdm = selectedStudentAmstId;
     const apiSearchParams = searchParams ? Object.fromEntries(searchParams.entries()) : {};
 
@@ -169,7 +172,7 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
         }
     }, [studentQuery.data, shouldFetchStudentsNormally, isEditFormOpen, selectionType]);
 
-    // New: Fetch full student data when admissionNo is selected
+    // Fetch full student data when admissionNo is selected
     const { data: singleStudentData } = useFeeConcessionStudentData(
         Number(academicYearId || 0),
         selectedAmstIdFromAdm,
@@ -204,30 +207,18 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
 
     const shouldShowHeads = students.length > 0 && (termIds.length > 0 || isEditFormOpen);
 
-    //     const shouldShowHeads = useMemo(() => {
-    //     return selectedAmsT_Id > 0 && (termIds.length > 0 || isEditFormOpen);
-    // }, [selectedAmsT_Id, termIds.length, isEditFormOpen]);
-
-    //const selectedTermIds: number[] = Array.from(new Set(termIds.map(Number).filter((id) => id > 0)));
-    console.log('Selected Term Ids:', apiSearchParams);
-    // const headQuery = useFeeConcessionHeadDetailsList(
-    //     Number(academicYearId || 0),
-    //     selectedAmsT_Id,
-    //     selectedTermIds,
-    //     String(groupOrTermFlg),
-    //     apiSearchParams
-    // );
-    // Replace the current useEffect with this:
-
-    // useEffect(() => {
-    //     setHeads([]);
-    // }, [selectionType]);
-
     const selectedTermIds = useMemo(() => {
         return (termIds || []).map(Number).filter(Boolean);
     }, [termIds]);
 
+    // Head loading useEffect - SKIP DURING EDIT MODE
     useEffect(() => {
+        // CRITICAL: Skip if in edit mode - heads are already loaded from editResponse
+        if (isEditFormOpen) {
+            console.log('Skipping head loading - edit mode active');
+            return;
+        }
+
         if (!selectedAmsT_Id || selectedTermIds.length === 0) return;
 
         setLoadingHeads(true);
@@ -257,49 +248,13 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
                 );
             })
             .finally(() => setLoadingHeads(false));
-    }, [selectedAmsT_Id, selectedTermIds]);
+    }, [selectedAmsT_Id, selectedTermIds, academicYearId, groupOrTermFlg, isEditFormOpen]);
 
-    //     useEffect(() => {
-    //         if(!selectedAmsT_Id){
-    //             return;
-    //         }
-
-    //      const payloadtogetheads={
-    //     asmayId: Number(academicYearId || 0),
-    //     amstId: selectedAmsT_Id,
-    //     configSet: String(groupOrTermFlg),
-    //     fmgIds: selectedTermIds
-    // }
-
-    //     const headQuery=   getconcessionheadgriddatadetails(payloadtogetheads);
-    //      console.log('headQuery', headQuery);
-
-    //         if (isEditFormOpen) return;
-    //         setLoadingHeads(true);
-    //         const rows = normalizeArray(headQuery);
-    //         if (rows.length > 0 && shouldShowHeads) {
-    //             const mappedHeads = rows.map((h: any, i: number) => ({
-    //                 slno: i + 1,
-    //                 fmH_Id: h.fmH_Id ?? 0,
-    //                 fmG_Id: h.fmG_Id ?? 0,
-    //                 ftI_Id: h.ftI_Id ?? 0,
-    //                 fmH_FeeName: h.fmH_FeeName ?? '',
-    //                 ftI_Name: h.ftI_Name ?? 'Yearly',
-    //                 fmA_Amount: h.fmA_Amount ?? 0,
-    //                 type: '' as 'Amount' | 'Percentage' | '',
-    //                 concessionValue: 0,
-    //                 remarks: '',
-    //                 checked: false
-    //             }));
-    //             setHeads(mappedHeads);
-    //             setLoadingHeads(false);
-    //             setHeadSearch('');
-    //         } else {
-    //             setHeads([]);
-    //         }
-    //     }, [academicYearId, selectedAmsT_Id, shouldShowHeads, isEditFormOpen, groupOrTermFlg, selectedTermIds]);
-
+    // Clear form when selection type changes - BUT NOT IN EDIT MODE
     useEffect(() => {
+        // Don't clear data during edit mode
+        if (isEditFormOpen) return;
+
         setStudents([]);
         setHeads([]);
         setStudentSearch('');
@@ -310,7 +265,7 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
         setValue('admissionNo', undefined);
         setValue('termIds', []);
         setSelectedStudentAmstId(0);
-    }, [selectionType, setValue]);
+    }, [selectionType, setValue, isEditFormOpen]);
 
     const filteredStudents = useMemo(
         () =>
@@ -334,6 +289,23 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
     const toggleStudent = (amst_Id: number) => {
         setStudents((prev) => prev.map((s) => ({ ...s, checked: s.amst_Id === amst_Id })));
     };
+
+    // Memoized update functions to prevent unnecessary re-renders
+    const updateHeadType = useCallback((index: number, type: 'Amount' | 'Percentage') => {
+        setHeads((prev) => prev.map((item, idx) => (idx === index ? { ...item, type, concessionValue: 0 } : item)));
+    }, []);
+
+    const updateHeadConcession = useCallback((index: number, value: number) => {
+        setHeads((prev) => prev.map((item, idx) => (idx === index ? { ...item, concessionValue: value } : item)));
+    }, []);
+
+    const updateHeadRemarks = useCallback((index: number, remarks: string) => {
+        setHeads((prev) => prev.map((item, idx) => (idx === index ? { ...item, remarks } : item)));
+    }, []);
+
+    const toggleHeadChecked = useCallback((index: number, checked: boolean) => {
+        setHeads((prev) => prev.map((item, idx) => (idx === index ? { ...item, checked } : item)));
+    }, []);
 
     const studentColumns: ColumnDef<StudentRow>[] = [
         {
@@ -376,17 +348,22 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
             id: 'select',
             header: () => <></>,
             cell: ({ row }) => (
-                <Checkbox
-                    checked={row.original.checked}
-                    onCheckedChange={(checked) => {
-                        setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, checked: !!checked } : item)));
-                    }}
-                />
+                <Checkbox checked={row.original.checked} onCheckedChange={(checked) => toggleHeadChecked(row.index, !!checked)} />
             ),
             size: 60
         },
-        { accessorKey: 'fmH_FeeName', header: 'Fee Head', size: 300 },
-        { accessorKey: 'ftI_Name', header: 'Installment', size: 160 },
+        {
+            accessorKey: 'fmH_FeeName',
+            header: 'Fee Head',
+            size: 300,
+            cell: ({ row }) => <div>{row.original.fmH_FeeName}</div>
+        },
+        {
+            accessorKey: 'ftI_Name',
+            header: 'Installment',
+            size: 160,
+            cell: ({ row }) => <div>{row.original.ftI_Name}</div>
+        },
         {
             id: 'type',
             header: 'Type',
@@ -394,13 +371,7 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
             cell: ({ row }) => (
                 <Select
                     value={row.original.type || ''}
-                    onValueChange={(value) => {
-                        setHeads((prev) =>
-                            prev.map((item, idx) =>
-                                idx === row.index ? { ...item, type: value as 'Amount' | 'Percentage', concessionValue: 0 } : item
-                            )
-                        );
-                    }}>
+                    onValueChange={(value) => updateHeadType(row.index, value as 'Amount' | 'Percentage')}>
                     <SelectTrigger className='h-9'>
                         <SelectValue placeholder='Select' />
                     </SelectTrigger>
@@ -415,28 +386,31 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
             accessorKey: 'fmA_Amount',
             header: 'Amount',
             size: 140,
-            cell: ({ row }) => <div className='pr-3 text-right font-medium'>{row.original.fmA_Amount.toLocaleString()}</div>
+            cell: ({ row }) => <div className='pr-3 text-right font-medium'>{row.original.fmA_Amount?.toLocaleString() || '0'}</div>
         },
         // {
         //     id: 'concession',
         //     header: 'Concession',
         //     size: 200,
-        //     cell: ({ row }) => (
-        //         <Input
-        //             type='number'
-        //             min='0'
-        //             max={row.original.type === 'Percentage' ? 100 : undefined}
-        //             placeholder={row.original.type === 'Percentage' ? '0-100' : '0'}
-        //             className='text-right'
-        //             value={row.original.concessionValue ?? ''}
-        //             onChange={(e) => {
-        //                 const inputVal = e.target.value;
-        //                 const val = inputVal === '' ? 0 : Number(inputVal);
+        //     cell: ({ row }) => {
+        //         const isPercentage = row.original.type === 'Percentage';
 
-        //                 setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, concessionValue: val } : item)));
-        //             }}
-        //         />
-        //     )
+        //         return (
+        //             <Input
+        //                 type='number'
+        //                 min='0'
+        //                 max={isPercentage ? 100 : undefined}
+        //                 placeholder={isPercentage ? '0-100' : '0'}
+        //                 className='text-right'
+        //                 value={row.original.concessionValue || ''}
+        //                 onChange={(e) => {
+        //                     const raw = e.target.value;
+        //                     const val = raw === '' ? 0 : Number(raw);
+        //                     updateHeadConcession(row.index, val);
+        //                 }}
+        //             />
+        //         );
+        //     }
         // },
         {
             id: 'concession',
@@ -463,6 +437,19 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
                 );
             }
         },
+        // {
+        //     id: 'remarks',
+        //     header: 'Remarks',
+        //     size: 280,
+        //     cell: ({ row }) => (
+        //         <Input
+        //             placeholder='Optional'
+        //             value={row.original.remarks || ''}
+        //             onChange={(e) => updateHeadRemarks(row.index, e.target.value)}
+        //         />
+        //     )
+        // }
+
         {
             id: 'remarks',
             header: 'Remarks',
@@ -482,43 +469,35 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
                 );
             }
         }
-        // {
-        //     id: 'remarks',
-        //     header: 'Remarks',
-        //     size: 280,
-        //     cell: ({ row }) => (
-        //         <Input
-        //             placeholder='Optional'
-        //             value={row.original.remarks || ''}
-        //             onChange={(e) => {
-        //                 setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, remarks: e.target.value } : item)));
-        //             }}
-        //         />
-        //     )
-        // }
     ];
 
     const editAsmaY = Number(selectedRow?.asmaY_Id ?? selectedRow?.asmaYId ?? selectedRow?.ASMAY_Id ?? pageAcademicYear ?? 0);
     const editFsciId = Number(selectedRow?.fscI_ID ?? selectedRow?.fscIId ?? selectedRow?.fsciId ?? selectedRow?.fsC_Id ?? 0);
     const { data: editResponse } = useFeeConcessionEdit(editAsmaY, editFsciId, apiSearchParams as any);
 
+    // EDIT MODE: Load and bind all data
     useEffect(() => {
         if (!isEditFormOpen || !editResponse) return;
+
+        console.log('editResponse', editResponse);
 
         const rows = normalizeArray(editResponse);
         if (rows.length === 0) return;
 
         const firstRow = rows[0];
 
+        // Set Academic Year
         const ayId = Number(firstRow.asmaY_Id ?? firstRow.ASMAY_Id ?? editAsmaY ?? 0);
         if (ayId > 0) setValue('academicYearId', ayId);
 
+        // Determine selection type based on data
         let newSelectionType: typeof selectionType = 'Admissionnosearch';
 
         if (firstRow.asmcL_ID || firstRow.asmcL_Id || firstRow.classname) {
             newSelectionType = 'classwise';
             setValue('classId', Number(firstRow.asmcL_ID ?? firstRow.asmcL_Id ?? 0));
         } else if (firstRow.fmcC_Id || firstRow.fmcCId) {
+            newSelectionType = 'feecategorywise';
             setValue('feeCategoryId', String(firstRow.fmcC_Id ?? firstRow.fmcCId ?? ''));
         } else if (firstRow.amsT_AdmNo) {
             newSelectionType = 'Admissionnosearch';
@@ -527,12 +506,14 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
 
         setSelectionType(newSelectionType);
 
+        // Set Term IDs from the data
         const termIdsFromData = Array.from(new Set(rows.map((r: any) => r.fmT_Id ?? r.fmG_Id ?? r.ftI_Id).filter(Boolean))).map(String);
 
         if (termIdsFromData.length > 0) {
             setValue('termIds', termIdsFromData);
         }
 
+        // Set Student data
         const studentEntry: StudentRow = {
             amst_Id: Number(firstRow.amst_Id ?? firstRow.AMST_Id ?? 0),
             amsT_FirstName: firstRow.amsT_FirstName ?? '',
@@ -545,20 +526,37 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
         };
         setStudents([studentEntry]);
 
-        const mappedHeads: HeadRow[] = rows.map((r: any, i: number) => ({
-            slno: i + 1,
-            fmH_Id: Number(r.fmH_Id ?? 0),
-            fmG_Id: Number(r.fmG_Id ?? 0),
-            ftI_Id: Number(r.ftI_Id ?? 0),
-            fmH_FeeName: r.fmH_FeeName ?? '',
-            ftI_Name: r.ftI_Name ?? 'Yearly',
-            fmA_Amount: Number(r.fmA_Amount ?? 0),
-            type: (r.fsC_ConcessionType || '').toLowerCase() === 'percentage' ? 'Percentage' : ('Amount' as any),
-            concessionValue: Number(r.fscI_ConcessionAmount ?? 0),
-            remarks: r.fsC_ConcessionReason ?? '',
-            checked: true
-        }));
+        // IMPORTANT: Set selectedStudentAmstId for any dependent effects
+        setSelectedStudentAmstId(studentEntry.amst_Id);
 
+        // Map Head data with all values properly bound
+        const mappedHeads: HeadRow[] = rows.map((r: any, i: number) => {
+            // Determine concession type (case insensitive)
+            const concessionType = r.fsC_ConcessionType || r.fscI_ConcessionType || '';
+            const type = concessionType.toLowerCase() === 'percentage' ? 'Percentage' : 'Amount';
+
+            // Get concession value from various possible field names
+            const concessionValue = Number(r.fscI_ConcessionAmount ?? r.fsC_ConcessionAmount ?? r.concessionValue ?? 0);
+
+            // Get remarks from various possible field names
+            const remarks = r.fsC_ConcessionReason ?? r.remarks ?? r.fscI_Remarks ?? '';
+
+            return {
+                slno: i + 1,
+                fmH_Id: Number(r.fmH_Id ?? r.FMH_Id ?? 0),
+                fmG_Id: Number(r.fmG_Id ?? r.FMG_Id ?? 0),
+                ftI_Id: Number(r.ftI_Id ?? r.FTI_Id ?? 0),
+                fmH_FeeName: r.fmH_FeeName ?? r.FMH_FeeName ?? '',
+                ftI_Name: r.ftI_Name ?? r.FTI_Name ?? 'Yearly',
+                fmA_Amount: Number(r.fmA_Amount ?? r.FMA_Amount ?? 0),
+                type: type,
+                concessionValue: concessionValue,
+                remarks: remarks,
+                checked: true
+            };
+        });
+
+        console.log('Mapped heads for edit:', mappedHeads);
         setHeads(mappedHeads);
     }, [isEditFormOpen, editResponse, setValue, editAsmaY]);
 
@@ -583,27 +581,20 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
                 FMH_Id: h.fmH_Id,
                 FTI_Id: h.ftI_Id || 0,
                 FSC_ConcessionReason: h.remarks || '',
-                FSCI_ConcessionAmount: h.concessionValue
+                FSCI_ConcessionAmount: h.concessionValue,
+                FSC_ConcessionType: h.type || 'Amount'
             }));
 
             const payload: any = {
                 ASMAY_Id: Number(academicYearId),
                 SaveTempData,
-                SaveTempData1
+                SaveTempData1,
+                RadioBtnValue: selectionType
             };
 
             if (isEditFormOpen && selectedRow) {
                 payload.FSC_Id = Number(selectedRow?.FSC_Id ?? selectedRow?.fsc_Id ?? selectedRow?.fsC_Id ?? 0);
                 payload.FSCI_ID = Number(selectedRow?.FSCI_ID ?? selectedRow?.fsci_Id ?? selectedRow?.fscI_ID ?? selectedRow?.fscIId ?? 0);
-            } else {
-                payload.RadioBtnValue = selectionType;
-                payload.SaveTempData1 = SaveTempData1.map((item) => {
-                    const head = heads.find((h) => h.fmH_Id === item.FMH_Id);
-                    return {
-                        ...item,
-                        FSC_ConcessionType: head?.type === 'Percentage' ? 'Percentage' : 'Amount'
-                    };
-                });
             }
 
             console.log('consession payload:', JSON.stringify(payload));
@@ -625,7 +616,6 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
             onSuccess?.();
         } catch (err: any) {
             const errorMessage = err?.response?.data?.message || err?.response?.data?.error || err?.message || 'Failed to save concession';
-
             toast.error(errorMessage);
         } finally {
             setSaving(false);
@@ -785,7 +775,6 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
                                         const [searchQuery, setSearchQuery] = useState('');
                                         const [open, setOpen] = useState(false);
 
-                                        // Search on every keystroke (even 1 character)
                                         const { data: admissionNoData, isLoading: loadingAdmNo } = useFeeConcessionAdmissionNo(
                                             Number(academicYearId || 0),
                                             searchQuery,
@@ -814,7 +803,6 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
                                                 <PopoverTrigger asChild>
                                                     <Button
                                                         variant='outline'
-                                                        // role="combobox"
                                                         aria-expanded={open}
                                                         className='h-12 w-full justify-between text-left font-normal'>
                                                         {field.value
@@ -831,17 +819,14 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
                                                             value={searchQuery}
                                                             onValueChange={(value) => {
                                                                 setSearchQuery(value);
-                                                                // Keep dropdown open while typing
                                                                 if (value.length > 0) setOpen(true);
                                                             }}
-                                                            // Optional: auto-focus and open on click
                                                             autoFocus
                                                         />
                                                         <CommandEmpty>
                                                             {searchQuery ? 'No results found' : 'Start typing to search'}
                                                         </CommandEmpty>
                                                         <CommandGroup className='max-h-48 overflow-auto'>
-                                                            {/* ← This makes it scrollable and fixed height */}
                                                             {admissionOptions.map((opt) => (
                                                                 <CommandItem
                                                                     key={opt.value}
@@ -849,7 +834,7 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
                                                                         field.onChange(opt.value);
                                                                         setSelectedStudentAmstId(opt.amst_Id);
                                                                         setOpen(false);
-                                                                        setSearchQuery(opt.label); // Show selected value in input
+                                                                        setSearchQuery(opt.label);
                                                                     }}>
                                                                     {opt.label}
                                                                 </CommandItem>
