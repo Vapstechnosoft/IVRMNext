@@ -22,45 +22,31 @@ export const birthCertificateColumns: ColumnDef<any>[] = [
         size: 24
     },
     {
-        accessorKey: 'amsT_FirstName',
+        accessorKey: 'stufn',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
-        cell: ({ row }) => <div>{row.getValue('amsT_FirstName') ?? row.original.studentName ?? 'N/A'}</div>,
+        cell: ({ row }) => <div>{row.getValue('stufn') ?? row.original.studentName ?? 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'amsT_AdmNo',
+        accessorKey: 'amst_admno',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Admission No.' />,
-        cell: ({ row }) => <div>{row.getValue('amsT_AdmNo') ?? row.original.admNo ?? 'N/A'}</div>,
+        cell: ({ row }) => <div>{row.getValue('amst_admno') ?? row.original.admNo ?? 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'amsT_RegistrationNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Registration No.' />,
-        cell: ({ row }) => <div>{row.getValue('amsT_RegistrationNo') ?? row.original.regNo ?? 'N/A'}</div>,
+        accessorKey: 'class',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
+        cell: ({ row }) => <div>{row.getValue('class') ?? row.original.className ?? 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'asmcL_ClassName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' />,
-        cell: ({ row }) => <div>{row.getValue('asmcL_ClassName') ?? row.original.className ?? 'N/A'}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'asmC_SectionName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Section Name' />,
-        cell: ({ row }) => <div>{row.getValue('asmC_SectionName') ?? row.original.sectionName ?? 'N/A'}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'amsT_DOB',
+        accessorKey: 'dob',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Date of Birth' />,
         cell: ({ row }) => {
-            const dob = row.getValue('amsT_DOB') ?? row.original.dob;
+            const dob = row.getValue('dob') ?? row.original.dob;
             if (!dob) return <div>N/A</div>;
             try {
                 return <div>{new Date(dob as string).toLocaleDateString()}</div>;
@@ -72,16 +58,30 @@ export const birthCertificateColumns: ColumnDef<any>[] = [
         enableHiding: true
     },
     {
-        accessorKey: 'amsT_FatherName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Father Name' />,
-        cell: ({ row }) => <div>{row.getValue('amsT_FatherName') ?? row.original.fatherName ?? 'N/A'}</div>,
+        accessorKey: 'dobword',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Date of Birth (Words)' />,
+        cell: ({ row }) => <div>{row.getValue('dobword') ?? 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'amsT_MotherName',
+        accessorKey: 'fathername',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Father Name' />,
+        cell: ({ row }) => <div>{row.getValue('fathername') ?? row.original.fatherName ?? 'N/A'}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'stumn',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Mother Name' />,
-        cell: ({ row }) => <div>{row.getValue('amsT_MotherName') ?? row.original.motherName ?? 'N/A'}</div>,
+        cell: ({ row }) => <div>{row.getValue('stumn') ?? row.original.motherName ?? 'N/A'}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'acadamicyear',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
+        cell: ({ row }) => <div>{row.getValue('acadamicyear') ?? 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     }

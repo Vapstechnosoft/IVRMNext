@@ -1,9 +1,10 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { IInstitutionSubscription } from '@/types/super-admin/super-admin-module/institution/institution-subscription';
 import { institutionSubscriptionSchema } from '@/schemas/super-admin/super-admin-module/institution/institution-subscription';
 import { z } from 'zod';
+import { ApiSearchparams } from '@/types';
 
 export async function addOrUpdateInstitutionSubscription(data: z.infer<typeof institutionSubscriptionSchema.addOrUpdate>) {
     const url = 'InstitutionFacade';
@@ -26,7 +27,16 @@ export async function addOrUpdateInstitutionSubscription(data: z.infer<typeof in
     return await api.post<IInstitutionSubscription>('sadmin', url, payload);
 }
 
-export async function getInstitutionSubscriptionData(searchParams?: any) {
-    console.log('Fetching Institution Subscription Data (Stub):', searchParams);
-    return [];
+export async function getInstitutionSubscriptionData(searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const url = `/Institution/get_onload_grid_master_subscription?${urlParams}`;
+    try {
+        const response = await api.get<any>(
+            'sadmin',
+            url
+        );
+        return response;
+    } catch (error) {
+        throw error;
+    }
 }

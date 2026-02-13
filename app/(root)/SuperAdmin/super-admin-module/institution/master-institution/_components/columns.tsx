@@ -25,9 +25,9 @@ export const MasterInstitutionColumns: ColumnDef<IMasterInstitution>[] = [
         enableHiding: false
     },
     {
-        accessorKey: 'mO_Name',
+        accessorKey: 'organisationName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Trust Name' />,
-        cell: ({ row }) => <div>{row.getValue('mO_Name') || 'N/A'}</div>,
+        cell: ({ row }) => <div>{row.original.organisationName || row.original.mO_Name || 'N/A'}</div>,
         enableSorting: true
     },
     {

@@ -2620,114 +2620,180 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-                // {
-                //     id: 12,
-                //     name: 'Alumni',
-                //     icon: 'Users',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Alumni Module',
-                //             icon: 'BookOpen',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Transactions',
-                //                     icon: 'Database',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Alumni NoticeBoard',
-                //                             icon: 'Announcement',
-                //                             url: '/alumni/alumni-module/transactions/alumni-noticeboard',
-                //                             title: 'Alumni NoticeBoard',
-                //                             description: 'Manage Alumni NoticeBoard Details'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Alumni Gallery',
-                //                             icon: 'Image',
-                //                             url: '/alumni/alumni-module/transactions/alumni-gallery',
-                //                             title: 'Alumni Gallery',
-                //                             description: 'Manage Alumni Gallery Details'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Alumni Interactions',
-                //                             icon: 'MessageSquare',
-                //                             url: '/alumni/alumni-module/transactions/alumni-interactions',
-                //                             title: 'Alumni Interactions',
-                //                             description: 'Manage Alumni Interaction Details'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Alumni Friend Request',
-                //                             icon: 'UserPlus',
-                //                             url: '/alumni/alumni-module/transactions/alumni-friend-request',
-                //                             title: 'Alumni Friend Request',
-                //                             description: 'Manage Alumni Friend Request Details'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Alumni Friend Request Accept',
-                //                             icon: 'UserPlus',
-                //                             url: '/alumni/alumni-module/transactions/alumni-friend-request-accept',
-                //                             title: 'Alumni Friend Request Accept',
-                //                             description: 'Manage Alumni Friend Request Accept Details'
-                //                         },
-                //                         {
-                //                             id: 6,
-                //                             name: 'Alumni Donation',
-                //                             icon: 'HeartHandshake',
-                //                             url: '/alumni/alumni-module/transactions/alumni-donation',
-                //                             title: 'Alumni Donation',
-                //                             description: 'Manage Alumni Donation Details'
-                //                         },
-                //                         {
-                //                             id: 7,
-                //                             name: 'Alumni Letters',
-                //                             icon: 'MailOpen',
-                //                             url: '/alumni/alumni-module/transactions/alumni-letters',
-                //                             title: 'Alumni Letters',
-                //                             description: 'Generate Alumni Letters'
-                //                         },
-                //                         {
-                //                             id: 8,
-                //                             name: 'CLG Alumni Approval',
-                //                             icon: 'UserCheck',
-                //                             url: '/alumni/alumni-module/transactions/clg-alumni-approval',
-                //                             title: 'CLG Alumni Approval',
-                //                             description: 'Approve College Alumni Registrations'
-                //                         },
-                //                         {
-                //                             id: 9,
-                //                             name: 'CLG Student Search',
-                //                             icon: 'Search',
-                //                             url: '/alumni/alumni-module/transactions/clg-alumni-student-search',
-                //                             title: 'CLG Student Search',
-                //                             description: 'Search College Alumni Students'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 2,
-                //                     name: 'Reports',
-                //                     icon: 'FileText',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Alumni Search',
-                //                             icon: 'BookOpen',
-                //                             url: '/alumni/alumni-module/reports/alumni-search',
-                //                             title: 'Alumni Search',
-                //                             description: 'Dynamic Alumni Search Report'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
+                {
+                    id: 12,
+                    name: 'Alumni',
+                    icon: 'GraduationCap',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Alumni Module',
+                            icon: 'School',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Transactions',
+                                    icon: 'ArrowRightLeft',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Alumni Dashboard',
+                                            icon: 'LayoutDashboard',
+                                            url: '/alumni/alumni-module/transactions/alumni-dashboard',
+                                            title: 'Alumni Dashboard',
+                                            description: 'Alumni Portal Dashboard'
+                                        },
+                                        {
+                                            id: 13,
+                                            name: 'Alumni Details',
+                                            icon: 'UserRoundCog',
+                                            url: '/alumni/alumni-module/transactions/alumni-details',
+                                            title: 'Alumni Details',
+                                            description: 'Manage Alumni Details and Profile'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Alumni NoticeBoard',
+                                            icon: 'Megaphone',
+                                            url: '/alumni/alumni-module/transactions/alumni-noticeboard',
+                                            title: 'Alumni NoticeBoard',
+                                            description: 'Manage Alumni NoticeBoard Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Alumni Gallery',
+                                            icon: 'Images',
+                                            url: '/alumni/alumni-module/transactions/alumni-gallery',
+                                            title: 'Alumni Gallery',
+                                            description: 'Manage Alumni Gallery Details'
+                                        },
+                                        // {
+                                        //     id: 4,
+                                        //     name: 'Alumni Interactions',
+                                        //     icon: 'MessagesSquare',
+                                        //     url: '/alumni/alumni-module/transactions/alumni-interactions',
+                                        //     title: 'Alumni Interactions',
+                                        //     description: 'Manage Alumni Interaction Details'
+                                        // },
+                                        {
+                                            id: 5,
+                                            name: 'Alumni Friend Request',
+                                            icon: 'UserRoundPlus',
+                                            url: '/alumni/alumni-module/transactions/alumni-friend-request',
+                                            title: 'Alumni Friend Request',
+                                            description: 'Manage Alumni Friend Request Details'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Alumni Friend Request Accept',
+                                            icon: 'UserRoundCheck',
+                                            url: '/alumni/alumni-module/transactions/alumni-friend-request-accept',
+                                            title: 'Alumni Friend Request Accept',
+                                            description: 'Manage Alumni Friend Request Accept Details'
+                                        },
+                                        // {
+                                        //     id: 7,
+                                        //     name: 'Alumni Donation',
+                                        //     icon: 'HeartHandshake',
+                                        //     url: '/alumni/alumni-module/transactions/alumni-donation',
+                                        //     title: 'Alumni Donation',
+                                        //     description: 'Manage Alumni Donation Details'
+                                        // },
+                                        {
+                                            id: 8,
+                                            name: 'Alumni Letters',
+                                            icon: 'MailOpen',
+                                            url: '/alumni/alumni-module/transactions/alumni-letters',
+                                            title: 'Alumni Letters',
+                                            description: 'Generate Alumni Letters'
+                                        },
+                                        // {
+                                        //     id: 9,
+                                        //     name: 'CLG Alumni Approval',
+                                        //     icon: 'UserCheck',
+                                        //     url: '/alumni/alumni-module/transactions/clg-alumni-approval',
+                                        //     title: 'CLG Alumni Approval',
+                                        //     description: 'Approve College Alumni Registrations'
+                                        // },
+                                        // {
+                                        //     id: 10,
+                                        //     name: 'CLG Student Search',
+                                        //     icon: 'Search',
+                                        //     url: '/alumni/alumni-module/transactions/clg-alumni-student-search',
+                                        //     title: 'CLG Student Search',
+                                        //     description: 'Search College Alumni Students'
+                                        // },
+                                        {
+                                            id: 11,
+                                            name: 'User Password Creation',
+                                            icon: 'KeyRound',
+                                            url: '/alumni/alumni-module/transactions/user-password-creation',
+                                            title: 'User Password Creation',
+                                            description: 'Generate Usernames and Passwords'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Student Password Creation',
+                                            icon: 'LockKeyhole',
+                                            url: '/alumni/alumni-module/transactions/student-password-creation',
+                                            title: 'Student Password Creation',
+                                            description: 'Student Credentials Management'
+                                        },
+                                        {
+                                            id: 14,
+                                            name: 'COE Events',
+                                            icon: 'CalendarClock',
+                                            url: '/alumni/alumni-module/transactions/coe-events',
+                                            title: 'COE Events',
+                                            description: 'COE Events Management'
+                                        }
+                                        // ,
+                                        // {
+                                        //     id: 15,
+                                        //     name: 'Student Birthday Wishes',
+                                        //     icon: 'Cake',
+                                        //     url: '/alumni/alumni-module/transactions/student-birthday-wishes',
+                                        //     title: 'Student Birthday Wishes',
+                                        //     description: 'Student Birthday Wishes Management'
+                                        // }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Reports',
+                                    icon: 'BarChart3',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Alumni Search',
+                                            icon: 'UserSearch',
+                                            url: '/alumni/alumni-module/reports/alumni-search',
+                                            title: 'Alumni Search',
+                                            description: 'Dynamic Alumni Search Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Alumni Report',
+                                            icon: 'FilePieChart',
+                                            url: '/alumni/alumni-module/reports/alumni-report',
+                                            title: 'Alumni Report',
+                                            description: 'Comprehensive Alumni Report and Address Book'
+                                        }
+                                        // ,
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Alumni Student Birthday Report',
+                                        //     icon: 'Cake',
+                                        //     url: '/alumni/alumni-module/reports/alumni-student-birthday-report',
+                                        //     title: 'Alumni Student Birthday Report',
+                                        //     description: 'Report of student birthdays in alumni community'
+                                        // }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
                 // {
                 //     id: 25,
                 //     name: 'COE',
@@ -3713,7 +3779,66 @@ export async function getUserAccessibleModules() {
                 //         }
                 //     ]
                 // },
-
+                {
+                    id: 25,
+                    name: 'COE',
+                    icon: 'Settings',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Calendar of Events',
+                            icon: 'Settings',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Master',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Event',
+                                            icon: 'Settings',
+                                            url: '/coe/master/masterevent',
+                                            title: 'Master Event',
+                                            description: 'Manage Master Event Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Mapping',
+                                            icon: 'Settings',
+                                            url: '/coe/master/master-coe',
+                                            title: 'Mapping',
+                                            description: 'Manage Mapping Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Report',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'COE Report',
+                                            icon: 'Settings',
+                                            url: '/coe/report/coereport',
+                                            title: 'COE Report',
+                                            description: 'Manage COE Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'COE Month End Report',
+                                            icon: 'Settings',
+                                            url: '/coe/report/coemonthendreport',
+                                            title: 'COE Month End Report',
+                                            description: 'Manage COE Month End Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
                 {
                     id: 10,
                     name: 'Inventory Management',
@@ -4392,241 +4517,7 @@ export async function getUserAccessibleModules() {
                 //             ]
                 //         }
                 //     ]
-                // },
-                // {
-                //     id: 13,
-                //     name: 'Super Admin',
-                //     icon: 'Settings',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Super Admin Module',
-                //             icon: 'Settings',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Master Trust',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Master Trust',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/masters/trust-master',
-                //                             title: 'Master Trust',
-                //                             description: 'Manage Master Trust Details'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 2,
-                //                     name: 'Institution',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Master Institution',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/institution/master-institution',
-                //                             title: 'Master Institution',
-                //                             description: 'Manage Master Institution'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Institution Subscription',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/institution/institution-subscription',
-                //                             title: 'Institution Subscription',
-                //                             description: 'Manage Institution Subscription'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Auto Mapping',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/institution/auto-mapping',
-                //                             title: 'Auto Mapping',
-                //                             description: 'Manage Institution Auto Mapping'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 3,
-                //                     name: 'General Setting',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'General Setting Wizard',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/wizard',
-                //                             title: 'General Setting Wizard',
-                //                             description: 'General Setting Wizard'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Modules',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/module',
-                //                             title: 'Modules',
-                //                             description: 'Manage Master Modules'
-                //                         },
-                //                         {
-                //                             id: 7,
-                //                             name: 'Master Page',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/master-page',
-                //                             title: 'Master Page',
-                //                             description: 'Manage Master Page'
-                //                         },
-                //                         {
-                //                             id: 8,
-                //                             name: 'Page Mapping',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/page-mapping',
-                //                             title: 'Page Mapping',
-                //                             description: 'Map Pages to Modules'
-                //                         },
-                //                         {
-                //                             id: 9,
-                //                             name: 'Master Role',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/master-role',
-                //                             title: 'Master Role',
-                //                             description: 'Manage Master Role'
-                //                         },
-                //                         {
-                //                             id: 10,
-                //                             name: 'Master Role Type',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/master-role-type',
-                //                             title: 'Master Role Type',
-                //                             description: 'Manage Master Role Type'
-                //                         },
-                //                         {
-                //                             id: 11,
-                //                             name: 'Privileges',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/privileges',
-                //                             title: 'Privileges',
-                //                             description: 'Privileges'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Master Main Menu',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/master-main-menu',
-                //                             title: 'Master Main Menu',
-                //                             description: 'Manage Master Main Menu'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Master Sub Menu',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/master-sub-menu',
-                //                             title: 'Master Sub Menu',
-                //                             description: 'Manage Master Sub Menu'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Master Menu Page Mapping',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/master-menu-page-mapping',
-                //                             title: 'Master Menu Page Mapping',
-                //                             description: 'Manage Master Menu Page Mapping'
-                //                         },
-
-                //                         {
-                //                             id: 6,
-                //                             name: 'Master School Type',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/master-school-type',
-                //                             title: 'Master School Type',
-                //                             description: 'Manage Master School Type'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 4,
-                //                     name: 'Configuration Setting',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Institution Module Page',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/configuration-setting/institution-module-page',
-                //                             title: 'Institution Module Page',
-                //                             description: 'Master Institution Role and Module Mapping'
-                //                         },
-
-                //                         {
-                //                             id: 2,
-                //                             name: 'Master Main Menu INS',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/configuration-setting/master-main-menu-ins',
-                //                             title: 'Master Main Menu INS',
-                //                             description: 'Master Main Menu Institution Mapping'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Master Sub Menu INS',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/configuration-setting/master-sub-menu-ins',
-                //                             title: 'Master Sub Menu INS',
-                //                             description: 'Master Sub Menu Institution Mapping'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Master Menu Page Mapping Institutionwise',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/configuration-setting/master-menu-page-mapping-institutionwise',
-                //                             title: 'Master Menu Page Mapping Institutionwise',
-                //                             description: 'Master Menu Page Mapping Institutionwise'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 5,
-                //                     name: 'Mobile Configuration',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Mobile Master Page',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/configuration-setting/mobilemasterpage',
-                //                             title: 'Mobile Master Page',
-                //                             description: 'Mobile Master Page'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Mobile Role Privileges',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/configuration-setting/mobileroleprivileges',
-                //                             title: 'Mobile Role Privileges',
-                //                             description: 'Mobile Role Privileges'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 6,
-                //                     name: 'User Creation',
-                //                     icon: 'UserPlus',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Staff User Creation',
-                //                             icon: 'UserPlus',
-                //                             url: '/SuperAdmin/super-admin-module/user-creation/staff-user-creation',
-                //                             title: 'Staff User Creation',
-                //                             description: 'Manage Institution Staff User Details'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
+                // }
 
                 // {
                 //     id: 14,
@@ -5452,6 +5343,247 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+    } else if (session?.role.toUpperCase() === 'SUPER ADMIN') {
+        response = {
+            success: true,
+            message: 'Data fetched successfully!!',
+            data: [
+                {
+                    id: 13,
+                    name: 'Super Admin',
+                    icon: 'Settings',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Super Admin Module',
+                            icon: 'Settings',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Master Trust',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Trust',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/masters/trust-master',
+                                            title: 'Master Trust',
+                                            description: 'Manage Master Trust Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Institution',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Institution',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/institution/master-institution',
+                                            title: 'Master Institution',
+                                            description: 'Manage Master Institution'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Institution Subscription',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/institution/institution-subscription',
+                                            title: 'Institution Subscription',
+                                            description: 'Manage Institution Subscription'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Auto Mapping',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/institution/auto-mapping',
+                                            title: 'Auto Mapping',
+                                            description: 'Manage Institution Auto Mapping'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'General Setting',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'General Setting Wizard',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/wizard',
+                                            title: 'General Setting Wizard',
+                                            description: 'General Setting Wizard'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Modules',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/module',
+                                            title: 'Modules',
+                                            description: 'Manage Master Modules'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Master Page',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-page',
+                                            title: 'Master Page',
+                                            description: 'Manage Master Page'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Page Mapping',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/page-mapping',
+                                            title: 'Page Mapping',
+                                            description: 'Map Pages to Modules'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Master Role',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-role',
+                                            title: 'Master Role',
+                                            description: 'Manage Master Role'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'Master Role Type',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-role-type',
+                                            title: 'Master Role Type',
+                                            description: 'Manage Master Role Type'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Privileges',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/privileges',
+                                            title: 'Privileges',
+                                            description: 'Privileges'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Master Main Menu',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-main-menu',
+                                            title: 'Master Main Menu',
+                                            description: 'Manage Master Main Menu'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Master Sub Menu',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-sub-menu',
+                                            title: 'Master Sub Menu',
+                                            description: 'Manage Master Sub Menu'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Master Menu Page Mapping',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-menu-page-mapping',
+                                            title: 'Master Menu Page Mapping',
+                                            description: 'Manage Master Menu Page Mapping'
+                                        },
+
+                                        {
+                                            id: 6,
+                                            name: 'Master School Type',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-school-type',
+                                            title: 'Master School Type',
+                                            description: 'Manage Master School Type'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 4,
+                                    name: 'Configuration Setting',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Institution Module Page',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/institution-module-page',
+                                            title: 'Institution Module Page',
+                                            description: 'Master Institution Role and Module Mapping'
+                                        },
+
+                                        {
+                                            id: 2,
+                                            name: 'Master Main Menu INS',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/master-main-menu-ins',
+                                            title: 'Master Main Menu INS',
+                                            description: 'Master Main Menu Institution Mapping'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Master Sub Menu INS',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/master-sub-menu-ins',
+                                            title: 'Master Sub Menu INS',
+                                            description: 'Master Sub Menu Institution Mapping'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Master Menu Page Mapping Institutionwise',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/master-menu-page-mapping-institutionwise',
+                                            title: 'Master Menu Page Mapping Institutionwise',
+                                            description: 'Master Menu Page Mapping Institutionwise'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 5,
+                                    name: 'Mobile Configuration',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Mobile Master Page',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/mobilemasterpage',
+                                            title: 'Mobile Master Page',
+                                            description: 'Mobile Master Page'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Mobile Role Privileges',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/mobileroleprivileges',
+                                            title: 'Mobile Role Privileges',
+                                            description: 'Mobile Role Privileges'
+                                        }
+                                    ]
+                                }
+                                // {
+                                //     id: 6,
+                                //     name: 'User Creation',
+                                //     icon: 'UserPlus',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Staff User Creation',
+                                //             icon: 'UserPlus',
+                                //             url: '/SuperAdmin/super-admin-module/user-creation/staff-user-creation',
+                                //             title: 'Staff User Creation',
+                                //             description: 'Manage Institution Staff User Details'
+                                //         }
+                                //     ]
+                                // }
                             ]
                         }
                     ]

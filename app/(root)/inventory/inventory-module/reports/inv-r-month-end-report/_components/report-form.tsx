@@ -74,12 +74,19 @@ export default function ReportForm({ onReportGenerated, isLoading }: ReportFormP
         const acaYearObj = loadData?.acayear.find((y: any) => y.asmaY_Id === Number(data.ASMAY_Id));
         const monthObj = loadData?.month_array.find((m: any) => m.ivrM_Month_Id === Number(data.IVRM_Month_Id));
 
-        const payload = {
-            ...data,
+        const apiPayload = {
+            ASMAY_Id: Number(data.ASMAY_Id),
+            month: data.IVRM_Month_Id,
+            year: data.year,
+            IE_Name: data.IE_Name
+        };
+
+        const displayPayload = {
+            ...apiPayload,
             ASMAY_Year: acaYearObj?.asmaY_Year,
             Month_Name: monthObj?.ivrM_Month_Name
         };
-        onReportGenerated(data, payload);
+        onReportGenerated(apiPayload, displayPayload);
     };
 
     const handleCancel = () => {

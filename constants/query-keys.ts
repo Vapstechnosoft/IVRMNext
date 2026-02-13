@@ -564,7 +564,9 @@ export const STAFF_PORTAL_QUERY_KEYS = {
 };
 
 export const COE_QUERY_KEYS = {
-    MASTER_EVENT_COE: 'master_event_coe'
+    MASTER_EVENT_COE: 'master_event_coe',
+    MASTER_EVENT_COE_INITIAL_DATA: 'master_event_coe_initial_data',
+    EVENT_DROPDOWN: 'event_dropdown',
 };
 
 export const TRANSPORT_QUERY_KEYS = {
