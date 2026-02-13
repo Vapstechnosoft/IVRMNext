@@ -6,7 +6,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useInvMasterItemGroup } from '@/hooks/inventory/masters/use-inv-master-item-group';
 import type { IInvMasterItemGroup } from '@/types/inventory/masters/inv-master-group';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Boxes, PlusCircle, Pencil } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { InvMasterItemGroupColumns } from './_components/item-group-columns';
 import { AddItemGroupForm, ToggleItemGroupForm, UpdateItemGroupForm } from './_components/item-group-form';
@@ -56,7 +56,9 @@ function ItemGroupPageContent() {
                         defaultOpen={true}
                         variant='default'
                         size='lg'
-                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
+                        title='Item Group List'
+                        icon={<Boxes className='h-5 w-5' />}>
                         <GenericDataTable<IInvMasterItemGroup>
                             {...tableProps}
                             columns={InvMasterItemGroupColumns}
@@ -109,7 +111,8 @@ function FormSections({ response }: FormSectionsProps) {
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'
+                        icon={<PlusCircle className='h-5 w-5' />}>
                         <div className='relative'>
                             <Button
                                 type='button'
@@ -133,7 +136,8 @@ function FormSections({ response }: FormSectionsProps) {
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'
+                        icon={<Pencil className='h-5 w-5' />}>
                         <div className='relative'>
                             <Button
                                 type='button'
