@@ -43,8 +43,11 @@ export interface IEventsMappingDropdowns {
 
 export interface IEventsMappingData {
     spccE_Id: number;
+    asmaY_Id: number;
     asmaY_Year: string;
+    spccmE_Id: number;
     spccmE_EventName: string;
+    spccmeV_Id: number;
     spccmeV_EventVenue: string;
     spccE_StartDate: string;
     spccE_StartTime: string;

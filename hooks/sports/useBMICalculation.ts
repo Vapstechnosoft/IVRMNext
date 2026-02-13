@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getBMILoadGrid, getBMISections, getBMIStudents, saveBMIRecord, deactivateBMIRecord } from '@/server/sports/transactions/bmi-calculation';
-import { IBMISectionResponse } from '@/types/sports/transactions/bmi-calculation';
+import { getBMILoadGrid, getBMIClasses, getBMISections, getBMIStudents, saveBMIRecord, deactivateBMIRecord, editBMIRecord } from '@/server/sports/transactions/bmi-calculation';
+import { IBMIClassResponse, IBMISectionResponse, IBMIStudentResponse } from '@/types/sports/transactions/bmi-calculation';
 
 export const useBMICalculation = (searchParams?: any) => {
     const queryClient = useQueryClient();
@@ -10,11 +10,15 @@ export const useBMICalculation = (searchParams?: any) => {
         queryFn: () => getBMILoadGrid(searchParams),
     });
 
+    const classes = useMutation<IBMIClassResponse, Error, any>({
+        mutationFn: (data: any) => getBMIClasses(data),
+    });
+
     const sections = useMutation<IBMISectionResponse, Error, any>({
         mutationFn: (data: any) => getBMISections(data),
     });
 
-    const students = useMutation({
+    const students = useMutation<IBMIStudentResponse, Error, any>({
         mutationFn: (data: any) => getBMIStudents(data),
     });
 
@@ -23,6 +27,10 @@ export const useBMICalculation = (searchParams?: any) => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['bmi-calculation-list'] });
         },
+    });
+
+    const edit = useMutation({
+        mutationFn: (data: any) => editBMIRecord(data),
     });
 
     const deactivate = useMutation({
@@ -34,9 +42,11 @@ export const useBMICalculation = (searchParams?: any) => {
 
     return {
         ...loadGrid,
+        classes,
         sections,
         students,
         save,
+        edit,
         deactivate,
         refetchAll: () => queryClient.invalidateQueries({ queryKey: ['bmi-calculation-list'] })
     };

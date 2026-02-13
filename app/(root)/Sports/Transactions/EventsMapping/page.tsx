@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useEventsMapping } from '@/hooks/sports/useEventsMapping';
+import { useEventMapping } from '@/hooks/sports/useEventMapping';
 import type { IEventsMappingData } from '@/types/sports/events-mapping';
 import { Plus, X } from 'lucide-react';
 import AddEventsMappingForm from './_components/add-form';
@@ -12,28 +12,31 @@ import { eventsMappingColumns } from './_components/columns';
 import UpdateEventsMappingForm from './_components/update-form';
 
 export default function EventsMappingPage() {
-    const { gridData } = useEventsMapping();
-    const { data: response, isLoading, error } = gridData;
+    const { loadGrid } = useEventMapping();
+    const { data: response, isLoading, error } = loadGrid;
 
+    // We pass the full response to the content component to handle pagination metadata
     return (
-        <FormProvider<IEventsMappingData>>
-            <EventsMappingPageContent data={response?.data} isLoading={isLoading} error={error} />
+        <FormProvider<any>>
+            <EventsMappingPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
 
 function EventsMappingPageContent({
-    data,
+    response,
     isLoading,
     error
 }: {
-    data: IEventsMappingData[] | null | undefined;
+    response: any;
     isLoading: boolean;
     error: any;
 }) {
     const { openAddForm, isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
         useFormContext<IEventsMappingData>();
-    const tableProps = useDataTableProps(data || []);
+
+    const gridData = response?.data?.eventmappingList || [];
+    const tableProps = useDataTableProps({ ...response, data: gridData });
 
     return (
         <div className='min-h-screen'>
