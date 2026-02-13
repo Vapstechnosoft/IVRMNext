@@ -9,8 +9,8 @@ import { masterSubjectSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterSubject } from '@/server/exam/exam-module/masters/subject';
 import type { IMasterSubject } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { RefreshCw, Save } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -37,6 +37,16 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
         resolver: zodResolver(masterSubjectSchema.addOrUpdate),
         mode: 'onTouched'
     });
+
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        setIsLoading(true);
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [row]);
 
     // Initialize form with selected row safely
     useEffect(() => {
@@ -104,6 +114,15 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
             });
         }
     };
+
+    if (isLoading) {
+        return (
+            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
+                <RefreshCw className='h-8 w-8 animate-spin text-secondary' />
+                <p className='text-muted-foreground text-sm'>Loading data...</p>
+            </div>
+        );
+    }
 
     return (
         <div className={className}>

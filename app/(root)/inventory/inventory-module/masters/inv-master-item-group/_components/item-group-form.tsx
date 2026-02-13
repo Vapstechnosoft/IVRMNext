@@ -183,12 +183,12 @@ export function ToggleItemGroupForm({ rowData, onClose }: ToggleItemGroupFormPro
     const onSubmit: SubmitHandler<any> = async (data) => {
         try {
             const response = await deactivateInvMasterGroup(data);
-            if (response.returnval) {
+            if (response.returnval || response.success) {
                 toast.success(isActive ? 'Item Group Deactivated' : 'Item Group Activated');
                 queryClient.invalidateQueries({ queryKey: [INVENTORY_QUERY_KEYS.INV_MASTER_GROUP] });
                 onClose();
             } else {
-                toast.error('Failed to toggle status');
+                toast.error(response.message || 'Failed to toggle status');
             }
         } catch (error: any) {
             toast.error(error.message || 'An unexpected error occurred');

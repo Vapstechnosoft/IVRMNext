@@ -28,3 +28,14 @@ export const useInvRItemConsumptionReport = () => {
         }
     });
 };
+
+export const useInvRItemConsumptionReportQuery = (payload: IInvRItemConsumptionPayload | null, searchParams: any) => {
+    return useQuery({
+        queryKey: ['invRItemConsumptionReport', payload, searchParams],
+        queryFn: () => {
+            if (!payload) return { success: true, data: { get_ICReport: [] }, total: 0, message: '', page: 1, page_size: 10 };
+            return getInvRItemConsumptionReport(payload, searchParams);
+        },
+        enabled: !!payload
+    });
+};

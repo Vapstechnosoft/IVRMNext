@@ -2587,24 +2587,24 @@ export async function getUserAccessibleModules() {
                             sub_menu: [
                                 {
                                     id: 1,
-                                    name: 'IFrame',
+                                    name: 'AI Tools',
                                     icon: 'Database',
                                     pages: [
                                         {
                                             id: 1,
-                                            name: 'AI Assignment',
-                                            icon: 'BookOpen',
-                                            url: '/iframe/ai-assignment',
-                                            title: 'IFrame',
-                                            description: 'Manage AI Assignment Details'
+                                            name: 'Question Paper Generator',
+                                            icon: 'FileText',
+                                            url: '/iframe/ai-question-paper-generator',
+                                            title: 'AI Question Paper Generator',
+                                            description: 'Generate question papers from textbooks using AI'
                                         },
                                         {
                                             id: 2,
-                                            name: 'Question Generator',
-                                            icon: 'BookOpen',
-                                            url: '/iframe/question-generator',
-                                            title: 'IFrame',
-                                            description: 'Manage Question Generator Details'
+                                            name: 'AI Notemaker',
+                                            icon: 'FileText',
+                                            url: '/iframe/ai-notemaker',
+                                            title: 'AI Notemaker',
+                                            description: 'Summarize and create structured notes from textbooks using AI'
                                         }
                                     ]
                                 }
@@ -3834,22 +3834,22 @@ export async function getUserAccessibleModules() {
                 {
                     id: 10,
                     name: 'Inventory Management',
-                    icon: 'Users',
+                    icon: 'Package',
                     menu: [
                         {
                             id: 1,
                             name: 'Inventory Module',
-                            icon: 'Users',
+                            icon: 'Package',
                             sub_menu: [
                                 {
                                     id: 1,
                                     name: 'Masters',
-                                    icon: 'LayoutGrid',
+                                    icon: 'Database',
                                     pages: [
                                         {
                                             id: 101,
                                             name: 'Tax',
-                                            icon: 'Settings',
+                                            icon: 'Percent',
                                             url: '/inventory/inventory-module/masters/inv-master-tax',
                                             title: 'Inventory Master Tax',
                                             description: 'Manage Inventory Master Tax'
@@ -3857,7 +3857,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 102,
                                             name: 'Store',
-                                            icon: 'Settings',
+                                            icon: 'Store',
                                             url: '/inventory/inventory-module/masters/inv-master-store',
                                             title: 'Inventory Master Store',
                                             description: 'Manage Inventory Master Store'
@@ -3865,7 +3865,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 103,
                                             name: 'Supplier',
-                                            icon: 'Settings',
+                                            icon: 'Truck',
                                             url: '/inventory/inventory-module/masters/inv-master-supplier',
                                             title: 'Inventory Master Supplier',
                                             description: 'Manage Inventory Master Supplier'
@@ -3873,7 +3873,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 104,
                                             name: 'Customer',
-                                            icon: 'Settings',
+                                            icon: 'Users',
                                             url: '/inventory/inventory-module/masters/inv-master-customer',
                                             title: 'Inventory Master Customer',
                                             description: 'Manage Inventory Master Customer'
@@ -3881,7 +3881,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 105,
                                             name: 'Main Group',
-                                            icon: 'Settings',
+                                            icon: 'Grid',
                                             url: '/inventory/inventory-module/masters/inv-master-main-group',
                                             title: 'Main Group',
                                             description: 'Manage Inventory Main Group Details'
@@ -3889,7 +3889,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 106,
                                             name: 'User Group',
-                                            icon: 'Settings',
+                                            icon: 'UserCog',
                                             url: '/inventory/inventory-module/masters/inv-master-user-group',
                                             title: 'User Group',
                                             description: 'Manage Inventory User Group Details'
@@ -3897,7 +3897,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 107,
                                             name: 'Item Group',
-                                            icon: 'Settings',
+                                            icon: 'Boxes',
                                             url: '/inventory/inventory-module/masters/inv-master-item-group',
                                             title: 'Item Group',
                                             description: 'Manage Inventory Item Group Details'
@@ -3905,7 +3905,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 108,
                                             name: 'UOM',
-                                            icon: 'Settings',
+                                            icon: 'Ruler',
                                             url: '/inventory/inventory-module/masters/inv-master-uom',
                                             title: 'Inventory Master UOM',
                                             description: 'Manage Unit of Measurement Details'
@@ -3913,7 +3913,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 109,
                                             name: 'Master Item',
-                                            icon: 'Settings',
+                                            icon: 'Box',
                                             url: '/inventory/inventory-module/masters/inv-master-item',
                                             title: 'Master Item',
                                             description: 'Manage Inventory Master Item Details'
@@ -3921,7 +3921,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 110,
                                             name: 'Master Product',
-                                            icon: 'Settings',
+                                            icon: 'Package',
                                             url: '/inventory/inventory-module/masters/inv-master-product',
                                             title: 'Master Product',
                                             description: 'Manage Inventory Master Product Details'
@@ -3931,12 +3931,12 @@ export async function getUserAccessibleModules() {
                                 {
                                     id: 2,
                                     name: 'Transactions',
-                                    icon: 'FileText',
+                                    icon: 'ArrowRightLeft',
                                     pages: [
                                         {
                                             id: 201,
                                             name: 'GRN',
-                                            icon: 'FileText',
+                                            icon: 'ClipboardList',
                                             url: '/inventory/inventory-module/transactions/inv-t-grn',
                                             title: 'Inventory GRN',
                                             description: 'Manage Inventory Goods Receipt Note'
@@ -3944,7 +3944,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 202,
                                             name: 'Sales',
-                                            icon: 'FileText',
+                                            icon: 'ShoppingCart',
                                             url: '/inventory/inventory-module/transactions/inv-t-sales',
                                             title: 'Inventory Sales',
                                             description: 'Manage Inventory Sales'
@@ -3952,7 +3952,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 203,
                                             name: 'Item Consumption',
-                                            icon: 'FileText',
+                                            icon: 'PackageMinus',
                                             url: '/inventory/inventory-module/transactions/inv-t-item-consumption',
                                             title: 'Item Consumption',
                                             description: 'Manage Item Consumption'
@@ -3960,7 +3960,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 204,
                                             name: 'Opening Balance',
-                                            icon: 'FileText',
+                                            icon: 'Wallet',
                                             url: '/inventory/inventory-module/transactions/inv-opening-balance',
                                             title: 'Opening Balance',
                                             description: 'Manage Inventory Opening Balance'
@@ -3968,7 +3968,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 205,
                                             name: 'Stock Updation',
-                                            icon: 'FileText',
+                                            icon: 'Layers',
                                             url: '/inventory/inventory-module/transactions/inv-stock',
                                             title: 'Stock Updation',
                                             description: 'Manage Inventory Stock Updation'
@@ -3976,7 +3976,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 206,
                                             name: 'Vendor Payment',
-                                            icon: 'FileText',
+                                            icon: 'CreditCard',
                                             url: '/inventory/inventory-module/transactions/inv-vendor-payment',
                                             title: 'Vendor Payment',
                                             description: 'Manage Vendor Payments'
@@ -3986,7 +3986,7 @@ export async function getUserAccessibleModules() {
                                 {
                                     id: 3,
                                     name: 'Reports',
-                                    icon: 'FileText',
+                                    icon: 'BarChart3',
                                     pages: [
                                         {
                                             id: 1,
@@ -4027,13 +4027,22 @@ export async function getUserAccessibleModules() {
                                             url: '/inventory/inventory-module/reports/inv-r-month-end-report',
                                             title: 'Inventory Month End Report',
                                             description: 'Generate Inventory Month End Reports'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Vendor Payment Report',
+                                            icon: 'FileText',
+                                            url: '/inventory/inventory-module/reports/inv-r-vendor-payment',
+                                            title: 'Vendor Payment Report',
+                                            description: 'Generate Vendor Payment Reports'
                                         }
                                     ]
                                 }
                             ]
                         }
                     ]
-                },
+                }
+
                 //         {
                 //             id: 3,
                 //             name: 'Interaction',
@@ -4510,240 +4519,6 @@ export async function getUserAccessibleModules() {
                 //         }
                 //     ]
                 // }
-                {
-                    id: 13,
-                    name: 'Super Admin',
-                    icon: 'Settings',
-                    menu: [
-                        {
-                            id: 1,
-                            name: 'Super Admin Module',
-                            icon: 'Settings',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Master Trust',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Master Trust',
-                                            icon: 'Settings',
-                                            url: '/SuperAdmin/super-admin-module/masters/trust-master',
-                                            title: 'Master Trust',
-                                            description: 'Manage Master Trust Details'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Institution',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Master Institution',
-                                            icon: 'Settings',
-                                            url: '/SuperAdmin/super-admin-module/institution/master-institution',
-                                            title: 'Master Institution',
-                                            description: 'Manage Master Institution'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Institution Subscription',
-                                            icon: 'Settings',
-                                            url: '/SuperAdmin/super-admin-module/institution/institution-subscription',
-                                            title: 'Institution Subscription',
-                                            description: 'Manage Institution Subscription'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Auto Mapping',
-                                            icon: 'Settings',
-                                            url: '/SuperAdmin/super-admin-module/institution/auto-mapping',
-                                            title: 'Auto Mapping',
-                                            description: 'Manage Institution Auto Mapping'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 3,
-                                    name: 'General Setting',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'General Setting Wizard',
-                                            icon: 'Settings',
-                                            url: '/SuperAdmin/super-admin-module/general-setting/wizard',
-                                            title: 'General Setting Wizard',
-                                            description: 'General Setting Wizard'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Modules',
-                                            icon: 'Settings',
-                                            url: '/SuperAdmin/super-admin-module/general-setting/module',
-                                            title: 'Modules',
-                                            description: 'Manage Master Modules'
-                                        },
-                                        {
-                                            id: 7,
-                                            name: 'Master Page',
-                                            icon: 'Settings',
-                                            url: '/SuperAdmin/super-admin-module/general-setting/master-page',
-                                            title: 'Master Page',
-                                            description: 'Manage Master Page'
-                                        },
-                                        {
-                                            id: 8,
-                                            name: 'Page Mapping',
-                                            icon: 'Settings',
-                                            url: '/SuperAdmin/super-admin-module/general-setting/page-mapping',
-                                            title: 'Page Mapping',
-                                            description: 'Map Pages to Modules'
-                                        },
-                                        {
-                                            id: 9,
-                                            name: 'Master Role',
-                                            icon: 'Settings',
-                                            url: '/SuperAdmin/super-admin-module/general-setting/master-role',
-                                            title: 'Master Role',
-                                            description: 'Manage Master Role'
-                                        },
-                                        {
-                                            id: 10,
-                                            name: 'Master Role Type',
-                                            icon: 'Settings',
-                                            url: '/SuperAdmin/super-admin-module/general-setting/master-role-type',
-                                            title: 'Master Role Type',
-                                            description: 'Manage Master Role Type'
-                                        },
-                                        {
-                                            id: 11,
-                                            name: 'Privileges',
-                                            icon: 'Settings',
-                                            url: '/SuperAdmin/super-admin-module/general-setting/privileges',
-                                            title: 'Privileges',
-                                            description: 'Privileges'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Master Main Menu',
-                                            icon: 'Settings',
-                                            url: '/SuperAdmin/super-admin-module/general-setting/master-main-menu',
-                                            title: 'Master Main Menu',
-                                            description: 'Manage Master Main Menu'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Master Sub Menu',
-                                            icon: 'Settings',
-                                            url: '/SuperAdmin/super-admin-module/general-setting/master-sub-menu',
-                                            title: 'Master Sub Menu',
-                                            description: 'Manage Master Sub Menu'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Master Menu Page Mapping',
-                                            icon: 'Settings',
-                                            url: '/SuperAdmin/super-admin-module/general-setting/master-menu-page-mapping',
-                                            title: 'Master Menu Page Mapping',
-                                            description: 'Manage Master Menu Page Mapping'
-                                        },
-
-                                        {
-                                            id: 6,
-                                            name: 'Master School Type',
-                                            icon: 'Settings',
-                                            url: '/SuperAdmin/super-admin-module/general-setting/master-school-type',
-                                            title: 'Master School Type',
-                                            description: 'Manage Master School Type'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 4,
-                                    name: 'Configuration Setting',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Institution Module Page',
-                                            icon: 'Settings',
-                                            url: '/SuperAdmin/super-admin-module/configuration-setting/institution-module-page',
-                                            title: 'Institution Module Page',
-                                            description: 'Master Institution Role and Module Mapping'
-                                        },
-
-                                        {
-                                            id: 2,
-                                            name: 'Master Main Menu INS',
-                                            icon: 'Settings',
-                                            url: '/SuperAdmin/super-admin-module/configuration-setting/master-main-menu-ins',
-                                            title: 'Master Main Menu INS',
-                                            description: 'Master Main Menu Institution Mapping'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Master Sub Menu INS',
-                                            icon: 'Settings',
-                                            url: '/SuperAdmin/super-admin-module/configuration-setting/master-sub-menu-ins',
-                                            title: 'Master Sub Menu INS',
-                                            description: 'Master Sub Menu Institution Mapping'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Master Menu Page Mapping Institutionwise',
-                                            icon: 'Settings',
-                                            url: '/SuperAdmin/super-admin-module/configuration-setting/master-menu-page-mapping-institutionwise',
-                                            title: 'Master Menu Page Mapping Institutionwise',
-                                            description: 'Master Menu Page Mapping Institutionwise'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 5,
-                                    name: 'Mobile Configuration',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Mobile Master Page',
-                                            icon: 'Settings',
-                                            url: '/SuperAdmin/super-admin-module/configuration-setting/mobilemasterpage',
-                                            title: 'Mobile Master Page',
-                                            description: 'Mobile Master Page'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Mobile Role Privileges',
-                                            icon: 'Settings',
-                                            url: '/SuperAdmin/super-admin-module/configuration-setting/mobileroleprivileges',
-                                            title: 'Mobile Role Privileges',
-                                            description: 'Mobile Role Privileges'
-                                        }
-                                    ]
-                                }
-                                // {
-                                //     id: 6,
-                                //     name: 'User Creation',
-                                //     icon: 'UserPlus',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'Staff User Creation',
-                                //             icon: 'UserPlus',
-                                //             url: '/SuperAdmin/super-admin-module/user-creation/staff-user-creation',
-                                //             title: 'Staff User Creation',
-                                //             description: 'Manage Institution Staff User Details'
-                                //         }
-                                //     ]
-                                // }
-                            ]
-                        }
-                    ]
-                }
 
                 // {
                 //     id: 14,
@@ -5569,6 +5344,247 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+    } else if (session?.role.toUpperCase() === 'SUPER ADMIN') {
+        response = {
+            success: true,
+            message: 'Data fetched successfully!!',
+            data: [
+                {
+                    id: 13,
+                    name: 'Super Admin',
+                    icon: 'Settings',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Super Admin Module',
+                            icon: 'Settings',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Master Trust',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Trust',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/masters/trust-master',
+                                            title: 'Master Trust',
+                                            description: 'Manage Master Trust Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Institution',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Institution',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/institution/master-institution',
+                                            title: 'Master Institution',
+                                            description: 'Manage Master Institution'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Institution Subscription',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/institution/institution-subscription',
+                                            title: 'Institution Subscription',
+                                            description: 'Manage Institution Subscription'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Auto Mapping',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/institution/auto-mapping',
+                                            title: 'Auto Mapping',
+                                            description: 'Manage Institution Auto Mapping'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'General Setting',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'General Setting Wizard',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/wizard',
+                                            title: 'General Setting Wizard',
+                                            description: 'General Setting Wizard'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Modules',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/module',
+                                            title: 'Modules',
+                                            description: 'Manage Master Modules'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Master Page',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-page',
+                                            title: 'Master Page',
+                                            description: 'Manage Master Page'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Page Mapping',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/page-mapping',
+                                            title: 'Page Mapping',
+                                            description: 'Map Pages to Modules'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Master Role',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-role',
+                                            title: 'Master Role',
+                                            description: 'Manage Master Role'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'Master Role Type',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-role-type',
+                                            title: 'Master Role Type',
+                                            description: 'Manage Master Role Type'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Privileges',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/privileges',
+                                            title: 'Privileges',
+                                            description: 'Privileges'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Master Main Menu',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-main-menu',
+                                            title: 'Master Main Menu',
+                                            description: 'Manage Master Main Menu'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Master Sub Menu',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-sub-menu',
+                                            title: 'Master Sub Menu',
+                                            description: 'Manage Master Sub Menu'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Master Menu Page Mapping',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-menu-page-mapping',
+                                            title: 'Master Menu Page Mapping',
+                                            description: 'Manage Master Menu Page Mapping'
+                                        },
+
+                                        {
+                                            id: 6,
+                                            name: 'Master School Type',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-school-type',
+                                            title: 'Master School Type',
+                                            description: 'Manage Master School Type'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 4,
+                                    name: 'Configuration Setting',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Institution Module Page',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/institution-module-page',
+                                            title: 'Institution Module Page',
+                                            description: 'Master Institution Role and Module Mapping'
+                                        },
+
+                                        {
+                                            id: 2,
+                                            name: 'Master Main Menu INS',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/master-main-menu-ins',
+                                            title: 'Master Main Menu INS',
+                                            description: 'Master Main Menu Institution Mapping'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Master Sub Menu INS',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/master-sub-menu-ins',
+                                            title: 'Master Sub Menu INS',
+                                            description: 'Master Sub Menu Institution Mapping'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Master Menu Page Mapping Institutionwise',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/master-menu-page-mapping-institutionwise',
+                                            title: 'Master Menu Page Mapping Institutionwise',
+                                            description: 'Master Menu Page Mapping Institutionwise'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 5,
+                                    name: 'Mobile Configuration',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Mobile Master Page',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/mobilemasterpage',
+                                            title: 'Mobile Master Page',
+                                            description: 'Mobile Master Page'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Mobile Role Privileges',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/mobileroleprivileges',
+                                            title: 'Mobile Role Privileges',
+                                            description: 'Mobile Role Privileges'
+                                        }
+                                    ]
+                                }
+                                // {
+                                //     id: 6,
+                                //     name: 'User Creation',
+                                //     icon: 'UserPlus',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Staff User Creation',
+                                //             icon: 'UserPlus',
+                                //             url: '/SuperAdmin/super-admin-module/user-creation/staff-user-creation',
+                                //             title: 'Staff User Creation',
+                                //             description: 'Manage Institution Staff User Details'
+                                //         }
+                                //     ]
+                                // }
                             ]
                         }
                     ]

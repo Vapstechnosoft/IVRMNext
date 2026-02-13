@@ -16,6 +16,14 @@ export interface IStateDropdown {
     ivrmmS_Id: number;
     ivrmmS_Name: string;
 }
+export interface IDistrictDropdown {
+    ivrmmD_Id: number;
+    ivrmmD_Name: string;
+}
+export interface IMasterCategoryDropDown {
+    amC_Id: number; // NOTE: Backend returns 'amC_Id' but frontend often expects 'imC_Id'. Keeping consistent with API response.
+    amC_Name: string;
+}
 export interface IGenderDropdown {
     ivrmmG_Id: number;
     ivrmmG_GenderName: string;
