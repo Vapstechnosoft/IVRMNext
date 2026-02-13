@@ -20,6 +20,7 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import DayPeriodList from './day-period-list';
+import ToggleDayPeriodForm from '../toggleButton/dayPeriodToggle';
 
 type DayPeriodSchema = z.infer<typeof dayPeriodSchema>;
 
@@ -49,7 +50,17 @@ export default function DayPeriodTab({ initialData }: DayPeriodTabProps) {
 }
 
 function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
-    const { isAddFormOpen, isEditFormOpen, openAddForm, closeAddForm, closeEditForm, closeAllForms } = useFormContext();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        openAddForm,
+        closeAddForm,
+        closeEditForm,
+        closeAllForms,
+        isToggleFormOpen,
+        closeToggleForm,
+        selectedRow
+    } = useFormContext();
 
     // Use hooks for Academic Year and Category
     const { data: academicYearData, isLoading: academicLoading } = useAcademicYearDropDownMasterDayClasswise();
@@ -80,7 +91,6 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
         control,
         watch,
         reset,
-        setValue,
         formState: { errors, isSubmitting }
     } = form;
 
@@ -91,8 +101,6 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
         ASMAY_Id: watchedYear,
         TTMC_Id: watchedCategory
     });
-
-    const { selectedRow } = useFormContext();
 
     // Effect for populating form when editing
     useEffect(() => {
@@ -160,6 +168,10 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                 </div>
 
                 <DayPeriodList data={extractList(gridData) || extractList(initialData, 'dayperiodlist')} isLoading={gridLoading} />
+
+                {isToggleFormOpen && selectedRow && (
+                    <ToggleDayPeriodForm rowData={selectedRow as any} onClose={closeToggleForm} />
+                )}
 
                 {(isAddFormOpen || isEditFormOpen) && (
                     <CollapsibleSection

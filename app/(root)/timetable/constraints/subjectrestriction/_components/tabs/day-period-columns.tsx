@@ -87,7 +87,7 @@ export const columns: ColumnDef<IDayPeriodList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IDayPeriodList }) {
-    const { openEditForm, openDeleteForm } = useFormContext<IDayPeriodList>();
+    const { openEditForm, openToggleForm } = useFormContext<IDayPeriodList>();
 
     const handleEdit = useCallback(
         (data: IDayPeriodList) => {
@@ -96,19 +96,20 @@ function ActionButtonsCell({ rowData }: { rowData: IDayPeriodList }) {
         [openEditForm]
     );
 
-    const handleDelete = useCallback(
+    const handleToggle = useCallback(
         (data: IDayPeriodList) => {
-            if (openDeleteForm) openDeleteForm(data);
+            if (openToggleForm) openToggleForm(data);
         },
-        [openDeleteForm]
+        [openToggleForm]
     );
 
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, delete: true }} // No toggle needed?
+            buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
-            onDelete={handleDelete}
+            onToggle={handleToggle}
+            toggleConditionKey='ttrdP_ActiveFlag'
         />
     );
 }

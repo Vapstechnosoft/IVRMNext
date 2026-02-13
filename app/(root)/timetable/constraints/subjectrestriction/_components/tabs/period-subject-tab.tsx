@@ -21,6 +21,7 @@ import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-ho
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import PeriodSubjectList from './period-subject-list';
+import TogglePeriodSubjectForm from '../toggleButton/periodSubjectToggle';
 
 type PeriodSubjectSchema = z.infer<typeof periodSubjectSchema>;
 
@@ -50,7 +51,16 @@ export default function PeriodSubjectTab({ initialData }: PeriodSubjectTabProps)
 }
 
 function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
-    const { isAddFormOpen, isEditFormOpen, openAddForm, closeAddForm, closeEditForm, selectedRow } = useFormContext();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        openAddForm,
+        closeAddForm,
+        closeEditForm,
+        selectedRow,
+        isToggleFormOpen,
+        closeToggleForm
+    } = useFormContext();
 
     // Use hooks for dropdowns
     const { data: academicYearData, isLoading: academicLoading } = useAcademicYearDropDownMasterDayClasswise();
@@ -204,6 +214,10 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                     asmaY_Id={watchedYear}
                 />
 
+                {isToggleFormOpen && selectedRow && (
+                    <TogglePeriodSubjectForm rowData={selectedRow as any} onClose={closeToggleForm} />
+                )}
+
                 {(isAddFormOpen || isEditFormOpen) && (
                     <CollapsibleSection
                         title={isEditFormOpen ? 'Edit Period Subject Constraint' : 'Add New Period Subject Constraint'}
@@ -222,7 +236,6 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                             </Button>
 
                             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 bg-white p-6'>
-                                {/* Existing form content */}
                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
                                     <div className='space-y-2'>
                                         <Label>

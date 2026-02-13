@@ -21,6 +21,7 @@ import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-ho
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import PeriodStaffList from './period-staff-list';
+import TogglePeriodStaffForm from '../toggleButton/periodStaffToggle';
 
 type PeriodStaffSchema = z.infer<typeof periodStaffSchema>;
 
@@ -50,7 +51,16 @@ export default function PeriodStaffTab({ initialData }: PeriodStaffTabProps) {
 }
 
 function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
-    const { isAddFormOpen, isEditFormOpen, openAddForm, closeAddForm, closeEditForm, selectedRow } = useFormContext();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        openAddForm,
+        closeAddForm,
+        closeEditForm,
+        selectedRow,
+        isToggleFormOpen,
+        closeToggleForm
+    } = useFormContext();
 
     // Use hooks for dropdowns
     const { data: academicYearData, isLoading: academicLoading } = useAcademicYearDropDownMasterDayClasswise();
@@ -205,6 +215,10 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                     asmaY_Id={watchedYear}
                 />
 
+                {isToggleFormOpen && selectedRow && (
+                    <TogglePeriodStaffForm rowData={selectedRow as any} onClose={closeToggleForm} />
+                )}
+
                 {(isAddFormOpen || isEditFormOpen) && (
                     <CollapsibleSection
                         title={isEditFormOpen ? 'Edit Period Staff Constraint' : 'Add New Period Staff Constraint'}
@@ -223,7 +237,6 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                             </Button>
 
                             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 bg-white p-6'>
-                                {/* Existing form content */}
                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
                                     <div className='space-y-2'>
                                         <Label>

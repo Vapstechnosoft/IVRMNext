@@ -3,12 +3,10 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useMasterDay } from '@/hooks/timetable/useMasters';
+import { useDaySubjectGridData } from '@/hooks/timetable/constraints/fixingData';
 import { masterDaySchema } from '@/schemas/timetable/masters';
-import { deactivateFixingDayStaff } from '@/server/timetable/constraints/fixing';
-import { ToggleMasterDay } from '@/server/timetable/masters/masterday';
+import { deactivateFixingDaySubject } from '@/server/timetable/constraints/fixing';
 import { TTDaySubjectGridData } from '@/types/timetable/constraints/fixing';
-import type { IMasterDayList } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -21,8 +19,8 @@ interface ToggleDaySubjectProps {
     onClose: () => void;
 }
 
-export default function ToggleDayPeriodtForm({ rowData, onClose }: ToggleDaySubjectProps) {
-    const { refetchAll } = useMasterDay();
+export default function ToggleDaySubjectForm({ rowData, onClose }: ToggleDaySubjectProps) {
+    const { refetchAll } = useDaySubjectGridData();
     const isActive = rowData.ttfdsU_ActiveFlag;
 
     const {
@@ -42,17 +40,20 @@ export default function ToggleDayPeriodtForm({ rowData, onClose }: ToggleDaySubj
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await deactivateFixingDayStaff(Number(rowData.ttfdsU_Id));
+            const response = await deactivateFixingDaySubject({
+                TTFDSU_Id: Number(rowData.ttfdsU_Id),
+                TTFDSU_ActiveFlag: !isActive
+            });
 
-            if (response.success) {
-                toast.success(response.message);
+            if (response.success || response.returnval === true) {
+                toast.success(response.message || 'Status updated successfully');
                 refetchAll();
                 closeDialog();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to update status');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error.message || 'An error occurred');
         }
     };
 
@@ -62,7 +63,8 @@ export default function ToggleDayPeriodtForm({ rowData, onClose }: ToggleDaySubj
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('ttmD_Id')} defaultValue={rowData.ttfdsU_Id} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.ttmD_DayName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
+                        <strong>{rowData.ismS_SubjectName}</strong>?
                     </p>
                     <FormError>{errors.ttmD_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>

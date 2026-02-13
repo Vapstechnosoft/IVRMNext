@@ -12,7 +12,7 @@ export interface SubjectRestrictionDayPeriodGridData {
 }
 
 export interface SubjectRestrictionDaySubjectGridData {
-    ttrdsU_Id: number; //id
+    ttrdsU_Id: number; //id 
     asmaY_Year: string; //academic year
     ismS_SubjectName: string; //subject
     ttmD_Id: number; //day

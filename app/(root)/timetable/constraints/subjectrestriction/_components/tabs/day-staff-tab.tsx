@@ -20,6 +20,7 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import DayStaffList from './day-staff-list';
+import ToggleDayStaffForm from '../toggleButton/dayStaffToggle';
 
 type DayStaffSchema = z.infer<typeof dayStaffSchema>;
 
@@ -49,7 +50,17 @@ export default function DayStaffTab({ initialData }: DayStaffTabProps) {
 }
 
 function DayStaffTabContent({ initialData }: DayStaffTabProps) {
-    const { isAddFormOpen, isEditFormOpen, openAddForm, closeAddForm, closeEditForm, closeAllForms } = useFormContext();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        openAddForm,
+        closeAddForm,
+        closeEditForm,
+        closeAllForms,
+        isToggleFormOpen,
+        closeToggleForm,
+        selectedRow
+    } = useFormContext();
 
     const { data: academicYearData, isLoading: academicLoading } = useAcademicYearDropDownMasterDayClasswise();
     const { data: staffData, isLoading: staffLoading } = useStaffDropDownDayStaff();
@@ -84,8 +95,6 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
         ASMAY_Id: watchedYear,
         TTMC_Id: 0 // Mocking Category if required by type, though tab implies Staff focus
     });
-
-    const { selectedRow } = useFormContext();
 
     // Effect for populating form when editing
     useEffect(() => {
@@ -147,6 +156,10 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
                 </div>
 
                 <DayStaffList data={extractList(gridData) || extractList(initialData, 'daystafflist')} isLoading={gridLoading} />
+
+                {isToggleFormOpen && selectedRow && (
+                    <ToggleDayStaffForm rowData={selectedRow as any} onClose={closeToggleForm} />
+                )}
 
                 {(isAddFormOpen || isEditFormOpen) && (
                     <CollapsibleSection

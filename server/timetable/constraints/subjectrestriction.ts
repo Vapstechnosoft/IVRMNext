@@ -42,6 +42,12 @@ export async function getCategorySubject() {
     return response.data;
 }
 
+export async function ToggleSubjectDayPeriod(ttrdP_Id: number) {
+    const url = `/RestrictionFacade/SubjectRestrictionDayPeriodActivateDeactivate/${ttrdP_Id}`;
+    return await api.put<any>('timetable', url);
+}
+
+
 // --- Tab 2: Day Staff ---
 //for daystaff and period staff and period subject
 export async function getAcademicYearDayStaff() {
@@ -66,11 +72,10 @@ export async function getDayStaffEditDetails(id: number) {
     return await api.get<any>('timetable', url);
 }
 
-export async function deactivateDayStaff(data: any) {
-    const url = '/Restriction/deactivate2';
-    return await api.post<any>('timetable', url, data);
+export async function ToggleSubjectDayStaff(ttrdsU_Id: number) {
+    const url = `/RestrictionFacade/SubjectRestrictionDayStaffActivateDeactivate/${ttrdsU_Id}`;
+    return await api.put<any>('timetable', url);
 }
-
 // --- Tab 3: Day Subject ---
 //subject and period subject
 export async function getSubjectDaySubject() {
@@ -90,11 +95,10 @@ export async function getDaySubjectEditDetails(id: number) {
     return await api.get<any>('timetable', url);
 }
 
-export async function deactivateDaySubject(data: any) {
-    const url = '/Restriction/deactivate3';
-    return await api.post<any>('timetable', url, data);
+export async function ToggleSubjectDaySubject(ttrdsU_Id: number) {
+    const url = `/RestrictionFacade/SubjectRestrictionDaySubjectActivateDeactivate/${ttrdsU_Id}`;
+    return await api.put<any>('timetable', url);
 }
-
 // --- Tab 4: Period Staff ---
 export async function savePeriodStaffDetail(data: any) {
     const url = '/Restriction/savedetail4';
@@ -105,6 +109,11 @@ export async function getPeriodStaffEditDetails(id: number) {
     return await api.get<any>('timetable', url);
 }
 
+export async function ToggleSubjectPeriodStaff(ttrpS_Id: number) {
+    const url = `/RestrictionFacade/SubjectRestrictionPeriodStaffActivateDeactivate/${ttrpS_Id}`;
+    return await api.put<any>('timetable', url);
+}
+
 // --- Tab 5: Period Subject ---
 export async function savePeriodSubjectDetail(data: any) {
     const url = '/Restriction/savedetail5';
@@ -113,6 +122,11 @@ export async function savePeriodSubjectDetail(data: any) {
 export async function getPeriodSubjectEditDetails(id: number) {
     const url = `/Restriction/getpagedetails5/${id}`;
     return await api.get<any>('timetable', url);
+}
+
+export async function ToggleSubjectPeriodSubject(ttrpsU_Id: number) {
+    const url = `/RestrictionFacade/SubjectRestrictionPeriodSubjectActivateDeactivate/${ttrpsU_Id}`;
+    return await api.put<any>('timetable', url);
 }
 
 // --- Helper Dropdown Fetchers ---

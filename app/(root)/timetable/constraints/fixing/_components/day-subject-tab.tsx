@@ -14,7 +14,6 @@ import { useDaySubjectGridData } from '@/hooks/timetable/constraints/fixingData'
 import { type FixingDaySubjectSchema, fixingDaySubjectSchema } from '@/schemas/timetable/constraints/fixing';
 import { getSubjectDropDown } from '@/server/timetable/constraints/FixingForm';
 import {
-    deactivateFixingDaySubject,
     getClassByCategory,
     getFixingDaySubjectDetails,
     getSectionByClass,
@@ -30,6 +29,7 @@ import { toast } from 'sonner';
 import { daySubjectColumns } from './columns';
 import { TTDaySubjectGridData } from '@/types/timetable/constraints/fixing';
 import { FixingViewModal } from './fixing-view-modal';
+import ToggleDaySubjectForm from './DaysSubjectToggle';
 
 interface DaySubjectTabProps {
     initialData: any;
@@ -56,7 +56,6 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
     const [dayList] = useState<any[]>(initialData?.daylist || []);
     const [subjectList, setSubjectList] = useState<any[]>([]);
 
-    // Fetch Grid Data
     const { data: gridResponse } = useDaySubjectGridData();
     let gridData: TTDaySubjectGridData[] = [];
     if (gridResponse) {
@@ -77,7 +76,6 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
     const [subStaffList, setSubStaffList] = useState<any[]>([]);
     const [categoryList] = useState<any[]>(initialData?.categorylist || []);
 
-    // View Modal State
     const [viewDetails, setViewDetails] = useState<any[]>([]);
     const [isLoadingView, setIsLoadingView] = useState(false);
 
@@ -112,33 +110,21 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         const loadDropdowns = async () => {
             try {
                 const [subject] = await Promise.all([getSubjectDropDown()]);
-
                 setSubjectList(subject || []);
             } catch (error) {
                 console.error('Failed to load dropdowns:', error);
                 toast.error('Failed to load dropdown options');
             }
         };
-
         loadDropdowns();
     }, []);
 
-    // Effect to populate form on Edit
     useEffect(() => {
         if (isEditFormOpen && selectedRow) {
             onEdit(selectedRow);
         }
     }, [isEditFormOpen, selectedRow]);
 
-    // Effect to handle Toggle
-    useEffect(() => {
-        if (isToggleFormOpen && selectedRow) {
-            onToggle(selectedRow);
-            closeToggleForm();
-        }
-    }, [isToggleFormOpen, selectedRow]);
-
-    // Effect to handle View
     useEffect(() => {
         if (isDetailsViewOpen && viewRow) {
             onView(viewRow);
@@ -156,7 +142,6 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         if (ASMAY_Id && categoryId) {
             try {
                 const res = await getClassByCategory({ ASMAY_Id, TTMC_Id: categoryId });
-                // biome-ignore lint/complexity/useOptionalChain: <explanation>
                 if (res && res.classbycategory) setClassList(res.classbycategory as any[]);
             } catch (e) {
                 console.error(e);
@@ -173,7 +158,6 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         if (ASMAY_Id && selectedCategory && classId) {
             try {
                 const res = await getSectionByClass({ ASMAY_Id, ASMCL_Id: classId, TTMC_Id: selectedCategory });
-                // biome-ignore lint/complexity/useOptionalChain: <explanation>
                 if (res && res.sectionlist) setSectionList(res.sectionlist as any[]);
             } catch (e) {
                 console.error(e);
@@ -193,7 +177,6 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                     ASMCL_Id: selectedClass,
                     ASMS_Id: sectionId
                 });
-                // biome-ignore lint/complexity/useOptionalChain: <explanation>
                 if (res && res.staffbyall) setSubStaffList(res.staffbyall as any[]);
             } catch (e) {
                 console.error(e);
@@ -211,7 +194,6 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         const secObj = sectionList.find((s) => s.asmS_Id === selectedSection);
         const staffObj = subStaffList.find((s) => s.hrmE_Id === selectedStaff);
 
-        // Check duplicate
         const exists = fields.some(
             (f: any) => f.ASMCL_Id === selectedClass && f.ASMS_Id === selectedSection && f.HRME_Id === selectedStaff
         );
@@ -250,7 +232,6 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         [remove]
     );
 
-    // View Columns
     const viewColumns: ColumnDef<any>[] = useMemo(
         () => [
             { accessorKey: 'clsDisplay', header: 'Class' },
@@ -314,21 +295,6 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         }
     };
 
-    const onToggle = async (item: any) => {
-        try {
-            const payload = { TTFDSU_Id: item.ttfdsU_Id, TTFDSU_ActiveFlag: !item.ttfdsU_ActiveFlag };
-            const res = await deactivateFixingDaySubject(payload);
-            if (res?.returnval === true) {
-                toast.success('Status Updated');
-                window.location.reload();
-            } else {
-                toast.error('Failed to update status');
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    };
-
     const onSubmit = async (data: FixingDaySubjectSchema) => {
         try {
             if (!data.TTFDSU_SUbSelcFlag) {
@@ -371,6 +337,10 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                 <GenericDataTable data={gridData} columns={daySubjectColumns} totalItems={gridData.length} isLoading={false} />
             </CollapsibleSection>
+
+            {isToggleFormOpen && selectedRow && (
+                <ToggleDaySubjectForm rowData={selectedRow} onClose={closeToggleForm} />
+            )}
 
             {(isAddFormOpen || isEditFormOpen) && (
                 <CollapsibleSection

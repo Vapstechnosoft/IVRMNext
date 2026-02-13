@@ -13,7 +13,6 @@ import { usePeriodStaffGridData } from '@/hooks/timetable/constraints/fixingData
 import { type FixingPeriodStaffSchema, fixingPeriodStaffSchema } from '@/schemas/timetable/constraints/fixing';
 import { getStaffDropDown } from '@/server/timetable/constraints/FixingForm';
 import {
-    deactivateFixingPeriodStaff,
     getClassByCategory,
     getFixingPeriodStaffDetails,
     getSectionByClass,
@@ -29,6 +28,7 @@ import { toast } from 'sonner';
 import { periodStaffColumns } from './columns';
 import { FixingViewModal } from './fixing-view-modal';
 import { TTPeriodStaffGridData } from '@/types/timetable/constraints/fixing';
+import TogglePeriodStaffForm from './PeriodStaffToggle';
 
 interface PeriodStaffTabProps {
     initialData: any;
@@ -57,7 +57,6 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
 
     const { data: gridResponse, isLoading: isGridLoading } = usePeriodStaffGridData();
 
-    // Robust data extraction
     let gridData: TTPeriodStaffGridData[] = [];
     if (gridResponse) {
         if (Array.isArray(gridResponse)) {
@@ -78,7 +77,6 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
     const [subSubjectList, setSubSubjectList] = useState<any[]>([]);
     const [categoryList] = useState<any[]>(initialData?.categorylist || []);
 
-    // View Modal State
     const [viewDetails, setViewDetails] = useState<any[]>([]);
     const [isLoadingView, setIsLoadingView] = useState(false);
 
@@ -114,33 +112,21 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         const loadDropdowns = async () => {
             try {
                 const [staff] = await Promise.all([getStaffDropDown()]);
-
                 setStaffList(staff || []);
             } catch (error) {
                 console.error('Failed to load dropdowns:', error);
                 toast.error('Failed to load dropdown options');
             }
         };
-
         loadDropdowns();
     }, []);
 
-    // Effect to populate form on Edit
     useEffect(() => {
         if (isEditFormOpen && selectedRow) {
             onEdit(selectedRow);
         }
     }, [isEditFormOpen, selectedRow]);
 
-    // Effect to handle Toggle
-    useEffect(() => {
-        if (isToggleFormOpen && selectedRow) {
-            onToggle(selectedRow);
-            closeToggleForm();
-        }
-    }, [isToggleFormOpen, selectedRow]);
-
-    // Effect to handle View
     useEffect(() => {
         if (isDetailsViewOpen && viewRow) {
             onView(viewRow);
@@ -208,7 +194,6 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         const secObj = sectionList.find((s) => s.asmS_Id === selectedSection);
         const subObj = subSubjectList.find((s) => s.ismS_Id === selectedSubject);
 
-        // Duplicate Check
         const exists = fields.some(
             (f: any) => f.ASMCL_Id === selectedClass && f.ASMS_Id === selectedSection && f.ISMS_Id === selectedSubject
         );
@@ -233,7 +218,7 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
             { accessorKey: 'clsDisplay', header: 'Class' },
             { accessorKey: 'sectDisplay', header: 'Section' },
             { accessorKey: 'subDisplay', header: 'Subject' },
-            { accessorKey: 'NOD', header: 'No Of Days' }, // Label NOD
+            { accessorKey: 'NOD', header: 'No Of Days' },
             {
                 id: 'actions',
                 header: 'Actions',
@@ -247,7 +232,6 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         [remove]
     );
 
-    // View Columns
     const viewColumns: ColumnDef<any>[] = useMemo(
         () => [
             { accessorKey: 'clsDisplay', header: 'Class' },
@@ -311,21 +295,6 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         }
     };
 
-    const onToggle = async (item: any) => {
-        try {
-            const payload = { TTFPS_Id: item.ttfpS_Id, TTFPS_ActiveFlag: !item.ttfpS_ActiveFlag };
-            const res = await deactivateFixingPeriodStaff(item.ttfpS_Id,);
-            if (res?.returnval === true) {
-                toast.success('Status Updated');
-                window.location.reload();
-            } else {
-                toast.error('Failed to update status');
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    };
-
     const onSubmit = async (data: FixingPeriodStaffSchema) => {
         try {
             if (!data.TTFPS_SUbSelcFlag) {
@@ -334,7 +303,6 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                 toast.warning('Please add at least one Class-Section details');
                 return;
             }
-
             const res = await saveFixingPeriodStaff(data);
             if (res?.returnval === true) {
                 toast.success('Record Saved Successfully');
@@ -367,6 +335,10 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                 <GenericDataTable data={gridData} columns={periodStaffColumns} totalItems={gridData.length} isLoading={isGridLoading} />
             </CollapsibleSection>
+
+            {isToggleFormOpen && selectedRow && (
+                <TogglePeriodStaffForm rowData={selectedRow} onClose={closeToggleForm} />
+            )}
 
             {(isAddFormOpen || isEditFormOpen) && (
                 <CollapsibleSection
@@ -467,7 +439,6 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                                         )}
                                     />
                                 </div>
-
                                 <div className='flex items-center space-x-2'>
                                     <FormField
                                         control={form.control}
@@ -484,7 +455,6 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                                         )}
                                     />
                                 </div>
-
                                 {TTFPS_SUbSelcFlag && (
                                     <div className='space-y-4 rounded-md border bg-gray-50 p-4'>
                                         <h4 className='font-semibold'>Add Class Details</h4>
@@ -575,7 +545,6 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                                         )}
                                     </div>
                                 )}
-
                                 <div className='flex justify-end gap-2'>
                                     <Button type='button' variant='outline' onClick={() => reset()}>
                                         Cancel
@@ -587,7 +556,6 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                     </div>
                 </CollapsibleSection>
             )}
-
             <FixingViewModal
                 isOpen={!!isDetailsViewOpen}
                 onClose={closeDetailsView}

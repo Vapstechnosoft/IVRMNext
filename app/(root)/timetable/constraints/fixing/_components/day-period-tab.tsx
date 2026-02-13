@@ -15,7 +15,6 @@ import {
     getSubjectDropDown
 } from '@/server/timetable/constraints/FixingForm';
 import {
-    deactivateFixingDayPeriod,
     getFixingDayPeriodDetails,
     saveFixingDayPeriod
 } from '@/server/timetable/constraints/fixing';
@@ -31,6 +30,7 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFixingDayPeriodGridData } from '@/hooks/timetable/constraints/fixingData';
 import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
+import ToggleDayPeriodForm from './DayPeriodToggle';
 
 interface DayPeriodTabProps {
     initialData: any;
@@ -45,14 +45,12 @@ export const TTGeneration: ColumnDef<TTDayPeriodGridData>[] = [
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
-function ActionButtonsCell({ rowData }: { rowData: TTDayPeriodGridData }) {
-    // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
-    let formContext;
 
+function ActionButtonsCell({ rowData }: { rowData: TTDayPeriodGridData }) {
+    let formContext;
     try {
         formContext = useFormContext<TTDayPeriodGridData>();
     } catch {
-        // Component rendered outside FormProvider
         return null;
     }
 
@@ -83,8 +81,6 @@ function ActionButtonsCell({ rowData }: { rowData: TTDayPeriodGridData }) {
     );
 }
 
-
-
 function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
     const { isAddFormOpen, isEditFormOpen, openAddForm, closeAddForm, closeEditForm, selectedRow, closeToggleForm, isToggleFormOpen } =
         useFormContext();
@@ -101,7 +97,6 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
     const [staffList, setStaffList] = useState<any[]>([]);
     const [subjectList, setSubjectList] = useState<any[]>([]);
 
-    // Fetch Grid Data using the new hook
     const { data: gridResponse, isLoading: isGridLoading } = useFixingDayPeriodGridData();
     const gridData = (gridResponse as any)?.data || (gridResponse as any)?.fix_day_period_list || initialData?.fix_day_period_list || [];
 
@@ -121,10 +116,6 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
     });
 
     const { reset, setValue, watch, handleSubmit } = form;
-    const ASMAY_Id = watch('ASMAY_Id');
-    const TTMC_Id = watch('TTMC_Id');
-    const ASMCL_Id = watch('ASMCL_Id');
-    const ASMS_Id = watch('ASMS_Id');
 
     useEffect(() => {
         const loadDropdowns = async () => {
@@ -137,8 +128,6 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                     getSubjectDropDown()
                 ]);
 
-                console.log("Fetched Dropdown Data:", { category, classes, sections, staff, subjects });
-
                 setCategoryList(category || []);
                 setClassList(classes || []);
                 setSectionList(sections || []);
@@ -149,24 +138,14 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                 toast.error("Failed to load dropdown options");
             }
         };
-
         loadDropdowns();
     }, []);
 
-    // Effect to populate form on Edit
     useEffect(() => {
         if (isEditFormOpen && selectedRow) {
             onEdit(selectedRow);
         }
     }, [isEditFormOpen, selectedRow]);
-
-    // Effect to handle Toggle (Active/Deactive)
-    useEffect(() => {
-        if (isToggleFormOpen && selectedRow) {
-            onToggle(selectedRow);
-            closeToggleForm();
-        }
-    }, [isToggleFormOpen, selectedRow]);
 
     const handleCategoryChange = async (categoryId: number) => {
         setValue('TTMC_Id', categoryId);
@@ -199,15 +178,6 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
             const res = await getFixingDayPeriodDetails(item.ttfdP_Id);
             if (res?.fix_day_period_edit && (res.fix_day_period_edit as any[]).length > 0) {
                 const d = (res.fix_day_period_edit as any[])[0];
-
-                const _ASMAY_Id = d.asmaY_Id;
-                const _TTMC_Id = d.ttmC_Id;
-                const _ASMCL_Id = d.asmcL_Id;
-                const _ASMS_Id = d.asmS_Id;
-                const _HRME_Id = d.hrmE_Id;
-
-
-
                 reset({
                     TTFDP_Id: d.ttfdP_Id,
                     ASMAY_Id: d.asmaY_Id,
@@ -219,21 +189,6 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                     TTMD_Id: d.ttmD_Id,
                     TTMP_Id: d.ttmP_Id
                 });
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    };
-
-    const onToggle = async (item: any) => {
-        try {
-            const payload = { TTFDP_Id: item.ttfdP_Id, TTFDP_ActiveFlag: !item.ttfdP_ActiveFlag };
-            const res = await deactivateFixingDayPeriod(item.ttfdP_Id);
-            if (res?.returnval === true) {
-                toast.success('Status Updated');
-                window.location.reload();
-            } else {
-                toast.error('Failed to update status');
             }
         } catch (e) {
             console.error(e);
@@ -275,6 +230,10 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                 <GenericDataTable data={gridData} columns={dayPeriodColumns} totalItems={gridData.length} isLoading={isGridLoading} />
             </CollapsibleSection>
+
+            {isToggleFormOpen && selectedRow && (
+                <ToggleDayPeriodForm rowData={selectedRow} onClose={closeToggleForm} />
+            )}
 
             {(isAddFormOpen || isEditFormOpen) && (
                 <CollapsibleSection
@@ -388,9 +347,9 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {classList.filter((item: any) => item.asmcL_Id).map((item: any) => (
-                                                            <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                                                {item.asmcL_ClassName}
+                                                        {sectionList.filter((item: any) => item.asmS_Id).map((item: any) => (
+                                                            <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
+                                                                {item.asmS_SectionName || item.asmC_SectionName}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -506,15 +465,13 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                                     <Button type='button' variant='outline' onClick={() => reset()}>
                                         Cancel
                                     </Button>
-
                                 </div>
                             </form>
                         </Form>
                     </div>
                 </CollapsibleSection>
-            )
-            }
-        </div >
+            )}
+        </div>
     );
 }
 

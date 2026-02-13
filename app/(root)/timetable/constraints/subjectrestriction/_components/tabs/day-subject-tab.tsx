@@ -23,6 +23,7 @@ import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-ho
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import DaySubjectList from './day-subject-list';
+import ToggleDaySubjectForm from '../toggleButton/daySubjectToggle';
 
 type DaySubjectSchema = z.infer<typeof daySubjectSchema>;
 
@@ -52,8 +53,16 @@ export default function DaySubjectTab({ initialData }: DaySubjectTabProps) {
 }
 
 function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
-    const { isAddFormOpen, isEditFormOpen, openAddForm, closeAddForm, closeEditForm, selectedRow, closeToggleForm, isToggleFormOpen } =
-        useFormContext();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        openAddForm,
+        closeAddForm,
+        closeEditForm,
+        selectedRow,
+        closeToggleForm,
+        isToggleFormOpen
+    } = useFormContext();
 
     // Use hooks for dropdowns
     const { data: academicYearData, isLoading: academicLoading } = useAcademicYearDropDownMasterDayClasswise();
@@ -150,8 +159,6 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         }
     }, [isEditFormOpen, selectedRow]);
 
-    // Effect to handle Toggle (Active/Deactive)
-
     const onEdit = async (item: any) => {
         try {
             const { getDaySubjectEditDetails } = await import('@/server/timetable/constraints/subjectrestriction');
@@ -187,6 +194,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
             const res = await saveDaySubjectDetail(payload);
             if (res.success || res.returnval === true) {
                 toast.success('Saved Successfully');
+                // Consider refetching instead of reload if possible
                 window.location.reload();
             } else if (res.returnfixstatus === 'Fixed') {
                 toast.warning('Selected Staff And Subject Is Fixed For Selected Details !');
@@ -229,6 +237,10 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                     asmaY_Id={watchedYear}
                     ttmC_Id={watchedCategory}
                 />
+
+                {isToggleFormOpen && selectedRow && (
+                    <ToggleDaySubjectForm rowData={selectedRow as any} onClose={closeToggleForm} />
+                )}
 
                 {(isAddFormOpen || isEditFormOpen) && (
                     <CollapsibleSection

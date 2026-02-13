@@ -3,10 +3,10 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useMasterDay } from '@/hooks/timetable/useMasters';
+import { usePeriodSubjectGridData } from '@/hooks/timetable/constraints/fixingData';
 import { masterDaySchema } from '@/schemas/timetable/masters';
-import { deactivateFixingDayStaff, deactivateFixingPeriodSubject } from '@/server/timetable/constraints/fixing';
-import {  TTPeriodSubjectGridData } from '@/types/timetable/constraints/fixing';
+import { deactivateFixingPeriodSubject } from '@/server/timetable/constraints/fixing';
+import { TTPeriodSubjectGridData } from '@/types/timetable/constraints/fixing';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -19,8 +19,8 @@ interface TogglePeriodSubjectProps {
     onClose: () => void;
 }
 
-export default function ToggleDayPeriodtForm({ rowData, onClose }: TogglePeriodSubjectProps) {
-    const { refetchAll } = useMasterDay();
+export default function TogglePeriodSubjectForm({ rowData, onClose }: TogglePeriodSubjectProps) {
+    const { refetchAll } = usePeriodSubjectGridData();
     const isActive = rowData.ttrpsU_ActiveFlag;
 
     const {
@@ -42,25 +42,26 @@ export default function ToggleDayPeriodtForm({ rowData, onClose }: TogglePeriodS
         try {
             const response = await deactivateFixingPeriodSubject(Number(rowData.ttrpsU_Id));
 
-            if (response.success) {
-                toast.success(response.message);
+            if (response.success || response.returnval === true) {
+                toast.success(response.message || 'Status updated successfully');
                 refetchAll();
                 closeDialog();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to update status');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error.message || 'An error occurred');
         }
     };
 
     return (
-        <AdaptiveDialog title='Toggle Day Subject' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Toggle Period Subject' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('ttmD_Id')} defaultValue={rowData.ttrpsU_Id} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.ismS_SubjectName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
+                        <strong>{rowData.ismS_SubjectName}</strong>?
                     </p>
                     <FormError>{errors.ttmD_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>

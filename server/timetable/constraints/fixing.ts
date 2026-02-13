@@ -45,8 +45,8 @@ export async function getFixingDayPeriodDetails(id: number) {
 }
 
 export async function deactivateFixingDayPeriod(TTFDP_Id: number) {
-    const url = '/FixingFacade/DayPeriodActiveDeactive';
-    return await api.post<any>('timetable', url);
+    const url = `/FixingFacade/FixingdayPeriodActivateDeactivate/${TTFDP_Id}`;
+    return await api.put<any>('timetable', url);
 }
 
 // export async function ToggleMasterDay(ttmd_id: number) {
@@ -69,8 +69,8 @@ export async function getFixingDayStaffDetails(id: number) {
 }
 
 export async function deactivateFixingDayStaff(TTFDS_Id: number) {
-    const url = '/FixingFacade/DayStaffActiveDeactive';
-    return await api.post<any>('timetable', url);
+    const url = `/FixingFacade/FixingDayStaffActivateDeactivate/${TTFDS_Id}`;
+    return await api.put<any>('timetable', url);
 }
 
 // -------------------------------------------------------------------------
@@ -88,8 +88,8 @@ export async function getFixingDaySubjectDetails(id: number) {
 }
 
 export async function deactivateFixingDaySubject(data: { TTFDSU_Id: number; TTFDSU_ActiveFlag: boolean }) {
-    const url = '/FixingFacade/DaySubjectActiveDeactive';
-    return await api.post<any>('timetable', url, data);
+    const url = `/FixingFacade/FixingDaySubjectActivateDeactivate/${data.TTFDSU_Id}`;
+    return await api.put<any>('timetable', url, data);
 }
 
 // -------------------------------------------------------------------------
@@ -107,8 +107,8 @@ export async function getFixingPeriodStaffDetails(id: number) {
 }
 
 export async function deactivateFixingPeriodStaff(TTFPS_Id: number) {
-    const url = '/FixingFacade/PeriodStaffActiveDeactive';
-    return await api.post<any>('timetable', url);
+    const url = `/FixingFacade/FixingDayPeriodStaffActivateDeactivate/${TTFPS_Id}`;
+    return await api.put<any>('timetable', url);
 }
 
 // -------------------------------------------------------------------------
@@ -126,8 +126,8 @@ export async function getFixingPeriodSubjectDetails(id: number) {
 }
 
 export async function deactivateFixingPeriodSubject(TTFPSU_Id: number) {
-    const url = '/FixingFacade/PeriodSubjectActiveDeactive';
-    return await api.post<any>('timetable', url);
+    const url = `/FixingFacade/FixingDayPeriodSubjectActivateDeactivate/${TTFPSU_Id}`;
+    return await api.put<any>('timetable', url);
 }
 
 // -------------------------------------------------------------------------
