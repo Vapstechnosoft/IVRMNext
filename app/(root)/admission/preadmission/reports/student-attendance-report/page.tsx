@@ -16,14 +16,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-import type { DataTableRef } from '@/components/ui/data-table/data-table';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useAcademicYearDropdown, useMasterClassDropdown, useMasterSectionDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useStudentAttendanceReport, useadmissionStudentsDropdown } from '@/hooks/admission/preadmission/useReports';
 import { getExcelStudentAttendanceReport } from '@/server/admission/preadmission/reports/month_end_report';
-import type { IRigistrationReportList } from '@/types/admission/preadmission/reports';
-import { registrationColumns } from './_components/columns';
+import AttendanceReportGrid from './_components/attendance-report-grid';
 
 /* ---------------- Schema ---------------- */
 
@@ -57,14 +54,12 @@ export default function StudyCertificateReportPage() {
     } = useForm<FormFields>({
         resolver: zodResolver(schema),
         defaultValues: {
-            selectionMode: 2, // all
+            selectionMode: 1, // all
             studentStatus: 1, // Monthly
             certificateType: 'admNo',
             monthDateWise: 0
         }
     });
-    const tableRef = useRef<DataTableRef>(null);
-
     const studentStatus = useWatch({ control, name: 'studentStatus' });
     const academicYearId = useWatch({ control, name: 'academicYearId' });
     const classId = useWatch({ control, name: 'classId' });
@@ -101,9 +96,7 @@ export default function StudyCertificateReportPage() {
         selectionMode,
         studentStatus
     );
-    const tableProps = useDataTableProps({
-        data: (studentsAttendance as any)?.data?.studentAttendanceList ?? []
-    });
+    const studentsAttendanceData = (studentsAttendance as any)?.data ?? {};
 
     /* ---------------- Effects ---------------- */
 
@@ -183,8 +176,8 @@ export default function StudyCertificateReportPage() {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -219,8 +212,8 @@ export default function StudyCertificateReportPage() {
                             name='selectionMode'
                             control={control}
                             options={[
-                                { label: 'all', value: 2 },
-                                { label: 'individual', value: 1 }
+                                { label: 'all', value: 1 },
+                                { label: 'individual', value: 2 }
                             ]}
                         />
 
@@ -285,7 +278,7 @@ export default function StudyCertificateReportPage() {
                             options={students?.data}
                             labelKey='studentName'
                             valueKey='amsT_Id'
-                            disabled={selectionMode !== 1 || !sectionId || studentsLoading}
+                            disabled={selectionMode !== 2 || !sectionId || studentsLoading}
                         />
 
                         {/* -------- Month -------- */}
@@ -365,17 +358,9 @@ export default function StudyCertificateReportPage() {
                     variant='outline'
                     size='md'
                     className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <GenericDataTable<IRigistrationReportList>
-                        {...tableProps}
-                        ref={tableRef}
-                        columns={registrationColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        showViewOptions={false}
-                        loadingMessage='Loading Student Attendance Reports...'
-                        noDataTitle='No Data Found'
-                        noDataDescription='No Student Attendance Reports found.'
-                        errorTitle='Error Loading Student Attendance Reports'
+                    <AttendanceReportGrid
+                        data={studentsAttendanceData}
+                        isDateWise={studentStatus === 1 && !!monthDateWise}
                     />
                 </CollapsibleSection>
             </div>
