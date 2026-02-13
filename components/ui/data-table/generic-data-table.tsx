@@ -85,7 +85,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
     ref: React.Ref<DataTableRef>
 ) {
     // Loading state
-    if (isLoading && data.length === 0) {
+    if (isLoading) {
         if (LoadingComponent) return <LoadingComponent />;
         return (
             <div className='flex flex-col items-center justify-center space-y-4 py-12'>
