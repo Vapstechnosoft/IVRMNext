@@ -463,21 +463,39 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
                 );
             }
         },
-
         {
             id: 'remarks',
             header: 'Remarks',
             size: 280,
-            cell: ({ row }) => (
-                <Input
-                    placeholder='Optional'
-                    value={row.original.remarks || ''}
-                    onChange={(e) => {
-                        setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, remarks: e.target.value } : item)));
-                    }}
-                />
-            )
+            cell: ({ row }) => {
+                const [localValue, setLocalValue] = useState(row.original.remarks || '');
+
+                return (
+                    <Input
+                        placeholder='Optional'
+                        value={localValue}
+                        onChange={(e) => setLocalValue(e.target.value)}
+                        onBlur={(e) => {
+                            setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, remarks: e.target.value } : item)));
+                        }}
+                    />
+                );
+            }
         }
+        // {
+        //     id: 'remarks',
+        //     header: 'Remarks',
+        //     size: 280,
+        //     cell: ({ row }) => (
+        //         <Input
+        //             placeholder='Optional'
+        //             value={row.original.remarks || ''}
+        //             onChange={(e) => {
+        //                 setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, remarks: e.target.value } : item)));
+        //             }}
+        //         />
+        //     )
+        // }
     ];
 
     const editAsmaY = Number(selectedRow?.asmaY_Id ?? selectedRow?.asmaYId ?? selectedRow?.ASMAY_Id ?? pageAcademicYear ?? 0);
