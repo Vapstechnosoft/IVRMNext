@@ -49,37 +49,41 @@ export async function getReportDetails(data: any) {
         const url = '/Marks_Entry_Report_/report';
         const response = await api.post<any>('exam', url, data);
         return response;
-    } catch {
+    } catch (error) {
         return {
-            subjectlist: [
-                { ISMS_Id: 1, ISMS_SubjectName: 'English' },
-                { ISMS_Id: 2, ISMS_SubjectName: 'Kannada' },
-                { ISMS_Id: 3, ISMS_SubjectName: 'Mathematics' }
-            ],
-            sectionlist: [
+            data: [
                 {
-                    ASMCL_ClassName: 'I',
-                    ASMC_SectionName: 'A',
-                    subjecttemp: [
-                        { ISMS_Id: 1, SourceMarksEntryFlag: 1, SourceMarksColorFlag: 'green', SourceMarksEntry: '25' },
-                        { ISMS_Id: 2, SourceMarksEntryFlag: 2, SourceMarksColorFlag: 'orange', SourceMarksEntry: '18' },
-                        { ISMS_Id: 3, SourceMarksEntryFlag: 0, SourceMarksColorFlag: 'black', SourceMarksEntry: 'ABS' }
-                    ]
-                },
-                {
-                    ASMCL_ClassName: 'I',
-                    ASMC_SectionName: 'A',
-                    subjecttemp: [
-                        { ISMS_Id: 1, SourceMarksEntryFlag: 1, SourceMarksColorFlag: 'green', SourceMarksEntry: '24' },
-                        { ISMS_Id: 2, SourceMarksEntryFlag: 1, SourceMarksColorFlag: 'green', SourceMarksEntry: '22' },
-                        { ISMS_Id: 3, SourceMarksEntryFlag: 1, SourceMarksColorFlag: 'green', SourceMarksEntry: '20' }
-                    ]
+                    subjectlist: [
+                        { ISMS_Id: 1, ISMS_SubjectName: 'English' },
+                        { ISMS_Id: 2, ISMS_SubjectName: 'Kannada' },
+                        { ISMS_Id: 3, ISMS_SubjectName: 'Mathematics' }
+                    ],
+                    sectionlist: [
+                        {
+                            ASMCL_ClassName: 'I',
+                            ASMC_SectionName: 'A',
+                            subjecttemp: [
+                                { ISMS_Id: 1, SourceMarksEntryFlag: 1, SourceMarksColorFlag: 'green', SourceMarksEntry: '25' },
+                                { ISMS_Id: 2, SourceMarksEntryFlag: 2, SourceMarksColorFlag: 'orange', SourceMarksEntry: '18' },
+                                { ISMS_Id: 3, SourceMarksEntryFlag: 0, SourceMarksColorFlag: 'black', SourceMarksEntry: 'ABS' }
+                            ]
+                        },
+                        {
+                            ASMCL_ClassName: 'I',
+                            ASMC_SectionName: 'A',
+                            subjecttemp: [
+                                { ISMS_Id: 1, SourceMarksEntryFlag: 1, SourceMarksColorFlag: 'green', SourceMarksEntry: '24' },
+                                { ISMS_Id: 2, SourceMarksEntryFlag: 1, SourceMarksColorFlag: 'green', SourceMarksEntry: '22' },
+                                { ISMS_Id: 3, SourceMarksEntryFlag: 1, SourceMarksColorFlag: 'green', SourceMarksEntry: '20' }
+                            ]
+                        }
+                    ],
+                    yearname: '2023-2024',
+                    classname: 'I',
+                    sectioname: 'A',
+                    examname: 'Mid Term'
                 }
-            ],
-            yearname: '2023-2024',
-            classname: 'I',
-            sectioname: 'A',
-            examname: 'Mid Term'
+            ]
         };
     }
 }

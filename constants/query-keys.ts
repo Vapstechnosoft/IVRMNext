@@ -239,6 +239,7 @@ export const FEES_QUERY_KEYS = {
     FEE_CONCESSION_TERM_DROPDOWN: 'fee_concession_term_dropdown',
     FEE_REFUNDABLE_LIST: 'fee_refundable_list',
     FEE_CONCESSION_ON_LOAD: 'fee_concession_on_load',
+    FEE_STUDENT_TRANSACTIONSTTHOMAS: 'fee_student_transactionstthomas',
 
     FEE_CONCESSION_CLASS_DROPDOWN: 'fee_concession_class_dropdown',
     FEE_CONCESSION_HEAD_LIST: 'fee_concession_head_list',
@@ -566,7 +567,7 @@ export const STAFF_PORTAL_QUERY_KEYS = {
 export const COE_QUERY_KEYS = {
     MASTER_EVENT_COE: 'master_event_coe',
     MASTER_EVENT_COE_INITIAL_DATA: 'master_event_coe_initial_data',
-    EVENT_DROPDOWN: 'event_dropdown',
+    EVENT_DROPDOWN: 'event_dropdown'
 };
 
 export const TRANSPORT_QUERY_KEYS = {
