@@ -463,7 +463,7 @@ export const feesRefundableSchema = {
         //  groupId: z.number().int({ message: 'Group is required' }).optional(),
         classId: z.number().int({ message: 'Class is required' }),
         studentWise: z.string().min(1, 'Select at least one student'),
-        REF_REC_No: z.string().min(13, 'Voucher is required').max(19, 'Voucher Number is too long'),
+        REF_REC_No: z.string().min(13, 'Voucher is required(13 digits)').max(19, 'Voucher Number is too long'),
         groups: z.array(z.string()).min(1, 'Select at least one group')
     }),
     delete: z.object({
