@@ -1847,7 +1847,7 @@ export async function getUserAccessibleModules() {
                                             title: 'Cumulative Salary Report',
                                             description: 'Cumulative Salary Analysis'
                                         },
-                                        
+
 
                                         {
 
@@ -2048,7 +2048,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
-                        }
+                        },
                         // ,
                         // {
                         //     id: 2,
@@ -2518,7 +2518,7 @@ export async function getUserAccessibleModules() {
                         //     ]
                         // }
 
-<<<<<<< HEAD
+
                         {
                             id: 4,
                             name: 'Leave Management',
@@ -2689,7 +2689,6 @@ export async function getUserAccessibleModules() {
                                 }
                             ]
                         }
-=======
                         // {
                         //     id: 4,
                         //     name: 'Leave Management',
@@ -2860,7 +2859,6 @@ export async function getUserAccessibleModules() {
                         //         }
                         //     ]
                         // }
->>>>>>> 2ccce311751e6792ff3fe7e33ebed66b09284d9b
 
                         // {
                         //     id: 5,
