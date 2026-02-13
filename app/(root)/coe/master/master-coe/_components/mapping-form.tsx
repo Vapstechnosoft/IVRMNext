@@ -9,7 +9,7 @@ import { IFeeAcademicYearDropdownList } from "@/types/fees/reports/reports";
 import { IMasterDepartmentList } from "@/types/hrms/hrms-config/master";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { CalendarIcon, Loader2, Plus, Trash2, X } from "lucide-react";
+import { CalendarIcon, Loader2, Plus, Trash2, X, Eye, Upload, Minus } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -38,6 +38,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useMasterEventCoe } from "@/hooks/coe/usemMaster";
@@ -45,6 +53,7 @@ import { useFeeDefaulterReport } from "@/hooks/fees/useReports";
 import { useStudentClassDropDown } from "@/hooks/fees/useMasters";
 import { useMasterDepartment } from "@/hooks/hrms/useMasters";
 import { EventDetailsById, saveMappedEvent } from "@/server/coe/masters/masterevent";
+
 
 type FormValues = z.infer<typeof mappingEventCoeSchema.addOrUpdate>;
 
@@ -61,12 +70,6 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
     const { data: departmentData, isLoading: deptLoading } = useMasterDepartment();
     const { refetchAll } = useMasterEventCoe();
 
-
-    console.log("eventListData", eventListData);
-    console.log("academicYearData", academicYearData);
-    console.log("classData", classData);
-    console.log("departmentData", departmentData);
-
     const events: MasterEventCoe[] = eventListData?.data && Array.isArray(eventListData.data) ? eventListData.data : [];
     const academicYears: IFeeAcademicYearDropdownList[] = academicYearData?.data && Array.isArray(academicYearData.data) ? academicYearData.data : [];
     const classes: IMasterFeeClassDropDownList[] = classData?.data && Array.isArray(classData.data) ? classData.data : [];
@@ -82,7 +85,6 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
         mailHeader: string;
         mailFooter: string;
         mailMessage: string;
-        mailTemplate: string;
     } | null>(null);
 
     const form = useForm<FormValues>({
@@ -106,9 +108,11 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
             classes: initialData?.stu_class_list?.map(c => c.asmcL_Id) || [],
             staffTypes: initialData?.emp_type_list?.map(s => s.hrmD_Id) || [],
             others: initialData?.others_list || [],
-            uploads: [], // TODO: Map initialData?.images_listCoe if needed
-            videos: [], // TODO: Map initialData?.videos_list if needed
+            uploads: initialData?.images_listCoe?.map(img => ({ name: img.COEEI_Images, fileKey: img.COEEI_Images })) || [],
+            videos: initialData?.videos_list?.map(vid => ({ name: vid.COEEV_Videos, url: vid.COEEV_Videos })) || [],
             coee_Id: initialData?.coee_Id || 0,
+            mailTemplate: initialData?.coee_MailHTMLTemplate || "",
+            reminderDays: initialData?.coee_ReminderDays || "",
         },
     });
 
@@ -127,6 +131,7 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
         name: "videos",
     });
 
+    const asmaY_Id = form.watch("asmaY_Id");
     const watchEventId = form.watch("coemE_Id");
     const watchStudentFlag = form.watch("studentFlag");
     const watchEmployeeFlag = form.watch("employeeFlag");
@@ -134,13 +139,25 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
     const watchOtherFlag = form.watch("otherFlag");
     const watchRepeatFlag = form.watch("repeatFlag");
 
+    // Ensure at least one row exists for uploads and videos
+    useEffect(() => {
+        if (uploadFields.length === 0) {
+            appendUpload({ name: "", fileKey: "" });
+        }
+        if (videoFields.length === 0) {
+            appendVideo({ name: "", url: "" });
+        }
+    }, [uploadFields.length, videoFields.length, appendUpload, appendVideo]);
+
     // Fetch event details when Event ID changes
     useEffect(() => {
         const fetchDetails = async () => {
             if (watchEventId) {
                 setIsLoadingDetails(true);
                 const res = await EventDetailsById(watchEventId);
+                // biome-ignore lint/complexity/useOptionalChain: <explanation>
                 if (res && res.data && res.data.length > 0) {
+                    
                     const details = res.data[0];
                     setEventDetails({
                         smsMessage: details.coemE_SMSMessage,
@@ -148,8 +165,10 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
                         mailHeader: details.coemE_MailHeader,
                         mailFooter: details.coemE_MailFooter,
                         mailMessage: details.coemE_Mail_Message,
-                        mailTemplate: details.coemE_MailHTMLTemplate,
                     });
+                    // Update form field for editing
+                    form.setValue("mailTemplate", details.coemE_MailHTMLTemplate || "");
+
                 }
                 setIsLoadingDetails(false);
             }
@@ -157,16 +176,164 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
         fetchDetails();
     }, [watchEventId]);
 
+    const [uploadingFiles, setUploadingFiles] = useState<Record<number, boolean>>({});
+
+    const handleFileUpload = async (index: number, file: File) => {
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        setUploadingFiles(prev => ({ ...prev, [index]: true }));
+        try {
+            // Import dynamically or ensure it's imported at the top. 
+            // Assuming we'll add the import at the top of the file.
+            const { uploadDocument } = await import("@/server/document_upload");
+
+            const response = await uploadDocument(formData);
+
+            if (response.success && response.data) {
+                // Update file key
+                form.setValue(`uploads.${index}.fileKey`, response.data);
+
+                // Auto-fill name if empty
+                const currentName = form.getValues(`uploads.${index}.name`);
+                if (!currentName) {
+                    form.setValue(`uploads.${index}.name`, file.name);
+                }
+                toast.success("File uploaded successfully");
+            } else {
+                toast.error("Failed to upload file");
+            }
+        } catch (error) {
+            console.error("Upload error:", error);
+            toast.error("Error uploading file");
+        } finally {
+            setUploadingFiles(prev => ({ ...prev, [index]: false }));
+        }
+    };
+
+    const handleDeleteUpload = async (index: number) => {
+        const fileKey = form.getValues(`uploads.${index}.fileKey`);
+
+        if (fileKey) {
+            // If there's a file key, try to delete from server
+            try {
+                const { deleteDocument } = await import("@/server/document_upload");
+                const response = await deleteDocument(fileKey);
+                if (!response.success) {
+                    toast.warning("File removed from list but cleanup on server failed");
+                }
+            } catch (error) {
+                console.error("Delete error:", error);
+                // We still remove it from the list even if server delete fails, 
+                // but maybe warn the user?
+            }
+        }
+
+        removeUpload(index);
+    };
+
+    const [uploadingVideos, setUploadingVideos] = useState<Record<number, boolean>>({});
+
+    const handleVideoUpload = async (index: number, file: File) => {
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        setUploadingVideos(prev => ({ ...prev, [index]: true }));
+        try {
+            const { uploadDocument } = await import("@/server/document_upload");
+
+            const response = await uploadDocument(formData);
+
+            if (response.success && response.data) {
+                // Update file key/url
+                form.setValue(`videos.${index}.url`, response.data);
+
+                // Auto-fill name if empty
+                const currentName = form.getValues(`videos.${index}.name`);
+                if (!currentName) {
+                    form.setValue(`videos.${index}.name`, file.name);
+                }
+                toast.success("Video uploaded successfully");
+            } else {
+                toast.error("Failed to upload video");
+            }
+        } catch (error) {
+            console.error("Upload error:", error);
+            toast.error("Error uploading video");
+        } finally {
+            setUploadingVideos(prev => ({ ...prev, [index]: false }));
+        }
+    };
+
+    const handleDeleteVideo = async (index: number) => {
+        const fileKey = form.getValues(`videos.${index}.url`);
+
+        if (fileKey) {
+            try {
+                const { deleteDocument } = await import("@/server/document_upload");
+                const response = await deleteDocument(fileKey);
+                if (!response.success) {
+                    toast.warning("Video removed from list but cleanup on server failed");
+                }
+            } catch (error) {
+                console.error("Delete error:", error);
+            }
+        }
+
+        removeVideo(index);
+    };
+
     const onSubmit = async (data: FormValues) => {
+        if (asmaY_Id === null || asmaY_Id === undefined) {
+            toast.error("Please select academic year");
+            return;
+        }
+        if (data.coemE_Id === 0 || data.coemE_Id === undefined || data.coemE_Id === null) {
+            toast.error("Please select event Name");
+            return;
+        }
+
+        if (data.startDate === undefined || data.startDate === null) {
+            toast.error("Please select event start date");
+            return;
+        }
+
+        if (data.mailTemplate === undefined || data.mailTemplate === null || data.mailTemplate === "") {
+            toast.error("Please select mail template");
+            return;
+        }
+
+        if (data.endDate === undefined || data.endDate === null) {
+            toast.error("Please select event end date");
+            return;
+        }
+
+        if (data.startTime === undefined || data.startTime === null) {
+            toast.error("Please select event start time");
+            return;
+        }
+
+        if (data.endTime === undefined || data.endTime === null) {
+            toast.error("Please select event end time");
+            return;
+        }
+
+        console.log("Form Data:", data);
         const payload = {
-            ...data,
-            // Format dates/times as needed by backend
-            COEE_EStartDate: data.startDate?.toISOString(),
-            COEE_EEndDate: data.endDate?.toISOString(),
-            COEE_ReminderDate: data.reminderDate?.toISOString(),
+            ASMAY_Id: data.asmaY_Id,
+            COEME_Id: data.coemE_Id,
+            COEE_Id: data.coee_Id,
+            COEE_EStartDate: data.startDate ? data.startDate.toISOString() : null,
+            COEE_EEndDate: data.endDate ? data.endDate.toISOString() : null,
             COEE_EStartTime: data.startTime ? format(data.startTime, "h:mm a") : "",
             COEE_EEndTime: data.endTime ? format(data.endTime, "h:mm a") : "",
-            // Map flags
+            COEE_ReminderDate: data.reminderDate ? data.reminderDate.toISOString() : null,
+            COEE_ReminderSchedule: data.reminderSchedule,
+            COEE_ReminderDays: data.reminderDays,
             COEE_SMSActiveFlag: data.smsActiveFlag,
             COEE_MailActiveFlag: data.mailActiveFlag,
             COEE_RepeatFlag: data.repeatFlag,
@@ -174,22 +341,38 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
             COEE_AlumniFlag: data.alumniFlag,
             COEE_EmployeeFlag: data.employeeFlag,
             COEE_OtherFlag: data.otherFlag,
-            // Map lists
-            stu_class_list: data.classes?.map(id => ({ asmcL_Id: id })) || [],
-            emp_type_list: data.staffTypes?.map(id => ({ hrmD_Id: id })) || [],
-            others_list: data.others || [],
-            images_listCoe: data.uploads?.map(u => ({ COEEI_Images: u.fileKey || u.name })) || [],
-            videos_list: data.videos?.map(v => ({ COEEV_Videos: v.url || v.name })) || [],
-            // Include read-only details in payload if needed
+            COEE_ManagementFlag: false, // Defaulting as it wasn't in form state explicitly but present effectively in payload
             COEE_SMSMessage: eventDetails?.smsMessage || "",
             COEE_MailSubject: eventDetails?.mailSubject || "",
             COEE_MailHeader: eventDetails?.mailHeader || "",
             COEE_MailFooter: eventDetails?.mailFooter || "",
             COEE_Mail_Message: eventDetails?.mailMessage || "",
-            COEE_MailHTMLTemplate: eventDetails?.mailTemplate || "", // This might be editable?
-        };
+            COEE_MailHTMLTemplate: data.mailTemplate || "",
 
+            // COEEC_Id: 0,
+            // ASMCL_Id: 0,
+            // COEEE_Id: 0,
+            // HRMD_Id: 0,
+            // ASMCL_ClassName: "",
+            // HRMD_DepartmentName: "",
+
+            stu_class_list: data.classes?.map(id => ({ ASMCL_Id: id })) || [],
+            emp_type_list: data.staffTypes?.map(id => ({ HRMD_Id: id })) || [],
+            others_list: data.others?.map(o => ({
+                COEEO_Name: o.name,
+                COEEO_MobileNo: Number(o.mobile),
+                COEEO_Emailid: o.email
+            })) || [],
+            images_listCoe: data.uploads?.map(u => ({
+                COEEI_Images: u.fileKey || u.name,
+                COEEI_Id: 0,
+                COEE_Id: data.coee_Id || 0
+            })) || [],
+            videos_list: data.videos?.map(v => v.url || v.name) || [],
+        };
+        console.log("Payload:", payload);
         const response = await saveMappedEvent(payload);
+        console.log("Response:", response);
         if (response.success) {
             toast.success(response.message);
             onSuccess?.();
@@ -219,8 +402,11 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                {/* Row 1 */}
+            <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
+                console.log("Form Validation Errors:", errors);
+                toast.error("Please fill in all required fields correctly.");
+            })} className="space-y-4">
+                {/* Row 1: Academic Year & Event Name */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                     <FormField
                         control={form.control}
@@ -276,7 +462,7 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
                     />
                 </div>
 
-                {/* Row 2 */}
+                {/* Row 2: Email Subject & Header */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                     <FormItem>
                         <div className="grid grid-cols-[140px_1fr] items-center gap-4">
@@ -292,7 +478,7 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
                     </FormItem>
                 </div>
 
-                {/* Row 3 */}
+                {/* Row 3: Email Footer & Message */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                     <FormItem>
                         <div className="grid grid-cols-[140px_1fr] items-center gap-4">
@@ -308,7 +494,7 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
                     </FormItem>
                 </div>
 
-                {/* Row 4 */}
+                {/* Row 4: SMS Message & Email Template (Editable) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                     <FormItem>
                         <div className="grid grid-cols-[140px_1fr] items-center gap-4">
@@ -316,15 +502,25 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
                             <Input value={eventDetails?.smsMessage || ""} disabled className="bg-muted/50" />
                         </div>
                     </FormItem>
-                    <FormItem>
-                        <div className="grid grid-cols-[140px_1fr] items-center gap-4">
-                            <FormLabel className="text-right">Email Template: <span className="text-destructive">*</span></FormLabel>
-                            <Input value={eventDetails?.mailTemplate || ""} disabled className="bg-muted/50" />
-                        </div>
-                    </FormItem>
+                    <FormField
+                        control={form.control}
+                        name="mailTemplate"
+                        render={({ field }) => (
+                            <FormItem>
+                                <div className="grid grid-cols-[140px_1fr] items-center gap-4">
+                                    <FormLabel className="text-right">Email Template: <span className="text-destructive">*</span></FormLabel>
+                                    <FormControl>
+                                        <Input {...field} placeholder="Email Template" />
+                                    </FormControl>
+                                </div>
+                                <FormMessage className="ml-[156px]" />
+                            </FormItem>
+                        )}
+                    />
                 </div>
 
-                {/* Row 5: Dates */}
+
+                {/* Row 5: Start Date & End Date */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                     <FormField
                         control={form.control}
@@ -337,7 +533,7 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
                                         <PopoverTrigger asChild>
                                             <FormControl>
                                                 <Button variant="outline" className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                                    {field.value ? format(field.value, "PPP") : <span>Enter date</span>}
+                                                    <span suppressHydrationWarning>{field.value ? format(field.value, "PPP") : "Enter date"}</span>
                                                     <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                                 </Button>
                                             </FormControl>
@@ -362,7 +558,7 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
                                         <PopoverTrigger asChild>
                                             <FormControl>
                                                 <Button variant="outline" className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                                    {field.value ? format(field.value, "PPP") : <span>Enter date</span>}
+                                                    <span suppressHydrationWarning>{field.value ? format(field.value, "PPP") : "Enter date"}</span>
                                                     <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                                 </Button>
                                             </FormControl>
@@ -378,7 +574,7 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
                     />
                 </div>
 
-                {/* Row 6: Times */}
+                {/* Row 6: Start Time & End Time */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                     <FormField
                         control={form.control}
@@ -391,12 +587,13 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
                                         <div className="flex items-center border rounded-md px-3 py-2 bg-background">
                                             <input
                                                 type="time"
+                                                suppressHydrationWarning
                                                 className="w-full bg-transparent outline-none"
                                                 value={field.value ? format(field.value, "HH:mm") : ""}
                                                 onChange={(e) => {
                                                     const date = new Date();
                                                     const [hours, minutes] = e.target.value.split(':');
-                                                    date.setHours(parseInt(hours), parseInt(minutes));
+                                                    date.setHours(Number.parseInt(hours), Number.parseInt(minutes));
                                                     field.onChange(date);
                                                 }}
                                             />
@@ -418,12 +615,13 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
                                         <div className="flex items-center border rounded-md px-3 py-2 bg-background">
                                             <input
                                                 type="time"
+                                                suppressHydrationWarning
                                                 className="w-full bg-transparent outline-none"
                                                 value={field.value ? format(field.value, "HH:mm") : ""}
                                                 onChange={(e) => {
                                                     const date = new Date();
                                                     const [hours, minutes] = e.target.value.split(':');
-                                                    date.setHours(parseInt(hours), parseInt(minutes));
+                                                    date.setHours(Number.parseInt(hours), Number.parseInt(minutes));
                                                     field.onChange(date);
                                                 }}
                                             />
@@ -436,7 +634,7 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
                     />
                 </div>
 
-                {/* Row 7: Reminder */}
+                {/* Row 7: Reminder Days & Reminder Date */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                     <FormField
                         control={form.control}
@@ -464,7 +662,7 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
                                         <PopoverTrigger asChild>
                                             <FormControl>
                                                 <Button variant="outline" className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                                    {field.value ? format(field.value, "PPP") : <span>Enter date</span>}
+                                                    <span suppressHydrationWarning>{field.value ? format(field.value, "PPP") : "Enter date"}</span>
                                                     <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                                 </Button>
                                             </FormControl>
@@ -551,96 +749,210 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
                     {/* Uploads Section */}
                     <div className="space-y-4">
                         <div className="flex justify-between items-center">
-                            <h4 className="font-medium text-sm">Upload File</h4>
-                            <Button type="button" size="sm" onClick={() => appendUpload({ name: "", fileKey: "" })}>
-                                <Plus className="h-4 w-4 mr-2" /> Add
-                            </Button>
+                            <h4 className="font-bold text-lg text-blue-600 mb-2">Upload File</h4>
                         </div>
                         <div className="border rounded-md overflow-hidden">
-                            <div className="grid grid-cols-[auto_1fr_auto_auto] gap-2 bg-muted/50 p-2 text-sm font-medium">
-                                <span>SL NO</span>
-                                <span>File Name</span>
-                                <span>Upload</span>
-                                <span>Action</span>
-                            </div>
-                            {uploadFields.map((field, index) => (
-                                <div key={field.id} className="grid grid-cols-[auto_1fr_auto_auto] gap-2 p-2 items-center border-t">
-                                    <span className="text-center w-10">{index + 1}</span>
-                                    <FormField
-                                        control={form.control}
-                                        name={`uploads.${index}.name`}
-                                        render={({ field }) => (
-                                            <FormItem className="space-y-0">
-                                                <FormControl>
-                                                    <Input {...field} placeholder="File Name" className="h-8" />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <div>
-                                        {/* Actual file input would be here, for now just a button or dummy input */}
-                                        <FormLabel className="cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 h-8 px-3 rounded-md flex items-center justify-center text-xs">
-                                            Browse
-                                            <Input type="file" className="hidden" />
-                                        </FormLabel>
-                                    </div>
-                                    <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeUpload(index)}>
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            ))}
-                            {uploadFields.length === 0 && (
-                                <div className="p-4 text-center text-muted-foreground text-sm">No files added</div>
-                            )}
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="w-16">SL NO</TableHead>
+                                        <TableHead>Upload File</TableHead>
+                                        <TableHead>File Name</TableHead>
+                                        <TableHead>View</TableHead>
+                                        <TableHead>Action</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {uploadFields.map((field, index) => (
+                                        <TableRow key={field.id}>
+                                            <TableCell>{index + 1}</TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center space-x-2">
+                                                    <Input
+                                                        type="file"
+                                                        id={`file-upload-${index}`}
+                                                        className="hidden"
+                                                        disabled={uploadingFiles[index]}
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) {
+                                                                handleFileUpload(index, file);
+                                                            }
+                                                            e.target.value = "";
+                                                        }}
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => document.getElementById(`file-upload-${index}`)?.click()}
+                                                        disabled={uploadingFiles[index]}
+                                                    >
+                                                        {uploadingFiles[index] ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                {/* Using watch to get the current value for display as field.name might be stale or initial */}
+                                                <Input
+                                                    value={form.watch(`uploads.${index}.name`) || ""}
+                                                    disabled
+                                                    placeholder="No file selected"
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                {form.watch(`uploads.${index}.fileKey`) && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+
+                                                        onClick={() => {
+                                                            const key = form.getValues(`uploads.${index}.fileKey`);
+
+                                                            window.open(key, '_blank');
+                                                        }}
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center space-x-1">
+                                                    {uploadFields.length < 30 && (
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => appendUpload({ name: "", fileKey: "" })}
+                                                        >
+                                                            <Plus className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => handleDeleteUpload(index)}
+                                                    >
+                                                        <Minus className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                    {uploadFields.length === 0 && (
+                                        <TableRow>
+                                            <TableCell colSpan={5} className="text-center text-muted-foreground">No files added</TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
                         </div>
                     </div>
 
                     {/* Videos Section */}
                     <div className="space-y-4">
                         <div className="flex justify-between items-center">
-                            <h4 className="font-medium text-sm">Videos</h4>
-                            <Button type="button" size="sm" onClick={() => appendVideo({ name: "", url: "" })}>
-                                <Plus className="h-4 w-4 mr-2" /> Add
-                            </Button>
+                            <h4 className="font-bold text-lg text-blue-600 mb-2">Videos</h4>
                         </div>
                         <div className="border rounded-md overflow-hidden">
-                            <div className="grid grid-cols-[auto_1fr_auto_auto] gap-2 bg-muted/50 p-2 text-sm font-medium">
-                                <span>SL NO</span>
-                                <span>Video Name</span>
-                                <span>Upload/URL</span>
-                                <span>Action</span>
-                            </div>
-                            {videoFields.map((field, index) => (
-                                <div key={field.id} className="grid grid-cols-[auto_1fr_auto_auto] gap-2 p-2 items-center border-t">
-                                    <span className="text-center w-10">{index + 1}</span>
-                                    <FormField
-                                        control={form.control}
-                                        name={`videos.${index}.name`}
-                                        render={({ field }) => (
-                                            <FormItem className="space-y-0">
-                                                <FormControl>
-                                                    <Input {...field} placeholder="Video Name" className="h-8" />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <div>
-                                        {/* Actual file input or URL input */}
-                                        <FormLabel className="cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 h-8 px-3 rounded-md flex items-center justify-center text-xs">
-                                            Browse
-                                            <Input type="file" className="hidden" accept="video/*" />
-                                        </FormLabel>
-                                    </div>
-                                    <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeVideo(index)}>
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            ))}
-                            {videoFields.length === 0 && (
-                                <div className="p-4 text-center text-muted-foreground text-sm">No videos added</div>
-                            )}
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="w-16">SL NO</TableHead>
+                                        <TableHead>Upload/URL</TableHead>
+                                        <TableHead>Video Name</TableHead>
+                                        <TableHead>View</TableHead>
+                                        <TableHead>Action</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {videoFields.map((field, index) => (
+                                        <TableRow key={field.id}>
+                                            <TableCell>{index + 1}</TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center space-x-2">
+                                                    <Input
+                                                        type="file"
+                                                        id={`video-upload-${index}`}
+                                                        className="hidden"
+                                                        accept="video/*"
+                                                        disabled={uploadingVideos[index]}
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) {
+                                                                handleVideoUpload(index, file);
+                                                            }
+                                                            e.target.value = "";
+                                                        }}
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => document.getElementById(`video-upload-${index}`)?.click()}
+                                                        disabled={uploadingVideos[index]}
+                                                    >
+                                                        {uploadingVideos[index] ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                {/* For videos, user might want to edit name if they uploaded it? 
+                                                     User reference had disabled input. I'll stick to disabled for consistency with Uploads. */}
+                                                <Input
+                                                    value={form.watch(`videos.${index}.name`) || ""}
+                                                    disabled
+                                                    placeholder="No video selected"
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                {form.watch(`videos.${index}.url`) && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            const url = form.getValues(`videos.${index}.url`);
+                                                            window.open(url, '_blank');
+                                                        }}
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center space-x-1">
+                                                    {videoFields.length < 30 && (
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => appendVideo({ name: "", url: "" })}
+                                                        >
+                                                            <Plus className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => handleDeleteVideo(index)}
+                                                    >
+                                                        <Minus className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                    {videoFields.length === 0 && (
+                                        <TableRow>
+                                            <TableCell colSpan={5} className="text-center text-muted-foreground">No videos added</TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
                         </div>
                     </div>
                 </div>
@@ -684,7 +996,7 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
                         render={({ field }) => (
                             <FormItem>
                                 <div className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                    <FormLabel className="text-right">Repeat Schedule: <span className="text-destructive">*</span></FormLabel>
+                                    <FormLabel className="text-right">Repeat Schedule: {watchRepeatFlag && <span className="text-destructive">*</span>}</FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
                                             <SelectTrigger>
@@ -776,6 +1088,10 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
                                                     onValueChange={(vals) => field.onChange(vals.map(Number))}
                                                     defaultValue={field.value?.map(String) || []}
                                                     placeholder="Select Classes"
+                                                    variant="default"
+                                                    animation={2}
+                                                    maxCount={3}
+                                                    modalPopover={true}
                                                     className="min-h-[100px]"
                                                 />
                                             </FormControl>
@@ -801,6 +1117,10 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
                                                     onValueChange={(vals) => field.onChange(vals.map(Number))}
                                                     defaultValue={field.value?.map(String) || []}
                                                     placeholder="Select Staff Types"
+                                                    variant="default"
+                                                    animation={2}
+                                                    maxCount={3}
+                                                    modalPopover={true}
                                                     className="min-h-[100px]"
                                                 />
                                             </FormControl>
@@ -848,8 +1168,13 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
                             <div className="col-span-2 space-y-4 ml-[156px]">
                                 <div className="flex justify-between items-center">
                                     <h4 className="font-medium text-sm">Other Recipients</h4>
-                                    <Button type="button" size="sm" onClick={() => appendOther({ name: "", mobile: "", email: "" })}>
-                                        <Plus className="h-4 w-4 mr-2" /> Add
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        className="h-7 px-2 text-xs"
+                                        onClick={() => appendOther({ name: "", mobile: "", email: "" })}
+                                    >
+                                        <Plus className="h-3 w-3 mr-1" /> Add
                                     </Button>
                                 </div>
                                 {otherFields.map((field, index) => (
