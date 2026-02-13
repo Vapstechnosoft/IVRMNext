@@ -2562,12 +2562,12 @@ export async function getUserAccessibleModules() {
 
                 {
                     id: 5,
-                    name: 'IFrame',
+                    name: 'AI Edge',
                     icon: 'Users',
                     menu: [
                         {
                             id: 1,
-                            name: 'IFrame',
+                            name: 'AI Edge',
                             icon: 'BookOpen',
                             sub_menu: [
                                 {
