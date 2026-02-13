@@ -1567,21 +1567,6 @@ export async function getUserAccessibleModules() {
                                             description: 'Report Card_X'
                                         }
                                     ]
-                                },
-                                {
-                                    id: 1,
-                                    name: 'AI Performance Analysis',
-                                    icon: 'BarChart',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'AI Performance Analysis',
-                                            icon: 'BarChart',
-                                            url: '/Exam/exam-module/ai-performance-analysis',
-                                            title: 'AI Performance Analysis',
-                                            description: 'Analyze performance metrics and AI-driven insights'
-                                        }
-                                    ]
                                 }
                             ]
                         }
@@ -2577,12 +2562,12 @@ export async function getUserAccessibleModules() {
 
                 {
                     id: 5,
-                    name: 'IFrame',
+                    name: 'AI Edge',
                     icon: 'Users',
                     menu: [
                         {
                             id: 1,
-                            name: 'IFrame',
+                            name: 'AI Edge',
                             icon: 'BookOpen',
                             sub_menu: [
                                 {
@@ -2605,6 +2590,14 @@ export async function getUserAccessibleModules() {
                                             url: '/iframe/ai-notemaker',
                                             title: 'AI Notemaker',
                                             description: 'Summarize and create structured notes from textbooks using AI'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'AI Performance Analysis',
+                                            icon: 'BarChart',
+                                            url: '/Exam/exam-module/ai-performance-analysis',
+                                            title: 'AI Performance Analysis',
+                                            description: 'Analyze performance metrics and AI-driven insights'
                                         }
                                     ]
                                 }
