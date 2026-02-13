@@ -68,6 +68,7 @@ export default function RegistrationPageprops(props: {
     } = usePreAdmissionRegistrationReport(academicIdParam, fromDateParam, toDateParam, searchParams);
 
     const tableProps = useDataTableProps({
+        ...(response || {}),
         data: response?.data?.searchstudentDetails ?? []
     });
 
@@ -335,18 +336,13 @@ export default function RegistrationPageprops(props: {
                 </div>
             )}
 
-            {/* Print Template */}
             <div
                 style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: 0,
-                    height: 0,
-                    overflow: 'hidden',
+                    position: 'absolute',
+                    top: '-10000px',
+                    left: '-10000px',
                     opacity: 0,
-                    pointerEvents: 'none',
-                    zIndex: -1
+                    pointerEvents: 'none'
                 }}>
                 <RegistrationReportPrint
                     ref={printRef}
