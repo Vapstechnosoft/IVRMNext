@@ -4119,7 +4119,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
                                             <div className='flex flex-col gap-1.5'>
                                                 <Label htmlFor='amsT_StudentCategory_Id'>
-                                                    Caste Category <span className='ml-1 text-red-500'>*</span>
+                                                    Caste <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
                                                 <Controller
                                                     name='amsT_StudentCategory_Id'
