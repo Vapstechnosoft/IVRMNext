@@ -13,6 +13,7 @@ import {
     getClassMappedSections,
     getClasses
 } from '@/server/exam/exam-module/masters/category-class-mapping';
+import { getOpeningClassDropdownData } from '@/server/fees/trasactions/fee_opening_balance';
 import type { ICategoryMapping } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Edit, Save, Trash2, X, RefreshCw } from 'lucide-react';
@@ -114,7 +115,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
         (async () => {
             try {
                 const { data: cats } = await getCategories();
-                const { data: cls } = await getClasses();
+                const { data: cls } = await getOpeningClassDropdownData();
                 if (!mounted) return;
                 setCategories(Array.isArray(cats) ? cats : []);
                 setClasses(Array.isArray(cls) ? cls : []);
