@@ -4391,13 +4391,21 @@ export async function getUserAccessibleModules() {
                                             title: 'Exam Report',
                                             description: 'View Exam Report Performance'
                                         },
+                                        // {
+                                        //     id: 40007,
+                                        //     name: 'Progress Card Report( Report Card) ',
+                                        //     icon: 'BarChart3',
+                                        //     url: '/StudentPortal/student-dashboard/Exam/ExamReport',
+                                        //     title: 'Exam Report',
+                                        //     description: 'View Exam Report Performance'
+                                        // },
                                         {
-                                            id: 40007,
-                                            name: 'Progress Card Report( Report Card) ',
+                                            id: 40011,
+                                            name: 'Cumulative Subject',
                                             icon: 'BarChart3',
-                                            url: '/StudentPortal/student-dashboard/Exam/ExamReport',
-                                            title: 'Exam Report',
-                                            description: 'View Exam Report Performance'
+                                            url: '/StudentPortal/student-dashboard/Exam/CumulativeSubject',
+                                            title: 'Cumulative Subject',
+                                            description: 'View Cumulative Subject Details'
                                         }
                                     ]
                                 }
@@ -4606,6 +4614,14 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/student-dashboard/Exam/ExamReport',
                                             title: 'Exam Report',
                                             description: 'View Exam Report Performance'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Cumulative Subject',
+                                            icon: 'BarChart3',
+                                            url: '/StudentPortal/student-dashboard/Exam/CumulativeSubject',
+                                            title: 'Cumulative Subject',
+                                            description: 'View Cumulative Subject Details'
                                         }
                                     ]
                                 }

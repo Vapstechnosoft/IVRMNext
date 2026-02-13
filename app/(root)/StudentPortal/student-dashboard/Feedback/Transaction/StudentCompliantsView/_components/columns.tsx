@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown, FileText, ImageIcon, File as FileIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { StudentComplaint } from "../types"
+import { StudentComplaint } from "../../../../../../../../constants/types"
 
 export const columns: ColumnDef<StudentComplaint>[] = [
     {

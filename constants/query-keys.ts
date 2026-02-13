@@ -505,5 +505,7 @@ export const PORTAL_QUERY_KEYS = {
     STUDENT_FEE_DETAILS2: 'student_fee_details2',
     CUMULATIVE_FEE_ANALYSIS: 'Cumulative_Fee_Analysis',
     FEE_ONLINE_PAYMENT_STUDENT_INFO:"fee_online_student_info",
-    FEE_ONLINE_PAYMENT_GROUP_LIST:"fee_online_payment_group_list"
+    FEE_ONLINE_PAYMENT_GROUP_LIST:"fee_online_payment_group_list",
+    EXAM_STUDENT_REPORT_YEAR_DROP_DOWN: 'exam_student_report_year_dropdown',
+    EXAM_STUDENT_COMPLIANTS_YEAR_DROP_DOWN: 'exam_student_compliants_year_dropdown',
 };
