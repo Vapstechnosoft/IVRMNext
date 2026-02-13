@@ -85,7 +85,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
     ref: React.Ref<DataTableRef>
 ) {
     // Loading state
-    if (isLoading) {
+    if (isLoading && data.length === 0) {
         if (LoadingComponent) return <LoadingComponent />;
         return (
             <div className='flex flex-col items-center justify-center space-y-4 py-12'>
@@ -132,7 +132,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
             <div className='overflow-hidden rounded-lg bg-card'>
                 <DataTable
                     ref={ref}
-                    isLoading={false}
+                    isLoading={isLoading}
                     columns={columns}
                     data={[]} // Empty array
                     totalItems={0}
@@ -158,7 +158,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         <div className='overflow-hidden rounded-lg bg-card'>
             <DataTable
                 ref={ref}
-                isLoading={false}
+                isLoading={isLoading}
                 columns={columns}
                 data={data}
                 totalItems={totalItems}

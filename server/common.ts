@@ -3709,22 +3709,22 @@ export async function getUserAccessibleModules() {
                 {
                     id: 10,
                     name: 'Inventory Management',
-                    icon: 'Users',
+                    icon: 'Package',
                     menu: [
                         {
                             id: 1,
                             name: 'Inventory Module',
-                            icon: 'Users',
+                            icon: 'Package',
                             sub_menu: [
                                 {
                                     id: 1,
                                     name: 'Masters',
-                                    icon: 'LayoutGrid',
+                                    icon: 'Database',
                                     pages: [
                                         {
                                             id: 101,
                                             name: 'Tax',
-                                            icon: 'Settings',
+                                            icon: 'Percent',
                                             url: '/inventory/inventory-module/masters/inv-master-tax',
                                             title: 'Inventory Master Tax',
                                             description: 'Manage Inventory Master Tax'
@@ -3732,7 +3732,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 102,
                                             name: 'Store',
-                                            icon: 'Settings',
+                                            icon: 'Store',
                                             url: '/inventory/inventory-module/masters/inv-master-store',
                                             title: 'Inventory Master Store',
                                             description: 'Manage Inventory Master Store'
@@ -3740,7 +3740,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 103,
                                             name: 'Supplier',
-                                            icon: 'Settings',
+                                            icon: 'Truck',
                                             url: '/inventory/inventory-module/masters/inv-master-supplier',
                                             title: 'Inventory Master Supplier',
                                             description: 'Manage Inventory Master Supplier'
@@ -3748,7 +3748,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 104,
                                             name: 'Customer',
-                                            icon: 'Settings',
+                                            icon: 'Users',
                                             url: '/inventory/inventory-module/masters/inv-master-customer',
                                             title: 'Inventory Master Customer',
                                             description: 'Manage Inventory Master Customer'
@@ -3756,7 +3756,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 105,
                                             name: 'Main Group',
-                                            icon: 'Settings',
+                                            icon: 'Grid',
                                             url: '/inventory/inventory-module/masters/inv-master-main-group',
                                             title: 'Main Group',
                                             description: 'Manage Inventory Main Group Details'
@@ -3764,7 +3764,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 106,
                                             name: 'User Group',
-                                            icon: 'Settings',
+                                            icon: 'UserCog',
                                             url: '/inventory/inventory-module/masters/inv-master-user-group',
                                             title: 'User Group',
                                             description: 'Manage Inventory User Group Details'
@@ -3772,7 +3772,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 107,
                                             name: 'Item Group',
-                                            icon: 'Settings',
+                                            icon: 'Boxes',
                                             url: '/inventory/inventory-module/masters/inv-master-item-group',
                                             title: 'Item Group',
                                             description: 'Manage Inventory Item Group Details'
@@ -3780,7 +3780,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 108,
                                             name: 'UOM',
-                                            icon: 'Settings',
+                                            icon: 'Ruler',
                                             url: '/inventory/inventory-module/masters/inv-master-uom',
                                             title: 'Inventory Master UOM',
                                             description: 'Manage Unit of Measurement Details'
@@ -3788,7 +3788,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 109,
                                             name: 'Master Item',
-                                            icon: 'Settings',
+                                            icon: 'Box',
                                             url: '/inventory/inventory-module/masters/inv-master-item',
                                             title: 'Master Item',
                                             description: 'Manage Inventory Master Item Details'
@@ -3796,7 +3796,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 110,
                                             name: 'Master Product',
-                                            icon: 'Settings',
+                                            icon: 'Package',
                                             url: '/inventory/inventory-module/masters/inv-master-product',
                                             title: 'Master Product',
                                             description: 'Manage Inventory Master Product Details'
@@ -3806,12 +3806,12 @@ export async function getUserAccessibleModules() {
                                 {
                                     id: 2,
                                     name: 'Transactions',
-                                    icon: 'FileText',
+                                    icon: 'ArrowRightLeft',
                                     pages: [
                                         {
                                             id: 201,
                                             name: 'GRN',
-                                            icon: 'FileText',
+                                            icon: 'ClipboardList',
                                             url: '/inventory/inventory-module/transactions/inv-t-grn',
                                             title: 'Inventory GRN',
                                             description: 'Manage Inventory Goods Receipt Note'
@@ -3819,7 +3819,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 202,
                                             name: 'Sales',
-                                            icon: 'FileText',
+                                            icon: 'ShoppingCart',
                                             url: '/inventory/inventory-module/transactions/inv-t-sales',
                                             title: 'Inventory Sales',
                                             description: 'Manage Inventory Sales'
@@ -3827,7 +3827,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 203,
                                             name: 'Item Consumption',
-                                            icon: 'FileText',
+                                            icon: 'PackageMinus',
                                             url: '/inventory/inventory-module/transactions/inv-t-item-consumption',
                                             title: 'Item Consumption',
                                             description: 'Manage Item Consumption'
@@ -3835,7 +3835,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 204,
                                             name: 'Opening Balance',
-                                            icon: 'FileText',
+                                            icon: 'Wallet',
                                             url: '/inventory/inventory-module/transactions/inv-opening-balance',
                                             title: 'Opening Balance',
                                             description: 'Manage Inventory Opening Balance'
@@ -3843,7 +3843,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 205,
                                             name: 'Stock Updation',
-                                            icon: 'FileText',
+                                            icon: 'Layers',
                                             url: '/inventory/inventory-module/transactions/inv-stock',
                                             title: 'Stock Updation',
                                             description: 'Manage Inventory Stock Updation'
@@ -3851,7 +3851,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 206,
                                             name: 'Vendor Payment',
-                                            icon: 'FileText',
+                                            icon: 'CreditCard',
                                             url: '/inventory/inventory-module/transactions/inv-vendor-payment',
                                             title: 'Vendor Payment',
                                             description: 'Manage Vendor Payments'
@@ -3861,7 +3861,7 @@ export async function getUserAccessibleModules() {
                                 {
                                     id: 3,
                                     name: 'Reports',
-                                    icon: 'FileText',
+                                    icon: 'BarChart3',
                                     pages: [
                                         {
                                             id: 1,
@@ -3902,6 +3902,14 @@ export async function getUserAccessibleModules() {
                                             url: '/inventory/inventory-module/reports/inv-r-month-end-report',
                                             title: 'Inventory Month End Report',
                                             description: 'Generate Inventory Month End Reports'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Vendor Payment Report',
+                                            icon: 'FileText',
+                                            url: '/inventory/inventory-module/reports/inv-r-vendor-payment',
+                                            title: 'Vendor Payment Report',
+                                            description: 'Generate Vendor Payment Reports'
                                         }
                                     ]
                                 }
@@ -3909,6 +3917,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 }
+
                 //         {
                 //             id: 3,
                 //             name: 'Interaction',

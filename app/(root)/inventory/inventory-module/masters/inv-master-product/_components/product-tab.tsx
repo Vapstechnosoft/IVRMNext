@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -9,11 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useInvMasterProduct } from '@/hooks/inventory/masters/use-inv-master-product';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { ColumnDef } from '@tanstack/react-table';
-import { Edit, Trash2, Eye } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { ProductTaxModal } from './product-tax-details-modal';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { ColumnDef } from '@tanstack/react-table';
+import { parseAsInteger, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
 
 const formSchema = z.object({
     invmP_Id: z.number().optional(),
@@ -32,9 +33,23 @@ const formSchema = z.object({
 });
 
 export default function ProductTab() {
-    const { loadData, saveProductMutation, deactiveProductMutation, isLoadDataLoading, getTaxListMutation } = useInvMasterProduct();
-    const [taxModalOpen, setTaxModalOpen] = useState(false);
-    const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+    // Pagination State
+    const [currentPage] = useQueryState(
+        tableSearchVariables.page,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
+    );
+    const [pageSize] = useQueryState(
+        tableSearchVariables.page_size,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
+    );
+
+    const searchParams = { page: currentPage, page_size: pageSize };
+    const { loadData, saveProductMutation, deactiveProductMutation, isLoadDataLoading, getTaxListMutation, getProductTaxMutation } = useInvMasterProduct(searchParams);
+
+
+
+    const data = (loadData as any)?.get_product || (loadData as any)?.data || [];
+    const tableProps = useDataTableProps({ ...((loadData || {}) as any), data });
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -52,20 +67,6 @@ export default function ProductTab() {
         control: form.control,
         name: "product_tax"
     });
-
-    // useEffect(() => {
-    //     if ((loadData as any)?.get_tax && fields.length === 0) {
-    //         const taxes = (loadData as any).get_tax.map((t: any) => ({
-    //             invmT_Id: t.invmT_Id,
-    //             invmpT_Id: 0,
-    //             invmpT_TaxValue: 0,
-    //             selected: false,
-    //             invmT_TaxName: t.invmT_TaxName,
-    //             invmT_TaxAliasName: t.invmT_TaxAliasName
-    //         }));
-    //         replace(taxes);
-    //     }
-    // }, [loadData, replace]);
 
     const onSubmit = (values: z.infer<typeof formSchema>) => {
         const payload = {
@@ -93,6 +94,69 @@ export default function ProductTab() {
         form.setValue('invmP_ProductCode', item.invmP_ProductCode);
         form.setValue('invmP_ProductPrice', item.invmP_ProductPrice);
         form.setValue('invmP_TaxApplFlg', item.invmP_TaxApplFlg === true);
+
+        if (item.invmP_TaxApplFlg === true) {
+            Promise.all([
+                getTaxListMutation.mutateAsync(undefined),
+                getProductTaxMutation.mutateAsync({ INVMP_Id: item.invmP_Id })
+            ]).then(([taxListRes, productTaxRes]) => {
+                let taxListRaw: any[] = [];
+                // Handle tax list response structure
+                if (taxListRes?.get_taxlist && Array.isArray(taxListRes.get_taxlist)) {
+                    taxListRaw = taxListRes.get_taxlist;
+                } else if (Array.isArray(taxListRes)) {
+                    taxListRaw = taxListRes;
+                } else if (taxListRes?.data && Array.isArray(taxListRes.data)) {
+                    taxListRaw = taxListRes.data;
+                }
+
+                let productTaxRaw: any[] = [];
+                // Handle product tax response structure
+                if (productTaxRes?.product_tax && Array.isArray(productTaxRes.product_tax)) {
+                    productTaxRaw = productTaxRes.product_tax;
+                } else if (Array.isArray(productTaxRes)) {
+                    productTaxRaw = productTaxRes;
+                } else if (productTaxRes?.data && Array.isArray(productTaxRes.data)) {
+                    productTaxRaw = productTaxRes.data;
+                } else if (productTaxRes?.get_product_tax && Array.isArray(productTaxRes.get_product_tax)) {
+                    productTaxRaw = productTaxRes.get_product_tax;
+                }
+
+                // Merge lists
+                const mergedTaxes = taxListRaw.map((masterTax: any) => {
+                    const masterTaxId = masterTax.invmT_Id ?? masterTax.INVMT_Id ?? masterTax.id ?? 0;
+                    // Find matching product tax
+                    const specificTax = productTaxRaw.find((pt: any) =>
+                        (pt.invmT_Id ?? pt.INVMT_Id) === masterTaxId
+                    );
+
+                    if (specificTax) {
+                        return {
+                            invmT_Id: masterTaxId,
+                            invmpT_Id: specificTax.invmpT_Id ?? specificTax.INVMPT_Id ?? 0,
+                            invmpT_TaxValue: specificTax.invmpT_TaxValue ?? specificTax.INVMPT_TaxValue ?? 0,
+                            selected: true,
+                            invmT_TaxName: masterTax.invmT_TaxName ?? masterTax.INVMT_TaxName ?? '',
+                            invmT_TaxAliasName: masterTax.invmT_TaxAliasName ?? masterTax.INVMT_TaxAliasName ?? ''
+                        };
+                    } else {
+                        return {
+                            invmT_Id: masterTaxId,
+                            invmpT_Id: 0,
+                            invmpT_TaxValue: masterTax.invmiT_TaxValue ?? masterTax.INVMIT_TaxValue ?? 0,
+                            selected: false,
+                            invmT_TaxName: masterTax.invmT_TaxName ?? masterTax.INVMT_TaxName ?? '',
+                            invmT_TaxAliasName: masterTax.invmT_TaxAliasName ?? masterTax.INVMT_TaxAliasName ?? ''
+                        };
+                    }
+                });
+                replace(mergedTaxes);
+            }).catch(error => {
+                console.error("Error fetching tax details for edit:", error);
+            });
+        } else {
+            replace([]);
+        }
     };
 
     const onDeactive = (item: any) => {
@@ -107,25 +171,13 @@ export default function ProductTab() {
             invmP_TaxApplFlg: false,
             invmP_Id: 0,
         });
-        // if ((loadData as any)?.get_tax) {
-        //     const taxes = (loadData as any).get_tax.map((t: any) => ({
-        //         invmT_Id: t.invmT_Id,
-        //         invmpT_Id: 0,
-        //         invmpT_TaxValue: 0,
-        //         selected: false,
-        //         invmT_TaxName: t.invmT_TaxName,
-        //         invmT_TaxAliasName: t.invmT_TaxAliasName
-        //     }));
-        //     replace(taxes);
-        // }
     };
 
-    // Columns for Data Table
     const columns: ColumnDef<any>[] = [
         {
             accessorKey: 'index',
             header: 'SL NO',
-            cell: ({ row }) => row.index + 1,
+            cell: ({ row, table }) => (table.getState().pagination.pageIndex * table.getState().pagination.pageSize) + row.index + 1,
         },
         {
             accessorKey: 'invmP_ProductName',
@@ -154,14 +206,7 @@ export default function ProductTab() {
                             <Badge variant="outline" className="text-green-500 cursor-pointer">Activate</Badge>
                         )}
                     </Button>
-                    {row.original.invmP_TaxApplFlg && (
-                        <Button variant="ghost" size="icon" onClick={() => {
-                            setSelectedProductId(row.original.invmP_Id);
-                            setTaxModalOpen(true);
-                        }}>
-                            <Eye className="h-4 w-4" />
-                        </Button>
-                    )}
+
                 </div>
             )
         }
@@ -206,7 +251,7 @@ export default function ProductTab() {
                                         getTaxListMutation.mutate(undefined, {
                                             onSuccess: (res: any) => {
                                                 let taxListRaw: any[] = [];
-                                                if (res?.get_taxlist) {
+                                                if (res?.get_taxlist && Array.isArray(res.get_taxlist)) {
                                                     taxListRaw = res.get_taxlist;
                                                 } else if (Array.isArray(res)) {
                                                     taxListRaw = res;
@@ -283,50 +328,15 @@ export default function ProductTab() {
             </Form>
 
             <div className="mt-8">
-                <div className="rounded-md border">
-                    <table className="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SL NO</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Code</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Price</th>
-                                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {(loadData as any)?.data?.map((row: any, index: number) => (
-                                <tr key={index}>
-                                    <td className="px-6 py-4 whitespace-nowrap">{index + 1}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{row.invmP_ProductName}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{row.invmP_ProductCode}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{row.invmP_ProductPrice}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                                        <div className="flex items-center justify-center space-x-2">
-                                            <Button variant="ghost" size="icon" onClick={() => onEdit(row)}>
-                                                <Edit className="h-4 w-4 text-blue-500" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => onDeactive(row)}>
-                                                {row.invmP_ActiveFlg ? (
-                                                    <Trash2 className="h-4 w-4 text-red-500" />
-                                                ) : (
-                                                    <span className="text-green-500 font-bold text-xs border border-green-500 px-2 py-1 rounded cursor-pointer">Activate</span>
-                                                )}
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                <GenericDataTable
+                    {...tableProps}
+                    data={data}
+                    columns={columns}
+                    isLoading={isLoadDataLoading}
+                />
             </div>
 
-            <ProductTaxModal
-                isOpen={taxModalOpen}
-                onClose={() => setTaxModalOpen(false)}
-                productId={selectedProductId}
-            />
+
         </div>
     );
 }
