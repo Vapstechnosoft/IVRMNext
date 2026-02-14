@@ -13,7 +13,7 @@ import { useSubjects, useStudentExamDetails, useExamData } from '@/hooks/exam/ex
 import { Loader2 } from 'lucide-react';
 import { useAcademicYearExamReport } from '@/hooks/student-portal/useCumulative';
 import { getExamDataforExamReport, getSubjectDataforExamReport } from '@/server/exam/exam-module/reports/actions';
-import { getExamReportDataforExamReport} from '@/server/exam/exam-module/reports/actions';
+import { getExamReportDataforExamReport } from '@/server/exam/exam-module/reports/actions';
 
 interface ExamReportClientProps {
     initialYears: AcademicYear[];
@@ -115,28 +115,7 @@ export default function ExamReportClient() {
 
 
 
- useEffect(() => {
-        if (!selectedYear) {
-            setSubjectDataDropDown([]);
-            return;
-        }
 
-        const fetchSubject = async () => {
-            setIsSubjectDropDownLoading(true);
-            try {
-                const response = await getExamReportDataforExamReport(Number(selectedYear));
-                const data = (response as any)?.data || [];
-                setSubjectDataDropDown(data);
-            } catch (error) {
-                console.error('Failed to fetch subject data:', error);
-                setSubjectDataDropDown([]);
-            } finally {
-                setIsSubjectDropDownLoading(false);
-            }
-        };
-
-        fetchSubject();
-    }, [selectedYear]);
 
 
 

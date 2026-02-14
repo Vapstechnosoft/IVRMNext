@@ -1,37 +1,26 @@
-'use server';
+import { getAcademicYearList } from "./actions";
+//import { getAcademicYearList } from "./actions";
 
-import { api } from '@/lib/apiService';
-import { auth } from '@/lib/auth';
+import CumulativeSubjectClient from "./_components/cumulative-subject";
 
-export async function getExamloadCumulativeReport() {
-    const url = '/ExamReport/get_Cumulative_loaddata';
-    return await api.post<any>('portal', url);
-}
+export default async function CumulativeSubjectPage() {
+    const result = await getAcademicYearList();
 
-export async function getAcademicYearList() {
-    const url = '/fee_class_category/academicyearlist';
-    return await api.get<any>('fees', url);
-}
+    // Map response to match CumulativeSubjectLoadData interface
+    // Based on logic in _components/cumulativesubject.ts which handles data extraction
+    const responseData = result?.data;
+    const academicYears = responseData?.studentYearList ||
+        responseData?.data?.studentYearList ||
+        (Array.isArray(responseData) ? responseData : []) ||
+        [];
 
-export async function getExamDataforExamReport(asmay_Id: number, type: string) {
-    const session = await auth();
-    const amst_Id = session?.user?.amst_id || 18828;
-    const url = `/ExamReport/get-exam-data?AMST_Id=${amst_Id}&ASMAY_Id=${asmay_Id}&Type=${type}`;
-    return await api.post<any>('portal', url,);
-}
-
-export async function getSubjectDataforExamReport(asmay_Id: number) {
-    const session = await auth();
-    const amst_Id = session?.user?.amst_id || 18828;
-    const payload = {
-        "amsT_Id": amst_Id,
-        "asmaY_Id": asmay_Id
-    };
-    const url = 'ExamReport/get-Subjects';
-    return await api.post<any>('portal', url, payload);
-}
-
-export async function getExamReportDataforExamReport(payload: any) {
-    const url = '/ExamReport/get-report-data';
-    return await api.post<any>('portal', url, payload);
+    return (
+        <div className="container mx-auto py-6">
+            <CumulativeSubjectClient
+                initialData={{
+                    stuyearlist: academicYears
+                }}
+            />
+        </div>
+    );
 }

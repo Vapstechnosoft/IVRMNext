@@ -15,14 +15,14 @@ export async function getAcademicYearList() {
 
 export async function getExamDataforExamReport(asmay_Id: number, type: string) {
     const session = await auth();
-    const amst_Id = session?.user?.amst_id || 18828;
+    const amst_Id = session?.amst_id || 18828;
     const url = `/ExamReport/get-exam-data?AMST_Id=${amst_Id}&ASMAY_Id=${asmay_Id}&Type=${type}`;
     return await api.post<any>('portal', url,);
 }
 
 export async function getSubjectDataforExamReport(asmay_Id: number) {
     const session = await auth();
-    const amst_Id = session?.user?.amst_id || 18828;
+    const amst_Id = session?.amst_id || 18828;
     const payload = {
         "amsT_Id": amst_Id,
         "asmaY_Id": asmay_Id

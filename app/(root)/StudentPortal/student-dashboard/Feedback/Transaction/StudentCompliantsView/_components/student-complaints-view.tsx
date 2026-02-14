@@ -3,34 +3,20 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-<<<<<<< HEAD
 import { useState, useEffect } from 'react';
 import { getStudentComplaintsReport, getExamReportLoadData } from './actions';
-=======
-import { useState } from 'react';
-import { getStudentComplaintsReport } from '../actions';
-import type { AcademicYear, StudentComplaint } from '../types';
->>>>>>> 0694887ec996758bb4a3746b056ce7f4a6afc23b
 import { columns } from './columns';
 import { AcademicYear, StudentComplaint } from '@/constants/types';
 import { useAcademicStudentCompliants } from '@/hooks/student-portal/useCumulative';
-
 interface StudentComplaintsViewClientProps {
     initialYears: AcademicYear[];
     initialData: StudentComplaint[];
     initialYearId: number;
 }
 
-<<<<<<< HEAD
 export default function StudentComplaintsViewClient() {
     const [selectedYear, setSelectedYear] = useState<string | undefined>(undefined);
     const [data, setData] = useState<StudentComplaint[]>([]); // Initialize with empty array
-=======
-export default function StudentComplaintsViewClient({ initialYears, initialData, initialYearId }: StudentComplaintsViewClientProps) {
-    const [years] = useState<AcademicYear[]>(initialYears);
-    const [selectedYear, setSelectedYear] = useState<string>(String(initialYearId));
-    const [data, setData] = useState<StudentComplaint[]>(initialData);
->>>>>>> 0694887ec996758bb4a3746b056ce7f4a6afc23b
     const [isLoading, setIsLoading] = useState(false);
     const { data: academicYears, isLoading: isAcademicYearsLoading } = useAcademicStudentCompliants();
 
@@ -60,7 +46,6 @@ export default function StudentComplaintsViewClient({ initialYears, initialData,
         setSelectedYear(yearId);
         setIsLoading(true);
         try {
-<<<<<<< HEAD
             // Passing 0 for optional params as we don't have them in this context yet, 
             // relying on backend or default 0 logic as per user payload "studentview": [0]
             const response = await getStudentComplaintsReport({
@@ -70,10 +55,6 @@ export default function StudentComplaintsViewClient({ initialYears, initialData,
             });
             console.log("DEBUG: Client received report response:", response);
             if (response && response.studentdivlist) {
-=======
-            const response = await getStudentComplaintsReport({ ASMAY_Id: Number(yearId) });
-            if (response?.studentdivlist) {
->>>>>>> 0694887ec996758bb4a3746b056ce7f4a6afc23b
                 setData(response.studentdivlist);
             } else {
                 setData([]);
@@ -146,13 +127,9 @@ export default function StudentComplaintsViewClient({ initialYears, initialData,
                 </Card>
             )}
 
-<<<<<<< HEAD
             {data.length === 0 && !isLoading && selectedYear && (
                 <div className="text-center p-4 text-muted-foreground">No Records Found</div>
             )}
-=======
-            {data.length === 0 && !isLoading && <div className='p-4 text-center text-muted-foreground'>No Records Found</div>}
->>>>>>> 0694887ec996758bb4a3746b056ce7f4a6afc23b
         </div>
     );
 }

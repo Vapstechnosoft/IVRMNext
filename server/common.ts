@@ -1376,14 +1376,14 @@ export async function getUserAccessibleModules() {
                                             title: 'PROMOTION REMARKS',
                                             description: ''
                                         },
-                                        {
-                                            id: 65,
-                                            name: 'Marks Entry',
-                                            icon: 'CalendarDays',
-                                            url: '/Exam/exam-module/marks-entry/exam-marks-entry',
-                                            title: 'Marks Entry',
-                                            description: 'Manage Marks Entry Details'
-                                        },
+                                        // {
+                                        //     id: 65,
+                                        //     name: 'Marks Entry',
+                                        //     icon: 'CalendarDays',
+                                        //     url: '/Exam/exam-module/marks-entry/exam-marks-entry',
+                                        //     title: 'Marks Entry',
+                                        //     description: 'Manage Marks Entry Details'
+                                        // },
                                         {
                                             id: 66,
                                             name: 'Student Wise Publish Marks',
@@ -4062,20 +4062,6 @@ export async function getUserAccessibleModules() {
                 //             icon: 'BookOpen',
                 //             sub_menu: [
                 //                 {
-                //                     id: 1,
-                //                     name: 'Exam',
-                //                     icon: 'BookOpen',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Cumulative Subject',
-                //                             icon: 'BarChart3',
-                //                             url: '/StudentPortal/student-dashboard/Exam/CumulativeSubject',
-                //                             title: 'Cumulative Subject',
-                //                             description: 'View Cumulative Subject Performance'
-                //                         }
-                //                     ]
-                //                 }
                 //             ]
                 //         },
                 //         {
@@ -5265,16 +5251,16 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 40007,
-                                            name: 'Marks Entry',
-                                            icon: 'CalendarDays',
-                                            url: '/Exam/exam-module/marks-entry/exam-marks-entry',
-                                            title: 'Marks Entry',
-                                            description: 'Manage Marks Entry Details'
+                                            name: 'Cumulative Subject',
+                                            icon: 'BarChart3',
+                                            url: '/StudentPortal/student-dashboard/Exam/CumulativeSubject',
+                                            title: 'Cumulative Subject',
+                                            description: 'View Cumulative Subject Performance'
                                         },
 
                                         {
                                             id: 40008,
-                                            name: 'Progress Card Report( Report Card) ',
+                                            name: 'ExamReport( Report Card) ',
                                             icon: 'BarChart3',
                                             url: '/StudentPortal/student-dashboard/Exam/ExamReport',
                                             title: 'Exam Report',
@@ -5551,11 +5537,11 @@ export async function getUserAccessibleModules() {
                                             title: 'Mobile Master Page',
                                             description: 'Mobile Master Page'
                                         },
-                                        // {
-                                        //     id: 40007,
+                                        //  {
+                                        //      id: 40007,
                                         //     name: 'Progress Card Report( Report Card) ',
                                         //     icon: 'BarChart3',
-                                        //     url: '/StudentPortal/student-dashboard/Exam/ExamReport',
+                                        //    url: '/StudentPortal/student-dashboard/Exam/ExamReport',
                                         //     title: 'Exam Report',
                                         //     description: 'View Exam Report Performance'
                                         // },
@@ -5778,36 +5764,8 @@ export async function getUserAccessibleModules() {
                                 }
                             ]
                         },
-                        {
-                            id: 4,
-                            name: 'Exam',
-                            icon: 'BookOpen',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Exam',
-                                    icon: 'BookOpen',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Exam Report',
-                                            icon: 'BarChart3',
-                                            url: '/StudentPortal/student-dashboard/Exam/ExamReport',
-                                            title: 'Exam Report',
-                                            description: 'View Exam Report Performance'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Cumulative Subject',
-                                            icon: 'BarChart3',
-                                            url: '/StudentPortal/student-dashboard/Exam/CumulativeSubject',
-                                            title: 'Cumulative Subject',
-                                            description: 'View Cumulative Subject Details'
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
+
+                        // Duplicate Exam Module Removed
                         {
                             id: 5,
                             name: 'Fees',

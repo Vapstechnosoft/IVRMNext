@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-'use client';
-
-import { Button } from '@/components/ui/button';
-=======
->>>>>>> 0694887ec996758bb4a3746b056ce7f4a6afc23b
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronRight } from 'lucide-react';

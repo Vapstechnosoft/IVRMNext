@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getSubjectsData, getExamDetails } from "./cumulativesubject"; // Import actions
+import { getSubjectDataforCumulatiSubject, getExamDetails } from "./cumulativesubject"; // Import actions
 import { AcademicYear, Subject, ExamGrade, CumulativeSubjectLoadData } from "../types";
 //import { AcademicYear, Subject, ExamGrade, CumulativeSubjectLoadData } from "../types";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
@@ -76,7 +76,8 @@ export default function CumulativeSubjectClient({ initialData }: CumulativeSubje
             }
 
             try {
-                const response = await getSubjectsData(parseInt(selectedYear));
+                // User requested to use specific amst_Id (17064)
+                const response = await getSubjectDataforCumulatiSubject(parseInt(selectedYear));
 
                 if (response && response.subjectlist) {
                     setSubjects(response.subjectlist);
