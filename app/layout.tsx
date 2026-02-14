@@ -35,7 +35,7 @@ export default async function RootLayout({ children }: Readonly<RootLayoutProps>
     const session = await auth();
     return (
         <html lang='en' suppressHydrationWarning>
-            <body className={cn('min-h-screen min-w-[360px] bg-layout font-sans antialiased', geistSans.variable, geistMono.variable)}>
+            <body suppressHydrationWarning className={cn('min-h-screen min-w-[360px] bg-layout font-sans antialiased', geistSans.variable, geistMono.variable)}>
                 <NextTopLoader color='#4F39F6' showSpinner={false} height={3} speed={300} />
                 <Providers session={session}>{children}</Providers>
                 <CopyRight />
