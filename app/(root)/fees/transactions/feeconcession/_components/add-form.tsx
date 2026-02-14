@@ -179,6 +179,36 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
         apiSearchParams as any
     );
 
+    useEffect(() => {
+        // Only check if terms are selected (since data loads after term selection)
+        if (termIds.length === 0) return;
+
+        // Skip during edit mode
+        if (isEditFormOpen) return;
+
+        // For normal search modes
+        if (selectionType !== 'Admissionnosearch') {
+            const rows = normalizeArray(studentQuery.data);
+            if (!studentQuery.isLoading && rows.length === 0) {
+                toast.info('No Student Details Found For Selected Criteria');
+            }
+            // else{
+            //     toast.success("Students Data Loaded Successfully");
+            // }
+        }
+
+        // For admission number search
+        if (selectionType === 'Admissionnosearch' && admissionNo) {
+            const rows = normalizeArray(singleStudentData);
+            if (!studentQuery.isLoading && rows.length === 0) {
+                toast.info('No Student Details Found For Selected Admission Number');
+            }
+            // else{
+            //     toast.success("Students Data Loaded Successfully");
+            // }
+        }
+    }, [termIds, studentQuery.data, singleStudentData, studentQuery.isLoading, selectionType, admissionNo, isEditFormOpen]);
+
     // Admissionnosearch mode: load single student
     useEffect(() => {
         if (selectionType !== 'Admissionnosearch' || !singleStudentData || isEditFormOpen) return;
@@ -482,6 +512,8 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
         console.log('editResponse', editResponse);
 
         const rows = normalizeArray(editResponse);
+
+        console.log('rows', rows);
         if (rows.length === 0) return;
 
         const firstRow = rows[0];
