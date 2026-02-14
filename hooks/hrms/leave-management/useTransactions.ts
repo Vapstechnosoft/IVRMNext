@@ -3,7 +3,7 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import { getLeaveCredit, addOrUpdateLeaveCredit, deleteLeaveCredit } from '@/server/hrms/leave-management/transactions/leave-credit';
 import { getLeaveCreditTransaction, addOrUpdateLeaveCreditTransaction, deleteLeaveCreditTransaction, getLeavetransm, getLeaveTransactionDepartments, getLeaveTransactionDesignation, getLeaveTransactionEmployee, getLeaveTransactionEmpLop, saveLeaveTransaction, deleteLeaveTransactionDetails } from '@/server/hrms/leave-management/transactions/leave-credit-transaction';
-import { getLeaveCreditDetails, addOrUpdateLeaveCreditDetails, deleteLeaveCreditDetails, getLeaveCode, getLeaveCreditDepartments, getLeaveCreditDesignation, getLeaveCreditGrade, getLeaveMaster, saveLeaveCreditDetails, getLeaveDetailsCreditMonth, getLeaveDetailsCF, getLeaveDetailsCFMonth, getLeaveDetailsEnCash } from '@/server/hrms/leave-management/transactions/leave-credit-details';
+import { getLeaveCreditDetails, addOrUpdateLeaveCreditDetails, deleteLeaveCreditDetails, getLeaveCode, getLeaveCreditDepartments, getLeaveCreditDesignation, getLeaveCreditGrade, getLeaveMaster, saveLeaveCreditDetails, getLeaveDetailsCreditMonth, getLeaveDetailsCF, getLeaveDetailsCFMonth, getLeaveDetailsEnCash, getLeaveNameDropdown, getCreditMonthDropdown } from '@/server/hrms/leave-management/transactions/leave-credit-details';
 import { getLeaveCreditDeduction, addOrUpdateLeaveCreditDeduction, deleteLeaveCreditDeduction } from '@/server/hrms/leave-management/transactions/leave-credit-deduction';
 import { getLeaveCreditAddition, addOrUpdateLeaveCreditAddition, deleteLeaveCreditAddition } from '@/server/hrms/leave-management/transactions/leave-credit-addition';
 import { getLeaveCarryForward, addOrUpdateLeaveCarryForward, deleteLeaveCarryForward } from '@/server/hrms/leave-management/transactions/leave-carryforward';
@@ -2491,3 +2491,90 @@ export const useLeaveOpeningBalancePageDetails = (request?: { Id?: number }, ena
         }
     };
 };
+
+/**
+ * Hook to fetch leave names for dropdown
+ * GET /api/LeaveCredit/get_leave_name_dropdown
+ */
+export const useLeaveNameDropdown = (enabled: boolean = true) => {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'leave-name-dropdown'],
+            queryFn: async () => {
+                try {
+                    const response = await getLeaveNameDropdown();
+                    if (!response.success || !response.data) {
+                        throw new Error(response.message || 'Failed to fetch leave names');
+                    }
+                    // Map items to expected format
+                    const leaveNameOptions = (response.data || []).map((item) => ({
+                        id: item.hrmL_Id,
+                        name: item.hrmL_LeaveName,
+                        code: item.hrmL_LeaveCode,
+                        details: item.hrmL_LeaveDetails,
+                        creditFlg: item.hrmL_LeaveCreditFlg,
+                        type: item.hrmL_LeaveType
+                    }));
+                    return {
+                        success: true,
+                        data: leaveNameOptions,
+                        rawData: response.data,
+                        message: response.message || 'Leave names fetched successfully'
+                    };
+                } catch (error: any) {
+                    throw new Error(error?.message || 'Failed to fetch leave names');
+                }
+            },
+            enabled: enabled,
+            staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'leave-name-dropdown']
+            });
+        }
+    };
+};
+
+/**
+ * Hook to fetch credit months for dropdown
+ * GET /api/LeaveCredit/get_creditmonth_dropdown
+ */
+export const useCreditMonthDropdown = (enabled: boolean = true) => {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'credit-month-dropdown'],
+            queryFn: async () => {
+                try {
+                    const response = await getCreditMonthDropdown();
+                    if (!response.success || !response.data) {
+                        throw new Error(response.message || 'Failed to fetch credit months');
+                    }
+                    // Map items to expected format
+                    const creditMonthOptions = (response.data || []).map((item) => ({
+                        id: item.ivrM_Month_Id,
+                        name: item.ivrM_Month_Name
+                    }));
+                    return {
+                        success: true,
+                        data: creditMonthOptions,
+                        rawData: response.data,
+                        message: response.message || 'Credit months fetched successfully'
+                    };
+                } catch (error: any) {
+                    throw new Error(error?.message || 'Failed to fetch credit months');
+                }
+            },
+            enabled: enabled,
+            staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'credit-month-dropdown']
+            });
+        }
+    };
+};
+

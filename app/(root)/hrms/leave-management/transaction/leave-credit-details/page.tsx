@@ -6,8 +6,12 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import {
     useDeleteLeaveCreditDetails,
     useLeaveCreditDetails,
-    useSaveLeaveCreditDetails
+    useSaveLeaveCreditDetails,
+    useLeaveNameDropdown,
+    useCreditMonthDropdown
 } from '@/hooks/hrms/leave-management/useTransactions';
+import { useLeaveAuthorizationDropdowns } from '@/hooks/hrms/leave-management/useMasters';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { Plus, X } from 'lucide-react';
 import { use, useState } from 'react';
 import { toast } from 'sonner';
@@ -99,53 +103,60 @@ function FormSections() {
     const { refetchAll } = useLeaveCreditDetails();
     const { mutate: saveCreditDetails } = useSaveLeaveCreditDetails();
     const { mutate: deleteCreditDetails } = useDeleteLeaveCreditDetails();
+
+    // Fetch dropdown data
+    const { data: leaveNamesData } = useLeaveNameDropdown();
+    const { data: monthsData } = useCreditMonthDropdown();
+    const { data: masterDropdowns } = useLeaveAuthorizationDropdowns();
+
+    // Map master dropdowns to expected format for the form
+    const typeOptions = (masterDropdowns?.data?.groupTypes || []).map((t: any) => ({
+        id: Number(t.value),
+        name: t.label
+    }));
+    const deptOptions = (masterDropdowns?.data?.departments || []).map((d: any) => ({
+        id: Number(d.value),
+        name: d.label
+    }));
+    const desgOptions = (masterDropdowns?.data?.designations || []).map((d: any) => ({
+        id: Number(d.value),
+        name: d.label
+    }));
+    const gradeOptions = (masterDropdowns?.data?.grades || []).map((g: any) => ({
+        id: Number(g.value),
+        name: g.label
+    }));
+    const leaveNameOptions = (leaveNamesData?.data || []).map((l: any) => ({
+        id: l.id,
+        name: l.name
+    }));
+
     const [activeTab, _setActiveTab] = useState('Leave Credit');
     const handleFormSubmit = (formData: LeaveCreditDetail) => {
         // Map LeaveCreditDetail to the expected API format
-        const apiData = {
-            HRML_Id: formData.id || 0,
-            HRMLD_NoOfDays: String(formData.noOfDays || 0),
-            HRMLD_MaxLeaveApplicable: formData.maxLeaveApplicable || 0,
-            Emp_types: formData.type || [],
-            dept_types: formData.department || [],
-            desig_types: formData.designation || [],
-            grade_types: formData.grade || [],
-            HRMLD_CarryForFlg: formData.leaveCarryForward || false,
-            HRMLD_EncashFlg: formData.leaveEncashment || false,
-            HRMLDCF_MaxLeaveAplFlg: false,
-            HRMLDCF_MaxLeaveCF: 0,
-            selectedcarryMonthList: [],
-            selectedMonthList: formData.months
-                ? Object.keys(formData.months)
-                      .filter((m) => (formData.months?.[m] || 0) > 0)
-                      .map((m) => {
-                          const MONTHS = [
-                              'January',
-                              'February',
-                              'March',
-                              'April',
-                              'May',
-                              'June',
-                              'July',
-                              'August',
-                              'September',
-                              'October',
-                              'November',
-                              'December'
-                          ];
-                          const monthIndex = MONTHS.indexOf(m);
-                          return monthIndex >= 0 ? monthIndex + 1 : 0;
-                      })
-                      .filter((m) => m > 0)
-                : [],
-            ...formData
+        const apiData: any = {
+            MI_Id: HRMS_MI_ID,
+            HRMLD_Id: formData.id || 0,
+            HRML_Id: formData.leaveId || 0,
+            HRMLD_NoOfDays: String(formData.noOfDays || '0'),
+            HRMLD_MaxLeaveApplicable: Number(formData.maxLeaveApplicable || 0),
+            LoginId: 0,
+            Emp_types: (formData.type || []).map(id => ({ HRMGT_Id: id })),
+            dept_types: (formData.department || []).map(id => ({ HRMD_Id: id })),
+            desig_types: (formData.designation || []).map(id => ({ HRMDES_Id: id })),
+            grade_types: (formData.grade || []).map(id => ({ HRMG_Id: id })),
+            HRMLD_CarryForFlg: !!formData.leaveCarryForward,
+            HRMLD_EncashFlg: !!formData.leaveEncashment,
+            selectedMonthList: (formData.creditMonths || []).map(m => Number(m)),
+            selectedcarryMonthList: []
         };
+
         saveCreditDetails(apiData, {
             onSuccess: () => {
-                toast.success(selectedRow ? 'Leave credit details updated successfully' : 'Leave credit details saved successfully');
+                toast.success(isEditFormOpen ? 'Leave credit details updated successfully' : 'Leave credit details saved successfully');
                 refetchAll();
-                closeEditForm();
                 closeAddForm();
+                closeEditForm();
             },
             onError: () => {
                 toast.error('Failed to save leave credit details');
@@ -187,7 +198,16 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <LeaveCreditDetailsForm activeTab={activeTab} onSubmit={handleFormSubmit} onCancel={closeAddForm} />
+                            <LeaveCreditDetailsForm
+                                activeTab={activeTab}
+                                onSubmit={handleFormSubmit}
+                                onCancel={closeAddForm}
+                                types={typeOptions}
+                                departments={deptOptions}
+                                designations={desgOptions}
+                                grades={gradeOptions}
+                                leaveNames={leaveNameOptions}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -215,7 +235,14 @@ function FormSections() {
                                 activeTab={activeTab}
                                 onSubmit={handleFormSubmit}
                                 onCancel={closeEditForm}
+                                types={typeOptions}
+                                departments={deptOptions}
+                                designations={desgOptions}
+                                grades={gradeOptions}
+                                leaveNames={leaveNameOptions}
                                 defaultValues={{
+                                    id: selectedRow.id,
+                                    leaveId: selectedRow.leaveId,
                                     type: selectedRow.type,
                                     department: selectedRow.department,
                                     designation: selectedRow.designation,
