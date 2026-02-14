@@ -139,9 +139,9 @@ export async function getStudentAttendanceReport(
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');
 
-    let baseUrl = `/StudentAttendanceReport/GetAttendanceMonthwiseData?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMS_Id}&ASMS_Id=${ASMCL_Id}&RadioType=${studentStatus}&Type=${selectionMode}`;
+    let baseUrl = `/StudentAttendanceReport/GetAttendanceMonthwiseData?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}&RadioType=${studentStatus}&Type=${selectionMode}`;
 
-    if (selectionMode === 1 && AMST_Id) {
+    if (selectionMode === 2 && AMST_Id) {
         baseUrl += `&AMST_Id=${AMST_Id}`;
     }
 
