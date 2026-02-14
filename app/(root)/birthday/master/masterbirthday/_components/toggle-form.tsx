@@ -41,7 +41,7 @@ export default function ToggleEventForm({ rowData, onClose }: ToggleEventFormPro
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
             console.log('deacticepayload', rowData);
-            const response = await toggleUploadEvent(Number(rowData.coemE_Id));
+            const response = await toggleUploadEvent(Number(rowData.coemE_Id,),rowData.coee_Id);
             if (response.success) {
                 toast.success(response.message);
                 refetchAll();
