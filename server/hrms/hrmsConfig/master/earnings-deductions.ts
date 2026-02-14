@@ -95,7 +95,9 @@ export async function saveMasterEarningsDeductionsOrder(data: any) {
  */
 export async function getEarningsDeductionsTypeDropdown() {
     const url = '/api/MasterDropDown/GetEarningsDeductionsType';
-    return await api.get<IEarningsDeductionsTypeDropdown[]>('hrms', url);
+    const response = await api.get<IEarningsDeductionsTypeDropdown[]>('hrms', url);
+    console.log(response);
+    return response
 }
 
 /**

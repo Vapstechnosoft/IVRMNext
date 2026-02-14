@@ -1722,10 +1722,25 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/masters/religion-category-mapping',
                                             title: 'Religion-Category Mapping',
                                             description: 'Map Religion & Category'
+                                        },
+                                        
+                                    ]
+                                },
+                                {
+                                    id: 5,
+                                    name: 'User Creation',
+                                    icon: 'UserPlus',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Staff User Creation',
+                                            icon: 'UserPlus',
+                                            url: '/SuperAdmin/super-admin-module/user-creation/staff-user-creation',
+                                            title: 'Staff User Creation',
+                                            description: 'Manage Institution Staff User Details'
                                         }
                                     ]
                                 },
-
                                 {
                                     id: 2,
                                     name: 'Employee',
@@ -1786,14 +1801,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Mass Updation',
                                             description: 'Bulk Update Employee Data'
                                         },
-                                        // {
-                                        //     id: 6,
-                                        //     name: 'Salary Advance',
-                                        //     icon: 'DollarSign',
-                                        //     url: '/hrms/transactions/salary-advance',
-                                        //     title: 'Salary Advance',
-                                        //     description: 'Manage Salary Advances'
-                                        // },
+                                        {
+                                            id: 6,
+                                            name: 'Salary Advance',
+                                            icon: 'DollarSign',
+                                            url: '/hrms/transactions/salary-advance',
+                                            title: 'Salary Advance',
+                                            description: 'Manage Salary Advances'
+                                        },
                                         {
                                             id: 7,
                                             name: 'Employee Loan',
@@ -1850,14 +1865,14 @@ export async function getUserAccessibleModules() {
                                             title: 'E-PF Contribution Register',
                                             description: 'E-PF Contribution Register Report'
                                         },
-                                        // {
-                                        //     id: 6,
-                                        //     name: 'Employee Salary Details',
-                                        //     icon: 'DollarSign',
-                                        //     url: '/hrms/reports/employee-salary-details',
-                                        //     title: 'Employee Salary Details',
-                                        //     description: 'Detailed Salary Information'
-                                        // },
+                                        {
+                                            id: 6,
+                                            name: 'Employee Salary Details',
+                                            icon: 'DollarSign',
+                                            url: '/hrms/reports/employee-salary-details',
+                                            title: 'Employee Salary Details',
+                                            description: 'Detailed Salary Information'
+                                        },
                                         {
                                             id: 7,
                                             name: 'Employee Strength',
@@ -5172,7 +5187,8 @@ export async function getUserAccessibleModules() {
                 }
             ]
         };
-    } else if (session?.role.toUpperCase() === 'STUDENT') {
+    }
+    else if (session?.role.toUpperCase() === 'STUDENT') {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
@@ -5385,7 +5401,8 @@ export async function getUserAccessibleModules() {
                 }
             ]
         };
-    } else if (session?.role.toUpperCase() === 'SUPER ADMIN') {
+    }
+    else if (session?.role.toUpperCase() === 'SUPER ADMIN') {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
@@ -5605,28 +5622,15 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 }
-                                // {
-                                //     id: 6,
-                                //     name: 'User Creation',
-                                //     icon: 'UserPlus',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'Staff User Creation',
-                                //             icon: 'UserPlus',
-                                //             url: '/SuperAdmin/super-admin-module/user-creation/staff-user-creation',
-                                //             title: 'Staff User Creation',
-                                //             description: 'Manage Institution Staff User Details'
-                                //         }
-                                //     ]
-                                // }
                             ]
                         }
                     ]
-                }
+                },
+
             ]
         };
-    } else {
+    }
+    else {
         response = {
             success: true,
             message: 'Data fetched successfully!!',

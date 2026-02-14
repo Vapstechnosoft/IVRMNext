@@ -1,4 +1,5 @@
 'use client';
+import { useMemo } from 'react';
 /**
  * Unified HRMS Master Hooks
  * All master-related hooks consolidated in one file
@@ -496,18 +497,20 @@ export function useMasterLeaveYear(searchParams?: ApiSearchparams) {
 export function useLeaveYearDropdown() {
     const queryClient = useQueryClient();
 
-    return {
-        ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR, 'dropdown'],
-            queryFn: async () => getLeaveYearDropdown(),
-            staleTime: 1000 * 60 * 5
-        }),
+    const query = useQuery({
+        queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR, 'dropdown'],
+        queryFn: async () => getLeaveYearDropdown(),
+        staleTime: 1000 * 60 * 5
+    });
+
+    return useMemo(() => ({
+        ...query,
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR, 'dropdown']
             });
         }
-    };
+    }), [query, queryClient]);
 }
 
 export function useLeaveYearSetOrder() {
@@ -683,18 +686,20 @@ export function useSalaryComponentTypeDropdown() {
 export function useMonthDropdown() {
     const queryClient = useQueryClient();
 
-    return {
-        ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.MASTER_PAYROLL_STANDARD, 'dropdown', 'months'],
-            queryFn: async () => getMonthDropdown(),
-            staleTime: 1000 * 60 * 5
-        }),
+    const query = useQuery({
+        queryKey: [HRMS_QUERY_KEYS.MASTER_PAYROLL_STANDARD, 'dropdown', 'months'],
+        queryFn: async () => getMonthDropdown(),
+        staleTime: 1000 * 60 * 5
+    });
+
+    return useMemo(() => ({
+        ...query,
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_PAYROLL_STANDARD, 'dropdown', 'months']
             });
         }
-    };
+    }), [query, queryClient]);
 }
 // ============================================================================
 // PAYROLL STANDARD
