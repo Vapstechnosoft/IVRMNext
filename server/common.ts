@@ -4810,14 +4810,14 @@ export async function getUserAccessibleModules() {
                                             title: 'BMI Report',
                                             description: 'BMI Report'
                                         },
-                                        {
-                                            id: 4,
-                                            name: 'Sport House Committee Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportHouseCommitteeReport',
-                                            title: 'Sport House Committee Report',
-                                            description: 'Sport House Committee Report'
-                                        },
+                                        // {
+                                        //     id: 4,
+                                        //     name: 'Sport House Committee Report',
+                                        //     icon: 'FileText',
+                                        //     url: '/Sports/Reports/SportHouseCommitteeReport',
+                                        //     title: 'Sport House Committee Report',
+                                        //     description: 'Sport House Committee Report'
+                                        // },
                                         {
                                             id: 5,
                                             name: 'House Incharge Report',
@@ -4833,6 +4833,15 @@ export async function getUserAccessibleModules() {
                                             url: '/Sports/Reports/SportHouseReport',
                                             title: 'Sport House Report',
                                             description: 'Sport House Report'
+                                        },
+
+                                        {
+                                            id: 11,
+                                            name: 'Venue Wise Participation',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/VenueWiseParticipationReport',
+                                            title: 'Venue Wise Participation',
+                                            description: 'View Venue Wise Participation Report'
                                         },
                                         // {
                                         //     id: 7,
@@ -4866,14 +4875,7 @@ export async function getUserAccessibleModules() {
                                             title: 'SRKVS Sports Report Record',
                                             description: 'View SRKVS Sports Report Record'
                                         },
-                                        {
-                                            id: 11,
-                                            name: 'Venue Wise Participation',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/VenueWiseParticipationReport',
-                                            title: 'Venue Wise Participation',
-                                            description: 'View Venue Wise Participation Report'
-                                        },
+
                                         {
                                             id: 12,
                                             name: 'Month End Report',

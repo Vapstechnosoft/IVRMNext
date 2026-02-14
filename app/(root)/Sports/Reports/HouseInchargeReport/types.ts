@@ -1,15 +1,36 @@
-export interface HouseInchargeReportData {
-    id: number;
-    // ASMAY_Year: string; // Not shown in grid cols but in data
-    SPCCMH_HouseName: string;
-    EmpName: string;
-    HRME_EmployeeCode: string;
-    HRMD_DepartmentName: string;
-    HRMDES_DesignationName: string;
-    HRME_MobileNo: string;
-    HRME_EmailId: string;
+
+export interface IHouseInchargeReportLoadData {
+    asmay_list: IYear[];
 }
 
-export interface HouseInchargeReportProps {
-    searchParams: { [key: string]: string | string[] | undefined };
+export interface IYear {
+    asmaY_Id: number;
+    asmaY_Year: string;
+    // Add other fields if needed
+}
+
+export interface IHouseInchargeReportHouses {
+    houseList: IHouse[];
+}
+
+export interface IHouse {
+    spccmH_Id: number;
+    spccmH_HouseName: string;
+}
+
+export interface IHouseInchargeReportRequest {
+    asmaY_Id: number;
+    selectedhouselist: { spccmH_Id: number }[];
+}
+
+export interface IHouseInchargeReportData {
+    id: number;
+    SPCCMH_HouseName: string;
+    ASMAY_Year: string;
+    EmpName: string;
+    HRME_MobileNo: string;
+    HRME_EmployeeCode: string;
+    HRME_EmailId: string;
+    HRMDES_DesignationName: string;
+    HRMD_DepartmentName: string;
 }

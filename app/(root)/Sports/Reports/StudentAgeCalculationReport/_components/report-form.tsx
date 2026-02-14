@@ -1,331 +1,428 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useStudentAgeReport } from '@/hooks/sports/useStudentAgeReport';
-import { studentAgeReportSchema } from '@/types/sports/reports/student-age-calculation';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, List, FileSpreadsheet, Printer, X, Search } from 'lucide-react';
-import { toast } from 'sonner';
-import { Input } from '@/components/ui/input';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, useWatch } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader2, List, X, Search } from "lucide-react";
+import { toast } from "sonner";
+import { StudentAgeReportSchema, type StudentAgeReportFormSchema, type IStudentAgeReport, type IStudentAgeCalculationDropdowns } from "@/types/sports/reports/student-age-calculation";
+import { useStudentAgeCalculationReport } from "@/hooks/sports/useStudentAgeCalculationReport";
+import { getClassesForYear, getSectionsForClass } from "@/server/sports/reports/student-age-calculation";
+import { Input } from "@/components/ui/input";
 
 interface ReportFormProps {
-    onReportGenerated: (data: any) => void;
+    onReportGenerated: (data: IStudentAgeReport[]) => void;
+    onReset: () => void;
 }
 
-export default function ReportForm({ onReportGenerated }: ReportFormProps) {
-    const { loadData, getClasses, getSections, generateReport } = useStudentAgeReport();
-    const [houses, setHouses] = useState<any[]>([]);
-    const [sections, setSections] = useState<any[]>([]);
+export default function ReportForm({ onReportGenerated, onReset }: ReportFormProps) {
+    const { initialData, generateReport } = useStudentAgeCalculationReport();
 
-    // Filter states
+    const [classList, setClassList] = useState<IStudentAgeCalculationDropdowns['classList']>([]);
+    const [sectionList, setSectionList] = useState<IStudentAgeCalculationDropdowns['sectionList']>([]);
+    const [houseList, setHouseList] = useState<IStudentAgeCalculationDropdowns['houseList']>([]);
+
     const [houseFilter, setHouseFilter] = useState('');
     const [sectionFilter, setSectionFilter] = useState('');
 
-    const { control, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm({
-        resolver: zodResolver(studentAgeReportSchema),
+    const form = useForm<StudentAgeReportFormSchema>({
+        resolver: zodResolver(StudentAgeReportSchema),
         defaultValues: {
             type: 'House',
-            asmaY_Id: 0,
-            asmcL_Id: 0,
-            selectedHouseList: [],
-            selectedSectionList: []
-        } as any
+            asmaY_Id: undefined,
+            spccmcC_Id: undefined,
+            asmcL_Id: undefined,
+            selectedSectionlist: [],
+            selectedhouselist: [],
+        },
     });
 
-    const reportType = watch('type');
-    const selectedYear = watch('asmaY_Id');
-    const selectedClass = watch('asmcL_Id');
-    const selectedHouses = watch('selectedHouseList') || [];
-    const selectedSections = watch('selectedSectionList') || [];
+    const watchedType = useWatch({ control: form.control, name: 'type' });
+    const watchedYear = useWatch({ control: form.control, name: 'asmaY_Id' });
+    const watchedClass = useWatch({ control: form.control, name: 'asmcL_Id' });
 
-    // Load initial data
+    // Reset dependent fields when Type changes
     useEffect(() => {
-        if (loadData.data?.houseList) {
-            setHouses(loadData.data.houseList.map((h: any) => ({ ...h, selected: false })));
+        console.log("🔵 [UI] watchedType or initialData.houseList changed. watchedType =", watchedType);
+        form.setValue('asmaY_Id', undefined as any);
+        form.setValue('asmcL_Id', 0); // Legacy: asmcL_Id: 0 for House type
+        form.setValue('selectedSectionlist', []);
+        form.setValue('selectedhouselist', []);
+        setClassList([]);
+        setSectionList([]);
+        setHouseList(initialData.data?.houseList || []);
+        onReset();
+    }, [watchedType, form, initialData.data?.houseList]);
+
+    useEffect(() => {
+        console.log("🔵 [UI] initialData Status:", initialData.status);
+        if (initialData.data) {
+            console.log("🔵 [UI] initialData received. Yearlist length =", initialData.data.yearlist?.length || 0);
         }
-    }, [loadData.data]);
-
-    // Handle Year Change
-    useEffect(() => {
-        if (selectedYear) {
-            getClasses.mutate(selectedYear);
+        if (initialData.error) {
+            console.error("🔴 [UI] initialData Error:", initialData.error);
         }
-    }, [selectedYear]);
+    }, [initialData.status, initialData.data, initialData.error]);
 
-    // Handle Class Change
+    // Initial house list population
     useEffect(() => {
-        if (selectedYear && selectedClass && reportType === 'CS') {
-            getSections.mutate({ asmaY_Id: selectedYear, asmcL_Id: selectedClass }, {
-                onSuccess: (data) => {
-                    setSections(data.sectionList.map((s: any) => ({ ...s, selected: false })));
+        if (initialData.data?.houseList) {
+            setHouseList(initialData.data.houseList);
+        }
+    }, [initialData.data?.houseList]);
+
+    // Fetch Classes and Houses when Year changes
+    useEffect(() => {
+        if (watchedYear) {
+            const fetchData = async () => {
+                try {
+                    const data = await getClassesForYear(watchedYear);
+                    setClassList(data.classList || []);
+                    setHouseList(data.houseList || []);
+                } catch (error) {
+                    console.error("Failed to fetch classes/houses", error);
+                    toast.error("Failed to load classes and houses");
                 }
-            });
-        }
-    }, [selectedYear, selectedClass, reportType]);
-
-    const handleFormSubmit = (data: any) => {
-        let finalData = { ...data };
-
-        if (reportType === 'House') {
-            const activeHouses = houses.filter(h => h.selected).map(h => ({ spccmH_Id: h.spccmH_Id }));
-            if (activeHouses.length === 0) {
-                toast.error('Please select at least one House');
-                return;
-            }
-            finalData.selectedHouseList = activeHouses;
+            };
+            fetchData();
         } else {
-            const activeSections = sections.filter(s => s.selected).map(s => ({ asmS_Id: s.asmS_Id }));
-            if (activeSections.length === 0) {
-                toast.error('Please select at least one Section');
-                return;
-            }
-            finalData.selectedSectionList = activeSections;
+            setClassList([]);
+            form.setValue('asmcL_Id', 0);
         }
+    }, [watchedYear, form]);
 
-        generateReport.mutate(finalData, {
-            onSuccess: (res) => {
-                if (res.success && res.viewlist) {
-                    onReportGenerated(res.viewlist);
-                    toast.success('Report generated successfully');
-                } else {
-                    toast.error(res.message || 'No records found');
+    // Fetch Sections when Class changes (and Type is CS)
+    useEffect(() => {
+        if (watchedYear && watchedClass && watchedClass !== 0 && watchedType === 'CS') {
+            const fetchSections = async () => {
+                try {
+                    const data = await getSectionsForClass(watchedYear, watchedClass);
+                    setSectionList(data.sectionList || []);
+                } catch (error) {
+                    console.error("Failed to fetch sections", error);
+                    toast.error("Failed to load sections");
                 }
+            };
+            fetchSections();
+        } else {
+            setSectionList([]);
+        }
+    }, [watchedYear, watchedClass, watchedType]);
+
+    const onSubmit = (data: StudentAgeReportFormSchema) => {
+        // Prepare payload strictly matching legacy
+        const payload = {
+            ...data,
+            asmcL_Id: data.type === 'House' ? 0 : data.asmcL_Id,
+            selectedSectionlist: data.type === 'House' ? [] : data.selectedSectionlist,
+        };
+
+        generateReport.mutate(payload as any, {
+            onSuccess: (responseData) => {
+                onReportGenerated(responseData || []);
+                toast.success('Report generated successfully');
+            },
+            onError: (error) => {
+                console.error("Report Generation Error:", error);
+                toast.error('Failed to generate report');
             }
         });
     };
 
-    const handleReset = () => {
-        reset({
-            type: 'House',
-            asmaY_Id: 0,
-            asmcL_Id: 0,
-            selectedHouseList: [],
-            selectedSectionList: []
-        });
-        setHouses(houses.map(h => ({ ...h, selected: false })));
-        setSections(sections.map(s => ({ ...s, selected: false })));
-        onReportGenerated(null);
+    const handleCancel = () => {
+        form.reset();
+        setClassList([]);
+        setSectionList([]);
+        setHouseList(initialData.data?.houseList || []);
+        onReset();
     };
 
-    const toggleAllHouses = (checked: boolean) => {
-        setHouses(houses.map(h => ({ ...h, selected: checked })));
+    const toggleAll = (list: any[], key: string, fieldName: any, checked: boolean) => {
+        if (checked) {
+            form.setValue(fieldName, list.map(item => ({ [key]: item[key] })));
+        } else {
+            form.setValue(fieldName, []);
+        }
     };
 
-    const toggleHouse = (index: number, checked: boolean) => {
-        const newHouses = [...houses];
-        newHouses[index].selected = checked;
-        setHouses(newHouses);
-    };
-
-    const toggleAllSections = (checked: boolean) => {
-        setSections(sections.map(s => ({ ...s, selected: checked })));
-    };
-
-    const toggleSection = (index: number, checked: boolean) => {
-        const newSections = [...sections];
-        newSections[index].selected = checked;
-        setSections(newSections);
-    };
-
-    const filteredHouses = houses.filter(h => h.spccmH_HouseName.toLowerCase().includes(houseFilter.toLowerCase()));
-    const filteredSections = sections.filter(s => s.asmC_SectionName.toLowerCase().includes(sectionFilter.toLowerCase()));
+    const filteredHouses = houseList?.filter(h => h.spccmH_HouseName.toLowerCase().includes(houseFilter.toLowerCase())) || [];
+    const filteredSections = sectionList?.filter(s => s.asmC_SectionName.toLowerCase().includes(sectionFilter.toLowerCase())) || [];
 
     return (
-        <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xl font-bold">Student Age Calculation Report</CardTitle>
-                <Button variant="ghost" size="sm" className="h-4 w-4">
-                    <X className="h-4 w-4" />
-                </Button>
-            </CardHeader>
-            <CardContent>
-                <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-                    {/* Radio Group */}
-                    <div className="flex justify-center p-4 bg-muted/20 rounded-lg">
-                        <Controller
-                            name="type"
-                            control={control}
-                            render={({ field }) => (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 border p-6 rounded-lg bg-card shadow-sm">
+                <div className="flex items-center justify-between border-b pb-4 mb-4">
+                    <h2 className="text-xl font-bold">Student Age Calculation Report</h2>
+                </div>
+
+                {/* Type Selection */}
+                <FormField
+                    control={form.control}
+                    name="type"
+                    render={({ field }) => (
+                        <FormItem className="space-y-3">
+                            <FormControl>
                                 <RadioGroup
-                                    onValueChange={(val) => {
-                                        field.onChange(val);
-                                        onReportGenerated(null);
-                                    }}
+                                    onValueChange={field.onChange}
                                     defaultValue={field.value}
-                                    className="flex space-x-8"
+                                    className="flex justify-center space-x-8 p-4 border rounded-md bg-muted/20"
                                 >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="House" id="r1" />
-                                        <Label htmlFor="r1" className="cursor-pointer font-medium">By House</Label>
+                                    <div className="flex items-center space-x-3">
+                                        <RadioGroupItem value="House" id="type-house" />
+                                        <label htmlFor="type-house" className="font-medium cursor-pointer">
+                                            By House
+                                        </label>
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="CS" id="r2" />
-                                        <Label htmlFor="r2" className="cursor-pointer font-medium">By Class/Section</Label>
+                                    <div className="flex items-center space-x-3">
+                                        <RadioGroupItem value="CS" id="type-cs" />
+                                        <label htmlFor="type-cs" className="font-medium cursor-pointer">
+                                            By Class/Section
+                                        </label>
                                     </div>
                                 </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Left Column */}
+                    <div className="space-y-6">
+                        {/* Academic Year */}
+                        <FormField
+                            control={form.control}
+                            name="asmaY_Id"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Academic Year <span className="text-red-500">*</span></FormLabel>
+                                    <Select
+                                        onValueChange={(val) => field.onChange(Number(val))}
+                                        value={field.value?.toString()}
+                                        disabled={initialData.isLoading}
+                                    >
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder={initialData.isLoading ? "Loading..." : "Select Academic Year"} />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {initialData.data?.yearlist?.map((item) => (
+                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                    {item.asmaY_Year}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
                             )}
                         />
+
+                        {/* Competition Category (Hidden if not used in legacy form, but keeping if it exists in data) */}
+                        {initialData.data?.categoryList && initialData.data.categoryList.length > 0 && (
+                            <FormField
+                                control={form.control}
+                                name="spccmcC_Id"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Competition Category</FormLabel>
+                                        <Select
+                                            onValueChange={(val) => field.onChange(Number(val))}
+                                            value={field.value?.toString()}
+                                            disabled={initialData.isLoading}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder={initialData.isLoading ? "Loading..." : "Select Category"} />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {initialData.data?.categoryList?.map((item) => (
+                                                    <SelectItem key={item.spccmcC_Id} value={item.spccmcC_Id.toString()}>
+                                                        {item.spccmcC_CompitionCategory}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        )}
+
+                        {/* Class (CS Only) */}
+                        {watchedType === 'CS' && (
+                            <FormField
+                                control={form.control}
+                                name="asmcL_Id"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Class <span className="text-red-500">*</span></FormLabel>
+                                        <Select
+                                            onValueChange={(val) => field.onChange(Number(val))}
+                                            value={(field.value && field.value !== 0) ? field.value.toString() : ""}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select Class" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {classList?.map((item) => (
+                                                    <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                                        {item.asmcL_ClassName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Left Column */}
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                <Label className="text-right">Academic Year: <span className="text-red-500">*</span></Label>
-                                <div className="space-y-1">
-                                    <Controller
-                                        name="asmaY_Id"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Select
-                                                onValueChange={(val) => field.onChange(Number(val))}
-                                                value={field.value ? field.value.toString() : ''}
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select Academic Year" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {loadData.data?.yearlist?.map((y: any) => (
-                                                        <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>{y.asmaY_Year}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    />
-                                    {errors.asmaY_Id && <span className="text-xs text-red-500">{errors.asmaY_Id.message as string}</span>}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Right Column */}
-                        <div className="space-y-4">
-                            {/* House Selection */}
-                            {reportType === 'House' && (
-                                <div className="grid grid-cols-[140px_1fr] items-start gap-4">
-                                    <Label className="text-right pt-2">House Name: <span className="text-red-500">*</span></Label>
-                                    <div className="border rounded-md p-2 space-y-2">
-                                        <div className="relative">
-                                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                                            <Input
-                                                placeholder="search here..."
-                                                className="pl-8 h-8"
-                                                value={houseFilter}
-                                                onChange={(e) => setHouseFilter(e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="flex items-center space-x-2 px-1">
+                    {/* Right Column */}
+                    <div className="space-y-6">
+                        {/* House Selection */}
+                        <FormField
+                            control={form.control}
+                            name="selectedhouselist"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>House Name <span className="text-red-500">*</span></FormLabel>
+                                    <div className="border rounded-md p-2 bg-background">
+                                        <div className="flex items-center space-x-2 p-2 border-b bg-muted/30">
                                             <Checkbox
-                                                checked={houses.length > 0 && houses.every(h => h.selected)}
-                                                onCheckedChange={(checked) => toggleAllHouses(!!checked)}
+                                                id="select-all-houses"
+                                                checked={houseList && houseList.length > 0 && field.value?.length === houseList.length}
+                                                onCheckedChange={(checked) => toggleAll(houseList || [], 'spccmH_Id', 'selectedhouselist', !!checked)}
                                             />
-                                            <Label>All</Label>
+                                            <label htmlFor="select-all-houses" className="text-sm font-medium">All</label>
+                                            <div className="relative ml-auto w-1/2">
+                                                <Search className="absolute left-2 top-2 h-3.5 w-3.5 text-muted-foreground" />
+                                                <Input
+                                                    placeholder="Search..."
+                                                    className="h-7 pl-8 text-xs"
+                                                    value={houseFilter}
+                                                    onChange={(e) => setHouseFilter(e.target.value)}
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="max-h-[200px] overflow-y-auto space-y-1 px-1">
-                                            {filteredHouses.map((house, idx) => (
-                                                <div key={house.spccmH_Id} className="flex items-center space-x-2">
+                                        <ScrollArea className="h-[150px] w-full p-2">
+                                            {filteredHouses.length > 0 ? filteredHouses.map((item) => (
+                                                <div key={item.spccmH_Id} className="flex items-center space-x-3 mb-2">
                                                     <Checkbox
-                                                        checked={house.selected}
+                                                        id={`house-${item.spccmH_Id}`}
+                                                        checked={field.value?.some(val => val.spccmH_Id === item.spccmH_Id)}
                                                         onCheckedChange={(checked) => {
-                                                            const originalIndex = houses.findIndex(h => h.spccmH_Id === house.spccmH_Id);
-                                                            toggleHouse(originalIndex, !!checked);
+                                                            const current = field.value || [];
+                                                            if (checked) {
+                                                                field.onChange([...current, { spccmH_Id: item.spccmH_Id }]);
+                                                            } else {
+                                                                field.onChange(current.filter(val => val.spccmH_Id !== item.spccmH_Id));
+                                                            }
                                                         }}
                                                     />
-                                                    <span className="text-sm">{house.spccmH_HouseName}</span>
+                                                    <label htmlFor={`house-${item.spccmH_Id}`} className="text-sm cursor-pointer hover:text-primary">
+                                                        {item.spccmH_HouseName}
+                                                    </label>
                                                 </div>
-                                            ))}
-                                        </div>
+                                            )) : <div className="text-muted-foreground text-sm p-4 text-center">No houses found</div>}
+                                        </ScrollArea>
                                     </div>
-                                </div>
+                                    <FormMessage />
+                                </FormItem>
                             )}
+                        />
 
-                            {/* Class/Section Selection */}
-                            {reportType === 'CS' && (
-                                <>
-                                    <div className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                        <Label className="text-right">Class Name: <span className="text-red-500">*</span></Label>
-                                        <div className="space-y-1">
-                                            <Controller
-                                                name="asmcL_Id"
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <Select
-                                                        onValueChange={(val) => field.onChange(Number(val))}
-                                                        value={field.value ? field.value.toString() : ''}
-                                                    >
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Select Class" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {getClasses.data?.classList?.map((c: any) => (
-                                                                <SelectItem key={c.asmcL_Id} value={c.asmcL_Id.toString()}>{c.asmcL_ClassName}</SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                )}
-                                            />
-                                            {errors.asmcL_Id && <span className="text-xs text-red-500">{errors.asmcL_Id.message as string}</span>}
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-[140px_1fr] items-start gap-4 mt-4">
-                                        <Label className="text-right pt-2">Section Name: <span className="text-red-500">*</span></Label>
-                                        <div className="border rounded-md p-2 space-y-2">
-                                            <div className="relative">
-                                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                                                <Input
-                                                    placeholder="search here..."
-                                                    className="pl-8 h-8"
-                                                    value={sectionFilter}
-                                                    onChange={(e) => setSectionFilter(e.target.value)}
-                                                />
-                                            </div>
-                                            <div className="flex items-center space-x-2 px-1">
+                        {/* Section Selection (CS Only) */}
+                        {watchedType === 'CS' && (
+                            <FormField
+                                control={form.control}
+                                name="selectedSectionlist"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Section Name <span className="text-red-500">*</span></FormLabel>
+                                        <div className="border rounded-md p-2 bg-background">
+                                            <div className="flex items-center space-x-2 p-2 border-b bg-muted/30">
                                                 <Checkbox
-                                                    checked={sections.length > 0 && sections.every(s => s.selected)}
-                                                    onCheckedChange={(checked) => toggleAllSections(!!checked)}
+                                                    id="select-all-sections"
+                                                    checked={sectionList && sectionList.length > 0 && field.value?.length === sectionList.length}
+                                                    onCheckedChange={(checked) => toggleAll(sectionList || [], 'asmS_Id', 'selectedSectionlist', !!checked)}
                                                 />
-                                                <Label>All</Label>
+                                                <label htmlFor="select-all-sections" className="text-sm font-medium">All</label>
+                                                <div className="relative ml-auto w-1/2">
+                                                    <Search className="absolute left-2 top-2 h-3.5 w-3.5 text-muted-foreground" />
+                                                    <Input
+                                                        placeholder="Search..."
+                                                        className="h-7 pl-8 text-xs"
+                                                        value={sectionFilter}
+                                                        onChange={(e) => setSectionFilter(e.target.value)}
+                                                    />
+                                                </div>
                                             </div>
-                                            <div className="max-h-[150px] overflow-y-auto space-y-1 px-1">
-                                                {filteredSections.map((section, idx) => (
-                                                    <div key={section.asmS_Id} className="flex items-center space-x-2">
+                                            <ScrollArea className="h-[150px] w-full p-2">
+                                                {filteredSections.length > 0 ? filteredSections.map((item) => (
+                                                    <div key={item.asmS_Id} className="flex items-center space-x-3 mb-2">
                                                         <Checkbox
-                                                            checked={section.selected}
+                                                            id={`section-${item.asmS_Id}`}
+                                                            checked={field.value?.some(val => val.asmS_Id === item.asmS_Id)}
                                                             onCheckedChange={(checked) => {
-                                                                const originalIndex = sections.findIndex(s => s.asmS_Id === section.asmS_Id);
-                                                                toggleSection(originalIndex, !!checked);
+                                                                const current = field.value || [];
+                                                                if (checked) {
+                                                                    field.onChange([...current, { asmS_Id: item.asmS_Id }]);
+                                                                } else {
+                                                                    field.onChange(current.filter(val => val.asmS_Id !== item.asmS_Id));
+                                                                }
                                                             }}
                                                         />
-                                                        <span className="text-sm">{section.asmC_SectionName}</span>
+                                                        <label htmlFor={`section-${item.asmS_Id}`} className="text-sm cursor-pointer hover:text-primary">
+                                                            {item.asmC_SectionName}
+                                                        </label>
                                                     </div>
-                                                ))}
-                                            </div>
+                                                )) : <div className="text-muted-foreground text-sm p-4 text-center">No sections found</div>}
+                                            </ScrollArea>
                                         </div>
-                                    </div>
-                                </>
-                            )}
-                        </div>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        )}
                     </div>
+                </div>
 
-                    <div className="flex justify-center space-x-4 pt-4 border-t">
-                        <Button type="submit" disabled={generateReport.isPending} className="bg-primary hover:bg-primary/90">
-                            {generateReport.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <List className="mr-2 h-4 w-4" />}
-                            Report
-                        </Button>
-                        <Button type="button" variant="destructive" onClick={handleReset} className="bg-red-500 hover:bg-red-600">
-                            <X className="mr-2 h-4 w-4" />
-                            Cancel
-                        </Button>
-                    </div>
-                </form>
-            </CardContent>
-        </Card>
+                <div className="flex justify-center gap-4 pt-6 border-t">
+                    <Button type="submit" disabled={generateReport.isPending} className="px-10">
+                        {generateReport.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <List className="mr-2 h-4 w-4" />}
+                        Report
+                    </Button>
+                    <Button type="button" variant="destructive" onClick={handleCancel} className="px-10">
+                        <X className="mr-2 h-4 w-4" />
+                        Cancel
+                    </Button>
+                </div>
+            </form>
+        </Form>
     );
 }
