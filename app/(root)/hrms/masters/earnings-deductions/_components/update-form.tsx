@@ -81,7 +81,7 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
 
             // Case 1: Already has key/value or id/name
             const keyVal = item.key ?? item.id ?? item.idField ?? item.hrmedT_Id ?? item.HRMEDT_Id;
-            const displayVal = item.value ?? item.name ?? item.text ?? item.label ?? item.hrmedT_EarnDedType ?? item.HRMEDT_EarnDedType;
+            const displayVal = item.hrmedT_EarnDedType ?? item.HRMEDT_EarnDedType ?? item.name ?? item.text ?? item.label ?? item.value;
 
             if (keyVal !== undefined && displayVal !== undefined) {
                 return { key: String(keyVal).trim(), value: String(displayVal).trim() };
@@ -92,8 +92,8 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
             const idField = keys.find((k) => k.toLowerCase().endsWith('id'));
             const nameField = keys.find(
                 (k) =>
-                    (k.toLowerCase().includes('name') ||
-                        k.toLowerCase().includes('type') ||
+                    (k.toLowerCase().includes('type') ||
+                        k.toLowerCase().includes('name') ||
                         k.toLowerCase().includes('flag') ||
                         k.toLowerCase().includes('desc') ||
                         k.toLowerCase().includes('text') ||
@@ -168,6 +168,30 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
         return undefined; // Return undefined if no mapping found to prevent showing invalid data
     };
 
+    const findValue = (list: DropdownItem[], val: any) => {
+        if (val === undefined || val === null) return undefined;
+        const stringVal = String(val).trim();
+        if (stringVal === '') return undefined;
+
+        // 1. Try exact value match (Display Label) - Case Insensitive
+        const exactValueMatch = list.find((item: DropdownItem) => String(item.value).trim().toLowerCase() === stringVal.toLowerCase());
+        if (exactValueMatch) return String(exactValueMatch.value).trim();
+
+        // 2. Try exact key match (Internal ID)
+        const exactKeyMatch = list.find((item: DropdownItem) => String(item.key).trim() === stringVal);
+        if (exactKeyMatch) return String(exactKeyMatch.value).trim();
+
+        // 3. Try partial matches
+        const partialMatch = list.find((item: DropdownItem) => {
+            const v = String(item.value).trim().toLowerCase();
+            const s = stringVal.toLowerCase();
+            return v.startsWith(s) || s.startsWith(v) || v.includes(s) || s.includes(v);
+        });
+        if (partialMatch) return String(partialMatch.value).trim();
+
+        return undefined;
+    };
+
     // Consolidated row data binding
     useEffect(() => {
         if (row && reset) {
@@ -175,7 +199,7 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                 HRMED_Id: row.hrmeD_Id,
                 MI_Id: row.mI_Id || 0,
                 HRMED_Name: row.hrmeD_Name || '',
-                HRMED_EDTypeFlag: findKey(earningsDeductionsTypeDropdown, row.hrmeD_EDTypeFlag),
+                HRMED_EDTypeFlag: findValue(earningsDeductionsTypeDropdown, row.hrmeD_EDTypeFlag),
                 HRMED_EarnDedFlag: findKey(salaryComponentTypeDropdown, row.hrmeD_EarnDedFlag),
                 HRMED_AmountPercentFlag: findKey(amountOrPercentageDropdown, row.hrmeD_AmountPercentFlag),
                 HRMED_AmountPercent: String(row.hrmeD_AmountPercent ?? ''),
@@ -190,7 +214,7 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
     // Robust synchronization as dropdown data arrives
     useEffect(() => {
         if (row && earningsDeductionsTypeDropdown.length > 0) {
-            const target = findKey(earningsDeductionsTypeDropdown, row.hrmeD_EDTypeFlag);
+            const target = findValue(earningsDeductionsTypeDropdown, row.hrmeD_EDTypeFlag);
             const current = getValues('HRMED_EDTypeFlag');
             if (target !== undefined && target !== current) {
                 setValue('HRMED_EDTypeFlag', target, { shouldDirty: false, shouldValidate: true });
@@ -303,16 +327,16 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                                         ) : (
                                             (earningsDeductionsTypeDropdown || [])
                                                 .filter((item: DropdownItem) => {
-                                                    const key = item.key || item.value;
-                                                    return key != null && key !== '' && String(key).trim() !== '';
+                                                    const val = item.value || item.key;
+                                                    return val != null && val !== '' && String(val).trim() !== '';
                                                 })
                                                 .map((item: DropdownItem) => {
-                                                    const key = (item.key || item.value)?.toString().trim();
-                                                    const value = item.value || String(key);
+                                                    const key = (item.value || item.key)?.toString().trim();
+                                                    const label = item.value || String(key);
                                                     if (!key || key === '') return null;
                                                     return (
                                                         <SafeSelectItem key={key} value={key}>
-                                                            {value}
+                                                            {label}
                                                         </SafeSelectItem>
                                                     );
                                                 })
