@@ -10,7 +10,7 @@ import { Loader2, Plus, X } from 'lucide-react';
 import { Suspense } from 'react';
 import AddNoticeBoardForm from './_components/add-form';
 import { noticeBoardColumns } from './_components/columns';
-import { deleteNoticeBoard } from '@/server/upload/transactions/notice-board/server-action';
+
 import { toast } from 'sonner';
 
 export default function NoticeBoardPage() {
