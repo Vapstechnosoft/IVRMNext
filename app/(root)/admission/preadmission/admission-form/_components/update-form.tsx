@@ -164,23 +164,17 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         name: 'adm_M_Student_EmailIdDTO'
     });
 
-    // Ensure there's at least one email field (prefill from legacy amsT_emailId).
-    // Run when emailFields length changes so resets & rowData apply correctly.
-    useEffect(() => {
-        if (emailFields.length === 0) {
-            const initial = (getValues('adm_M_Student_EmailIdDTO') || [])[0]?.amsT_emailId ?? getValues('amsT_emailId') ?? '';
-            // eslint-disable-next-line no-console
-            console.debug('[UpdateAdmission] appending initial email:', initial);
-            appendEmail({ amsT_emailId: initial });
-        }
-    }, [emailFields.length]);
+    // NO OP: Redundant initialization effect removed to prevent overwriting correctly loaded data on mount.
+    // The main initialization block and reset(payload) in update-form handle data population.
 
     // Keep legacy amsT_emailId in sync with first email field
     const watchedEmails = watch('adm_M_Student_EmailIdDTO');
     useEffect(() => {
         const first = Array.isArray(watchedEmails) && watchedEmails.length > 0 ? (watchedEmails[0]?.amsT_emailId ?? '') : '';
-        setValue('amsT_emailId' as any, first);
-    }, [watchedEmails, setValue]);
+        if (first && first !== getValues('amsT_emailId')) {
+            setValue('amsT_emailId' as any, first);
+        }
+    }, [watchedEmails, setValue, getValues]);
 
     const [selectedSourceItems, setSelectedSourceItems] = useState<{ pamS_Id: string; pamS_SourceName: string }[]>([]);
     const [_selectedReferenceItems, setSelectedReferenceItems] = useState<{ pamR_Id: string; pamR_ReferenceName: string }[]>([]);
@@ -240,8 +234,19 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             payload = {
                 ...combined,
                 // normalize arrays and legacy shapes
-                adm_M_Student_EmailIdDTO: src.firstTab?.emailIds || src.emailIds || src.adm_M_Student_EmailIdDTO || [],
-                mobileNos: src.firstTab?.mobileNos || src.mobileNos || [],
+                adm_M_Student_EmailIdDTO: src.firstTab?.emailIds || src.emailIds || src.adm_M_Student_EmailIdDTO || combined.adm_M_Student_EmailIdDTO || [],
+                mobileNos: src.firstTab?.mobileNos || src.mobileNos || combined.mobileNos || [],
+                // Mapping common key variations from backend to schema keys
+                amsT_MobileNo: combined.amsT_MobileNo ?? combined.mobileNo ?? combined.mobile_No ?? combined.amsT_Mobile_No ?? combined.firstTab?.amsT_MobileNo ?? '',
+                amsT_emailId: combined.amsT_emailId ?? combined.emailId ?? combined.email_Id ?? combined.amsT_Email_Id ?? combined.firstTab?.amsT_emailId ?? '',
+                amsT_Sex: combined.amsT_Sex ?? combined.gender ?? combined.sex ?? '',
+                amsT_DOB: combined.amsT_DOB ?? combined.dob ?? combined.dateOfBirth ?? combined.pasR_DOB ?? null,
+                amsT_Date: combined.amsT_Date ?? combined.admissionDate ?? combined.date ?? null,
+                amsT_MotherTongue: combined.amsT_MotherTongue ?? combined.motherTongue ?? combined.mother_Tongue ?? combined.amsT_Mother_Tongue ?? '',
+                amsT_LanguageSpoken: combined.amsT_LanguageSpoken ?? combined.languagesSpoken ?? combined.languageSpoken ?? combined.amsT_Language_Spoken ?? '',
+                amsT_AadharNo: combined.amsT_AadharNo ?? combined.aadharNo ?? combined.aadhar_No ?? combined.amsT_Aadhar_No ?? '',
+                studentCategoryId: combined.studentCategoryId ?? combined.imcC_Id ?? combined.categoryId ?? 0,
+
                 previousSchools: src.previousSchools || src.previous_schools || combined.previousSchools || [],
                 siblings: src.siblings || src.student_siblings || combined.siblings || [],
                 guardian: src.guardians || src.guardian || combined.guardian || [],
@@ -566,6 +571,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 }
                 if (conState !== undefined && conState !== null) {
                     setValue('amsT_ConState' as any, conState);
+                    const stateId = Number(conState);
+                    if (stateId > 0) setConStateId(stateId);
                 }
             } catch (_e) {
                 //ignore
@@ -581,6 +588,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 }
                 if (perState !== undefined && perState !== null) {
                     setValue('amsT_PerState' as any, perState);
+                    const stateId = Number(perState);
+                    if (stateId > 0) setPerStateId(stateId);
                 }
             } catch (_e) {
                 //ignore
@@ -591,13 +600,38 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             // NOTE: We no longer set pincodes here immediately - instead we wait for the
             // state dropdowns to load (via the effect below) before applying pincodes,
             // as custom pincode inputs may depend on state data being available
-            try {
-                // Just ensure pincodes are in the form state via reset
-                // The effect at useEffect(() => { ... }, [conState?.data, conConuntryId])
-                // will re-apply them once state data loads
-            } catch (_e) {
-                //ignore
+            // Mapping common key variations at root level if not tabbed
+            if (!hasTabbed) {
+                payload.amsT_MobileNo = payload.amsT_MobileNo ?? payload.mobileNo ?? payload.mobile_No ?? payload.amsT_Mobile_No ?? '';
+                payload.amsT_emailId = payload.amsT_emailId ?? payload.emailId ?? payload.email_Id ?? payload.amsT_Email_Id ?? '';
+                payload.amsT_Sex = payload.amsT_Sex ?? payload.gender ?? payload.sex ?? '';
+                payload.amsT_MotherTongue = payload.amsT_MotherTongue ?? payload.motherTongue ?? payload.mother_Tongue ?? '';
+                payload.amsT_LanguageSpoken = payload.amsT_LanguageSpoken ?? payload.languagesSpoken ?? payload.languageSpoken ?? '';
+                payload.amsT_AadharNo = payload.amsT_AadharNo ?? payload.aadharNo ?? payload.aadhar_No ?? '';
+                payload.studentCategoryId = payload.studentCategoryId ?? payload.amsT_StudentCategory_Id ?? payload.imcC_Id ?? payload.categoryId ?? 0;
             }
+
+            console.debug('[UpdateAdmission] Restoring data for amsT_Id:', payload.amsT_Id, {
+                mobile: payload.amsT_MobileNo,
+                email: payload.amsT_emailId,
+                category: payload.studentCategoryId,
+                hasTabbed
+            });
+
+            console.debug('[UpdateAdmission] Initializing with payload:', {
+                id: payload.amsT_Id,
+                mobile: payload.amsT_MobileNo,
+                email: payload.amsT_emailId,
+                category: payload.studentCategoryId
+            });
+
+            // Normalize countries/states select values to strings to avoid dropdown issues
+            try {
+                if (payload.amsT_PerCountry) payload.amsT_PerCountry = String(payload.amsT_PerCountry);
+                if (payload.amsT_ConCountry) payload.amsT_ConCountry = String(payload.amsT_ConCountry);
+                if (payload.amsT_PerState) payload.amsT_PerState = String(payload.amsT_PerState);
+                if (payload.amsT_ConState) payload.amsT_ConState = String(payload.amsT_ConState);
+            } catch (_e) { /* ignore */ }
 
             // Check if permanent address is same as residential and set the flag accordingly
             try {
@@ -652,24 +686,60 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 setValue('amsT_emailId' as any, normalized[0]?.amsT_emailId ?? '');
                 // Normalize primary mobile from payload.mobileNos (support backend shapes)
                 try {
-                    const mobileSrc = Array.isArray(payload.mobileNos) ? payload.mobileNos : [];
+                    let mobileSrc = Array.isArray(payload.mobileNos) ? payload.mobileNos : [];
+                    // Fallback to amsT_MobileNo at root if mobileNos array is empty
+                    if (mobileSrc.length === 0 && payload.amsT_MobileNo) {
+                        mobileSrc = [{ amsT_MobileNo: payload.amsT_MobileNo, amstsmS_CountryCode: '91' }];
+                    }
+
                     const mobileNormalized = (mobileSrc || []).map((m: any) => {
                         // backend may provide amstsmS_MobileNo: ["9876543210"] and amstsmS_CountryCode: "+91"
                         let raw = '';
                         if (Array.isArray(m?.amstsmS_MobileNo) && m.amstsmS_MobileNo.length > 0) raw = String(m.amstsmS_MobileNo[0] ?? '');
-                        else raw = String(m?.amsT_MobileNo ?? m?.mobileNo ?? '');
-                        const country = String(m?.amstsmS_CountryCode ?? m?.amstsmS_CountryCode ?? m?.countryCode ?? '').replace('+', '');
-                        const numberOnly = raw.replace(/\D/g, '');
+                        else raw = String(m?.amsT_MobileNo ?? m?.mobileNo ?? (typeof m === 'string' ? m : ''));
+
+                        const country = String(m?.amstsmS_CountryCode ?? m?.countryCode ?? '91').replace('+', '');
+                        let numberOnly = raw.replace(/\D/g, '');
+
+                        // Strip country code if it's already at the beginning of the number
+                        if (country && numberOnly.startsWith(country)) {
+                            numberOnly = numberOnly.slice(country.length);
+                        }
+
+                        // If numberOnly is empty after cleaning, return empty to avoid '+91 '
+                        if (!numberOnly) return { amsT_MobileNo: '', amstsmS_CountryCode: country ? `+${country}` : '' };
+
                         const formatted = country ? `+${country} ${numberOnly}` : numberOnly;
                         return { amsT_MobileNo: formatted, amstsmS_CountryCode: country ? `+${country}` : '' };
                     });
-                    if (mobileNormalized.length > 0) {
-                        setValue('mobileNos' as any, mobileNormalized as any);
-                        setValue('amsT_MobileNo' as any, mobileNormalized[0].amsT_MobileNo);
-                        setPhoneValues((prev) => ({ ...prev, amsT_MobileNo: mobileNormalized[0].amsT_MobileNo }));
+
+                    // filter out empty entries to avoid populating invalid data
+                    const validMobiles = mobileNormalized.filter((m: any) => !!m.amsT_MobileNo);
+
+                    if (validMobiles.length > 0) {
+                        setValue('mobileNos' as any, validMobiles as any);
+                        setValue('amsT_MobileNo' as any, validMobiles[0].amsT_MobileNo);
+                        setPhoneValues((prev) => ({ ...prev, amsT_MobileNo: validMobiles[0].amsT_MobileNo }));
+                        // Update phoneExpectedInfo for the primary mobile
+                        setPhoneExpectedInfo((prev) => ({
+                            ...prev,
+                            amsT_MobileNo: {
+                                expected: 10, // fallback for India
+                                name: 'India',
+                                dial: '91'
+                            }
+                        }));
+                    } else if (payload.amsT_MobileNo) {
+                        // absolute fallback if array normalization failed but root key had data
+                        const rootNum = String(payload.amsT_MobileNo).replace(/\D/g, '');
+                        if (rootNum) {
+                            const formattedRoot = rootNum.length === 10 ? `+91 ${rootNum}` : rootNum;
+                            setValue('amsT_MobileNo' as any, formattedRoot);
+                            setPhoneValues((prev) => ({ ...prev, amsT_MobileNo: formattedRoot }));
+                        }
                     }
                 } catch (_e) {
-                    // ignore mobile sync failure
+                    console.warn('[UpdateAdmission] mobile sync failure:', _e);
                 }
 
                 // Populate father/mother email and mobile fields from payload (support multiple backend shapes)
@@ -1318,10 +1388,13 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             }
         }
 
-        // Pre-fill Mobile Number
-        if (data.amsT_MobileNo) {
-            setValue('amsT_MobileNo', data.amsT_MobileNo);
-            setPhoneValues((prev) => ({ ...prev, amsT_MobileNo: data.amsT_MobileNo }));
+        // Pre-fill Mobile Number - handled by main initialization effect with better normalization
+        // but keeping a fallback here just in case, while ensuring we dont overwrite a formatted one
+        if (data.amsT_MobileNo && !phoneValues.amsT_MobileNo) {
+            const raw = String(data.amsT_MobileNo).replace(/\D/g, '');
+            const formatted = raw.length === 10 ? `+91 ${raw}` : data.amsT_MobileNo;
+            setValue('amsT_MobileNo', formatted);
+            setPhoneValues((prev) => ({ ...prev, amsT_MobileNo: formatted }));
         }
 
         // Pre-fill Residential Address State & District
@@ -2778,15 +2851,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         trigger(fieldName as any);
     };
 
-    // initialize at least one mobile entry so UI remains the same
-    useEffect(() => {
-        if (mobileFields.length === 0) {
-            const initial = String(watch('amsT_MobileNo') ?? '') || '';
-            appendMobile({ amsT_MobileNo: initial, amstsmS_CountryCode: '' });
-            if (initial) setValue('amsT_MobileNo', initial);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    // NO OP: Redundant initialization effect removed to prevent overwriting correctly loaded data on mount.
+    // The main initialization block and reset(payload) handle data population for edit mode reliably.
 
     const addPreviousSchool = () => {
         appendPreviousSchool({
