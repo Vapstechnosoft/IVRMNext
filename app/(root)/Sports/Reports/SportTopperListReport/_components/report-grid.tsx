@@ -135,6 +135,7 @@ export default function ReportGrid({ data, searchQuery, onSearchChange }: Report
                     <DataTable
                         columns={columns}
                         data={filteredData}
+                        totalItems={filteredData.length}
                     />
                 ) : (
                     <div className="py-20 text-center border-2 border-dashed rounded-xl bg-muted/30">
