@@ -93,3 +93,25 @@ export async function deleteEmployeeLeaveById(hrelapId: number): Promise<ApiResp
         throw new Error(error?.message || 'Failed to delete leave record');
     }
 }
+
+/**
+ * Save leave request document
+ * POST /api/OnlineLeaveApplication/save_leave_request_document/{hrme_id}
+ */
+export async function saveLeaveRequestDocument(hrmeId: number, formData: FormData): Promise<ApiResponse<string>> {
+    const url = `/api/OnlineLeaveApplication/save_leave_request_document/${hrmeId}`;
+    console.log('🟠 [SERVER] POST Request URL:', url);
+    try {
+        const response = await api.postMultipart<any>('hmslms', url, formData);
+        const res = response as any;
+        const isSuccess = res.success === true || String(res.success) === 'true';
+
+        return {
+            success: isSuccess,
+            message: res.message || 'Document uploaded successfully',
+            data: res.data || ''
+        };
+    } catch (error: any) {
+        throw new Error(error?.message || 'Failed to upload document');
+    }
+}

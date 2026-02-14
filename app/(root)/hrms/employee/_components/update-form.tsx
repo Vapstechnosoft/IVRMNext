@@ -1120,11 +1120,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience Count:', experienceList.length);
 
             if (experienceList.length === 0) {
-                console.error('❌ [DEBUG] Tab 4 - No experiences found');
-                setError('experienceDetails', {
-                    type: 'required',
-                    message: 'Please add at least one experience'
-                });
+                console.log('🔍 [DEBUG] Tab 4 - No experiences found, skipping to next step');
+                setCurrentStep(5);
                 return;
             }
 

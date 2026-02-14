@@ -37,6 +37,7 @@ export async function getGroupNameDropDownList(academicYears?: number) {
 
 export async function getHeadNameDropDownList(academicYears?: number, groupName?: number) {
     const url = `/OnlinePaymentHeadGroupMapping/headname_drop_down_list/${academicYears}/${groupName}`;
+    console.info('getHeadNameDropDownList', url);
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 

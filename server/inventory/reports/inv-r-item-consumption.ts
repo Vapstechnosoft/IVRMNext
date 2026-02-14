@@ -129,7 +129,11 @@ export async function getInvRItemConsumptionReport(payload: IInvRItemConsumption
             INVMI_Id: payload.optionflag === 'Item' && invmI_Id ? String(invmI_Id) : "",
         };
 
-        const urlParams = getSearchParamsUrl(searchParams ?? {});
+        const params: any = {
+            ...searchParams
+        };
+
+        const urlParams = getSearchParamsUrl(params);
         // Append query params to URL 
         const url = `/INV_ItemConsumptionReportFacade/onreport?${urlParams}`;
 

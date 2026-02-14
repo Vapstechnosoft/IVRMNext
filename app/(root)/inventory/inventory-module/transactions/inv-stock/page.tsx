@@ -8,7 +8,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useInvStock } from '@/hooks/inventory/transactions/use-inv-stock';
 import type { InvStock } from '@/types/inventory/transactions/inv-stock';
-import { Plus, X, Package2, ListChecks } from 'lucide-react';
+import { Plus, X, Package2, ListChecks, Layers, PlusCircle, Pencil } from 'lucide-react';
 import { use } from 'react';
 import AddStockForm from './_components/add-form';
 import { invStockColumns } from './_components/columns';
@@ -80,7 +80,8 @@ function InvStockPageContent({
                             defaultOpen={true}
                             variant='outline'
                             size='md'
-                            className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6'>
+                            className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6'
+                            icon={<PlusCircle className='h-5 w-5' />}>
                             <div className='relative'>
                                 <Button
                                     type='button'
@@ -105,7 +106,8 @@ function InvStockPageContent({
                             defaultOpen={true}
                             variant='outline'
                             size='md'
-                            className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6 border-primary/20'>
+                            className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6 border-primary/20'
+                            icon={<Pencil className='h-5 w-5' />}>
                             <div className='relative'>
                                 <Button
                                     type='button'
@@ -129,7 +131,8 @@ function InvStockPageContent({
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg'>
+                    className='shadow-lg'
+                    icon={<Layers className='h-5 w-5' />}>
                     <GenericDataTable<InvStock>
                         {...tableProps}
                         data={response?.data?.get_stock || []}

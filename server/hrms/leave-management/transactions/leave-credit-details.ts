@@ -35,7 +35,9 @@ import type {
     LeaveDetailsCFMonthItem,
     GetLeaveDetailsEnCashRequest,
     GetLeaveDetailsEnCashResponseData,
-    LeaveDetailsEnCashItem
+    LeaveDetailsEnCashItem,
+    LeaveNameDropdownItem,
+    CreditMonthDropdownItem
 } from '@/types/hrms/leave-management/leave-credit-details';
 /**
  * Map API response data to LeaveCreditDetail format
@@ -43,11 +45,21 @@ import type {
 function mapApiDataToLeaveCreditDetail(apiData: LeaveCreditDetailItem, index: number): LeaveCreditDetail {
     return {
         id: apiData.HRMLD_Id || apiData.id || index + 1,
+        leaveId: apiData.HRML_Id || 0,
         createdAt: apiData.createdAt || new Date(),
-        type: [], // Will be populated from other fields if needed
-        department: apiData.HRMD_DepartmentName ? [apiData.HRMD_DepartmentName] : [],
-        designation: apiData.HRMDES_DesignationName ? [apiData.HRMDES_DesignationName] : [],
-        grade: apiData.HRMG_GradeName ? [apiData.HRMG_GradeName] : undefined,
+        // Multiple IDs are usually not returned in a single record by this legacy API 
+        // unless it's a comma separated string or a related array.
+        // For now, we handle the single ID case which is common in grid results.
+        type: apiData.HRMGT_Id ? [String(apiData.HRMGT_Id)] : [],
+        department: apiData.HRMD_Id ? [String(apiData.HRMD_Id)] : [],
+        designation: apiData.HRMDES_Id ? [String(apiData.HRMDES_Id)] : [],
+        grade: apiData.HRMG_Id ? [String(apiData.HRMG_Id)] : [],
+
+        typeName: apiData.HRMGT_EmployeeGroupType ? [apiData.HRMGT_EmployeeGroupType] : [],
+        departmentName: apiData.HRMD_DepartmentName ? [apiData.HRMD_DepartmentName] : [],
+        designationName: apiData.HRMDES_DesignationName ? [apiData.HRMDES_DesignationName] : [],
+        gradeName: apiData.HRMG_GradeName ? [apiData.HRMG_GradeName] : [],
+
         leaveName: apiData.HRML_LeaveName || apiData.leaveName || '',
         leaveCode: apiData.HRML_LeaveCode || apiData.leaveCode || '',
         noOfDays: typeof apiData.HRMLD_NoOfDays === 'string'
@@ -73,7 +85,8 @@ export async function getLeaveCreditDetails(request?: { MI_Id?: number }): Promi
     const url = `/api/LeaveCreditWrapperFacade/GetLeave/${miId}`;
     try {
         const response = await api.get<any>('hmslms', url);
-        console.log('💳 [SERVER] Response:', JSON.stringify(response, null, 2));
+        console.log(`📝 [SERVER] Leave Credit Details Response (MI_Id: ${miId}):`, JSON.stringify(response, null, 2));
+
         // Handle the response structure
         let responseData: GetLeaveCreditDetailsResponseData;
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
@@ -83,18 +96,28 @@ export async function getLeaveCreditDetails(request?: { MI_Id?: number }): Promi
             // Raw response data
             responseData = response as unknown as GetLeaveCreditDetailsResponseData;
         }
+
+        console.log('📝 [SERVER] Extracted Response Data Fields:', Object.keys(responseData || {}));
+
         // Extract leave credit details list from response
         let detailsList: LeaveCreditDetailItem[] = [];
         if (responseData.GridviewDetails && Array.isArray(responseData.GridviewDetails)) {
             detailsList = responseData.GridviewDetails;
+            console.log(`📝 [SERVER] Found ${detailsList.length} items in GridviewDetails`);
         } else if (responseData.leaveCreditDetails && Array.isArray(responseData.leaveCreditDetails)) {
             detailsList = responseData.leaveCreditDetails;
+            console.log(`📝 [SERVER] Found ${detailsList.length} items in leaveCreditDetails`);
         } else if (responseData.leaveCreditList && Array.isArray(responseData.leaveCreditList)) {
             detailsList = responseData.leaveCreditList;
+            console.log(`📝 [SERVER] Found ${detailsList.length} items in leaveCreditList`);
         } else if (responseData.leaveDetails && Array.isArray(responseData.leaveDetails)) {
             detailsList = responseData.leaveDetails;
+            console.log(`📝 [SERVER] Found ${detailsList.length} items in leaveDetails`);
         } else if (Array.isArray(responseData)) {
             detailsList = responseData;
+            console.log(`📝 [SERVER] Found ${detailsList.length} items in raw array response`);
+        } else {
+            console.log('📝 [SERVER] No recognizable list field found in response data');
         }
         // Map API data to frontend format
         const mappedData = detailsList.map((item, index) => mapApiDataToLeaveCreditDetail(item, index));
@@ -559,4 +582,56 @@ export async function deleteLeaveCreditDetails(id: number) {
         success: true,
         message: 'Leave credit detail deleted successfully'
     };
+}
+
+/**
+ * Get leave name dropdown data
+ * GET /api/LeaveCredit/get_leave_name_dropdown
+ * 
+ * @returns Leave name dropdown data
+ */
+export async function getLeaveNameDropdown(): Promise<ApiResponse<LeaveNameDropdownItem[]>> {
+    const url = '/api/LeaveCredit/get_leave_name_dropdown';
+    try {
+        const response = await api.get<any>('hmslms', url);
+        console.log('📝 [SERVER] Leave Name Dropdown Response:', JSON.stringify(response, null, 2));
+        // Handle the response structure
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            return response as ApiResponse<LeaveNameDropdownItem[]>;
+        }
+        return {
+            success: true,
+            data: response as unknown as LeaveNameDropdownItem[],
+            message: 'Leave Name Data fetched successfully'
+        };
+    } catch (error: any) {
+        console.error('❌ [SERVER] Error fetching leave name dropdown:', error);
+        throw new Error(error?.message || 'Failed to fetch leave name dropdown');
+    }
+}
+
+/**
+ * Get credit month dropdown data
+ * GET /api/LeaveCredit/get_creditmonth_dropdown
+ * 
+ * @returns Credit month dropdown data
+ */
+export async function getCreditMonthDropdown(): Promise<ApiResponse<CreditMonthDropdownItem[]>> {
+    const url = '/api/LeaveCredit/get_creditmonth_dropdown';
+    try {
+        const response = await api.get<any>('hmslms', url);
+        console.log('📅 [SERVER] Credit Month Dropdown Response:', JSON.stringify(response, null, 2));
+        // Handle the response structure
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            return response as ApiResponse<CreditMonthDropdownItem[]>;
+        }
+        return {
+            success: true,
+            data: response as unknown as CreditMonthDropdownItem[],
+            message: 'Credit Month Data fetched successfully'
+        };
+    } catch (error: any) {
+        console.error('❌ [SERVER] Error fetching credit month dropdown:', error);
+        throw new Error(error?.message || 'Failed to fetch credit month dropdown');
+    }
 }
