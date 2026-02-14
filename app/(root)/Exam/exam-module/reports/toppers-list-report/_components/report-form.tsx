@@ -282,6 +282,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
     }, [watchType, watchSection, watchSubjectwise, watchSubject, trigger]);
 
     const onSubmit = async (formValues: ToppersListSchema) => {
+        console.log('Form Values:', formValues);
         setLoading(true);
 
         try {
@@ -289,7 +290,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
             const payload = {
                 // mI_Id: 30, // Institution ID - using 30 as per reference
                 asmaY_Id: Number.parseInt(formValues.ASMAY_Id) || 0,
-                asmcL_Id: formValues.type === '1' ? 0 : Number.parseInt(formValues.ASMCL_Id) || 0,
+                asmcL_Id: formValues.type === '1' ? 0 : Number.parseInt(formValues.ASMCL_Id || '') || 0,
                 asmS_Id: formValues.type === '1' ? 0 : Number.parseInt(formValues.ASMS_Id || '') || 0,
                 emE_Id: Number.parseInt(formValues.EME_Id) || 0,
                 ismS_Id: formValues.subjectwise ? Number.parseInt(formValues.ISMS_Id || '') || 0 : 0,
@@ -486,7 +487,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                         </Select>
                                     )}
                                 />
-                                {errors.ASMCL_Id && <FormError>{errors.ASMCL_Id.message}</FormError>}
+                                {errors.ASMCL_Id && watchType === '2' && <FormError>{errors.ASMCL_Id.message}</FormError>}
                             </div>
 
                             {/* Section (Only for Individual type) */}
@@ -530,7 +531,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                         </Select>
                                     )}
                                 />
-                                {errors.ASMS_Id && <FormError>{errors.ASMS_Id.message}</FormError>}
+                                {errors.ASMS_Id && watchType === '2' && <FormError>{errors.ASMS_Id.message}</FormError>}
                             </div>
 
                             {/* Exam */}
