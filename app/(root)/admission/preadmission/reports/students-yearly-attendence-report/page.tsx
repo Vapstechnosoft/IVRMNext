@@ -20,8 +20,11 @@ import React, { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useStudentYearlyAttendance } from '@/hooks/admission/preadmission/useReports';
+import { GetStudentYearlyAttendance } from '@/server/admission/preadmission/reports/student_yearly_attendance';
 import { getExcelStudentYearlyReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { createStudentsYearlyAttendenceReportColumns } from './_components/columns';
+import { useReactToPrint } from 'react-to-print';
+import { StudentYearlyReportPrint } from './_components/student-yearly-report-print';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -72,9 +75,14 @@ export default function StudentsYearlyAttendenceReport(props: {
     };
 
     const handleFilterChange = (filterType: 'class' | 'section' | 'academic_year', value: number) => {
+        // Reset report and selections when filter changes
+        setShowReport(false);
+        setSelectedStudents([]);
+        handleResetSelection();
+
         if (filterType === 'class') {
             setClassId(value);
-            setSectionId(0);
+            setSectionId(undefined); // Force section selection
         } else if (filterType === 'section') {
             setSectionId(value);
         } else if (filterType === 'academic_year') {
@@ -97,6 +105,7 @@ export default function StudentsYearlyAttendenceReport(props: {
     const [sectionId, setSectionId] = useState<number | undefined>(undefined);
 
     const [selectedStudents, setSelectedStudents] = useState<IStudentYearlyAttendenceReportList[]>([]);
+    const [printData, setPrintData] = useState<any[]>([]);
 
     const {
         data: admissionSection,
@@ -109,7 +118,7 @@ export default function StudentsYearlyAttendenceReport(props: {
         isLoading,
         error,
         refetch: refetchAdmissionStudents
-    } = useStudentYearlyAttendance((academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0, classId, sectionId ?? 0, searchParams);
+    } = useStudentYearlyAttendance((academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0, classId, sectionId, searchParams, showReport);
 
     const transformedData = useMemo(() => {
         if (!response?.data || !showReport) {
@@ -233,7 +242,6 @@ export default function StudentsYearlyAttendenceReport(props: {
                 window.URL.revokeObjectURL(url);
             }, 100);
 
-            setShowReport(false);
 
             toast.success('Excel downloaded successfully');
         } catch (error) {
@@ -242,18 +250,75 @@ export default function StudentsYearlyAttendenceReport(props: {
         }
     };
 
-    const handlePrint = () => {
+    const handlePrintContent = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: 'Student_Yearly_Attendance_Report'
+    });
+
+    const handlePrint = async () => {
         if (!transformedData || transformedData.length === 0) {
             toast.error('No data available to print');
             return;
         }
 
-        if (selectedStudents.length === 0) {
-            toast.error('Please select at least one student to print');
-            return;
+        if (selectedStudents.length > 0) {
+            setPrintData(selectedStudents);
+            toast.info(`Preparing print for ${selectedStudents.length} selected record(s)...`);
+        } else {
+            try {
+                toast.loading('Fetching all records for print...', { id: 'print-fetch' });
+                // @ts-ignore
+                const allDataResponse = await GetStudentYearlyAttendance((academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0, classId, sectionId ?? 0, { ...searchParams, page_size: 100000 });
+                const attendanceData = (allDataResponse?.data as any);
+                if (!attendanceData) {
+                    toast.dismiss('print-fetch');
+                    toast.error('Failed to fetch print data');
+                    return;
+                }
+
+                // Transform data for print
+                const studentList = attendanceData.studentAttendanceList || attendanceData.StudentAttendanceList || [];
+                const monthList = attendanceData.monthList || attendanceData.MonthList || [];
+
+                const studentMap = new Map<number, any>();
+
+                studentList.forEach((record: any) => {
+                    if (!studentMap.has(record.RowNo)) {
+                        studentMap.set(record.RowNo, {
+                            ...record,
+                            monthlyAttendance: {},
+                            totalPresent: 0,
+                            percentage: '0.00'
+                        });
+                    }
+
+                    const student = studentMap.get(record.RowNo)!;
+                    const monthKey = `${record.yearidname}-${record.monthidname}`;
+
+                    student.monthlyAttendance[monthKey] = record.TOTAL_PRESENT;
+                    student.totalPresent += record.TOTAL_PRESENT;
+                });
+
+                const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
+                const finalData = Array.from(studentMap.values()).map((student) => ({
+                    ...student,
+                    percentage: totalWorkingDays > 0 ? ((student.totalPresent / totalWorkingDays) * 100).toFixed(2) : '0.00'
+                }));
+
+                setPrintData(finalData);
+                toast.dismiss('print-fetch');
+                toast.success(`Ready to print ${finalData.length} records`);
+            } catch (error) {
+                console.error('Print fetch error:', error);
+                toast.dismiss('print-fetch');
+                toast.error('Error fetching print data');
+                return;
+            }
         }
 
-        window.print();
+        setTimeout(() => {
+            handlePrintContent();
+        }, 500);
     };
 
     const handleReport = () => {
@@ -279,27 +344,7 @@ export default function StudentsYearlyAttendenceReport(props: {
 
     return (
         <div className='min-h-screen p-8'>
-            <style>
-                {`
-          @media print {
-            body * {
-              visibility: hidden;
-            }
-            #printable-report, #printable-report * {
-              visibility: visible;
-            }
-            #printable-report {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100%;
-            }
-            .no-print {
-              display: none !important;
-            }
-          }
-        `}
-            </style>
+
 
             <div className='container space-y-4 p-1'>
                 <CollapsibleSection
@@ -375,6 +420,7 @@ export default function StudentsYearlyAttendenceReport(props: {
                                     Section <span className='text-red-500'>*</span>
                                 </Label>
                                 <Select
+                                    key={classId}
                                     onValueChange={(value) => handleFilterChange('section', Number(value))}
                                     value={sectionId !== undefined ? sectionId.toString() : undefined}
                                     disabled={classId === 0}>
@@ -430,7 +476,7 @@ export default function StudentsYearlyAttendenceReport(props: {
                                         variant='outline'
                                         className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
                                         onClick={handlePrint}
-                                        disabled={selectedStudents.length === 0}>
+                                    >
                                         <Printer className='mr-2 h-4 w-4' />
                                         Print
                                     </Button>
@@ -440,30 +486,38 @@ export default function StudentsYearlyAttendenceReport(props: {
                     </div>
                 </CollapsibleSection>
 
+                {/* On-Screen Report Table */}
                 {showReport && transformedData && transformedData.length > 0 && (
-                    <div id='printable-report' ref={printRef}>
-                        <CollapsibleSection
-                            title='Student Yearly Attendance Report'
-                            defaultOpen={true}
-                            variant='outline'
-                            size='md'
-                            className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                            <GenericDataTable<IStudentYearlyAttendenceReportList>
-                                {...tableProps}
-                                ref={tableRef}
-                                columns={columns}
-                                isLoading={activePreadmissionDeLoading || isLoading}
-                                error={error}
-                                showViewOptions={false}
-                                loadingMessage='Loading attendance report...'
-                                noDataTitle='No Data Found'
-                                noDataDescription='No attendance records found. Please select filters to view data.'
-                                errorTitle='Error Loading Attendance Report'
-                                onRowSelectionChange={handleSelectStudent}
-                            />
-                        </CollapsibleSection>
-                    </div>
+                    <CollapsibleSection
+                        title='Student Yearly Attendance Report'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <GenericDataTable<IStudentYearlyAttendenceReportList>
+                            {...tableProps}
+                            ref={tableRef}
+                            columns={columns}
+                            isLoading={activePreadmissionDeLoading || isLoading}
+                            error={error}
+                            showViewOptions={false}
+                            loadingMessage='Loading attendance report...'
+                            noDataTitle='No Data Found'
+                            noDataDescription='No attendance records found. Please select filters to view data.'
+                            errorTitle='Error Loading Attendance Report'
+                            onRowSelectionChange={handleSelectStudent}
+                        />
+                    </CollapsibleSection>
                 )}
+
+                {/* Hidden Print Component */}
+                <div style={{ position: 'absolute', opacity: 0, zIndex: -1, overflow: 'visible', width: 0, height: 0 }}>
+                    <StudentYearlyReportPrint
+                        ref={printRef}
+                        data={printData}
+                        monthList={((response?.data as any)?.monthList || (response?.data as any)?.MonthList || [])}
+                    />
+                </div>
             </div>
         </div>
     );

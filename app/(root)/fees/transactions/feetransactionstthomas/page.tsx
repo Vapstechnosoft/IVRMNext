@@ -6,7 +6,8 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
-import { useFeeTransactionList } from '@/hooks/fees/useTrasactions';
+import { useFeeTransactionListStThomas } from '@/hooks/fees/useTrasactions';
+import type { IFeeAcademicYearDropdownList } from '@/types/fees/reports/reports';
 import type { Ifeetransaction } from '@/types/fees/transactions/transactions';
 import { Plus, X } from 'lucide-react';
 import { use, useEffect, useState } from 'react';
@@ -20,13 +21,21 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function FeeTransactionPageStThomas(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
-
+    const [selectedAcademicYear, setSelectedAcademicYear] = useState('');
     const { data: academicYearData, isLoading: loadingYears } = useFeeDefaulterReport();
-    const { data: response, isLoading, error } = useFeeTransactionList(selectedAsmayId ?? 0, searchParams);
-
+    const { data: response, isLoading, error } = useFeeTransactionListStThomas(selectedAsmayId ?? 0, searchParams);
+    useEffect(() => {
+        console.log('response', response);
+    }, [response]);
     useEffect(() => {
         if (!loadingYears && academicYearData?.data && academicYearData.data.length > 0) {
             const firstId = academicYearData.data[0].asmaY_Id;
+            if (selectedAsmayId && academicYearData?.data) {
+                const selectedItem = academicYearData.data.find((item) => item.asmaY_Id === selectedAsmayId);
+                if (selectedItem) {
+                    setSelectedAcademicYear(selectedItem.asmaY_Year);
+                }
+            }
             setSelectedAsmayId((prev) => prev ?? firstId);
         }
     }, [loadingYears, academicYearData]);
@@ -36,11 +45,13 @@ export default function FeeTransactionPageStThomas(props: { searchParams: Search
             <FeeTransactionContent
                 selectedAsmayId={selectedAsmayId}
                 setSelectedAsmayId={setSelectedAsmayId}
+                setSelectedAcademicYear={setSelectedAcademicYear}
                 academicYearData={academicYearData}
                 loadingYears={loadingYears}
                 isLoading={isLoading}
                 response={response}
                 error={error}
+                selectedasmayYear={selectedAcademicYear}
             />
         </FormProvider>
     );
@@ -51,12 +62,16 @@ function FeeTransactionContent({
     isLoading,
     error,
     selectedAsmayId,
+    selectedasmayYear,
     setSelectedAsmayId,
+    setSelectedAcademicYear,
     loadingYears,
     academicYearData
 }: {
+    selectedasmayYear: string;
     selectedAsmayId: number | null;
     setSelectedAsmayId: (id: number | null) => void;
+    setSelectedAcademicYear: (year: string) => void;
     response: any;
     isLoading: boolean;
     error: any;
@@ -76,7 +91,13 @@ function FeeTransactionContent({
                         </Label>
                         <Select
                             value={selectedAsmayId?.toString() || ''}
-                            onValueChange={(v) => setSelectedAsmayId(Number(v))}
+                            onValueChange={(v) => {
+                                setSelectedAsmayId(Number(v));
+                                const selectedItem = academicYearData?.data?.find(
+                                    (item: IFeeAcademicYearDropdownList) => item.asmaY_Id === Number(v)
+                                );
+                                setSelectedAcademicYear(selectedItem.asmaY_Year);
+                            }}
                             disabled={loadingYears}>
                             <SelectTrigger className='w-64'>
                                 <SelectValue placeholder='Select Academic Year' />
@@ -121,13 +142,13 @@ function FeeTransactionContent({
                     />
                 </CollapsibleSection>
 
-                <FormSections asmayId={Number(selectedAsmayId ?? 0)} />
+                <FormSections asmayId={Number(selectedAsmayId ?? 0)} asmayYear={selectedasmayYear} />
             </div>
         </div>
     );
 }
 
-function FormSections({ asmayId }: { asmayId: number }) {
+function FormSections({ asmayId, asmayYear }: { asmayId: number; asmayYear: string }) {
     const {
         isAddFormOpen,
         closeAddForm,
@@ -169,7 +190,7 @@ function FormSections({ asmayId }: { asmayId: number }) {
             )}
 
             {isDetailsViewOpen && selectedRow && (
-                <ReceiptViewPageStThomas rowData={selectedRow} onClose={closeDetailsView} asmayId={asmayId} />
+                <ReceiptViewPageStThomas rowData={selectedRow} onClose={closeDetailsView} asmayId={asmayId} asmayYear={asmayYear} />
             )}
             {isDeleteFormOpen && selectedRow && (
                 <DeleteFeeTransactionFormStThomas

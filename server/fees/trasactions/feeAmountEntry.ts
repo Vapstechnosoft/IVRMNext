@@ -27,7 +27,7 @@ export async function addOrUpdateAmountEntry(data: any) {
 
 export async function deleteAmountEntry(asmay_id: number, id: number) {
     const url = `/fee_amount_entry/deletedetails/${asmay_id}/${id}`;
-    console.info(url);
+    console.info('fee_amount_entry/deletedetails', url);
     return await api.put('fees', url);
 }
 

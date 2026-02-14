@@ -8,8 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFeeOpeningBalanceList, useFeeOpeningPDAList, useopeningacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
 import { Plus, X } from 'lucide-react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import AddFeeOpeningBalanceForm from './_components/add-form';
 import DeleteOpeningBalanceForm from './_components/delete-form';
 
@@ -35,11 +35,17 @@ export default function FeeOpeningBalancePage() {
 
     const apiSearchParams = searchParams ? Object.fromEntries(searchParams.entries()) : {};
 
-    const { data: feeResponse, isLoading: feeLoading, refetch: refetchFee } =
-        useFeeOpeningBalanceList(selectedAsmayId || 0, apiSearchParams as any);
+    const {
+        data: feeResponse,
+        isLoading: feeLoading,
+        refetch: refetchFee
+    } = useFeeOpeningBalanceList(selectedAsmayId || 0, apiSearchParams as any);
 
-    const { data: pdaResponse, isLoading: pdaLoading, refetch: refetchPDA } =
-        useFeeOpeningPDAList(selectedAsmayId || 0, apiSearchParams as any);
+    const {
+        data: pdaResponse,
+        isLoading: pdaLoading,
+        refetch: refetchPDA
+    } = useFeeOpeningPDAList(selectedAsmayId || 0, apiSearchParams as any);
 
     const feeData: OpeningBalanceRow[] = (feeResponse as ApiResponse<OpeningBalanceRow[]>)?.data ?? [];
     const pdaData: OpeningBalanceRow[] = (pdaResponse as ApiResponse<OpeningBalanceRow[]>)?.data ?? [];
@@ -90,7 +96,7 @@ function PageContent({
     refetchAll,
     searchParams,
     router,
-    pathname,
+    pathname
 }: {
     selectedAsmayId: number | null;
     setSelectedAsmayId: (id: number | null) => void;
@@ -115,24 +121,24 @@ function PageContent({
         searchParams,
         router,
         pathname,
+        activeTab
     });
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="container mx-auto space-y-6 p-6">
-                <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="flex items-center gap-6 rounded-lg border bg-white px-5 py-4 shadow-sm">
-                        <Label className="whitespace-nowrap text-right">
-                            Academic Year <span className="text-red-500">*</span>
+        <div className='min-h-screen bg-gray-50'>
+            <div className='container mx-auto space-y-6 p-6'>
+                <div className='flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between'>
+                    <div className='flex items-center gap-6 rounded-lg border bg-white px-5 py-4 shadow-sm'>
+                        <Label className='whitespace-nowrap text-right'>
+                            Academic Year <span className='text-red-500'>*</span>
                         </Label>
 
                         <Select
                             value={selectedAsmayId?.toString() || ''}
                             onValueChange={(v) => setSelectedAsmayId(v ? Number(v) : null)}
-                            disabled={loadingYears}
-                        >
-                            <SelectTrigger className="w-64">
-                                <SelectValue placeholder="Select Academic Year" />
+                            disabled={loadingYears}>
+                            <SelectTrigger className='w-64'>
+                                <SelectValue placeholder='Select Academic Year' />
                             </SelectTrigger>
                             <SelectContent>
                                 {academicYearData?.data?.map((item: any) => (
@@ -144,37 +150,36 @@ function PageContent({
                         </Select>
                     </div>
 
-                    <div className="mr-auto flex gap-12 rounded-lg border bg-white px-7 py-4 shadow-sm">
+                    <div className='mr-auto flex gap-12 rounded-lg border bg-white px-7 py-4 shadow-sm'>
                         {(['Fee', 'PDA'] as const).map((val) => (
-                            <label key={val} className="flex cursor-pointer gap-3">
+                            <label key={val} className='flex cursor-pointer gap-3'>
                                 <input
-                                    type="radio"
-                                    name="openingType"
+                                    type='radio'
+                                    name='openingType'
                                     value={val}
                                     checked={activeTab === val}
                                     onChange={() => setActiveTab(val)}
-                                    className="h-6 w-6 text-blue-600 accent-blue-600"
+                                    className='h-6 w-6 text-blue-600 accent-blue-600'
                                 />
-                                <span className="font-semibold text-lg">{val}</span>
+                                <span className='font-semibold text-lg'>{val}</span>
                             </label>
                         ))}
                     </div>
 
                     <Button
-                        type="button"
+                        type='button'
                         onClick={openAddForm}
-                        className="w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
-                    >
-                        <Plus className="h-4 w-4" />
+                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                        <Plus className='h-4 w-4' />
                         Add Fee Opening Balance
                     </Button>
                 </div>
 
-                <CollapsibleSection defaultOpen={true} variant="default" size="lg" className="rounded-xl border bg-white shadow-xl">
+                <CollapsibleSection defaultOpen={true} variant='default' size='lg' className='rounded-xl border bg-white shadow-xl'>
                     {!selectedAsmayId ? (
-                        <div className="py-24 text-center">
-                            <p className="font-semibold text-2xl text-muted-foreground">Please select an Academic Year</p>
-                            <p className="mt-3 text-lg text-muted-foreground">
+                        <div className='py-24 text-center'>
+                            <p className='font-semibold text-2xl text-muted-foreground'>Please select an Academic Year</p>
+                            <p className='mt-3 text-lg text-muted-foreground'>
                                 to view {activeTab === 'Fee' ? 'Fee' : 'PDA'} opening balance records
                             </p>
                         </div>
@@ -186,43 +191,40 @@ function PageContent({
                             columnPinning={{ right: ['actions'] }}
                             loadingMessage={`Loading ${activeTab} Opening Balances...`}
                             noDataTitle={`No ${activeTab} Opening Balance Records Found`}
-                            noDataDescription="No records exist for the selected academic year."
+                            noDataDescription='No records exist for the selected academic year.'
                             totalItems={totalRecords}
                         />
                     )}
                 </CollapsibleSection>
 
-                <FormSections refetch={refetchAll} />
+                <FormSections refetch={refetchAll} activeTab={activeTab} />
             </div>
         </div>
     );
 }
 
-function FormSections({ refetch }: { refetch: () => void }) {
-    const { isAddFormOpen, isDeleteFormOpen, selectedRow, closeAddForm, closeDeleteForm, addFormRef } =
-        useFormContext<OpeningBalanceRow>();
+function FormSections({ refetch, activeTab }: { refetch: () => void; activeTab: 'Fee' | 'PDA' }) {
+    const { isAddFormOpen, isDeleteFormOpen, selectedRow, closeAddForm, closeDeleteForm, addFormRef } = useFormContext<OpeningBalanceRow>();
 
     return (
         <>
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title="Add Fee Opening Balance"
-                        description="Enter opening balance for students"
+                        title='Add Fee Opening Balance'
+                        description='Enter opening balance for students'
                         defaultOpen={true}
-                        variant="outline"
-                        size="md"
-                        className="slide-in-from-top-4 animate-in shadow-2xl"
-                    >
-                        <div className="relative">
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-2xl'>
+                        <div className='relative'>
                             <Button
-                                type="button"
+                                type='button'
                                 onClick={closeAddForm}
-                                variant="ghost"
-                                size="sm"
-                                className="-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10"
-                            >
-                                <X className="h-4 w-4 text-destructive" /> Close
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
 
                             <AddFeeOpeningBalanceForm
@@ -239,6 +241,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
             {isDeleteFormOpen && selectedRow && (
                 <DeleteOpeningBalanceForm
                     rowData={selectedRow}
+                    activeTab={activeTab}
                     onClose={closeDeleteForm}
                     onSuccess={() => {
                         closeDeleteForm();

@@ -1,85 +1,76 @@
 
 
 'use client';
-
-import { useState, useEffect, useCallback } from 'react';
+import { useState, use } from 'react';
 import { Heading } from '@/components/layout/heading';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
 import ReportForm from './_components/report-form';
 import { getColumns } from './_components/columns';
 import { IInvRStockReportData, IInvRStockPayload } from '@/types/inventory/reports/inv-r-stock';
 import { Badge } from '@/components/ui/badge';
-import { parseAsInteger, useQueryState } from 'nuqs';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { tableSearchVariables } from '@/lib/data-table.config';
-import { getInvRStockReport } from '@/server/inventory/reports/inv-r-stock';
-import { toast } from 'sonner';
+import { useInvRStockReportQuery } from '@/hooks/inventory/reports/use-inv-r-stock';
+import { useQueryClient } from '@tanstack/react-query';
 
-export default function InvRStockPage() {
-    const [reportData, setReportData] = useState<IInvRStockReportData[]>([]);
+// Helper function to calculate closing stock
+const calculateClosingStock = (data: IInvRStockReportData[]) => {
+    return data.reduce((acc, curr) => acc + (curr.invstO_AvaiableStock || 0), 0);
+};
+
+export default function InvRStockPage(props: { searchParams: Promise<any> }) {
+    const searchParams = use(props.searchParams);
     const [currentPayload, setCurrentPayload] = useState<IInvRStockPayload | null>(null);
-    const [totalRecords, setTotalRecords] = useState(0);
-    const [isLoading, setIsLoading] = useState(false);
+    const queryClient = useQueryClient();
 
-    // Pagination State synced with URL (same as DataTable)
+    // Pagination & Search State synced with URL
     const [currentPage, setCurrentPage] = useQueryState(
         tableSearchVariables.page,
         parseAsInteger.withOptions({ shallow: false }).withDefault(1)
     );
-    const [pageSize] = useQueryState(
+    const [pageSize, setPageSize] = useQueryState(
         tableSearchVariables.page_size,
         parseAsInteger.withOptions({ shallow: false }).withDefault(10)
     );
+    const [searchQuery, setSearchQuery] = useQueryState(
+        tableSearchVariables.search,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+
+    const { data: reportResult, isFetching } = useInvRStockReportQuery(currentPayload, {
+        ...searchParams,
+        page: currentPage,
+        page_size: pageSize,
+        search_query: searchQuery
+    });
+
+    const reportData = reportResult?.data?.get_StockReport || [];
+    const totalRecords = reportResult?.total || 0;
 
     const handleReportGenerated = (data: IInvRStockReportData[], payload: any, total: number) => {
-        setReportData(data);
+        // Seed the query cache to avoid immediate refetch
+        queryClient.setQueryData(['invRStockReport', payload, { ...searchParams, page: 1, page_size: pageSize, search_query: '' }], {
+            success: true,
+            data: { get_StockReport: data },
+            total: total,
+            page: 1,
+            page_size: pageSize,
+            message: 'Report generated successfully'
+        });
+
         setCurrentPayload(payload);
-        setTotalRecords(total);
         setCurrentPage(1);
+        setSearchQuery(null);
     };
-
-    // Handle pagination changes (Next/Prev/PageSize)
-    const fetchPageData = useCallback(async (pageIndex: number, pgSize: number) => {
-        if (!currentPayload) return;
-
-        setIsLoading(true);
-        const searchParams = {
-            page: pageIndex,
-            page_size: pgSize
-        };
-
-        const result = await getInvRStockReport(currentPayload, searchParams);
-
-        if (result.success) {
-            setReportData(result.data.get_StockReport);
-            setTotalRecords(result.total);
-        } else {
-            toast.error(result.message);
-        }
-        setIsLoading(false);
-    }, [currentPayload]);
-
-
-    useEffect(() => {
-        if (currentPayload) {
-            fetchPageData(currentPage, pageSize);
-        }
-    }, [currentPage, pageSize, currentPayload, fetchPageData]);
-
 
     const columns = getColumns(currentPayload?.optionflag || 'All', currentPayload?.overallflag || false);
 
-    // Calculate Closing Stock Totals (Angular: clstoc)
-    const closingStockTotal = reportData.reduce((acc, curr) => acc + (curr.invstO_AvaiableStock || 0), 0);
-
-    const tableProps = useDataTableProps({
-        enablePagination: true,
-        enableSorting: true,
-        enableSearching: true,
-    });
+    // Calculate Closing Stock Totals
+    const closingStockTotal = calculateClosingStock(reportData);
 
     return (
         <div className="space-y-6">
@@ -105,15 +96,16 @@ export default function InvRStockPage() {
 
                         <div className="relative">
                             <GenericDataTable
-                                {...tableProps}
                                 data={reportData}
                                 columns={columns}
-                                isLoading={isLoading}
+                                isLoading={isFetching}
                                 totalItems={totalRecords}
+                                isSearchRequired={true}
+                            // enableSorting={true} // Usually handled by columns
                             />
                         </div>
 
-                        {/* Total Closing Stock (Only if OptionFlag is Item, mimicking Angular behavior or generally useful) */}
+                        {/* Total Closing Stock (Only if OptionFlag is Item) */}
                         {currentPayload?.optionflag === 'Item' && (
                             <div className="flex justify-end mt-4">
                                 <Card className="w-full md:w-[300px] bg-muted/10">
