@@ -84,32 +84,57 @@ export default function UpdateLeaveAuthorizationForm({
     useEffect(() => {
         if (editData?.data) {
             const apiRow = editData.data;
+            const gradeId = gradeOptions.find((opt) => opt.label === apiRow.gradeName || opt.value == apiRow.gradeName)?.value || '';
+            const groupTypeId = groupTypeOptions.find((opt) => opt.label === apiRow.groupTypeName || opt.value == apiRow.groupTypeName)?.value || '';
+            const departmentId = departmentOptions.find((opt) => opt.label === apiRow.departmentName || opt.value == apiRow.departmentName)?.value || '';
+            const designationId = designationOptions.find((opt) => opt.label === apiRow.designationName || opt.value == apiRow.designationName)?.value || '';
+            const leaveTypeId = leaveTypeOptions.find((opt) => opt.label === apiRow.leaveType || opt.value == apiRow.leaveType)?.value || '';
+            const approvalPersonId = approvalPersonOptions.find((opt) => opt.label === apiRow.approvalPerson || opt.value == apiRow.approvalPerson)?.value || '';
+
             reset({
                 institution: apiRow.institution || 'Vaps Knowledge Services Pvt Ltd',
-                gradeName: apiRow.gradeName || '',
-                groupTypeName: apiRow.groupTypeName || '',
-                departmentName: apiRow.departmentName || '',
-                designationName: apiRow.designationName || '',
-                leaveType: apiRow.leaveType || '',
+                gradeName: gradeId,
+                groupTypeName: groupTypeId,
+                departmentName: departmentId,
+                designationName: designationId,
+                leaveType: leaveTypeId,
                 orderOfApproval: apiRow.orderOfApproval || '',
-                approvalPerson: apiRow.approvalPerson || '',
+                approvalPerson: approvalPersonId,
                 finalFlag: apiRow.finalFlag ?? false
             });
         } else if (row && !isLoadingEditData) {
             // Fallback to selectedRow if API data is not available
+            const gradeId = gradeOptions.find((opt) => opt.label === row.gradeName || opt.value == row.gradeName)?.value || '';
+            const groupTypeId = groupTypeOptions.find((opt) => opt.label === row.groupTypeName || opt.value == row.groupTypeName)?.value || '';
+            const departmentId = departmentOptions.find((opt) => opt.label === row.departmentName || opt.value == row.departmentName)?.value || '';
+            const designationId = designationOptions.find((opt) => opt.label === row.designationName || opt.value == row.designationName)?.value || '';
+            const leaveTypeId = leaveTypeOptions.find((opt) => opt.label === row.leaveType || opt.value == row.leaveType)?.value || '';
+            const approvalPersonId = approvalPersonOptions.find((opt) => opt.label === row.approvalPerson || opt.value == row.approvalPerson)?.value || '';
+
             reset({
                 institution: row.institution || 'Vaps Knowledge Services Pvt Ltd',
-                gradeName: row.gradeName || '',
-                groupTypeName: row.groupTypeName || '',
-                departmentName: row.departmentName || '',
-                designationName: row.designationName || '',
-                leaveType: row.leaveType || '',
+                gradeName: gradeId,
+                groupTypeName: groupTypeId,
+                departmentName: departmentId,
+                designationName: designationId,
+                leaveType: leaveTypeId,
                 orderOfApproval: row.orderOfApproval || '',
-                approvalPerson: row.approvalPerson || '',
+                approvalPerson: approvalPersonId,
                 finalFlag: row.finalFlag ?? false
             });
         }
-    }, [editData, row, reset, isLoadingEditData]);
+    }, [
+        editData,
+        row,
+        reset,
+        isLoadingEditData,
+        gradeOptions,
+        groupTypeOptions,
+        departmentOptions,
+        designationOptions,
+        leaveTypeOptions,
+        approvalPersonOptions
+    ]);
     const onSubmit: SubmitHandler<LeaveAuthorization> = async (data) => {
         updateLeaveAuthorization(
             {

@@ -307,15 +307,15 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     key: String(item.hrmD_Id ?? item.HRMD_Id ?? item.departmentId ?? item.key ?? ''),
                     value: String(
                         item.hrmD_DepartmentName ??
-                            item.HRMD_DepartmentName ??
-                            item.hrmD_Name ??
-                            item.HRMD_Name ??
-                            item.name ??
-                            item.departmentName ??
-                            item.HRMD_ProjectName ??
-                            item.value ??
-                            item.label ??
-                            ''
+                        item.HRMD_DepartmentName ??
+                        item.hrmD_Name ??
+                        item.HRMD_Name ??
+                        item.name ??
+                        item.departmentName ??
+                        item.HRMD_ProjectName ??
+                        item.value ??
+                        item.label ??
+                        ''
                     )
                 };
             })
@@ -349,14 +349,14 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     ),
                     value: String(
                         item.ivrmmR_Name ??
-                            item.IVRMMR_Name ??
-                            item.hrmR_Name ??
-                            item.name ??
-                            item.religionName ??
-                            item.ReligionName ??
-                            item.value ??
-                            item.label ??
-                            ''
+                        item.IVRMMR_Name ??
+                        item.hrmR_Name ??
+                        item.name ??
+                        item.religionName ??
+                        item.ReligionName ??
+                        item.value ??
+                        item.label ??
+                        ''
                     )
                 };
             })
@@ -439,16 +439,16 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     key: String(item.hrmspL_Id ?? item.HRMSPL_Id ?? item.hrmS_Id ?? item.HRMS_Id ?? item.id ?? item.key ?? ''),
                     value: String(
                         item.hrmspL_SpecialisationName ??
-                            item.HRMSPL_SpecialisationName ??
-                            item.hrmS_SpecialisationName ??
-                            item.HRMS_SpecialisationName ??
-                            item.masterSpecialisationName ??
-                            item.specialisationName ??
-                            item.specializationName ??
-                            item.name ??
-                            item.value ??
-                            item.label ??
-                            'Unknown'
+                        item.HRMSPL_SpecialisationName ??
+                        item.hrmS_SpecialisationName ??
+                        item.HRMS_SpecialisationName ??
+                        item.masterSpecialisationName ??
+                        item.specialisationName ??
+                        item.specializationName ??
+                        item.name ??
+                        item.value ??
+                        item.label ??
+                        'Unknown'
                     )
                 };
             })
@@ -691,8 +691,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 console.error('❌ [DEBUG] nextStep - Validation failed, not proceeding');
                 const formErrors = formState.errors;
                 const errorMessages: string[] = [];
-                currentTabFields.forEach((field) => {
-                    const fieldError = formErrors[field as keyof typeof formErrors];
+                currentTabFields.forEach((field: any) => {
+                    const fieldError = (formErrors as any)[field];
                     if (fieldError) {
                         const errorMsg = typeof fieldError === 'string' ? fieldError : (fieldError as any)?.message;
                         if (errorMsg) {
@@ -1149,7 +1149,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     hrmeQ_Result: qual.result || '',
                     hrmeQ_CGPAOrPerFlag: qual.cgpaOrPercentage || 'CGPA',
                     hrmeQ_CGPA: qual.cgpaOrPercentage === 'CGPA' ? qual.cgpa || '' : '',
-                    hrmeQ_Percentage: qual.cgpaOrPercentage === 'Percentage' ? qual.cgpa || '' : '',
+                    hrmeQ_Percentage: qual.cgpaOrPercentage === 'Percentage' ? qual.percentage || '' : '',
                     hrmeQ_AreaOfSpecialisation: qual.areaOfSpecialisation || qual.specialisation || '',
                     hrmeQ_PHDFlg: qual.phdFlag || false,
                     hrmeQ_StateId: Number(qual.qualificationState) || 0,
@@ -1189,7 +1189,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         // Compare sent vs received
                         if (response.data.length === qualificationsPayload.length) {
                             console.log('✅ [DEBUG] Tab 3 - Qualification count matches!');
-                            qualificationsPayload.forEach((sent, index) => {
+                            qualificationsPayload.forEach((sent: any, index: number) => {
                                 const received = response.data[index];
                                 if (received) {
                                     console.log(`🔍 [DEBUG] Tab 3 - Qualification #${index + 1} Comparison:`, {
@@ -1337,7 +1337,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             // Compare sent vs received
                             if (response.data.length === experiencesPayload.length) {
                                 console.log('✅ [DEBUG] Tab 4 - Experience count matches!');
-                                experiencesPayload.forEach((sent, index) => {
+                                experiencesPayload.forEach((sent: any, index: number) => {
                                     const received = response.data[index];
                                     if (received) {
                                         console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Comparison:`, {
@@ -1655,10 +1655,10 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     const availablePermanentStates: IStateDropdown[] = sameAsCommunicationAddress
         ? availableContactStates
         : permanentCountryId
-          ? Array.isArray(permanentStates)
-              ? permanentStates
-              : []
-          : [];
+            ? Array.isArray(permanentStates)
+                ? permanentStates
+                : []
+            : [];
 
     // Sync communication address to permanent address when "Same As Communication Address" is checked
     useEffect(() => {
@@ -1820,7 +1820,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 const formErrors = formState.errors;
                 const errorMessages: string[] = [];
                 currentTabFields.forEach((field) => {
-                    const fieldError = formErrors[field as keyof typeof formErrors];
+                    const fieldError = (formErrors as any)[field];
                     if (fieldError) {
                         const errorMsg = typeof fieldError === 'string' ? fieldError : (fieldError as any)?.message;
                         if (errorMsg) {
@@ -1890,8 +1890,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         currentStep === step.id
                                                             ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                              ? 'border-green-500 bg-green-500 text-white'
-                                                              : 'border-gray-300 bg-white text-gray-400'
+                                                                ? 'border-green-500 bg-green-500 text-white'
+                                                                : 'border-gray-300 bg-white text-gray-400'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-5 w-5' />
@@ -1941,8 +1941,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         currentStep === step.id
                                                             ? 'border-secondary bg-secondary text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                              ? 'border-green-500 bg-green-500 text-white'
-                                                              : 'border-gray-300 bg-white text-gray-500'
+                                                                ? 'border-green-500 bg-green-500 text-white'
+                                                                : 'border-gray-300 bg-white text-gray-500'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-6 w-6' />
@@ -2032,7 +2032,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         {...register('firstName', {
                                                             required: 'First Name is required'
                                                         })}
-                                                        error={errors.firstName?.message}
+                                                        error={errors.firstName?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='Middle Name'
@@ -2067,7 +2067,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             }
                                                         }}
                                                         {...register('middleName')}
-                                                        error={errors.middleName?.message}
+                                                        error={errors.middleName?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='Last Name'
@@ -2102,7 +2102,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             }
                                                         }}
                                                         {...register('lastName')}
-                                                        error={errors.lastName?.message}
+                                                        error={errors.lastName?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='Employee Code'
@@ -2112,7 +2112,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         {...register('employeeCode', {
                                                             required: 'Employee code is required'
                                                         })}
-                                                        error={errors.employeeCode?.message}
+                                                        error={errors.employeeCode?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label="Father's Name *"
@@ -2147,7 +2147,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             }
                                                         }}
                                                         {...register('fatherName')}
-                                                        error={errors.fatherName?.message}
+                                                        error={errors.fatherName?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label="Mother's Name *"
@@ -2182,7 +2182,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             }
                                                         }}
                                                         {...register('motherName')}
-                                                        error={errors.motherName?.message}
+                                                        error={errors.motherName?.message as string | undefined}
                                                     />
                                                     <Controller
                                                         name='typeOfEmployment'
@@ -2402,7 +2402,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         maxLength={50}
                                                         placeholder='Enter subject taught'
                                                         {...register('subjectTaught')}
-                                                        error={errors.subjectTaught?.message}
+                                                        error={errors.subjectTaught?.message as string | undefined}
                                                     />
                                                     <Controller
                                                         name='grade'
@@ -2468,7 +2468,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 field={field}
                                                                 fieldState={fieldState}
                                                                 label='Date Of Confirmation'
-                                                                required
                                                                 placeholder='Pick date of confirmation'
                                                             />
                                                         )}
@@ -2546,7 +2545,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 }
                                                             }}
                                                             {...register('recognitionYear')}
-                                                            error={errors.recognitionYear?.message}
+                                                            error={errors.recognitionYear?.message as string | undefined}
                                                         />
                                                     ) : null}
                                                     <Controller
@@ -2662,14 +2661,14 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 id='pfAccNo'
                                                                 maxLength={22}
                                                                 {...register('pfAccNo')}
-                                                                error={errors.pfAccNo?.message}
+                                                                error={errors.pfAccNo?.message as string | undefined}
                                                             />
                                                             <InputText
                                                                 label='UAN Number'
                                                                 id='uanNumber'
                                                                 maxLength={12}
                                                                 {...register('uanNumber')}
-                                                                error={errors.uanNumber?.message}
+                                                                error={errors.uanNumber?.message as string | undefined}
                                                             />
                                                             <Controller
                                                                 name='pfDate'
@@ -2729,14 +2728,14 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     }
                                                                 }}
                                                                 {...register('esiAccNo')}
-                                                                error={errors.esiAccNo?.message}
+                                                                error={errors.esiAccNo?.message as string | undefined}
                                                             />
                                                             <InputText
                                                                 label='Gratuity Acc No.'
                                                                 id='gratuityAccNo'
                                                                 maxLength={25}
                                                                 {...register('gratuityAccNo')}
-                                                                error={errors.gratuityAccNo?.message}
+                                                                error={errors.gratuityAccNo?.message as string | undefined}
                                                             />
                                                             <Controller
                                                                 name='esiDate'
@@ -2780,7 +2779,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             }
                                                         }}
                                                         {...register('nationalSSN')}
-                                                        error={errors.nationalSSN?.message}
+                                                        error={errors.nationalSSN?.message as string | undefined}
                                                     />
                                                 </div>
                                                 {/* Right Column */}
@@ -2937,7 +2936,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 field={field}
                                                                 fieldState={fieldState}
                                                                 label='Date Of Retirement'
-                                                                required
                                                                 placeholder='Pick date of retirement'
                                                             />
                                                         )}
@@ -3080,8 +3078,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                             item.name ||
                                                                                                             String(
                                                                                                                 item.key ||
-                                                                                                                    item.value ||
-                                                                                                                    item.id
+                                                                                                                item.value ||
+                                                                                                                item.id
                                                                                                             )}
                                                                                                     </SelectItem>
                                                                                                 );
@@ -3097,7 +3095,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         maxLength={10}
                                                                         {...register(`mobileDetails.${index}.mobileNo`)}
                                                                         className='min-w-[200px] flex-1'
-                                                                        error={(errors.mobileDetails as any)?.[index]?.mobileNo?.message}
+                                                                        error={(errors.mobileDetails as any)?.[index]?.mobileNo?.message as string}
                                                                     />
                                                                     <Button
                                                                         type='button'
@@ -3172,8 +3170,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                             item.name ||
                                                                                                             String(
                                                                                                                 item.key ||
-                                                                                                                    item.value ||
-                                                                                                                    item.id
+                                                                                                                item.value ||
+                                                                                                                item.id
                                                                                                             )}
                                                                                                     </SelectItem>
                                                                                                 );
@@ -3241,7 +3239,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             }
                                                         }}
                                                         {...register('aadharNo')}
-                                                        error={errors.aadharNo?.message}
+                                                        error={errors.aadharNo?.message as string}
                                                     />
                                                     <InputText
                                                         label='PAN Card No.'
@@ -3270,7 +3268,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             }
                                                         }}
                                                         {...register('panCardNo')}
-                                                        error={errors.panCardNo?.message}
+                                                        error={errors.panCardNo?.message as string}
                                                     />
                                                     <Controller
                                                         name='bloodGroup'
@@ -3481,11 +3479,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             </div>
                                                             {(errors.bankDetails ||
                                                                 (watch('modeOfPayment') === 'Bank' && bankFields.length === 0)) && (
-                                                                <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                    {(errors.bankDetails as any)?.message ||
-                                                                        'Bank Details are required when Mode of Payment is Bank'}
-                                                                </div>
-                                                            )}
+                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                        {(errors.bankDetails as any)?.message ||
+                                                                            'Bank Details are required when Mode of Payment is Bank'}
+                                                                    </div>
+                                                                )}
                                                             <div className='rounded-lg border bg-card'>
                                                                 <div className='rounded-t-lg bg-gray-200 px-4 py-2 text-gray-900'>
                                                                     <div className='grid grid-cols-5 gap-2 font-semibold text-sm'>
@@ -3545,10 +3543,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                     placeholder='Bank Account No.'
                                                                                     maxLength={20}
                                                                                     {...register(`bankDetails.${index}.bankAccountNo`)}
-                                                                                    error={
-                                                                                        (errors.bankDetails as any)?.[index]?.bankAccountNo
-                                                                                            ?.message
-                                                                                    }
+                                                                                    error={(errors.bankDetails as any)?.[index]?.bankAccountNo?.message as string}
                                                                                 />
                                                                             </div>
                                                                             <div>
@@ -3573,8 +3568,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                         (item: any) => {
                                                                                                             const val = getSafeValue(
                                                                                                                 item.key ||
-                                                                                                                    item.value ||
-                                                                                                                    item.id
+                                                                                                                item.value ||
+                                                                                                                item.id
                                                                                                             );
                                                                                                             if (!val) return null;
                                                                                                             return (
@@ -3590,8 +3585,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                                         item.name ||
                                                                                                                         String(
                                                                                                                             item.key ||
-                                                                                                                                item.value ||
-                                                                                                                                item.id
+                                                                                                                            item.value ||
+                                                                                                                            item.id
                                                                                                                         )}
                                                                                                                 </SelectItem>
                                                                                                             );
@@ -3667,7 +3662,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 placeholder='Flat/House No, Building name, Street'
                                                                 maxLength={100}
                                                                 {...register('contactAddress')}
-                                                                error={errors.contactAddress?.message}
+                                                                error={(errors.contactAddress as any)?.message}
                                                             />
                                                             <InputText
                                                                 label='Area'
@@ -3675,7 +3670,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 id='contactArea'
                                                                 placeholder='Enter area name'
                                                                 {...register('contactArea')}
-                                                                error={errors.contactArea?.message}
+                                                                error={(errors.contactArea as any)?.message}
                                                             />
                                                             <div className='space-y-2'>
                                                                 <Controller
@@ -3798,7 +3793,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 id='contactCity'
                                                                 placeholder='Enter city name'
                                                                 {...register('contactCity')}
-                                                                error={errors.contactCity?.message}
+                                                                error={(errors.contactCity as any)?.message}
                                                             />
                                                             <InputText
                                                                 label='Pincode'
@@ -3830,7 +3825,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     }
                                                                 }}
                                                                 {...register('contactPincode')}
-                                                                error={errors.contactPincode?.message}
+                                                                error={errors.contactPincode?.message as string | undefined}
                                                             />
                                                         </div>
                                                     </div>
@@ -3865,7 +3860,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 placeholder='Flat/House No, Building name, Street'
                                                                 maxLength={100}
                                                                 {...register('permanentAddress')}
-                                                                error={errors.permanentAddress?.message}
+                                                                error={errors.permanentAddress?.message as string | undefined}
                                                                 disabled={sameAsCommunicationAddress}
                                                             />
                                                             <InputText
@@ -3874,7 +3869,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 id='permanentArea'
                                                                 placeholder='Enter area name'
                                                                 {...register('permanentArea')}
-                                                                error={errors.permanentArea?.message}
+                                                                error={errors.permanentArea?.message as string | undefined}
                                                                 disabled={sameAsCommunicationAddress}
                                                             />
                                                             <div className='space-y-2'>
@@ -4010,7 +4005,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 id='permanentCity'
                                                                 placeholder='Enter city name'
                                                                 {...register('permanentCity')}
-                                                                error={errors.permanentCity?.message}
+                                                                error={errors.permanentCity?.message as string | undefined}
                                                                 disabled={sameAsCommunicationAddress}
                                                             />
                                                             <InputText
@@ -4043,7 +4038,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     }
                                                                 }}
                                                                 {...register('permanentPincode')}
-                                                                error={errors.permanentPincode?.message}
+                                                                error={errors.permanentPincode?.message as string | undefined}
                                                                 disabled={sameAsCommunicationAddress}
                                                             />
                                                         </div>
@@ -4129,7 +4124,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         id={`qualificationDetails.${index}.qualification`}
                                                                         maxLength={50}
                                                                         {...register(`qualificationDetails.${index}.qualification`)}
-                                                                        error={errors.qualificationDetails?.[index]?.qualification?.message}
+                                                                        error={(errors.qualificationDetails as any)?.[index]?.qualification?.message}
                                                                     />
                                                                     <Controller
                                                                         name={`qualificationDetails.${index}.course`}
@@ -4206,14 +4201,14 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         id={`qualificationDetails.${index}.college`}
                                                                         maxLength={100}
                                                                         {...register(`qualificationDetails.${index}.college`)}
-                                                                        error={errors.qualificationDetails?.[index]?.college?.message}
+                                                                        error={(errors.qualificationDetails as any)?.[index]?.college?.message}
                                                                     />
                                                                     <InputText
                                                                         label='University *'
                                                                         id={`qualificationDetails.${index}.university`}
                                                                         maxLength={100}
                                                                         {...register(`qualificationDetails.${index}.university`)}
-                                                                        error={errors.qualificationDetails?.[index]?.university?.message}
+                                                                        error={(errors.qualificationDetails as any)?.[index]?.university?.message}
                                                                     />
                                                                 </div>
                                                                 {/* Row 3: Year Of Passing, Country, State */}
@@ -4246,7 +4241,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             }
                                                                         }}
                                                                         {...register(`qualificationDetails.${index}.yearOfPassing`)}
-                                                                        error={errors.qualificationDetails?.[index]?.yearOfPassing?.message}
+                                                                        error={(errors.qualificationDetails as any)?.[index]?.yearOfPassing?.message}
                                                                     />
                                                                     <Controller
                                                                         name={`qualificationDetails.${index}.qualificationCountry`}
@@ -4323,16 +4318,14 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         id={`qualificationDetails.${index}.registrationNo`}
                                                                         maxLength={50}
                                                                         {...register(`qualificationDetails.${index}.registrationNo`)}
-                                                                        error={
-                                                                            errors.qualificationDetails?.[index]?.registrationNo?.message
-                                                                        }
+                                                                        error={(errors.qualificationDetails as any)?.[index]?.registrationNo?.message}
                                                                     />
                                                                     <InputText
                                                                         label='Result *'
                                                                         id={`qualificationDetails.${index}.result`}
                                                                         maxLength={20}
                                                                         {...register(`qualificationDetails.${index}.result`)}
-                                                                        error={errors.qualificationDetails?.[index]?.result?.message}
+                                                                        error={(errors.qualificationDetails as any)?.[index]?.result?.message}
                                                                     />
                                                                 </div>
                                                                 {/* Row 5: CGPA Or Percentage dropdown */}
@@ -4432,14 +4425,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                 }
                                                                             }
                                                                         }}
-                                                                        {...register(
-                                                                            `qualificationDetails.${index}.${cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa'}`
-                                                                        )}
-                                                                        error={
-                                                                            errors.qualificationDetails?.[index]?.[
-                                                                                cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa'
-                                                                            ]?.message
-                                                                        }
+                                                                        {...register(`qualificationDetails.${index}.${cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa'}`)}
+                                                                        error={(errors.qualificationDetails as any)?.[index]?.[cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa']?.message}
                                                                     />
                                                                 </div>
                                                                 {/* Row 6: Area Of Specialization */}
@@ -4563,7 +4550,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         }}
                                                                         {...register(`qualificationDetails.${index}.registrationYear`)}
                                                                         error={
-                                                                            errors.qualificationDetails?.[index]?.registrationYear?.message
+                                                                            (errors.qualificationDetails as any)?.[index]?.registrationYear?.message
                                                                         }
                                                                     />
                                                                     <InputText
@@ -4803,7 +4790,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     maxLength={500}
                                                                     minHeight={60}
                                                                     {...register(`experienceDetails.${index}.organisationAddress`)}
-                                                                    error={errors.experienceDetails?.[index]?.organisationAddress?.message}
+                                                                    error={(errors.experienceDetails as any)?.[index]?.organisationAddress?.message}
                                                                     placeholder='Enter organisation address...'
                                                                 />
                                                             </div>
@@ -4814,7 +4801,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     maxLength={500}
                                                                     minHeight={60}
                                                                     {...register(`experienceDetails.${index}.reasonForLeaving`)}
-                                                                    error={errors.experienceDetails?.[index]?.reasonForLeaving?.message}
+                                                                    error={(errors.experienceDetails as any)?.[index]?.reasonForLeaving?.message}
                                                                     placeholder='Enter reason for leaving...'
                                                                 />
                                                             </div>
@@ -4878,7 +4865,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     maxLength={255}
                                                                     {...register(`documentList.${index}.documentName`)}
                                                                     placeholder='Enter document name'
-                                                                    error={errors.documentList?.[index]?.documentName?.message}
+                                                                    error={(errors.documentList as any)?.[index]?.documentName?.message}
                                                                 />
                                                                 <InputText
                                                                     label='Description *'
@@ -4886,7 +4873,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     maxLength={400}
                                                                     {...register(`documentList.${index}.documentDescription`)}
                                                                     placeholder='Enter description'
-                                                                    error={errors.documentList?.[index]?.documentDescription?.message}
+                                                                    error={(errors.documentList as any)?.[index]?.documentDescription?.message}
                                                                 />
                                                                 <div className='space-y-2 md:col-span-2'>
                                                                     <Label>Upload Document</Label>
@@ -4931,9 +4918,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             </span>
                                                                         )}
                                                                     </div>
-                                                                    {errors.documentList?.[index]?.document?.message && (
+                                                                    {(errors.documentList as any)?.[index]?.document?.message && (
                                                                         <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                            {String(errors.documentList?.[index]?.document?.message)}
+                                                                            {String((errors.documentList as any)?.[index]?.document?.message)}
                                                                         </div>
                                                                     )}
                                                                 </div>
@@ -4998,7 +4985,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             }
                                                         }}
                                                         {...register('employeeHeight')}
-                                                        error={errors.employeeHeight?.message}
+                                                        error={errors.employeeHeight?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='Unit of measure (Height)'
@@ -5006,7 +4993,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         placeholder='Unit of measure'
                                                         maxLength={10}
                                                         {...register('employeeHeightUnit')}
-                                                        error={errors.employeeHeightUnit?.message}
+                                                        error={errors.employeeHeightUnit?.message as string | undefined}
                                                     />
                                                 </div>
                                                 <InputText
@@ -5014,7 +5001,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     id='eyeSightIssue'
                                                     maxLength={255}
                                                     {...register('eyeSightIssue')}
-                                                    error={errors.eyeSightIssue?.message}
+                                                    error={errors.eyeSightIssue?.message as string | undefined}
                                                 />
                                                 <div className='grid grid-cols-2 gap-4'>
                                                     <InputText
@@ -5052,7 +5039,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             }
                                                         }}
                                                         {...register('employeeWeight')}
-                                                        error={errors.employeeWeight?.message}
+                                                        error={errors.employeeWeight?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='Unit of measure (Weight)'
@@ -5060,7 +5047,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         placeholder='Unit of measure'
                                                         maxLength={10}
                                                         {...register('employeeWeightUnit')}
-                                                        error={errors.employeeWeightUnit?.message}
+                                                        error={errors.employeeWeightUnit?.message as string | undefined}
                                                     />
                                                 </div>
                                                 <InputText
@@ -5068,7 +5055,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     id='anyHealthIssue'
                                                     maxLength={500}
                                                     {...register('anyHealthIssue')}
-                                                    error={errors.anyHealthIssue?.message}
+                                                    error={errors.anyHealthIssue?.message as string | undefined}
                                                 />
                                             </div>
                                             <InputTextarea
@@ -5077,7 +5064,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                 maxLength={255}
                                                 minHeight={80}
                                                 {...register('identificationMark')}
-                                                error={errors.identificationMark?.message}
+                                                error={errors.identificationMark?.message as string | undefined}
                                                 placeholder='Enter identification mark details...'
                                             />
                                         </div>
@@ -5104,21 +5091,21 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         id='biometricCode'
                                                         maxLength={50}
                                                         {...register('biometricCode')}
-                                                        error={errors.biometricCode?.message}
+                                                        error={errors.biometricCode?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='RF card ID'
                                                         id='rfCardId'
                                                         maxLength={50}
                                                         {...register('rfCardId')}
-                                                        error={errors.rfCardId?.message}
+                                                        error={errors.rfCardId?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='MS Teams UserName'
                                                         id='msTeamsUserName'
                                                         maxLength={100}
                                                         {...register('msTeamsUserName')}
-                                                        error={errors.msTeamsUserName?.message}
+                                                        error={errors.msTeamsUserName?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='MS Teams Password'
@@ -5126,7 +5113,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         type='password'
                                                         maxLength={255}
                                                         {...register('msTeamsPassword')}
-                                                        error={errors.msTeamsPassword?.message}
+                                                        error={errors.msTeamsPassword?.message as string | undefined}
                                                     />
                                                 </div>
                                                 <div className='space-y-4'>
@@ -5259,7 +5246,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         </Select>
                                                                         {errors.reasonForLeaving && (
                                                                             <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                                {errors.reasonForLeaving.message}
+                                                                                {errors.reasonForLeaving.message as string | undefined}
                                                                             </div>
                                                                         )}
                                                                     </div>

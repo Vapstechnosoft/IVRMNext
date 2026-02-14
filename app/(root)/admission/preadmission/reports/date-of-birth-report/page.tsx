@@ -114,7 +114,6 @@ export default function BirthCertificatePageReport(props: {
         return [];
     }, [response?.data, showReport]);
 
-
     const tableProps = useDataTableProps({
         ...response,
         data: transformedData
@@ -168,8 +167,8 @@ export default function BirthCertificatePageReport(props: {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    });
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -441,7 +440,7 @@ export default function BirthCertificatePageReport(props: {
                 {showReport && transformedData && transformedData.length > 0 && (
                     <div id='printable-report' ref={printRef}>
                         <CollapsibleSection
-                            title='Student Yearly Attendance Report'
+                            title='Date of Birth Certificate Report'
                             defaultOpen={true}
                             variant='outline'
                             size='md'

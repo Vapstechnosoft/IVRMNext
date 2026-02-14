@@ -23,3 +23,26 @@ export async function toggleUploadEvent(id: number) {
     const url = `/master_coe/active_deactive_coe_event/${id}`;
     return await api.put('coe', url);
 }
+
+export async function getCoeInitialData(searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const url = `/master_coe/event_mapped_details_grid?${urlParams}`;
+
+    const res = await api.get<any[]>('coe', url);
+    return res;
+}
+
+export async function EventDetailsById(id: number) {
+    const url = `/master_coe/event_details_by_event_id/${id}`;
+    return await api.get<MasterEventCoe[]>('coe', url);
+}
+
+export async function saveMappedEvent(payload: any) {
+    const url = '/master_coe/addOrUpdate_mapped_coe_event';
+    return await api.post<any[]>('coe', url, payload);
+} 
+
+export async function toggleMappedEvent(id: number) {
+    const url = `/master_coe/active_deactive_coe_event/${id}`;
+    return await api.put('coe', url);
+}

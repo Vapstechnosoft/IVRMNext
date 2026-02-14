@@ -6,15 +6,15 @@ import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterYears } from '@/hooks/hrms/useReports';
+import { useMasterYears, useYearWiseSalaryDetails, useMonthWiseSalaryDetails } from '@/hooks/hrms/useReports';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FileText, Mail, MessageSquare, Printer, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { type MonthlySalaryDetail, getMonthlySalaryDetailColumns } from './_components/columns';
+import { DepartmentBreakdownDialog } from './_components/department-breakdown-dialog';
 
 const monthEndReportSchema = z.object({
     year: z.string().min(1, 'Year is required')
@@ -22,57 +22,12 @@ const monthEndReportSchema = z.object({
 
 type FormFields = z.infer<typeof monthEndReportSchema>;
 
-const generateMockSalaryData = (year: string): MonthlySalaryDetail[] => {
-    const months = [
-        'April',
-        'May',
-        'June',
-        'July',
-        'August',
-        'September',
-        'October',
-        'November',
-        'December',
-        'January',
-        'February',
-        'March'
-    ];
-
-    return months.map((month, index) => {
-        const basicSalary = 50000 + Math.random() * 10000;
-        const hra = basicSalary * 0.4;
-        const da = basicSalary * 0.2;
-        const otherAllowances = 5000 + Math.random() * 3000;
-        const grossSalary = basicSalary + hra + da + otherAllowances;
-        const pf = basicSalary * 0.12;
-        const tax = grossSalary * 0.1;
-        const otherDeductions = 1000 + Math.random() * 500;
-        const netSalary = grossSalary - pf - tax - otherDeductions;
-
-        return {
-            id: index + 1,
-            month,
-            year,
-            basicSalary: Math.round(basicSalary),
-            netSalary: Math.round(netSalary),
-            createdAt: new Date()
-        };
-    });
-};
-
 export default function HRMSMonthEndReportPage() {
-    const [isSearching, setIsSearching] = useState(false);
-    const [reportData, setReportData] = useState<MonthlySalaryDetail[] | null>(null);
     const [selectedMonth, setSelectedMonth] = useState<MonthlySalaryDetail | null>(null);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
     const printRef = useRef<HTMLDivElement>(null);
 
     const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useMasterYears();
-
-    const YearsOptions =
-        masterYears?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
 
     const {
         control,
@@ -88,72 +43,39 @@ export default function HRMSMonthEndReportPage() {
 
     const selectedYear = watch('year');
 
+    // API Hooks
+    const { data: yearSalaryResponse, isLoading: isYearLoading } = useYearWiseSalaryDetails(selectedYear);
+    const { data: monthSalaryResponse, isLoading: isMonthLoading } = useMonthWiseSalaryDetails(
+        selectedYear,
+        selectedMonth?.month || ''
+    );
+
+    const reportData: MonthlySalaryDetail[] =
+        yearSalaryResponse?.success && yearSalaryResponse.data
+            ? yearSalaryResponse.data.map((item: any, index: number) => ({
+                id: index + 1,
+                month: item.month,
+                year: selectedYear,
+                netSalary: item.netamount,
+                createdAt: new Date()
+            }))
+            : [];
+
+    const YearsOptions =
+        masterYears?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
     const columns = getMonthlySalaryDetailColumns((monthData) => {
         setSelectedMonth(monthData);
+        setIsDialogOpen(true);
     });
 
-    // Auto-generate report when year is selected
-    useEffect(() => {
-        if (selectedYear) {
-            generateReport(selectedYear);
-        } else {
-            setReportData(null);
-            setSelectedMonth(null);
-        }
-    }, [selectedYear]);
-
-    const generateReport = async (year: string) => {
-        setIsSearching(true);
-        try {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            const mockData = generateMockSalaryData(year);
-            setReportData(mockData);
-            toast.success('Report generated successfully!');
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to generate report');
-        } finally {
-            setIsSearching(false);
-        }
-    };
-
-    const handleReset = () => {
-        setReportData(null);
-        setSelectedMonth(null);
-        toast.info('Report cleared');
-    };
-
-    const handlePrint = () => {
-        window.print();
-    };
-
-    const handleGenerateSlip = () => {
-        if (selectedMonth) {
-            toast.success(`Generating salary slip for ${selectedMonth.month}`);
-        } else {
-            toast.warning('Please select a month to generate slip');
-        }
-    };
-
-    const handleSendMail = () => {
-        if (selectedMonth) {
-            toast.success(`Sending email for ${selectedMonth.month} salary`);
-        } else {
-            toast.warning('Please select a month to send email');
-        }
-    };
-
-    const handleSendSMS = () => {
-        if (selectedMonth) {
-            toast.success(`Sending SMS for ${selectedMonth.month} salary`);
-        } else {
-            toast.warning('Please select a month to send SMS');
-        }
-    };
 
     const chartData = reportData?.map((item) => ({
         month: item.month.substring(0, 3),
-        'Net Salary': item.netSalary,
-        'Basic Salary': item.basicSalary
+        'Net Salary': item.netSalary
     }));
 
     return (
@@ -227,7 +149,7 @@ export default function HRMSMonthEndReportPage() {
                     </div>
                 </CollapsibleSection>
 
-                {reportData && (
+                {reportData && reportData.length > 0 && (
                     <div id='printable-report' ref={printRef}>
                         <CollapsibleSection
                             title='Salary Details'
@@ -238,7 +160,7 @@ export default function HRMSMonthEndReportPage() {
                             <GenericDataTable<MonthlySalaryDetail>
                                 data={reportData}
                                 columns={columns}
-                                isLoading={isSearching}
+                                isLoading={isYearLoading}
                                 showViewOptions={true}
                                 columnPinning={{ right: ['viewDetails'] }}
                                 loadingMessage='Loading salary details...'
@@ -247,43 +169,6 @@ export default function HRMSMonthEndReportPage() {
                                 errorTitle='Error Loading Salary Data'
                             />
 
-                            <div className='no-print flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
-                                <Button
-                                    onClick={handleGenerateSlip}
-                                    className='w-fit transition-all duration-200 hover:scale-105'
-                                    variant='default'>
-                                    <FileText className='h-4 w-4' />
-                                    Generate Slip
-                                </Button>
-                                <Button
-                                    onClick={handlePrint}
-                                    className='w-fit transition-all duration-200 hover:scale-105'
-                                    variant='default'>
-                                    <Printer className='h-4 w-4' />
-                                    Print
-                                </Button>
-                                <Button
-                                    onClick={handleSendMail}
-                                    className='w-fit transition-all duration-200 hover:scale-105'
-                                    variant='default'>
-                                    <Mail className='h-4 w-4' />
-                                    Send Mail
-                                </Button>
-                                <Button
-                                    onClick={handleSendSMS}
-                                    className='w-fit transition-all duration-200 hover:scale-105'
-                                    variant='default'>
-                                    <MessageSquare className='h-4 w-4' />
-                                    Send SMS
-                                </Button>
-                                <Button
-                                    onClick={handleReset}
-                                    className='w-fit transition-all duration-200 hover:scale-105'
-                                    variant='outline'>
-                                    <X className='h-4 w-4' />
-                                    Cancel
-                                </Button>
-                            </div>
                         </CollapsibleSection>
 
                         <CollapsibleSection
@@ -302,7 +187,6 @@ export default function HRMSMonthEndReportPage() {
                                             <YAxis tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}K`} />
                                             <Tooltip formatter={(value: number) => `₹${value.toLocaleString()}`} />
                                             <Legend />
-                                            <Bar dataKey='Basic Salary' fill='#3b82f6' />
                                             <Bar dataKey='Net Salary' fill='#22c55e' />
                                         </BarChart>
                                     </ResponsiveContainer>
@@ -312,6 +196,17 @@ export default function HRMSMonthEndReportPage() {
                     </div>
                 )}
             </div>
+
+            {/* Department Breakdown Dialog */}
+            <DepartmentBreakdownDialog
+                isOpen={isDialogOpen}
+                onClose={() => setIsDialogOpen(false)}
+                monthName={selectedMonth?.month || ''}
+                year={selectedYear}
+                data={(monthSalaryResponse?.success && monthSalaryResponse.data ? monthSalaryResponse.data : []) as any}
+                isLoading={isMonthLoading}
+            />
         </div>
     );
 }
+

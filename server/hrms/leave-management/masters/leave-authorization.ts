@@ -1,11 +1,11 @@
 'use server';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { type ApiResponse, api } from '@/lib/apiService';
+import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
-    LeaveAuthorizationDeleteRequest,
     LeaveAuthorizationGetResponseData,
-    LeaveAuthorizationSaveRequest
+    LeaveAuthorizationSaveRequest,
+    LeaveAuthorizationDeleteRequest,
 } from '@/types/hrms/leave-management/leave-authorization';
 /**
  * Get institutions based on login
@@ -43,12 +43,20 @@ export async function getLeaveAuthorization(
 ): Promise<ApiResponse<LeaveAuthorizationGetResponseData | any[]>> {
     const miId = searchParams?.MI_Id || HRMS_MI_ID;
 
-    const url = `/api/LeaveAuthorization/get_authorization_details_by_miid?mi_id=${miId}`;
+    // Build URL with pagination parameters
+    const baseUrl = `/api/LeaveAuthorization/get_authorization_grid_by_miid`;
+    const queryParams = getSearchParamsUrl(searchParams);
+    let url = queryParams ? `${baseUrl}?${queryParams}` : baseUrl;
+
+    // Append mi_id to the URL
+    if (miId) {
+        url += `${url.includes('?') ? '&' : '?'}mi_id=${miId}`;
+    }
 
     console.log('🔵 [SERVER] GET Request URL:', url);
     try {
         const response = await api.get<any>('hmslms', url);
-        console.log('🔵 [SERVER] GET Response:', JSON.stringify(response, null, 2));
+        // console.log('🔵 [SERVER] GET Response:', JSON.stringify(response, null, 2));
 
         const res = response as any;
         const isSuccess = res.success === true || String(res.success) === 'true';
@@ -81,8 +89,17 @@ export async function getLeaveAuthorization(
 export async function saveLeaveAuthorization(data: LeaveAuthorizationSaveRequest): Promise<ApiResponse<LeaveAuthorizationGetResponseData>> {
     const url = '/api/LeaveAuthorization/add_or_update_leave_authorisation';
 
+    // Check if it's an edit operation (HRLA_Id > 0)
+    // Note: The interface might need HRLA_Id added if not present, but usually data has it if it's "any" or loosely typed at runtime
+    // Casting data to any to access potentially unmapped HRLA_Id if the type def is incomplete
+    const inputData = data as any;
+    const isEdit = inputData.HRLA_Id && Number(inputData.HRLA_Id) > 0;
+    const hrlaId = isEdit ? Number(inputData.HRLA_Id) : 0;
+
     // Map to the structure expected by the NEW API
     const requestBody = {
+        hrlA_Id: hrlaId,
+        // mI_Id: data.MI_Id || HRMS_MI_ID, // Use token MI_Id
         hrmG_Id: Number(data.HRMG_Id || 0),
         hrmgT_Id: Number(data.HRMGT_Id || 0),
         hrmD_Id: Number(data.HRMD_Id || 0),
@@ -101,14 +118,14 @@ export async function saveLeaveAuthorization(data: LeaveAuthorizationSaveRequest
 
     try {
         const response = await api.post<any>('hmslms', url, requestBody);
-        console.log('🟢 [SERVER] Response:', JSON.stringify(response, null, 2));
+        // console.log('🟢 [SERVER] Response:', JSON.stringify(response, null, 2));
 
         const res = response as any;
-        const isSuccess = res.success === true || String(res.success) === 'true';
+        const isSuccess = res.success === true || String(res.success) === 'true' || res.returnval === true;
 
         return {
             success: isSuccess,
-            message: res.message || (isSuccess ? 'Saved successfully' : 'Failed to save'),
+            message: res.message || (isEdit ? 'Updated successfully' : 'Saved successfully'),
             data: res.data || null
         };
     } catch (error: any) {
@@ -156,18 +173,20 @@ export async function getLeaveAuthorizationForEdit(hrlaoN_Id: number): Promise<A
  * @returns Delete response
  */
 export async function deleteLeaveAuthorization(request: LeaveAuthorizationDeleteRequest): Promise<ApiResponse<any>> {
-    const hrla_Id = request.HRLA_Id || 0;
-    const hrlaon_Id = request.HRLAON_Id || 0;
+    const hrla_Id = Number(request.HRLA_Id || 0);
+    const hrlaon_Id = Number(request.HRLAON_Id || 0);
+
+    // Reverting to documented order: /api/LeaveAuthorization/delete_leave_authorisation/${hrla_Id}/${hrlaon_Id}
     const url = `/api/LeaveAuthorization/delete_leave_authorisation/${hrla_Id}/${hrlaon_Id}`;
 
-    console.log('🔴 [SERVER] DELETE Request URL:', url);
+    console.log(`🔴 [SERVER] DELETE Request URL: ${url} (HRLA_Id: ${hrla_Id}, HRLAON_Id: ${hrlaon_Id})`);
 
     try {
         const response = await api.delete<any>('hmslms', url);
         console.log('🔴 [SERVER] Response:', JSON.stringify(response, null, 2));
 
         const res = response as any;
-        const isSuccess = res.success === true || String(res.success) === 'true';
+        const isSuccess = res.success === true || String(res.success) === 'true' || res.returnval === true;
 
         return {
             success: isSuccess,
