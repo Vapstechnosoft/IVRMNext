@@ -25,7 +25,7 @@ export const preadmissionRegistrationSchema = {
                 message: 'Mobile number cannot start with 0'
             }),
         username: createStringSchema('Username', 4, 50),
-        password: createStringSchema('Password', 6, 8)
+        password: createStringSchema('Password', 6, 30)
     })
 };
 

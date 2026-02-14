@@ -176,7 +176,11 @@ export default function FeeRefundableReceiptPage({ rowData, onClose }: ReceiptPa
     );
 
     if (loading || !studentdetails || !receiptdetails) {
-        return <div className='fixed inset-0 flex items-center justify-center bg-black/50 text-lg text-white'>Loading receipt...</div>;
+        return (
+            <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>
+                <div className='rounded-lg bg-white p-8'>Loading receipt...</div>
+            </div>
+        );
     }
 
     const s = studentdetails[0];
@@ -310,9 +314,7 @@ export default function FeeRefundableReceiptPage({ rowData, onClose }: ReceiptPa
                                                 {item.fmH_FeeName}
                                             </td>
                                             <td className='border px-2 py-1 text-right'>{item.fmA_Amount}</td>
-                                            <td className='border px-2 py-1 text-center'>
-                                                {new Date(item.fR_Date).toLocaleDateString('en-GB')}
-                                            </td>
+                                            <td className='border px-2 py-1 text-center'>{formatDate(item.fR_Date)}</td>
                                             <td className='max-w-[120px] whitespace-normal break-words border px-2 py-1'>
                                                 {item.fR_RefundNo}
                                             </td>
@@ -436,9 +438,7 @@ export default function FeeRefundableReceiptPage({ rowData, onClose }: ReceiptPa
                                                 {item.fmH_FeeName}
                                             </td>
                                             <td className='border px-2 py-1 text-right'>{item.fmA_Amount}</td>
-                                            <td className='border px-2 py-1 text-center'>
-                                                {new Date(item.fR_Date).toLocaleDateString('en-GB')}
-                                            </td>
+                                            <td className='border px-2 py-1 text-center'>{formatDate(item.fR_Date)}</td>
                                             <td className='max-w-[120px] whitespace-normal break-words border px-2 py-1'>
                                                 {item.fR_RefundNo}
                                             </td>
