@@ -52,7 +52,9 @@ export default function UpdateMasterExamPaperForm({ onSuccess, className = '', s
         try {
             const payload = {
                 empatY_Id: row.empatY_Id, // Hardcoded for now
-                empatY_PaperTypeName: data.empatY_PaperTypeName
+                empatY_PaperTypeName: data.empatY_PaperTypeName,
+                empatY_Color: data.empatY_Color,
+                empatY_PaperTypeDescription: data.empatY_PaperTypeDescription
             };
 
             const response = await addOrUpdateMasterExamPaper(payload);

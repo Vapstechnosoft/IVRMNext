@@ -14,10 +14,29 @@ import {
 } from '@/server/inventory/masters/inv-master-product';
 import { toast } from 'sonner';
 
-export const useInvMasterProduct = () => {
+export const useInvMasterProduct = (searchParams?: any, itemSearchParams?: any) => {
     const { data: loadData, refetch: refetchLoadData, isLoading: isLoadDataLoading } = useQuery({
-        queryKey: ['invMasterProductLoadData'],
-        queryFn: () => getInvMasterProductLoadData(1)
+        queryKey: ['invMasterProductLoadData', searchParams],
+        queryFn: () => getInvMasterProductLoadData(searchParams),
+        enabled: !!searchParams
+    });
+
+    const { data: productItemData, refetch: refetchProductItemData, isLoading: isProductItemLoading } = useQuery({
+        queryKey: ['invMasterProductItemData', itemSearchParams],
+        queryFn: () => getInvMasterProductItemList(itemSearchParams),
+        enabled: !!itemSearchParams
+    });
+
+    const { data: productList, refetch: refetchProductList } = useQuery({
+        queryKey: ['invMasterProductDropdownList'],
+        queryFn: () => getInvMasterProductList(),
+        enabled: false
+    });
+
+    const { data: itemList, refetch: refetchItemList } = useQuery({
+        queryKey: ['invMasterItemDropdownList'],
+        queryFn: () => getInvMasterItemList(),
+        enabled: false
     });
 
     const saveProductMutation = useMutation({
@@ -120,6 +139,13 @@ export const useInvMasterProduct = () => {
         loadData,
         refetchLoadData,
         isLoadDataLoading,
+        productItemData,
+        refetchProductItemData,
+        isProductItemLoading,
+        productList,
+        refetchProductList,
+        itemList,
+        refetchItemList,
         saveProductMutation,
         saveProductQtyMutation,
         deactiveProductMutation,

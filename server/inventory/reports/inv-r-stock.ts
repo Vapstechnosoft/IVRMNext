@@ -87,7 +87,11 @@ export async function getInvRStockReport(payload: IInvRStockPayload, searchParam
         };
         delete apiPayload.optionflag;
 
-        const urlParams = getSearchParamsUrl(searchParams ?? {});
+        const params: any = {
+            ...searchParams
+        };
+
+        const urlParams = getSearchParamsUrl(params);
         const url = `/INV_R_StockFacade/onreport?${urlParams}`;
 
         const response = await api.post<any>('inventory', url, apiPayload);

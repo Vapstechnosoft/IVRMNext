@@ -11,8 +11,8 @@ export const registrationColumns: ColumnDef<IRigistrationReportList>[] = [
         id: 'select',
         header: ({ table }) => (
             <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                checked={table.getIsAllRowsSelected() || (table.getIsSomeRowsSelected() && 'indeterminate')}
+                onCheckedChange={(value) => table.toggleAllRowsSelected(!!value)}
                 aria-label='Select all'
             />
         ),

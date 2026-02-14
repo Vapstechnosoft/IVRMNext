@@ -28,3 +28,14 @@ export const useInvRStockReport = () => {
         }
     });
 };
+
+export const useInvRStockReportQuery = (payload: IInvRStockPayload | null, searchParams: any) => {
+    return useQuery({
+        queryKey: ['invRStockReport', payload, searchParams],
+        queryFn: () => {
+            if (!payload) return { success: true, data: { get_StockReport: [] }, total: 0, message: '', page: 1, page_size: 10 };
+            return getInvRStockReport(payload, searchParams);
+        },
+        enabled: !!payload
+    });
+};

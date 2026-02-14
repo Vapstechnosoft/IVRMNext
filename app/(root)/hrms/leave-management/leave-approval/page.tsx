@@ -3,35 +3,37 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { AdaptiveDialog } from '@/components/ui/extension/adaptive-dialog';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useAdminOnDutyApplyList } from '@/hooks/hrms/leave-management/useAdminOnDutyApply';
-import { useLeaveApprovalStatus } from '@/hooks/hrms/leave-management/useLeaveApproval';
-import { use, useMemo } from 'react';
+import { useLeaveAppliedOrApprovalGrid, useApproveOrRejectLeaveStatus, useViewLeaveBalanceHistory } from '@/hooks/hrms/leave-management/useLeaveApproval';
+import { use, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { type LeaveApprovalRow, getLeaveApprovalColumns } from './_components/columns';
 import { LeaveApprovalForm, type LeaveApprovalFormData } from './_components/leave-approval-form';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Loader2 } from 'lucide-react';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function LeaveApprovalPage(props: { searchParams: SearchParams }) {
     const _searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useAdminOnDutyApplyList();
+    const { data: response, isLoading, error } = useLeaveAppliedOrApprovalGrid();
 
-    // Map AdminOnDutyApply to LeaveApprovalRow shape
-    const mappedData = (response?.data || []).map((item: any) => ({
-        id: item.id,
-        leaveId: item.leaveId,
-        studentName: item.employeeName, // Depending on what LeaveApprovalRow expects. Assuming it might be employeeName
-        employeeName: item.employeeName,
-        leaveType: item.leaveName,
-        fromDate: item.fromDate,
-        toDate: item.toDate,
-        noOfDays: item.totalDays,
-        leaveStatus: item.status,
-        leaveReason: item.leaveReason
+    // Map LeaveApprovalGridItem to LeaveApprovalRow shape
+    const mappedData: LeaveApprovalRow[] = (response?.data || []).map((item: any) => ({
+        id: item.hrelaP_Id,
+        hrmE_Id: item.hrmE_Id,
+        hrelaP_Id: item.hrelaP_Id,
+        employeeCode: item.hrmE_EmployeeCode,
+        employeeName: item.hrmE_FullName,
+        leaveName: item.hrmL_LeaveName,
+        fromDate: item.hrelaP_FromDate,
+        toDate: item.hrelaP_ToDate,
+        totalDays: item.hrelapD_TotalDays,
+        leaveStatus: item.hrelT_Status,
+        remark: item.hrelapA_Remarks || ''
     }));
 
     // Create response for useDataTableProps
     const mockResponse = {
         data: mappedData,
-        total: response?.total || 0,
+        total: response?.total || mappedData.length,
         page: 1,
         pageSize: 10
     };
@@ -54,18 +56,38 @@ function LeaveApprovalPageContent({
 }) {
     const { openEditForm } = useFormContext<LeaveApprovalRow>();
     const tableProps = useDataTableProps(mockResponse);
-    const { refetchAll: _refetchApprovalStatus } = useAdminOnDutyApplyList();
+    const { refetchAll } = useLeaveAppliedOrApprovalGrid();
+    const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(null);
+    const [isBalanceHistoryOpen, setIsBalanceHistoryOpen] = useState(false);
+
     const handleApprove = (row: LeaveApprovalRow) => {
-        openEditForm(row);
+        openEditForm({ ...row, remark: '' });
     };
+
     const handleReject = (row: LeaveApprovalRow) => {
-        openEditForm(row);
+        openEditForm({ ...row, remark: '' });
     };
-    const columns = useMemo(() => getLeaveApprovalColumns({ onApprove: handleApprove, onReject: handleReject }), []);
+
+    const handleViewBalance = (row: LeaveApprovalRow) => {
+        setSelectedEmployeeId(row.hrmE_Id);
+        setIsBalanceHistoryOpen(true);
+    };
+
+    const columns = useMemo(
+        () =>
+            getLeaveApprovalColumns({
+                onApprove: handleApprove,
+                onReject: handleReject,
+                onViewBalance: handleViewBalance
+            }),
+        []
+    );
+
     // Filter pending leaves
     const pendingLeaves = (response?.data || []).filter(
         (item: LeaveApprovalRow) => item.leaveStatus === 'Applied' || item.leaveStatus === 'Pending'
     );
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -111,21 +133,97 @@ function LeaveApprovalPageContent({
                     />
                 </CollapsibleSection>
                 {/* Forms */}
-                <FormSections />
+                <FormSections refetch={refetchAll} />
+
+                {/* Balance History Dialog */}
+                <AdaptiveDialog
+                    title='Leave Balance History'
+                    isOpen={isBalanceHistoryOpen}
+                    onClose={() => setIsBalanceHistoryOpen(false)}
+                    size='xl'>
+                    <BalanceHistoryContent hrmeId={selectedEmployeeId} />
+                </AdaptiveDialog>
             </div>
         </div>
     );
 }
-function FormSections() {
+
+function BalanceHistoryContent({ hrmeId }: { hrmeId: number | null }) {
+    const { data: response, isLoading, error } = useViewLeaveBalanceHistory(hrmeId);
+
+    if (isLoading) {
+        return (
+            <div className='flex items-center justify-center p-8'>
+                <Loader2 className='h-8 w-8 animate-spin text-primary' />
+            </div>
+        );
+    }
+
+    if (error) {
+        return <div className='p-8 text-center text-red-500 font-medium'>Error loading balance history</div>;
+    }
+
+    const historyData = response?.data || [];
+
+    return (
+        <div className='p-4'>
+            {historyData.length === 0 ? (
+                <div className='p-8 text-center text-muted-foreground'>No balance history found for this employee.</div>
+            ) : (
+                <div className='overflow-hidden rounded-md border'>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Leave Type</TableHead>
+                                <TableHead className='text-center'>Entitled</TableHead>
+                                <TableHead className='text-center'>Used</TableHead>
+                                <TableHead className='text-center'>Balance</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {historyData.map((item, index) => (
+                                <TableRow key={index}>
+                                    <TableCell className='font-medium'>{item.empLeaveType}</TableCell>
+                                    <TableCell className='text-center'>{item.empCreatedLeaves}</TableCell>
+                                    <TableCell className='text-center'>{item.empUsedLeaves}</TableCell>
+                                    <TableCell className='text-center font-semibold text-primary'>{item.empBalanceLeaves}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+            )}
+        </div>
+    );
+}
+function FormSections({ refetch }: { refetch: () => void | Promise<any> }) {
     const { isEditFormOpen, selectedRow, closeEditForm } = useFormContext<LeaveApprovalRow>();
-    const { refetchAll } = useLeaveApprovalStatus();
-    const handleFormSubmit = (formData: LeaveApprovalFormData) => {
+    const { mutateAsync: approveOrReject } = useApproveOrRejectLeaveStatus();
+
+    const handleFormSubmit = async (formData: LeaveApprovalFormData) => {
         if (!selectedRow) return;
-        // TODO: Call approve/reject API endpoint when available
-        // For now, just show success message and refresh data
-        toast.success(`Leave ${formData.action === 'approve' ? 'approved' : 'rejected'} successfully`);
-        refetchAll();
-        closeEditForm();
+
+        const payload = {
+            approveRejectType: formData.action === 'approve' ? 'Approve' : 'Reject',
+            hrmE_Id: selectedRow.hrmE_Id,
+            hreltD_FromDate: selectedRow.fromDate,
+            hreltD_ToDate: selectedRow.toDate,
+            get_leave_status: [
+                {
+                    hrelaP_Id: selectedRow.hrelaP_Id,
+                    hrelT_Status: formData.action === 'approve' ? 'Approved' : 'Rejected',
+                    hrelapA_Remarks: formData.remark || (formData.action === 'approve' ? 'Approved' : 'Rejected')
+                }
+            ]
+        };
+
+        try {
+            await approveOrReject(payload);
+            refetch();
+            closeEditForm();
+        } catch (error) {
+            // Error is already toasted by hook
+        }
     };
     return (
         <>
