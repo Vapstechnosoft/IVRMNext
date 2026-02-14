@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Users, PlusCircle, Pencil } from 'lucide-react';
 import { Heading } from '@/components/layout/heading';
 import { useInvMasterCustomer } from '@/hooks/inventory/masters/use-inv-master-customer';
 import { invMasterCustomerColumns } from './_components/columns';
@@ -76,7 +76,8 @@ function InvMasterCustomerPageContent({
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg'>
+                    className='shadow-lg'
+                    icon={<Users className='h-5 w-5' />}>
                     <GenericDataTable<IInvMasterCustomer>
                         {...tableProps}
                         data={response?.data?.get_customer || []}
@@ -120,7 +121,8 @@ function FormSections() {
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6'>
+                        className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6'
+                        icon={<PlusCircle className='h-5 w-5' />}>
                         <div className='relative'>
                             <Button
                                 type='button'
@@ -143,7 +145,8 @@ function FormSections() {
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6 border-primary/20'>
+                        className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6 border-primary/20'
+                        icon={<Pencil className='h-5 w-5' />}>
                         <div className='relative'>
                             <Button
                                 type='button'

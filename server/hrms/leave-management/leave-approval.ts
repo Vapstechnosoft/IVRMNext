@@ -20,7 +20,10 @@ import type {
     GetPeriodApprovalStatusRequest,
     GetPeriodApprovalStatusResponseData,
     PeriodLeaveStatusRequest,
-    PeriodLeaveStatusResponseData
+    PeriodLeaveStatusResponseData,
+    LeaveApprovalGridItem,
+    ApproveRejectLeaveStatusRequest,
+    LeaveBalanceHistoryItem
 } from '@/types/hrms/leave-management/leave-approval';
 
 /**
@@ -405,5 +408,71 @@ export async function periodLeaveStatus(request: PeriodLeaveStatusRequest): Prom
     } catch (error: any) {
         const errorMessage = error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to process period leave status';
         throw new Error(errorMessage);
+    }
+}
+
+/**
+ * Get leave applied or approval grid
+ * GET /api/LeaveApproval/get_leave_applied_or_approval_grid
+ */
+export async function getLeaveAppliedOrApprovalGrid(): Promise<ApiResponse<LeaveApprovalGridItem[]>> {
+    const url = '/api/LeaveApproval/get_leave_applied_or_approval_grid';
+    console.log('🔵 [SERVER] GET Request URL:', url);
+    try {
+        const response = await api.get<any>('hmslms', url);
+        const res = response as any;
+        const isSuccess = res.success === true || String(res.success) === 'true';
+
+        return {
+            success: isSuccess,
+            message: res.message || 'Leave applied or approval grid details fetched successfully.',
+            data: res.data || []
+        };
+    } catch (error: any) {
+        throw new Error(error?.message || 'Failed to fetch leave approval grid');
+    }
+}
+
+/**
+ * Approve or reject leave status
+ * POST /api/LeaveApproval/approve_or_reject_leave_status
+ */
+export async function approveOrRejectLeaveStatus(data: ApproveRejectLeaveStatusRequest): Promise<ApiResponse<any>> {
+    const url = '/api/LeaveApproval/approve_or_reject_leave_status';
+    console.log('🟠 [SERVER] POST Request URL:', url);
+    try {
+        const response = await api.post<any>('hmslms', url, data);
+        const res = response as any;
+        const isSuccess = res.success === true || String(res.success) === 'true';
+
+        return {
+            success: isSuccess,
+            message: res.message || 'Leave Approved successfully.',
+            data: res.data || null
+        };
+    } catch (error: any) {
+        throw new Error(error?.message || 'Failed to process leave status');
+    }
+}
+
+/**
+ * View leave balance history by employee ID
+ * GET /api/LeaveApproval/view_leave_balance_history/{hrme_id}
+ */
+export async function viewLeaveBalanceHistoryByEmpId(hrmeId: number): Promise<ApiResponse<LeaveBalanceHistoryItem[]>> {
+    const url = `/api/LeaveApproval/view_leave_balance_history/${hrmeId}`;
+    console.log('🔵 [SERVER] GET Request URL:', url);
+    try {
+        const response = await api.get<any>('hmslms', url);
+        const res = response as any;
+        const isSuccess = res.success === true || String(res.success) === 'true';
+
+        return {
+            success: isSuccess,
+            message: res.message || 'Leave balance history fetched successfully.',
+            data: res.data || []
+        };
+    } catch (error: any) {
+        throw new Error(error?.message || 'Failed to fetch leave balance history');
     }
 }

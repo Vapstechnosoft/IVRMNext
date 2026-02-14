@@ -63,6 +63,7 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                 ismS_ExamFlag: row.ismS_ExamFlag ? 1 : 0,
                 ismS_LanguageFlg: row.ismS_LanguageFlg ? 1 : 0,
                 ismS_AtExtraFeeFlg: row.ismS_AtExtraFeeFlg ? 1 : 0,
+                ismS_TTFlag: row.ismS_TTFlag ? 1 : 0,
                 ismS_ActiveFlag: 1
             });
         }
@@ -78,9 +79,10 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                 ismS_ExamFlag: Number(data.ismS_ExamFlag),
                 ismS_LanguageFlg: Number(data.ismS_LanguageFlg),
                 ismS_AtExtraFeeFlg: Number(data.ismS_AtExtraFeeFlg),
+                ismS_TTFlag: Number(data.ismS_TTFlag),
                 ismS_ActiveFlag: 1
             };
-
+            console.log('PAYLOAD:', payload);
             const response = await addOrUpdateMasterSubject(payload);
 
             if (response.success) {
@@ -110,6 +112,7 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                 ismS_ExamFlag: row.ismS_ExamFlag ? 1 : 0,
                 ismS_LanguageFlg: row.ismS_LanguageFlg ? 1 : 0,
                 ismS_AtExtraFeeFlg: row.ismS_AtExtraFeeFlg ? 1 : 0,
+                ismS_TTFlag: row.ismS_TTFlag ? 1 : 0,
                 ismS_ActiveFlag: 1
             });
         }
@@ -147,7 +150,8 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                         { key: 'ismS_BatchAppl', label: 'Batch Wise', isBoolean: false },
                         { key: 'ismS_ExamFlag', label: 'Exam', isBoolean: false },
                         { key: 'ismS_LanguageFlg', label: 'Language', isBoolean: false },
-                        { key: 'ismS_AtExtraFeeFlg', label: 'Extra Fee', isBoolean: false }
+                        { key: 'ismS_AtExtraFeeFlg', label: 'Extra Fee', isBoolean: false },
+                        { key: 'ismS_TTFlag', label: 'Time Table Flag', isBoolean: false }
                     ].map((flag) => (
                         <Controller
                             key={flag.key}

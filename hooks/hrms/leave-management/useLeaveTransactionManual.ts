@@ -1,19 +1,19 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import {
+    deleteLeaveTransactionManual,
+    getEmployeeLeaveDetails,
+    getLeaveTransactionManualList,
+    saveLeaveTransactionManual,
+    toggleLeaveTransactionManual
+} from '@/server/hrms/leave-management/transaction/leave-transaction-manual';
 import type { ApiSearchparams } from '@/types';
 import type {
     LeaveTransactionManual,
     LeaveTransactionManualApiData,
-    LeaveTransactionManualSaveRequest,
-    LeaveTransactionManualDeleteRequest
+    LeaveTransactionManualDeleteRequest,
+    LeaveTransactionManualSaveRequest
 } from '@/types/hrms/leave-management/leave-transaction-manual';
-import {
-    getLeaveTransactionManualList,
-    saveLeaveTransactionManual,
-    deleteLeaveTransactionManual,
-    toggleLeaveTransactionManual,
-    getEmployeeLeaveDetails
-} from '@/server/hrms/leave-management/transaction/leave-transaction-manual';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 // Query keys
 const LEAVE_TRANSACTION_MANUAL_KEYS = {
@@ -24,9 +24,7 @@ const LEAVE_TRANSACTION_MANUAL_KEYS = {
 /**
  * Map API data to frontend model
  */
-function mapApiDataToLeaveTransactionManual(
-    apiData: LeaveTransactionManualApiData
-): LeaveTransactionManual {
+function mapApiDataToLeaveTransactionManual(apiData: LeaveTransactionManualApiData): LeaveTransactionManual {
     return {
         id: apiData.hreltD_Id || 0,
         employeeName: apiData.hrmE_EmployeeFirstName || '',
@@ -47,14 +45,17 @@ function mapApiDataToLeaveTransactionManual(
 function mapLeaveTransactionManualToApiData(
     data: Partial<LeaveTransactionManual> & { hrmL_LeaveType?: string; hrmlY_Id?: number }
 ): LeaveTransactionManualSaveRequest {
+    const fromDate = data.fromDate ? (typeof data.fromDate === 'string' ? new Date(data.fromDate) : data.fromDate) : new Date();
+    const toDate = data.toDate ? (typeof data.toDate === 'string' ? new Date(data.toDate) : data.toDate) : new Date();
+
     return {
         hrelT_Id: data.transactionId || 0,
         hreltD_Id: data.id || 0,
         hrmE_Id: data.employeeId || 0,
         hrmL_LeaveType: data.hrmL_LeaveType || 'OD',
         hrmlY_Id: data.hrmlY_Id || 0,
-        hrelT_FromDate: data.fromDate ? data.fromDate.toISOString() : new Date().toISOString(),
-        hrelT_ToDate: data.toDate ? data.toDate.toISOString() : new Date().toISOString(),
+        hrelT_FromDate: fromDate.toISOString(),
+        hrelT_ToDate: toDate.toISOString(),
         hrelT_TotDays: data.totalDays || 0
     };
 }
@@ -158,11 +159,7 @@ export function useSaveLeaveTransactionManual() {
  */
 export function useUpdateLeaveTransactionManual() {
     const queryClient = useQueryClient();
-    return useMutation<
-        { success: boolean; data: LeaveTransactionManual; message: string },
-        Error,
-        LeaveTransactionManual
-    >({
+    return useMutation<{ success: boolean; data: LeaveTransactionManual; message: string }, Error, LeaveTransactionManual>({
         mutationFn: async (data: LeaveTransactionManual) => {
             if (!data.id) {
                 throw new Error('ID is required for update');
@@ -174,9 +171,7 @@ export function useUpdateLeaveTransactionManual() {
             }
 
             // Map response back to frontend format
-            const mappedData = response.data
-                ? mapApiDataToLeaveTransactionManual(response.data)
-                : data;
+            const mappedData = response.data ? mapApiDataToLeaveTransactionManual(response.data) : data;
 
             return {
                 success: true,
@@ -241,11 +236,7 @@ export function useDeleteLeaveTransactionManual() {
  */
 export function useToggleLeaveTransactionManual() {
     const queryClient = useQueryClient();
-    return useMutation<
-        { success: boolean; message: string },
-        Error,
-        number
-    >({
+    return useMutation<{ success: boolean; message: string }, Error, number>({
         mutationFn: async (hreltId: number) => {
             try {
                 const response = await toggleLeaveTransactionManual(hreltId);

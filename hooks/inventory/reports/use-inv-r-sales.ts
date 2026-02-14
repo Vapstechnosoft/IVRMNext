@@ -76,3 +76,14 @@ export const useInvRSalesReport = () => {
         }
     });
 };
+
+export const useInvRSalesReportQuery = (payload: IInvRSalesPayload | null, searchParams: any) => {
+    return useQuery({
+        queryKey: ['invRSalesReport', payload, searchParams],
+        queryFn: () => {
+            if (!payload) return { success: true, data: { get_SalesReport: [] }, total: 0, message: '', page: 1, page_size: 10 };
+            return getInvRSalesReport(payload, searchParams);
+        },
+        enabled: !!payload
+    });
+};
