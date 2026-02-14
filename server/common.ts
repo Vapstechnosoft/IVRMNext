@@ -1786,14 +1786,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Mass Updation',
                                             description: 'Bulk Update Employee Data'
                                         },
-                                        // {
-                                        //     id: 6,
-                                        //     name: 'Salary Advance',
-                                        //     icon: 'DollarSign',
-                                        //     url: '/hrms/transactions/salary-advance',
-                                        //     title: 'Salary Advance',
-                                        //     description: 'Manage Salary Advances'
-                                        // },
+                                        {
+                                            id: 6,
+                                            name: 'Salary Advance',
+                                            icon: 'DollarSign',
+                                            url: '/hrms/transactions/salary-advance',
+                                            title: 'Salary Advance',
+                                            description: 'Manage Salary Advances'
+                                        },
                                         {
                                             id: 7,
                                             name: 'Employee Loan',
@@ -1850,14 +1850,14 @@ export async function getUserAccessibleModules() {
                                             title: 'E-PF Contribution Register',
                                             description: 'E-PF Contribution Register Report'
                                         },
-                                        // {
-                                        //     id: 6,
-                                        //     name: 'Employee Salary Details',
-                                        //     icon: 'DollarSign',
-                                        //     url: '/hrms/reports/employee-salary-details',
-                                        //     title: 'Employee Salary Details',
-                                        //     description: 'Detailed Salary Information'
-                                        // },
+                                        {
+                                            id: 6,
+                                            name: 'Employee Salary Details',
+                                            icon: 'DollarSign',
+                                            url: '/hrms/reports/employee-salary-details',
+                                            title: 'Employee Salary Details',
+                                            description: 'Detailed Salary Information'
+                                        },
                                         {
                                             id: 7,
                                             name: 'Employee Strength',
