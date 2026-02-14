@@ -1,48 +1,20 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { BaseEntity } from '@/lib/localdb';
+import type { LeaveTransactionManual } from '@/types/hrms/leave-management/leave-transaction-manual';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
-export interface LeaveCreditTransaction extends BaseEntity {
-    type: string[];
-    department: string[];
-    designation: string[];
-    leaveYear: string;
-    fromDate: string;
-    toDate: string;
-    totalDays: number;
-    employee: string;
-    lossOfPayType: 'none' | 'full' | 'half' | 'oneFourth' | 'threeFourth';
-    lossOfPayAmount?: number;
-    leaveName: string;
-    availed: number;
-}
+export type LeaveCreditTransaction = LeaveTransactionManual;
 interface LeaveCreditTransactionColumnsProps {
     onEdit: (row: LeaveCreditTransaction) => void;
     onDelete: (id: number) => void;
+    onToggle: (id: number) => void;
 }
 export const getLeaveCreditTransactionColumns = ({
     onEdit,
-    onDelete
+    onDelete,
+    onToggle
 }: LeaveCreditTransactionColumnsProps): ColumnDef<LeaveCreditTransaction>[] => [
-    {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        size: 24
-    },
     {
         id: 'sl',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SNO' />,
@@ -52,12 +24,13 @@ export const getLeaveCreditTransactionColumns = ({
             const continuousIndex = pageIndex * pageSize + row.index + 1;
             return <div className='font-medium'>{continuousIndex}</div>;
         },
-        enableSorting: false
+        enableSorting: false,
+        size: 50
     },
     {
-        accessorKey: 'employee',
+        accessorKey: 'employeeName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-        cell: ({ row }) => <div className='font-medium'>{row.getValue('employee') || '-'}</div>
+        cell: ({ row }) => <div className='font-medium'>{row.getValue('employeeName') || '-'}</div>
     },
     {
         accessorKey: 'leaveName',
@@ -68,26 +41,47 @@ export const getLeaveCreditTransactionColumns = ({
         accessorKey: 'fromDate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='From Date' />,
         cell: ({ row }) => {
-            const date = row.getValue('fromDate') as string;
-            if (!date) return <div>-</div>;
-            const dateObj = new Date(date);
-            return <div>{dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>;
+            const value = row.getValue('fromDate');
+            if (!value) return <div>-</div>;
+            const date = typeof value === 'string' ? new Date(value) : (value as Date);
+            return <div>{date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>;
         }
     },
     {
         accessorKey: 'toDate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='To Date' />,
         cell: ({ row }) => {
-            const date = row.getValue('toDate') as string;
-            if (!date) return <div>-</div>;
-            const dateObj = new Date(date);
-            return <div>{dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>;
+            const value = row.getValue('toDate');
+            if (!value) return <div>-</div>;
+            const date = typeof value === 'string' ? new Date(value) : (value as Date);
+            return <div>{date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>;
         }
     },
     {
-        accessorKey: 'availed',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Availed' />,
-        cell: ({ row }) => <div className='text-center'>{row.getValue('availed')}</div>
+        accessorKey: 'totalDays',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Days' />,
+        cell: ({ row }) => <div className='text-center'>{row.getValue('totalDays')}</div>
+    },
+    {
+        accessorKey: 'isActive',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+        cell: ({ row }) => {
+            const isActive = row.getValue('isActive') as boolean;
+            const id = row.original.transactionId;
+            return (
+                <div onClick={() => onToggle(id)} className='cursor-pointer'>
+                    {isActive ? (
+                        <span className='rounded-full bg-green-100 px-2.5 py-0.5 font-medium text-green-800 text-xs dark:bg-green-900/30 dark:text-green-400'>
+                            Active
+                        </span>
+                    ) : (
+                        <span className='rounded-full bg-red-100 px-2.5 py-0.5 font-medium text-red-800 text-xs dark:bg-red-900/30 dark:text-red-400'>
+                            Deactive
+                        </span>
+                    )}
+                </div>
+            );
+        }
     },
     {
         id: 'actions',
@@ -97,10 +91,10 @@ export const getLeaveCreditTransactionColumns = ({
             return (
                 <div className='flex gap-2'>
                     <Button variant='outline' size='sm' onClick={() => onEdit(entity)}>
-                        <Edit className='h-4 w-4' />
+                        <Edit className='h-4 w-4 text-blue-500' />
                     </Button>
                     <Button variant='outline' size='sm' onClick={() => onDelete(entity.id)}>
-                        <Trash2 className='h-4 w-4' />
+                        <Trash2 className='h-4 w-4 text-red-500' />
                     </Button>
                 </div>
             );

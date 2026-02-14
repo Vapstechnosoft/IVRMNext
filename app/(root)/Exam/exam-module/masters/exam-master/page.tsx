@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { GitCompareArrows, List, Plus, X } from 'lucide-react';
+import { GitCompareArrows, Plus, X } from 'lucide-react';
 import { use, useState } from 'react';
 
 import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
@@ -68,7 +68,6 @@ function MasterExamPageContent({
         setIsOrderSaving(true);
         try {
             const payload = {
-                mI_Id: 30,
                 examDTO: updatedData.map((item, index) => ({
                     emE_Id: item.emE_Id,
                     emE_ExamOrder: index + 1

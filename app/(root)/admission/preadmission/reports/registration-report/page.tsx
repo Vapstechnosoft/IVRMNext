@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
-import { use, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 import type { IRigistrationReportList } from '@/types/admission/preadmission/reports';
 import { registrationColumns } from './_components/columns';
@@ -21,13 +21,16 @@ import { usePreAdmissionRegistrationReport } from '@/hooks/admission/preadmissio
 import { getExcelRegistrationReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { useReactToPrint } from 'react-to-print';
+import { RegistrationReportPrint } from './_components/registration-report-print';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function RegistrationPageprops(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const tableRef = useRef<DataTableRef>(null);
+    const printRef = useRef<HTMLDivElement>(null);
 
     /** -----------------------------
      *  Academic Year API
@@ -40,6 +43,7 @@ export default function RegistrationPageprops(props: {
     const [academicYearId, setAcademicYearId] = useState(0);
     const [reportType, setReportType] = useState('year_wise');
     const [showTable, setShowTable] = useState(false);
+    const [selectedRows, setSelectedRows] = useState<IRigistrationReportList[]>([]);
 
     /** -----------------------------
      *  Date Filters
@@ -64,6 +68,7 @@ export default function RegistrationPageprops(props: {
     } = usePreAdmissionRegistrationReport(academicIdParam, fromDateParam, toDateParam, searchParams);
 
     const tableProps = useDataTableProps({
+        ...(response || {}),
         data: response?.data?.searchstudentDetails ?? []
     });
 
@@ -93,6 +98,7 @@ export default function RegistrationPageprops(props: {
         setReportType('year_wise');
         setWatchedFromDate(null);
         setWatchedToDate(null);
+        setSelectedRows([]);
         tableRef.current?.resetSelection();
 
         setShowTable(false); // Hide table
@@ -100,6 +106,12 @@ export default function RegistrationPageprops(props: {
 
     const downloadExcel = async () => {
         try {
+            // Check if at least one row is selected
+            if (selectedRows.length === 0) {
+                toast.error('Please select at least one checkbox');
+                return;
+            }
+
             if (!academicIdParam && !fromDateParam && !toDateParam) {
                 toast.error('Please fill all required fields!');
                 return;
@@ -112,8 +124,8 @@ export default function RegistrationPageprops(props: {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -135,6 +147,17 @@ export default function RegistrationPageprops(props: {
             toast.error('Failed to download Excel');
         }
     };
+
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: 'Registration_Report',
+        pageStyle: `
+          @page { size: A4; margin: 20mm; }
+          @media print { 
+            body { -webkit-print-color-adjust: exact; }
+          }
+        `
+    });
     /** -----------------------------
      *  JSX
      * ----------------------------- */
@@ -263,7 +286,22 @@ export default function RegistrationPageprops(props: {
                         Export to Excel
                     </Button>
 
-                    <Button variant='outline'>
+                    <Button
+                        variant='outline'
+                        onClick={() => {
+                            // Check if at least one row is selected
+                            if (selectedRows.length === 0) {
+                                toast.error('Please select at least one checkbox');
+                                return;
+                            }
+
+                            toast.info(`Preparing print for ${selectedRows.length} selected record(s)...`);
+
+                            // Give React time to re-render the print component with selected data
+                            setTimeout(() => {
+                                handlePrint();
+                            }, 100);
+                        }}>
                         <Printer className='mr-2 h-4 w-4' />
                         Print
                     </Button>
@@ -287,6 +325,7 @@ export default function RegistrationPageprops(props: {
                             error={error}
                             showViewOptions={false}
                             isSearchRequired={true}
+                            onRowSelectionChange={setSelectedRows}
                             showSearchColumns={true}
                             loadingMessage='Loading Registration Reports...'
                             noDataTitle='No Data Found'
@@ -296,6 +335,21 @@ export default function RegistrationPageprops(props: {
                     </CollapsibleSection>
                 </div>
             )}
+
+            <div
+                style={{
+                    position: 'absolute',
+                    top: '-10000px',
+                    left: '-10000px',
+                    opacity: 0,
+                    pointerEvents: 'none'
+                }}>
+                <RegistrationReportPrint
+                    ref={printRef}
+                    data={selectedRows}
+                    institutionName='VAPS TECHNOSOFT'
+                />
+            </div>
         </div>
     );
 }

@@ -41,7 +41,7 @@ export default function ToggleCoScholasticAreaForm({ rowData, onClose }: ToggleE
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleCoScholasticArea(30, Number(rowData.ecactA_Id));
+            const response = await toggleCoScholasticArea(Number(rowData.ecactA_Id));
 
             if (response.success) {
                 toast.success(response.message);

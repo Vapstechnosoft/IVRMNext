@@ -6,75 +6,115 @@ import { IInvRStockPayload, IInvRStockReportData } from '@/types/inventory/repor
 
 // MOCK DATA
 
-const MOCK_ITEMS = [
-    { invmI_Id: 101, invmI_ItemName: 'Notebook', invmI_ItemCode: 'NB001' },
-    { invmI_Id: 102, invmI_ItemName: 'Pen', invmI_ItemCode: 'PE002' },
-    { invmI_Id: 103, invmI_ItemName: 'Eraser', invmI_ItemCode: 'ER003' },
-];
-
-const MOCK_STORES = [
-    { invmsT_Id: 201, invmS_StoreName: 'Main Store' },
-    { invmsT_Id: 202, invmS_StoreName: 'Stationery Store' },
-];
-
-const MOCK_GROUPS = [
-    { invmG_Id: 301, invmG_GroupName: 'Consumables' },
-    { invmG_Id: 302, invmG_GroupName: 'Assets' },
-];
-
-const MOCK_STOCK_REPORT: IInvRStockReportData[] = [
-    {
-        invmI_ItemName: 'Notebook',
-        purOBQty: 100,
-        invstO_PurchaseRate: 15,
-        obAmount: 1500,
-        salesQty: 20,
-        invstO_ItemConQty: 5,
-        invstO_CheckedOutQty: 0,
-        invstO_PhyPlusQty: 2,
-        invstO_PhyMinQty: 0,
-        invstO_AvaiableStock: 77
-    },
-    {
-        invmI_ItemName: 'Pen',
-        purOBQty: 200,
-        invstO_PurchaseRate: 5,
-        obAmount: 1000,
-        salesQty: 50,
-        invstO_ItemConQty: 10,
-        invstO_CheckedOutQty: 0,
-        invstO_PhyPlusQty: 0,
-        invstO_PhyMinQty: 5,
-        invstO_AvaiableStock: 135
-    }
-];
 
 export async function getInvRStockDetails(optionflag: string) {
-    // const response = await api.create('INV_R_Stock/getloaddata', { optionflag });
+    try {
+        const response = await api.get<any>('inventory', `/INV_R_StockFacade/getloaddata?optionflag=${optionflag}`);
 
-    let data: any[] = [];
+        let data = response.data;
+        if (data && data.$values) data = data.$values;
+        if (!Array.isArray(data)) data = [];
 
-    if (optionflag === 'Item') data = MOCK_ITEMS;
-    else if (optionflag === 'Store') data = MOCK_STORES;
-    else if (optionflag === 'Group') data = MOCK_GROUPS;
-    // If 'All', maybe return nothing or a summary? Angular calls it with All initially but doesn't seem to use the 'get_stockdetails' unless an option is clicked for filtering?
-    // Actually, the Angular code toggles visibility. If All, filter dropdowns are hidden or user can just run report.
+        let mappedData = data;
 
-    return {
-        success: true,
-        data: {
-            get_stockdetails: data
+        if (optionflag === 'Group') {
+            mappedData = data.map((item: any) => ({
+                invmG_Id: item.id,
+                invmG_GroupName: item.name,
+                ...item
+            }));
         }
-    };
+        // Add other mappings if needed for Item/Store, assuming similar id/name structure or existing properties
+        // For now, passing data through for others or mapping if they match id/name pattern.
+        else if (optionflag === 'Store') {
+            mappedData = data.map((item: any) => ({
+                invmsT_Id: item.id ?? item.invmsT_Id,
+                invmS_StoreName: item.name ?? item.invmS_StoreName,
+                ...item
+            }));
+        } else if (optionflag === 'Item') {
+            mappedData = data.map((item: any) => ({
+                invmI_Id: item.id ?? item.invmI_Id,
+                invmI_ItemName: item.name ?? item.invmI_ItemName,
+                invmI_ItemCode: item.code ?? item.invmI_ItemCode,
+                ...item
+            }));
+        }
+
+        return {
+            success: true,
+            data: {
+                get_stockdetails: mappedData
+            }
+        };
+    } catch (error) {
+        console.error("Error fetching stock details:", error);
+        return {
+            success: false,
+            data: {
+                get_stockdetails: []
+            }
+        };
+    }
 }
 
-export async function getInvRStockReport(payload: IInvRStockPayload) {
-    // const response = await api.create('INV_R_Stock/onreport', payload);
-    return {
-        success: true,
-        data: {
-            get_StockReport: MOCK_STOCK_REPORT
-        },
-        message: 'Report generated successfully'
-    };
+
+
+
+import { getSearchParamsUrl } from '@/lib/apiService';
+import { ApiSearchparams } from '@/types';
+
+// Helper for extracting data consistently
+const extractData = (res: any, key?: string) => {
+    if (!res) return [];
+    const data = res.data ?? res;
+    if (key && data[key]) {
+        if (Array.isArray(data[key])) return data[key];
+        if (data[key].$values) return data[key].$values;
+    }
+    if (Array.isArray(data)) return data;
+    if (data.$values) return data.$values;
+    return [];
+};
+
+
+export async function getInvRStockReport(payload: IInvRStockPayload, searchParams?: ApiSearchparams) {
+    try {
+        // Construct payload based on user instruction: use 'overallflag' instead of 'optionflag'
+        const apiPayload: any = {
+            ...payload,
+            overallflag: payload.optionflag
+        };
+        delete apiPayload.optionflag;
+
+        const params: any = {
+            ...searchParams
+        };
+
+        const urlParams = getSearchParamsUrl(params);
+        const url = `/INV_R_StockFacade/onreport?${urlParams}`;
+
+        const response = await api.post<any>('inventory', url, apiPayload);
+
+
+        return {
+            success: response.success ?? true,
+            data: {
+                get_StockReport: extractData(response, 'data')
+            },
+            total: Number(response.totalItems || response.total || 0),
+            // Note: using totalItems/total based on flexible API response, inv-r-grn uses total
+            message: response.message || 'Report generated successfully'
+        };
+    } catch (error: any) {
+        console.error("Report Error:", error);
+        return {
+            success: false,
+            data: {
+                get_StockReport: []
+            },
+            total: 0,
+            message: error.message || 'Failed to generate report'
+        };
+    }
 }

@@ -46,6 +46,7 @@ export type ApiBaseUrlKey =
     | 'portal'
     | 'hostel'
     | 'coe'
+    | 'lessonplanner'
     | 'transport';
 
 class ApiService {
@@ -75,6 +76,7 @@ class ApiService {
             sadmin: process.env.NEXT_PUBLIC_SADMIN_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             coe: process.env.NEXT_PUBLIC_COE_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             portal: process.env.NEXT_PUBLIC_PORTAL_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            lessonplanner: process.env.NEXT_PUBLIC_LESSONPLANNER_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             transport: process.env.NEXT_PUBLIC_TRANSPORT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
         };
 
@@ -276,7 +278,10 @@ class ApiService {
                 status: error?.response?.status,
                 statusText: error?.response?.statusText,
                 data: error?.response?.data,
-                url: error?.config?.url
+                url: error?.config?.url,
+                method: error?.config?.method,
+                stack: error?.stack,
+                rawError: JSON.stringify(error, Object.getOwnPropertyNames(error))
             });
             throw this.handleError(error);
         }
@@ -313,6 +318,28 @@ class ApiService {
 
     public async post<T>(baseUrlKey: ApiBaseUrlKey, url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
         return this.request<T>(baseUrlKey, 'POST', url, config, data);
+    }
+
+    public async postBinary(
+        baseUrlKey: ApiBaseUrlKey,
+        url: string,
+        data?: unknown,
+        config?: AxiosRequestConfig
+    ): Promise<any> {
+        try {
+            const instance = this.getOrCreateInstance(baseUrlKey);
+            const response = await instance.request({
+                method: 'POST',
+                url,
+                data,
+                responseType: 'arraybuffer',
+                ...config
+            });
+
+            return response.data;
+        } catch (error) {
+            throw this.handleError(error);
+        }
     }
 
     public async put<T>(baseUrlKey: ApiBaseUrlKey, url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {

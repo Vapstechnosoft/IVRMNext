@@ -27,5 +27,7 @@ export async function addOrUpdateMasterFeeMasterGroupwiseAutoReceipt(payload: an
 
 export async function MasterfeeMasterGroupwiseAutoReceipt(fgar_id: number, asmay_id: number) {
     const url = `/FeeMasterGroupwiseAutoReceipt/delete/${fgar_id}/${asmay_id} `;
+
+    console.info('MasterfeeMasterGroupwiseAutoReceipt URL:', url);
     return await api.put('fees', url);
 }

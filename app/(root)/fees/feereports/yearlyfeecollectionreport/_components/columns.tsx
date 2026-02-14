@@ -454,6 +454,146 @@ export function exportToExcelforStudentWise(rows: IFeeYearlyCollectionReport[], 
     XLSX.writeFile(workbook, `${fileName}.xlsx`);
 }
 
+export function exportToExcelforTermWise(rows: IFeeYearlyCollectionReport[], fileName: string, selectedTerms: any[]) {
+    if (!rows || rows.length === 0) return;
+
+    const feeHeads = Array.from(new Map(rows.map((r) => [r.fmh_id, r])).values());
+
+    const wsData: any[][] = [];
+    const headerRow1: any[] = ['Sl No', 'Fee Head'];
+    selectedTerms.forEach((term) => {
+        headerRow1.push(term.fmT_Name);
+        for (let i = 0; i < 6; i++) headerRow1.push('');
+    });
+    wsData.push(headerRow1);
+    const headerRow2: any[] = ['', ''];
+    selectedTerms.forEach(() => {
+        headerRow2.push('Paid', 'Balance', 'Concession', 'Arrear', 'Excess', 'Charges', 'Payable');
+    });
+    wsData.push(headerRow2);
+    feeHeads.forEach((feeHead, index) => {
+        const row: any[] = [index + 1, feeHead.fmh_feename];
+
+        selectedTerms.forEach((term) => {
+            const data = rows.find((r) => r.fmh_id === feeHead.fmh_id && r.fmt_id === term.fmT_Id);
+
+            row.push(
+                data?.paid || 0,
+                data?.balance || 0,
+                data?.concession || 0,
+                data?.arrear || 0,
+                data?.excess || 0,
+                data?.charges || 0,
+                data?.payable || 0
+            );
+        });
+
+        wsData.push(row);
+    });
+    const totalRow: any[] = ['Total', ''];
+
+    selectedTerms.forEach((term) => {
+        const termRows = rows.filter((r) => r.fmt_id === term.fmT_Id);
+
+        totalRow.push(
+            termRows.reduce((s, r) => s + (r.paid || 0), 0),
+            termRows.reduce((s, r) => s + (r.balance || 0), 0),
+            termRows.reduce((s, r) => s + (r.concession || 0), 0),
+            termRows.reduce((s, r) => s + (r.arrear || 0), 0),
+            termRows.reduce((s, r) => s + (r.excess || 0), 0),
+            termRows.reduce((s, r) => s + (r.charges || 0), 0),
+            termRows.reduce((s, r) => s + (r.payable || 0), 0)
+        );
+    });
+
+    wsData.push(totalRow);
+    const worksheet = XLSX.utils.aoa_to_sheet(wsData);
+    worksheet['!merges'] = worksheet['!merges'] ?? [];
+
+    selectedTerms.forEach((_, index) => {
+        const startCol = 2 + index * 7;
+        worksheet['!merges']!.push({
+            s: { r: 0, c: startCol },
+            e: { r: 0, c: startCol + 6 }
+        });
+    });
+    worksheet['!cols'] = [{ wch: 8 }, { wch: 20 }, ...Array(selectedTerms.length * 7).fill({ wch: 14 })];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Term Wise Report');
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export function exportToExcelforStudentTermWise(rows: IFeeYearlyCollectionReport[], fileName: string, selectedTerms: any[]) {
+    if (!rows || rows.length === 0) return;
+
+    const feeHeads = Array.from(new Map(rows.map((r) => [r.fmh_id, r])).values());
+
+    const wsData: any[][] = [];
+    const headerRow1: any[] = ['Sl No', 'Fee Head'];
+    selectedTerms.forEach((term) => {
+        headerRow1.push(term.fmT_Name);
+        for (let i = 0; i < 6; i++) headerRow1.push('');
+    });
+    wsData.push(headerRow1);
+    const headerRow2: any[] = ['', ''];
+    selectedTerms.forEach(() => {
+        headerRow2.push('Paid', 'Balance', 'Concession', 'Arrear', 'Excess', 'Charges', 'Payable');
+    });
+    wsData.push(headerRow2);
+    feeHeads.forEach((feeHead, index) => {
+        const row: any[] = [index + 1, feeHead.fmh_feename];
+
+        selectedTerms.forEach((term) => {
+            const data = rows.find((r) => r.fmh_id === feeHead.fmh_id && r.fmt_id === term.fmT_Id);
+
+            row.push(
+                data?.paid || 0,
+                data?.balance || 0,
+                data?.concession || 0,
+                data?.arrear || 0,
+                data?.excess || 0,
+                data?.charges || 0,
+                data?.payable || 0
+            );
+        });
+
+        wsData.push(row);
+    });
+    const totalRow: any[] = ['Total', ''];
+
+    selectedTerms.forEach((term) => {
+        const termRows = rows.filter((r) => r.fmt_id === term.fmT_Id);
+
+        totalRow.push(
+            termRows.reduce((s, r) => s + (r.paid || 0), 0),
+            termRows.reduce((s, r) => s + (r.balance || 0), 0),
+            termRows.reduce((s, r) => s + (r.concession || 0), 0),
+            termRows.reduce((s, r) => s + (r.arrear || 0), 0),
+            termRows.reduce((s, r) => s + (r.excess || 0), 0),
+            termRows.reduce((s, r) => s + (r.charges || 0), 0),
+            termRows.reduce((s, r) => s + (r.payable || 0), 0)
+        );
+    });
+
+    wsData.push(totalRow);
+    const worksheet = XLSX.utils.aoa_to_sheet(wsData);
+    worksheet['!merges'] = worksheet['!merges'] ?? [];
+
+    selectedTerms.forEach((_, index) => {
+        const startCol = 2 + index * 7;
+        worksheet['!merges']!.push({
+            s: { r: 0, c: startCol },
+            e: { r: 0, c: startCol + 6 }
+        });
+    });
+    worksheet['!cols'] = [{ wch: 8 }, { wch: 20 }, ...Array(selectedTerms.length * 7).fill({ wch: 14 })];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Term Wise Report');
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
 export function exportToExcelforInstallmentWise(rows: IFeeYearlyCollectionReport[], fileName: string) {
     if (!rows || rows.length === 0) return;
 
@@ -818,4 +958,199 @@ export function printTable(columns: string[], rows: any[], sumRow?: any) {
 
     printWindow.document.close();
     printWindow.print();
+}
+
+export function printTermWiseTable(rows: IFeeYearlyCollectionReport[], selectedTerms: any[]) {
+    const printWindow = window.open('', '', 'width=1400,height=800');
+    if (!printWindow) return;
+
+    // Get unique fee heads
+    const feeHeads = Array.from(new Map(rows.map((r) => [r.fmh_id, r])).values());
+
+    // Helper functions
+    const formatCurrency = (value: number | undefined | null) => {
+        const numValue = value || 0;
+        return `₹${numValue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    };
+
+    const getNumericValue = (value: any): number => {
+        if (typeof value === 'number') return value;
+        if (typeof value === 'string') return Number.parseFloat(value) || 0;
+        return 0;
+    };
+
+    // Build header rows
+    let headerRow1 = `<tr>
+      <th rowspan="2">Sl No</th>
+      <th rowspan="2">Fee Head</th>`;
+
+    selectedTerms.forEach((term) => {
+        headerRow1 += `<th colspan="7">${term.fmT_Name || term.fmt_name}</th>`;
+    });
+
+    // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
+    headerRow1 += `</tr>`;
+
+    // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
+    let headerRow2 = `<tr>`;
+    selectedTerms.forEach(() => {
+        headerRow2 += `
+      <th>Paid</th>
+      <th>Balance</th>
+      <th>Concession</th>
+      <th>Arrear</th>
+      <th>Excess</th>
+      <th>Charges</th>
+      <th>Payable</th>
+    `;
+    });
+    // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
+    headerRow2 += `</tr>`;
+
+    // Build body rows
+    let bodyRows = '';
+
+    feeHeads.forEach((feeHead, index) => {
+        bodyRows += `<tr>
+      <td>${index + 1}</td>
+      <td>${feeHead.fmh_feename || 'N/A'}</td>`;
+
+        selectedTerms.forEach((term) => {
+            // Find matching data for this fee head and term
+            // Use both possible property names for term ID
+            const data = rows.find((r) => r.fmh_id === feeHead.fmh_id && (r.fmt_id === term.fmT_Id || r.fmt_Id === term.fmT_Id));
+
+            // Use the CORRECT property names from your data
+            const paid = data ? getNumericValue(data.paid) : 0;
+            const balance = data ? getNumericValue(data.balance) : 0;
+            const concession = data ? getNumericValue(data.concession) : 0;
+            const arrear = data ? getNumericValue(data.arrear) : 0;
+            const excess = data ? getNumericValue(data.excess) : 0;
+            const charges = data ? getNumericValue(data.charges) : 0;
+            const payable = data ? getNumericValue(data.payable) : 0;
+
+            bodyRows += `
+        <td>${formatCurrency(paid)}</td>
+        <td>${formatCurrency(balance)}</td>
+        <td>${formatCurrency(concession)}</td>
+        <td>${formatCurrency(arrear)}</td>
+        <td>${formatCurrency(excess)}</td>
+        <td>${formatCurrency(charges)}</td>
+        <td>${formatCurrency(payable)}</td>
+      `;
+        });
+
+        // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
+        bodyRows += `</tr>`;
+    });
+
+    // Build total row
+    let totalRow = `<tr style="font-weight:bold;background:#f3f3f3">
+      <td colspan="2">TOTAL</td>`;
+
+    selectedTerms.forEach((term) => {
+        // Filter rows for this term - check both possible property names
+        const termRows = rows.filter((r) => r.fmt_id === term.fmT_Id || r.fmt_Id === term.fmT_Id);
+
+        // Calculate totals for this term using CORRECT property names
+        const sumPaid = termRows.reduce((sum, r) => sum + getNumericValue(r.fss_paidamount || r.paid || r.totalpaid || 0), 0);
+
+        const sumBalance = termRows.reduce((sum, r) => sum + getNumericValue(r.totalbalance || r.balance || r.cdBalanceAmount || 0), 0);
+
+        const sumConcession = termRows.reduce((sum, r) => sum + getNumericValue(r.totalconcession || r.concession || 0), 0);
+
+        const sumArrear = termRows.reduce((sum, r) => sum + getNumericValue(r.arrear || 0), 0);
+
+        const sumExcess = termRows.reduce((sum, r) => sum + getNumericValue(r.runningexcess || r.excess || 0), 0);
+
+        const sumCharges = termRows.reduce((sum, r) => sum + getNumericValue(r.totalcharges || r.charges || r.charge || 0), 0);
+
+        const sumPayable = termRows.reduce((sum, r) => sum + getNumericValue(r.totalpayable || r.payable || r.cdNetAmount || 0), 0);
+
+        totalRow += `
+      <td>${formatCurrency(sumPaid)}</td>
+      <td>${formatCurrency(sumBalance)}</td>
+      <td>${formatCurrency(sumConcession)}</td>
+      <td>${formatCurrency(sumArrear)}</td>
+      <td>${formatCurrency(sumExcess)}</td>
+      <td>${formatCurrency(sumCharges)}</td>
+      <td>${formatCurrency(sumPayable)}</td>
+    `;
+    });
+
+    // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
+    totalRow += `</tr>`;
+
+    // Write to print window
+    printWindow.document.write(`
+    <html>
+    <head>
+      <title>Yearly Fee Collection (Term Wise)</title>
+      <style>
+        body { 
+          font-family: Arial, sans-serif; 
+          margin: 20px;
+          color: #333;
+        }
+        h3 { 
+          text-align: center; 
+          margin-bottom: 20px;
+          color: #2c3e50;
+        }
+        table { 
+          width: 100%; 
+          border-collapse: collapse; 
+          margin-top: 10px;
+        }
+        th, td { 
+          border: 1px solid #333; 
+          padding: 8px 10px; 
+          font-size: 12px; 
+          text-align: right;
+        }
+        th { 
+          background: #eaeaea; 
+          text-align: center; 
+          font-weight: bold;
+          color: #2c3e50;
+        }
+        td:nth-child(1), 
+        td:nth-child(2) { 
+          text-align: left; 
+          font-weight: 500;
+        }
+        tr:hover {
+          background-color: #f9f9f9;
+        }
+        .total-row {
+          background-color: #e8f4f8 !important;
+        }
+      </style>
+    </head>
+    <body>
+      <h3>Yearly Fee Collection – Term Wise</h3>
+      <table>
+        <thead>
+          ${headerRow1}
+          ${headerRow2}
+        </thead>
+        <tbody>
+          ${bodyRows}
+          ${totalRow}
+        </tbody>
+      </table>
+      <script>
+        // Auto print after load
+        window.onload = function() {
+          window.print();
+          setTimeout(function() {
+            window.close();
+          }, 500);
+        };
+      </script>
+    </body>
+    </html>
+  `);
+
+    printWindow.document.close();
 }

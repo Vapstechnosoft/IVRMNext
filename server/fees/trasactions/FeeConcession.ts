@@ -1,6 +1,6 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
     FeeConcessionTermDropdown,
@@ -68,7 +68,11 @@ export async function getConcessionStudentConcessionGrid(
     // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     searchParams?: ApiSearchparams
 ) {
-    const url = `FeeConcessionFacade/getstudentconcessions?AsmayId=${asmaY_Id || 0}&AsmclId=${asmcL_Id || 0}`;
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'studentName,amsT_AdmNo,asmcL_ClassName,fmG_GroupName,fmH_FeeName,ftI_Name,fmcC_ConcessionName,fsC_ConcessionAmount'
+    );
+    const url = `FeeConcessionFacade/getstudentconcessions?AsmayId=${asmaY_Id || 0}&AsmclId=${asmcL_Id || 0}&${urlParams}`;
     return await api.get<IFeeConcessionStudentConcessionGrid[]>('fees', url);
 }
 export async function saveFeeHead(data: any) {

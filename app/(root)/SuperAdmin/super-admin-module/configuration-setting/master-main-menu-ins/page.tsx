@@ -1,16 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import SelectionForm from './_components/selection-form';
+import {
+    deleteMainMenuINS,
+    getMainMenuListINS,
+    getModuleMenuList,
+    saveMainMenuINS
+} from '@/server/super-admin/configuration-setting/master-main-menu-ins';
+import type { MainMenuModuleDTO, MasterMainMenuINSDTO } from '@/types/super-admin/configuration-setting/master-main-menu-ins';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { z } from 'zod';
 import MainMenuGrid from './_components/main-menu-grid';
 import ModuleMenuGrid from './_components/module-menu-grid';
-import { MasterMainMenuINSDTO, MainMenuModuleDTO } from '@/types/super-admin/configuration-setting/master-main-menu-ins';
-import { getMainMenuListINS, getModuleMenuList, deleteMainMenuINS, saveMainMenuINS } from '@/server/super-admin/configuration-setting/master-main-menu-ins';
-import { toast } from 'sonner';
+import SelectionForm from './_components/selection-form';
 
 const formSchema = z.object({
     institution: z.string().min(1, 'Institution is required'),
@@ -38,20 +43,48 @@ export default function MasterMainMenuINSPage() {
             try {
                 const response = await getMainMenuListINS();
                 if (response.success && response.data?.gridDetails) {
-                    setGridData(response.data.gridDetails);
+                    // Strict deduplication using String(id) to handle mixed types (3 vs "3")
+                    const uniqueData = Array.from(
+                        new Map(
+                            response.data.gridDetails
+                                .filter((item) => item && item.ivrmmmI_Id != null)
+                                .map((item) => [String(item.ivrmmmI_Id), item])
+                        ).values()
+                    );
+
+                    if (uniqueData.length !== response.data.gridDetails.length) {
+                        console.warn(
+                            `Removed ${response.data.gridDetails.length - uniqueData.length} duplicate records from Main Menu Grid`
+                        );
+                    }
+                    setGridData(uniqueData);
                 }
             } catch (error) {
-                console.error("Error in fetchGridData:", error);
+                console.error('Error in fetchGridData:', error);
             }
 
             // Fetch Module Menu List (New Grid)
             try {
                 const modResponse = await getModuleMenuList();
                 if (modResponse.success && modResponse.data?.moduleList) {
-                    setModuleMenuData(modResponse.data.moduleList);
+                    // Strict deduplication for Module List
+                    const uniqueData = Array.from(
+                        new Map(
+                            modResponse.data.moduleList
+                                .filter((item) => item && item.ivrmmM_Id != null)
+                                .map((item) => [String(item.ivrmmM_Id), item])
+                        ).values()
+                    );
+
+                    if (uniqueData.length !== modResponse.data.moduleList.length) {
+                        console.warn(
+                            `Removed ${modResponse.data.moduleList.length - uniqueData.length} duplicate records from Module Menu Grid`
+                        );
+                    }
+                    setModuleMenuData(uniqueData);
                 }
             } catch (error) {
-                console.error("Error in fetchModuleList:", error);
+                console.error('Error in fetchModuleList:', error);
             }
         };
         fetchGridData();
@@ -74,11 +107,11 @@ export default function MasterMainMenuINSPage() {
     };
 
     const handleSaveModules = async (items: MainMenuModuleDTO[]) => {
-        const institutionId = methods.getValues("institution");
-        const moduleId = methods.getValues("module");
+        const institutionId = methods.getValues('institution');
+        const moduleId = methods.getValues('module');
 
         if (!institutionId || !moduleId) {
-            toast.error("Please select Institution and Module first.");
+            toast.error('Please select Institution and Module first.');
             return;
         }
 
@@ -89,8 +122,8 @@ export default function MasterMainMenuINSPage() {
         for (const item of items) {
             const payload = {
                 ivrmmmI_Id: 0,
-                ivrmM_Id: parseInt(moduleId),
-                mI_Id: parseInt(institutionId),
+                ivrmM_Id: Number.parseInt(moduleId),
+                mI_Id: Number.parseInt(institutionId),
                 ivrmmmI_MenuName: item.customMenuName || item.modulename, // Use custom or default
                 ivrmmmI_Icon: item.selectedIcon || '',
                 ivrmmmI_Color: item.selectedColor || '',
@@ -119,9 +152,9 @@ export default function MasterMainMenuINSPage() {
                 setGridData(response.data.gridDetails);
             }
             // Optionally clear selection or reload page
-            // window.location.reload(); 
+            // window.location.reload();
         } else if (failCount > 0) {
-            toast.error("Failed to save selected items.");
+            toast.error('Failed to save selected items.');
         }
     };
 
@@ -130,51 +163,40 @@ export default function MasterMainMenuINSPage() {
     };
 
     const handleOrder = () => {
-        alert("Set Order functionality coming soon");
+        alert('Set Order functionality coming soon');
     };
 
     const onSubmit = (data: FormValues) => {
-        console.log("Form Request:", data);
+        console.log('Form Request:', data);
         // Implement save or add logic here if required by user later (HTML didn't explicitly show 'Add' button for form, just grid loaded on load?)
-        // User request: "on load two dropdown ... and need onload grid also". 
+        // User request: "on load two dropdown ... and need onload grid also".
         // HTML has no 'Save' button for the form, only 'Set Order' and 'Clear' at bottom of grid.
         // It seems this page might be for viewing/deleting/ordering existing mappings.
     };
 
     return (
-        <div className="container mx-auto p-6">
-            <Card className="w-full">
+        <div className='container mx-auto p-6'>
+            <Card className='w-full'>
                 <CardHeader>
-                    <CardTitle className="text-2xl font-bold text-center">Master Main Menu INS</CardTitle>
+                    <CardTitle className='text-center font-bold text-2xl'>Master Main Menu INS</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <FormProvider {...methods}>
-                        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
+                        <form onSubmit={methods.handleSubmit(onSubmit)} className='space-y-6'>
                             <SelectionForm />
 
                             {/* New Module Menu Grid (Selection) */}
-                            <ModuleMenuGrid
-                                data={moduleMenuData}
-                                onSave={handleSaveModules}
-                                onCancel={handleClear}
-                            />
+                            <ModuleMenuGrid data={moduleMenuData} onSave={handleSaveModules} onCancel={handleClear} />
 
                             {/* Existing Saved Grid */}
                             {gridData.length > 0 && (
-                                <MainMenuGrid
-                                    data={gridData}
-                                    onDelete={handleDelete}
-                                    onOrder={handleOrder}
-                                    onClear={handleClear}
-                                />
+                                <MainMenuGrid data={gridData} onDelete={handleDelete} onOrder={handleOrder} onClear={handleClear} />
                             )}
-                            {gridData.length === 0 && (
-                                <div className="text-center p-4 text-gray-500">No records found.</div>
-                            )}
+                            {gridData.length === 0 && <div className='p-4 text-center text-gray-500'>No records found.</div>}
                         </form>
                     </FormProvider>
                 </CardContent>
-            </Card >
-        </div >
+            </Card>
+        </div>
     );
 }

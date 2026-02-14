@@ -85,8 +85,6 @@ function FormSections({ refetch }: { refetch?: () => void }) {
         isEditFormOpen,
         isToggleFormOpen,
         selectedRow,
-        isDeleteFormOpen,
-        closeDeleteForm,
         closeAddForm,
         closeEditForm,
         closeToggleForm,
@@ -119,6 +117,37 @@ function FormSections({ refetch }: { refetch?: () => void }) {
                                 onSuccess={() => {
                                     refetch?.();
                                     closeAddForm();
+                                }}
+                            />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+
+            {/* Edit Form */}
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Edit Master Event'
+                        description='Update the details of the Master Event'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <AddMasterEventCoeForm
+                                initialData={selectedRow}
+                                onSuccess={() => {
+                                    refetch?.();
+                                    closeEditForm();
                                 }}
                             />
                         </div>

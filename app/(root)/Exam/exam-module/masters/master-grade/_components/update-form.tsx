@@ -10,7 +10,7 @@ import { masterGradeSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterGrade, getGradeDetailsById } from '@/server/exam/exam-module/masters/grade';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Save, Trash } from 'lucide-react';
+import { Plus, Save, Trash, RefreshCw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -233,7 +233,24 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
         }
     };
 
-    if (isLoading) return <div>Loading grade details...</div>;
+    useEffect(() => {
+        setIsLoading(true);
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 500)
+        return () => clearTimeout(timer);
+    }, [gradeData])
+
+    if (isLoading) {
+        return (
+            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
+                <RefreshCw className='h-8 w-8 animate-spin text-secondary' />
+                <p className='text-muted-foreground text-sm'>Loading data...</p>
+            </div>
+        );
+    }
+
+
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 ${className}`} noValidate>

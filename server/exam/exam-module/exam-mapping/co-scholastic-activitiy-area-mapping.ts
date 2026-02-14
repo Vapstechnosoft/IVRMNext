@@ -5,7 +5,7 @@ import type { ICoScholasticActivityAreaMapping } from '@/types/exam/exam-module/
 
 export async function getCoScholasticActivityAreaMapping(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `coscholastic_activity/co_scholastic_activity_area_list/30?${urlParams}`;
+    const url = `coscholastic_activity/co_scholastic_activity_area_list/?${urlParams}`;
     const response = await api.get<ICoScholasticActivityAreaMapping>('exam', url);
     return { ...response };
 }

@@ -19,17 +19,12 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function MasterVehiclePage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = useMasterVehicle(searchParams);
-
+    console.log('grid response', response);
     return (
         <FormProvider<IMasterVehicle>>
             <div className='min-h-screen'>
                 <div className='container space-y-4 p-1'>
-                    <MasterVehicleContent
-                        response={response}
-                        isLoading={isLoading}
-                        error={error}
-                        refetchAll={refetchAll}
-                    />
+                    <MasterVehicleContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
                 </div>
             </div>
         </FormProvider>
@@ -49,11 +44,17 @@ function MasterVehicleContent({
 }) {
     const {
         openAddForm,
-        isAddFormOpen, closeAddForm,
-        isEditFormOpen, closeEditForm, selectedRow,
-        isToggleFormOpen, closeToggleForm,
-        isDocumentViewOpen, closeDocumentView,
-        addFormRef, editFormRef
+        isAddFormOpen,
+        closeAddForm,
+        isEditFormOpen,
+        closeEditForm,
+        selectedRow,
+        isToggleFormOpen,
+        closeToggleForm,
+        isDocumentViewOpen,
+        closeDocumentView,
+        addFormRef,
+        editFormRef
     } = useFormContext<IMasterVehicle>();
 
     const tableData = response?.data || [];
@@ -139,7 +140,9 @@ function MasterVehicleContent({
             )}
 
             {isToggleFormOpen && selectedRow && <ToggleVehicleForm rowData={selectedRow} onClose={closeToggleForm} />}
-            {isDocumentViewOpen && selectedRow && <DocumentViewer rowData={selectedRow} isOpen={isDocumentViewOpen} onClose={closeDocumentView} />}
+            {isDocumentViewOpen && selectedRow && (
+                <DocumentViewer rowData={selectedRow} isOpen={isDocumentViewOpen} onClose={closeDocumentView} />
+            )}
         </>
     );
 }

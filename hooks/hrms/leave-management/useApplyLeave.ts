@@ -1,11 +1,11 @@
 'use client';
+import type { ApplyLeave, LeaveHistoryRow } from '@/app/(root)/hrms/leave-management/apply-leave/_components/columns';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import { getOnlineLeave, saveOnlineLeave } from '@/server/hrms/leave-management/apply-leave';
+import type { FrmToDatesItem, SaveOnlineLeaveRequest } from '@/types/hrms/leave-management/apply-leave';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import type { ApplyLeave, LeaveHistoryRow } from '@/app/(root)/hrms/leave-management/apply-leave/_components/columns';
-import type { FrmToDatesItem, SaveOnlineLeaveRequest } from '@/types/hrms/leave-management/apply-leave';
 /**
  * Map API response to LeaveHistoryRow format
  */
@@ -14,6 +14,7 @@ function mapApiDataToLeaveHistory(apiData: any): LeaveHistoryRow | null {
         return null;
     }
     return {
+        id: apiData.HRELAP_Id || apiData.id || 0,
         leaveType: apiData.HRML_LeaveName || apiData.leaveType || apiData.LeaveType || '',
         fromDate: apiData.HRELAP_FromDate || apiData.fromDate || apiData.FromDate || '',
         toDate: apiData.HRELAP_ToDate || apiData.toDate || apiData.ToDate || '',
@@ -27,10 +28,7 @@ function mapApiDataToLeaveHistory(apiData: any): LeaveHistoryRow | null {
 /**
  * Map frontend ApplyLeave format to API request format
  */
-function mapApplyLeaveToApiData(
-    data: ApplyLeave,
-    HRME_Id: number = 0
-): SaveOnlineLeaveRequest {
+function mapApplyLeaveToApiData(data: ApplyLeave, HRME_Id = 0): SaveOnlineLeaveRequest {
     // Create the frmToDates array with the leave application data
     const frmToDatesItem: FrmToDatesItem = {
         HRELAP_Id: 0, // New application
@@ -39,7 +37,7 @@ function mapApplyLeaveToApiData(
         HRELAP_ToDate: data.toDate || '',
         HRELAP_TotalDays: data.numDays || 0,
         HRELAP_LeaveReason: data.reason || '',
-        HRELAP_ContactNoOnLeave: data.contactNumber ? parseInt(data.contactNumber) : 0,
+        HRELAP_ContactNoOnLeave: data.contactNumber ? Number.parseInt(data.contactNumber) : 0,
         HRELAP_ReportingDate: data.dateReportingBack || '',
         HRELAP_ApplicationStatus: 'Applied',
         HRELAP_SupportingDocument: data.file?.[0]?.name || '',
@@ -86,9 +84,9 @@ export function useLeaveHistory(request?: { MI_Id?: number; UserId?: number }) {
                             .map((item: any) => mapApiDataToLeaveHistory(item))
                             .filter((item: LeaveHistoryRow | null): item is LeaveHistoryRow => item !== null);
                     } else if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
-                        leaveHistory = data.GridviewDetails
-                            .map((item: any) => mapApiDataToLeaveHistory(item))
-                            .filter((item: LeaveHistoryRow | null): item is LeaveHistoryRow => item !== null);
+                        leaveHistory = data.GridviewDetails.map((item: any) => mapApiDataToLeaveHistory(item)).filter(
+                            (item: LeaveHistoryRow | null): item is LeaveHistoryRow => item !== null
+                        );
                     } else if (data.get_leave_status && Array.isArray(data.get_leave_status)) {
                         leaveHistory = data.get_leave_status
                             .map((item: any) => mapApiDataToLeaveHistory(item))
@@ -101,6 +99,9 @@ export function useLeaveHistory(request?: { MI_Id?: number; UserId?: number }) {
                     return {
                         success: true,
                         data: leaveHistory,
+                        total: leaveHistory.length,
+                        page: 1,
+                        page_Size: leaveHistory.length,
                         message: response.message || 'Leave history fetched successfully'
                     };
                 } catch (error: any) {
@@ -121,11 +122,7 @@ export function useLeaveHistory(request?: { MI_Id?: number; UserId?: number }) {
  */
 export function useApplyLeave() {
     const queryClient = useQueryClient();
-    return useMutation<
-        { success: boolean; message: string },
-        Error,
-        { data: ApplyLeave; HRME_Id?: number }
-    >({
+    return useMutation<{ success: boolean; message: string }, Error, { data: ApplyLeave; HRME_Id?: number }>({
         mutationFn: async ({ data, HRME_Id = 0 }) => {
             try {
                 // Map frontend data to API format

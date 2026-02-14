@@ -383,7 +383,7 @@ export const excelImportNotDoneReportSchema = {
         toDate: z.date().optional()
     }),
     delete: z.object({
-        id: deleteIdSchema('id')
+        feipsT_Id: deleteIdSchema('feipsT_Id')
     })
 };
 

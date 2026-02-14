@@ -38,7 +38,7 @@ export default function ToggleMasterSubjectGroupForm({ rowData, onClose }: Toggl
 
     const onSubmit: SubmitHandler<FormFields> = async (formData) => {
         try {
-            const response = await toggleMasterSubjectGroup(30, Number(formData.emG_Id));
+            const response = await toggleMasterSubjectGroup(Number(formData.emG_Id));
             if (response.success) {
                 toast.success(response.message || `Subject group ${rowData?.emG_ActiveFlag ? 'deactivated' : 'activated'} successfully`);
                 refetchAll();

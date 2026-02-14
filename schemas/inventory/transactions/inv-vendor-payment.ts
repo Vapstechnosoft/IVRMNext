@@ -9,7 +9,7 @@ export const invVendorPaymentSchema = z.object({
     invspT_ChequeDDNo: z.string().optional(),
     invspT_ChequeDDDate: z.date().optional(),
     invspT_PaymentReference: z.string().optional(),
-    invspT_Amount: z.number().min(0.01, 'Total Amount must be greater than 0'),
+    invspT_Amount: z.number(),
     invspT_Remarks: z.string().optional(),
     paymentArray: z.array(z.object({
         invsptgrN_Id: z.number().optional(),

@@ -4,7 +4,13 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type MarksEntryReportSchema, marksEntryReportSchema } from '@/schemas/exam/exam-module/reports';
-import { getClasses, getDetails, getExams, getReportDetails, getSections } from '@/server/exam/exam-module/reports/marks-entry-report';
+import { getExams, getReportDetails } from '@/server/exam/exam-module/reports/marks-entry-report';
+import {
+    getClassDropDownByAcademicYearlist,
+    getSectionsDropDownByAcademicYearandClasslist,
+    getExamsDropDownByAcademicYearandClassandSectionlist
+} from '@/server/exam/exam-module/reports/cumulative-report';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -34,44 +40,52 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const { control, handleSubmit, setValue, reset, formState } = methods;
     const { isSubmitting } = formState;
 
+    const { data: academicData, error: academicError } = useAcademicYearDropdown();
+
     const watchYear = useWatch({ control, name: 'ASMAY_Id' });
     const watchClass = useWatch({ control, name: 'ASMCL_Id' });
     const watchSection = useWatch({ control, name: 'ASMS_Id' });
 
-    // Initial Data
+    // Initial Data (Academic Years)
     useEffect(() => {
-        getDetails()
-            .then((res) => {
-                setYears(res.acdlist || []);
-                if (!res.acdlist || res.acdlist.length === 0) {
-                    toast.info('No Academic Years found');
-                }
-                setLoading(false);
-            })
-            .catch((err) => {
-                console.error(err);
-                toast.error('Failed to load initial data');
-                setLoading(false);
-            });
-    }, []);
+        if (academicError) {
+            toast.error('Failed to load Academic Years');
+            setYears([]);
+            setLoading(false);
+        } else if (academicData?.data) {
+            const formatted = Array.isArray(academicData.data)
+                ? academicData.data.map((i: any) => ({
+                    asmaY_Id: i.asmaY_Id ?? 0,
+                    asmaY_Year: i.asmaY_Year ?? ''
+                }))
+                : [];
+            setYears(formatted);
+            if (!formatted || formatted.length === 0) {
+                toast.info('No Academic Years found');
+            }
+            setLoading(false);
+        }
+    }, [academicData, academicError]);
 
     // Load Classes on Year Change
     useEffect(() => {
         if (watchYear) {
-            setLoadingClasses(true);
-            getClasses(watchYear)
-                .then((res) => {
-                    setClasses(res.ctlist || []);
-                    if (!res.ctlist || res.ctlist.length === 0) {
+            (async () => {
+                try {
+                    setLoadingClasses(true);
+                    const response = await getClassDropDownByAcademicYearlist(Number(watchYear));
+                    const data = response.data as any;
+                    setClasses(Array.isArray(data) ? data : []);
+                    if (!data || (Array.isArray(data) && data.length === 0)) {
                         toast.info('No Classes found');
                     }
-                    setLoadingClasses(false);
-                })
-                .catch((err) => {
+                } catch (err) {
                     console.error(err);
                     toast.error('Failed to load classes');
+                } finally {
                     setLoadingClasses(false);
-                });
+                }
+            })();
             setValue('ASMCL_Id', '');
             setValue('ASMS_Id', '');
             setValue('EME_Id', '');
@@ -82,55 +96,66 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
 
     // Load Sections on Class Change
     useEffect(() => {
-        if (watchClass) {
-            setLoadingSections(true);
-            getSections(watchClass)
-                .then((res) => {
-                    setSections(res.seclist || []);
-                    if (!res.seclist || res.seclist.length === 0) {
+        if (watchYear && watchClass) {
+            (async () => {
+                try {
+                    setLoadingSections(true);
+                    const response = await getSectionsDropDownByAcademicYearandClasslist(Number(watchYear), Number(watchClass));
+                    const data = response.data as any;
+                    setSections(Array.isArray(data) ? data : []);
+                    if (!data || (Array.isArray(data) && data.length === 0)) {
                         toast.info('No Sections found');
                     }
-                    setLoadingSections(false);
-                })
-                .catch((err) => {
+                } catch (err) {
                     console.error(err);
                     toast.error('Failed to load sections');
+                } finally {
                     setLoadingSections(false);
-                });
+                }
+            })();
             setValue('ASMS_Id', '');
             setValue('EME_Id', '');
         } else {
             setSections([]);
         }
-    }, [watchClass, setValue]);
+    }, [watchYear, watchClass, setValue]);
 
     // Load Exams on Section Change
     useEffect(() => {
-        if (watchSection) {
-            setLoadingExams(true);
-            getExams(watchSection)
-                .then((res) => {
-                    setExams(res.examlist || []);
-                    if (!res.examlist || res.examlist.length === 0) {
+        if (watchYear && watchClass && watchSection) {
+            (async () => {
+                try {
+                    setLoadingExams(true);
+                    const response = await getExamsDropDownByAcademicYearandClassandSectionlist(
+                        Number(watchYear),
+                        Number(watchClass),
+                        Number(watchSection)
+                    );
+                    const data = response.data as any;
+                    setExams(Array.isArray(data) ? data : []);
+                    if (!data || (Array.isArray(data) && data.length === 0)) {
                         toast.info('No Exams found');
                     }
-                    setLoadingExams(false);
-                })
-                .catch((err) => {
+                } catch (err) {
                     console.error(err);
                     toast.error('Failed to load exams');
+                } finally {
                     setLoadingExams(false);
-                });
+                }
+            })();
             setValue('EME_Id', '');
         } else {
             setExams([]);
         }
-    }, [watchSection, setValue]);
+    }, [watchYear, watchClass, watchSection, setValue]);
 
     const onSubmit = async (data: MarksEntryReportSchema) => {
         try {
+            console.log(data);
             const result = await getReportDetails(data);
-            onReportGenerated(result); // result matches the expected data structure directly here
+            console.log('marks entry report data', result);
+            const resultData = Array.isArray(result.data) ? result.data : [];
+            onReportGenerated(resultData); // result matches the expected data structure directly here
         } catch (error) {
             console.error('Error:', error);
         }

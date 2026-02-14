@@ -14,7 +14,7 @@ export const useInvRGRNLoadData = (optionflag: string) => {
 
 export const useInvRGRNReport = () => {
     return useMutation({
-        mutationFn: (payload: IInvRGRNPayload) => getInvRGRNReport(payload),
+        mutationFn: ({ payload, searchParams }: { payload: IInvRGRNPayload, searchParams?: any }) => getInvRGRNReport(payload, searchParams),
         onSuccess: (data) => {
             if (data.success) {
                 toast.success('Report generated successfully');
@@ -26,5 +26,16 @@ export const useInvRGRNReport = () => {
             toast.error('An error occurred while generating the report');
             console.error(error);
         }
+    });
+};
+
+export const useInvRGRNReportQuery = (payload: IInvRGRNPayload | null, searchParams: any) => {
+    return useQuery({
+        queryKey: ['invRGRNReport', payload, searchParams],
+        queryFn: () => {
+            if (!payload) return { success: true, data: { get_grnreport: [], get_grn_item_supplier: [] }, total: 0, message: '' };
+            return getInvRGRNReport(payload, searchParams);
+        },
+        enabled: !!payload
     });
 };

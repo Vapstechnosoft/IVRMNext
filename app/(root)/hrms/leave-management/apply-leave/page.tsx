@@ -1,158 +1,231 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useApplyLeave, useLeaveHistory } from '@/hooks/hrms/leave-management/useApplyLeave';
+import { useEmployeeLeaveDetails, useEmployeeLeaveStatusDetails, useDeleteEmployeeLeaveById } from '@/hooks/hrms/leave-management/useOnlineLeaveApplication';
 import { Plus, X } from 'lucide-react';
-import { toast } from 'sonner';
-import { ApplyLeaveForm } from './_components/apply-leave-form';
-import { type ApplyLeave, type LeaveHistoryRow, leaveHistoryColumns } from './_components/columns';
-type DefaultEmployee = {
-    name: string;
-    designation: string;
-    doj: string;
-    email: string;
-    phone: string;
-};
-const defaultEmployee: DefaultEmployee = {
-    name: 'R Siddesh Kumar',
-    designation: 'Sr. HR Executive',
-    doj: '2020-01-01',
-    email: 'rsiddesh.kumar@example.com',
-    phone: '9876543210'
-};
+import { useMemo } from 'react';
+import AddApplyLeaveForm from './_components/add-form';
+import { type LeaveHistoryRow, createLeaveHistoryColumns, leaveBalanceColumns } from './_components/columns';
+
 export default function ApplyLeavePage() {
-    const { data: response, isLoading, error } = useLeaveHistory();
-    // Create response for useDataTableProps
-    const mockResponse = {
-        data: response?.data || [],
-        total: response?.data?.length || 0,
-        page: 1,
-        pageSize: 10
-    };
+    const { data: statusData, isLoading: isStatusLoading, error: statusError, refetchAll } = useEmployeeLeaveStatusDetails();
+    const { data: employeeData, isLoading: isEmployeeLoading } = useEmployeeLeaveDetails();
+
+    const response = useMemo(() => {
+        if (!statusData) return null;
+        return {
+            success: true,
+            data: statusData.leaveApplications,
+            total: statusData.leaveApplications.length
+        };
+    }, [statusData]);
+
+    const isLoading = isStatusLoading || isEmployeeLoading;
+    const error = statusError;
+
+    const employeeDetails = useMemo(() => {
+        if (!employeeData?.employeeDetails) {
+            return {
+                id: 0,
+                name: '',
+                designation: '',
+                doj: '',
+                email: '',
+                phone: ''
+            };
+        }
+        const emp = employeeData.employeeDetails;
+        return {
+            id: emp.hrmE_Id,
+            name: emp.hrmE_EmployeeName,
+            designation: emp.hrmdeS_DesignationName,
+            doj: emp.hrmE_DOJ,
+            email: emp.hrmE_EmailId,
+            phone: String(emp.hrmE_MobileNo)
+        };
+    }, [employeeData]);
+
+    const leaveBalancesData = useMemo(() => {
+        if (!employeeData?.leaveBalances) return null;
+        return {
+            success: true,
+            data: employeeData.leaveBalances,
+            total: employeeData.leaveBalances.length
+        };
+    }, [employeeData]);
+
     return (
         <FormProvider<LeaveHistoryRow>>
-            <ApplyLeavePageContent response={response} isLoading={isLoading} error={error} mockResponse={mockResponse} />
+            <ApplyLeavePageContent
+                response={response}
+                isLoading={isLoading}
+                error={error}
+                refetchAll={refetchAll}
+                defaultEmployee={employeeDetails}
+                leaveBalancesData={leaveBalancesData}
+            />
         </FormProvider>
     );
 }
+
 function ApplyLeavePageContent({
-    response: _response,
+    response,
     isLoading,
     error,
-    mockResponse
+    refetchAll,
+    defaultEmployee,
+    leaveBalancesData
 }: {
     response: any;
     isLoading: boolean;
     error: any;
-    mockResponse: any;
+    refetchAll: () => void;
+    defaultEmployee: any;
+    leaveBalancesData: any;
 }) {
-    const { openAddForm, closeAddForm } = useFormContext();
-    const { mutate: applyLeave, isPending: _isApplying } = useApplyLeave();
-    const tableProps = useDataTableProps(mockResponse);
-    const todayISO = new Date().toISOString().slice(0, 10);
-    const handleFormSubmit = (data: ApplyLeave) => {
-        // Validate dates are not in the past
-        if (data.fromDate && data.toDate) {
-            if (data.fromDate < todayISO || data.toDate < todayISO) {
-                toast.error('Dates cannot be in the past');
-                return;
-            }
-            if (new Date(data.toDate) < new Date(data.fromDate)) {
-                toast.error('To Date cannot be before From Date');
-                return;
-            }
-        }
-        if (!data.reason?.trim()) {
-            toast.error('Reasons for Leave is required');
-            return;
-        }
-        // Apply leave via API
-        applyLeave(
-            {
-                data,
-                HRME_Id: 0 // TODO: Get from session/user context
-            },
-            {
+    const { closeAddForm, openAddForm } = useFormContext<LeaveHistoryRow>();
+    const tableProps = useDataTableProps(response);
+
+    const { mutate: deleteLeave } = useDeleteEmployeeLeaveById();
+
+    const handleDelete = (id: number) => {
+        if (window.confirm('Are you sure you want to delete this leave application?')) {
+            deleteLeave(id, {
                 onSuccess: () => {
-                    closeAddForm();
+                    refetchAll();
                 }
-            }
-        );
+            });
+        }
     };
+
+    const columns = createLeaveHistoryColumns(handleDelete);
+
     return (
-        <div className='min-h-screen'>
-            <div className='container space-y-4 p-1'>
-                {/* Header */}
-                <div className='flex justify-end'>
-                    <Button
-                        type='button'
-                        onClick={openAddForm}
-                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4' />
-                        Apply Leave
-                    </Button>
+        <div className='min-h-screen bg-muted/20 pb-8'>
+            <div className='container space-y-6 py-6'>
+                {/* Header with Title and Action */}
+                <div className='flex items-center justify-between'>
+
+                    <div className="flex justify-end w-full">
+                        <Button
+                            type='button'
+                            onClick={openAddForm}
+                            className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'
+                        >
+                            <Plus className='mr-2 h-4 w-4' />
+                            Apply Leave
+                        </Button>
+                    </div>
                 </div>
-                {/* Data Table Section */}
+
+                {/* Box 1: Leave History */}
                 <CollapsibleSection
-                    title='EMPLOYEE LEAVE DETAILS'
-                    description='View your leave application history'
+                    title='Employee Leave History'
                     defaultOpen={true}
                     variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    className='bg-white shadow-lg'>
                     <GenericDataTable<LeaveHistoryRow>
                         {...tableProps}
-                        columns={leaveHistoryColumns}
+                        columns={columns}
                         isLoading={isLoading}
                         error={error}
+                        showViewOptions={false}
+                        columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading leave history...'
-                        noDataTitle='No Leave Applications Found'
-                        noDataDescription='Get started by applying for your first leave'
-                        errorTitle='Error Loading Leave History'
+                        noDataTitle='No Leave History'
+                        noDataDescription='Your applied leaves will appear here.'
                     />
                 </CollapsibleSection>
-                {/* Forms */}
-                <FormSections defaultEmployee={defaultEmployee} onSubmit={handleFormSubmit} />
+
+                {/* Box 2: Form Sections (Appears on click) */}
+                <FormSections
+                    refetchAll={refetchAll}
+                    defaultEmployee={defaultEmployee}
+                />
             </div>
         </div>
     );
 }
-function FormSections({
-    defaultEmployee,
-    onSubmit
-}: {
-    defaultEmployee: DefaultEmployee;
-    onSubmit: (data: ApplyLeave) => void;
-}) {
-    const { isAddFormOpen, closeAddForm, addFormRef } = useFormContext();
+
+interface FormSectionsProps {
+    refetchAll: () => void;
+    defaultEmployee: any;
+}
+
+function FormSections({ refetchAll, defaultEmployee }: FormSectionsProps) {
+    const {
+        isAddFormOpen,
+        closeAddForm,
+        addFormRef,
+    } = useFormContext<LeaveHistoryRow>();
+
+    if (!isAddFormOpen) return null;
+
     return (
-        <>
-            {/* Add Form */}
-            {isAddFormOpen && (
-                <div ref={addFormRef}>
-                    <CollapsibleSection
-                        title='ONLINE LEAVE APPLICATION'
-                        description='Fill in the details below to apply for leave'
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                        <div className='relative'>
-                            <Button
-                                type='button'
-                                onClick={closeAddForm}
-                                variant='ghost'
-                                size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
-                            </Button>
-                            <ApplyLeaveForm defaultEmployee={defaultEmployee} onSubmit={onSubmit} onCancel={closeAddForm} />
-                        </div>
-                    </CollapsibleSection>
+        <div ref={addFormRef} className='space-y-6 animate-in slide-in-from-top-4 duration-300'>
+            {/* Add Application Form */}
+            <CollapsibleSection
+                title='New Leave Application'
+                description='Fill in the details below to apply for leave'
+                defaultOpen={true}
+                variant='outline'
+                size='md'
+                className='shadow-lg'>
+                <div className='relative'>
+                    <Button
+                        type='button'
+                        onClick={closeAddForm}
+                        variant='ghost'
+                        size='sm'
+                        className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                        <X className='h-4 w-4 text-destructive' /> Close
+                    </Button>
+                    <AddApplyLeaveForm
+                        defaultEmployee={defaultEmployee}
+                        onSuccess={() => {
+                            refetchAll();
+                            closeAddForm();
+                        }}
+                    />
                 </div>
-            )}
-        </>
+            </CollapsibleSection>
+
+            {/* Box 1: Employee Information */}
+            <CollapsibleSection
+                title='Employee Information'
+                defaultOpen={true}
+                variant='outline'
+                className='bg-white shadow-sm'>
+                <div className='grid grid-cols-1 gap-6 p-2 md:grid-cols-2'>
+                    <div className='space-y-4'>
+                        <div className='flex items-center gap-3 border-b pb-2'>
+                            <span className='font-semibold text-muted-foreground min-w-[120px]'>Employee Name</span>
+                            <span className='text-foreground'>: {defaultEmployee.name || '-'}</span>
+                        </div>
+                        <div className='flex items-center gap-3 border-b pb-2'>
+                            <span className='font-semibold text-muted-foreground min-w-[120px]'>DOJ</span>
+                            <span className='text-foreground'>: {defaultEmployee.doj ? new Date(defaultEmployee.doj).toLocaleDateString('en-GB') : '-'}</span>
+                        </div>
+                    </div>
+                    <div className='space-y-4'>
+                        <div className='flex items-center gap-3 border-b pb-2'>
+                            <span className='font-semibold text-muted-foreground min-w-[120px]'>Designation</span>
+                            <span className='text-foreground'>: {defaultEmployee.designation || '-'}</span>
+                        </div>
+                        <div className='flex items-center gap-3 border-b pb-2'>
+                            <span className='font-semibold text-muted-foreground min-w-[120px]'>Email</span>
+                            <span className='text-foreground'>: {defaultEmployee.email || '-'}</span>
+                        </div>
+                        <div className='flex items-center gap-3 border-b pb-2'>
+                            <span className='font-semibold text-muted-foreground min-w-[120px]'>Phone</span>
+                            <span className='text-foreground'>: {defaultEmployee.phone || '-'}</span>
+                        </div>
+                    </div>
+                </div>
+            </CollapsibleSection>
+        </div>
     );
 }

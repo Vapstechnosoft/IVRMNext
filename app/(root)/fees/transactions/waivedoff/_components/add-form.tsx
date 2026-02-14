@@ -298,7 +298,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                 fswO_Id: 0,
                 amsT_Id: amst_Id,
                 asmaY_Id: asmay_Id,
-                fswO_Date: formatDateToYMD(data.date),
+                fswO_Date: format(data.date, 'yyyy-MM-dd'),
                 finewaiveoff: fineWaiveOff === true ? 1 : 0,
                 fswO_WaivedOffRemarks: data.remarks || '',
                 completefinewaiveoff: completeFineWaiveOff === true ? 1 : 0,
@@ -632,7 +632,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                         <PopoverTrigger asChild>
                                             <Button variant='outline' className='w-full justify-start text-left font-normal'>
                                                 <CalendarIcon className='mr-2 h-4 w-4' />
-                                                {field.value ? format(field.value, 'PPP') : 'Select Date'}
+                                                {field.value ? format(field.value, 'yyyy-MM-dd') : 'Select Date'}
                                             </Button>
                                         </PopoverTrigger>
 

@@ -26,7 +26,7 @@ export default function ItemTaxDialog({ item, onClose }: ItemTaxDialogProps) {
         setLoading(true);
         const res = await getItemTax(item.invmI_Id);
         if (res.success) {
-            setTaxData(res.griditemTax);
+            setTaxData(res.get_itemTax);
         } else {
             setTaxData([]);
             toast.error('Failed to fetch tax details');

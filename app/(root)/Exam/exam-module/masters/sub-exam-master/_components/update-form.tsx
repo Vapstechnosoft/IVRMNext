@@ -8,8 +8,8 @@ import { masterSubExamSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterSubExam } from '@/server/exam/exam-module/masters/sub-exam';
 import type { IMasterSubExam } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { Save, RefreshCw } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -24,7 +24,7 @@ interface UpdateMasterSubExamFormProps {
 
 export default function UpdateMasterSubExamForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterSubExamFormProps) {
     const { refetchAll } = useMasterSubExam();
-
+    const [isLoading, setIsLoading] = useState(false);
     const {
         setValue,
         register,
@@ -41,8 +41,7 @@ export default function UpdateMasterSubExamForm({ onSuccess, className = '', sel
             reset({
                 emsE_Id: row.emsE_Id,
                 emsE_SubExamName: row.emsE_SubExamName,
-                emsE_SubExamCode: row.emsE_SubExamCode,
-                mI_Id: 30 // ✅ Default institute ID (update as needed)
+                emsE_SubExamCode: row.emsE_SubExamCode
             });
         }
     }, [row, reset, setValue]);
@@ -50,7 +49,6 @@ export default function UpdateMasterSubExamForm({ onSuccess, className = '', sel
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
-                mI_Id: data.mI_Id,
                 emsE_Id: data.emsE_Id,
                 emsE_SubExamName: data.emsE_SubExamName,
                 emsE_SubExamCode: data.emsE_SubExamCode
@@ -74,6 +72,23 @@ export default function UpdateMasterSubExamForm({ onSuccess, className = '', sel
     const handleReset = () => {
         reset();
     };
+
+    useEffect(() => {
+        setIsLoading(true);
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 500)
+        return () => clearTimeout(timer);
+    }, [row])
+
+    if (isLoading) {
+        return (
+            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
+                <RefreshCw className='h-8 w-8 animate-spin text-secondary' />
+                <p className='text-muted-foreground text-sm'>Loading data...</p>
+            </div>
+        );
+    }
 
     return (
         <div className={`${className}`}>

@@ -41,5 +41,8 @@ export const trustMasterSchema = {
         mO_AboutInstitute: z.string().optional(),
         mO_ContactDetails: z.string().optional(),
         mO_Logo: z.string().optional()
+    }),
+    delete: z.object({
+        mO_Id: z.coerce.number().min(1, 'ID is required')
     })
 };
