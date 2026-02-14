@@ -49,6 +49,17 @@ export interface IRigistrationReportList {
     name: string;
     created_Date: string;
 }
+
+export interface IStudentAttendanceReportList {
+    AMST_Id: number;
+    name: string;
+    AMST_AdmNo: string;
+    AMAY_RollNo: number;
+    ASA_ClassHeld: number;
+    ASA_Class_Attended: number;
+    Percentage: number;
+    RowNo: number;
+}
 export type Student = {
     studentnam: string;
     AMST_Id: number;

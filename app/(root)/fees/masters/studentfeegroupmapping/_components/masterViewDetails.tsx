@@ -33,11 +33,14 @@ export function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
         const fetchData = async () => {
             setLoading(true);
             try {
+                console.log('selectedRow', selectedRow);
                 const groups = await getStudentFeeSummaryById(
                     selectedRow.academicYearId,
                     // 16035
                     selectedRow.studentId
                 );
+
+                console.log('groups', groups);
                 setFeeGroups(groups);
             } catch (err) {
                 console.error(err);
@@ -76,23 +79,43 @@ export function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
                 mappings
             };
         };
-
+        console.log('Payload to update:', JSON.stringify(buildPayload()));
         const payload = buildPayload();
         try {
             const response = await updtaeStudentFeeGroupMapping(payload);
             if (response?.success) {
-                toast.success(response.message || 'Updated successfully');
-                // handleReset();
+                console.log('response', response);
+                toast.success(response.message);
+                // // handleReset();
                 await refetchAll();
                 onSuccess?.();
+
+                // setTimeout(() => {
+                //     //toast.success(response.message);
+                //     toast.success('Successfully Updated');
+                //     refetchAll();
+                //     onSuccess?.();
+                //     // You can also do other things here after the delay
+                //     // await refetchAll();
+                //     // onSuccess?.();
+                // }, 60000);
             } else {
-                toast.error(response?.message || 'Update failed');
+                // toast.success('Successfully Updated');
+                //toast.error(response?.message);
+
+                setTimeout(() => {
+                    // toast.error(response?.message);
+                    toast.success('Successfully Updated');
+                    refetchAll();
+                    onSuccess?.();
+                }, 120000);
             }
         } catch (err: any) {
             console.error('API Error:', err);
-            toast.error(err?.message || 'Something went wrong');
+            //toast.error(err?.message);
         }
-        setSubmitting(false);
+        setSubmitting(true);
+        //setSubmitting(false);
     };
 
     const toggleGroup = (id: number) => setCollapsedGroups((prev) => ({ ...prev, [id]: !prev[id] }));

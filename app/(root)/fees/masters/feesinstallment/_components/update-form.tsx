@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 import { useMasterFeeInstallment } from '@/hooks/fees/useMasters';
 import { masterInstallmentSchema } from '@/schemas/fees/masters';
-import { addOrUpdateInstallment } from '@/server/fees/masters/feeinstallment';
+import { addOrUpdateInstallment, getfeeInstallmentsByFmiId } from '@/server/fees/masters/feeinstallment';
 import type { IMasterFeesInstallmentList } from '@/types/fees/masters/masters';
 
 type FormFields = z.infer<typeof masterInstallmentSchema.addOrUpdate> & {
@@ -34,26 +34,6 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
         fmI_Id?: number | string;
         fmI_ActiveFlag?: any;
     }>({});
-
-    const sanitizeId = (id: any) => {
-        if (id === null || id === undefined) return undefined;
-        if (typeof id === 'string') {
-            const trimmed = id.trim();
-            const lower = trimmed.toLowerCase();
-            if (lower === '$undefined' || lower === 'undefined' || trimmed === '') {
-                return undefined;
-            }
-            const n = Number(trimmed);
-            if (!Number.isNaN(n) && n > 0 && Number.isInteger(n)) {
-                return n;
-            }
-            return trimmed;
-        }
-        if (typeof id === 'number') {
-            return id > 0 && Number.isInteger(id) ? id : undefined;
-        }
-        return undefined;
-    };
 
     const sanitizeSnapshot = (vals: any): FormFields | null => {
         if (!vals) return null;
@@ -121,29 +101,158 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
     const initialLoadComplete = useRef(false);
 
     // === 2. ADD THIS useEffect: React to Installment Type change ===
+    //     useEffect(() => {
+    //         if (!initialLoadComplete.current) return;
+
+    //         if (!installmentType || installmentType === 'general') {
+    //             return; // User manually controls count
+    //         }
+
+    //         const selected = INSTALLMENT_TYPES.find((t) => t.value === installmentType);
+    //         if (!selected || selected.count === 0) return;
+
+    //         const newCount = selected.count;
+
+    //         setValue('fmI_No_Of_Installments', newCount, { shouldValidate: true });
+
+    //     //     const installments =  getfeeInstallmentsByFmiId(row.fmI_Id);
+    //     //   console.log('installmentsnames', installments);
+
+    //     //     // Reset to fresh defaults when type changes
+    //     //     const newInstallments = Array.from({ length: newCount }, (_, i) => ({
+    //     //         sno: i + 1,
+    //     //         ftI_Name: `Installment ${i + 1}`,
+    //     //         ftI_Id: undefined // New installments → no old ID
+    //     //     }));
+
+    //  const installments = await getfeeInstallmentsByFmiId(row.fmI_Id);
+    // console.log('installmentsnames', installments);
+
+    // // Use API data if available, otherwise fallback to defaults
+    // const newInstallments = Array.isArray(installments) && installments.length > 0
+    //     ? installments.map((inst: any, index: number) => ({
+    //         sno: index + 1,
+    //         ftI_Name: inst.ftI_Name || `Installment ${index + 1}`,
+    //         ftI_Id: sanitizeId(inst.ftI_Id ?? inst.id)
+    //       }))
+    //     : Array.from({ length: newCount }, (_, i) => ({
+    //         sno: i + 1,
+    //         ftI_Name: `Installment ${i + 1}`,
+    //         ftI_Id: undefined
+    //       }));
+
+    //         setValue('installments', newInstallments, { shouldValidate: true });
+    //     }, [installmentType, setValue]);
+    const sanitizeId = (id: any): number | undefined => {
+        if (id === null || id === undefined) return undefined;
+        if (typeof id === 'string') {
+            const trimmed = id.trim();
+            const lower = trimmed.toLowerCase();
+            if (lower === '$undefined' || lower === 'undefined' || trimmed === '') {
+                return undefined;
+            }
+            const n = Number(trimmed);
+            if (!Number.isNaN(n) && n > 0 && Number.isInteger(n)) {
+                return n;
+            }
+            return undefined; // 🔴 NEVER return string
+        }
+        if (typeof id === 'number') {
+            return id > 0 && Number.isInteger(id) ? id : undefined;
+        }
+        return undefined;
+    };
+
+    // Make the useEffect async
+    // Add this ref at the top with your other refs
+    const hasSetInitialInstallments = useRef(false);
+
+    // Replace your entire installment type useEffect with this:
     useEffect(() => {
+        // Only run once on initial load
         if (!initialLoadComplete.current) return;
 
-        if (!installmentType || installmentType === 'general') {
-            return; // User manually controls count
+        // Prevent multiple executions
+        if (hasSetInitialInstallments.current) return;
+
+        const setInitialInstallments = async () => {
+            if (!installmentType || installmentType === 'general') {
+                hasSetInitialInstallments.current = true;
+                return;
+            }
+
+            const selected = INSTALLMENT_TYPES.find((t) => t.value === installmentType);
+            if (!selected || selected.count === 0) {
+                hasSetInitialInstallments.current = true;
+                return;
+            }
+
+            const newCount = selected.count;
+            setValue('fmI_No_Of_Installments', newCount, { shouldValidate: true });
+
+            // Only fetch if we have a valid ID
+            if (row?.fmI_Id) {
+                // Get installments from API
+                const installments = await getfeeInstallmentsByFmiId(row.fmI_Id);
+                console.log('installmentsnames', installments);
+
+                // Use API data if available, otherwise fallback to defaults
+                const newInstallments =
+                    Array.isArray(installments) && installments.length > 0
+                        ? installments.map((inst: any, index: number) => ({
+                              sno: index + 1,
+                              ftI_Name: inst.ftI_Name || `Installment ${index + 1}`,
+                              ftI_Id: sanitizeId(inst.ftI_Id ?? inst.id)
+                          }))
+                        : Array.from({ length: newCount }, (_, i) => ({
+                              sno: i + 1,
+                              ftI_Name: `Installment ${i + 1}`,
+                              ftI_Id: undefined
+                          }));
+
+                setValue('installments', newInstallments, { shouldValidate: true });
+            } else {
+                // No ID, use defaults
+                const defaultInstallments = Array.from({ length: newCount }, (_, i) => ({
+                    sno: i + 1,
+                    ftI_Name: `Installment ${i + 1}`,
+                    ftI_Id: undefined
+                }));
+                setValue('installments', defaultInstallments, { shouldValidate: true });
+            }
+
+            // Mark as completed
+            hasSetInitialInstallments.current = true;
+        };
+
+        setInitialInstallments();
+
+        // Remove dependency on installmentType - only run when row changes
+    }, [row, setValue]); // ✅ Removed installmentType from dependencies
+
+    // Keep your manual count change effect for General type
+    useEffect(() => {
+        if (watchNoOfInstallments === undefined) return;
+        if (installmentType !== 'general') return; // Only run for General type
+
+        const targetLength = Number(watchNoOfInstallments);
+        const currentLength = fields.length;
+
+        if (targetLength > currentLength) {
+            for (let i = currentLength; i < targetLength; i++) {
+                append({ sno: i + 1, ftI_Name: `Installment ${i + 1}` });
+            }
+        } else if (targetLength < currentLength) {
+            for (let i = currentLength - 1; i >= targetLength; i--) {
+                remove(i);
+            }
         }
+    }, [watchNoOfInstallments, fields.length, append, remove, installmentType]);
 
-        const selected = INSTALLMENT_TYPES.find((t) => t.value === installmentType);
-        if (!selected || selected.count === 0) return;
-
-        const newCount = selected.count;
-
-        setValue('fmI_No_Of_Installments', newCount, { shouldValidate: true });
-
-        // Reset to fresh defaults when type changes
-        const newInstallments = Array.from({ length: newCount }, (_, i) => ({
-            sno: i + 1,
-            ftI_Name: `Installment ${i + 1}`,
-            ftI_Id: undefined // New installments → no old ID
-        }));
-
-        setValue('installments', newInstallments, { shouldValidate: true });
-    }, [installmentType, setValue]);
+    // Reset the flag when row changes
+    useEffect(() => {
+        hasSetInitialInstallments.current = false;
+    }, [row]);
 
     // === 3. Initial load effect (must come AFTER type change effect) ===
     useEffect(() => {

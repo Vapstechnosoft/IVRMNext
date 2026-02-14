@@ -587,41 +587,34 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 amsT_StudentCategory_Id: Number(formData.amsT_StudentCategory_Id ?? 0),
                 amsT_BloodGroup: formData.amsT_BloodGroup ?? '',
                 ivrmmR_Id: Number(formData.ivrmmR_Id ?? formData.amsT_ReligionId ?? 0),
-                imcC_Id: formData.studentCategoryId ?? 1,
+                imcC_Id: Number(formData.studentCategoryId ?? 0),
                 amsT_SubCasteIMC_Id: (formData.amsT_SubCasteIMC_Id ?? '')?.toString() ?? '',
-
                 amsT_CasteCertiNo: formData.amsT_CasteCertiNo ?? '',
-
+                studentPhotoUrl: '',
                 amsT_BirthPlace: formData.amsT_BirthPlace ?? '',
                 amsT_BirthCertNO: formData.amsT_BirthCertNO ?? '',
                 amsT_AadharNo: Number(formData.amsT_AadharNo) || 0,
-
                 amsT_BiometricId: formData.amsT_BiometricId ?? '',
                 amsT_RFCardNo: formData.amsT_RFCardNo ?? '',
-                amsT_BPLCardNo: formData.amsT_BPLCardNo ?? '',
                 isEmisBpl: !!formData.isEmisBpl,
-                mobileNos: (() => {
-                    const src = Array.isArray(getValues('mobileNos'))
-                        ? (getValues('mobileNos') as any[])
-                        : Array.isArray(formData.mobileNos)
-                            ? formData.mobileNos
-                            : [];
-                    const arr = (src || []).slice(0, 5).map((m: any) => ({
-                        amstsmS_MobileNo: [String(m?.amsT_MobileNo ?? m?.mobileNo ?? m ?? '')],
-                        amstsmS_CountryCode: m?.amstsmS_CountryCode ?? m?.countryCode ?? ''
-                    }));
-                    return arr.length ? arr : [];
+                amsT_BPLCardNo: formData.amsT_BPLCardNo ?? '',
+                mobileCountryCode: (() => {
+                    const mobileNos = getValues('mobileNos') as any[];
+                    return Array.isArray(mobileNos) && mobileNos.length > 0
+                        ? String(mobileNos[0]?.amstsmS_CountryCode ?? '')
+                        : '';
                 })(),
-                emailIds: (() => {
-                    const src = Array.isArray(formData.adm_M_Student_EmailIdDTO)
-                        ? formData.adm_M_Student_EmailIdDTO
-                        : formData.adm_M_Student_EmailIdDTO
-                            ? [formData.adm_M_Student_EmailIdDTO]
-                            : [];
-                    const arr = (src || []).map((e: any) => ({
-                        amstE_EmailId: [String(e.amsT_emailId ?? e.emailId ?? e ?? '')]
-                    }));
-                    return arr.length ? arr : [];
+                mobileNumber: (() => {
+                    const mobileNos = getValues('mobileNos') as any[];
+                    return Array.isArray(mobileNos) && mobileNos.length > 0
+                        ? String(mobileNos[0]?.amsT_MobileNo ?? '')
+                        : String(formData.amsT_MobileNo ?? '');
+                })(),
+                emailId: (() => {
+                    const emails = formData.adm_M_Student_EmailIdDTO;
+                    return Array.isArray(emails) && emails.length > 0
+                        ? String(emails[0]?.amsT_emailId ?? '')
+                        : String(formData.amsT_emailId ?? '');
                 })(),
                 amsT_PerState: Number(formData.amsT_PerState ?? 0),
                 amsT_PerDistrict: Number(formData.amsT_PerDistrict ?? 0),
@@ -648,18 +641,18 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     asecS_MICRNo: formData.amsT_ECSFlag ? (formData.adm_M_Student_ECS?.asecS_MICRNo ?? formData.asecS_MICRNo ?? '') : '',
                     asecS_BranchName: formData.amsT_ECSFlag ? (formData.adm_M_Student_ECS?.asecS_Branch ?? formData.asecS_Branch ?? '') : ''
                 },
-
                 feeConcessionType: Number(formData.feeConcessionType ?? 0),
                 amsT_Tpin: formData.amsT_Tpin ?? '',
                 amsT_GPSTrackingId: formData.amsT_GPSTrackingId ?? '',
                 amsT_MediumOfInstruction: formData.amsT_MediumOfInstruction ?? '',
                 userId: Number(formData.userId ?? 0) || 21602,
                 editFlag: !!formData.editFlag,
-                studentPhotoUrl: '',
                 returnVal: true
             };
 
             console.debug('[Admission] saveFirstTab payload:', payload);
+            console.info(payload)
+            console.log(payload)
 
             // Send JSON payload directly
             const res = await saveFirstTabApi(payload);
@@ -884,7 +877,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     'amsT_DOB',
                     'amsT_ReligionId',
                     'amsT_Sex',
-                    'amsT_PerCountry',
                     'amsT_MobileNo',
                     'studentCategoryId',
                     'feeConcessionType'
@@ -985,6 +977,23 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             }
 
             const isValid = await trigger(fieldsToValidate.length > 0 ? fieldsToValidate : []);
+            console.info('Validation Result:', isValid);
+            console.info('Fields Validated:', fieldsToValidate);
+            console.info('Validation Errors:', errors);
+
+            // Log specific field errors for debugging
+            if (!isValid) {
+                console.error('=== VALIDATION FAILED ===');
+                Object.keys(errors).forEach((fieldName) => {
+                    const error = (errors as any)[fieldName];
+                    console.error(`Field: ${fieldName}`, {
+                        message: error?.message,
+                        type: error?.type,
+                        value: getValues(fieldName as any)
+                    });
+                });
+                console.error('========================');
+            }
 
             // Check if there are any validation errors on the current form state
             if (!isValid) {
@@ -3266,7 +3275,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
                                             <div className='flex flex-col gap-1.5'>
                                                 <Label htmlFor='amsT_StudentCategory_Id'>
-                                                    Caste Category <span className='ml-1 text-red-500'>*</span>
+                                                    Caste <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
                                                 <Controller
                                                     name='amsT_StudentCategory_Id'
@@ -4011,7 +4020,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         />
                                                         {errors.amsT_ConState && <FormError>{errors.amsT_ConState.message}</FormError>}
                                                     </div>
-                                                    <div className='flex flex-col gap-1.5'>
+                                                    {/* <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='amsT_ConDistrict'>District</Label>
                                                         <Controller
                                                             name='amsT_ConDistrict'
@@ -4047,7 +4056,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             )}
                                                         />
                                                         {errors.amsT_ConDistrict && <FormError>{errors.amsT_ConDistrict.message}</FormError>}
-                                                    </div>
+                                                    </div> */}
                                                     <InputText
                                                         label='City'
                                                         id='amsT_ConCity'
@@ -4228,7 +4237,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         />
                                                         {errors.amsT_PerState && <FormError>{errors.amsT_PerState.message}</FormError>}
                                                     </div>
-                                                    <div className='flex flex-col gap-1.5'>
+                                                    {/* <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='amsT_PerDistrict'>District</Label>
                                                         <Controller
                                                             name='amsT_PerDistrict'
@@ -4265,7 +4274,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             )}
                                                         />
                                                         {errors.amsT_PerDistrict && <FormError>{errors.amsT_PerDistrict.message}</FormError>}
-                                                    </div>
+                                                    </div> */}
                                                     <InputText
                                                         label='City'
                                                         id='amsT_PerCity'

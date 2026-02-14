@@ -496,8 +496,8 @@ export const EARNING_DEDUCTION_VALIDATION = {
     HRMED_Name: {
         required: VALIDATION_MESSAGES.REQUIRED('Name'),
         minLength: {
-            value: 3,
-            message: VALIDATION_MESSAGES.MIN_LENGTH('Name', 3)
+            value: 1,
+            message: VALIDATION_MESSAGES.MIN_LENGTH('Name', 1)
         },
         maxLength: {
             value: 50,
@@ -513,8 +513,8 @@ export const EARNING_DEDUCTION_VALIDATION = {
             if (trimmed.length === 0) {
                 return 'Name cannot be empty or contain only spaces';
             }
-            if (trimmed.length < 3) {
-                return VALIDATION_MESSAGES.MIN_LENGTH('Name', 3);
+            if (trimmed.length < 1) {
+                return VALIDATION_MESSAGES.MIN_LENGTH('Name', 1);
             }
             if (!/[A-Za-z]/.test(trimmed)) {
                 return 'Name must contain at least one alphabet character';
