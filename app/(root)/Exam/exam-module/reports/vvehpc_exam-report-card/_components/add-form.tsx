@@ -30,7 +30,7 @@ type FormFields = z.infer<typeof vvehpc_examreportcardSchema.addOrUpdate> & {
 export default function ProgressCardReportForm({
     onSuccess
 }: {
-    onSuccess?: (payload: any) =>  Promise<void> | void;
+    onSuccess?: (payload: any) => Promise<void> | void;
 }) {
     const methods = useForm<FormFields>({
         resolver: zodResolver(vvehpc_examreportcardSchema.addOrUpdate),
@@ -138,12 +138,19 @@ export default function ProgressCardReportForm({
                     selectedSection
                 );
                 const valid = Array.isArray(data)
-                    ? data.filter((s): s is { amsT_AdmNo: number; amsT_Id: number; studentName?: string } => !!s?.amsT_Id)
+                    ? (data as any[]).filter((s): s is { amsT_AdmNo: number; amsT_Id: number; studentName?: string; amsT_FirstName?: string; amsT_MiddleName?: string; amsT_LastName?: string } => !!s?.amsT_Id)
                     : [];
                 if (valid.length === 0) {
                     toast.info('No students found');
                 }
-                setStudents(valid);
+
+                const mappedStudents = valid.map((s) => ({
+                    amsT_Id: s.amsT_Id,
+                    amsT_AdmNo: s.amsT_AdmNo,
+                    studentName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
+                }));
+
+                setStudents(mappedStudents);
                 setValue('studentList', []);
                 setAllStudentsSelected(false);
             } catch {
@@ -190,10 +197,10 @@ export default function ProgressCardReportForm({
             fromDate: currentDateTime,
             toDate: currentDateTime
         };
-        if(onSuccess){
+        if (onSuccess) {
             await onSuccess(payload);
         }
-        
+
     };
     const handleAllStudents = (checked: boolean) => {
         if (checked && students.length) {
@@ -413,7 +420,7 @@ export default function ProgressCardReportForm({
 
                         <div className='flex justify-center gap-3'>
                             <Button type='submit' disabled={isSubmitting || !hasStudentsSelected} className='min-w-[140px]'>
-                                  {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' /> }
+                                {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                                 {isSubmitting ? 'Generating...' : 'Report'}
                             </Button>
                             <Button
