@@ -11,9 +11,11 @@ import { useMasterOrderedExamDropdownList } from '@/hooks/exam/exammodule/usemas
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type ExamMonthEndReportFormValues, examMonthEndReportSchema } from '@/schemas/exam/exam-module/reports';
 import { getInitialData, getReportData } from '@/server/exam/exam-module/reports/exam-month-end-report';
+import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
+import type { IMasterInstitution, Institution } from '@/types/exam/exam-module/report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Check, Loader2, Printer, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { toast } from 'sonner';
@@ -25,8 +27,10 @@ export default function ExamMonthEndReportPage() {
     const [selectedYear, setSelectedYear] = useState('');
     const [selectedMonth, setSelectedMonth] = useState('');
     const [selectedExam, setSelectedExam] = useState('');
+    const [institution, setInstitution] = useState<IMasterInstitution | Institution | null>(null);
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const { data: examData, isLoading: examDataLoading, error: examDataError } = useMasterOrderedExamDropdownList();
+    const printRef = useRef<HTMLDivElement>(null);
 
     const {
         control,
@@ -45,7 +49,11 @@ export default function ExamMonthEndReportPage() {
             EME_Id: ''
         }
     });
-
+    useEffect(() => {
+        if (reportData && printRef.current) {
+            printRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [reportData]);
     // Check for empty data and show toast
     useEffect(() => {
         if (!academicYearLoading && academicYear?.data && academicYear.data.length === 0) {
@@ -62,12 +70,20 @@ export default function ExamMonthEndReportPage() {
     const ienameValue = watch('iename');
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchInitialData = async () => {
             try {
-                const data = await getInitialData();
+                const [data, institutionRes] = await Promise.all([
+                    getInitialData(),
+                    getMasterInstitution()
+                ]);
+
                 setMonthList(data.monthlist);
                 if (data.monthlist && data.monthlist.length === 0) {
                     toast.info('No Months found');
+                }
+
+                if (institutionRes?.success) {
+                    setInstitution(institutionRes.data);
                 }
             } catch (error) {
                 console.error('Error fetching initial data', error);
@@ -76,11 +92,12 @@ export default function ExamMonthEndReportPage() {
                 setIsLoading(false);
             }
         };
-        fetchData();
+        fetchInitialData();
     }, [reset]);
 
     const onSubmit = async (data: ExamMonthEndReportFormValues) => {
         try {
+            console.log('Month End Report payload:', data);
             const response = await getReportData(data);
             const safeReportData = Array.isArray(response.data) ? response.data : [];
             // Set report table data
@@ -120,12 +137,12 @@ export default function ExamMonthEndReportPage() {
         const printHeader = `
             <div class="header-container">
                 <div class="logo-container">
-                    <img src="/assets/tunbridge_logo.png" alt="Logo" class="logo">
+                    <img src="${institution?.mI_Logo || '/assets/tunbridge_logo.png'}" alt="${institution?.mI_Name || 'Logo'}" class="logo">
                 </div>
                 <div class="school-details">
-                    <h1 class="school-name">Tunbridge High School</h1>
-                    <p class="address">86/2 Infantry Road, Bangalore, Karnataka, India 560001</p>
-                    <p class="email">Mail Id: tunbridgehs@gmail.com</p>
+                    <h1 class="school-name">${institution?.mI_Name || 'Tunbridge High School'}</h1>
+                    <p class="address">${(institution as Institution)?.mI_Address1 || '86/2 Infantry Road, Bangalore, Karnataka, India 560001'}</p>
+                    <p class="email">Mail Id: ${(institution as Institution)?.mI_SMSAlertToemailids || 'tunbridgehs@gmail.com'}</p>
                 </div>
             </div>
             <div class="report-title">Exam Module</div>
@@ -243,6 +260,7 @@ export default function ExamMonthEndReportPage() {
             </div>
         );
     }
+
 
     return (
         <div className='container mx-auto space-y-6 p-4'>
@@ -430,11 +448,15 @@ export default function ExamMonthEndReportPage() {
             </Card>
 
             {reportData && reportData.length > 0 && (
-                <div id='printSectionId'>
+                <div id='printSectionId' ref={printRef}>
                     <Card className='fade-in-50 slide-in-from-bottom-5 w-full animate-in shadow-lg'>
                         <CardHeader className='pb-2 text-center'>
                             <div className='mb-2 flex w-full items-center justify-center print:flex'>
-                                <img src='/assets/tunbridge_logo.png' alt='Institution Logo' className='h-24 w-auto object-contain' />
+                                <img
+                                    src={institution?.mI_Logo || '/assets/tunbridge_logo.png'}
+                                    alt={institution?.mI_Name || 'Institution Logo'}
+                                    className='h-24 w-auto object-contain'
+                                />
                             </div>
                             <h3 className='font-bold text-xl uppercase tracking-wide'>Exam Module</h3>
                             <h4 className='font-semibold text-lg text-primary'>

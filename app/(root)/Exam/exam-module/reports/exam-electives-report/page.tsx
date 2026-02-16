@@ -2,7 +2,7 @@
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { getExamElectivesReport } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import BaldwinElectivesReportForm from './_components/add-form';
 import ElectiveReportGridView from './_components/columns';
@@ -117,6 +117,12 @@ export default function ExamElectivesReportPage() {
 
     const showMobile = !!lastPayload?.mob_flg;
     const showEmail = !!lastPayload?.mail_flg;
+
+    useEffect(() => {
+        if (isReportVisible && students.length > 0 && printRef.current) {
+            printRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [isReportVisible, students]);
 
     return (
         <div className='container mx-auto space-y-6 p-4'>
