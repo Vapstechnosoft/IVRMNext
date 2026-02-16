@@ -317,7 +317,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
             const updatedTerms = [...terms];
             for (let i = 0; i < terms.length; i++) {
                 const matchingTerm = disableTerms.find((dt) => dt.fmtId === terms[i].fmT_Id);
-                if (matchingTerm && matchingTerm.netAmount <= matchingTerm.paid) {
+                if (matchingTerm && matchingTerm.balance === 0) {
                     updatedTerms[i].disablepaisterms = true;
                 } else {
                     updatedTerms[i].disablepaisterms = false;
