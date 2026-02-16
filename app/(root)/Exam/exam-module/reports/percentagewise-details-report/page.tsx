@@ -15,6 +15,7 @@ export default function PercentagewiseDetailsReportPage() {
         if (response?.data) {
             // The API returns data directly in response.data array, not in response.data.datareport
             setReportData(Array.isArray(response.data) ? response.data : []);
+            
             setInstitutionDetails(response.data.institution || []);
 
             // Construct criteria string (simplified for now, ideally derived from payload names)
