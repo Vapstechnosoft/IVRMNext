@@ -29,7 +29,7 @@ export default function ElectiveReportPrintView({
     useEffect(() => {
         async function fetchInstitute() {
             try {
-                const res = await getMasterInstitution({});
+                const res = await getMasterInstitution();
                 if (res?.success && res.data) {
                     setInstitute({
                         name: res.data.mI_Name || 'Institution',

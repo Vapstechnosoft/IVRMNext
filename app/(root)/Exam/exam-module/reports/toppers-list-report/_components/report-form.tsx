@@ -315,10 +315,9 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
             console.log('Sending payload to API:', payload);
 
             const result = await getToppersReportDetails(payload);
-
-
+            console.log('toppers list response', result);
             if (result.success) {
-                onReportGenerated(result.data || result.datareport, result.masterinstitution, formValues);
+                onReportGenerated(result.data, [], []);
             } else {
                 toast.error(result.message || 'Failed to generate report');
             }

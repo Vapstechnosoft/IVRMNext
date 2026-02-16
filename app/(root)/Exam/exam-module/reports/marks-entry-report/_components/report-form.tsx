@@ -272,6 +272,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         }
     };
 
+
     const handleClear = () => {
         reset();
         onReset();
