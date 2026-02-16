@@ -1,19 +1,21 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Edit2, Power, PowerOff } from 'lucide-react';
 import { IBMICalculation } from '@/types/sports/transactions/bmi-calculation';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { useBMICalculation } from '@/hooks/sports/useBMICalculation';
-import { toast } from 'sonner';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { Edit } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export const bmiCalculationColumns: ColumnDef<IBMICalculation>[] = [
     {
-        accessorKey: 'serialNumber',
+        id: 'slno',
         header: 'Sl.No.',
-        cell: ({ row }) => row.index + 1
+        cell: ({ row }) => row.index + 1,
     },
     {
         accessorKey: 'asmaY_Year',
@@ -54,49 +56,45 @@ export const bmiCalculationColumns: ColumnDef<IBMICalculation>[] = [
     {
         accessorKey: 'spccshW_BMIRemark',
         header: 'Remark',
+        cell: ({ row }) => {
+            const remark = row.original.spccshW_BMIRemark || row.original.SPCCSHW_BMIRemark;
+            let variant: 'default' | 'secondary' | 'destructive' | 'outline' = 'outline';
+            if (remark === 'Normal') variant = 'default';
+            if (remark === 'Overweight') variant = 'secondary';
+            if (remark === 'Obese' || remark === 'Extreme Obese') variant = 'destructive';
+
+            return <Badge variant={variant}>{remark}</Badge>;
+        }
     },
     {
         id: 'actions',
         header: 'Action',
         cell: ({ row }) => {
+            const { edit, deactivate } = useBMICalculation();
             const { openEditForm } = useFormContext<IBMICalculation>();
-            const { deactivate } = useBMICalculation();
-            const record = row.original;
-
-            const handleEdit = () => {
-                openEditForm(record);
-            };
-
-            const handleDeactivate = async () => {
-                const action = record.spccmhW_ActiveFlag ? 'deactivate' : 'activate';
-                const result = await deactivate.mutateAsync(record);
-                if (result.success) {
-                    toast.success(`Record ${action}d successfully`);
-                } else {
-                    toast.error(`Failed to ${action} record`);
-                }
-            };
+            const isActive = row.original.spccmhW_ActiveFlag || row.original.SPCCMHW_ActiveFlag;
 
             return (
-                <div className='flex items-center gap-2'>
+                <div key={row.id} className='flex items-center gap-3'>
                     <Button
                         variant='ghost'
-                        size='icon'
-                        onClick={handleEdit}
-                        className='h-8 w-8 text-primary hover:bg-primary/10'
-                    >
-                        <Edit2 className='h-4 w-4' />
+                        size='sm'
+                        onClick={() => openEditForm(row.original)}
+                        className='h-8 w-8 p-0 text-primary hover:bg-primary/10'>
+                        <Edit className='h-4 w-4' />
                     </Button>
                     <Button
-                        variant='ghost'
-                        size='icon'
-                        onClick={handleDeactivate}
-                        className={`h-8 w-8 ${record.spccmhW_ActiveFlag ? 'text-destructive hover:bg-destructive/10' : 'text-success hover:bg-success/10'}`}
-                    >
-                        {record.spccmhW_ActiveFlag ? <PowerOff className='h-4 w-4' /> : <Power className='h-4 w-4' />}
+                        variant='link'
+                        size='sm'
+                        onClick={() => deactivate.mutate(row.original.spccshW_Id || row.original.SPCCSHW_Id || 0)}
+                        className={cn(
+                            'h-auto p-0 font-medium text-xs',
+                            isActive ? 'text-destructive hover:text-destructive/80' : 'text-green-600 hover:text-green-700'
+                        )}>
+                        {isActive ? 'De-Activate' : 'Activate'}
                     </Button>
                 </div>
             );
-        }
-    }
+        },
+    },
 ];

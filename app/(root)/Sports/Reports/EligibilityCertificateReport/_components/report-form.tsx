@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { eligibilityCertificateReportSchema, IEligibilityCertificateReport } from '@/types/sports/reports/eligibility-certificate-report';
+import { eligibilityCertificateReportSchema, type IEligibilityCertificateReport } from '@/types/sports/reports/eligibility-certificate-report';
 import { useEligibilityCertificateReport } from '@/hooks/sports/useEligibilityCertificateReport';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';

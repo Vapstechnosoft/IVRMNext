@@ -1,7 +1,7 @@
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { getVenueWiseParticipationDropdowns, getVenueWiseParticipationReport } from "@/server/sports/reports/venue-wise-participation-report";
-import { VenueWiseParticipationReportFormSchema } from "@/types/sports/reports/venue-wise-participation-report";
+import type { VenueWiseParticipationReportFormSchema } from "@/types/sports/reports/venue-wise-participation-report";
 
 export const useVenueWiseParticipationReport = () => {
     const dropdowns = useQuery({

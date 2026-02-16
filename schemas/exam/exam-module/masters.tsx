@@ -20,7 +20,8 @@ export const masterSubjectSchema = {
         ismS_ExamFlag: z.number().int({ message: 'Exam Flag is required' }),
         ismS_LanguageFlg: z.number().int({ message: 'Language Flag is required' }),
         ismS_AtExtraFeeFlg: z.number().int({ message: 'Extra Fee Flag is required' }),
-        ismS_ActiveFlag: z.number().int({ message: 'Active Flag is required' })
+        ismS_ActiveFlag: z.number().int({ message: 'Active Flag is required' }),
+        ismS_TTFlag: z.number().int({ message: 'Time Table Flag is required' })
     }),
 
     delete: z.object({

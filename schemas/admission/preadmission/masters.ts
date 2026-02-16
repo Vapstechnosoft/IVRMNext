@@ -20,7 +20,7 @@ export const loginSchema = z.object({
     password: z
         .string({ message: 'Password is required' })
         .min(8, { message: `Minimum ${8} characters required for Password` })
-        .max(15, { message: `Maximum ${15} characters allowed for Password` })
+        .max(30, { message: `Maximum ${30} characters allowed for Password` })
         .regex(/^\S+$/, {
             message: 'Password cannot contain whitespace'
         })

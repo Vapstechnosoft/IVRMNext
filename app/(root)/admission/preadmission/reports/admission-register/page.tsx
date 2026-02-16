@@ -14,6 +14,7 @@ import { usePreadmissionClassDropdown1 } from '@/hooks/admission/preadmission/us
 import { cn } from '@/lib/utils';
 import { admissionReportSchema } from '@/schemas/admission/preadmission/reports';
 import { getExcelAdmissionRegistrationReport } from '@/server/admission/preadmission/reports/month_end_report';
+import { getAdmissionRegister } from '@/server/admission/preadmission/reports/student_yearly_attendance';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, FileSpreadsheet, FileText, Printer, RotateCcw, Search, Square, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -110,6 +111,8 @@ export default function AdmissionReportPage(props: {
     const [showReport, setShowReport] = useState(false);
     const [requestPayload, setRequestPayload] = useState<any>(null);
     const [selectedStudents, setSelectedStudents] = useState<any[]>([]);
+    const [isPrinting, setIsPrinting] = useState(false);
+    const [printData, setPrintData] = useState<any[]>([]);
 
     const {
         data: preadmissionClass,
@@ -126,6 +129,7 @@ export default function AdmissionReportPage(props: {
         formState: { errors }
     } = useForm<FormFields>({
         resolver: zodResolver(admissionReportSchema),
+        mode: 'onChange',
         defaultValues: {
             academicYear: 0,
             status: 0,
@@ -178,8 +182,8 @@ export default function AdmissionReportPage(props: {
                 typeof response.data === 'object' && response.data !== null && 'searchstudentDetails' in response.data
                     ? response.data.searchstudentDetails
                     : Array.isArray(response.data)
-                      ? response.data
-                      : [],
+                        ? response.data
+                        : [],
             total: response.total,
             page: response.page,
             page_size: response.page_size
@@ -197,8 +201,8 @@ export default function AdmissionReportPage(props: {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -318,19 +322,50 @@ export default function AdmissionReportPage(props: {
         toast.info('Report cancelled');
     };
 
-    const handlePrint = () => {
-        const data = Array.isArray(response?.data) ? response.data : (response?.data as any)?.searchstudentDetails;
-        if (!data || !Array.isArray(data) || data.length === 0) {
-            toast.error('No data available to print');
-            return;
-        }
+    const handlePrint = async () => {
+        try {
+            setIsPrinting(true);
+            toast.info('Preparing print view (fetching all records)...');
 
-        if (selectedStudents.length === 0) {
-            toast.error('Please select at least one record to print');
-            return;
-        }
+            // Fetch all data for printing
+            const printSearchParams = {
+                page_size: 100000,
+                page: 1
+            };
 
-        window.print();
+            const response: any = await getAdmissionRegister(academicYearValue, statusValue, requestPayload, printSearchParams);
+
+            const allData =
+                response?.data && 'searchstudentDetails' in response.data
+                    ? response.data.searchstudentDetails
+                    : Array.isArray(response?.data)
+                        ? response.data
+                        : [];
+
+            if (!allData || allData.length === 0) {
+                toast.error('No data available to print');
+                setIsPrinting(false);
+                return;
+            }
+
+            setPrintData(allData);
+
+            // Wait for state update and render
+            setTimeout(() => {
+                window.print();
+                // Optional: Reset after print dialog closes (approximate)
+                // In many browsers, window.print() is blocking, so this runs after.
+                // But for safety/UX, we might keep it or reset it.
+                // Let's reset it to restore pagination.
+                setIsPrinting(false);
+                setPrintData([]); // Clear print data after printing
+            }, 1000);
+        } catch (error) {
+            console.error('Print preparation error:', error);
+            toast.error('Failed to prepare print view');
+            setIsPrinting(false);
+            setPrintData([]); // Clear print data on error
+        }
     };
 
     return (
@@ -378,7 +413,10 @@ export default function AdmissionReportPage(props: {
                                             render={({ field }) => (
                                                 <Select
                                                     value={field.value > 0 ? field.value.toString() : ''}
-                                                    onValueChange={(value) => field.onChange(Number(value))}>
+                                                    onValueChange={(value) => {
+                                                        field.onChange(Number(value));
+                                                        trigger('academicYear');
+                                                    }}>
                                                     <SelectTrigger className='w-full sm:w-52'>
                                                         <SelectValue placeholder='Select Academic Year' />
                                                     </SelectTrigger>
@@ -604,8 +642,7 @@ export default function AdmissionReportPage(props: {
                                             <Button
                                                 variant='outline'
                                                 className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
-                                                onClick={handlePrint}
-                                                disabled={selectedStudents.length === 0}>
+                                                onClick={handlePrint}>
                                                 <Printer className='mr-2 h-4 w-4' />
                                                 Print
                                             </Button>
@@ -617,34 +654,54 @@ export default function AdmissionReportPage(props: {
 
                     {showReport && (
                         <div id='printable-report'>
-                            <CollapsibleSection
-                                defaultOpen={true}
-                                variant='default'
-                                size='lg'
-                                title='Admission Register Report'
-                                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                                {selectedFields.length === 0 ? (
-                                    <div className='flex flex-col items-center justify-center space-y-2 py-12'>
-                                        <p className='font-medium text-gray-600 text-lg'>No Fields Selected</p>
-                                        <p className='text-gray-500 text-sm'>Please select at least one field to display data</p>
-                                    </div>
-                                ) : (
-                                    <GenericDataTable
-                                        {...tableProps}
-                                        ref={tableRef}
-                                        columns={columns}
-                                        isLoading={isLoading}
-                                        error={error}
-                                        showViewOptions={false}
-                                        isPaginationRequired={true}
-                                        loadingMessage='Loading Admission Reports...'
-                                        noDataTitle='No Admission Reports Found'
-                                        noDataDescription='No data available for the selected criteria'
-                                        errorTitle='Error Loading Admission Reports'
-                                        onRowSelectionChange={handleSelectStudent}
-                                    />
-                                )}
-                            </CollapsibleSection>
+                            {isPrinting ? (
+                                <GenericDataTable
+                                    {...tableProps}
+                                    ref={tableRef}
+                                    columns={columns}
+                                    data={printData}
+                                    isLoading={printData.length === 0}
+                                    error={error}
+                                    showViewOptions={false}
+                                    isSearchRequired={false}
+                                    isPaginationRequired={false}
+                                    loadingMessage='Preparing for print...'
+                                    noDataTitle='No Admission Reports Found'
+                                    noDataDescription='No data available for the selected criteria'
+                                    errorTitle='Error Loading Admission Reports'
+                                    onRowSelectionChange={handleSelectStudent}
+                                />
+                            ) : (
+                                <CollapsibleSection
+                                    defaultOpen={true}
+                                    variant='default'
+                                    size='lg'
+                                    title='Admission Register Report'
+                                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                                    {selectedFields.length === 0 ? (
+                                        <div className='flex flex-col items-center justify-center space-y-2 py-12'>
+                                            <p className='font-medium text-gray-600 text-lg'>No Fields Selected</p>
+                                            <p className='text-gray-500 text-sm'>Please select at least one field to display data</p>
+                                        </div>
+                                    ) : (
+                                        <GenericDataTable
+                                            {...tableProps}
+                                            ref={tableRef}
+                                            columns={columns}
+                                            data={(transformedResponse?.data as any[]) || []}
+                                            isLoading={isLoading}
+                                            error={error}
+                                            showViewOptions={false}
+                                            isPaginationRequired={true}
+                                            loadingMessage='Loading Admission Reports...'
+                                            noDataTitle='No Admission Reports Found'
+                                            noDataDescription='No data available for the selected criteria'
+                                            errorTitle='Error Loading Admission Reports'
+                                            onRowSelectionChange={handleSelectStudent}
+                                        />
+                                    )}
+                                </CollapsibleSection>
+                            )}
                         </div>
                     )}
                 </div>

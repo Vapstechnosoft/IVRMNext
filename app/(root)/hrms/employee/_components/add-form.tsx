@@ -2468,7 +2468,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 field={field}
                                                                 fieldState={fieldState}
                                                                 label='Date Of Confirmation'
-                                                                required
                                                                 placeholder='Pick date of confirmation'
                                                             />
                                                         )}
@@ -2937,7 +2936,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 field={field}
                                                                 fieldState={fieldState}
                                                                 label='Date Of Retirement'
-                                                                required
                                                                 placeholder='Pick date of retirement'
                                                             />
                                                         )}

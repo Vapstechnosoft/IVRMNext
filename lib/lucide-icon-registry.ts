@@ -127,7 +127,15 @@ import {
     Wifi,
     WifiOff,
     X,
-    Zap
+    Zap,
+    ArrowRightLeft,
+    Box,
+    Boxes,
+    PackageMinus,
+    Percent,
+    Ruler,
+    Store,
+    Wallet
 } from 'lucide-react';
 
 export interface IconOption {
@@ -295,7 +303,16 @@ export const lucideIcons: IconOption[] = [
     { name: 'AlertTriangle', icon: AlertTriangle, category: 'security' },
     { name: 'AlertCircle', icon: AlertCircle, category: 'security' },
     { name: 'Info', icon: Info, category: 'security' },
-    { name: 'HelpCircle', icon: HelpCircle, category: 'security' }
+    { name: 'HelpCircle', icon: HelpCircle, category: 'security' },
+    // Inventory
+    { name: 'ArrowRightLeft', icon: ArrowRightLeft, category: 'interface' },
+    { name: 'Box', icon: Box, category: 'business' },
+    { name: 'Boxes', icon: Boxes, category: 'business' },
+    { name: 'PackageMinus', icon: PackageMinus, category: 'business' },
+    { name: 'Percent', icon: Percent, category: 'business' },
+    { name: 'Ruler', icon: Ruler, category: 'interface' },
+    { name: 'Store', icon: Store, category: 'business' },
+    { name: 'Wallet', icon: Wallet, category: 'business' }
 ];
 
 // Helper function to get icon by name
