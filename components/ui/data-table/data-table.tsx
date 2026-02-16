@@ -41,6 +41,7 @@ interface DataTableProps<TData, TValue> {
     manualPagination?: boolean;
     scrollable?: boolean;
     maxHeight?: string;
+    selectedCountOverride?: number;
 }
 
 export interface DataTableRef {
@@ -64,7 +65,8 @@ function DataTableInner<TData, TValue>(
         showSearchColumns = false,
         manualPagination = true,
         scrollable = false,
-        maxHeight = '600px'
+        maxHeight = '600px',
+        selectedCountOverride
     }: DataTableProps<TData, TValue>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -259,10 +261,11 @@ function DataTableInner<TData, TValue>(
                     {isPaginationRequired && (
                         <div className='flex flex-col gap-2.5'>
                             <div className='flex w-full flex-col-reverse items-center justify-between gap-4 overflow-auto p-1 sm:flex-row sm:gap-8'>
-                                {table.getFilteredSelectedRowModel().rows.length > 0 ? (
+                                {table.getFilteredSelectedRowModel().rows.length > 0 || (selectedCountOverride ?? 0) > 0 ? (
                                     <div className='flex-1 whitespace-nowrap text-muted-foreground text-sm'>
-                                        {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length}{' '}
-                                        row(s) selected.
+                                        {selectedCountOverride !== undefined && selectedCountOverride > 0
+                                            ? `${selectedCountOverride} record(s) selected.`
+                                            : `${table.getFilteredSelectedRowModel().rows.length} of ${totalItems || table.getFilteredRowModel().rows.length} row(s) selected.`}
                                     </div>
                                 ) : (
                                     <div className='flex-1 whitespace-nowrap text-muted-foreground text-sm'>
@@ -290,7 +293,7 @@ function DataTableInner<TData, TValue>(
                                         <SelectContent side='top'>
                                             {pageSizeOptions.map((pageSize) => (
                                                 <SelectItem key={pageSize} value={`${pageSize}`}>
-                                                    {pageSize}
+                                                    {pageSize === 100000 ? 'All' : pageSize}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>

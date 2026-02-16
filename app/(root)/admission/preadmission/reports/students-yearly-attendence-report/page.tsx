@@ -78,6 +78,7 @@ export default function StudentsYearlyAttendenceReport(props: {
         // Reset report and selections when filter changes
         setShowReport(false);
         setSelectedStudents([]);
+        setIsAllRecordsSelected(false);
         handleResetSelection();
 
         if (filterType === 'class') {
@@ -106,6 +107,7 @@ export default function StudentsYearlyAttendenceReport(props: {
 
     const [selectedStudents, setSelectedStudents] = useState<IStudentYearlyAttendenceReportList[]>([]);
     const [printData, setPrintData] = useState<any[]>([]);
+    const [isAllRecordsSelected, setIsAllRecordsSelected] = useState(false);
 
     const {
         data: admissionSection,
@@ -176,7 +178,8 @@ export default function StudentsYearlyAttendenceReport(props: {
 
     const tableProps = useDataTableProps({
         ...response,
-        data: transformedData
+        data: transformedData,
+        totalItems: (response as any)?.total || 0,
     });
 
     const columns = useMemo(() => {
@@ -192,6 +195,85 @@ export default function StudentsYearlyAttendenceReport(props: {
 
     const handleSelectStudent = (selectedRows: IStudentYearlyAttendenceReportList[]) => {
         setSelectedStudents(selectedRows);
+        // If manually selecting rows, disable "all records selected" mode
+        if (isAllRecordsSelected && selectedRows.length !== transformedData.length) {
+            setIsAllRecordsSelected(false);
+        }
+    };
+
+    const handleSelectAllRecords = async () => {
+        try {
+            toast.loading('Fetching all records...', { id: 'select-all-fetch' });
+
+            // Fetch all data with a large page size
+            const allDataResponse = await GetStudentYearlyAttendance(
+                (academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0,
+                classId,
+                sectionId ?? 0,
+                { ...searchParams, page_size: 100000 }
+            );
+
+            const attendanceData = allDataResponse?.data as any;
+            if (!attendanceData) {
+                toast.dismiss('select-all-fetch');
+                toast.error('Failed to fetch all records');
+                return;
+            }
+
+            // Transform data (same logic as in transformedData)
+            const studentList = attendanceData.studentAttendanceList || attendanceData.StudentAttendanceList || [];
+            const monthList = attendanceData.monthList || attendanceData.MonthList || [];
+
+            const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
+            const studentMap = new Map<number, IStudentYearlyAttendenceReportList>();
+
+            studentList.forEach((record: any) => {
+                if (!studentMap.has(record.RowNo)) {
+                    studentMap.set(record.RowNo, {
+                        RowNo: record.RowNo,
+                        name: record.name,
+                        AMST_AdmNo: record.AMST_AdmNo,
+                        AMST_RegistrationNo: record.AMST_RegistrationNo,
+                        AMAY_RollNo: record.AMAY_RollNo,
+                        monthlyAttendance: {},
+                        totalPresent: 0,
+                        totalWorkingDays: totalWorkingDays,
+                        totalAbsent: totalWorkingDays,
+                        percentage: '0.00',
+                        AMST_Id: record.AMST_Id ?? 0
+                    });
+                }
+
+                const student = studentMap.get(record.RowNo)!;
+                const monthKey = `${record.yearidname}-${record.monthidname}`;
+
+                student.monthlyAttendance[monthKey] = record.TOTAL_PRESENT;
+                student.totalPresent += record.TOTAL_PRESENT;
+                student.totalAbsent = student.totalWorkingDays - student.totalPresent;
+            });
+
+            const allRecords = Array.from(studentMap.values()).map((student) => ({
+                ...student,
+                percentage: student.totalWorkingDays > 0 ? ((student.totalPresent / student.totalWorkingDays) * 100).toFixed(2) : '0.00'
+            }));
+
+            setSelectedStudents(allRecords);
+            setIsAllRecordsSelected(true);
+
+            toast.dismiss('select-all-fetch');
+            toast.success(`Selected all ${allRecords.length} records`);
+        } catch (error) {
+            console.error('Select all error:', error);
+            toast.dismiss('select-all-fetch');
+            toast.error('Error fetching all records');
+        }
+    };
+
+    const handleDeselectAll = () => {
+        setSelectedStudents([]);
+        setIsAllRecordsSelected(false);
+        handleResetSelection();
+        toast.info('All selections cleared');
     };
 
     const handleReset = () => {
@@ -200,6 +282,7 @@ export default function StudentsYearlyAttendenceReport(props: {
         setSectionId(undefined);
         setSelectedStudents([]);
         setShowReport(false);
+        setIsAllRecordsSelected(false);
         handleResetSelection();
 
         router.replace(pathname);
@@ -210,13 +293,15 @@ export default function StudentsYearlyAttendenceReport(props: {
     const handleCancel = () => {
         setShowReport(false);
         setSelectedStudents([]);
+        setIsAllRecordsSelected(false);
         handleResetSelection();
         toast.info('Report cancelled');
     };
 
     const downloadExcel = async () => {
         try {
-            if (!academicYearId || !classId || !sectionId || !searchParams) {
+            // Check if required filters are selected (allow 0 for sectionId as it means 'All')
+            if (!academicYearId || !classId || sectionId === undefined) {
                 toast.error('Please fill all required fields!');
                 return;
             }
@@ -264,68 +349,69 @@ export default function StudentsYearlyAttendenceReport(props: {
             return;
         }
 
-        if (selectedStudents.length > 0) {
-            setPrintData(selectedStudents);
-            toast.info(`Preparing print for ${selectedStudents.length} selected record(s)...`);
-        } else {
-            try {
-                toast.loading('Fetching all records for print...', { id: 'print-fetch' });
-                // @ts-ignore
-                const allDataResponse = await GetStudentYearlyAttendance((academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0, classId, sectionId ?? 0, { ...searchParams, page_size: 100000 });
-                const attendanceData = (allDataResponse?.data as any);
-                if (!attendanceData) {
-                    toast.dismiss('print-fetch');
-                    toast.error('Failed to fetch print data');
-                    return;
-                }
+        try {
+            toast.loading('Fetching all records for print...', { id: 'print-fetch' });
 
-                // Transform data for print
-                const studentList = attendanceData.studentAttendanceList || attendanceData.StudentAttendanceList || [];
-                const monthList = attendanceData.monthList || attendanceData.MonthList || [];
+            // Fetch all data with text search params intact
+            const allDataResponse = await GetStudentYearlyAttendance(
+                (academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0,
+                classId,
+                sectionId ?? 0,
+                { ...searchParams, page_size: 100000 }
+            );
 
-                const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
-
-                const studentMap = new Map<number, any>();
-
-                studentList.forEach((record: any) => {
-                    if (!studentMap.has(record.RowNo)) {
-                        studentMap.set(record.RowNo, {
-                            ...record,
-                            monthlyAttendance: {},
-                            totalPresent: 0,
-                            totalWorkingDays: totalWorkingDays,
-                            totalAbsent: totalWorkingDays,
-                            percentage: '0.00'
-                        });
-                    }
-
-                    const student = studentMap.get(record.RowNo)!;
-                    const monthKey = `${record.yearidname}-${record.monthidname}`;
-
-                    student.monthlyAttendance[monthKey] = record.TOTAL_PRESENT;
-                    student.totalPresent += record.TOTAL_PRESENT;
-                    student.totalAbsent = student.totalWorkingDays - student.totalPresent;
-                });
-
-                const finalData = Array.from(studentMap.values()).map((student: any) => ({
-                    ...student,
-                    percentage: totalWorkingDays > 0 ? ((student.totalPresent / totalWorkingDays) * 100).toFixed(2) : '0.00'
-                }));
-
-                setPrintData(finalData);
+            const attendanceData = (allDataResponse?.data as any);
+            if (!attendanceData) {
                 toast.dismiss('print-fetch');
-                toast.success(`Ready to print ${finalData.length} records`);
-            } catch (error) {
-                console.error('Print fetch error:', error);
-                toast.dismiss('print-fetch');
-                toast.error('Error fetching print data');
+                toast.error('Failed to fetch print data');
                 return;
             }
-        }
 
-        setTimeout(() => {
-            handlePrintContent();
-        }, 500);
+            // Transform data for print
+            const studentList = attendanceData.studentAttendanceList || attendanceData.StudentAttendanceList || [];
+            const monthList = attendanceData.monthList || attendanceData.MonthList || [];
+
+            const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
+
+            const studentMap = new Map<number, any>();
+
+            studentList.forEach((record: any) => {
+                if (!studentMap.has(record.RowNo)) {
+                    studentMap.set(record.RowNo, {
+                        ...record,
+                        monthlyAttendance: {},
+                        totalPresent: 0,
+                        totalWorkingDays: totalWorkingDays,
+                        totalAbsent: totalWorkingDays,
+                        percentage: '0.00'
+                    });
+                }
+
+                const student = studentMap.get(record.RowNo)!;
+                const monthKey = `${record.yearidname}-${record.monthidname}`;
+
+                student.monthlyAttendance[monthKey] = record.TOTAL_PRESENT;
+                student.totalPresent += record.TOTAL_PRESENT;
+                student.totalAbsent = student.totalWorkingDays - student.totalPresent;
+            });
+
+            const finalData = Array.from(studentMap.values()).map((student: any) => ({
+                ...student,
+                percentage: totalWorkingDays > 0 ? ((student.totalPresent / totalWorkingDays) * 100).toFixed(2) : '0.00'
+            }));
+
+            setPrintData(finalData);
+            toast.dismiss('print-fetch');
+            toast.success(`Ready to print ${finalData.length} records`);
+
+            setTimeout(() => {
+                handlePrintContent();
+            }, 500);
+        } catch (error) {
+            console.error('Print fetch error:', error);
+            toast.dismiss('print-fetch');
+            toast.error('Error fetching print data');
+        }
     };
 
     const handleReport = () => {
@@ -501,6 +587,9 @@ export default function StudentsYearlyAttendenceReport(props: {
                         variant='outline'
                         size='md'
                         className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+
+                        {/* Select All Banner Removed */}
+
                         <GenericDataTable<IStudentYearlyAttendenceReportList>
                             {...tableProps}
                             ref={tableRef}
@@ -512,7 +601,7 @@ export default function StudentsYearlyAttendenceReport(props: {
                             noDataTitle='No Data Found'
                             noDataDescription='No attendance records found. Please select filters to view data.'
                             errorTitle='Error Loading Attendance Report'
-                            onRowSelectionChange={handleSelectStudent}
+                            pageSizeOptions={[10, 20, 30, 40, 50, 100000]}
                         />
                     </CollapsibleSection>
                 )}
