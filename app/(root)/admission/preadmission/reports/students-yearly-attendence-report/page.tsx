@@ -139,6 +139,8 @@ export default function StudentsYearlyAttendenceReport(props: {
         const studentAttendanceList = studentList;
         const monthList = monthListVal;
 
+        const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
+
         const studentMap = new Map<number, IStudentYearlyAttendenceReportList>();
 
         studentAttendanceList.forEach((record: any) => {
@@ -151,8 +153,10 @@ export default function StudentsYearlyAttendenceReport(props: {
                     AMAY_RollNo: record.AMAY_RollNo,
                     monthlyAttendance: {},
                     totalPresent: 0,
+                    totalWorkingDays: totalWorkingDays,
+                    totalAbsent: totalWorkingDays,
                     percentage: '0.00',
-                    AMST_Id: 0
+                    AMST_Id: record.AMST_Id ?? 0
                 });
             }
 
@@ -161,13 +165,12 @@ export default function StudentsYearlyAttendenceReport(props: {
 
             student.monthlyAttendance[monthKey] = record.TOTAL_PRESENT;
             student.totalPresent += record.TOTAL_PRESENT;
+            student.totalAbsent = student.totalWorkingDays - student.totalPresent;
         });
-
-        const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
 
         return Array.from(studentMap.values()).map((student) => ({
             ...student,
-            percentage: totalWorkingDays > 0 ? ((student.totalPresent / totalWorkingDays) * 100).toFixed(2) : '0.00'
+            percentage: student.totalWorkingDays > 0 ? ((student.totalPresent / student.totalWorkingDays) * 100).toFixed(2) : '0.00'
         }));
     }, [response?.data, showReport]);
 
@@ -280,6 +283,8 @@ export default function StudentsYearlyAttendenceReport(props: {
                 const studentList = attendanceData.studentAttendanceList || attendanceData.StudentAttendanceList || [];
                 const monthList = attendanceData.monthList || attendanceData.MonthList || [];
 
+                const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
+
                 const studentMap = new Map<number, any>();
 
                 studentList.forEach((record: any) => {
@@ -288,6 +293,8 @@ export default function StudentsYearlyAttendenceReport(props: {
                             ...record,
                             monthlyAttendance: {},
                             totalPresent: 0,
+                            totalWorkingDays: totalWorkingDays,
+                            totalAbsent: totalWorkingDays,
                             percentage: '0.00'
                         });
                     }
@@ -297,10 +304,10 @@ export default function StudentsYearlyAttendenceReport(props: {
 
                     student.monthlyAttendance[monthKey] = record.TOTAL_PRESENT;
                     student.totalPresent += record.TOTAL_PRESENT;
+                    student.totalAbsent = student.totalWorkingDays - student.totalPresent;
                 });
 
-                const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
-                const finalData = Array.from(studentMap.values()).map((student) => ({
+                const finalData = Array.from(studentMap.values()).map((student: any) => ({
                     ...student,
                     percentage: totalWorkingDays > 0 ? ((student.totalPresent / totalWorkingDays) * 100).toFixed(2) : '0.00'
                 }));

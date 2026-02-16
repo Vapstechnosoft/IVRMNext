@@ -215,7 +215,8 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                                 amsT_MobileNo: combined.amsT_MobileNo ?? combined.mobileNo ?? combined.mobile_No ?? combined.amsT_Mobile_No ?? src.firstTab?.amsT_MobileNo ?? src.firstTab?.mobileNo ?? '',
                                 amsT_emailId: combined.amsT_emailId ?? combined.emailId ?? combined.email_Id ?? combined.amsT_Email_Id ?? src.firstTab?.amsT_emailId ?? src.firstTab?.emailId ?? '',
                                 amsT_Sex: combined.amsT_Sex ?? combined.gender ?? combined.sex ?? '',
-                                studentCategoryId: combined.studentCategoryId ?? combined.amsT_StudentCategory_Id ?? combined.imcC_Id ?? src.firstTab?.amsT_StudentCategory_Id ?? 0,
+                                studentCategoryId: combined.studentCategoryId ?? combined.amC_Id ?? combined.imcC_Id ?? 0,
+                                amC_Id: combined.amC_Id ?? combined.studentCategoryId ?? combined.imcC_Id ?? 0,
                                 amsT_AadharNo: combined.amsT_AadharNo ?? combined.aadharNo ?? combined.aadhar_No ?? combined.amsT_Aadhar_No ?? '',
                                 amsT_DOB: combined.amsT_DOB ?? combined.dob ?? combined.dateOfBirth ?? combined.pasR_DOB ?? null,
                                 amsT_Date: combined.amsT_Date ?? combined.admissionDate ?? combined.date ?? null,
@@ -305,7 +306,8 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                                 amsT_MobileNo: student.amsT_MobileNo ?? student.mobileNo ?? student.mobile_No ?? '',
                                 amsT_emailId: student.amsT_emailId ?? student.emailId ?? student.email_Id ?? '',
                                 amsT_Sex: student.amsT_Sex ?? student.gender ?? student.sex ?? '',
-                                studentCategoryId: student.studentCategoryId ?? student.amsT_StudentCategory_Id ?? student.imcC_Id ?? 0,
+                                studentCategoryId: student.studentCategoryId ?? student.amC_Id ?? student.imcC_Id ?? 0,
+                                amC_Id: student.amC_Id ?? student.studentCategoryId ?? student.imcC_Id ?? 0,
                                 adm_M_Student_EmailIdDTO: resp?.emailIds || resp?.adm_M_Student_EmailIdDTO || (student.amsT_emailId ? [{ amsT_emailId: student.amsT_emailId }] : []),
                                 mobileNos: resp?.mobileNos || (student.amsT_MobileNo ? [{ amsT_MobileNo: student.amsT_MobileNo, amstsmS_CountryCode: '91' }] : [])
                             };

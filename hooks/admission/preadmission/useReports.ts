@@ -18,6 +18,7 @@ import {
     GetDateOfBirth,
     GetStudentYearlyAttendance,
     getAdmissionRegister,
+    getPreadmissionClassDropdown1,
     getStudentSearch,
     getTotalStrengthReport,
     getadmissionStudentsDropdown
@@ -487,6 +488,22 @@ export const useDateOfBirth = (ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: numb
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.DATE_OF_BIRTH_REPORT]
+            });
+        }
+    };
+};
+
+export const usePreadmissionClassDropdown1 = () => {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_CLASS_DROPDOWN1],
+            queryFn: async () => getPreadmissionClassDropdown1(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_CLASS_DROPDOWN1]
             });
         }
     };

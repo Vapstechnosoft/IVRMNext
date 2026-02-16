@@ -120,6 +120,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             amsT_ECSFlag: 0,
             isEmisBpl: 0,
             feeConcessionType: 0,
+            amC_Id: 0,
+            studentCategoryId: 0,
             hostelRequired: false,
             transportRequired: false
         } as any
@@ -241,8 +243,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     const { data: studentCategory, isLoading: studentCategoryLoading, isError: studentCategoryError } = useMasterCategoryDropdown();
 
     // Watch all country fields
-    const conConuntryId = watch('amsT_ConCountry');
-    const perConuntryId = watch('amsT_PerCountry');
+    const conCountryId = watch('amsT_ConCountry');
+    const perCountryId = watch('amsT_PerCountry');
 
     const conStateId = watch('amsT_ConState');
     const {
@@ -369,13 +371,13 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         isLoading: conStateLoading,
         error: conStateError,
         refetchAll: refetchConState
-    } = useStateDropdown(Number(conConuntryId));
+    } = useStateDropdown(Number(conCountryId));
     const {
         data: perState,
         isLoading: perStateLoading,
         error: perStateError,
         refetchAll: refetchPerState
-    } = useStateDropdown(Number(perConuntryId));
+    } = useStateDropdown(Number(perCountryId));
 
     // Student country -> states (Step 1 student country/state)
     const studentCountryId = watch('amsT_StudentCountry');
@@ -584,10 +586,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 pasR_Age: Number(formData.pasR_Age ?? 0),
                 amsT_MotherTongue: formData.amsT_MotherTongue ?? '',
                 amsT_LanguageSpoken: formData.amsT_LanguageSpoken ?? '',
-                amsT_StudentCategory_Id: Number(formData.amsT_StudentCategory_Id ?? 0),
+                amsT_StudentCategory_Id: Number(formData.asmcC_Id ?? formData.studentCategoryId ?? 0),
                 amsT_BloodGroup: formData.amsT_BloodGroup ?? '',
                 ivrmmR_Id: Number(formData.ivrmmR_Id ?? formData.amsT_ReligionId ?? 0),
-                imcC_Id: Number(formData.studentCategoryId ?? 0),
+                imC_Id: Number(formData.imC_Id ?? 0),
+                asmcC_Id: Number(formData.asmcC_Id ?? formData.studentCategoryId ?? 0),
                 amsT_SubCasteIMC_Id: (formData.amsT_SubCasteIMC_Id ?? '')?.toString() ?? '',
                 amsT_CasteCertiNo: formData.amsT_CasteCertiNo ?? '',
                 studentPhotoUrl: '',
@@ -645,6 +648,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 amsT_Tpin: formData.amsT_Tpin ?? '',
                 amsT_GPSTrackingId: formData.amsT_GPSTrackingId ?? '',
                 amsT_MediumOfInstruction: formData.amsT_MediumOfInstruction ?? '',
+                amsT_StudentCountry: Number(formData.amsT_StudentCountry ?? 0),
+                amsT_StudentState: Number(formData.amsT_StudentState ?? 0),
                 userId: Number(formData.userId ?? 0) || 21602,
                 editFlag: !!formData.editFlag,
                 returnVal: true
@@ -878,6 +883,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     'amsT_ReligionId',
                     'amsT_Sex',
                     'amsT_MobileNo',
+                    'asmcC_Id',
                     'studentCategoryId',
                     'feeConcessionType'
                 ];
@@ -2593,14 +2599,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
     // derive zip/pincode length allowed from selected country (useMemo to wait for data)
     const conCountryObj = useMemo(() => {
-        if (!country?.data || conConuntryId === undefined || conConuntryId === null || conConuntryId === '') return undefined;
-        return country.data.find((c: any) => String(c.ivrmmC_Id) === String(conConuntryId));
-    }, [country?.data, conConuntryId]);
+        if (!country?.data || conCountryId === undefined || conCountryId === null || conCountryId === '') return undefined;
+        return country.data.find((c: any) => String(c.ivrmmC_Id) === String(conCountryId));
+    }, [country?.data, conCountryId]);
 
     const perCountryObj = useMemo(() => {
-        if (!country?.data || perConuntryId === undefined || perConuntryId === null || perConuntryId === '') return undefined;
-        return country.data.find((c: any) => String(c.ivrmmC_Id) === String(perConuntryId));
-    }, [country?.data, perConuntryId]);
+        if (!country?.data || perCountryId === undefined || perCountryId === null || perCountryId === '') return undefined;
+        return country.data.find((c: any) => String(c.ivrmmC_Id) === String(perCountryId));
+    }, [country?.data, perCountryId]);
 
     const conZipLength: number | undefined = conCountryObj?.ivrmmC_ZipNoLength ?? undefined;
     const perZipLength: number | undefined = perCountryObj?.ivrmmC_ZipNoLength ?? undefined;
@@ -2622,13 +2628,13 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
     useEffect(() => {
         setValue('amsT_ConPincode', '');
-    }, [conConuntryId, setValue]);
+    }, [conCountryId, setValue]);
 
     useEffect(() => {
         if (!sameAsResidential) {
             setValue('amsT_PerPincode', '');
         }
-    }, [perConuntryId, setValue, sameAsResidential]);
+    }, [perCountryId, setValue, sameAsResidential]);
 
     useEffect(() => {
         setValue('asmS_Id', 0);
@@ -3274,11 +3280,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             </div>
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_StudentCategory_Id'>
+                                                <Label htmlFor='imC_Id'>
                                                     Caste <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
                                                 <Controller
-                                                    name='amsT_StudentCategory_Id'
+                                                    name='imC_Id'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
@@ -3657,16 +3663,21 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             </div>
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='studentCategoryId'>
+                                                <Label htmlFor='asmcC_Id'>
                                                     Student Category <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
                                                 <Controller
-                                                    name='studentCategoryId'
+                                                    name='asmcC_Id'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
                                                             key={field.value || 'empty'}
-                                                            onValueChange={(value) => field.onChange(Number(value))}
+                                                            onValueChange={(value) => {
+                                                                const val = Number(value);
+                                                                field.onChange(val);
+                                                                setValue('asmcC_Id', val);
+                                                                setValue('studentCategoryId', val);
+                                                            }}
                                                             value={field.value?.toString() || ''}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select option' />
@@ -3681,17 +3692,34 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         Error loading
                                                                     </SelectItem>
                                                                 ) : (
-                                                                    studentCategory?.data?.map((item) => (
-                                                                        <SelectItem key={item.amC_Id} value={item.amC_Id.toString()}>
-                                                                            {item.amC_Name}
-                                                                        </SelectItem>
-                                                                    ))
+                                                                    (() => {
+                                                                        const items =
+                                                                            studentCategory?.data ||
+                                                                            (Array.isArray(studentCategory) ? studentCategory : []);
+                                                                        return items?.map((item: any) => (
+                                                                            <SelectItem
+                                                                                key={item.asmcC_Id || item.amC_Id || item.studentCategoryId || item.imC_Id}
+                                                                                value={(
+                                                                                    item.asmcC_Id ||
+                                                                                    item.amC_Id ||
+                                                                                    item.studentCategoryId ||
+                                                                                    item.imC_Id
+                                                                                ).toString()}>
+                                                                                {item.amC_Name ||
+                                                                                    item.asmcC_Name ||
+                                                                                    item.categoryName ||
+                                                                                    item.asmcL_ClassName ||
+                                                                                    'No Name'}
+                                                                            </SelectItem>
+                                                                        ));
+                                                                    })()
                                                                 )}
+
                                                             </SelectContent>
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.studentCategoryId && <FormError>{errors.studentCategoryId.message}</FormError>}
+                                                {errors.asmcC_Id && <FormError>{(errors.asmcC_Id as any).message}</FormError>}
                                             </div>
 
                                             <div className='col-span-full'>

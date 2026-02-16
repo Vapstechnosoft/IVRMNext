@@ -469,14 +469,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Student Yearly Attendance Report',
                                             description: 'Student Yearly Attendance Report'
                                         },
-                                        {
-                                            id: 3,
-                                            name: 'Student TC Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/student-tc-report',
-                                            title: 'Student TC Report',
-                                            description: 'Student TC Report'
-                                        },
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Student TC Report',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/reports/student-tc-report',
+                                        //     title: 'Student TC Report',
+                                        //     description: 'Student TC Report'
+                                        // },
                                         {
                                             id: 4,
                                             name: 'class-wise student details',
@@ -543,14 +543,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Date Of Birth Report',
                                             description: 'Date Of Birth Report'
                                         },
-                                        {
-                                            id: 12,
-                                            name: 'Overall Daily Attendance Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/overall-daily-attendance-report',
-                                            title: 'Overall Daily Attendance Report',
-                                            description: 'Overall Daily Attendance Report'
-                                        },
+                                        // {
+                                        //     id: 12,
+                                        //     name: 'Overall Daily Attendance Report',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/reports/overall-daily-attendance-report',
+                                        //     title: 'Overall Daily Attendance Report',
+                                        //     description: 'Overall Daily Attendance Report'
+                                        // },
                                         {
                                             id: 13,
                                             name: 'Student Attendance Report',
@@ -1723,7 +1723,7 @@ export async function getUserAccessibleModules() {
                                             title: 'Religion-Category Mapping',
                                             description: 'Map Religion & Category'
                                         },
-                                        
+
                                     ]
                                 },
                                 {
@@ -5392,6 +5392,36 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/feedback/studentfeedback',
                                             title: 'Student Feedback Details',
                                             description: 'Provide Feedback'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 8,
+                            name: 'User Password Creation',
+                            icon: 'MessageSquare',
+                            sub_menu: [
+                                {
+                                    id: 40010,
+                                    name: 'Transaction',
+                                    icon: 'List',
+                                    pages: [
+                                        {
+                                            id: 40012,
+                                            name: 'User Password Creation',
+                                            icon: 'KeyRound',
+                                            url: '/StudentPortal/transactions/user-password-creation',
+                                            title: 'User Password Creation',
+                                            description: 'Generate Usernames and Passwords'
+                                        },
+                                        {
+                                            id: 40013,
+                                            name: 'Student Password Creation',
+                                            icon: 'LockKeyhole',
+                                            url: '/StudentPortal/transactions/student-password-creation',
+                                            title: 'Student Password Creation',
+                                            description: 'Student Credentials Management'
                                         }
                                     ]
                                 }
