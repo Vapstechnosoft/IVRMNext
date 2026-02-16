@@ -14,7 +14,7 @@ import { getReportData } from '@/server/exam/exam-module/reports/exam-category-r
 import { zodResolver } from '@hookform/resolvers/zod';
 import { saveAs } from 'file-saver';
 import { Check, FileSpreadsheet, Loader2, Printer, Search, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
@@ -28,6 +28,13 @@ export default function ExamCategoryReportPage() {
     const [reportHeader, setReportHeader] = useState('');
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const { data: masterCategory, isLoading: masterCategoryLoading, error: masterCategoryError } = useMasterCategoryDropdownList();
+    const printRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if(gridFlag && printRef.current){
+            printRef.current.scrollIntoView({ behavior: 'smooth'});
+        }
+    },[gridFlag]);
 
     useEffect(() => {
         if (!academicYearLoading && academicYear?.data && academicYear.data.length === 0) {
@@ -405,7 +412,7 @@ export default function ExamCategoryReportPage() {
             </Card>
 
             {gridFlag && (
-                <Card className='fade-in-50 slide-in-from-bottom-5 w-full animate-in shadow-lg'>
+                <Card ref={printRef} className='fade-in-50 slide-in-from-bottom-5 w-full animate-in shadow-lg'>
                     <CardHeader className='border-b bg-primary/5'>
                         <div className='flex items-center justify-between'>
                             <CardTitle className='font-bold text-primary text-xl'>EXAM CATEGORY REPORT</CardTitle>

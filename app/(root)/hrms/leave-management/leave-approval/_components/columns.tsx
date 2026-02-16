@@ -7,6 +7,8 @@ import { Check, X } from 'lucide-react';
 // Leave Approval Row
 export interface LeaveApprovalRow {
     id?: string | number;
+    hrmE_Id: number;
+    hrelaP_Id: number;
     slNo?: number;
     employeeCode: string;
     employeeName: string;
@@ -14,14 +16,15 @@ export interface LeaveApprovalRow {
     fromDate: string;
     toDate: string;
     totalDays: number;
-    leaveStatus: 'Applied' | 'Approved' | 'Rejected' | 'Pending';
+    leaveStatus: 'Applied' | 'Approved' | 'Rejected' | 'Pending' | string;
     remark?: string;
 }
 interface LeaveApprovalColumnsProps {
     onApprove: (row: LeaveApprovalRow) => void;
     onReject: (row: LeaveApprovalRow) => void;
+    onViewBalance: (row: LeaveApprovalRow) => void;
 }
-export const getLeaveApprovalColumns = ({ onApprove, onReject }: LeaveApprovalColumnsProps): ColumnDef<LeaveApprovalRow>[] => [
+export const getLeaveApprovalColumns = ({ onApprove, onReject, onViewBalance }: LeaveApprovalColumnsProps): ColumnDef<LeaveApprovalRow>[] => [
     {
         accessorKey: 'slNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
@@ -105,14 +108,17 @@ export const getLeaveApprovalColumns = ({ onApprove, onReject }: LeaveApprovalCo
                 <div className='flex items-center gap-2'>
                     {isPending && (
                         <>
-                            <Button variant='outline' size='sm' onClick={() => onApprove(entity)} className='text-green-700'>
+                            <Button variant='outline' size='sm' onClick={() => onApprove(entity)} className='text-green-700' title='Approve'>
                                 <Check className='h-4 w-4' />
                             </Button>
-                            <Button variant='outline' size='sm' onClick={() => onReject(entity)} className='text-red-700'>
+                            <Button variant='outline' size='sm' onClick={() => onReject(entity)} className='text-red-700' title='Reject'>
                                 <X className='h-4 w-4' />
                             </Button>
                         </>
                     )}
+                    <Button variant='outline' size='sm' onClick={() => onViewBalance(entity)} className='text-blue-700' title='View Balance History'>
+                        View Balance
+                    </Button>
                 </div>
             );
         }

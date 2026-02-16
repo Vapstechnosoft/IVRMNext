@@ -1,6 +1,6 @@
 'use server';
 
-import { api, getSearchParamsUrl } from '@/lib/apiService';
+import { api } from '@/lib/apiService';
 
 const ACADEMIC_YEARS = [{ asmaY_Id: 2023, asmaY_Year: '2023-2024' }];
 

@@ -6,10 +6,11 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { useLeaveYearDropdown, useMonthDropdown } from '@/hooks/hrms/useMasters';
 import { useSaveSalaryAdvance } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
 import { hrmsTransactionSchemas } from '@/schemas/hrms/transaction';
-import type { SalaryAdvanceOnloadResponse } from '@/types/hrms/salary-advance';
+import type { SalaryAdvanceEmployeeDropdownItem } from '@/types/hrms/salary-advance';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
@@ -17,19 +18,33 @@ import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+
 type SalaryAdvanceForm = z.infer<typeof hrmsTransactionSchemas.salaryAdvance.form>;
+
 interface AddFormProps {
-    onloadData: SalaryAdvanceOnloadResponse | undefined;
+    employeeDropdown: SalaryAdvanceEmployeeDropdownItem[] | undefined;
     onSuccess: () => void;
     className?: string;
 }
-export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className = '' }: AddFormProps) {
+
+export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, className = '' }: AddFormProps) {
     const { mutate: saveAdvance, isPending } = useSaveSalaryAdvance();
-    // Memoize arrays to prevent unnecessary re-renders
-    const employees = useMemo(() => onloadData?.employeedropdown || [], [onloadData?.employeedropdown]);
-    const leaveYears = useMemo(() => onloadData?.leaveyeardropdown || [], [onloadData?.leaveyeardropdown]);
-    const months = useMemo(() => onloadData?.monthdropdown || [], [onloadData?.monthdropdown]);
-    const modeOfPayments = useMemo(() => onloadData?.modeOfPaymentdropdown || [], [onloadData?.modeOfPaymentdropdown]);
+
+    // Fetch other dropdowns from masters
+    const { data: leaveYearsData } = useLeaveYearDropdown();
+    const { data: monthsData } = useMonthDropdown();
+
+    // Hardcoded mode of payments as they are standard and might not have a specific hook yet
+    const modeOfPayments = useMemo(() => [
+        { id: 'Cash', name: 'Cash' },
+        { id: 'Bank Transfer', name: 'Bank Transfer' },
+        { id: 'Cheque', name: 'Cheque' }
+    ], []);
+
+    const employees = useMemo(() => employeeDropdown || [], [employeeDropdown]);
+    const leaveYears = useMemo(() => (leaveYearsData as any)?.data || [], [leaveYearsData]);
+    const months = useMemo(() => (monthsData as any)?.data || [], [monthsData]);
+
     const {
         register,
         handleSubmit,
@@ -52,7 +67,9 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
             referenceNo: ''
         }
     });
+
     const watchedEntryDate = watch('entryDate');
+
     // Auto-select year and month based on entry date
     useEffect(() => {
         if (watchedEntryDate) {
@@ -60,74 +77,42 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
                 const entryDate = new Date(watchedEntryDate);
                 if (!Number.isNaN(entryDate.getTime())) {
                     const year = entryDate.getFullYear();
-                    const month = entryDate.getMonth() + 1; // getMonth() returns 0-11, so add 1
-                    // Find matching year from leaveYears dropdown
-                    const matchingYear = leaveYears.find(
-                        (y) => y.HRMLY_LeaveYear === year.toString() || y.HRMLY_LeaveYear === String(year)
+                    const month = entryDate.getMonth() + 1;
+
+                    const matchingYear = (leaveYears as any[]).find(
+                        (y: any) => String(y.hrmlY_LeaveYear) === String(year) || String(y.HRMLY_LeaveYear) === String(year)
                     );
                     if (matchingYear) {
-                        setValue('advanceYear', matchingYear.HRMLY_Id.toString());
+                        setValue('advanceYear', (matchingYear.hrmlY_LeaveYear || matchingYear.HRMLY_LeaveYear).toString());
                     }
-                    // Find matching month from months dropdown
-                    // Try to match by month number (1-12) or by month name
-                    const monthNames = [
-                        'January',
-                        'February',
-                        'March',
-                        'April',
-                        'May',
-                        'June',
-                        'July',
-                        'August',
-                        'September',
-                        'October',
-                        'November',
-                        'December'
-                    ];
-                    const monthName = monthNames[month - 1];
-                    const matchingMonth = months.find((m) => {
-                        // Try matching by month name (case insensitive)
-                        const monthNameMatch =
-                            m.IVRM_Month_Name?.toLowerCase() === monthName.toLowerCase() ||
-                            m.IVRM_Month_Name?.toLowerCase().includes(monthName.toLowerCase().substring(0, 3));
-                        // Try matching by month number if IVRM_Month_Id matches the month number
-                        const monthIdMatch = m.IVRM_Month_Id === month;
-                        return monthNameMatch || monthIdMatch;
-                    });
+
+                    const matchingMonth = (months as any[]).find((m: any) => m.IVRM_Month_Id === month || m.key === month);
                     if (matchingMonth) {
-                        setValue('advanceMonth', matchingMonth.IVRM_Month_Id.toString());
+                        setValue('advanceMonth', matchingMonth.IVRM_Month_Name || matchingMonth.value);
                     }
                 }
             } catch (_error) {
                 // Silently handle date parsing errors
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [watchedEntryDate, leaveYears, months]);
+    }, [watchedEntryDate, leaveYears, months, setValue]);
+
     const onSubmit: SubmitHandler<SalaryAdvanceForm> = async (data: SalaryAdvanceForm) => {
-        // Convert referenceNo to number if it's a valid numeric string, otherwise use 0
-        const referenceNoValue =
-            data.referenceNo && /^\d+$/.test(data.referenceNo)
-                ? Number(data.referenceNo)
-                : data.referenceNo
-                  ? Number(data.referenceNo) || 0
-                  : 0;
         const payload = {
             HRESA_Id: 0,
-            MI_Id: HRMS_MI_ID,
             HRME_Id: Number(data.employeeId),
-            HRESA_EntryDate: data.entryDate,
+            HRESA_EntryDate: `${data.entryDate}T00:00:00`,
             HRESA_AdvYear: Number(data.advanceYear),
             HRESA_AdvMonth: data.advanceMonth,
             HRESA_AppliedAmount: data.appliedAmount,
             HRESA_Remarks: data.remarks || '',
             HRESA_ActiveFlag: true,
-            HRESA_AdvStatus: 'Pending',
-            HRESA_SanctinedAmount: 0,
+            HRESA_AdvStatus: '',
+            HRESA_SanctinedAmount: null,
             HRESA_ModeOfPayment: data.modeOfPayment,
-            HRESA_ReferenceNo: referenceNoValue,
-            roleId: 2
+            HRESA_ReferenceNo: Number(data.referenceNo) || 0
         };
+
         saveAdvance(payload, {
             onSuccess: () => {
                 toast.success('Salary advance created successfully!');
@@ -139,9 +124,7 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
             }
         });
     };
-    const getEmployeeName = (employee: any) => {
-        return `${employee.HRME_EmployeeFirstName} ${employee.HRME_EmployeeMiddleName || ''} ${employee.HRME_EmployeeLastName || ''}`.trim();
-    };
+
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -158,8 +141,8 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
                                     </SelectTrigger>
                                     <SelectContent>
                                         {employees.map((emp) => (
-                                            <SelectItem key={emp.HRME_Id} value={emp.HRME_Id.toString()}>
-                                                {emp.HRME_EmployeeCode} - {getEmployeeName(emp)}
+                                            <SelectItem key={emp.hrmE_Id} value={emp.hrmE_Id.toString()}>
+                                                {emp.employeeName}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -210,9 +193,9 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
                                         <SelectValue placeholder='Select Year' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {leaveYears.map((year) => (
-                                            <SelectItem key={year.HRMLY_Id} value={year.HRMLY_Id.toString()}>
-                                                {year.HRMLY_LeaveYear}
+                                        {(leaveYears as any[]).map((year: any) => (
+                                            <SelectItem key={year.hrmlY_Id || year.HRMLY_Id} value={(year.hrmlY_LeaveYear || year.HRMLY_LeaveYear).toString()}>
+                                                {year.hrmlY_LeaveYear || year.HRMLY_LeaveYear}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -232,9 +215,9 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
                                         <SelectValue placeholder='Select Month' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {months.map((month) => (
-                                            <SelectItem key={month.IVRM_Month_Id} value={month.IVRM_Month_Id.toString()}>
-                                                {month.IVRM_Month_Name}
+                                        {(months as any[]).map((month: any) => (
+                                            <SelectItem key={month.IVRM_Month_Id || month.key} value={month.IVRM_Month_Name || month.value}>
+                                                {month.IVRM_Month_Name || month.value}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -248,7 +231,7 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
                         <InputText
                             type='number'
                             step='0.01'
-                            placeholder='Enter advanced amount (max 10 digits including decimals)'
+                            placeholder='Enter advanced amount'
                             {...register('appliedAmount', { valueAsNumber: true })}
                             error={errors.appliedAmount?.message}
                         />
@@ -265,8 +248,8 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
                                     </SelectTrigger>
                                     <SelectContent>
                                         {modeOfPayments.map((mode) => (
-                                            <SelectItem key={mode.IVRMMOD_Id} value={mode.IVRMMOD_Id.toString()}>
-                                                {mode.IVRMMOD_ModeOfPayment}
+                                            <SelectItem key={mode.id} value={mode.id}>
+                                                {mode.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -278,7 +261,7 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
                     <div className='space-y-2'>
                         <Label>Reference No</Label>
                         <InputText
-                            placeholder='Enter reference number (alphanumeric, max 255 characters)'
+                            placeholder='Enter reference number'
                             {...register('referenceNo')}
                             error={errors.referenceNo?.message}
                         />
@@ -286,7 +269,7 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
                 </div>
                 <div className='space-y-2'>
                     <Label>Remarks</Label>
-                    <InputText placeholder='Enter remarks (max 255 characters)' {...register('remarks')} error={errors.remarks?.message} />
+                    <InputText placeholder='Enter remarks' {...register('remarks')} error={errors.remarks?.message} />
                 </div>
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
@@ -313,3 +296,4 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
         </div>
     );
 }
+

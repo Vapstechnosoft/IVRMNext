@@ -3,14 +3,14 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type MarksEntryReportSchema, marksEntryReportSchema } from '@/schemas/exam/exam-module/reports';
-import { getExams, getReportDetails } from '@/server/exam/exam-module/reports/marks-entry-report';
 import {
     getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist,
-    getExamsDropDownByAcademicYearandClassandSectionlist
+    getExamsDropDownByAcademicYearandClassandSectionlist,
+    getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { getReportDetails } from '@/server/exam/exam-module/reports/marks-entry-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -55,9 +55,9 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         } else if (academicData?.data) {
             const formatted = Array.isArray(academicData.data)
                 ? academicData.data.map((i: any) => ({
-                    asmaY_Id: i.asmaY_Id ?? 0,
-                    asmaY_Year: i.asmaY_Year ?? ''
-                }))
+                      asmaY_Id: i.asmaY_Id ?? 0,
+                      asmaY_Year: i.asmaY_Year ?? ''
+                  }))
                 : [];
             setYears(formatted);
             if (!formatted || formatted.length === 0) {
@@ -167,7 +167,6 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
             const resultData = Array.isArray(result.data) ? result.data[0] : [];
 
             onReportGenerated(resultData);
-
         } catch (error) {
             console.error('Error:', error);
         }

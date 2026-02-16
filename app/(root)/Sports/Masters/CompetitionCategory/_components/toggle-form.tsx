@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { deactivateMasterCompetitionCategory } from '@/server/sports/masters/competition-category';
 import type { IMasterCompetitionCategory } from '@/types/sports/masters/competition-category';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 interface ToggleMasterCompetitionCategoryFormProps {
@@ -25,20 +26,23 @@ export default function ToggleMasterCompetitionCategoryForm({
     onClose,
     onSuccess
 }: ToggleMasterCompetitionCategoryFormProps) {
-    const isActive = rowData.SPCCMCC_ActiveFlag;
+    const queryClient = useQueryClient();
+    const isActive = rowData.spccmcC_ActiveFlag;
 
     const handleConfirm = async () => {
         try {
             const payload = {
-                SPCCMCC_Id: rowData.SPCCMCC_Id,
-                SPCCMCC_ActiveFlag: rowData.SPCCMCC_ActiveFlag
+                spccmcC_Id: rowData.spccmcC_Id,
+                spccmcC_ActiveFlag: rowData.spccmcC_ActiveFlag
             }
             const response = await deactivateMasterCompetitionCategory(payload);
 
             // Check based on standard API return
-            if (response?.success || response?.returnval === true) {
-                toast.success(`Record ${isActive ? 'deactivated' : 'activated'} successfully`);
+            if (response.success || response.returnval === true) {
+                toast.success(`Competition Category ${rowData.spccmcC_ActiveFlag ? 'deactivated' : 'activated'} successfully`);
+                await queryClient.invalidateQueries({ queryKey: ['master-competition-categories'] });
                 onSuccess();
+                onClose();
             } else {
                 toast.error(response?.message || `Failed to ${isActive ? 'deactivate' : 'activate'} record`);
             }

@@ -13,13 +13,14 @@ export default function PercentagewiseDetailsReportPage() {
 
     const handleReportGenerated = (response: any, payload: any) => {
         if (response?.data) {
-            setReportData(response.data.datareport || []);
+            // The API returns data directly in response.data array, not in response.data.datareport
+            setReportData(Array.isArray(response.data) ? response.data : []);
             setInstitutionDetails(response.data.institution || []);
 
             // Construct criteria string (simplified for now, ideally derived from payload names)
             // Since we only have IDs in payload, we rely on the component usage or just display basic info
             // In a real scenario, we would map IDs back to names or pass names from the form.
-            setReportCriteria(`Report for Year ID: ${payload.ASMAY_Id}, Exam ID: ${payload.EME_Id}`);
+            setReportCriteria(`Report for Year ID: ${payload.asmaY_Id}, Exam ID: ${payload.emE_Id}`);
         } else {
             setReportData([]);
             setInstitutionDetails([]);
@@ -68,12 +69,12 @@ export default function PercentagewiseDetailsReportPage() {
         // Prepare data for Excel
         const exportData = reportData.map((item, index) => ({
             'Sl No.': index + 1,
-            Class: item.ASMCL_ClassName,
-            Section: item.ASMC_SectionName,
+            Class: item.asmcL_ClassName,
+            Section: item.asmC_SectionName,
             Student: item.studentname,
-            'Obtained Marks': item.ESTMP_TotalObtMarks,
-            'Max Marks': item.ESTMP_TotalMaxMarks,
-            Percentage: item.ESTMP_Percentage
+            'Obtained Marks': item.estmP_TotalObtMarks,
+            'Max Marks': item.estmP_TotalMaxMarks,
+            Percentage: item.estmP_Percentage
         }));
 
         const ws = XLSX.utils.json_to_sheet(exportData);
