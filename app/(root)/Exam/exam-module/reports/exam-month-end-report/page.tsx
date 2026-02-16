@@ -13,7 +13,7 @@ import { type ExamMonthEndReportFormValues, examMonthEndReportSchema } from '@/s
 import { getInitialData, getReportData } from '@/server/exam/exam-module/reports/exam-month-end-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Check, Loader2, Printer, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { toast } from 'sonner';
@@ -27,6 +27,7 @@ export default function ExamMonthEndReportPage() {
     const [selectedExam, setSelectedExam] = useState('');
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const { data: examData, isLoading: examDataLoading, error: examDataError } = useMasterOrderedExamDropdownList();
+    const printRef = useRef<HTMLDivElement>(null);
 
     const {
         control,
@@ -45,7 +46,11 @@ export default function ExamMonthEndReportPage() {
             EME_Id: ''
         }
     });
-
+useEffect(() => {
+        if(reportData && printRef.current){
+            printRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    },[reportData]);
     // Check for empty data and show toast
     useEffect(() => {
         if (!academicYearLoading && academicYear?.data && academicYear.data.length === 0) {
@@ -243,6 +248,7 @@ export default function ExamMonthEndReportPage() {
             </div>
         );
     }
+    
 
     return (
         <div className='container mx-auto space-y-6 p-4'>
@@ -430,7 +436,7 @@ export default function ExamMonthEndReportPage() {
             </Card>
 
             {reportData && reportData.length > 0 && (
-                <div id='printSectionId'>
+                <div id='printSectionId' ref={printRef}>
                     <Card className='fade-in-50 slide-in-from-bottom-5 w-full animate-in shadow-lg'>
                         <CardHeader className='pb-2 text-center'>
                             <div className='mb-2 flex w-full items-center justify-center print:flex'>
