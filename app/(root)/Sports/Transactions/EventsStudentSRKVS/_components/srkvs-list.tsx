@@ -39,11 +39,11 @@ export default function EventsStudentSRKVSList() {
                                 <td className="px-4 py-2">{item.categoryName}</td>
                                 <td className="px-4 py-2">{item.compitionLevel}</td>
                                 <td className="px-4 py-2">{item.eventName}</td>
-                                <td className="px-4 py-2">{item.categoryName}</td>
+                                <td className="px-4 py-2">{item.mainEvent}</td>
                                 <td className="px-4 py-2">{item.sportsName}</td>
                                 <td className="px-4 py-2">{item.spccmsccG_SportsCCGroupName}</td>
-                                <td className="px-4 py-2">{item.startDate}</td>
-                                <td className="px-4 py-2">{item.endDate}</td>
+                                <td className="px-4 py-2">{item.spccE_StartDate}</td>
+                                <td className="px-4 py-2">{item.spccE_EndDate}</td>
                                 <td className="px-4 py-2">{item.spccmeV_EventVenue}</td>
                                 <td className="px-4 py-2">{item.uomName}</td>
                                 <td className="px-4 py-2 flex space-x-2">
