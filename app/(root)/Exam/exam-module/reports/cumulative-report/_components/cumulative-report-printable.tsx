@@ -1,8 +1,9 @@
 // _components/cumulative-report-printable.tsx
-import type { ICumulativeReport, IReportHeader, ISubject } from '@/types/exam/exam-module/report';
+import type { ICumulativeReport, Institution, IMasterInstitution, IReportHeader, ISubject } from '@/types/exam/exam-module/report';
 
 interface CumulativeReportPrintViewProps {
     reportData: ICumulativeReport[];
+    institution: Institution | IMasterInstitution,
     subjects: ISubject[];
     headerInfo: Partial<IReportHeader>;
     fontSize: 'small' | 'medium' | 'large';
@@ -24,6 +25,7 @@ const fontSizeMap = {
 
 export default function CumulativeReportPrintView({
     reportData,
+    institution,
     subjects,
     headerInfo,
     fontSize,
@@ -131,7 +133,7 @@ export default function CumulativeReportPrintView({
                             <tr>
                                 <td colSpan={applicableSubjects.length * 2 + 10} className='text-center'>
                                     <h3 style={{ margin: '2px 0', fontSize: '18px' }}>
-                                        {headerInfo.mI_name || 'Vidya Vikasa Vidya Samsthe (R)'}
+                                        {institution.mI_Name || 'Vidya Vikasa Vidya Samsthe (R)'}
                                     </h3>
                                 </td>
                             </tr>

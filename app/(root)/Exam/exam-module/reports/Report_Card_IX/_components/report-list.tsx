@@ -25,8 +25,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         getskill = [],
         getallgrade = [],
         getpromotionremarksdetails = [],
-        masterinstitution
+        masterinstitution,
+        institution
     } = data;
+
+    const brand = institution || masterinstitution;
 
     return (
         <div className="space-y-6 printable-content">
@@ -43,17 +46,20 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         {/* Header */}
                         {params.printLogo && (
                             <div className="flex items-center justify-between mb-6 border-b pb-4">
-                                <img src={masterinstitution?.mI_Logo || 'https://via.placeholder.com/100'} alt="Logo" className="h-20 w-auto" />
-                                <div className="text-center flex-1 mx-4">
-                                    <h2 className="text-xl font-bold">{masterinstitution?.mI_Name || 'INSTITUTION NAME'}</h2>
-                                    <p className="text-sm text-gray-600">{masterinstitution?.mI_Address1 || 'Address Line 1'}</p>
+                                {brand?.mI_Logo && (
+                                    <img src={brand.mI_Logo} alt={brand.mI_Name} className="h-auto w-full" />
+                                )}
+                                {/* <div className="text-center flex-1 mx-4">
+                                    <h2 className="text-xl font-bold">{brand?.mI_Name || 'INSTITUTION NAME'}</h2>
+                                    <p className="text-sm text-gray-600">{brand?.mI_Address1 || 'Address Line 1'}</p>
                                     <div className="uppercase mt-2">
                                         <h3 className="text-lg font-bold">
                                             {params.exmname} REPORT CARD {params.ASMAY_Year}
                                         </h3>
                                     </div>
-                                </div>
-                                <div className="w-24"></div> {/* Spacer to center the title */}
+                                </div> */}
+                                {/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}
+                                {/*  <div className="w-24"></div> Spacer to center the title */}
                             </div>
                         )}
 
@@ -166,7 +172,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                             );
                                         })}
                                         {params.superAverage && (
-                                            <td colSpan={2} className="border border-gray-400 p-1 text-center bg-gray-50"></td>
+                                            // biome-ignore lint/style/useSelfClosingElements: <explanation>
+                                            <td colSpan={2} className='border border-gray-400 bg-gray-50 p-1 text-center'></td>
                                         )}
                                     </tr>
 

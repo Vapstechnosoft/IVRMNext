@@ -5,7 +5,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
 import { getCumulativeReport } from '@/server/exam/exam-module/reports/cumulative-report';
 import type { ApiSearchparams } from '@/types';
-import type { ICumulativeReport, IReportHeader, ISubject } from '@/types/exam/exam-module/report';
+import type { ICumulativeReport, Institution, IMasterInstitution, IReportHeader, ISubject } from '@/types/exam/exam-module/report';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import CumulativeReportForm from './_components/add-form';
@@ -13,6 +13,8 @@ import CumulativeReportGridView from './_components/columns';
 import CumulativeReportExcel from './_components/cumulative-report-excel';
 import CumulativeReportPrintView from './_components/cumulative-report-printable';
 import { RefreshCw } from 'lucide-react';
+import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
+import { set } from 'date-fns';
 
 export default function CumulativeReportPage() {
     const [reportData, setReportData] = useState<ICumulativeReport[]>([]);
@@ -23,6 +25,7 @@ export default function CumulativeReportPage() {
     const [searchParams, setSearchParams] = useState<ApiSearchparams>({});
     const [currentPayload, setCurrentPayload] = useState<any>({});
     const [isGenerating, setIsGenerating] = useState(false);
+    const [institution, setInstitution] = useState<IMasterInstitution | Institution | null>();
 
     const tableProps = useDataTableProps(reportTableProsData);
     const printRef = useRef<HTMLDivElement>(null);
@@ -42,6 +45,10 @@ export default function CumulativeReportPage() {
         try {
             setCurrentPayload(payload);
             const res = await getCumulativeReport(payload, setSearchParams);
+            const institudtion_res = await getMasterInstitution();
+            const { data: institudtion_data } = institudtion_res;
+            setInstitution(institudtion_data);
+            const _result = Array.isArray(res.data) ? res.data[0] : res.data;
             if (!res?.success) {
                 toast.error(res?.message || 'Failed to generate report');
                 return;
@@ -80,6 +87,7 @@ export default function CumulativeReportPage() {
                 (a, b) => (a.eyceS_SubjectOrder ?? 999) - (b.eyceS_SubjectOrder ?? 999)
             );
 
+
             const formatted: ICumulativeReport[] = rawList.map((s: any) => {
                 const fullName = [s.amsT_FirstName, s.amsT_MiddleName, s.amsT_LastName].filter(Boolean).join(' ').trim();
 
@@ -106,7 +114,7 @@ export default function CumulativeReportPage() {
                 };
             });
 
-            const first = rawList[0];
+            const first = { ...rawList[0], ...institudtion_data }
             const header: Partial<IReportHeader> = {
                 mI_name: first?.mI_Name ?? 'Vidya Vikasa Vidya Samsthe (R)',
                 yr: first?.asmaY_Year ?? '',
@@ -141,6 +149,7 @@ export default function CumulativeReportPage() {
         }
     };
 
+
     // Re-fetch when pagination changes
     useEffect(() => {
         // Only fetch if we have a valid payload AND api params have changed from default/initial
@@ -173,13 +182,16 @@ export default function CumulativeReportPage() {
                     <CollapsibleSection title='Grid View' defaultOpen>
                         <div ref={printRef}>
                             {/* Print View */}
-                            <CumulativeReportPrintView
-                                reportData={reportData}
-                                subjects={subjects}
-                                headerInfo={headerInfo}
-                                fontSize='medium'
-                                columnFlags={columnFlags}
-                            />
+                            {institution && (
+                                <CumulativeReportPrintView
+                                    reportData={reportData}
+                                    institution={institution}
+                                    subjects={subjects}
+                                    headerInfo={headerInfo}
+                                    fontSize='medium'
+                                    columnFlags={columnFlags}
+                                />
+                            )}
 
                             {/* Screen View */}
                             <CumulativeReportGridView

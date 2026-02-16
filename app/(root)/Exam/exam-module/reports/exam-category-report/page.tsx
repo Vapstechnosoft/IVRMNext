@@ -11,6 +11,8 @@ import { useMasterCategoryDropdownList } from '@/hooks/exam/exammodule/usemaster
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type ExamCategoryReportFormValues, examCategoryReportSchema } from '@/schemas/exam/exam-module/reports';
 import { getReportData } from '@/server/exam/exam-module/reports/exam-category-report';
+import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
+import type { IMasterInstitution, Institution } from '@/types/exam/exam-module/report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { saveAs } from 'file-saver';
 import { Check, FileSpreadsheet, Loader2, Printer, Search, X } from 'lucide-react';
@@ -26,15 +28,30 @@ export default function ExamCategoryReportPage() {
     const [searchValue, setSearchValue] = useState('');
 
     const [reportHeader, setReportHeader] = useState('');
+    const [institution, setInstitution] = useState<IMasterInstitution | Institution | null>(null);
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const { data: masterCategory, isLoading: masterCategoryLoading, error: masterCategoryError } = useMasterCategoryDropdownList();
     const printRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if(gridFlag && printRef.current){
-            printRef.current.scrollIntoView({ behavior: 'smooth'});
+        if (gridFlag && printRef.current) {
+            printRef.current.scrollIntoView({ behavior: 'smooth' });
         }
-    },[gridFlag]);
+    }, [gridFlag]);
+
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            try {
+                const res = await getMasterInstitution();
+                if (res?.success) {
+                    setInstitution(res.data);
+                }
+            } catch (error) {
+                console.error('Error fetching institution:', error);
+            }
+        };
+        fetchInitialData();
+    }, []);
 
     useEffect(() => {
         if (!academicYearLoading && academicYear?.data && academicYear.data.length === 0) {
@@ -84,6 +101,11 @@ export default function ExamCategoryReportPage() {
 
     const onSubmit = async (data: ExamCategoryReportFormValues) => {
         try {
+            console.log('Exam Category Report payload:', {
+                type: data.type,
+                asmaY_Id: data.asmaY_Id,
+                emcA_Id: data.type === '1' ? undefined : data.emcA_Id
+            });
             setGridFlag(false);
 
             const response_ = await getReportData({
@@ -190,13 +212,8 @@ export default function ExamCategoryReportPage() {
         const tableContent = document.getElementById('reportTable');
         const printHeader = `
             <div class="header-container">
-                <div class="logo-container">
-                    <img src="/assets/tunbridge_logo.png" alt="Logo" class="logo">
-                </div>
-                <div class="school-details">
-                    <h1 class="school-name">Tunbridge High School</h1>
-                    <p class="address">86/2 Infantry Road, Bangalore, Karnataka, India 560001</p>
-                    <p class="email">Mail Id: tunbridgehs@gmail.com</p>
+                <div class="logo-container" style="position: static; display: flex; justify-content: center;">
+                    <img src="${institution?.mI_Logo || '/assets/tunbridge_logo.png'}" alt="${institution?.mI_Name || 'Logo'}" class="logo" style="margin: 0 auto;">
                 </div>
             </div>
             <div class="report-title">Exam Category Group Wise Subject Wise Report</div>
