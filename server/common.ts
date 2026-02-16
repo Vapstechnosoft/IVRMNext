@@ -4684,7 +4684,7 @@ export async function getUserAccessibleModules() {
                 //         }
                 //     ]
                 // },
-,
+
                 {
                     id: 11,
                     name: 'Sports Management',
@@ -4867,7 +4867,7 @@ export async function getUserAccessibleModules() {
                                             title: 'Events Student Mapping',
                                             description: 'Manage Events Student Mapping'
                                         },
-                                          {
+                                        {
                                             id: 7,
                                             name: 'Events Student Mapping SRKVS',
                                             icon: 'Activity',
@@ -5108,7 +5108,7 @@ export async function getUserAccessibleModules() {
                 //             ]
                 //         }
                 //
-                {
+                , {
                     id: 111,
                     name: 'Transport',
                     icon: 'BookOpen',

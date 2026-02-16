@@ -26,14 +26,31 @@ export interface ISportsYearEndReportLoadData {
 
 export interface ISportsYearEndReportClassData {
     classList: IClass[];
-    houseList: IHouse[];
 }
 
 export interface ISportsYearEndReportSectionData {
     sectionList: ISection[];
 }
 
-// Placeholder for Report Data since not provided in prompt
+
 export interface ISportsYearEndReportData {
-    [key: string]: any;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    amsT_Name: string;
+    amsT_AdmNo: string;
+    amsT_DOB: string;
+    spccmE_EventName: string;
+    spccmeV_EventVenue: string;
+    spccmscC_SportsCCName: string;
+    spccE_StartDate: string;
+    spccestR_Points: number;
+    spccestR_Rank: string;
+    // Add other fields as necessary from typical report data
+}
+
+export interface ISportsYearEndReportRequest {
+    ASMAY_Id: number;
+    Type: string;
+    selectedClasslist?: { ASMCL_Id: number }[];
+    selectedSectionlist?: { ASMS_Id: number }[];
 }

@@ -31,12 +31,12 @@ export default function EligibilityCertificateReportPage() {
 
     const handlePrint = () => {
         // Placeholder for print functionality
-        console.log('Print', reportResponse?.data);
+       
     };
 
     const handleExcel = () => {
         // Placeholder for excel functionality
-        console.log('Excel', reportResponse?.data);
+
     };
 
     const tableProps = useDataTableProps(reportResponse);
