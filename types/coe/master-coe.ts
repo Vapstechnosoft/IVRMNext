@@ -1,5 +1,7 @@
 export interface MappedEventCoe {
+
     coee_Id: number;
+    coeE_Id: number;
     asmaY_Id: number;
     coemE_Id: number;
     coee_EStartDate: string;
@@ -17,6 +19,7 @@ export interface MappedEventCoe {
     coee_ReminderDate: string;
     coee_RepeatFlag: boolean;
     coee_ReminderSchedule: string;
+    coee_ReminderDays?: string;
     coee_StudentFlag: boolean;
     coee_AlumniFlag: boolean;
     coee_EmployeeFlag: boolean;
@@ -34,6 +37,8 @@ export interface MappedEventCoe {
     }[];
     images_listCoe?: { COEEI_Images: string }[];
     videos_list?: { COEEV_Videos: string }[];
+    alumni_list?: any[];
+    edit_images_list?: { coeeI_Images: string }[];
 }
 
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { IEligibilityCertificateReportDetail } from '@/types/sports/reports/eligibility-certificate-report';
+import type { IEligibilityCertificateReportDetail } from '@/types/sports/reports/eligibility-certificate-report';
 
 export const columns: ColumnDef<IEligibilityCertificateReportDetail>[] = [
     {

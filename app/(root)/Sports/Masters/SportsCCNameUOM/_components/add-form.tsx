@@ -37,10 +37,10 @@ export default function AddMasterSportsCCNameUOMForm({ onSuccess, sportsCCNameLi
     const form = useForm<z.infer<typeof MasterSportsCCNameUOMSchema>>({
         resolver: zodResolver(MasterSportsCCNameUOMSchema),
         defaultValues: {
-            SPCCMSCCUOM_Id: 0,
-            SPCCMSCC_Id: undefined,
-            SPCCMUOM_Id: undefined,
-            SPCCMSCCUOM_ActiveFlag: true
+            spccmsccuoM_Id: 0,
+            spccmscC_Id: undefined,
+            spccmuoM_Id: undefined,
+            spccmsccuoM_ActiveFlag: true
         },
         mode: 'onChange'
     });
@@ -48,12 +48,12 @@ export default function AddMasterSportsCCNameUOMForm({ onSuccess, sportsCCNameLi
     const onSubmit = async (values: z.infer<typeof MasterSportsCCNameUOMSchema>) => {
         try {
             const result = await saveMasterSportsCCNameUOM(values);
-            if (result?.returnVal === 'saved') {
+            if (result?.returnVal === 'saved' || result?.message === 'saved' || result?.success) {
                 toast.success('Record saved successfully');
                 queryClient.invalidateQueries({ queryKey: ['master-sports-cc-name-uom'] });
                 form.reset();
                 onSuccess();
-            } else if (result?.returnVal === 'duplicate') {
+            } else if (result?.returnVal === 'duplicate' || result?.message === 'duplicate') {
                 toast.warning('Record already exists');
             } else {
                 toast.error('Failed to save record');
@@ -69,7 +69,7 @@ export default function AddMasterSportsCCNameUOMForm({ onSuccess, sportsCCNameLi
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                         control={form.control}
-                        name="SPCCMSCC_Id"
+                        name="spccmscC_Id"
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Sports Name <span className="text-destructive">*</span></FormLabel>
@@ -97,7 +97,7 @@ export default function AddMasterSportsCCNameUOMForm({ onSuccess, sportsCCNameLi
                     />
                     <FormField
                         control={form.control}
-                        name="SPCCMUOM_Id"
+                        name="spccmuoM_Id"
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>UOM <span className="text-destructive">*</span></FormLabel>

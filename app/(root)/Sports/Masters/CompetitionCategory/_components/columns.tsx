@@ -17,53 +17,53 @@ export const MasterCompetitionCategoryColumns: ColumnDef<IMasterCompetitionCateg
         }
     },
     {
-        accessorKey: 'SPCCMCC_CompitionCategory',
+        accessorKey: 'spccmcC_CompitionCategory',
         header: 'Competition Category',
     },
     {
-        accessorKey: 'SPCCMCC_CCDesc',
+        accessorKey: 'spccmcC_CCDesc',
         header: 'Description',
     },
     {
-        accessorKey: 'SPCCMCC_CCAgeFlag',
+        accessorKey: 'spccmcC_CCAgeFlag',
         header: 'Age Flag',
         cell: ({ row }) => (
-            row.original.SPCCMCC_CCAgeFlag ? <Badge variant="default" className='bg-blue-600 hover:bg-blue-700'>Yes</Badge> : <Badge variant="outline">No</Badge>
+            row.original.spccmcC_CCAgeFlag ? <Badge variant="default" className='bg-blue-600 hover:bg-blue-700'>Yes</Badge> : <Badge variant="outline">No</Badge>
         )
     },
     {
-        accessorKey: 'SPCCMCC_FromCCAgeYear',
+        accessorKey: 'spccmcC_FromCCAgeYear',
         header: 'From Year(Age)',
     },
     {
-        accessorKey: 'SPCCMCC_ToCCAgeYear',
+        accessorKey: 'spccmcC_ToCCAgeYear',
         header: 'To Year(Age)',
     },
     {
-        accessorKey: 'SPCCMCC_FromCCAgeMonth',
+        accessorKey: 'spccmcC_FromCCAgeMonth',
         header: 'From Month(Age)',
     },
     {
-        accessorKey: 'SPCCMCC_ToCCAgeMonth',
+        accessorKey: 'spccmcC_ToCCAgeMonth',
         header: 'To Month(Age)',
     },
     {
-        accessorKey: 'SPCCMCC_FromCCAgeDays',
+        accessorKey: 'spccmcC_FromCCAgeDays',
         header: 'From Days(Age)',
     },
     {
-        accessorKey: 'SPCCMCC_ToCCAgeDays',
+        accessorKey: 'spccmcC_ToCCAgeDays',
         header: 'To Days(Age)',
     },
     {
-        accessorKey: 'SPCCMCC_CCWeightFlag',
+        accessorKey: 'spccmcC_CCWeightFlag',
         header: 'Weight Flag',
         cell: ({ row }) => (
-            row.original.SPCCMCC_CCWeightFlag ? <Badge variant="default" className='bg-blue-600 hover:bg-blue-700'>Yes</Badge> : <Badge variant="outline">No</Badge>
+            row.original.spccmcC_CCWeightFlag ? <Badge variant="default" className='bg-blue-600 hover:bg-blue-700'>Yes</Badge> : <Badge variant="outline">No</Badge>
         )
     },
     {
-        accessorKey: 'SPCCMCC_CCWeight',
+        accessorKey: 'spccmcC_CCWeight',
         header: 'Weight',
     },
     {
@@ -86,11 +86,11 @@ export const MasterCompetitionCategoryColumns: ColumnDef<IMasterCompetitionCateg
                     <Button
                         variant="ghost"
                         size="icon"
-                        className={row.original.SPCCMCC_ActiveFlag ? "h-8 w-8 text-destructive" : "h-8 w-8 text-green-600"}
+                        className={row.original.spccmcC_ActiveFlag ? "h-8 w-8 text-destructive" : "h-8 w-8 text-green-600"}
                         onClick={() => openToggleForm(row.original)}
-                        title={row.original.SPCCMCC_ActiveFlag ? "Deactivate" : "Activate"}
+                        title={row.original.spccmcC_ActiveFlag ? "Deactivate" : "Activate"}
                     >
-                        {row.original.SPCCMCC_ActiveFlag ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+                        {row.original.spccmcC_ActiveFlag ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
                     </Button>
                 </div>
             );
