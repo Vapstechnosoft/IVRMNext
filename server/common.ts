@@ -1565,6 +1565,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Report_Card_X',
                                             title: 'Report Card_X',
                                             description: 'Report Card_X'
+                                        },
+                                        {
+                                            id: 89,
+                                            name: 'AI Performance Analysis',
+                                            icon: 'Sparkles',
+                                            url: '/Exam/exam-module/ai-performance-analysis',
+                                            title: 'AI Performance Analysis',
+                                            description: 'AI-driven student performance analysis and insights'
                                         }
                                     ]
                                 }
@@ -2559,11 +2567,10 @@ export async function getUserAccessibleModules() {
                         // }
                     ]
                 },
-
                 {
                     id: 5,
                     name: 'AI Edge',
-                    icon: 'Users',
+                    icon: 'Sparkles',
                     menu: [
                         {
                             id: 1,

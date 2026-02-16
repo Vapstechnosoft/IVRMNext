@@ -151,15 +151,28 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
 
     const onSubmit = async (data: MarksEntryReportSchema) => {
         try {
-            console.log(data);
-            const result = await getReportDetails(data);
+            const payload = {
+                ASMAY_Id: Number(data.ASMAY_Id),
+                ASMCL_Id: Number(data.ASMCL_Id),
+                ASMS_Id: Number(data.ASMS_Id),
+                EME_Id: Number(data.EME_Id)
+            };
+
+            console.log('marks entry report payload', payload);
+
+            const result = await getReportDetails(payload);
+
             console.log('marks entry report data', result);
-            const resultData = Array.isArray(result.data) ? result.data : [];
-            onReportGenerated(resultData); // result matches the expected data structure directly here
+
+            const resultData = Array.isArray(result.data) ? result.data[0] : [];
+
+            onReportGenerated(resultData);
+
         } catch (error) {
             console.error('Error:', error);
         }
     };
+
 
     const handleClear = () => {
         reset();

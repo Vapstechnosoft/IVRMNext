@@ -823,7 +823,10 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 ASMAY_Id: Number(values.ASMAY_Id) ?? 0,
                 ASMAY_Year: '',
                 EYCE_BestOfApplicableFlg: values.EYCE_BestOfApplicableFlg ?? true,
-                EYCE_BestOf: values.EYCE_BestOf ?? 0,
+                //EYCE_BestOf: values.EYCE_BestOf ?? 0,
+                EYCE_BestOf: (values.EYCE_BestOfApplicableFlg ?? true)
+                    ? (values.EYCE_BestOf ?? 0)
+                    : 0,
                 EYCE_AttendanceFromDate: toBackendDate(values.EYCE_AttendanceFromDate),
                 EYCE_AttendanceToDate: toBackendDate(values.EYCE_AttendanceToDate),
                 exams_list,
@@ -833,6 +836,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 exm_subject_subsubjects_subexam,
                 Temp_Subject_Order: values.Temp_Subject_Order ?? []
             };
+            console.log('FINAL PAYLOAD:', finalPayload);
             const res = await addOrUpdateExamSubjectWizard(finalPayload);
             if (res.success) toast.success('Exam Subject Wizard saved successfully');
             else toast.error(res.message);
@@ -841,6 +845,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             refetchAll();
             router.refresh();
             window.location.reload();
+            console.log('FINAL PAYLOAD:', finalPayload);
         } catch (err: any) {
             console.error(err);
             toast.error(err?.message ?? 'Failed to save Exam Subject Wizard');
