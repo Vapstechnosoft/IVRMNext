@@ -12,30 +12,57 @@ import {
  * Fetch All Dropdowns
  */
 export async function getEventsStudentMappingDropdowns(): Promise<IEventsStudentMappingDropdowns> {
-    // Mock Data
+    let academicYearList: any[] = [];
+    let categoryList: any[] = [];
+    let houseList: any[] = [];
+
+    try {
+        const yearResponsePromise = api.post<{ yearlist: any[] }>('sports', 'SportVenuewiseParticipationReport/Getdetails', {});
+        const categoryResponsePromise = api.get<{ spccmcC_Id: number, spccmcC_CompitionCategory: string }[]>('sports', 'EventsStudentRecord/CompetitionCategoryList');
+        const houseResponsePromise = api.get<{ spccmH_Id: number, spccmH_HouseName: string }[]>('sports', 'EventsStudentRecord/HouseList');
+
+        const [yearResponse, categoryResponse, houseResponse] = await Promise.all([
+            yearResponsePromise,
+            categoryResponsePromise,
+            houseResponsePromise
+        ]);
+
+        if (yearResponse.success && yearResponse.data && yearResponse.data.yearlist) {
+            academicYearList = yearResponse.data.yearlist.map((year: any) => ({
+                asmaY_Id: year.asmaY_Id,
+                asmaY_Year: year.asmaY_Year
+            }));
+        }
+
+        if (categoryResponse.success && categoryResponse.data) {
+            categoryList = categoryResponse.data.map((item) => ({
+                spccmcC_Id: item.spccmcC_Id,
+                spccmcC_CompitionCategory: item.spccmcC_CompitionCategory
+            }));
+        }
+
+        if (houseResponse.success && houseResponse.data) {
+            houseList = houseResponse.data.map((item) => ({
+                spccmH_Id: item.spccmH_Id,
+                spccmH_HouseName: item.spccmH_HouseName
+            }));
+        }
+
+    } catch (error) {
+        console.error("Failed to fetch dropdowns:", error);
+    }
+
+    // Mock Data for other dropdowns
     return {
-        academicYear: [
-            { asmaY_Id: 1, asmaY_Year: '2023-2024' },
-            { asmaY_Id: 2, asmaY_Year: '2024-2025' },
-        ],
+        academicYear: academicYearList,
         eventsList: [
             { spccmE_Id: 1, spccmE_EventName: '100m Sprint' },
             { spccmE_Id: 2, spccmE_EventName: 'High Jump' },
             { spccmE_Id: 3, spccmE_EventName: 'Long Jump' },
             { spccmE_Id: 4, spccmE_EventName: 'Shot Put' },
         ],
-        categoryList: [
-            { spccmcC_Id: 1, spccmcC_CompitionCategory: 'Junior Boys' },
-            { spccmcC_Id: 2, spccmcC_CompitionCategory: 'Senior Boys' },
-            { spccmcC_Id: 3, spccmcC_CompitionCategory: 'Junior Girls' },
-            { spccmcC_Id: 4, spccmcC_CompitionCategory: 'Senior Girls' },
-        ],
-        houseList: [
-            { spccmH_Id: 1, spccmH_HouseName: 'Red House' },
-            { spccmH_Id: 2, spccmH_HouseName: 'Blue House' },
-            { spccmH_Id: 3, spccmH_HouseName: 'Green House' },
-            { spccmH_Id: 4, spccmH_HouseName: 'Yellow House' },
-        ],
+        categoryList: categoryList,
+        houseList: houseList,
         classList: [
             { asmcL_Id: 1, asmcL_ClassName: 'I' },
             { asmcL_Id: 2, asmcL_ClassName: 'II' },
@@ -176,6 +203,19 @@ export async function getEventsStudentMappingList(): Promise<ApiResponse<IEvents
         message: 'Data fetched successfully',
         data: dummyData
     };
+}
+
+/**
+ * Fetch Classes based on Academic Year
+ */
+export async function getClassList(asmaY_Id: number): Promise<ApiResponse<any[]>> {
+    try {
+        const response = await api.get<any[]>('sports', `EventsStudentRecord/ClassList?ASMAY_Id=${asmaY_Id}`);
+        return response;
+    } catch (error) {
+        console.error("Failed to fetch class list:", error);
+        return { success: false, message: 'Failed to fetch class list', data: [] };
+    }
 }
 
 /**
