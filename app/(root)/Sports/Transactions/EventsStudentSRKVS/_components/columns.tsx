@@ -15,31 +15,39 @@ export const eventsStudentSRKVSColumns: ColumnDef<IEventsStudentSRKVSData>[] = [
         header: "SL No",
         cell: ({ row }) => row.index + 1,
     },
+
     {
-        accessorKey: "asmaY_Year",
-        header: "Year",
+        accessorKey: "eventName",
+        header: "Event",
     },
     {
         accessorKey: "categoryName",
-        header: "Competition Category",
+        header: "Category",
     },
     {
         accessorKey: "compitionLevel",
-        header: "Competition Level",
+        header: "Level",
     },
     {
-        accessorKey: "eventName",
-        header: "Competition Name",
+        accessorKey: "spccmeV_EventVenue",
+        header: "Venue",
+    },
+    {
+        accessorKey: "sportsName",
+        header: "Sub Event",
     },
     {
         accessorKey: "spccmsccG_SportsCCGroupName",
         header: "Main Event",
     },
     {
-        accessorKey: "sportsName",
-        header: "Sub Event",
+        accessorKey: "uomName",
+        header: "UOM",
     },
-
+    {
+        accessorKey: "asmaY_Year",
+        header: "Academic Year",
+    },
     {
         accessorKey: "startDate",
         header: "Start Date",
@@ -55,14 +63,6 @@ export const eventsStudentSRKVSColumns: ColumnDef<IEventsStudentSRKVSData>[] = [
             const date = row.getValue("endDate") as string;
             return date ? new Date(date).toLocaleDateString() : '';
         }
-    },
-    {
-        accessorKey: "spccmeV_EventVenue",
-        header: "Venue Name",
-    },
-    {
-        accessorKey: "uomName",
-        header: "UOM",
     },
     {
         accessorKey: "spccesT_ActiveFlag",
@@ -139,14 +139,13 @@ function ActionsCell({ row }: { row: Row<IEventsStudentSRKVSData> }) {
                 }}
                 toggleConditionKey='spccesT_ActiveFlag'
             />
-            {isViewOpen && (
+            {/* {isViewOpen && (
                 <ViewDetailsModal
                     isOpen={isViewOpen}
                     onClose={() => setIsViewOpen(false)}
                     data={viewData}
-                    uomId={record.spccmuoM_Id}
                 />
-            )}
+            )} */}
         </div>
     );
 }

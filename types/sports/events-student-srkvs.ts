@@ -22,9 +22,14 @@ export interface IEventsStudentSRKVSData {
     eventName: string;
     asmaY_Id: number;
     asmaY_Year: string;
+<<<<<<< HEAD
     spccE_StartDate: string;
     spccE_EndDate: string;
     mainEvent: string;
+=======
+    startDate: string;
+    endDate: string;
+>>>>>>> 11c31108 (merged sports)
 }
 
 export interface IEventsStudentSRKVSViewDetails {
@@ -42,7 +47,10 @@ export interface IEventsStudentSRKVSViewDetails {
     spccmscC_MultiAttemptFlg: boolean;
     spccmscC_NoOfAttempts: number;
     spccestR_Remarks?: string;
+<<<<<<< HEAD
     spccmuoM_Id?: number;
+=======
+>>>>>>> 11c31108 (merged sports)
 }
 
 // Student Dropdown/Selection Item

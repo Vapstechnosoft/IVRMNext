@@ -9,8 +9,12 @@ import {
     saveEventsStudentSRKVS,
     getEventsStudentSRKVSList,
     deactivateEventsStudentSRKVS,
+<<<<<<< HEAD
     getEventsStudentSRKVSDetails,
     updateEventsStudentSRKVS
+=======
+    getEventsStudentSRKVSDetails
+>>>>>>> 11c31108 (merged sports)
 } from '@/server/sports/events-student-srkvs';
 import { toast } from 'sonner'; // Ensure toast is imported
 
@@ -84,6 +88,7 @@ export const useEventsStudentSRKVS = () => {
         }
     });
 
+<<<<<<< HEAD
     const updateData = useMutation({
         mutationFn: (data: any) => updateEventsStudentSRKVS(data),
         onSuccess: (response) => {
@@ -102,6 +107,8 @@ export const useEventsStudentSRKVS = () => {
         }
     });
 
+=======
+>>>>>>> 11c31108 (merged sports)
     return {
         dropdowns,
         gridData,
@@ -112,7 +119,11 @@ export const useEventsStudentSRKVS = () => {
         fetchStudents,
         saveData,
         deactivateData,
+<<<<<<< HEAD
         fetchViewDetails,
         updateData // Added
+=======
+        fetchViewDetails
+>>>>>>> 11c31108 (merged sports)
     };
 };
