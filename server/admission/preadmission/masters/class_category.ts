@@ -56,5 +56,6 @@ export async function toggleMasterClassCategorySection(id: number) {
 }
 export async function getMasterCategoryDropdown() {
     const url = '/master_class_category/master_category_drop_down_list';
-    return await api.get<IMasterCategoryDropDown[]>('admission', url);
+    return await api.getArray<IMasterCategoryDropDown>('admission', url);
 }
+

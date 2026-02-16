@@ -243,6 +243,15 @@ export default function AdmissionReportPage(props: {
                 return;
             }
 
+            console.log(' Report Button Parameters Debug:', {
+                watchedYear,
+                studentScope,
+                scopeMapValue: scopeMap[studentScope],
+                watchedStudentCategory,
+                'Concession_Id should be': scopeMap[studentScope],
+                'flag should be': watchedStudentCategory
+            });
+
             setRequestPayload(payload);
             setShowReport(true);
 
@@ -285,10 +294,19 @@ export default function AdmissionReportPage(props: {
 
             toast.loading('Downloading Excel...', { id: 'excel-download' });
 
+            console.log(' Excel Export Parameters Debug:', {
+                watchedYear,
+                studentScope,
+                scopeMapValue: scopeMap[studentScope],
+                watchedStudentCategory,
+                'Concession_Id should be': scopeMap[studentScope],
+                'flag should be': watchedStudentCategory
+            });
+
             const response = await getExcelClassWiseStudentReport(
                 watchedYear,
-                scopeMap[studentScope],
-                watchedStudentCategory ?? 0,
+                scopeMap[studentScope], // This should be 0 (Concession_Id)
+                watchedStudentCategory ?? 0, // This should be 2 (flag)
                 payload,
                 resolvedSearchParams
             );
@@ -298,8 +316,8 @@ export default function AdmissionReportPage(props: {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    });
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
