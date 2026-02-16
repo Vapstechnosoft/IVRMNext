@@ -635,7 +635,6 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                     </thead>
                     <tbody>
                         {details.map((d, idx) => (
-                            console.log('d', d),
                             <tr key={d.id} className='even:bg-gray-50'>
                                 <td className='border p-2 text-center'>{idx + 1}</td>
                                 <td className='border p-2 text-center'>{d.year}</td>
@@ -649,7 +648,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                 {/* FIXED: Display emsS_SubSubjectName */}
                                 <td className='border p-2'>{(d.ssub || []).map((ss) => ss.emsS_SubSubjectName).join(', ')}</td>
                                 <td className='border p-2 text-center'>
-                                    {d.elpflg === 'BY_CLASS_TEACHER' ? 'Class Teacher' : d.elpflg === 'BY_SUBJECT_TEACHER' ? 'Subject Teacher' : 'Others'}
+                                    {d.elpflg === 'BY_CLASS_TEACHER' || d.elpflg === 'ct' ? 'Class Teacher' : d.elpflg === 'BY_SUBJECT_TEACHER' || d.elpflg === 'st' ? 'Subject Teacher' : 'Others'}
                                 </td>
                                 <td className='border p-2'>
                                     <div className='flex justify-center gap-2'>

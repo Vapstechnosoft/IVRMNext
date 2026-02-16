@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -23,36 +22,36 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { sportsCCNameSchema } from '@/schemas/sports/masters/sports-cc-name';
-import { saveSportsCCName, getSportsCCNameMasterData } from '@/actions/sports/masters/sports-cc-name';
-import { SportsCCNameDTO, SportsCCNameMasterDataDTO } from '@/types/sports/masters/sports-cc-name';
+import { saveSportsCCName } from '@/server/sports/masters/sports-cc-name';
+import { SportsCCNameDTO, SportsCCNameGroupDTO } from '@/types/sports/masters/sports-cc-name';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface AddFormProps {
     onSuccess: () => void;
     onCancel: () => void;
-    initialData?: SportsCCNameDTO | null;
+    groupNameList: SportsCCNameGroupDTO[];
 }
 
-export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
-    const [masterData, setMasterData] = useState<SportsCCNameMasterDataDTO | null>(null);
+export const AddForm = ({ onSuccess, onCancel, groupNameList }: AddFormProps) => {
 
     const form = useForm<z.infer<typeof sportsCCNameSchema.addOrUpdate>>({
         resolver: zodResolver(sportsCCNameSchema.addOrUpdate),
         defaultValues: {
-            SPCCMSCC_Id: 0,
-            SPCCMSCCG_Id: 0,
-            SPCCMSCC_SportsCCName: '',
-            SPCCMSCC_SportsCCDesc: '',
-            SPCCMSCC_SGFlag: 'Single',
-            SPCCMSCC_NoOfMembers: 1,
-            SPCCMSCC_RecHighLowFlag: 'High',
-            SPCCMSCC_RecInfo: '',
-            SPCCMSCC_MultiAttemptFlg: false,
-            SPCCMSCC_NoOfAttempts: null,
-            tempDatas: [{ SPCCMSCCG_UnderEvent: '' }], // Start with one empty row
+            spccmscC_Id: 0,
+            spccmsccG_Id: 0,
+            spccmscC_SportsCCName: '',
+            spccmscC_SportsCCDesc: '',
+            spccmscC_SGFlag: 'Single',
+            spccmscC_NoOfMembers: 1,
+            spccmscC_RecHighLowFlag: 'High',
+            spccmscC_RecInfo: '',
+            spccmscC_MultiAttemptFlg: false,
+            spccmscC_NoOfAttempts: null,
+            tempDatas: [{ spccmsccG_UnderEvent: '' }],
         },
     });
 
@@ -61,60 +60,32 @@ export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
         name: "tempDatas",
     });
 
-    // Load Master Data
-    useEffect(() => {
-        getSportsCCNameMasterData().then((data) => {
-            setMasterData(data);
-        });
-    }, []);
-
-    // Handle Initial Data for Edit
-    useEffect(() => {
-        if (initialData) {
-            form.reset({
-                SPCCMSCC_Id: initialData.SPCCMSCC_Id,
-                SPCCMSCCG_Id: initialData.SPCCMSCCG_Id,
-                SPCCMSCC_SportsCCName: initialData.SPCCMSCC_SportsCCName,
-                SPCCMSCC_SportsCCDesc: initialData.SPCCMSCC_SportsCCDesc,
-                SPCCMSCC_SGFlag: initialData.SPCCMSCC_SGFlag as "Single" | "Group",
-                SPCCMSCC_NoOfMembers: initialData.SPCCMSCC_NoOfMembers,
-                SPCCMSCC_RecHighLowFlag: initialData.SPCCMSCC_RecHighLowFlag as "High" | "Low",
-                SPCCMSCC_RecInfo: initialData.SPCCMSCC_RecInfo,
-                SPCCMSCC_MultiAttemptFlg: initialData.SPCCMSCC_MultiAttemptFlg,
-                SPCCMSCC_NoOfAttempts: initialData.SPCCMSCC_NoOfAttempts,
-                tempDatas: initialData.tempDatas && initialData.tempDatas.length > 0
-                    ? initialData.tempDatas
-                    : [{ SPCCMSCCG_UnderEvent: '' }],
-            });
-        }
-    }, [initialData, form]);
-
-    const watchSGFlag = form.watch('SPCCMSCC_SGFlag');
-    const watchMultiAttempt = form.watch('SPCCMSCC_MultiAttemptFlg');
+    const watchSGFlag = form.watch('spccmscC_SGFlag');
+    const watchMultiAttempt = form.watch('spccmscC_MultiAttemptFlg');
 
     // Effect for SG Flag
     useEffect(() => {
         if (watchSGFlag === 'Single') {
-            form.setValue('SPCCMSCC_NoOfMembers', 1, { shouldValidate: true });
+            form.setValue('spccmscC_NoOfMembers', 1, { shouldValidate: true });
         }
     }, [watchSGFlag, form]);
 
     const onSubmit = async (values: z.infer<typeof sportsCCNameSchema.addOrUpdate>) => {
         try {
-            const payload: SportsCCNameDTO = {
+            const payload = {
                 ...values,
-                SPCCMSCC_Id: values.SPCCMSCC_Id || 0,
-                SPCCMSCCG_Id: Number(values.SPCCMSCCG_Id),
-                SPCCMSCC_NoOfMembers: Number(values.SPCCMSCC_NoOfMembers),
-                SPCCMSCC_NoOfAttempts: values.SPCCMSCC_NoOfAttempts ? Number(values.SPCCMSCC_NoOfAttempts) : null,
+                spccmscC_Id: 0,
+                spccmsccG_Id: Number(values.spccmsccG_Id),
+                spccmscC_NoOfMembers: Number(values.spccmscC_NoOfMembers),
+                spccmscC_NoOfAttempts: values.spccmscC_NoOfAttempts ? Number(values.spccmscC_NoOfAttempts) : null,
                 tempDatas: values.tempDatas?.map(t => ({
-                    ...t,
-                    SPCCMSCCG_UnderEvent: t.SPCCMSCCG_UnderEvent || ''
+                    spccmsccG_UnderEvent: t.spccmsccG_UnderEvent || ''
                 })),
             };
             const result = await saveSportsCCName(payload);
             if (result.success) {
                 toast.success(result.message);
+                form.reset();
                 onSuccess();
             } else {
                 toast.error(result.message);
@@ -133,7 +104,7 @@ export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
                     <div className="space-y-4">
                         <FormField
                             control={form.control}
-                            name="SPCCMSCCG_Id"
+                            name="spccmsccG_Id"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Group/Main Event <span className="text-red-500">*</span></FormLabel>
@@ -147,7 +118,7 @@ export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {masterData?.gropList.map((item) => (
+                                            {groupNameList.map((item) => (
                                                 <SelectItem key={item.spccmsccG_Id} value={item.spccmsccG_Id.toString()}>
                                                     {item.spccmsccG_SportsCCGroupName}
                                                 </SelectItem>
@@ -161,7 +132,7 @@ export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
 
                         <FormField
                             control={form.control}
-                            name="SPCCMSCC_SportsCCDesc"
+                            name="spccmscC_SportsCCDesc"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Description <span className="text-red-500">*</span></FormLabel>
@@ -175,7 +146,7 @@ export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
 
                         <FormField
                             control={form.control}
-                            name="SPCCMSCC_NoOfMembers"
+                            name="spccmscC_NoOfMembers"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>No.Of Members <span className="text-red-500">*</span></FormLabel>
@@ -185,7 +156,7 @@ export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
                                             type="number"
                                             {...field}
                                             onChange={e => field.onChange(Number(e.target.value))}
-                                        // readOnly={watchSGFlag === 'Single'} // Optionally make readonly if Single
+                                            readOnly={watchSGFlag === 'Single'}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -195,7 +166,7 @@ export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
 
                         <FormField
                             control={form.control}
-                            name="SPCCMSCC_SGFlag"
+                            name="spccmscC_SGFlag"
                             render={({ field }) => (
                                 <FormItem className="space-y-3 p-3 border rounded-md">
                                     <FormLabel>SG Flag <span className="text-red-500">*</span></FormLabel>
@@ -231,7 +202,7 @@ export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
 
                         <FormField
                             control={form.control}
-                            name="SPCCMSCC_RecHighLowFlag"
+                            name="spccmscC_RecHighLowFlag"
                             render={({ field }) => (
                                 <FormItem className="space-y-3 p-3 border rounded-md">
                                     <FormLabel>High/Low Flag <span className="text-red-500">*</span></FormLabel>
@@ -271,7 +242,7 @@ export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
                     <div className="space-y-4">
                         <FormField
                             control={form.control}
-                            name="SPCCMSCC_RecInfo"
+                            name="spccmscC_RecInfo"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Rec Info</FormLabel>
@@ -285,7 +256,7 @@ export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
 
                         <FormField
                             control={form.control}
-                            name="SPCCMSCC_SportsCCName"
+                            name="spccmscC_SportsCCName"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Sports Name / Sub Event <span className="text-red-500">*</span></FormLabel>
@@ -300,7 +271,7 @@ export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
                         <div className="flex flex-col space-y-4 p-3 border rounded-md">
                             <FormField
                                 control={form.control}
-                                name="SPCCMSCC_MultiAttemptFlg"
+                                name="spccmscC_MultiAttemptFlg"
                                 render={({ field }) => (
                                     <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                                         <FormControl>
@@ -321,7 +292,7 @@ export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
                             {watchMultiAttempt && (
                                 <FormField
                                     control={form.control}
-                                    name="SPCCMSCC_NoOfAttempts"
+                                    name="spccmscC_NoOfAttempts"
                                     render={({ field }) => (
                                         <FormItem>
                                             {/* <FormLabel>Number Of Attempts</FormLabel> */}
@@ -358,7 +329,7 @@ export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
                                             <td className="p-2">
                                                 <FormField
                                                     control={form.control}
-                                                    name={`tempDatas.${index}.SPCCMSCCG_UnderEvent`}
+                                                    name={`tempDatas.${index}.spccmsccG_UnderEvent`}
                                                     render={({ field }) => (
                                                         <FormItem>
                                                             <FormControl>
@@ -371,13 +342,13 @@ export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
                                             </td>
                                             <td className="p-2 text-center">
                                                 <div className="flex justify-center space-x-2">
-                                                    {/* Add Button only on last row */}
+                                                    {/* Add Button for any row to append */}
                                                     {index === fields.length - 1 && (
                                                         <Button
                                                             type="button"
                                                             variant="ghost"
                                                             size="icon"
-                                                            onClick={() => append({ SPCCMSCCG_UnderEvent: '' })}
+                                                            onClick={() => append({ spccmsccG_UnderEvent: '' })}
                                                         >
                                                             <Plus className="h-4 w-4 text-green-600" />
                                                         </Button>
@@ -408,7 +379,12 @@ export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
 
                 <div className="flex justify-center space-x-2 mt-6">
                     <Button type="submit" disabled={form.formState.isSubmitting}>
-                        {form.formState.isSubmitting ? 'Saving...' : 'Save'}
+                        {form.formState.isSubmitting ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Saving...
+                            </>
+                        ) : 'Save'}
                     </Button>
                     <Button type="button" variant="destructive" onClick={onCancel}>
                         Cancel

@@ -29,15 +29,15 @@ export default function StudentAgeCalculationPage() {
         resolver: zodResolver(studentAgeCalculationSchema),
         defaultValues: {
             ASMAY_Id: undefined,
-            asmcL_Id: undefined,
-            asmS_Id: undefined,
+            ASMCL_Id: undefined,
+            ASMS_Id: undefined,
             student: [],
             Till_Date: undefined
         }
     });
 
-    const watchClass = watch('asmcL_Id');
-    const watchSection = watch('asmS_Id');
+    const watchClass = watch('ASMCL_Id');
+    const watchSection = watch('ASMS_Id');
     const watchAcademicYear = watch('ASMAY_Id');
 
     useEffect(() => {
@@ -45,8 +45,9 @@ export default function StudentAgeCalculationPage() {
             studentsData.mutate(
                 {
                     ASMAY_Id: watchAcademicYear,
-                    asmcL_Id: watchClass,
-                    asmS_Id: watchSection
+                    AMST_Id: 0,
+                    ASMCL_Id: watchClass,
+                    ASMS_Id: watchSection
                 },
                 {
                     onSuccess: (res) => {
@@ -135,7 +136,7 @@ export default function StudentAgeCalculationPage() {
                                 </Label>
                                 <Controller
                                     control={control}
-                                    name='asmcL_Id'
+                                    name='ASMCL_Id'
                                     render={({ field }) => (
                                         <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                             <SelectTrigger>
@@ -151,7 +152,7 @@ export default function StudentAgeCalculationPage() {
                                         </Select>
                                     )}
                                 />
-                                {errors.asmcL_Id && <span className='text-destructive text-sm'>{errors.asmcL_Id.message}</span>}
+                                {errors.ASMCL_Id && <span className='text-destructive text-sm'>{errors.ASMCL_Id.message}</span>}
                             </div>
 
                             <div className='space-y-2'>
@@ -160,7 +161,7 @@ export default function StudentAgeCalculationPage() {
                                 </Label>
                                 <Controller
                                     control={control}
-                                    name='asmS_Id'
+                                    name='ASMS_Id'
                                     render={({ field }) => (
                                         <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                             <SelectTrigger>
@@ -176,7 +177,7 @@ export default function StudentAgeCalculationPage() {
                                         </Select>
                                     )}
                                 />
-                                {errors.asmS_Id && <span className='text-destructive text-sm'>{errors.asmS_Id.message}</span>}
+                                {errors.ASMS_Id && <span className='text-destructive text-sm'>{errors.ASMS_Id.message}</span>}
                             </div>
 
                             <div className='space-y-2'>
@@ -236,9 +237,9 @@ export default function StudentAgeCalculationPage() {
                 <CardContent>
                     <DataTable
                         columns={columns}
-                        data={gridData.data?.data || []}
-                        totalItems={gridData.data?.data?.length || 0}
-                        //manualPagination={false}
+                        data={gridData.data?.data || initialData.data?.data?.records || []}
+                        totalItems={gridData.data?.data?.length || initialData.data?.data?.records?.length || 0}
+                    //manualPagination={false}
                     />
                 </CardContent>
             </Card>
