@@ -128,12 +128,12 @@ export const studentAdmissionFormSchema = {
             ),
             amsT_StudentCategory_Id: z.preprocess(
                 (val) => (val === undefined || val === null || val === '' ? 0 : Number(val)),
-                z.number().int().min(1, { message: 'Caste is required' })
+                z.number().int().min(1, { message: 'Caste Category is required' })
             ),
 
             amsT_ReligionId: z.preprocess(
                 (val) => (val === undefined || val === null || val === '' ? 0 : Number(val)),
-                z.number().int().min(1, { message: 'Student Category is required' })
+                z.number().int().min(1, { message: 'Religion is required' })
             ),
             amsT_Date: z.date({ message: 'Date Of Admission is required' }),
             amsT_Sex: z.string().min(1, { message: 'Gender is required' }),
@@ -194,16 +194,16 @@ export const studentAdmissionFormSchema = {
                 .transform((val) => String(val)),
 
             // Permanent Address
-            amsT_PerStreet: createStringOnlySchema('Street', 1, 100),
-            amsT_PerArea: createStringOnlySchema('Area', 1, 100),
-            amsT_PerCountry: z.string().min(1, { message: 'Country is required' }),
-            amsT_PerState: z.coerce.number().int().min(1, { message: 'State is required' }),
+            amsT_PerStreet: createStringOnlyOptionalSchema('Street', 1, 100),
+            amsT_PerArea: createStringOnlyOptionalSchema('Area', 1, 100),
+            amsT_PerCountry: z.string().optional(),
+            amsT_PerState: z.coerce.number().int().optional(),
             amsT_PerDistrict: z.coerce.number().int().optional(),
-            amsT_PerCity: createStringOnlySchema('City', 1, 100),
+            amsT_PerCity: createStringOnlyOptionalSchema('City', 1, 100),
             amsT_PerPincode: z
                 .union([z.string(), z.number()])
-                .refine((val) => val !== undefined && val !== null && val !== '', { message: 'Pincode is required' })
-                .transform((val) => String(val)),
+                .optional()
+                .transform((val) => val ? String(val) : ''),
 
             //step=3
 
