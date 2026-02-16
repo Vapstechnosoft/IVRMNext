@@ -9,12 +9,16 @@ import type { MappedEventCoe } from '@/types/coe/master-coe';
 import { Plus, X } from 'lucide-react';
 import { mappingColumns } from './_components/mapping-columns';
 import { MappingForm } from './_components/mapping-form';
+import { ViewMappedEventDialog } from './_components/view-mapped-event-dialog';
 import ToggleForm from './_components/toggle-form';
 import { useMasterCoeInitialData } from '@/hooks/coe/usemMaster';
+import { use } from 'react';
 
-export default function MasterCoePage() {
-    const { data: initialData, isLoading, error, refetch } = useMasterCoeInitialData();
-
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+export default function MasterCoePage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const { data: initialData, isLoading, error, refetch } = useMasterCoeInitialData(searchParams);
+    console.log("Initial Data:", initialData);
     return (
         <FormProvider<MappedEventCoe>>
             <MasterCoePageContent
@@ -41,11 +45,8 @@ function MasterCoePageContent({
     const { openAddForm } = useFormContext<MappedEventCoe>();
 
 
-    const tableProps = {
-        data: initialData?.data || [],
-        totalItems: initialData?.data?.length || 0,
-
-    };
+    const tableData = initialData?.data || [];
+    const tableProps = useDataTableProps(initialData);
 
     return (
         <div className='min-h-screen'>
@@ -78,6 +79,7 @@ function MasterCoePageContent({
                         noDataTitle='No Mapped Events Found'
                         noDataDescription='Get started by creating your first Mapped Event'
                         errorTitle='Error Loading Mapped Events'
+                        // manualPagination={false}
                     />
                 </CollapsibleSection>
 
@@ -98,7 +100,9 @@ function FormSections({ refetch }: { refetch?: () => void }) {
         closeEditForm,
         closeToggleForm,
         addFormRef,
-        editFormRef
+        editFormRef,
+        isDetailsViewOpen,
+        closeDetailsView
     } = useFormContext<MappedEventCoe>();
 
     return (
@@ -173,6 +177,14 @@ function FormSections({ refetch }: { refetch?: () => void }) {
                     onClose={() => {
                         closeToggleForm();
                     }}
+                />
+            )}
+
+            {/* View Mapped Event Details */}
+            {isDetailsViewOpen && selectedRow && (
+                <ViewMappedEventDialog
+                    rowData={selectedRow}
+                    onClose={closeDetailsView}
                 />
             )}
         </>

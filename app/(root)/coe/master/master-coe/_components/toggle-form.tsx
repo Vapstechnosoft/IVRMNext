@@ -23,7 +23,9 @@ export default function ToggleForm({ rowData, onClose }: ToggleFormProps) {
     const handleConfirm = async () => {
         try {
             setIsLoading(true);
-            const response = await toggleMappedEvent(rowData.coee_Id);
+            console.log("toggle Data:", rowData);
+
+            const response = await toggleMappedEvent(rowData.coemE_Id, rowData.coeE_Id);
 
             if (response.success) {
                 toast.success(response.message);

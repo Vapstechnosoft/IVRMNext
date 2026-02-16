@@ -1,7 +1,7 @@
 'use server';
 
 import { api, type ApiResponse } from '@/lib/apiService';
-import { IEligibilityCertificateReport, IEligibilityCertificateReportDetail } from '@/types/sports/reports/eligibility-certificate-report';
+import type { IEligibilityCertificateReport, IEligibilityCertificateReportDetail } from '@/types/sports/reports/eligibility-certificate-report';
 
 export async function getEligibilityCertificateReport(): Promise<any> {
     // Mock Data for Dropdowns

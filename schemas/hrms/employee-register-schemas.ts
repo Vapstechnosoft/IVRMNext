@@ -69,7 +69,7 @@ export const qualificationDetailSchema = z
                 return !Number.isNaN(year) && year >= 1900 && year <= new Date().getFullYear();
             }, 'Registration Year must be a valid year'),
         guideName: z.string().max(100, 'Guide Name must not exceed 100 characters').optional(),
-        qualifiedDate: z.string().min(1, 'Qualified Date is required')
+        qualifiedDate: z.string().optional()
     })
     .superRefine((data, ctx) => {
         // Validate CGPA or Percentage based on selected type
@@ -232,8 +232,8 @@ const baseEmployeeRegisterSchema = z.object({
     motherName: createStringOnlySchema("Mother's Name", 1, 50),
     dateOfBirth: z.string().min(1, 'Date of Birth Required'),
     dateOfJoining: z.string().min(1, 'Date of Joining Required'),
-    dateOfConfirmation: z.string().min(1, 'Date of Confirmation Required'),
-    dateOfRetirement: z.string().min(1, 'Date of Retirement Required'),
+    dateOfConfirmation: z.string().optional(),
+    dateOfRetirement: z.string().optional(),
     gender: z.string().min(1, 'Gender Required'),
     maritalStatus: z.string().min(1, 'Marital Status Required'),
     religion: z.string().min(1, 'Religion Required'),

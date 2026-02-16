@@ -6,19 +6,12 @@ export const VenueWiseParticipationReportSchema = z.object({
     ASMAY_Id: z.number().min(1, { message: 'Academic Year is required' }),
 
     // Conditional fields based on Type
-    ASMCL_Id: z.number().optional(),
-    ASMS_Id: z.number().optional(),
+    ASMCL_Id: z.number().optional().nullable(),
 
-    // Legacy: House and Venue seem to be dependent/available in legacy but validation messages suggest required
-    // Based on user request "By House" or "By Class/Section", we will enforce House selection in both or based on legacy logic
-    // Legacy HTML: House required if Type=='House'. Class/Sec required if Type=='CS'.
-    // Venue seems always optional or required based on 'required' attr in HTML select? HTML says required.
-
-    // Multi-select lists (legacy uses checkboxes for Section, House, Venue)
-    selectedSections: z.array(z.object({ asmS_Id: z.number() })).optional(),
-    selectedHouses: z.array(z.object({ spccmH_Id: z.number() })).optional(),
-    selectedVenues: z.array(z.object({ spccmeV_Id: z.number() })).optional(),
-
+    // Multi-select lists (matching legacy payload names)
+    selectedSectionlist: z.array(z.object({ asmS_Id: z.number() })).optional(),
+    selectedhouselist: z.array(z.object({ spccmH_Id: z.number() })).optional(),
+    selectedVenuelist: z.array(z.object({ spccmeV_Id: z.number() })).optional(),
 }).refine((data) => {
     if (data.Type === 'CS') {
         return !!data.ASMCL_Id;
@@ -28,37 +21,35 @@ export const VenueWiseParticipationReportSchema = z.object({
     message: 'Class is required',
     path: ['ASMCL_Id'],
 }).refine((data) => {
-    // If Type is CS, Section is required (legacy used checkboxes)
+    // If Type is CS, Section is required
     if (data.Type === 'CS') {
-        return data.selectedSections && data.selectedSections.length > 0;
+        return data.selectedSectionlist && data.selectedSectionlist.length > 0;
     }
     return true;
 }, {
     message: 'Section is required',
-    path: ['selectedSections'],
+    path: ['selectedSectionlist'],
 }).refine((data) => {
-    // House is required if Type is House (based on legacy ng-required="Type=='House'")
-    // But legacy also shows House dropdown/multi for CS type? 
-    // Legacy HTML: ng-required="Type=='House'" for House.
+    // House is required if Type is House
     if (data.Type === 'House') {
-        return data.selectedHouses && data.selectedHouses.length > 0;
+        return data.selectedhouselist && data.selectedhouselist.length > 0;
     }
     return true;
 }, {
     message: 'House is required',
-    path: ['selectedHouses'],
+    path: ['selectedhouselist'],
 }).refine((data) => {
-    // Venue required always? HTML says required on select/checkbox
-    return data.selectedVenues && data.selectedVenues.length > 0;
+    // Venue required always
+    return data.selectedVenuelist && data.selectedVenuelist.length > 0;
 }, {
     message: 'Venue is required',
-    path: ['selectedVenues'],
+    path: ['selectedVenuelist'],
 });
 
 export type VenueWiseParticipationReportFormSchema = z.infer<typeof VenueWiseParticipationReportSchema>;
 
 export interface IVenueWiseReportDropdowns {
-    academicYear: { asmaY_Id: number; asmaY_Year: string }[];
+    yearlist: { asmaY_Id: number; asmaY_Year: string }[];
     classList: { asmcL_Id: number; asmcL_ClassName: string }[];
     sectionList: { asmS_Id: number; asmC_SectionName: string }[];
     houseList: { spccmH_Id: number; spccmH_HouseName: string }[];

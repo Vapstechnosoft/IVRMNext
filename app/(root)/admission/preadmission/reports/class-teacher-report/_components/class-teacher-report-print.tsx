@@ -22,41 +22,45 @@ export const ClassTeacherReportPrint = React.forwardRef<HTMLDivElement, ClassTea
 
         return (
             <div ref={ref} className='print-preview-container p-5 bg-white text-black min-h-full w-full'>
-                <style
-                    dangerouslySetInnerHTML={{
-                        __html: `
+                <style>
+                    {`
                         @media print {
                             @page {
-                                margin: 10mm;
+                                margin: 20mm;
                                 size: A4 portrait;
                             }
                             body {
+                                visibility: hidden;
                                 background: white;
-                                color: black;
-                                font-family: sans-serif;
                             }
                             .print-preview-container {
-                                display: block !important;
                                 visibility: visible !important;
-                                padding: 10mm;
-                                background: white;
-                                color: black;
+                                position: absolute;
+                                left: 0;
+                                top: 0;
                                 width: 100%;
+                                background: white;
+                                z-index: 9999;
+                                color: black;
+                            }
+                            .print-preview-container * {
+                                visibility: visible !important;
                             }
                             table {
                                 width: 100%;
                                 border-collapse: collapse;
-                                border: 1px solid #d1d5db; /* gray-300 */
+                                border: 1px solid #000;
                             }
                             th, td {
-                                border: 1px solid #d1d5db;
-                                padding: 8px 16px; /* px-4 py-2 */
+                                border: 1px solid #000;
+                                padding: 8px;
                                 text-align: left;
                                 font-size: 12px;
                             }
                             th {
-                                background-color: #f3f4f6; /* gray-100 */
-                                font-weight: 600;
+                                background-color: #f3f4f6;
+                                font-weight: bold;
+                                -webkit-print-color-adjust: exact;
                             }
                             .header-section {
                                 text-align: center;
@@ -66,12 +70,13 @@ export const ClassTeacherReportPrint = React.forwardRef<HTMLDivElement, ClassTea
                                 margin-top: 20px;
                                 display: flex;
                                 justify-content: space-between;
-                                font-size: 10px;
+                                padding: 10px 0;
+                                border-top: 1px solid #ccc;
+                                page-break-after: always;
                             }
                         }
-                    `
-                    }}
-                />
+                    `}
+                </style>
 
                 {/* Header */}
                 <div className='header-section mb-6 text-center'>

@@ -543,14 +543,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Date Of Birth Report',
                                             description: 'Date Of Birth Report'
                                         },
-                                        {
-                                            id: 12,
-                                            name: 'Overall Daily Attendance Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/overall-daily-attendance-report',
-                                            title: 'Overall Daily Attendance Report',
-                                            description: 'Overall Daily Attendance Report'
-                                        },
+                                        // {
+                                        //     id: 12,
+                                        //     name: 'Overall Daily Attendance Report',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/reports/overall-daily-attendance-report',
+                                        //     title: 'Overall Daily Attendance Report',
+                                        //     description: 'Overall Daily Attendance Report'
+                                        // },
                                         {
                                             id: 13,
                                             name: 'Student Attendance Report',
@@ -1567,21 +1567,6 @@ export async function getUserAccessibleModules() {
                                             description: 'Report Card_X'
                                         }
                                     ]
-                                },
-                                {
-                                    id: 1,
-                                    name: 'AI Performance Analysis',
-                                    icon: 'BarChart',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'AI Performance Analysis',
-                                            icon: 'BarChart',
-                                            url: '/Exam/exam-module/ai-performance-analysis',
-                                            title: 'AI Performance Analysis',
-                                            description: 'Analyze performance metrics and AI-driven insights'
-                                        }
-                                    ]
                                 }
                             ]
                         }
@@ -1737,10 +1722,25 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/masters/religion-category-mapping',
                                             title: 'Religion-Category Mapping',
                                             description: 'Map Religion & Category'
+                                        },
+
+                                    ]
+                                },
+                                {
+                                    id: 5,
+                                    name: 'User Creation',
+                                    icon: 'UserPlus',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Staff User Creation',
+                                            icon: 'UserPlus',
+                                            url: '/SuperAdmin/super-admin-module/user-creation/staff-user-creation',
+                                            title: 'Staff User Creation',
+                                            description: 'Manage Institution Staff User Details'
                                         }
                                     ]
                                 },
-
                                 {
                                     id: 2,
                                     name: 'Employee',
@@ -1801,14 +1801,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Mass Updation',
                                             description: 'Bulk Update Employee Data'
                                         },
-                                        // {
-                                        //     id: 6,
-                                        //     name: 'Salary Advance',
-                                        //     icon: 'DollarSign',
-                                        //     url: '/hrms/transactions/salary-advance',
-                                        //     title: 'Salary Advance',
-                                        //     description: 'Manage Salary Advances'
-                                        // },
+                                        {
+                                            id: 6,
+                                            name: 'Salary Advance',
+                                            icon: 'DollarSign',
+                                            url: '/hrms/transactions/salary-advance',
+                                            title: 'Salary Advance',
+                                            description: 'Manage Salary Advances'
+                                        },
                                         {
                                             id: 7,
                                             name: 'Employee Loan',
@@ -1865,14 +1865,14 @@ export async function getUserAccessibleModules() {
                                             title: 'E-PF Contribution Register',
                                             description: 'E-PF Contribution Register Report'
                                         },
-                                        // {
-                                        //     id: 6,
-                                        //     name: 'Employee Salary Details',
-                                        //     icon: 'DollarSign',
-                                        //     url: '/hrms/reports/employee-salary-details',
-                                        //     title: 'Employee Salary Details',
-                                        //     description: 'Detailed Salary Information'
-                                        // },
+                                        {
+                                            id: 6,
+                                            name: 'Employee Salary Details',
+                                            icon: 'DollarSign',
+                                            url: '/hrms/reports/employee-salary-details',
+                                            title: 'Employee Salary Details',
+                                            description: 'Detailed Salary Information'
+                                        },
                                         {
                                             id: 7,
                                             name: 'Employee Strength',
@@ -2327,153 +2327,161 @@ export async function getUserAccessibleModules() {
                         //         }
                         //     ]
                         // },
-                        // ,{
-                        //     id: 4,
-                        //     name: 'Leave Management',
-                        //     icon: 'Calendar',
-                        //     sub_menu: [
-                        //         {
-                        //             id: 1,
-                        //             name: 'Masters',
-                        //             icon: 'Database',
-                        //             pages: [
-                        //                 {
-                        //                     id: 1,
-                        //                     name: 'Master Leave',
-                        //                     icon: 'Calendar',
-                        //                     url: '/hrms/leave-management/masters/master-leave',
-                        //                     title: 'Master Leave',
-                        //                     description: 'Manage Leave Types'
-                        //                 },
-                        //                 {
-                        //                     id: 2,
-                        //                     name: 'Leave Authorization',
-                        //                     icon: 'Shield',
-                        //                     url: '/hrms/leave-management/masters/leave-authorization',
-                        //                     title: 'Leave Authorization',
-                        //                     description: 'Configure Leave Approvers'
-                        //                 }
-                        //                 // {
-                        //                 //     id: 3,
-                        //                 //     name: 'Master Leave Year',
-                        //                 //     icon: 'CalendarRange',
-                        //                 //     url: '/hrms/leave-management/masters/master-leaveYear',
-                        //                 //     title: 'Master Leave Year',
-                        //                 //     description: 'Manage Leave Year'
-                        //                 // }
-                        //             ]
-                        //         },
-                        //         {
-                        //             id: 2,
-                        //             name: 'Apply Leave',
-                        //             icon: 'FileText',
-                        //             pages: [
-                        //                 {
-                        //                     id: 1,
-                        //                     name: 'Apply Leave',
-                        //                     icon: 'FilePlus',
-                        //                     url: '/hrms/leave-management/apply-leave',
-                        //                     title: 'Apply Leave',
-                        //                     description: 'Submit Leave Application'
-                        //                 },
-                        //                 {
-                        //                     id: 2,
-                        //                     name: 'Leave Approval',
-                        //                     icon: 'CheckCircle',
-                        //                     url: '/hrms/leave-management/leave-approval',
-                        //                     title: 'Leave Approval',
-                        //                     description: 'Approve or Reject Leave Requests'
-                        //                 }
-                        //             ]
-                        //         },
-                        //         {
-                        //             id: 3,
-                        //             name: 'Transaction',
-                        //             icon: 'FileText',
-                        //             pages: [
-                        //                 {
-                        //                     id: 1,
-                        //                     name: 'Leave Transfer',
-                        //                     icon: 'Plus',
-                        //                     url: '/hrms/leave-management/transaction/leave-transfer',
-                        //                     title: 'Leave Transfer',
-                        //                     description: 'Transfer Leave'
-                        //                 },
-                        //                 // {
-                        //                 //     id: 2,
-                        //                 //     name: 'Comp Off Approval',
-                        //                 //     icon: 'CheckSquare',
-                        //                 //     url: '/hrms/leave-management/transaction/comp-off-approval',
-                        //                 //     title: 'Comp Off Approval',
-                        //                 //     description: 'Approve Compensatory Off'
-                        //                 // },
-                        //                 // {
-                        //                 //     id: 3,
-                        //                 //     name: 'Comp Off Request',
-                        //                 //     icon: 'FileText',
-                        //                 //     url: '/hrms/leave-management/transaction/comp-off-request',
-                        //                 //     title: 'Comp Off Request',
-                        //                 //     description: 'Request Compensatory Off'
-                        //                 // },
-                        //                 {
-                        //                     id: 4,
-                        //                     name: 'Leave Credit Details',
-                        //                     icon: 'Info',
-                        //                     url: '/hrms/leave-management/transaction/leave-credit-details',
-                        //                     title: 'Leave  Details',
-                        //                     description: 'View Leave Credit Details'
-                        //                 },
-                        //                 {
-                        //                     id: 5,
-                        //                     name: 'Leave Transaction',
-                        //                     icon: 'List',
-                        //                     url: '/hrms/leave-management/transaction/leave-credit-transaction',
-                        //                     title: 'Leave Transaction',
-                        //                     description: 'Leave Transaction'
-                        //                 },
-                        //                 {
-                        //                     id: 6,
-                        //                     name: 'Leave Opening Balance',
-                        //                     icon: 'Database',
-                        //                     url: '/hrms/leave-management/transaction/leave-opening-balance',
-                        //                     title: 'Leave Opening Balance',
-                        //                     description: 'Manage Leave Opening Balance'
-                        //                 }
-                        //             ]
-                        //         },
-                        //         {
-                        //             id: 4,
-                        //             name: 'Report',
-                        //             icon: 'FileText',
-                        //             pages: [
-                        //                 {
-                        //                     id: 1,
-                        //                     name: 'Leave Report',
-                        //                     icon: 'FileSearch',
-                        //                     url: '/hrms/leave-management/reports/leave-report',
-                        //                     title: 'Leave Report',
-                        //                     description: 'Leave Summary Report'
-                        //                 }
-                        //                 // {
-                        //                 //     id: 2,
-                        //                 //     name: 'Overall Report',
-                        //                 //     icon: 'BarChart3',
-                        //                 //     url: '/hrms/leave-management/reports/overAll-report',
-                        //                 //     title: 'Overall Report',
-                        //                 //     description: 'Overall Leave Analysis'
-                        //                 // },
-                        //                 // {
-                        //                 //     id: 3,
-                        //                 //     name: 'Unauthorized Leave Report',
-                        //                 //     icon: 'AlertTriangle',
-                        //                 //     url: '/hrms/leave-management/reports/unauthorizedLeaveCount-report',
-                        //                 //     title: 'Unauthorized Leave Report',
-                        //                 //     description: 'Unauthorized Leave Count'
-                        //                 // }
-                        //             ]
-                        //         }
-                        //     ]
-                        // }
+                        , {
+                            id: 4,
+                            name: 'Leave Management',
+                            icon: 'Calendar',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Masters',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Leave',
+                                            icon: 'Calendar',
+                                            url: '/hrms/leave-management/masters/master-leave',
+                                            title: 'Master Leave',
+                                            description: 'Manage Leave Types'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Leave Authorization',
+                                            icon: 'Shield',
+                                            url: '/hrms/leave-management/masters/leave-authorization',
+                                            title: 'Leave Authorization',
+                                            description: 'Configure Leave Approvers'
+                                        }
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Master Leave Year',
+                                        //     icon: 'CalendarRange',
+                                        //     url: '/hrms/leave-management/masters/master-leaveYear',
+                                        //     title: 'Master Leave Year',
+                                        //     description: 'Manage Leave Year'
+                                        // }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Apply Leave',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Apply Leave',
+                                            icon: 'FilePlus',
+                                            url: '/hrms/leave-management/apply-leave',
+                                            title: 'Apply Leave',
+                                            description: 'Submit Leave Application'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Leave Approval',
+                                            icon: 'CheckCircle',
+                                            url: '/hrms/leave-management/leave-approval',
+                                            title: 'Leave Approval',
+                                            description: 'Approve or Reject Leave Requests'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Transaction',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Leave Transfer',
+                                            icon: 'Plus',
+                                            url: '/hrms/leave-management/transaction/leave-transfer',
+                                            title: 'Leave Transfer',
+                                            description: 'Transfer Leave'
+                                        },
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Comp Off Approval',
+                                        //     icon: 'CheckSquare',
+                                        //     url: '/hrms/leave-management/transaction/comp-off-approval',
+                                        //     title: 'Comp Off Approval',
+                                        //     description: 'Approve Compensatory Off'
+                                        // },
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Comp Off Request',
+                                        //     icon: 'FileText',
+                                        //     url: '/hrms/leave-management/transaction/comp-off-request',
+                                        //     title: 'Comp Off Request',
+                                        //     description: 'Request Compensatory Off'
+                                        // },
+                                        {
+                                            id: 4,
+                                            name: 'Leave Credit Details',
+                                            icon: 'Info',
+                                            url: '/hrms/leave-management/transaction/leave-credit-details',
+                                            title: 'Leave  Details',
+                                            description: 'View Leave Credit Details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Leave Transaction',
+                                            icon: 'List',
+                                            url: '/hrms/leave-management/transaction/leave-credit-transaction',
+                                            title: 'Leave Transaction',
+                                            description: 'Leave Transaction'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Leave Opening Balance',
+                                            icon: 'Database',
+                                            url: '/hrms/leave-management/transaction/leave-opening-balance',
+                                            title: 'Leave Opening Balance',
+                                            description: 'Manage Leave Opening Balance'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Admin On Duty Apply',
+                                            icon: 'Briefcase',
+                                            url: '/hrms/leave-management/transaction/admin-on-duty-apply',
+                                            title: 'Admin On Duty Apply',
+                                            description: 'Apply for On Duty Leave'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 4,
+                                    name: 'Report',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Leave Report',
+                                            icon: 'FileSearch',
+                                            url: '/hrms/leave-management/reports/leave-report',
+                                            title: 'Leave Report',
+                                            description: 'Leave Summary Report'
+                                        }
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Overall Report',
+                                        //     icon: 'BarChart3',
+                                        //     url: '/hrms/leave-management/reports/overAll-report',
+                                        //     title: 'Overall Report',
+                                        //     description: 'Overall Leave Analysis'
+                                        // },
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Unauthorized Leave Report',
+                                        //     icon: 'AlertTriangle',
+                                        //     url: '/hrms/leave-management/reports/unauthorizedLeaveCount-report',
+                                        //     title: 'Unauthorized Leave Report',
+                                        //     description: 'Unauthorized Leave Count'
+                                        // }
+                                    ]
+                                }
+                            ]
+                        }
                         // {
                         //     id: 5,
                         //     name: 'Exit Management',
@@ -2577,34 +2585,42 @@ export async function getUserAccessibleModules() {
 
                 {
                     id: 5,
-                    name: 'IFrame',
+                    name: 'AI Edge',
                     icon: 'Users',
                     menu: [
                         {
                             id: 1,
-                            name: 'IFrame',
+                            name: 'AI Edge',
                             icon: 'BookOpen',
                             sub_menu: [
                                 {
                                     id: 1,
-                                    name: 'IFrame',
+                                    name: 'AI Tools',
                                     icon: 'Database',
                                     pages: [
                                         {
                                             id: 1,
-                                            name: 'AI Assignment',
-                                            icon: 'BookOpen',
-                                            url: '/iframe/ai-assignment',
-                                            title: 'IFrame',
-                                            description: 'Manage AI Assignment Details'
+                                            name: 'Question Paper Generator',
+                                            icon: 'FileText',
+                                            url: '/iframe/ai-question-paper-generator',
+                                            title: 'AI Question Paper Generator',
+                                            description: 'Generate question papers from textbooks using AI'
                                         },
                                         {
                                             id: 2,
-                                            name: 'Question Generator',
-                                            icon: 'BookOpen',
-                                            url: '/iframe/question-generator',
-                                            title: 'IFrame',
-                                            description: 'Manage Question Generator Details'
+                                            name: 'AI Notemaker',
+                                            icon: 'FileText',
+                                            url: '/iframe/ai-notemaker',
+                                            title: 'AI Notemaker',
+                                            description: 'Summarize and create structured notes from textbooks using AI'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'AI Performance Analysis',
+                                            icon: 'BarChart',
+                                            url: '/Exam/exam-module/ai-performance-analysis',
+                                            title: 'AI Performance Analysis',
+                                            description: 'Analyze performance metrics and AI-driven insights'
                                         }
                                     ]
                                 }
@@ -3819,22 +3835,22 @@ export async function getUserAccessibleModules() {
                 {
                     id: 10,
                     name: 'Inventory Management',
-                    icon: 'Users',
+                    icon: 'Package',
                     menu: [
                         {
                             id: 1,
                             name: 'Inventory Module',
-                            icon: 'Users',
+                            icon: 'Package',
                             sub_menu: [
                                 {
                                     id: 1,
                                     name: 'Masters',
-                                    icon: 'LayoutGrid',
+                                    icon: 'Database',
                                     pages: [
                                         {
                                             id: 101,
                                             name: 'Tax',
-                                            icon: 'Settings',
+                                            icon: 'Percent',
                                             url: '/inventory/inventory-module/masters/inv-master-tax',
                                             title: 'Inventory Master Tax',
                                             description: 'Manage Inventory Master Tax'
@@ -3842,7 +3858,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 102,
                                             name: 'Store',
-                                            icon: 'Settings',
+                                            icon: 'Store',
                                             url: '/inventory/inventory-module/masters/inv-master-store',
                                             title: 'Inventory Master Store',
                                             description: 'Manage Inventory Master Store'
@@ -3850,7 +3866,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 103,
                                             name: 'Supplier',
-                                            icon: 'Settings',
+                                            icon: 'Truck',
                                             url: '/inventory/inventory-module/masters/inv-master-supplier',
                                             title: 'Inventory Master Supplier',
                                             description: 'Manage Inventory Master Supplier'
@@ -3858,7 +3874,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 104,
                                             name: 'Customer',
-                                            icon: 'Settings',
+                                            icon: 'Users',
                                             url: '/inventory/inventory-module/masters/inv-master-customer',
                                             title: 'Inventory Master Customer',
                                             description: 'Manage Inventory Master Customer'
@@ -3866,7 +3882,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 105,
                                             name: 'Main Group',
-                                            icon: 'Settings',
+                                            icon: 'Grid',
                                             url: '/inventory/inventory-module/masters/inv-master-main-group',
                                             title: 'Main Group',
                                             description: 'Manage Inventory Main Group Details'
@@ -3874,7 +3890,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 106,
                                             name: 'User Group',
-                                            icon: 'Settings',
+                                            icon: 'UserCog',
                                             url: '/inventory/inventory-module/masters/inv-master-user-group',
                                             title: 'User Group',
                                             description: 'Manage Inventory User Group Details'
@@ -3882,7 +3898,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 107,
                                             name: 'Item Group',
-                                            icon: 'Settings',
+                                            icon: 'Boxes',
                                             url: '/inventory/inventory-module/masters/inv-master-item-group',
                                             title: 'Item Group',
                                             description: 'Manage Inventory Item Group Details'
@@ -3890,7 +3906,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 108,
                                             name: 'UOM',
-                                            icon: 'Settings',
+                                            icon: 'Ruler',
                                             url: '/inventory/inventory-module/masters/inv-master-uom',
                                             title: 'Inventory Master UOM',
                                             description: 'Manage Unit of Measurement Details'
@@ -3898,7 +3914,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 109,
                                             name: 'Master Item',
-                                            icon: 'Settings',
+                                            icon: 'Box',
                                             url: '/inventory/inventory-module/masters/inv-master-item',
                                             title: 'Master Item',
                                             description: 'Manage Inventory Master Item Details'
@@ -3906,7 +3922,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 110,
                                             name: 'Master Product',
-                                            icon: 'Settings',
+                                            icon: 'Package',
                                             url: '/inventory/inventory-module/masters/inv-master-product',
                                             title: 'Master Product',
                                             description: 'Manage Inventory Master Product Details'
@@ -3916,12 +3932,12 @@ export async function getUserAccessibleModules() {
                                 {
                                     id: 2,
                                     name: 'Transactions',
-                                    icon: 'FileText',
+                                    icon: 'ArrowRightLeft',
                                     pages: [
                                         {
                                             id: 201,
                                             name: 'GRN',
-                                            icon: 'FileText',
+                                            icon: 'ClipboardList',
                                             url: '/inventory/inventory-module/transactions/inv-t-grn',
                                             title: 'Inventory GRN',
                                             description: 'Manage Inventory Goods Receipt Note'
@@ -3929,7 +3945,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 202,
                                             name: 'Sales',
-                                            icon: 'FileText',
+                                            icon: 'ShoppingCart',
                                             url: '/inventory/inventory-module/transactions/inv-t-sales',
                                             title: 'Inventory Sales',
                                             description: 'Manage Inventory Sales'
@@ -3937,7 +3953,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 203,
                                             name: 'Item Consumption',
-                                            icon: 'FileText',
+                                            icon: 'PackageMinus',
                                             url: '/inventory/inventory-module/transactions/inv-t-item-consumption',
                                             title: 'Item Consumption',
                                             description: 'Manage Item Consumption'
@@ -3945,7 +3961,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 204,
                                             name: 'Opening Balance',
-                                            icon: 'FileText',
+                                            icon: 'Wallet',
                                             url: '/inventory/inventory-module/transactions/inv-opening-balance',
                                             title: 'Opening Balance',
                                             description: 'Manage Inventory Opening Balance'
@@ -3953,7 +3969,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 205,
                                             name: 'Stock Updation',
-                                            icon: 'FileText',
+                                            icon: 'Layers',
                                             url: '/inventory/inventory-module/transactions/inv-stock',
                                             title: 'Stock Updation',
                                             description: 'Manage Inventory Stock Updation'
@@ -3961,7 +3977,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 206,
                                             name: 'Vendor Payment',
-                                            icon: 'FileText',
+                                            icon: 'CreditCard',
                                             url: '/inventory/inventory-module/transactions/inv-vendor-payment',
                                             title: 'Vendor Payment',
                                             description: 'Manage Vendor Payments'
@@ -3971,7 +3987,7 @@ export async function getUserAccessibleModules() {
                                 {
                                     id: 3,
                                     name: 'Reports',
-                                    icon: 'FileText',
+                                    icon: 'BarChart3',
                                     pages: [
                                         {
                                             id: 1,
@@ -4012,6 +4028,14 @@ export async function getUserAccessibleModules() {
                                             url: '/inventory/inventory-module/reports/inv-r-month-end-report',
                                             title: 'Inventory Month End Report',
                                             description: 'Generate Inventory Month End Reports'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Vendor Payment Report',
+                                            icon: 'FileText',
+                                            url: '/inventory/inventory-module/reports/inv-r-vendor-payment',
+                                            title: 'Vendor Payment Report',
+                                            description: 'Generate Vendor Payment Reports'
                                         }
                                     ]
                                 }
@@ -4019,6 +4043,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 }
+
                 //         {
                 //             id: 3,
                 //             name: 'Interaction',
@@ -4990,6 +5015,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Home Work',
                                             description: 'Upload Home Work'
                                         },
+                                        // {
+                                        //     id: 4,
+                                        //     name: 'Sport House Committee Report',
+                                        //     icon: 'FileText',
+                                        //     url: '/Sports/Reports/SportHouseCommitteeReport',
+                                        //     title: 'Sport House Committee Report',
+                                        //     description: 'Sport House Committee Report'
+                                        // },
                                         {
                                             id: 80010,
                                             name: 'Homework Marks Update',
@@ -5007,12 +5040,37 @@ export async function getUserAccessibleModules() {
                                             description: 'Homework Upload Report'
                                         },
                                         {
-                                            id: 80012,
-                                            name: 'Interactions',
-                                            icon: 'MessageSquare',
-                                            url: '/StaffPortal/interactions',
-                                            title: 'Interactions',
-                                            description: 'Interact with Students/Staff'
+                                            id: 6,
+                                            name: 'Sport House Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/SportHouseReport',
+                                            title: 'Sport House Report',
+                                            description: 'Sport House Report'
+                                        },
+
+                                        {
+                                            id: 11,
+                                            name: 'Venue Wise Participation',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/VenueWiseParticipationReport',
+                                            title: 'Venue Wise Participation',
+                                            description: 'View Venue Wise Participation Report'
+                                        },
+                                        // {
+                                        //     id: 7,
+                                        //     name: 'Sport Student Participation Report',
+                                        //     icon: 'FileText',
+                                        //     url: '/Sports/Reports/SportStudentParticipationReport',
+                                        //     title: 'Sport Student Participation Report',
+                                        //     description: 'Sport Student Participation Report'
+                                        // },
+                                        {
+                                            id: 8,
+                                            name: 'Sport Topper List Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/SportTopperListReport',
+                                            title: 'Sport Topper List Report',
+                                            description: 'Sport Topper List Report'
                                         },
                                         {
                                             id: 80013,
@@ -5030,6 +5088,7 @@ export async function getUserAccessibleModules() {
                                             title: 'Classwork Upload',
                                             description: 'Classwork Upload'
                                         },
+
                                         {
                                             id: 80015,
                                             name: 'Classwork Marks Update',
@@ -5113,7 +5172,8 @@ export async function getUserAccessibleModules() {
                 }
             ]
         };
-    } else if (session?.role.toUpperCase() === 'STUDENT') {
+    }
+    else if (session?.role.toUpperCase() === 'STUDENT') {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
@@ -5321,12 +5381,43 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
+                        },
+                        {
+                            id: 8,
+                            name: 'User Password Creation',
+                            icon: 'MessageSquare',
+                            sub_menu: [
+                                {
+                                    id: 40010,
+                                    name: 'Transaction',
+                                    icon: 'List',
+                                    pages: [
+                                        {
+                                            id: 40012,
+                                            name: 'User Password Creation',
+                                            icon: 'KeyRound',
+                                            url: '/StudentPortal/transactions/user-password-creation',
+                                            title: 'User Password Creation',
+                                            description: 'Generate Usernames and Passwords'
+                                        },
+                                        {
+                                            id: 40013,
+                                            name: 'Student Password Creation',
+                                            icon: 'LockKeyhole',
+                                            url: '/StudentPortal/transactions/student-password-creation',
+                                            title: 'Student Password Creation',
+                                            description: 'Student Credentials Management'
+                                        }
+                                    ]
+                                }
+                            ]
                         }
                     ]
                 }
             ]
         };
-    } else if (session?.role.toUpperCase() === 'SUPER ADMIN') {
+    }
+    else if (session?.role.toUpperCase() === 'SUPER ADMIN') {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
@@ -5546,28 +5637,15 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 }
-                                // {
-                                //     id: 6,
-                                //     name: 'User Creation',
-                                //     icon: 'UserPlus',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'Staff User Creation',
-                                //             icon: 'UserPlus',
-                                //             url: '/SuperAdmin/super-admin-module/user-creation/staff-user-creation',
-                                //             title: 'Staff User Creation',
-                                //             description: 'Manage Institution Staff User Details'
-                                //         }
-                                //     ]
-                                // }
                             ]
                         }
                     ]
-                }
+                },
+
             ]
         };
-    } else {
+    }
+    else {
         response = {
             success: true,
             message: 'Data fetched successfully!!',

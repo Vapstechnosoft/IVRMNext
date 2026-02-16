@@ -253,7 +253,7 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
             <CardContent>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-8'>
                     {/* biome-ignore lint/nursery/useSortedClasses: <explanation> */}
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-8  mt-6'>
                         {/* Left Column */}
                         <div className='space-y-6'>
                             {/* Report Type */}

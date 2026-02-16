@@ -1,290 +1,246 @@
 'use client';
 
-import { GenericForm } from '@/components/ui/form/generic-form';
-import { DatePicker } from '@/components/ui/date-picker';
-import { TimePicker } from '@/components/ui/form/time-picker';
+import { useState, useEffect } from 'react';
+import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { eventMappingSchema, IEventMappingDTO, ISponsor } from '@/types/sports/transactions/events-mapping';
+import { useEventMapping } from '@/hooks/sports/useEventMapping';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useEventsMapping } from '@/hooks/sports/useEventsMapping';
-import { saveEventsMapping } from '@/server/sports/events-mapping';
-import { EventsMappingSchema, type EventsMappingFormSchema } from '@/types/sports/events-mapping';
-import { Controller, useWatch } from 'react-hook-form';
 
 interface AddEventsMappingFormProps {
     onSuccess?: () => void;
 }
 
 export default function AddEventsMappingForm({ onSuccess }: AddEventsMappingFormProps) {
-    const { dropdowns } = useEventsMapping();
-    const { academicYear, eventsList, venueList, sponsorList } = dropdowns.data || {
-        academicYear: [], eventsList: [], venueList: [], sponsorList: []
+    const { loadGrid, save } = useEventMapping();
+    const { academicYear, eventsList, venuelist, sponsorList } = (loadGrid.data as any)?.data || {
+        academicYear: [], eventsList: [], venuelist: [], sponsorList: []
+    };
+
+    const { control, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<IEventMappingDTO>({
+        resolver: zodResolver(eventMappingSchema),
+        defaultValues: {
+            ASMAY_Id: 0,
+            SPCCME_Id: 0,
+            SPCCMEV_Id: 0,
+            SPCCE_StartDate: new Date(),
+            SPCCE_EndDate: new Date(),
+            SPCCE_StartTime: '',
+            SPCCE_EndTime: '',
+            SPCCE_Remarks: '',
+            SPCCE_SponsorFlag: false,
+            sponsorData: []
+        }
+    });
+
+    // Watch sponsor flag to toggle visibility
+    const sponsorFlag = watch('SPCCE_SponsorFlag');
+
+    const onSubmit = async (values: IEventMappingDTO) => {
+        const payload = {
+            ...values,
+            ASMAY_Id: Number(values.ASMAY_Id),
+            SPCCME_Id: Number(values.SPCCME_Id),
+            SPCCMEV_Id: Number(values.SPCCMEV_Id),
+            SPCCE_SponsorFlag: values.SPCCE_SponsorFlag || false,
+            sponsorData: values.sponsorData?.map(s => ({
+                ...s,
+                selected: true,
+                spccmsP_ActiveFlag: true
+            })) || []
+        };
+
+        const result = await save.mutateAsync(payload);
+        if (result.success || result.message === 'Record Saved Successfully') {
+            toast.success('Record Saved Successfully');
+            onSuccess?.();
+        } else {
+            toast.error(result.message || 'Failed to save record');
+        }
+    };
+
+    const handleSponsorChange = (sponsor: ISponsor, isChecked: boolean) => {
+        const currentSponsors = watch('sponsorData') || [];
+        if (isChecked) {
+            setValue('sponsorData', [...currentSponsors, { ...sponsor, selected: true }]);
+        } else {
+            setValue('sponsorData', currentSponsors.filter(s => s.spccmsP_Id !== sponsor.spccmsP_Id));
+        }
     };
 
     return (
-        <GenericForm<EventsMappingFormSchema, typeof EventsMappingSchema>
-            schema={EventsMappingSchema}
-            initialValues={{
-                ASMAY_Id: 0,
-                SPCCME_Id: 0,
-                SPCCMEV_Id: 0,
-                SPCCE_Remarks: '',
-                SPCCE_StartDate: new Date(),
-                SPCCE_EndDate: new Date(),
-                SPCCE_StartTime: '',
-                SPCCE_EndTime: '',
-                SPCCE_SponsorFlag: false,
-                selectedSponsors: []
-            }}
-            onSubmit={async (values) => {
-                await saveEventsMapping(values);
-            }}
-            mode='create'
-            successMessage='Events Mapping saved successfully'
-            errorMessage='Failed to save Events Mapping'
-            onSuccess={onSuccess}
-            className='space-y-4'>
-
-            <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+        <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                 {/* Academic Year */}
                 <div className='flex flex-col gap-2'>
-                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*']">Academic Year</Label>
+                    <Label>Academic Year</Label>
                     <Controller
                         name='ASMAY_Id'
-                        render={({ field, fieldState: { error } }) => (
-                            <>
-                                <Select
-                                    onValueChange={(val) => field.onChange(Number.parseInt(val))}
-                                    value={field.value ? field.value.toString() : undefined}>
-                                    <SelectTrigger className={error ? 'border-destructive' : ''}>
-                                        <SelectValue placeholder='Select Year' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {academicYear.map((item) => (
-                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                {item.asmaY_Year}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {error && <span className='text-xs text-destructive'>{error.message}</span>}
-                            </>
+                        control={control}
+                        render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Year' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {academicYear.map((y: any) => (
+                                        <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
+                                            {y.asmaY_Year}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         )}
                     />
+                    {errors.ASMAY_Id && <span className='text-xs text-destructive'>{errors.ASMAY_Id.message}</span>}
                 </div>
 
-                {/* Event Name */}
+                {/* Event */}
                 <div className='flex flex-col gap-2'>
-                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*']">Event Name</Label>
+                    <Label>Event</Label>
                     <Controller
                         name='SPCCME_Id'
-                        render={({ field, fieldState: { error } }) => (
-                            <>
-                                <Select
-                                    onValueChange={(val) => field.onChange(Number.parseInt(val))}
-                                    value={field.value ? field.value.toString() : undefined}>
-                                    <SelectTrigger className={error ? 'border-destructive' : ''}>
-                                        <SelectValue placeholder='Select Event' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {eventsList.map((item) => (
-                                            <SelectItem key={item.spccmE_Id} value={item.spccmE_Id.toString()}>
-                                                {item.spccmE_EventName}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {error && <span className='text-xs text-destructive'>{error.message}</span>}
-                            </>
+                        control={control}
+                        render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Event' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {eventsList.map((e: any) => (
+                                        <SelectItem key={e.spccmE_Id} value={e.spccmE_Id.toString()}>
+                                            {e.spccmE_EventName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         )}
                     />
+                    {errors.SPCCME_Id && <span className='text-xs text-destructive'>{errors.SPCCME_Id.message}</span>}
                 </div>
 
-                {/* Venue Name */}
+                {/* Venue */}
                 <div className='flex flex-col gap-2'>
-                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*']">Venue Name</Label>
+                    <Label>Venue</Label>
                     <Controller
                         name='SPCCMEV_Id'
-                        render={({ field, fieldState: { error } }) => (
-                            <>
-                                <Select
-                                    onValueChange={(val) => field.onChange(Number.parseInt(val))}
-                                    value={field.value ? field.value.toString() : undefined}>
-                                    <SelectTrigger className={error ? 'border-destructive' : ''}>
-                                        <SelectValue placeholder='Select Venue' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {venueList.map((item) => (
-                                            <SelectItem key={item.spccmeV_Id} value={item.spccmeV_Id.toString()}>
-                                                {item.spccmeV_EventVenue}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {error && <span className='text-xs text-destructive'>{error.message}</span>}
-                            </>
+                        control={control}
+                        render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Venue' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {venuelist.map((v: any) => (
+                                        <SelectItem key={v.spccmeV_Id} value={v.spccmeV_Id.toString()}>
+                                            {v.spccmeV_EventVenue}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         )}
                     />
+                    {errors.SPCCMEV_Id && <span className='text-xs text-destructive'>{errors.SPCCMEV_Id.message}</span>}
                 </div>
 
                 {/* Start Date */}
                 <div className='flex flex-col gap-2'>
-                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*']">Start Date</Label>
+                    <Label>Start Date</Label>
                     <Controller
                         name='SPCCE_StartDate'
-                        render={({ field, fieldState: { error } }) => (
-                            <>
-                                <DatePicker
-                                    date={field.value}
-                                    setDate={field.onChange}
-                                    className={error ? 'border-destructive' : ''}
-                                />
-                                {error && <span className='text-xs text-destructive'>{error.message}</span>}
-                            </>
+                        control={control}
+                        render={({ field }) => (
+                            <DatePicker date={field.value as Date} setDate={field.onChange} />
                         )}
                     />
+                    {errors.SPCCE_StartDate && <span className='text-xs text-destructive'>{errors.SPCCE_StartDate.message as string}</span>}
                 </div>
 
                 {/* Start Time */}
                 <div className='flex flex-col gap-2'>
                     <Label>Start Time</Label>
-                    <Controller
-                        name='SPCCE_StartTime'
-                        render={({ field }) => (
-                            <TimePicker
-                                value={field.value}
-                                onChange={field.onChange}
-                            />
-                        )}
-                    />
+                    <Input type='time' {...control.register('SPCCE_StartTime')} />
+                    {errors.SPCCE_StartTime && <span className='text-xs text-destructive'>{errors.SPCCE_StartTime.message}</span>}
                 </div>
 
                 {/* End Date */}
                 <div className='flex flex-col gap-2'>
-                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*']">End Date</Label>
+                    <Label>End Date</Label>
                     <Controller
                         name='SPCCE_EndDate'
-                        render={({ field, fieldState: { error } }) => (
-                            <>
-                                <DatePicker
-                                    date={field.value}
-                                    setDate={field.onChange}
-                                    className={error ? 'border-destructive' : ''}
-                                />
-                                {error && <span className='text-xs text-destructive'>{error.message}</span>}
-                            </>
+                        control={control}
+                        render={({ field }) => (
+                            <DatePicker date={field.value as Date} setDate={field.onChange} />
                         )}
                     />
+                    {errors.SPCCE_EndDate && <span className='text-xs text-destructive'>{errors.SPCCE_EndDate.message as string}</span>}
                 </div>
 
                 {/* End Time */}
                 <div className='flex flex-col gap-2'>
                     <Label>End Time</Label>
-                    <Controller
-                        name='SPCCE_EndTime'
-                        render={({ field }) => (
-                            <TimePicker
-                                value={field.value}
-                                onChange={field.onChange}
-                            />
-                        )}
-                    />
+                    <Input type='time' {...control.register('SPCCE_EndTime')} />
+                    {errors.SPCCE_EndTime && <span className='text-xs text-destructive'>{errors.SPCCE_EndTime.message}</span>}
                 </div>
             </div>
 
             {/* Remarks */}
             <div className='flex flex-col gap-2'>
                 <Label>Remarks</Label>
-                <Controller
-                    name='SPCCE_Remarks'
-                    render={({ field, fieldState: { error } }) => (
-                        <>
-                            <Textarea {...field} className={error ? 'border-destructive' : ''} />
-                            {error && <span className='text-xs text-destructive'>{error.message}</span>}
-                        </>
-                    )}
-                />
+                <Textarea {...control.register('SPCCE_Remarks')} />
             </div>
 
-            {/* Sponsor Section */}
-            <div className='space-y-4 rounded-md border p-4'>
+            {/* Sponsor Checkbox */}
+            <div className='flex items-center space-x-2'>
                 <Controller
                     name='SPCCE_SponsorFlag'
+                    control={control}
                     render={({ field }) => (
-                        <div className="flex flex-row items-center space-x-3 space-y-0">
-                            <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                            />
-                            <Label className='font-normal'>Sponsor Flag</Label>
-                        </div>
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                     )}
                 />
-
-                <SponsorListSelector sponsorList={sponsorList} />
+                <Label>Sponsor Required?</Label>
             </div>
 
-        </GenericForm>
-    );
-}
-
-function SponsorListSelector({ sponsorList }: { sponsorList: { spccmsP_Id: number; spccmsP_SponsorName: string }[] }) {
-    const { control } = useWatch({ name: 'SPCCE_SponsorFlag' }) as any; // Need to access context
-    // Actually useWatch inside a component that uses useFormContext is better, but here we are inside GenericForm's context.
-    // Let's create a separate component to consume the context for conditional rendering.
-
-    return <SponsorListInternal sponsorList={sponsorList} />;
-}
-
-import { useFormContext as useRHFContext } from 'react-hook-form';
-import { format } from 'date-fns';
-
-function SponsorListInternal({ sponsorList }: { sponsorList: { spccmsP_Id: number; spccmsP_SponsorName: string }[] }) {
-    const { watch, control } = useRHFContext<EventsMappingFormSchema>();
-    const sponsorFlag = watch('SPCCE_SponsorFlag');
-
-    if (!sponsorFlag) return null;
-
-    return (
-        <div className='flex flex-col gap-2'>
-            <Label className="after:ml-0.5 after:text-red-500 after:content-['*']">Sponsors</Label>
-            <ScrollArea className="h-[200px] w-full border rounded-md p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {sponsorList.map((item) => (
-                        <Controller
-                            key={item.spccmsP_Id}
-                            name="selectedSponsors"
-                            control={control}
-                            render={({ field }) => (
-                                <div className="flex items-center space-x-2">
+            {/* Sponsor List */}
+            {sponsorFlag && (
+                <div className='border rounded-md p-4'>
+                    <Label className='mb-2 block'>Select Sponsors</Label>
+                    <ScrollArea className='h-48'>
+                        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+                            {sponsorList.map((sponsor: ISponsor) => (
+                                <div key={sponsor.spccmsP_Id} className='flex items-center space-x-2'>
                                     <Checkbox
-                                        checked={field.value?.some(val => val.spccmsP_Id === item.spccmsP_Id)}
-                                        onCheckedChange={(checked) => {
-                                            const current = field.value || [];
-                                            if (checked) {
-                                                field.onChange([...current, { spccmsP_Id: item.spccmsP_Id }]);
-                                            } else {
-                                                field.onChange(current.filter(val => val.spccmsP_Id !== item.spccmsP_Id));
-                                            }
-                                        }}
+                                        checked={(watch('sponsorData') || []).some(s => s.spccmsP_Id === sponsor.spccmsP_Id)}
+                                        onCheckedChange={(checked) => handleSponsorChange(sponsor, !!checked)}
                                     />
-                                    <span className="text-sm">{item.spccmsP_SponsorName}</span>
+                                    <Label className='font-normal cursor-pointer' onClick={() => handleSponsorChange(sponsor, !(watch('sponsorData') || []).some(s => s.spccmsP_Id === sponsor.spccmsP_Id))}>
+                                        {sponsor.spccmsP_SponsorName}
+                                    </Label>
                                 </div>
-                            )}
-                        />
-                    ))}
+                            ))}
+                        </div>
+                    </ScrollArea>
                 </div>
-            </ScrollArea>
-            {/* Error message for selectedSponsors can be handled globally by the form schema refinement message or local field state if needed */}
-            <Controller
-                name="selectedSponsors"
-                control={control}
-                render={({ fieldState: { error } }) => (
-                    error ? <span className='text-xs text-destructive'>{error.message}</span> : <></>
-                )}
-            />
-        </div>
+            )}
+
+            <div className='flex justify-center gap-4'>
+                <Button type='submit' className='w-32' disabled={save.isPending}>
+                    {save.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : 'Save'}
+                </Button>
+                <Button type='button' variant='outline' className='w-32' onClick={() => { reset(); onSuccess?.(); }}>
+                    Cancel
+                </Button>
+            </div>
+        </form>
     );
 }

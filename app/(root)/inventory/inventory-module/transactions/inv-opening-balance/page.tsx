@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { Plus, X, RotateCcw } from 'lucide-react';
+import { Plus, X, RotateCcw, Wallet, PlusCircle, Pencil, List } from 'lucide-react';
 import { useInvOpeningBalance } from '@/hooks/inventory/transactions/use-inv-opening-balance';
 import type { IInvOpeningBalance } from '@/types/inventory/transactions/inv-opening-balance';
 import AddOBForm from './_components/add-form';
@@ -18,9 +18,34 @@ import { Heading } from '@/components/layout/heading';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
+
 export default function InvOpeningBalancePage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useInvOpeningBalance(searchParams);
+
+    // Pagination & Search State synced with URL
+    const [currentPage] = useQueryState(
+        tableSearchVariables.page,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
+    );
+    const [pageSize] = useQueryState(
+        tableSearchVariables.page_size,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
+    );
+    const [searchQuery] = useQueryState(
+        tableSearchVariables.search,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+
+    const queryParams = {
+        ...searchParams,
+        page: currentPage,
+        page_size: pageSize,
+        search_query: searchQuery
+    };
+
+    const { data: response, isLoading, error } = useInvOpeningBalance(queryParams);
 
     return (
         <FormProvider<IInvOpeningBalance>>
@@ -81,13 +106,16 @@ function InvOpeningBalancePageContent({
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
+                    title='Opening Balance Records'
+                    icon={<Wallet className='h-5 w-5' />}>
                     <GenericDataTable<IInvOpeningBalance>
                         {...tableProps}
                         data={response?.data?.get_openingbalance || []}
                         columns={invOpeningBalanceColumns}
                         isLoading={isLoading}
                         error={error}
+                        isSearchRequired={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Retrieving Opening Balance records...'
                         noDataTitle='No Records Found'
@@ -130,7 +158,8 @@ function FormSections({ storeList, itemList }: { storeList: any[], itemList: any
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'
+                        icon={<PlusCircle className='h-5 w-5' />}>
                         <div className='relative'>
                             <Button
                                 type='button'
@@ -153,7 +182,8 @@ function FormSections({ storeList, itemList }: { storeList: any[], itemList: any
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'
+                        icon={<Pencil className='h-5 w-5' />}>
                         <div className='relative'>
                             <Button
                                 type='button'

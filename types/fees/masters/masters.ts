@@ -834,3 +834,8 @@ export interface IMasterGroupsOnYear {
     fyG_Id: string;
     fmG_GroupName: string;
 }
+
+export interface FeeInstallmentNameList {
+    ftI_Id: number;
+    ftI_Name: string;
+}

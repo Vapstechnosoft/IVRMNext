@@ -81,6 +81,7 @@ export const studentAdmissionFormSchema = {
             amsT_RFCardNo: createOptionalAlphaNumericSchema('RF Card Number', 1, 50),
             amsT_BloodGroup: createOptionalStringSchema('Blood Group', 1, 50),
             studentCategoryId: z.number().int({ message: 'Student Category is required' }),
+            asmcC_Id: z.number().int({ message: 'Student Category is required' }),
             amsT_DOB: z.date({ message: 'Date Of Birth is required' }),
 
             //ecs flag
@@ -128,12 +129,12 @@ export const studentAdmissionFormSchema = {
             ),
             amsT_StudentCategory_Id: z.preprocess(
                 (val) => (val === undefined || val === null || val === '' ? 0 : Number(val)),
-                z.number().int().min(1, { message: 'Caste is required' })
+                z.number().int().min(1, { message: 'Caste Category is required' })
             ),
 
             amsT_ReligionId: z.preprocess(
                 (val) => (val === undefined || val === null || val === '' ? 0 : Number(val)),
-                z.number().int().min(1, { message: 'Student Category is required' })
+                z.number().int().min(1, { message: 'Religion is required' })
             ),
             amsT_Date: z.date({ message: 'Date Of Admission is required' }),
             amsT_Sex: z.string().min(1, { message: 'Gender is required' }),
@@ -182,26 +183,28 @@ export const studentAdmissionFormSchema = {
             healthMedicalDetails: HealthMedicalDetailsSchema.optional(),
 
             // Residential Address
-            amsT_ConStreet: createAlphaNumericWithCommaTrailingSpaceOptional('Street', 1, 100),
-            amsT_ConArea: createOptionalAlphaNumericSchema('Area', 1, 100),
-            amsT_ConCountry: z.string().optional(),
-            amsT_ConState: z.coerce.number().int().optional(),
-            amsT_ConCity: createOptionalAlphaNumericSchema('City', 1, 100),
+            amsT_ConStreet: createStringOnlySchema('Street', 1, 100),
+            amsT_ConArea: createStringOnlySchema('Area', 1, 100),
+            amsT_ConCountry: z.string().min(1, { message: 'Country is required' }),
+            amsT_ConState: z.coerce.number().int().min(1, { message: 'State is required' }),
+            amsT_ConDistrict: z.coerce.number().int().optional(),
+            amsT_ConCity: createStringOnlySchema('City', 1, 100),
             amsT_ConPincode: z
                 .union([z.string(), z.number()])
-                .optional()
-                .transform((val) => (val === undefined || val === null || val === '' ? undefined : String(val))),
+                .refine((val) => val !== undefined && val !== null && val !== '', { message: 'Pincode is required' })
+                .transform((val) => String(val)),
 
             // Permanent Address
-            amsT_PerStreet: createAlphaNumericWithCommaTrailingSpaceOptional('Street', 1, 100),
-            amsT_PerArea: createOptionalAlphaNumericSchema('Area', 1, 100),
+            amsT_PerStreet: createStringOnlyOptionalSchema('Street', 1, 100),
+            amsT_PerArea: createStringOnlyOptionalSchema('Area', 1, 100),
             amsT_PerCountry: z.string().optional(),
             amsT_PerState: z.coerce.number().int().optional(),
-            amsT_PerCity: createOptionalAlphaNumericSchema('City', 1, 100),
+            amsT_PerDistrict: z.coerce.number().int().optional(),
+            amsT_PerCity: createStringOnlyOptionalSchema('City', 1, 100),
             amsT_PerPincode: z
                 .union([z.string(), z.number()])
                 .optional()
-                .transform((val) => (val === undefined || val === null || val === '' ? undefined : String(val))),
+                .transform((val) => val ? String(val) : ''),
 
             //step=3
 

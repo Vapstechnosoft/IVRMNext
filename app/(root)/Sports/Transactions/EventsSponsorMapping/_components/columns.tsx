@@ -5,17 +5,15 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { IEventSponsorMapping } from '@/types/sports/transactions/events-sponsor';
 import type { ColumnDef, Row } from '@tanstack/react-table';
-import { deactivateEventsSponsorMapping } from '@/server/sports/transactions/events-sponsor';
 import { useEventsSponsor } from '@/hooks/sports/useEventsSponsor';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { toast } from 'sonner';
 
 /* ============================================
    Actions Cell Component
    ============================================ */
 function ActionsCell({ row }: { row: Row<IEventSponsorMapping> }) {
     const mapping = row.original;
-    const { refetch } = useEventsSponsor();
+    const { deactivateMutation } = useEventsSponsor();
     const { openEditForm } = useFormContext<IEventSponsorMapping>();
 
     return (
@@ -28,17 +26,10 @@ function ActionsCell({ row }: { row: Row<IEventSponsorMapping> }) {
             }}
             onEdit={() => openEditForm(mapping)}
             onToggle={async () => {
-                try {
-                    const response = await deactivateEventsSponsorMapping(mapping);
-                    if (response.success) {
-                        toast.success(response.message || `Mapping ${mapping.spccesP_ActiveFlag ? 'deactivated' : 'activated'} successfully`);
-                        await refetch();
-                    } else {
-                        toast.error(response.message || 'Failed to update mapping status');
-                    }
-                } catch (error) {
-                    toast.error('An error occurred while updating mapping status');
-                }
+                await deactivateMutation.mutateAsync({
+                    spccesP_Id: mapping.spccesP_Id,
+                    spccesP_ActiveFlag: !mapping.spccesP_ActiveFlag
+                });
             }}
             toggleConditionKey='spccesP_ActiveFlag'
         />
@@ -64,6 +55,11 @@ export const eventSponsorColumns: ColumnDef<IEventSponsorMapping>[] = [
         ),
         enableSorting: false,
         enableHiding: false
+    },
+    {
+        id: 'slNo',
+        header: 'SL. No.',
+        cell: ({ row }) => <div>{row.index + 1}</div>
     },
     {
         accessorKey: 'spccpM_Name',

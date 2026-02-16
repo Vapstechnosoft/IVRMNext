@@ -485,3 +485,17 @@ export interface IFeeConcessionCustomGroupDropdownList {
     fmgG_Id: number;
     fmg_groupname: string;
 }
+
+export interface IFeeConcessionReport {
+    id: number;
+    studentname: string;
+    reportname: number;
+    fss_paidamount: string;
+    balance: number;
+    concession: number;
+    waived: number;
+    rebate: number;
+    fine: number;
+    classname: string;
+    sectionname: string;
+}

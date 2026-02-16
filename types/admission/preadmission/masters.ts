@@ -63,8 +63,14 @@ export interface IAcademicYearDropDown {
 }
 export interface IMasterCategoryDropDown {
     amC_Id: number;
+    asmcC_Id?: number;
     amC_Name: string;
+    asmcC_Name?: string;
+    categoryName?: string;
+    asmcL_ClassName?: string;
 }
+
+
 export interface IMasterClassDropDown {
     asmcL_Id: number;
     asmcL_ClassCode: string;

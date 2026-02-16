@@ -7,6 +7,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { api } from '@/lib/apiService';
 import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import { useQuery } from '@tanstack/react-query';
@@ -30,7 +31,6 @@ export default function StudentTCApplyPage() {
             // Register a proxy base URL for client-side CORS avoidance
             api.addBaseUrl('admission', '/api/admission');
 
-
             const response = await api.get<IAcademicYearDropDown[]>(
                 'admission_proxy' as any,
                 'master_class_category/academic_year_drop_down_list'
@@ -38,6 +38,8 @@ export default function StudentTCApplyPage() {
             return response.data || [];
         }
     });
+
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
     const handleSearch = () => {
         // In a real app, you would likely use the selectedYear in the search
@@ -96,11 +98,27 @@ export default function StudentTCApplyPage() {
                                             <SelectValue placeholder='Select Academic Year' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {academicYears?.map((year) => (
+                                            {/* {academicYears?.map((year) => (
                                                 <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
                                                     {year.asmaY_Year}
                                                 </SelectItem>
-                                            ))}
+                                            ))} */}
+
+                                            {academicYearLoading ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading Academic Year...
+                                                </SelectItem>
+                                            ) : academicYearError ? (
+                                                <SelectItem value='error' disabled>
+                                                    Error loading Academic Year
+                                                </SelectItem>
+                                            ) : (
+                                                academicYear?.data?.map((item) => (
+                                                    <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                        {item.asmaY_Year}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 </div>
