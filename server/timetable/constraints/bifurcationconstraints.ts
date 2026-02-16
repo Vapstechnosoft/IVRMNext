@@ -5,7 +5,7 @@ import type { ApiSearchparams } from '@/types';
 import type { bifurcationconstraints } from '@/types/timetable/constraints/bifurcationconstraints';
 
 // Load initial data (Grid and Dropdowns)
-export async function getBifurcationConstraintsDetails(searchParams: ApiSearchparams | undefined) {
+export async function getBifurcationConstraintsDetails(searchParams?: ApiSearchparams) {
     const url = '/BifurcationFacade/BifurcationConstraintsGridData';
     return await api.get<bifurcationconstraints>('timetable', url);
 }

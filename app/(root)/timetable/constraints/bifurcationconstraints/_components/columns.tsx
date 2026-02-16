@@ -114,7 +114,7 @@ function ActionButtonsCell({ rowData }: { rowData: IBifurcationConstraintList })
             rowData={rowData}
             buttons={{ edit: true, toggle: true, delete: true, view: true }}
             onEdit={handleEdit}
-            onView={handleView}
+            // onView={handleView}
             onToggle={handleToggle}
             onDelete={handleDelete}
             toggleConditionKey='ttB_ActiveFlag'
