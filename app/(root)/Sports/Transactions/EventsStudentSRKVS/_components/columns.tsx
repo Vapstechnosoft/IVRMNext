@@ -49,18 +49,18 @@ export const eventsStudentSRKVSColumns: ColumnDef<IEventsStudentSRKVSData>[] = [
         header: "Academic Year",
     },
     {
-        accessorKey: "startDate",
+        accessorKey: "spccE_StartDate",
         header: "Start Date",
         cell: ({ row }) => {
-            const date = row.getValue("startDate") as string;
+            const date = row.getValue("spccE_StartDate") as string;
             return date ? new Date(date).toLocaleDateString() : '';
         }
     },
     {
-        accessorKey: "endDate",
+        accessorKey: "spccE_EndDate",
         header: "End Date",
         cell: ({ row }) => {
-            const date = row.getValue("endDate") as string;
+            const date = row.getValue("spccE_EndDate") as string;
             return date ? new Date(date).toLocaleDateString() : '';
         }
     },

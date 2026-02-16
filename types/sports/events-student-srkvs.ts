@@ -22,8 +22,9 @@ export interface IEventsStudentSRKVSData {
     eventName: string;
     asmaY_Id: number;
     asmaY_Year: string;
-    startDate: string;
-    endDate: string;
+    spccE_StartDate: string;
+    spccE_EndDate: string;
+    mainEvent: string;
 }
 
 export interface IEventsStudentSRKVSViewDetails {
