@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, use } from 'react';
 import { Heading } from '@/components/layout/heading';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -11,77 +11,56 @@ import { Printer } from 'lucide-react';
 import ReportForm from './_components/report-form';
 import { getColumns } from './_components/columns';
 import { IInvRItemConsumptionPayload } from '@/types/inventory/reports/inv-r-item-consumption';
-import { parseAsInteger, useQueryState } from 'nuqs';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { tableSearchVariables } from '@/lib/data-table.config';
-import { getInvRItemConsumptionReport } from '@/server/inventory/reports/inv-r-item-consumption';
-import { toast } from 'sonner';
+import { useInvRItemConsumptionReportQuery } from '@/hooks/inventory/reports/use-inv-r-item-consumption';
 
-export default function InvRItemConsumptionPage() {
-    const [reportData, setReportData] = useState<any[]>([]);
+export default function InvRItemConsumptionPage(props: { searchParams: Promise<any> }) {
+    const searchParams = use(props.searchParams);
     const [currentPayload, setCurrentPayload] = useState<IInvRItemConsumptionPayload | null>(null);
-    const [totalRecords, setTotalRecords] = useState(0);
-    const [showReport, setShowReport] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
 
-    // Pagination State synced with URL (same as DataTable)
+    // Pagination & Search State synced with URL
     const [currentPage, setCurrentPage] = useQueryState(
         tableSearchVariables.page,
         parseAsInteger.withOptions({ shallow: false }).withDefault(1)
     );
-    const [pageSize] = useQueryState(
+    const [pageSize, setPageSize] = useQueryState(
         tableSearchVariables.page_size,
         parseAsInteger.withOptions({ shallow: false }).withDefault(10)
     );
+    const [searchQuery, setSearchQuery] = useQueryState(
+        tableSearchVariables.search,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
 
-    const handleReportGenerated = (payload: any) => { // Updated Signature
+    // Prepare payload for hook (convert Dates to strings to avoid serialization issues/hook unnecessary updates)
+    const payloadForHook = currentPayload ? {
+        ...currentPayload,
+        startdate: currentPayload.startdate ? new Date(currentPayload.startdate).toISOString() : undefined,
+        enddate: currentPayload.enddate ? new Date(currentPayload.enddate).toISOString() : undefined,
+    } : null;
+
+    const { data: reportResult, isFetching } = useInvRItemConsumptionReportQuery(payloadForHook as any, {
+        ...searchParams,
+        page: currentPage,
+        page_size: pageSize,
+        search_query: searchQuery
+    });
+
+    const reportData = reportResult?.data?.get_ICReport || [];
+    const totalRecords = reportResult?.total || 0;
+
+    const handleReportGenerated = (payload: any) => {
         if (payload) {
             setCurrentPayload(payload);
             setCurrentPage(1);
-            setShowReport(true);
-            // Report data will be fetched by useEffect
+            setSearchQuery(null);
         } else {
-            // Reset
-            setReportData([]);
             setCurrentPayload(null);
-            setTotalRecords(0);
-            setShowReport(false);
-            setIsLoading(false);
+            setCurrentPage(1);
+            setSearchQuery(null);
         }
     };
-
-    // Handle pagination changes (Next/Prev/PageSize)
-    const fetchPageData = useCallback(async (pageIndex: number, pgSize: number) => {
-        if (!currentPayload) return;
-
-        setIsLoading(true);
-        const searchParams = {
-            page: pageIndex,
-            page_size: pgSize
-        };
-
-        const result = await getInvRItemConsumptionReport(currentPayload, searchParams);
-
-        if (result.success) {
-            if (!result.data.get_ICReport || result.data.get_ICReport.length === 0) {
-                toast.warning("No records found.");
-                setReportData([]);
-                setTotalRecords(0);
-                setShowReport(false);
-            } else {
-                setReportData(result.data.get_ICReport);
-                setTotalRecords(result.total || 0);
-            }
-        } else {
-            toast.error(result.message);
-        }
-        setIsLoading(false);
-    }, [currentPayload]);
-
-    useEffect(() => {
-        if (currentPayload) {
-            fetchPageData(currentPage, pageSize);
-        }
-    }, [currentPage, pageSize, currentPayload, fetchPageData]);
 
     const columns = getColumns(currentPayload?.typeflag || 'All', currentPayload?.optionflag);
 
@@ -89,6 +68,7 @@ export default function InvRItemConsumptionPage() {
         enablePagination: true,
         enableSorting: true,
         enableSearching: true,
+        isSearchRequired: true,
     });
 
     return (
@@ -98,9 +78,9 @@ export default function InvRItemConsumptionPage() {
                 description="Generate Item Consumption Reports"
             />
 
-            <ReportForm onReportGenerated={handleReportGenerated} isLoading={isLoading} />
+            <ReportForm onReportGenerated={handleReportGenerated} isLoading={isFetching} />
 
-            {showReport && (
+            {reportData.length > 0 && (
                 <CollapsibleSection title="Report Result" defaultOpen={true}>
                     <div className="p-4 space-y-4">
                         <div className="flex justify-between items-center bg-muted/20 p-2 rounded border">
@@ -117,7 +97,7 @@ export default function InvRItemConsumptionPage() {
                             {...tableProps}
                             data={reportData}
                             columns={columns}
-                            isLoading={isLoading}
+                            isLoading={isFetching}
                             totalItems={totalRecords}
                         />
                     </div>

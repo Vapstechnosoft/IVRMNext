@@ -1,6 +1,6 @@
 'use client';
 
-import { IVenueWiseReportData } from "@/types/sports/reports/venue-wise-participation-report";
+import type { IVenueWiseReportData } from "@/types/sports/reports/venue-wise-participation-report";
 import {
     Table,
     TableBody,

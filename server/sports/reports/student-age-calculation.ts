@@ -1,93 +1,57 @@
 'use server';
 
-import { api } from '@/lib/apiService';
-import { IReportRequest, IReportResponse, IStudentAgeReport } from '@/types/sports/reports/student-age-calculation';
+import { api, type ApiResponse } from '@/lib/apiService';
+import { IReportRequest, IStudentAgeCalculationDropdowns, IStudentAgeReport } from '@/types/sports/reports/student-age-calculation';
 
-// Dummy Data
-const dummyReports: IStudentAgeReport[] = Array.from({ length: 12 }, (_, i) => ({
-    amsT_Id: 100 + i,
-    amsT_AdmNo: `ADM-${202300 + i}`,
-    studentName: `Student Name ${i + 1}`,
-    asmcL_ClassName: `Class ${1 + (i % 5)}`,
-    asmC_SectionName: String.fromCharCode(65 + (i % 3)),
-    spccmH_HouseName: ['Red', 'Blue', 'Green', 'Yellow'][i % 4],
-    amsT_DOB: new Date(2010 + (i % 5), i % 12, 1 + i).toISOString(),
-    months: 120 + i,
-    years: 10 + (i % 5),
-    monthsd: i % 12,
-    days: i % 30,
-    spccmcL_CompitionLevel: ['Senior', 'Junior', 'Sub-Junior'][i % 3]
-}));
-
-export async function getStudentAgeReportLoadData(): Promise<IReportResponse> {
-    // Mock Load Data
-    return {
-        success: true,
-        yearlist: [
-            { asmaY_Id: 1, asmaY_Year: '2023-2024' },
-            { asmaY_Id: 2, asmaY_Year: '2024-2025' }
-        ],
-        categoryList: [
-            { spccmcC_Id: 1, spccmcC_CompitionCategory: 'Football' },
-            { spccmcC_Id: 2, spccmcC_CompitionCategory: 'Cricket' }
-        ],
-        houseList: [
-            { spccmH_Id: 1, spccmH_HouseName: 'Red House' },
-            { spccmH_Id: 2, spccmH_HouseName: 'Blue House' },
-            { spccmH_Id: 3, spccmH_HouseName: 'Green House' },
-            { spccmH_Id: 4, spccmH_HouseName: 'Yellow House' }
-        ]
-    };
-}
-
-export async function getClassesForYear(asmaY_Id: number): Promise<any> {
-    // Mock Classes
-    return {
-        classList: [
-            { asmcL_Id: 1, asmcL_ClassName: 'I' },
-            { asmcL_Id: 2, asmcL_ClassName: 'II' },
-            { asmcL_Id: 3, asmcL_ClassName: 'III' },
-            { asmcL_Id: 4, asmcL_ClassName: 'IV' },
-            { asmcL_Id: 5, asmcL_ClassName: 'V' }
-        ],
-        houseList: [
-            { spccmH_Id: 1, spccmH_HouseName: 'Red House' },
-            { spccmH_Id: 2, spccmH_HouseName: 'Blue House' },
-            { spccmH_Id: 3, spccmH_HouseName: 'Green House' },
-            { spccmH_Id: 4, spccmH_HouseName: 'Yellow House' }
-        ]
-    };
-}
-
-export async function getSectionsForClass(asmaY_Id: number, asmcL_Id: number): Promise<any> {
-    // Mock Sections
-    return {
-        sectionList: [
-            { asmS_Id: 1, asmC_SectionName: 'A' },
-            { asmS_Id: 2, asmC_SectionName: 'B' },
-            { asmS_Id: 3, asmC_SectionName: 'C' }
-        ]
-    };
-}
-
-export async function getStudentAgeReport(data: IReportRequest): Promise<IReportResponse> {
+export async function getStudentAgeReportLoadData(): Promise<IStudentAgeCalculationDropdowns> {
     try {
-        // In a real app, we would post to the API
-        // const response = await api.post<IReportResponse>('sports', 'StudentAgeCalcReport/showdetails', data);
-        // return response;
+        console.info("🟡 [SERVER ACTION] getStudentAgeReportLoadData: Initiating request to 'StudentAgeCalcReport/Getdetails'");
+        const response = await api.post<IStudentAgeCalculationDropdowns>('sports', 'StudentAgeCalcReport/Getdetails', {});
+        console.info("🟢 [SERVER ACTION] getStudentAgeReportLoadData: Response success =", response?.success);
 
-        // Simulating delay
-        await new Promise(resolve => setTimeout(resolve, 500));
+        if (response?.data) {
+            console.info("🟢 [SERVER ACTION] getStudentAgeReportLoadData: Data received, yearlist length =", response.data.yearlist?.length || 0);
+        } else {
+            console.warn("🟠 [SERVER ACTION] getStudentAgeReportLoadData: No data in response");
+        }
 
-        return {
-            success: true,
-            viewlist: dummyReports
-        };
+        return response?.data || { yearlist: [] };
     } catch (error) {
-        console.error("Error generating report:", error);
-        return {
-            success: false,
-            message: "Failed to generate report"
-        };
+        console.error("🔴 [SERVER ACTION] Error in getStudentAgeReportLoadData:", error);
+        return { yearlist: [] };
+    }
+}
+
+export async function getClassesForYear(asmaY_Id: number): Promise<Pick<IStudentAgeCalculationDropdowns, 'classList' | 'houseList'>> {
+    try {
+        console.info(`🟡 [SERVER ACTION] getClassesForYear: Fetching for Year ID ${asmaY_Id}`);
+        const response = await api.post<Pick<IStudentAgeCalculationDropdowns, 'classList' | 'houseList'>>('sports', 'StudentAgeCalcReport/get_class', { asmaY_Id });
+        console.info("🟢 [SERVER ACTION] getClassesForYear: Response success =", response?.success);
+        return response?.data || { classList: [], houseList: [] };
+    } catch (error) {
+        console.error("🔴 [SERVER ACTION] Error in getClassesForYear:", error);
+        return { classList: [], houseList: [] };
+    }
+}
+
+export async function getSectionsForClass(asmaY_Id: number, asmcL_Id: number): Promise<Pick<IStudentAgeCalculationDropdowns, 'sectionList'>> {
+    try {
+        console.info(`🟡 [SERVER ACTION] getSectionsForClass: Fetching for Year ${asmaY_Id}, Class ${asmcL_Id}`);
+        const response = await api.post<Pick<IStudentAgeCalculationDropdowns, 'sectionList'>>('sports', 'StudentAgeCalcReport/get_section', { asmaY_Id, asmcL_Id });
+        return response?.data || { sectionList: [] };
+    } catch (error) {
+        console.error("🔴 [SERVER ACTION] Error in getSectionsForClass:", error);
+        return { sectionList: [] };
+    }
+}
+
+export async function getStudentAgeReport(data: IReportRequest): Promise<IStudentAgeReport[]> {
+    try {
+        console.info("🟡 [SERVER ACTION] getStudentAgeReport: Generating report");
+        const response = await api.post<any>('sports', 'StudentAgeCalcReport/showdetails', data);
+        return response?.data?.viewlist || response?.data || [];
+    } catch (error) {
+        console.error("🔴 [SERVER ACTION] Error in getStudentAgeReport:", error);
+        return [];
     }
 }

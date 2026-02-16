@@ -594,3 +594,23 @@ export interface GetLeaveDetailsEnCashResponse {
     page_size?: number | null;
 }
 
+
+/**
+ * Item for leave name dropdown
+ */
+export interface LeaveNameDropdownItem {
+    hrmL_Id: number;
+    hrmL_LeaveName: string;
+    hrmL_LeaveCode: string;
+    hrmL_LeaveDetails?: string;
+    hrmL_LeaveCreditFlg?: boolean;
+    hrmL_LeaveType?: string;
+}
+
+/**
+ * Item for credit month dropdown
+ */
+export interface CreditMonthDropdownItem {
+    ivrM_Month_Id: number;
+    ivrM_Month_Name: string;
+}

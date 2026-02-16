@@ -373,7 +373,7 @@ export const toppersListReportSchema = z
         type: z.enum(['1', '2']), // 1: All, 2: Individual
         ASMAY_Id: z.string().min(1, 'Academic Year is required'),
         EMCA_Id: z.string().min(1, 'Category is required'),
-        ASMCL_Id: z.string().min(1, 'Class is required'),
+        ASMCL_Id: z.string().optional(), // Class (Required only for Individual type)
         ASMS_Id: z.string().optional(), // Section (Required only for Individual type)
         topper: z
             .string()
@@ -389,6 +389,15 @@ export const toppersListReportSchema = z
         report_type: z.string().optional() // This will be derived from 'type'
     })
     .superRefine((data, ctx) => {
+        // Conditional validation for Class when type is Individual (2)
+        if (data.type === '2' && !data.ASMCL_Id) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Class is required for Individual type',
+                path: ['ASMCL_Id']
+            });
+        }
+
         // Conditional validation for Section when type is Individual (2)
         if (data.type === '2' && !data.ASMS_Id) {
             ctx.addIssue({

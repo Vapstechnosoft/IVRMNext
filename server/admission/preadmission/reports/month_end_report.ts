@@ -66,7 +66,8 @@ export async function getExcelStudentYearlyReport(
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
 
-    const url = `/StudentYearlyAttendance/ExportStudentYearlyAttendanceToExcel?AcayId=${academicYearId}&ClassId=${classId}&SectionId=${sectionId}&AllOrIndiFlag=${'all'}&${urlParams}`;
+    const flag = sectionId === 0 ? 'all' : 'indi';
+    const url = `/StudentYearlyAttendance/ExportStudentYearlyAttendanceToExcel?ASMAY_Id=${academicYearId}&ASMCL_Id=${classId}&ASMS_Id=${sectionId}&AllOrIndiFlag=${flag}&${urlParams}`;
 
     try {
         const responseData = await api.postBinary('admission', url);
@@ -100,17 +101,13 @@ export async function getExcelClassWiseStudentReport(
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
 
-    const url = `/Classwisestudentdetails/ExportClasswiseStudentDetailsToExcel?ASMAY_Id=${ASMAY_Id}
-    &AMST_Id=0
-    &flag=${studentScope}
-    &Concession_Id=${fmcC_Id}
-    &classdetailsdata=${encodeURIComponent(JSON.stringify(payload.classdetailsdata))}
-    &sectionsdetailsdata=${encodeURIComponent(JSON.stringify(payload.sectionsdetailsdata))}
-    &TempararyArrayheadList=${encodeURIComponent(JSON.stringify(payload.TempararyArrayheadList))}
-    &${urlParams}`;
+    // Matching the parameter mapping from report.tsx which is known to work
+    // report.tsx maps: Concession_Id = studentScope, flag = fmcC_Id
+    const url = `/Classwisestudentdetails/ExportClasswiseStudentDetailsToExcel?ASMAY_Id=${ASMAY_Id}&AMST_Id=0&Concession_Id=${studentScope}&flag=${fmcC_Id}&${urlParams}`;
 
     try {
-        const responseData = await api.postBinary('admission', url);
+        // Passing payload in the body instead of URL query string
+        const responseData = await api.postBinary('admission', url, payload);
         return Array.from(new Uint8Array(responseData));
     } catch (error) {
         console.error('Excel export error:', error);
@@ -191,8 +188,8 @@ export async function getExcelOverallAttendanceReport(
 
 export async function getExcelStudentAttendanceReport(
     ASMAY_Id: number,
-    ASMCL_Id: number, // Section ID?
-    ASMS_Id: number, // Class ID?
+    ASMCL_Id: number,
+    ASMS_Id: number,
     AMST_Id: number | undefined,
     monthId: number | undefined,
     monthDateWise: number | undefined,
@@ -208,7 +205,7 @@ export async function getExcelStudentAttendanceReport(
     const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
     let url = `${baseUrl}/StudentAttendanceReport/ExportAttendanceMonthwiseToExcel?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}&RadioType=${studentStatus}&Type=${selectionMode}`;
 
-    if (selectionMode === 1 && AMST_Id) {
+    if (selectionMode === 2 && AMST_Id) {
         url += `&AMST_Id=${AMST_Id}`;
     }
 

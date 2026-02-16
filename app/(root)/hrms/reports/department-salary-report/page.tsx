@@ -149,7 +149,7 @@ export default function DepartmentSalaryReportPage() {
     if (!isClient) return null;
 
     return (
-        <div className='min-h-screen p-4 space-y-6'>
+        <div className='container min-h-screen space-y-4 p-2'>
             <CollapsibleSection defaultOpen={true} title="Department Salary Report">
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 p-4'>
                     <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>

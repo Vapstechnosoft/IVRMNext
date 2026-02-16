@@ -535,6 +535,8 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
                 studentMappings
             };
         };
+
+        console.log('Payload to save:', JSON.stringify(buildPayload()));
         const payload = buildPayload();
         try {
             const res = await getStudentFeeSave(payload);
