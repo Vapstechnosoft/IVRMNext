@@ -26,7 +26,7 @@ export const FIELD_CONFIG: Record<string, { label: string; isDate?: boolean }> =
     AMST_MotherTongue: { label: 'Mother Tongue' },
     AMST_MobileNo: { label: 'Phone No.' },
     AMST_emailId: { label: 'Email ID' },
-    AMST_PerAdd3: { label: 'Permanent Address' },
+    // AMST_PerAdd3: { label: 'Permanent Address' },
     AMST_ConCity: { label: 'Present Address' },
     IVRMMC_Nationality: { label: 'Nationality' },
     AMST_BiometricId: { label: 'Biometric Code' },

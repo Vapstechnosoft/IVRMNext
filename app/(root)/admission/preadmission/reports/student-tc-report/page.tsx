@@ -97,7 +97,7 @@ export default function StudentTcReportPage(props: {
     const [fieldSearch, setFieldSearch] = useState('');
 
     const [viewMode, setViewMode] = useState<1 | 2>(1); // 1 = All, 2 = Individual
-    const [tcType, setTcType] = useState<1 | 2>(1); // 1 = Temporary TC, 2 = Permanent TC
+    const [tcType, setTcType] = useState<1 | 2>(2); // 1 = Temporary TC, 2 = Permanent TC
 
     const {
         data: preadmissionSection,

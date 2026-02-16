@@ -469,14 +469,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Student Yearly Attendance Report',
                                             description: 'Student Yearly Attendance Report'
                                         },
-                                        // {
-                                        //     id: 3,
-                                        //     name: 'Student TC Report',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/reports/student-tc-report',
-                                        //     title: 'Student TC Report',
-                                        //     description: 'Student TC Report'
-                                        // },
+                                        {
+                                            id: 3,
+                                            name: 'Student TC Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/student-tc-report',
+                                            title: 'Student TC Report',
+                                            description: 'Student TC Report'
+                                        },
                                         {
                                             id: 4,
                                             name: 'class-wise student details',
