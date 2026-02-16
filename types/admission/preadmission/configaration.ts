@@ -1,5 +1,5 @@
 export interface IMasterAcademicYearMasterList {
-    asmaY_Id: string;
+    asmaY_Id: number;
     mI_Id: number;
     asmaY_Year: string;
     asmaY_From_Date: string;
@@ -28,7 +28,7 @@ export interface IMasterAcademicYearMasterList {
     updatedDate: string;
 }
 export interface IMasterSetOrderList {
-    asmaY_Id: string;
+    asmaY_Id: number;
     asmaY_Year: string;
     asmaY_Order: number;
 }

@@ -1,117 +1,99 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { ColumnDef } from '@tanstack/react-table';
+import { Button } from '@/components/ui/button';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { useEventsMapping } from '@/hooks/sports/useEventsMapping';
-import { deactivateEventsMapping } from '@/server/sports/events-mapping';
-import type { IEventsMappingData } from '@/types/sports/events-mapping';
-import type { ColumnDef, Row } from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { toast } from 'sonner';
-
-/* ============================================
-   Actions Cell Component
-   ============================================ */
-function ActionsCell({ row }: { row: Row<IEventsMappingData> }) {
-    const mapping = row.original;
-    const { gridData } = useEventsMapping();
-    const { openEditForm } = useFormContext<IEventsMappingData>();
-
-    return (
-        <ActionButtons
-            rowData={mapping}
-            buttons={{
-                edit: true,
-                toggle: true,
-                delete: false
-            }}
-            onEdit={() => openEditForm(mapping)}
-            onToggle={async () => {
-                try {
-                    const response = await deactivateEventsMapping(mapping.spccE_Id, !mapping.spccE_ActiveFlag);
-                    if (response.success) {
-                        toast.success(response.message);
-                        await gridData.refetch();
-                    } else {
-                        toast.error('Failed to update status');
-                    }
-                } catch (error) {
-                    toast.error('An error occurred while updating status');
-                }
-            }}
-            toggleConditionKey='spccE_ActiveFlag'
-        />
-    );
-}
+import { useEventMapping } from '@/hooks/sports/useEventMapping';
+import { Edit, Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { IEventsMappingData } from '@/types/sports/events-mapping';
 
 export const eventsMappingColumns: ColumnDef<IEventsMappingData>[] = [
     {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label='Select row'
-            />
-        ),
-        enableSorting: false,
-        enableHiding: false
+        id: 'slno',
+        header: 'Sl.No.',
+        cell: ({ row }) => row.index + 1,
     },
     {
         accessorKey: 'asmaY_Year',
         header: 'Academic Year',
-        cell: ({ row }) => <div className='font-medium'>{row.getValue('asmaY_Year')}</div>
     },
     {
         accessorKey: 'spccmE_EventName',
         header: 'Event Name',
-        cell: ({ row }) => <div className='font-medium'>{row.getValue('spccmE_EventName')}</div>
     },
     {
         accessorKey: 'spccmeV_EventVenue',
-        header: 'Venue',
-        cell: ({ row }) => <div className='font-medium'>{row.getValue('spccmeV_EventVenue')}</div>
+        header: 'Venue Name',
     },
     {
         accessorKey: 'spccE_StartDate',
         header: 'Start Date',
         cell: ({ row }) => {
-            const date = row.getValue('spccE_StartDate') as string;
-            return <div className='font-medium'>{date ? format(new Date(date), 'dd/MM/yyyy') : '-'}</div>;
+            const date = row.original.spccE_StartDate;
+            return date ? new Date(date).toLocaleDateString() : '';
+        }
+    },
+    {
+        accessorKey: 'spccE_StartTime',
+        header: 'Start Time',
+        cell: ({ row }) => {
+            return <div className="lowercase">{row.getValue("spccE_StartTime")}</div>
         }
     },
     {
         accessorKey: 'spccE_EndDate',
         header: 'End Date',
         cell: ({ row }) => {
-            const date = row.getValue('spccE_EndDate') as string;
-            return <div className='font-medium'>{date ? format(new Date(date), 'dd/MM/yyyy') : '-'}</div>;
+            const date = row.original.spccE_EndDate;
+            return date ? new Date(date).toLocaleDateString() : '';
         }
     },
     {
-        accessorKey: 'spccE_ActiveFlag',
-        header: 'Status',
+        accessorKey: 'spccE_EndTime',
+        header: 'End Time',
         cell: ({ row }) => {
-            const isActive = row.getValue('spccE_ActiveFlag');
-            return (
-                <Badge variant={isActive ? 'success' : 'destructive'} className='font-semibold'>
-                    {isActive ? 'Active' : 'Deactivated'}
-                </Badge>
-            );
+            return <div className="lowercase">{row.getValue("spccE_EndTime")}</div>
         }
+    },
+    {
+        accessorKey: 'spccE_Remarks',
+        header: 'Remarks',
     },
     {
         id: 'actions',
-        header: 'Actions',
-        cell: ActionsCell
-    }
+        header: 'Action',
+        cell: ({ row }) => {
+            return <ActionsCell row={row.original} />;
+        },
+    },
 ];
+
+const ActionsCell = ({ row }: { row: IEventsMappingData }) => {
+    const { deactivate } = useEventMapping();
+    const { openEditForm } = useFormContext<IEventsMappingData>();
+
+    const isActive = row.spccE_ActiveFlag;
+
+    return (
+        <div className='flex items-center gap-3'>
+            <Button
+                variant='ghost'
+                size='sm'
+                onClick={() => openEditForm(row)}
+                className='h-8 w-8 p-0 text-primary hover:bg-primary/10'>
+                <Edit className='h-4 w-4' />
+            </Button>
+            <Button
+                variant='link'
+                size='sm'
+                onClick={() => deactivate.mutate({ ASMAY_Id: row.asmaY_Id, SPCCE_Id: row.spccE_Id })}
+                className={cn(
+                    'h-auto p-0 font-medium text-xs',
+                    isActive ? 'text-destructive hover:text-destructive/80' : 'text-green-600 hover:text-green-700'
+                )}>
+                {isActive ? 'Deactivate' : 'Activate'}
+            </Button>
+        </div>
+    );
+};

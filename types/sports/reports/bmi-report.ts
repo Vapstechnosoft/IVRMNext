@@ -1,71 +1,60 @@
 import { z } from 'zod';
 
-// Interface for Grid Data
+// Interface for Grid Data - Matches API Response
 export interface IBMIReport {
-    AMST_Id: number;
-    AMST_Name: string;
-    AMST_AdmNo: string;
-    ASMCL_ClassName: string;
-    ASMC_SectionName: string;
-    SPCCMH_HouseName: string;
-    AMST_DOB: string;
-    SPCCSH_Age: string;
-    SPCCSH_Height: number;
-    SPCCSH_Weight: number;
-    SPCCSH_BMI: number;
-    SPCCSH_BMIRemarks: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    amsT_ID: number;
+    amsT_Name: string;
+    amsT_AdmNo: string;
+    amaY_RollNo: string;
+    amsT_DOB: string;
+    spccshW_Age: string;
+    spccshW_HeighT: number;
+    spccshW_WeighT: number;
+    spccshW_BMi: number;
+    spccshW_BMiRemark: string;
 }
 
 // Interface for Initial Load Data
 export interface IBMIReportLoadData {
-    academicYear: { asmaY_Id: number; asmaY_Year: string; Selected: boolean }[];
-    houseList: { spccmH_Id: number; spccmH_HouseName: string; Selected: boolean }[];
+    academicYear: {
+        asmaY_Id: number;
+        mI_Id: number;
+        asmaY_Year: string;
+        asmaY_ActiveFlag: number;
+    }[];
+    houseList: {
+        spccmH_Id: number;
+        spccmH_HouseName: string;
+    }[];
 }
 
+// Interface for Class Data
+export interface IBMIReportClass {
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+}
+
+// Interface for Section Data
+export interface IBMIReportSection {
+    asmS_Id: number;
+    asmC_SectionName: string;
+}
 
 // Interface for Form Request
 export interface IBMIReportRequest {
+    mI_Id?: number; // Optional as it might be handled by token
     ASMAY_Id: number;
-    ASMCL_Id?: number;
-    // ASMS_Id is handled via selectedSectionlist for multi-select
-    Type: 'House' | 'CS';
-    SPCCMH_Id?: number; // For House selection
-    selectedSectionlist?: { asmS_Id: number }[];
+    ASMCL_Id: number;
+    selectedSectionlist: { asmS_Id: number }[];
 }
 
 // Zod Schema for Validation
 export const bmiReportSchema = z.object({
     ASMAY_Id: z.coerce.number().min(1, 'Academic Year is required'),
-    Type: z.enum(['House', 'CS']),
-    SPCCMH_Id: z.coerce.number().optional(),
-    ASMCL_Id: z.coerce.number().optional(),
-    // We will handle conditional validation in the component or via refined schema
-    selectedSectionlist: z.array(z.object({ asmS_Id: z.number() })).optional(),
-}).superRefine((data, ctx) => {
-    if (data.Type === 'House') {
-        if (!data.SPCCMH_Id) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'House is required',
-                path: ['SPCCMH_Id'],
-            });
-        }
-    } else {
-        if (!data.ASMCL_Id) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Class is required',
-                path: ['ASMCL_Id'],
-            });
-        }
-        if (!data.selectedSectionlist || data.selectedSectionlist.length === 0) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'At least one section is required',
-                path: ['searchchkbx'], // Mapping to a UI field name if possible, or handle generic error
-            });
-        }
-    }
+    ASMCL_Id: z.coerce.number().min(1, 'Class is required'),
+    selectedSectionlist: z.array(z.object({ asmS_Id: z.number() })).min(1, 'At least one section is required'),
 });
 
 export type BMIReportFormSchema = z.infer<typeof bmiReportSchema>;

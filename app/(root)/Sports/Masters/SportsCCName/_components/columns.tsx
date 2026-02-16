@@ -8,7 +8,7 @@ import { SportsCCNameDTO } from '@/types/sports/masters/sports-cc-name';
 
 interface ColumnsProps {
     onEdit: (data: SportsCCNameDTO) => void;
-    onDelete: (id: number, activeFlag: boolean) => void;
+    onDelete: (row: SportsCCNameDTO) => void;
 }
 
 export const createColumns = ({ onEdit, onDelete }: ColumnsProps): ColumnDef<SportsCCNameDTO>[] => [
@@ -30,7 +30,7 @@ export const createColumns = ({ onEdit, onDelete }: ColumnsProps): ColumnDef<Spo
         },
     },
     {
-        accessorKey: 'SPCCMSCC_SportsCCName',
+        accessorKey: 'spccmscC_SportsCCName',
         header: ({ column }) => {
             return (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
@@ -41,7 +41,7 @@ export const createColumns = ({ onEdit, onDelete }: ColumnsProps): ColumnDef<Spo
         },
     },
     {
-        accessorKey: 'SPCCMSCC_SportsCCDesc',
+        accessorKey: 'spccmscC_SportsCCDesc',
         header: ({ column }) => {
             return (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
@@ -52,7 +52,7 @@ export const createColumns = ({ onEdit, onDelete }: ColumnsProps): ColumnDef<Spo
         },
     },
     {
-        accessorKey: 'SPCCMSCC_SGFlag',
+        accessorKey: 'spccmscC_SGFlag',
         header: ({ column }) => {
             return (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
@@ -63,7 +63,7 @@ export const createColumns = ({ onEdit, onDelete }: ColumnsProps): ColumnDef<Spo
         },
     },
     {
-        accessorKey: 'SPCCMSCC_NoOfMembers',
+        accessorKey: 'spccmscC_NoOfMembers',
         header: ({ column }) => {
             return (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
@@ -74,7 +74,7 @@ export const createColumns = ({ onEdit, onDelete }: ColumnsProps): ColumnDef<Spo
         },
     },
     {
-        accessorKey: 'SPCCMSCC_RecHighLowFlag',
+        accessorKey: 'spccmscC_RecHighLowFlag',
         header: ({ column }) => {
             return (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
@@ -97,7 +97,7 @@ export const createColumns = ({ onEdit, onDelete }: ColumnsProps): ColumnDef<Spo
                     <div className="flex items-center space-x-1">
                         <Switch
                             checked={data.spccmscC_ActiveFlag}
-                            onCheckedChange={() => onDelete(data.SPCCMSCC_Id, !!data.spccmscC_ActiveFlag)}
+                            onCheckedChange={() => onDelete(data)}
                         />
                         <span className={data.spccmscC_ActiveFlag ? "text-green-600 text-xs" : "text-red-600 text-xs"}>
                             {data.spccmscC_ActiveFlag ? 'Active' : 'Inactive'}

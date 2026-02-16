@@ -31,32 +31,51 @@ export default function AddMasterCompetitionCategoryForm({ onSuccess }: AddMaste
     const form = useForm<z.infer<typeof masterCompetitionCategorySchema>>({
         resolver: zodResolver(masterCompetitionCategorySchema),
         defaultValues: {
-            SPCCMCC_CompitionCategory: '',
-            SPCCMCC_CCDesc: '',
-            SPCCMCC_CCAgeFlag: false,
-            SPCCMCC_CCWeightFlag: false,
-            SPCCMCC_ActiveFlag: true,
-            SPCCMCC_FromCCAgeYear: null,
-            SPCCMCC_ToCCAgeYear: null,
-            SPCCMCC_FromCCAgeMonth: null,
-            SPCCMCC_ToCCAgeMonth: null,
-            SPCCMCC_FromCCAgeDays: null,
-            SPCCMCC_ToCCAgeDays: null,
-            SPCCMCC_CCWeight: null
-        },
-        mode: 'onChange'
+            spccmcC_Id: 0,
+            spccmcC_CompitionCategory: '',
+            spccmcC_CCDesc: '',
+            spccmcC_CCAgeFlag: false,
+            spccmcC_CCWeightFlag: false,
+            spccmcC_ActiveFlag: true,
+            spccmcC_FromCCAgeYear: null,
+            spccmcC_ToCCAgeYear: null,
+            spccmcC_FromCCAgeMonth: null,
+            spccmcC_ToCCAgeMonth: null,
+            spccmcC_FromCCAgeDays: null,
+            spccmcC_ToCCAgeDays: null,
+            spccmcC_CCWeight: null
+        }
     });
 
-    const isAgeFlagChecked = form.watch('SPCCMCC_CCAgeFlag');
-    const isWeightFlagChecked = form.watch('SPCCMCC_CCWeightFlag');
+    const isAgeFlagChecked = form.watch('spccmcC_CCAgeFlag');
+    const isWeightFlagChecked = form.watch('spccmcC_CCWeightFlag');
 
     const onSubmit = async (values: z.infer<typeof masterCompetitionCategorySchema>) => {
         try {
-            const result = await saveMasterCompetitionCategory(values);
-            // Relaxed check usually needed for legacy APIs
+            // Debugging toast to confirm onSubmit is hit
+            // toast.info('Submitting category...');
+
+            // Send camelCase payload as requested
+            const payload = {
+                spccmcC_Id: 0,
+                spccmcC_CompitionCategory: values.spccmcC_CompitionCategory,
+                spccmcC_CCDesc: values.spccmcC_CCDesc,
+                spccmcC_CCAgeFlag: values.spccmcC_CCAgeFlag,
+                spccmcC_CCWeightFlag: values.spccmcC_CCWeightFlag,
+                spccmcC_FromCCAgeYear: values.spccmcC_FromCCAgeYear,
+                spccmcC_ToCCAgeYear: values.spccmcC_ToCCAgeYear,
+                spccmcC_FromCCAgeMonth: values.spccmcC_FromCCAgeMonth,
+                spccmcC_ToCCAgeMonth: values.spccmcC_ToCCAgeMonth,
+                spccmcC_FromCCAgeDays: values.spccmcC_FromCCAgeDays,
+                spccmcC_ToCCAgeDays: values.spccmcC_ToCCAgeDays,
+                spccmcC_CCWeight: values.spccmcC_CCWeightFlag ? (values.spccmcC_CCWeight ?? 0) : 0,
+                spccmcC_ActiveFlag: values.spccmcC_ActiveFlag
+            };
+
+            const result = await saveMasterCompetitionCategory(payload);
             if (result.success || result?.returnval === true || result?.returnVal === 'saved') {
                 toast.success('Competition Category saved successfully');
-                queryClient.invalidateQueries({ queryKey: ['master-competition-categories'] });
+                await queryClient.invalidateQueries({ queryKey: ['master-competition-categories'] });
                 form.reset();
                 onSuccess();
             } else if (result?.returnVal === 'duplicate') {
@@ -69,31 +88,41 @@ export default function AddMasterCompetitionCategoryForm({ onSuccess }: AddMaste
         }
     };
 
+    const onError = (errors: any) => {
+        console.error('Form Validation Errors:', errors);
+        const firstError = Object.values(errors)[0] as any;
+        const message = firstError?.message || 'Please fix the validation errors before saving';
+        toast.error(message);
+    };
+
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={form.handleSubmit(onSubmit, onError)} className='space-y-4 pt-4'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                    {/* Competition Category Name */}
                     <FormField
                         control={form.control}
-                        name="SPCCMCC_CompitionCategory"
+                        name='spccmcC_CompitionCategory'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Competition Category <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>Competition Category</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Enter Competition Category" {...field} />
+                                    <Input placeholder='Enter competition category' {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
+
+                    {/* Description */}
                     <FormField
                         control={form.control}
-                        name="SPCCMCC_CCDesc"
+                        name='spccmcC_CCDesc'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Description <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>Description</FormLabel>
                                 <FormControl>
-                                    <Textarea placeholder="Enter Description" {...field} />
+                                    <Textarea placeholder='Enter category description' {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -101,147 +130,209 @@ export default function AddMasterCompetitionCategoryForm({ onSuccess }: AddMaste
                     />
                 </div>
 
-                <div className="flex flex-wrap gap-6 p-4 border rounded-md bg-muted/20">
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                    {/* Age Flag */}
                     <FormField
                         control={form.control}
-                        name="SPCCMCC_CCAgeFlag"
+                        name='spccmcC_CCAgeFlag'
                         render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                                <FormControl>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                </FormControl>
-                                <div className="space-y-1 leading-none">
-                                    <FormLabel>
-                                        Age Flag
-                                    </FormLabel>
+                            <FormItem className='flex flex-col rounded-md border p-4 shadow'>
+                                <div className='flex flex-row items-start space-x-3 space-y-0'>
+                                    <FormControl>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                    </FormControl>
+                                    <div className='space-y-1 leading-none'>
+                                        <FormLabel>Age Calculation Flag</FormLabel>
+                                    </div>
                                 </div>
+                                <FormMessage className='mt-2' />
                             </FormItem>
                         )}
                     />
+
+                    {/* Weight Flag */}
                     <FormField
                         control={form.control}
-                        name="SPCCMCC_CCWeightFlag"
+                        name='spccmcC_CCWeightFlag'
                         render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                                <FormControl>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                </FormControl>
-                                <div className="space-y-1 leading-none">
-                                    <FormLabel>
-                                        Weight Flag
-                                    </FormLabel>
+                            <FormItem className='flex flex-col rounded-md border p-4 shadow'>
+                                <div className='flex flex-row items-start space-x-3 space-y-0'>
+                                    <FormControl>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                    </FormControl>
+                                    <div className='space-y-1 leading-none'>
+                                        <FormLabel>Weight Calculation Flag</FormLabel>
+                                    </div>
                                 </div>
+                                <FormMessage className='mt-2' />
                             </FormItem>
                         )}
                     />
                 </div>
 
                 {isAgeFlagChecked && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-md animate-in fade-in zoom-in-95 duration-300">
-                        <div className="col-span-full font-semibold border-b pb-2 mb-2">Age Criteria Details</div>
-
-                        <FormField
-                            control={form.control}
-                            name="SPCCMCC_FromCCAgeYear"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>From Year <span className="text-destructive">*</span></FormLabel>
-                                    <FormControl>
-                                        <Input type="number" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.valueAsNumber)} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="SPCCMCC_ToCCAgeYear"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>To Year <span className="text-destructive">*</span></FormLabel>
-                                    <FormControl>
-                                        <Input type="number" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.valueAsNumber)} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <div className="hidden md:block"></div>
-
-                        <FormField
-                            control={form.control}
-                            name="SPCCMCC_FromCCAgeMonth"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>From Month <span className="text-destructive">*</span></FormLabel>
-                                    <FormControl>
-                                        <Input type="number" max={12} {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.valueAsNumber)} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="SPCCMCC_ToCCAgeMonth"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>To Month <span className="text-destructive">*</span></FormLabel>
-                                    <FormControl>
-                                        <Input type="number" max={12} {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.valueAsNumber)} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <div className="hidden md:block"></div>
-
-                        <FormField
-                            control={form.control}
-                            name="SPCCMCC_FromCCAgeDays"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>From Days <span className="text-destructive">*</span></FormLabel>
-                                    <FormControl>
-                                        <Input type="number" max={31} {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.valueAsNumber)} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="SPCCMCC_ToCCAgeDays"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>To Days <span className="text-destructive">*</span></FormLabel>
-                                    <FormControl>
-                                        <Input type="number" max={31} {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.valueAsNumber)} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                    <div className='rounded-lg border bg-muted/50 p-4 space-y-4'>
+                        <h3 className='font-medium text-primary'>Age Configuration</h3>
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                            <FormField
+                                control={form.control}
+                                name='spccmcC_FromCCAgeYear'
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>From Year</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type='number'
+                                                placeholder='0'
+                                                {...field}
+                                                value={field.value ?? ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.valueAsNumber;
+                                                    field.onChange(Number.isNaN(val) ? null : val);
+                                                }}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name='spccmcC_FromCCAgeMonth'
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>From Month</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type='number'
+                                                placeholder='0'
+                                                {...field}
+                                                value={field.value ?? ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.valueAsNumber;
+                                                    field.onChange(Number.isNaN(val) ? null : val);
+                                                }}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name='spccmcC_FromCCAgeDays'
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>From Days</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type='number'
+                                                placeholder='0'
+                                                {...field}
+                                                value={field.value ?? ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.valueAsNumber;
+                                                    field.onChange(Number.isNaN(val) ? null : val);
+                                                }}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                            <FormField
+                                control={form.control}
+                                name='spccmcC_ToCCAgeYear'
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>To Year</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type='number'
+                                                placeholder='0'
+                                                {...field}
+                                                value={field.value ?? ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.valueAsNumber;
+                                                    field.onChange(Number.isNaN(val) ? null : val);
+                                                }}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name='spccmcC_ToCCAgeMonth'
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>To Month</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type='number'
+                                                placeholder='0'
+                                                {...field}
+                                                value={field.value ?? ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.valueAsNumber;
+                                                    field.onChange(Number.isNaN(val) ? null : val);
+                                                }}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name='spccmcC_ToCCAgeDays'
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>To Days</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type='number'
+                                                placeholder='0'
+                                                {...field}
+                                                value={field.value ?? ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.valueAsNumber;
+                                                    field.onChange(Number.isNaN(val) ? null : val);
+                                                }}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                     </div>
                 )}
 
                 {isWeightFlagChecked && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-md animate-in fade-in zoom-in-95 duration-300">
-                        <div className="col-span-full font-semibold border-b pb-2 mb-2">Weight Criteria Details</div>
+                    <div className='rounded-lg border bg-muted/50 p-4 space-y-4'>
+                        <h3 className='font-medium text-primary'>Weight Configuration</h3>
                         <FormField
                             control={form.control}
-                            name="SPCCMCC_CCWeight"
+                            name='spccmcC_CCWeight'
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Weight <span className="text-destructive">*</span></FormLabel>
+                                    <FormLabel>Weight (In kg)</FormLabel>
                                     <FormControl>
-                                        <Input type="number" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.valueAsNumber)} />
+                                        <Input
+                                            type='number'
+                                            placeholder='0.00'
+                                            step='0.01'
+                                            {...field}
+                                            value={field.value ?? ''}
+                                            onChange={(e) => {
+                                                const val = e.target.valueAsNumber;
+                                                field.onChange(Number.isNaN(val) ? null : val);
+                                            }}
+                                        />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -250,15 +341,15 @@ export default function AddMasterCompetitionCategoryForm({ onSuccess }: AddMaste
                     </div>
                 )}
 
-                <div className="flex justify-center gap-4">
-                    <Button type="submit" disabled={form.formState.isSubmitting}>
+                <div className='flex justify-end gap-3 pt-4 border-t'>
+                    <Button type='submit' className='min-w-[120px] shadow-md transition-all active:scale-95' disabled={form.formState.isSubmitting}>
                         {form.formState.isSubmitting ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 Saving...
                             </>
                         ) : (
-                            'Save'
+                            'Save Category'
                         )}
                     </Button>
                     <Button type="button" variant="destructive" onClick={() => {

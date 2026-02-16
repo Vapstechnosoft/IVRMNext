@@ -4,6 +4,14 @@ import { type ApiResponse } from '@/lib/apiService';
 import { IMonthEndReportData, MonthEndReportFormSchema } from '@/types/sports/reports/month-end-report';
 
 export async function getMonthEndReportDropdowns() {
+    const years = [];
+    for (let year = 1998; year <= 2026; year++) {
+        years.push({
+            asmaY_Id: year,
+            asmaY_Year: `${year}-${year + 1}`
+        });
+    }
+
     const response: ApiResponse<{
         academicYear: { asmaY_Id: number; asmaY_Year: string }[];
         monthList: { month: number; monthname: string }[];
@@ -11,10 +19,7 @@ export async function getMonthEndReportDropdowns() {
         success: true,
         message: 'Dropdowns fetched successfully',
         data: {
-            academicYear: [
-                { asmaY_Id: 1, asmaY_Year: '2023-2024' },
-                { asmaY_Id: 2, asmaY_Year: '2024-2025' },
-            ],
+            academicYear: years,
             monthList: [
                 { month: 1, monthname: 'January' },
                 { month: 2, monthname: 'February' },
@@ -36,19 +41,20 @@ export async function getMonthEndReportDropdowns() {
 
 export async function getMonthEndReport(data: MonthEndReportFormSchema) {
     // Generate dynamic mock data based on inputs
-    const baseCount = 1000;
-    const yearFactor = data.ASMAY_Id * 50;
-    const monthFactor = data.month * 20;
+    // Requirement: "report result counts in below 50" for Non Position and Position Holders
+    // And "change with change in input data" (randomized)
 
-    const totalStudents = baseCount + yearFactor + monthFactor;
-    const participants = Math.floor(totalStudents * 0.4); // 40% participation
-    const winners = Math.floor(participants * 0.1); // 10% of participants are winners
-    const notParticipants = totalStudents - participants;
+    const getRandomUnder50 = () => Math.floor(Math.random() * 50);
+
+    const nonPositionHolders = getRandomUnder50();
+    const positionHolders = getRandomUnder50();
+    const winners = Math.floor(Math.random() * positionHolders); // Winners should be subset of position holders or independent? Usually subset.
+    const totalStudents = nonPositionHolders + positionHolders;
 
     const dummyData: IMonthEndReportData = {
         total_count_student: totalStudents,
-        not_patr_std: notParticipants,
-        total_partic_student: participants,
+        not_patr_std: nonPositionHolders,
+        total_partic_student: positionHolders,
         total_winner_student: winners,
     };
 

@@ -1,8 +1,9 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getInitialData, getStudents, saveStudentAge, getStudentAgeRecords } from '@/server/sports/transactions/student-age-calculation';
 import { toast } from 'sonner';
 
 export const useStudentAgeCalculation = () => {
+    const queryClient = useQueryClient();
     const initialData = useQuery({
         queryKey: ['studentAgeCalculationInitial'],
         queryFn: () => getInitialData(),
@@ -20,6 +21,7 @@ export const useStudentAgeCalculation = () => {
         onSuccess: (data) => {
             if (data.success) {
                 toast.success(data.message);
+                queryClient.invalidateQueries({ queryKey: ['studentAgeCalculationGrid'] });
             } else {
                 toast.error(data.message);
             }

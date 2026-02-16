@@ -2,16 +2,19 @@
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import type { SalaryAdvanceOnloadResponse } from '@/types/hrms/salary-advance';
+import type { SalaryAdvanceEmployeeDropdownItem, SalaryAdvanceGridItem } from '@/types/hrms/salary-advance';
 import { X } from 'lucide-react';
 import AddSalaryAdvanceForm from './add-form';
 import UpdateSalaryAdvanceForm from './update-form';
+
 interface FormSectionsProps {
-    onloadData: SalaryAdvanceOnloadResponse | undefined;
+    employeeDropdown: SalaryAdvanceEmployeeDropdownItem[] | undefined;
     onSuccess: () => void;
 }
-export default function FormSections({ onloadData, onSuccess }: FormSectionsProps) {
-    const { isAddFormOpen, closeAddForm, addFormRef, isEditFormOpen, closeEditForm, editFormRef, selectedRow } = useFormContext();
+
+export default function FormSections({ employeeDropdown, onSuccess }: FormSectionsProps) {
+    const { isAddFormOpen, closeAddForm, addFormRef, isEditFormOpen, closeEditForm, editFormRef, selectedRow } = useFormContext<SalaryAdvanceGridItem>();
+
     return (
         <>
             {/* Add Form */}
@@ -34,7 +37,7 @@ export default function FormSections({ onloadData, onSuccess }: FormSectionsProp
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddSalaryAdvanceForm
-                                onloadData={onloadData}
+                                employeeDropdown={employeeDropdown}
                                 onSuccess={() => {
                                     closeAddForm();
                                     onSuccess();
@@ -65,7 +68,7 @@ export default function FormSections({ onloadData, onSuccess }: FormSectionsProp
                             </Button>
                             <UpdateSalaryAdvanceForm
                                 selectedRow={selectedRow}
-                                onloadData={onloadData}
+                                employeeDropdown={employeeDropdown}
                                 onSuccess={() => {
                                     closeEditForm();
                                     onSuccess();

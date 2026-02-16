@@ -50,8 +50,11 @@ export async function getEventsMappingList(): Promise<ApiResponse<IEventsMapping
     const dummyDataCount = 17;
     const dummyData: IEventsMappingData[] = Array.from({ length: dummyDataCount }, (_, i) => ({
         spccE_Id: 100 + i,
+        asmaY_Id: i % 2 === 0 ? 1 : 2,
         asmaY_Year: i % 2 === 0 ? '2023-2024' : '2024-2025',
+        spccmE_Id: (i % 5) + 1,
         spccmE_EventName: ['100m Sprint', 'Football', 'Cricket Tournament', 'Volleyball', 'Tennis'][i % 5],
+        spccmeV_Id: (i % 3) + 1,
         spccmeV_EventVenue: ['Main Stadium', 'School Ground', 'Indoor Arena'][i % 3],
         spccE_StartDate: new Date('2024-01-01').toISOString(),
         spccE_StartTime: '10:00',

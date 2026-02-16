@@ -188,8 +188,8 @@ export async function getExcelOverallAttendanceReport(
 
 export async function getExcelStudentAttendanceReport(
     ASMAY_Id: number,
-    ASMCL_Id: number, // Section ID?
-    ASMS_Id: number, // Class ID?
+    ASMCL_Id: number,
+    ASMS_Id: number,
     AMST_Id: number | undefined,
     monthId: number | undefined,
     monthDateWise: number | undefined,
@@ -205,7 +205,7 @@ export async function getExcelStudentAttendanceReport(
     const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
     let url = `${baseUrl}/StudentAttendanceReport/ExportAttendanceMonthwiseToExcel?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}&RadioType=${studentStatus}&Type=${selectionMode}`;
 
-    if (selectionMode === 1 && AMST_Id) {
+    if (selectionMode === 2 && AMST_Id) {
         url += `&AMST_Id=${AMST_Id}`;
     }
 
