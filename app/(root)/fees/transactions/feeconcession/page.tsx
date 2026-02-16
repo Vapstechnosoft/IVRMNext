@@ -52,7 +52,8 @@ export default function FeeConcessionPage() {
         data: response,
         isLoading,
         refetch,
-        refetchAll
+        refetchAll,
+        error
     } = useFeeConcessionStudentConcessionGrid(MI_ID, selectedAsmaY_Id ?? 0, asmcL_Id, apiSearchParams as any);
 
     const tableData: IFeeConcessionStudentConcessionGrid[] = response?.data ?? [];
@@ -63,20 +64,38 @@ export default function FeeConcessionPage() {
         setSelectedAsmaY_Id(newAsmaY_Id);
     };
 
+    // return (
+    //     <FormProvider<IFeeConcessionStudentConcessionGrid>>
+    //         <PageContent
+    //             academicYears={academicYears}
+    //             loadingYears={loadingYears}
+    //             selectedAsmaY_Id={selectedAsmaY_Id}
+    //             onAcademicYearChange={handleAcademicYearChange}
+    //            // tableData={tableData}
+    //            // totalRecords={totalRecords}
+    //             isLoading={isLoading || loadingYears}
+    //             refetchAll={refetchAll ?? refetch}
+    //             searchParams={searchParams}
+    //             router={router}
+    //             pathname={pathname}
+    //         />
+    //     </FormProvider>
+    // );
+
     return (
         <FormProvider<IFeeConcessionStudentConcessionGrid>>
             <PageContent
+                response={response}
+                isLoading={isLoading}
+                error={error}
                 academicYears={academicYears}
                 loadingYears={loadingYears}
                 selectedAsmaY_Id={selectedAsmaY_Id}
                 onAcademicYearChange={handleAcademicYearChange}
-                tableData={tableData}
-                totalRecords={totalRecords}
-                isLoading={isLoading || loadingYears}
                 refetchAll={refetchAll ?? refetch}
-                searchParams={searchParams}
-                router={router}
-                pathname={pathname}
+                //searchParams={searchParams}
+                //router={router}
+                //pathname={pathname}
             />
         </FormProvider>
     );
@@ -87,36 +106,40 @@ function PageContent({
     loadingYears,
     selectedAsmaY_Id,
     onAcademicYearChange,
-    tableData,
-    totalRecords,
+    // tableData,
+    //  totalRecords,
     isLoading,
-    refetchAll,
-    searchParams,
-    router,
-    pathname
+    error,
+    response,
+    refetchAll
+    //searchParams,
+    //router,
+    // pathname
 }: {
     academicYears: any[];
     loadingYears: boolean;
     selectedAsmaY_Id: number | null;
     onAcademicYearChange: (value: string) => void;
-    tableData: IFeeConcessionStudentConcessionGrid[];
-    totalRecords: number;
+    //tableData: IFeeConcessionStudentConcessionGrid[];
+    //totalRecords: number;
     isLoading: boolean;
     refetchAll: () => void;
-    searchParams: ReturnType<typeof useSearchParams>;
-    router: ReturnType<typeof useRouter>;
-    pathname: string;
+    // searchParams: ReturnType<typeof useSearchParams>;
+    // router: ReturnType<typeof useRouter>;
+    // pathname: string;
+    response: any;
+    error: any;
 }) {
     const { openAddForm } = useFormContext<IFeeConcessionStudentConcessionGrid>();
 
-    const tableProps = useDataTableProps({
-        data: tableData,
-        totalItems: totalRecords,
-        searchParams,
-        router,
-        pathname
-    });
-
+    // const tableProps = useDataTableProps({
+    //     data: tableData,
+    //     totalItems: totalRecords,
+    //     searchParams,
+    //     router,
+    //     pathname
+    // });
+    const tableProps = useDataTableProps(response);
     return (
         <div className='min-h-screen bg-gray-50'>
             <div className='container mx-auto space-y-6 p-6'>
@@ -161,7 +184,7 @@ function PageContent({
                         loadingMessage='Loading concessions...'
                         noDataTitle='No Concession Records Found'
                         noDataDescription='No records exist for the selected filters.'
-                        totalItems={totalRecords}
+                        // totalItems={totalRecords}
                     />
                 </CollapsibleSection>
 

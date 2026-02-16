@@ -3,14 +3,14 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type MarksEntryReportSchema, marksEntryReportSchema } from '@/schemas/exam/exam-module/reports';
-import { getExams, getReportDetails } from '@/server/exam/exam-module/reports/marks-entry-report';
 import {
     getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist,
-    getExamsDropDownByAcademicYearandClassandSectionlist
+    getExamsDropDownByAcademicYearandClassandSectionlist,
+    getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { getReportDetails } from '@/server/exam/exam-module/reports/marks-entry-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -55,9 +55,9 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         } else if (academicData?.data) {
             const formatted = Array.isArray(academicData.data)
                 ? academicData.data.map((i: any) => ({
-                    asmaY_Id: i.asmaY_Id ?? 0,
-                    asmaY_Year: i.asmaY_Year ?? ''
-                }))
+                      asmaY_Id: i.asmaY_Id ?? 0,
+                      asmaY_Year: i.asmaY_Year ?? ''
+                  }))
                 : [];
             setYears(formatted);
             if (!formatted || formatted.length === 0) {
@@ -151,11 +151,22 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
 
     const onSubmit = async (data: MarksEntryReportSchema) => {
         try {
-            console.log(data);
-            const result = await getReportDetails(data);
+            const payload = {
+                ASMAY_Id: Number(data.ASMAY_Id),
+                ASMCL_Id: Number(data.ASMCL_Id),
+                ASMS_Id: Number(data.ASMS_Id),
+                EME_Id: Number(data.EME_Id)
+            };
+
+            console.log('marks entry report payload', payload);
+
+            const result = await getReportDetails(payload);
+
             console.log('marks entry report data', result);
-            const resultData = Array.isArray(result.data) ? result.data : [];
-            onReportGenerated(resultData); // result matches the expected data structure directly here
+
+            const resultData = Array.isArray(result.data) ? result.data[0] : [];
+
+            onReportGenerated(resultData);
         } catch (error) {
             console.error('Error:', error);
         }

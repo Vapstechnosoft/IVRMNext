@@ -19,8 +19,8 @@ export const createStudentsYearlyAttendenceReportColumns = (monthList: MonthInfo
             id: 'select',
             header: ({ table }) => (
                 <Checkbox
-                    checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                    checked={table.getIsAllRowsSelected() || (table.getIsSomeRowsSelected() && 'indeterminate')}
+                    onCheckedChange={(value) => table.toggleAllRowsSelected(!!value)}
                     aria-label='Select all'
                 />
             ),
@@ -110,4 +110,70 @@ export const createStudentsYearlyAttendenceReportColumns = (monthList: MonthInfo
     ];
 
     return [...baseColumns, ...monthColumns, ...summaryColumns];
+};
+
+export const createAbsentStudentColumns = (): ColumnDef<IStudentYearlyAttendenceReportList>[] => {
+    return [
+        {
+            accessorKey: 'RowNo',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+            cell: ({ row, table }) => {
+                const pageIndex = table.getState().pagination.pageIndex;
+                const pageSize = table.getState().pagination.pageSize;
+                const continuousIndex = pageIndex * pageSize + row.index + 1;
+                return <div>{continuousIndex}</div>;
+            },
+            enableSorting: true,
+            enableHiding: false
+        },
+        {
+            accessorKey: 'name',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+            cell: ({ row }) => <div>{row.getValue('name')}</div>,
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'AMST_AdmNo',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Admission No' />,
+            cell: ({ row }) => <div>{row.getValue('AMST_AdmNo') ?? 'N.A'}</div>,
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'AMAY_RollNo',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Roll No' />,
+            cell: ({ row }) => <div>{row.getValue('AMAY_RollNo') ?? 'N.A'}</div>,
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'totalWorkingDays',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Class Held' />,
+            cell: ({ row }) => <div className='text-center'>{row.getValue('totalWorkingDays')}</div>,
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'totalPresent',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Present' />,
+            cell: ({ row }) => <div className='text-center'>{row.getValue('totalPresent')}</div>,
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'totalAbsent',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Absent' />,
+            cell: ({ row }) => <div className='text-center font-semibold text-red-500'>{row.getValue('totalAbsent')}</div>,
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'percentage',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Percentage' />,
+            cell: ({ row }) => <div className='text-center font-semibold'>{row.getValue('percentage')}%</div>,
+            enableSorting: true,
+            enableHiding: true
+        }
+    ];
 };

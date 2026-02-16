@@ -469,14 +469,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Student Yearly Attendance Report',
                                             description: 'Student Yearly Attendance Report'
                                         },
-                                        {
-                                            id: 3,
-                                            name: 'Student TC Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/student-tc-report',
-                                            title: 'Student TC Report',
-                                            description: 'Student TC Report'
-                                        },
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Student TC Report',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/reports/student-tc-report',
+                                        //     title: 'Student TC Report',
+                                        //     description: 'Student TC Report'
+                                        // },
                                         {
                                             id: 4,
                                             name: 'class-wise student details',
@@ -543,14 +543,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Date Of Birth Report',
                                             description: 'Date Of Birth Report'
                                         },
-                                        {
-                                            id: 12,
-                                            name: 'Overall Daily Attendance Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/overall-daily-attendance-report',
-                                            title: 'Overall Daily Attendance Report',
-                                            description: 'Overall Daily Attendance Report'
-                                        },
+                                        // {
+                                        //     id: 12,
+                                        //     name: 'Overall Daily Attendance Report',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/reports/overall-daily-attendance-report',
+                                        //     title: 'Overall Daily Attendance Report',
+                                        //     description: 'Overall Daily Attendance Report'
+                                        // },
                                         {
                                             id: 13,
                                             name: 'Student Attendance Report',
@@ -1722,10 +1722,25 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/masters/religion-category-mapping',
                                             title: 'Religion-Category Mapping',
                                             description: 'Map Religion & Category'
+                                        },
+
+                                    ]
+                                },
+                                {
+                                    id: 5,
+                                    name: 'User Creation',
+                                    icon: 'UserPlus',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Staff User Creation',
+                                            icon: 'UserPlus',
+                                            url: '/SuperAdmin/super-admin-module/user-creation/staff-user-creation',
+                                            title: 'Staff User Creation',
+                                            description: 'Manage Institution Staff User Details'
                                         }
                                     ]
                                 },
-
                                 {
                                     id: 2,
                                     name: 'Employee',
@@ -1786,14 +1801,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Mass Updation',
                                             description: 'Bulk Update Employee Data'
                                         },
-                                        // {
-                                        //     id: 6,
-                                        //     name: 'Salary Advance',
-                                        //     icon: 'DollarSign',
-                                        //     url: '/hrms/transactions/salary-advance',
-                                        //     title: 'Salary Advance',
-                                        //     description: 'Manage Salary Advances'
-                                        // },
+                                        {
+                                            id: 6,
+                                            name: 'Salary Advance',
+                                            icon: 'DollarSign',
+                                            url: '/hrms/transactions/salary-advance',
+                                            title: 'Salary Advance',
+                                            description: 'Manage Salary Advances'
+                                        },
                                         {
                                             id: 7,
                                             name: 'Employee Loan',
@@ -1850,14 +1865,14 @@ export async function getUserAccessibleModules() {
                                             title: 'E-PF Contribution Register',
                                             description: 'E-PF Contribution Register Report'
                                         },
-                                        // {
-                                        //     id: 6,
-                                        //     name: 'Employee Salary Details',
-                                        //     icon: 'DollarSign',
-                                        //     url: '/hrms/reports/employee-salary-details',
-                                        //     title: 'Employee Salary Details',
-                                        //     description: 'Detailed Salary Information'
-                                        // },
+                                        {
+                                            id: 6,
+                                            name: 'Employee Salary Details',
+                                            icon: 'DollarSign',
+                                            url: '/hrms/reports/employee-salary-details',
+                                            title: 'Employee Salary Details',
+                                            description: 'Detailed Salary Information'
+                                        },
                                         {
                                             id: 7,
                                             name: 'Employee Strength',
@@ -5015,6 +5030,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Home Work',
                                             description: 'Upload Home Work'
                                         },
+                                        // {
+                                        //     id: 4,
+                                        //     name: 'Sport House Committee Report',
+                                        //     icon: 'FileText',
+                                        //     url: '/Sports/Reports/SportHouseCommitteeReport',
+                                        //     title: 'Sport House Committee Report',
+                                        //     description: 'Sport House Committee Report'
+                                        // },
                                         {
                                             id: 80010,
                                             name: 'Homework Marks Update',
@@ -5032,12 +5055,37 @@ export async function getUserAccessibleModules() {
                                             description: 'Homework Upload Report'
                                         },
                                         {
-                                            id: 80012,
-                                            name: 'Interactions',
-                                            icon: 'MessageSquare',
-                                            url: '/StaffPortal/interactions',
-                                            title: 'Interactions',
-                                            description: 'Interact with Students/Staff'
+                                            id: 6,
+                                            name: 'Sport House Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/SportHouseReport',
+                                            title: 'Sport House Report',
+                                            description: 'Sport House Report'
+                                        },
+
+                                        {
+                                            id: 11,
+                                            name: 'Venue Wise Participation',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/VenueWiseParticipationReport',
+                                            title: 'Venue Wise Participation',
+                                            description: 'View Venue Wise Participation Report'
+                                        },
+                                        // {
+                                        //     id: 7,
+                                        //     name: 'Sport Student Participation Report',
+                                        //     icon: 'FileText',
+                                        //     url: '/Sports/Reports/SportStudentParticipationReport',
+                                        //     title: 'Sport Student Participation Report',
+                                        //     description: 'Sport Student Participation Report'
+                                        // },
+                                        {
+                                            id: 8,
+                                            name: 'Sport Topper List Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/SportTopperListReport',
+                                            title: 'Sport Topper List Report',
+                                            description: 'Sport Topper List Report'
                                         },
                                         {
                                             id: 80013,
@@ -5055,6 +5103,7 @@ export async function getUserAccessibleModules() {
                                             title: 'Classwork Upload',
                                             description: 'Classwork Upload'
                                         },
+
                                         {
                                             id: 80015,
                                             name: 'Classwork Marks Update',
@@ -5138,7 +5187,8 @@ export async function getUserAccessibleModules() {
                 }
             ]
         };
-    } else if (session?.role.toUpperCase() === 'STUDENT') {
+    }
+    else if (session?.role.toUpperCase() === 'STUDENT') {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
@@ -5346,12 +5396,43 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
+                        },
+                        {
+                            id: 8,
+                            name: 'User Password Creation',
+                            icon: 'MessageSquare',
+                            sub_menu: [
+                                {
+                                    id: 40010,
+                                    name: 'Transaction',
+                                    icon: 'List',
+                                    pages: [
+                                        {
+                                            id: 40012,
+                                            name: 'User Password Creation',
+                                            icon: 'KeyRound',
+                                            url: '/StudentPortal/transactions/user-password-creation',
+                                            title: 'User Password Creation',
+                                            description: 'Generate Usernames and Passwords'
+                                        },
+                                        {
+                                            id: 40013,
+                                            name: 'Student Password Creation',
+                                            icon: 'LockKeyhole',
+                                            url: '/StudentPortal/transactions/student-password-creation',
+                                            title: 'Student Password Creation',
+                                            description: 'Student Credentials Management'
+                                        }
+                                    ]
+                                }
+                            ]
                         }
                     ]
                 }
             ]
         };
-    } else if (session?.role.toUpperCase() === 'SUPER ADMIN') {
+    }
+    else if (session?.role.toUpperCase() === 'SUPER ADMIN') {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
@@ -5571,28 +5652,15 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 }
-                                // {
-                                //     id: 6,
-                                //     name: 'User Creation',
-                                //     icon: 'UserPlus',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'Staff User Creation',
-                                //             icon: 'UserPlus',
-                                //             url: '/SuperAdmin/super-admin-module/user-creation/staff-user-creation',
-                                //             title: 'Staff User Creation',
-                                //             description: 'Manage Institution Staff User Details'
-                                //         }
-                                //     ]
-                                // }
                             ]
                         }
                     ]
-                }
+                },
+
             ]
         };
-    } else {
+    }
+    else {
         response = {
             success: true,
             message: 'Data fetched successfully!!',

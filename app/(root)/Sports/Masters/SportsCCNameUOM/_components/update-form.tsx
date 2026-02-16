@@ -32,29 +32,56 @@ interface UpdateMasterSportsCCNameUOMFormProps {
     uomList: IUOM[];
 }
 
+import { editMasterSportsCCNameUOM } from '@/server/sports/masters/sports-cc-name-uom';
+import { useEffect } from 'react';
+
 export default function UpdateMasterSportsCCNameUOMForm({ selectedRow, onSuccess, sportsCCNameList, uomList }: UpdateMasterSportsCCNameUOMFormProps) {
     const queryClient = useQueryClient();
 
     const form = useForm<z.infer<typeof MasterSportsCCNameUOMSchema>>({
         resolver: zodResolver(MasterSportsCCNameUOMSchema),
         defaultValues: {
-            SPCCMSCCUOM_Id: selectedRow.SPCCMSCCUOM_Id,
-            SPCCMSCC_Id: selectedRow.SPCCMSCC_Id,
-            SPCCMUOM_Id: selectedRow.SPCCMUOM_Id,
-            SPCCMSCCUOM_ActiveFlag: selectedRow.SPCCMSCCUOM_ActiveFlag
+            spccmsccuoM_Id: selectedRow.spccmsccuoM_Id,
+            spccmscC_Id: selectedRow.spccmscC_Id,
+            spccmuoM_Id: selectedRow.spccmuoM_Id,
+            spccmsccuoM_ActiveFlag: selectedRow.spccmsccuoM_ActiveFlag
         },
         mode: 'onChange'
     });
 
+    useEffect(() => {
+        const loadEditData = async () => {
+            try {
+                const apiResponse: any = await editMasterSportsCCNameUOM(selectedRow.spccmsccuoM_Id);
+                // The API returns data inside a 'data' array based on the example provided
+                if (apiResponse && apiResponse.data && apiResponse.data.length > 0) {
+                    const data = apiResponse.data[0];
+                    form.reset({
+                        spccmsccuoM_Id: data.spccmsccuoM_Id,
+                        spccmscC_Id: data.spccmscC_Id,
+                        spccmuoM_Id: data.spccmuoM_Id,
+                        spccmsccuoM_ActiveFlag: data.spccmsccuoM_ActiveFlag
+                    });
+                }
+            } catch (err) {
+                console.error("Failed to load edit details", err);
+            }
+        };
+
+        if (selectedRow) {
+            loadEditData();
+        }
+    }, [selectedRow, form]);
+
     const onSubmit = async (values: z.infer<typeof MasterSportsCCNameUOMSchema>) => {
         try {
             const result = await saveMasterSportsCCNameUOM(values);
-            if (result?.returnVal === 'updated') {
+            if (result?.returnVal === 'updated' || result?.message === 'updated' || result?.success) {
                 toast.success('Record updated successfully');
                 queryClient.invalidateQueries({ queryKey: ['master-sports-cc-name-uom'] });
                 form.reset();
                 onSuccess();
-            } else if (result?.returnVal === 'duplicate') {
+            } else if (result?.returnVal === 'duplicate' || result?.message === 'duplicate') {
                 toast.warning('Record already exists');
             } else {
                 toast.error('Failed to update record');
@@ -70,7 +97,7 @@ export default function UpdateMasterSportsCCNameUOMForm({ selectedRow, onSuccess
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                         control={form.control}
-                        name="SPCCMSCC_Id"
+                        name="spccmscC_Id"
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Sports Name <span className="text-destructive">*</span></FormLabel>
@@ -98,7 +125,7 @@ export default function UpdateMasterSportsCCNameUOMForm({ selectedRow, onSuccess
                     />
                     <FormField
                         control={form.control}
-                        name="SPCCMUOM_Id"
+                        name="spccmuoM_Id"
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>UOM <span className="text-destructive">*</span></FormLabel>

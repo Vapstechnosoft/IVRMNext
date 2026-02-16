@@ -2819,21 +2819,25 @@ export default function FeeYearlyCollectionReport() {
                                                                                             return (
                                                                                                 <React.Fragment key={term.fmT_Id}>
                                                                                                     <td className='border p-2 text-center font-bold'>
+                                                                                                        ₹
                                                                                                         {termData?.paid?.toLocaleString(
                                                                                                             'en-IN'
                                                                                                         ) || '0'}
                                                                                                     </td>
                                                                                                     <td className='border p-2 text-center font-bold'>
+                                                                                                        ₹
                                                                                                         {termData?.balance?.toLocaleString(
                                                                                                             'en-IN'
                                                                                                         ) || '0'}
                                                                                                     </td>
                                                                                                     <td className='border p-2 text-center font-bold'>
+                                                                                                        ₹
                                                                                                         {termData?.concession?.toLocaleString(
                                                                                                             'en-IN'
                                                                                                         ) || '0'}
                                                                                                     </td>
                                                                                                     <td className='border p-2 text-center font-bold'>
+                                                                                                        ₹
                                                                                                         {termData?.arrear?.toLocaleString(
                                                                                                             'en-IN'
                                                                                                         ) || '0'}

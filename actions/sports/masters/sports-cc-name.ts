@@ -12,58 +12,58 @@ let MOCK_GROUPS = [
 
 let MOCK_DATA: SportsCCNameDTO[] = [
     {
-        SPCCMSCC_Id: 1,
-        SPCCMSCCG_Id: 1,
+        spccmscC_Id: 1,
+        spccmsccG_Id: 1,
         groupName: 'Athletics',
-        SPCCMSCC_SportsCCName: '100m Dash',
-        SPCCMSCC_SportsCCDesc: '100 meter sprint',
-        SPCCMSCC_SGFlag: 'Single',
-        SPCCMSCC_NoOfMembers: 1,
-        SPCCMSCC_RecHighLowFlag: 'High',
-        SPCCMSCC_RecInfo: 'Time in seconds',
-        SPCCMSCC_MultiAttemptFlg: false,
+        spccmscC_SportsCCName: '100m Dash',
+        spccmscC_SportsCCDesc: '100 meter sprint',
+        spccmscC_SGFlag: 'Single',
+        spccmscC_NoOfMembers: 1,
+        spccmscC_RecHighLowFlag: 'High',
+        spccmscC_RecInfo: 'Time in seconds',
+        spccmscC_MultiAttemptFlg: false,
         spccmscC_ActiveFlag: true
     },
     {
-        SPCCMSCC_Id: 2,
-        SPCCMSCCG_Id: 2,
+        spccmscC_Id: 2,
+        spccmsccG_Id: 2,
         groupName: 'Team Sports',
-        SPCCMSCC_SportsCCName: 'Football',
-        SPCCMSCC_SportsCCDesc: 'Standard Football',
-        SPCCMSCC_SGFlag: 'Group',
-        SPCCMSCC_NoOfMembers: 11,
-        SPCCMSCC_RecHighLowFlag: 'Low',
-        SPCCMSCC_RecInfo: 'Goals Scored',
-        SPCCMSCC_MultiAttemptFlg: false,
+        spccmscC_SportsCCName: 'Football',
+        spccmscC_SportsCCDesc: 'Standard Football',
+        spccmscC_SGFlag: 'Group',
+        spccmscC_NoOfMembers: 11,
+        spccmscC_RecHighLowFlag: 'Low',
+        spccmscC_RecInfo: 'Goals Scored',
+        spccmscC_MultiAttemptFlg: false,
         spccmscC_ActiveFlag: true
     },
     {
-        SPCCMSCC_Id: 3,
-        SPCCMSCCG_Id: 3,
+        spccmscC_Id: 3,
+        spccmsccG_Id: 3,
         groupName: 'Indoor Games',
-        SPCCMSCC_SportsCCName: 'Chess',
-        SPCCMSCC_SportsCCDesc: 'Standard Chess',
-        SPCCMSCC_SGFlag: 'Single',
-        SPCCMSCC_NoOfMembers: 1,
-        SPCCMSCC_RecHighLowFlag: 'High',
-        SPCCMSCC_RecInfo: 'Points',
-        SPCCMSCC_MultiAttemptFlg: false,
+        spccmscC_SportsCCName: 'Chess',
+        spccmscC_SportsCCDesc: 'Standard Chess',
+        spccmscC_SGFlag: 'Single',
+        spccmscC_NoOfMembers: 1,
+        spccmscC_RecHighLowFlag: 'High',
+        spccmscC_RecInfo: 'Points',
+        spccmscC_MultiAttemptFlg: false,
         spccmscC_ActiveFlag: false
     },
     {
-        SPCCMSCC_Id: 4,
-        SPCCMSCCG_Id: 1,
+        spccmscC_Id: 4,
+        spccmsccG_Id: 1,
         groupName: 'Athletics',
-        SPCCMSCC_SportsCCName: 'Long Jump',
-        SPCCMSCC_SportsCCDesc: 'Long Jump Event',
-        SPCCMSCC_SGFlag: 'Single',
-        SPCCMSCC_NoOfMembers: 1,
-        SPCCMSCC_RecHighLowFlag: 'High',
-        SPCCMSCC_RecInfo: 'Distance in meters',
-        SPCCMSCC_MultiAttemptFlg: true,
-        SPCCMSCC_NoOfAttempts: 3,
+        spccmscC_SportsCCName: 'Long Jump',
+        spccmscC_SportsCCDesc: 'Long Jump Event',
+        spccmscC_SGFlag: 'Single',
+        spccmscC_NoOfMembers: 1,
+        spccmscC_RecHighLowFlag: 'High',
+        spccmscC_RecInfo: 'Distance in meters',
+        spccmscC_MultiAttemptFlg: true,
+        spccmscC_NoOfAttempts: 3,
         spccmscC_ActiveFlag: true,
-        tempDatas: [{ SPCCMSCCG_UnderEvent: 'Qualifiers' }, { SPCCMSCCG_UnderEvent: 'Finals' }]
+        tempDatas: [{ spccmsccG_UnderEvent: 'Qualifiers' }, { spccmsccG_UnderEvent: 'Finals' }]
     }
 ];
 
@@ -73,28 +73,30 @@ export async function getSportsCCNameData(): Promise<SportsCCNameDTO[]> {
 
 export async function getSportsCCNameMasterData(): Promise<SportsCCNameMasterDataDTO> {
     return {
-        gropList: MOCK_GROUPS
-    };
+        groupNameList: MOCK_GROUPS, // Corrected from gropList
+        sportsccName: MOCK_DATA,
+        count: MOCK_DATA.length
+    } as any;
 }
 
 export async function saveSportsCCName(data: SportsCCNameDTO): Promise<{ success: boolean; message: string }> {
     console.log('Saving Data:', data);
 
-    if (data.SPCCMSCC_Id && data.SPCCMSCC_Id > 0) {
+    if (data.spccmscC_Id && data.spccmscC_Id > 0) {
         // Update
-        const index = MOCK_DATA.findIndex(d => d.SPCCMSCC_Id === data.SPCCMSCC_Id);
+        const index = MOCK_DATA.findIndex(d => d.spccmscC_Id === data.spccmscC_Id);
         if (index !== -1) {
-            const group = MOCK_GROUPS.find(g => g.spccmsccG_Id === data.SPCCMSCCG_Id);
+            const group = MOCK_GROUPS.find(g => g.spccmsccG_Id === data.spccmsccG_Id);
             MOCK_DATA[index] = { ...data, groupName: group?.spccmsccG_SportsCCGroupName, spccmscC_ActiveFlag: MOCK_DATA[index].spccmscC_ActiveFlag };
             return { success: true, message: 'Record Updated Successfully' };
         }
         return { success: false, message: 'Record not found' };
     } else {
         // Create
-        const group = MOCK_GROUPS.find(g => g.spccmsccG_Id === data.SPCCMSCCG_Id);
+        const group = MOCK_GROUPS.find(g => g.spccmsccG_Id === data.spccmsccG_Id);
         const newRecord = {
             ...data,
-            SPCCMSCC_Id: Math.floor(Math.random() * 10000),
+            spccmscC_Id: Math.floor(Math.random() * 10000),
             groupName: group?.spccmsccG_SportsCCGroupName,
             spccmscC_ActiveFlag: true
         };
@@ -104,7 +106,7 @@ export async function saveSportsCCName(data: SportsCCNameDTO): Promise<{ success
 }
 
 export async function deleteSportsCCName(id: number, activeFlag: boolean): Promise<{ success: boolean; message: string }> {
-    const index = MOCK_DATA.findIndex(item => item.SPCCMSCC_Id === id);
+    const index = MOCK_DATA.findIndex(item => item.spccmscC_Id === id);
     if (index !== -1) {
         MOCK_DATA[index].spccmscC_ActiveFlag = !activeFlag;
         return { success: true, message: activeFlag ? 'Record Deactivated Successfully!' : 'Record Activated Successfully!' };
