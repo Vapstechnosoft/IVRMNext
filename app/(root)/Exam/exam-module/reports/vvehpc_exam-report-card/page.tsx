@@ -20,14 +20,19 @@ export default function ProgressCardReportPage() {
 
     const handleReportSuccess = async (payload: any) => {
         try {
+            console.log('progress card report payload', payload);
             const res = await getExamReportCard(payload);
             if (!res?.success || !Array.isArray(res?.data) || res.data.length === 0) {
-                toast.error('No records found');
+                //toast.error('No records found');
                 setIsReportVisible(false);
-                return;
+                //return;
             }
+            console.log('progress card report api response', res);
 
             const flatRows: any[] = res.data;
+
+            //const flatRows: any[] = generateStaticData();
+            console.log('progress card report response Data', flatRows);
 
             const studentMap = new Map<number, IExamReportCard>();
             const subjectMap = new Map<number, ISubject>();
@@ -112,6 +117,94 @@ export default function ProgressCardReportPage() {
             setIsReportVisible(false);
         }
     };
+
+    // 🔥 STATIC MOCK DATA (100 Students × 5 Subjects)
+    const generateStaticData = () => {
+        const subjects = [
+            { id: 101, name: "Mathematics", order: 1 },
+            { id: 102, name: "Science", order: 2 },
+            { id: 103, name: "English", order: 3 },
+            { id: 104, name: "Social", order: 4 },
+            { id: 105, name: "Computer", order: 5 }
+        ];
+
+        const rows: any[] = [];
+
+        for (let i = 1; i <= 100; i++) {
+            const totalMax = subjects.length * 100;
+            let totalObt = 0;
+
+            subjects.forEach((sub) => {
+                const marks = Math.floor(Math.random() * 60) + 40; // 40–100
+                totalObt += marks;
+
+                rows.push({
+                    // Student Info
+                    amsT_Id: 15000 + i,
+                    amsT_FirstName: `Student ${i}`,
+                    amsT_FatherName: `Father ${i}`,
+                    amsT_DOB: "2016-01-01T00:00:00",
+                    amaY_RollNo: i,
+                    amsT_AdmNo: `ADM${i}`,
+                    amsT_RegistrationNo: `REG${i}`,
+
+                    // Class Info
+                    asmcL_ClassName: "ClassnRhd",
+                    asmC_SectionName: "AAAA",
+                    emE_ExamName: "Vaps Exam1(Raju)",
+                    asmaY_Year: "2025",
+
+                    // Subject Info
+                    ismS_Id: sub.id,
+                    ismS_SubjectName: sub.name,
+                    eyceS_AplResultFlg: true,
+                    eyceS_MarksDisplayFlg: true,
+                    eyceS_GradeDisplayFlg: false,
+                    eyceS_SubjectOrder: sub.order,
+
+                    // Marks
+                    estmpS_MaxMarks: 100,
+                    estmpS_ObtainedMarks: marks,
+                    estmpS_ObtainedGrade: "",
+                    estmpS_PassFailFlg: marks >= 35,
+
+                    // Totals
+                    estmP_TotalMaxMarks: totalMax,
+                    estmP_TotalObtMarks: 0, // temp
+                    estmP_Percentage: 0,
+                    estmP_TotalGrade: "",
+                    estmP_Result: "",
+                    estmP_ClassRank: i,
+                    estmP_SectionRank: i,
+                    asA_ClassHeld: 46,
+                    asA_Class_Attended: 44,
+                    emgD_Remarks: "Good"
+                });
+            });
+
+            // Update totals for this student
+            const percentage = Math.round((totalObt / totalMax) * 100);
+            const grade =
+                percentage >= 90 ? "A+" :
+                    percentage >= 75 ? "A" :
+                        percentage >= 60 ? "B" :
+                            percentage >= 50 ? "C" : "D";
+
+            rows
+                .filter(r => r.amsT_Id === 15000 + i)
+                .forEach(r => {
+                    r.estmP_TotalObtMarks = totalObt;
+                    r.estmP_Percentage = percentage;
+                    r.estmP_TotalGrade = grade;
+                    r.estmP_Result = percentage >= 35 ? "Pass" : "Fail";
+                });
+        }
+
+        return rows;
+    };
+
+
+
 
     const handlePrint = () => window.print();
 

@@ -288,21 +288,34 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
         try {
             // Prepare payload according to the required structure
             const payload = {
-                // mI_Id: 30, // Institution ID - using 30 as per reference
-                asmaY_Id: Number.parseInt(formValues.ASMAY_Id) || 0,
-                asmcL_Id: formValues.type === '1' ? 0 : Number.parseInt(formValues.ASMCL_Id || '') || 0,
-                asmS_Id: formValues.type === '1' ? 0 : Number.parseInt(formValues.ASMS_Id || '') || 0,
-                emE_Id: Number.parseInt(formValues.EME_Id) || 0,
-                ismS_Id: formValues.subjectwise ? Number.parseInt(formValues.ISMS_Id || '') || 0 : 0,
-                report_type: formValues.type === '1' ? 'All' : 'Individual',
+                ASMAY_Id: Number.parseInt(formValues.ASMAY_Id) || 0,
+                ASMCL_Id:
+                    formValues.type === '1'
+                        ? 0
+                        : Number.parseInt(formValues.ASMCL_Id || '') || 0,
+                ASMS_Id:
+                    formValues.type === '1'
+                        ? 0
+                        : Number.parseInt(formValues.ASMS_Id || '') || 0,
+                EME_Id: Number.parseInt(formValues.EME_Id) || 0,
+                ISMS_Id:
+                    formValues.subjectwise
+                        ? Number.parseInt(formValues.ISMS_Id || '') || 0
+                        : 0,
+                report_type: formValues.type || '0',
+
                 sub_check_type: formValues.subjectwise ? '1' : '0',
-                exm_check_type: formValues.EME_Id ? '1' : '0',
+
+                exm_check_type:
+                    Number.parseInt(formValues.EME_Id) > 0 ? '1' : '0',
+
                 topper: Number.parseInt(formValues.topper) || 0
             };
 
             console.log('Sending payload to API:', payload);
 
             const result = await getToppersReportDetails(payload);
+
 
             if (result.success) {
                 onReportGenerated(result.data || result.datareport, result.masterinstitution, formValues);
