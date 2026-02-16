@@ -12,6 +12,7 @@ import { Plus, X } from 'lucide-react';
 
 import PeriodDistributionForm from './_components/period-distribution-form';
 import TogglePeriodDistributionForm from './_components/toggle-form';
+import PeriodDistributionViewModal from './_components/view-modal';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -92,7 +93,7 @@ function MasterPeriodPageContent({
 }
 
 function FormSections({ onSuccess }: { onSuccess: () => void }) {
-    const { isToggleFormOpen, selectedRow, isAddFormOpen, closeToggleForm, closeAddForm, addFormRef } =
+    const { isToggleFormOpen, selectedRow, isAddFormOpen, isDetailsViewOpen, closeToggleForm, closeAddForm, closeDetailsView, addFormRef } =
         useFormContext<PeriodDistributionColumn>();
 
     return (
@@ -129,6 +130,7 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                     }}
                 />
             )}
+            {isDetailsViewOpen && selectedRow && <PeriodDistributionViewModal rowData={selectedRow} onClose={closeDetailsView} />}
         </>
     );
 }

@@ -16,6 +16,7 @@ export const TIMETABLE_QUERY_KEYS = {
     TT_PERIOD_DISTRIBUTIONDETAILS: 'tt_period_distributiondetails',
     TT_MASTER_DAYCLASSWISE_DETAILS: 'tt_master_dayclasswise_details',
     TT_PERIODTIME_SETTINGSDATA: 'tt_periodtimesettingsdata',
+    TT_PERIOD_DISTRIBUTION_VIEW: 'tt_period_distribution_view',
     MASTER_SUBJECT_DROPDOWN: 'master_subject_dropdown',
     ACADEMIC_YEAR_DROPDOWN_MASTERDAYCLASSWISE: 'academic_year_dropdown_masterdayclasswise',
     CATEGORY_DROPDOWN_MASTERDAYCLASSWISE: 'category_dropdown_masterdayclasswise',
@@ -42,6 +43,7 @@ export const TIMETABLE_QUERY_KEYS = {
     STAFF_REPLACEMENT_GRID_DATA: 'STAFF_REPLACEMENT_GRID_DATA',
 
     BIFURCATION_CONSTRAINTS: 'Bifurcation_constraints',
+    BIFURCATION_Grid: 'bifurcation_Grid',
     SECTION_DROPDOWN_MASTERDAYCLASSWISE: 'section_dropdown_masterdayclasswise',
 
     FIXING_DAY_PERIOD_GRID: 'fixing_day_period_grid',
@@ -62,5 +64,12 @@ export const TIMETABLE_QUERY_KEYS = {
     MASTER_TT_SECTIONREPORT: 'master_tt_sectionreport',
     SECTION_DROPDOWN: 'section_dropdown',
     STAFF_DROPDOWN_STAFFREPORT: 'staff_dropdown_staffreport',
-    DEPUTATION_ACADEMIC_YEAR: 'deputation_academic_year'
+    DEPUTATION_ACADEMIC_YEAR: 'deputation_academic_year',
+
+    MASTER_PERIOD_DISTRUBUTION_ACADEMIC_YEAR: 'master_period_distrubution_academic_year',
+    MASTER_PERIOD_DISTRUBUTION_CATEGORY: 'master_period_distrubution_category',
+    MASTER_PERIOD_DISTRUBUTION_CLASS: 'master_period_distrubution_class',
+    MASTER_PERIOD_DISTRUBUTION_SECTION: 'master_period_distrubution_section',
+    MASTER_PERIOD_DISTRUBUTION_STAFF: 'master_period_distrubution_staff',
+    MASTER_PERIOD_DISTRUBUTION_SUBJECT: 'master_period_distrubution_subject'
 };

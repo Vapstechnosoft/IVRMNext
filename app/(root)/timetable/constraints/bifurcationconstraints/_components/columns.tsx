@@ -67,7 +67,7 @@ export const columns: ColumnDef<IBifurcationConstraintList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IBifurcationConstraintList }) {
-    const { openEditForm, openToggleForm, openDeleteForm } = useFormContext<IBifurcationConstraintList>();
+    const { openEditForm, openToggleForm, openDeleteForm, openDetailsView } = useFormContext<IBifurcationConstraintList>();
 
     // Wrapper for View Records Popup (Mapped to Edit for now or custom logic?)
     // The legacy code has a "View Record" eye icon. `ActionButtons` usually supports edit/toggle/delete.
@@ -95,6 +95,13 @@ function ActionButtonsCell({ rowData }: { rowData: IBifurcationConstraintList })
         [openToggleForm]
     );
 
+    const handleView = useCallback(
+        (data: IBifurcationConstraintList) => {
+            openDetailsView(data);
+        },
+        [openDetailsView]
+    );
+
     const handleDelete = useCallback(
         (data: IBifurcationConstraintList) => {
             if (openDeleteForm) openDeleteForm(data);
@@ -105,8 +112,9 @@ function ActionButtonsCell({ rowData }: { rowData: IBifurcationConstraintList })
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: true }}
+            buttons={{ edit: true, toggle: true, delete: true, view: true }}
             onEdit={handleEdit}
+            onView={handleView}
             onToggle={handleToggle}
             onDelete={handleDelete}
             toggleConditionKey='ttB_ActiveFlag'

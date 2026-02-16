@@ -18,7 +18,16 @@ import {
 } from '@/server/timetable/masters/masterdayclasswise';
 import { CategorydropDownData, getMasterPeriodDetails } from '@/server/timetable/masters/masterperiod';
 import { getAllPeriodDetails } from '@/server/timetable/masters/periodallocation';
-import { getPeriodDistributionDetails } from '@/server/timetable/masters/perioddistribution';
+import {
+    getAcademicYearPeriodDistrubution,
+    getCategoryPeriodDistrubution,
+    getClassPeriodDistrubution,
+    getPeriodDistributionDetails,
+    getPeriodDistributionViewData,
+    getSectionPeriodDistrubution,
+    getStaffPeriodDistrubution,
+    getSubjectPeriodDistrubution
+} from '@/server/timetable/masters/perioddistribution';
 import { getAllPeriodTimeSettings } from '@/server/timetable/masters/periodtimesetting';
 import { getStaffAbbreviationDetails, getStaffDropDown } from '@/server/timetable/masters/staffabbreviation';
 import { getSubjectAbbreviationDetails, getsubjectDropDown } from '@/server/timetable/masters/subjectabbreviation';
@@ -433,6 +442,133 @@ export const useCategoryDropDownMasterPeriod = (searchParams?: ApiSearchparams) 
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [TIMETABLE_QUERY_KEYS.CATEGORY_DROPDOWN_MASTERPERIOD]
+            });
+        }
+    };
+};
+export const usePeriodDistributionViewData = ({ id, enabled }: { id?: number; enabled: boolean }) => {
+    return useQuery({
+        queryKey: [TIMETABLE_QUERY_KEYS.TT_PERIOD_DISTRIBUTION_VIEW, id],
+        queryFn: async () => {
+            if (!id) return null;
+            return getPeriodDistributionViewData(id);
+        },
+        enabled: enabled && !!id,
+        staleTime: 0
+    });
+};
+
+//academic Year
+export const useAcademicYearPeriodDistrubution = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_DISTRUBUTION_ACADEMIC_YEAR, searchParams ?? {}],
+            queryFn: async () => getAcademicYearPeriodDistrubution(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_DISTRUBUTION_ACADEMIC_YEAR]
+            });
+        }
+    };
+};
+
+//category
+export const useCategtoryPeriodDistrubution = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_DISTRUBUTION_CATEGORY, searchParams ?? {}],
+            queryFn: async () => getCategoryPeriodDistrubution(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_DISTRUBUTION_CATEGORY]
+            });
+        }
+    };
+};
+
+//staff
+
+export const useStaffPeriodDistrubution = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_DISTRUBUTION_STAFF, searchParams ?? {}],
+            queryFn: async () => getStaffPeriodDistrubution(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_DISTRUBUTION_STAFF]
+            });
+        }
+    };
+};
+
+//subject
+
+export const useSubjectPeriodDistrubution = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_DISTRUBUTION_SUBJECT, searchParams ?? {}],
+            queryFn: async () => getSubjectPeriodDistrubution(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_DISTRUBUTION_SUBJECT]
+            });
+        }
+    };
+};
+
+//section
+export const useSectionPeriodDistrubution = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_DISTRUBUTION_SECTION, searchParams ?? {}],
+            queryFn: async () => getSectionPeriodDistrubution(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_DISTRUBUTION_SECTION]
+            });
+        }
+    };
+};
+
+//class
+export const useClassPeriodDistrubution = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_DISTRUBUTION_CLASS, searchParams ?? {}],
+            queryFn: async () => getClassPeriodDistrubution(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_DISTRUBUTION_CLASS]
             });
         }
     };

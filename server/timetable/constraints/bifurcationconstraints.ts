@@ -1,13 +1,13 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { ApiSearchparams } from '@/types';
-import { bifurcationconstraints } from '@/types/timetable/constraints/bifurcationconstraints';
+import type { ApiSearchparams } from '@/types';
+import type { bifurcationconstraints } from '@/types/timetable/constraints/bifurcationconstraints';
 
 // Load initial data (Grid and Dropdowns)
-export async function getBifurcationConstraintsDetails() {
+export async function getBifurcationConstraintsDetails(searchParams: ApiSearchparams | undefined) {
     const url = '/BifurcationFacade/BifurcationConstraintsGridData';
-    return await api.get<any>('timetable', url);
+    return await api.get<bifurcationconstraints>('timetable', url);
 }
 
 // Get Class details based on Academic Year and Category
@@ -19,7 +19,7 @@ export async function getTimeTableCategoryDropDownDetails(searchParams: ApiSearc
 
 export async function getAcademicYear(searchParams: ApiSearchparams | undefined) {
     const url = '/TimeTableCommon/GetAcademicYearData';
-    console.info('BifurcationConstratins-AcademicYear', url)
+    console.info('BifurcationConstratins-AcademicYear', url);
     return await api.get<any>('timetable', url);
 }
 
@@ -62,5 +62,10 @@ export async function deleteBifurcationConstraintsDetail(id: number) {
 // Get View Records for Popup
 export async function getBifurcationConstraintsViewRecords(id: number) {
     const url = `/Bifurcation/getalldetailsviewrecords/${id}`;
+    return await api.get<any>('timetable', url);
+}
+
+export async function getBifurcationViewData(id: number) {
+    const url = `/BifurcationFacade/BifurcationViewData/${id}`;
     return await api.get<any>('timetable', url);
 }
