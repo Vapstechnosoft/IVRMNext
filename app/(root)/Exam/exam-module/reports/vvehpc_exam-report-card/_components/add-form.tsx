@@ -18,6 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof vvehpc_examreportcardSchema.addOrUpdate> & {
@@ -29,7 +30,7 @@ type FormFields = z.infer<typeof vvehpc_examreportcardSchema.addOrUpdate> & {
 export default function ProgressCardReportForm({
     onSuccess
 }: {
-    onSuccess?: (payload: any) => void;
+    onSuccess?: (payload: any) =>  Promise<void> | void;
 }) {
     const methods = useForm<FormFields>({
         resolver: zodResolver(vvehpc_examreportcardSchema.addOrUpdate),
@@ -189,7 +190,10 @@ export default function ProgressCardReportForm({
             fromDate: currentDateTime,
             toDate: currentDateTime
         };
-        onSuccess?.(payload);
+        if(onSuccess){
+            await onSuccess(payload);
+        }
+        
     };
     const handleAllStudents = (checked: boolean) => {
         if (checked && students.length) {
@@ -409,6 +413,7 @@ export default function ProgressCardReportForm({
 
                         <div className='flex justify-center gap-3'>
                             <Button type='submit' disabled={isSubmitting || !hasStudentsSelected} className='min-w-[140px]'>
+                                  {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' /> }
                                 {isSubmitting ? 'Generating...' : 'Report'}
                             </Button>
                             <Button

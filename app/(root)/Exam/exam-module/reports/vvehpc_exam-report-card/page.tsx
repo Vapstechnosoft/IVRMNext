@@ -4,7 +4,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { getExamReportCard } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import type { IExamReportCard, ISubject } from '@/types/exam/exam-module/report';
 import { Printer } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import ProgressCardReportForm from './_components/add-form';
 import ProgressCardPrintView from './_components/progress-card-printable';
@@ -17,6 +17,13 @@ export default function ProgressCardReportPage() {
     const [examCode] = useState<string>('FA1');
     const [year, setYear] = useState<string>('');
     const [isReportVisible, setIsReportVisible] = useState(false);
+    const printRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if(isReportVisible && printRef.current) {
+            printRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    })
 
     const handleReportSuccess = async (payload: any) => {
         try {
@@ -215,8 +222,8 @@ export default function ProgressCardReportPage() {
             </CollapsibleSection>
 
             {isReportVisible && (
-                <CollapsibleSection title='Progress Cards Report' defaultOpen>
-                    <div className='no Print my-4 flex justify-end'>
+                <CollapsibleSection  title='Progress Cards Report' defaultOpen>
+                    <div className='no Print my-4 flex justify-end' ref= {printRef}>
                         {/* biome-ignore lint/a11y/useButtonType: <explanation> */}
                         <button
                             onClick={handlePrint}

@@ -73,8 +73,8 @@ export const ReportList = ({ data }: ReportListProps) => {
     };
 
     return (
-        <div className='space-y-4'>
-            <div className='flex gap-2'>
+        <div className='space-y-4 bg-gray-200'>
+            <div className='flex justify-end gap-2'>
                 <Button onClick={handlePrint}  className="bg-blue-600 hover:bg-blue-800 text-white flex w-fit">
                         <Printer className="h-4 w-4" />
                         <span>PRINT</span>
