@@ -81,6 +81,7 @@ export const studentAdmissionFormSchema = {
             amsT_RFCardNo: createOptionalAlphaNumericSchema('RF Card Number', 1, 50),
             amsT_BloodGroup: createOptionalStringSchema('Blood Group', 1, 50),
             studentCategoryId: z.number().int({ message: 'Student Category is required' }),
+            asmcC_Id: z.number().int({ message: 'Student Category is required' }),
             amsT_DOB: z.date({ message: 'Date Of Birth is required' }),
 
             //ecs flag

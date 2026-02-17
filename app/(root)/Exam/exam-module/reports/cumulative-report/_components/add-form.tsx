@@ -83,7 +83,7 @@ export default function CumulativeReportForm({
         { emE_Id: number; emE_ExamName: string }[]
     >([]);
     const [students, setStudents] = useState<
-        { amsT_AdmNo: number; amsT_Id: number; studentName?: string | null }[]
+        { amsT_AdmNo: string; amsT_Id: number; studentName?: string | null }[]
     >([]);
     const [allStudentsSelected, setAllStudentsSelected] = useState(false);
 

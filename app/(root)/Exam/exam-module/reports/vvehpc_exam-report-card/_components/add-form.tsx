@@ -30,7 +30,7 @@ type FormFields = z.infer<typeof vvehpc_examreportcardSchema.addOrUpdate> & {
 export default function ProgressCardReportForm({
     onSuccess
 }: {
-    onSuccess?: (payload: any) =>  Promise<void> | void;
+    onSuccess?: (payload: any) => Promise<void> | void;
 }) {
     const methods = useForm<FormFields>({
         resolver: zodResolver(vvehpc_examreportcardSchema.addOrUpdate),
@@ -143,7 +143,14 @@ export default function ProgressCardReportForm({
                 if (valid.length === 0) {
                     toast.info('No students found');
                 }
-                setStudents(valid);
+
+                const mappedStudents = valid.map((s) => ({
+                    amsT_Id: s.amsT_Id,
+                    amsT_AdmNo: s.amsT_AdmNo,
+                    studentName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
+                }));
+
+                setStudents(mappedStudents);
                 setValue('studentList', []);
                 setAllStudentsSelected(false);
             } catch {
@@ -190,10 +197,10 @@ export default function ProgressCardReportForm({
             fromDate: currentDateTime,
             toDate: currentDateTime
         };
-        if(onSuccess){
+        if (onSuccess) {
             await onSuccess(payload);
         }
-        
+
     };
     const handleAllStudents = (checked: boolean) => {
         if (checked && students.length) {
