@@ -97,7 +97,7 @@ export default function StudentTcReportPage(props: {
     const [fieldSearch, setFieldSearch] = useState('');
 
     const [viewMode, setViewMode] = useState<1 | 2>(1); // 1 = All, 2 = Individual
-    const [tcType, setTcType] = useState<1 | 2>(1); // 1 = Temporary TC, 2 = Permanent TC
+    const [tcType, setTcType] = useState<1 | 2>(2); // 1 = Temporary TC, 2 = Permanent TC
 
     const {
         data: preadmissionSection,
@@ -520,9 +520,9 @@ export default function StudentTcReportPage(props: {
                         <RotateCcw className='mr-2 h-4 w-4' />
                         Cancel
                     </Button>
-                    <Button onClick={downloadExcel} className='w-full sm:w-fit'>
+                    {/* <Button onClick={downloadExcel} className='w-full sm:w-fit'>
                         Export to Excel
-                    </Button>
+                    </Button> */}
                     <Button onClick={handlePrint} className='w-full sm:w-fit'>
                         <Printer className='mr-2 h-4 w-4' />
                         Print

@@ -50,8 +50,6 @@ interface GenericDataTableProps<T> {
     defaultVisibility?: { [key: string]: boolean };
     scrollable?: boolean;
     maxHeight?: string;
-    pageSizeOptions?: number[];
-    selectedCountOverride?: number;
     //manualPagination?: boolean;
 }
 
@@ -79,8 +77,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         ErrorComponent,
         showSearchColumns = false,
         showExportOptions = false,
-        pageSizeOptions, // Add this
-        selectedCountOverride,
+        // manualPagination = true
         scrollable = false,
         maxHeight = '600px'
         //manualPagination = false
@@ -174,8 +171,6 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                 //manualPagination={manualPagination}
                 scrollable={scrollable}
                 maxHeight={maxHeight}
-                pageSizeOptions={pageSizeOptions}
-                selectedCountOverride={selectedCountOverride}
                 onRowSelectionChange={(selectedRows) => {
                     if (onRowSelectionChange) {
                         onRowSelectionChange(selectedRows);

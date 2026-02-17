@@ -9,6 +9,7 @@ export default function MarksEntryReportPage() {
 
     const handleReportGenerated = (data: any) => {
         setReportData(data);
+        console.log("Data",data);
     };
 
     const handleReset = () => {
