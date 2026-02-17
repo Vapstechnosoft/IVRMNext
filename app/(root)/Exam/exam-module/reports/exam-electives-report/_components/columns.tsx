@@ -40,29 +40,29 @@ export default function ElectiveReportGridView({
             </div>
 
             {/* Table with ORANGE headers */}
-            <div className="overflow-x-auto rounded-lg border-2 shadow-sm ">
+            <div className=" rounded-lg border-2 shadow-sm ">
                 <table className="w-full border-collapse text-sm ">
                     <thead>
-                        <tr className=" bg-blue-900  text-white font-bold">
-                            <th className="border border-blue-700  px-4 py-3 text-center">SL.No</th>
-                            <th className="border border-blue-700  px-6 py-3 text-left">Student Name</th>
-                            {showMobile && <th className="border border-blue-700  px-4 py-3">Mobile No</th>}
-                            {showEmail && <th className="border border-blue-700  px-4 py-3">Email-Id</th>}
-                            <th className="border border-blue-700  px-4 py-3">Class</th>
-                            <th className="border border-blue-700  px-4 py-3">Section</th>
+                        <tr className=" bg-gray-200  text-black font-bold">
+                            <th className="border border-gray-400  px-4 py-3 text-center">SL.No</th>
+                            <th className="border border-gray-400  px-6 py-3 text-left">Student Name</th>
+                            {showMobile && <th className="border border-gray-400  px-4 py-3">Mobile No</th>}
+                            {showEmail && <th className="border border-gray-400  px-4 py-3">Email-Id</th>}
+                            <th className="border border-gray-400  px-4 py-3">Class</th>
+                            <th className="border border-gray-400  px-4 py-3">Section</th>
 
                             {/* Elective Groups - Orange Headers */}
                             {groupList && groupList.length > 0 ? (
                                 groupList.map((grp) => (
                                     <th
                                         key={grp.emG_Id}
-                                        className="border border-blue-700 px-5 py-3 min-w-40 font-semibold whitespace-normal bg-blue-900"
+                                        className="border border-gray-400 px-5 py-3 min-w-40 font-semibold whitespace-normal bg-gray-200"
                                     >
                                         {grp.emG_GroupName || 'No Name'}
                                     </th>
                                 ))
                             ) : (
-                                <th className="border border-blue-700 px-4 py-3 bg-blue-600 text-yellow-100">
+                                <th className="border border-gray-400 px-4 py-3 bg-gray-600 text-yellow-100">
                                     No Groups Available
                                 </th>
                             )}
