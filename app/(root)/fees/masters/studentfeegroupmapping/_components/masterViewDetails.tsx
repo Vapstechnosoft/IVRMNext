@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -42,6 +42,7 @@ export function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
 
                 console.log('groups', groups);
                 setFeeGroups(groups);
+                originalFeeGroupsRef.current = JSON.parse(JSON.stringify(groups));
             } catch (err) {
                 console.error(err);
                 setFeeGroups([]);
@@ -52,21 +53,48 @@ export function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
 
         fetchData();
     }, [isEditFormOpen, selectedRow]);
-
+    const originalFeeGroupsRef = useRef<StudentFeeGroupSummaryById[]>([]);
     const submit = async () => {
         setSubmitting(true);
         const buildPayload = () => {
             const mappings: any[] = [];
-
+            const originalGroups = originalFeeGroupsRef.current;
             feeGroups.forEach((group) => {
+                if (!group.checked) return;
                 group.heads.forEach((head) => {
+                    if (!head.checked) return;
                     head.installments.forEach((inst) => {
+                        if (!inst.checked) return;
                         mappings.push({
                             fmG_Id: group.fmG_Id,
                             fmH_Id: head.fmH_Id,
                             ftI_Id: inst.ftI_Id,
                             isSelected: inst.checked === true
                         });
+                    });
+                });
+            });
+            feeGroups.forEach((group) => {
+                const originalGroup = originalGroups.find((g: any) => g.fmG_Id === group.fmG_Id);
+                if (!originalGroup) return;
+
+                group.heads.forEach((head) => {
+                    const originalHead = originalGroup.heads.find((h: any) => h.fmH_Id === head.fmH_Id);
+                    if (!originalHead) return;
+
+                    head.installments.forEach((inst) => {
+                        const originalInst = originalHead.installments.find((i: any) => i.ftI_Id === inst.ftI_Id);
+                        if (!originalInst) return;
+
+                        // ✅ ONLY if checked value changed
+                        if (inst.checked !== originalInst.checked) {
+                            mappings.push({
+                                fmG_Id: group.fmG_Id,
+                                fmH_Id: head.fmH_Id,
+                                ftI_Id: inst.ftI_Id,
+                                isSelected: inst.checked
+                            });
+                        }
                     });
                 });
             });
@@ -101,14 +129,14 @@ export function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
                 // }, 60000);
             } else {
                 // toast.success('Successfully Updated');
-                //toast.error(response?.message);
+                toast.error(response?.message);
 
-                setTimeout(() => {
-                    // toast.error(response?.message);
-                    toast.success('Successfully Updated');
-                    refetchAll();
-                    onSuccess?.();
-                }, 120000);
+                // setTimeout(() => {
+                //     // toast.error(response?.message);
+                //     toast.success('Successfully Updated');
+                //     refetchAll();
+                //     onSuccess?.();
+                // }, 120000);
             }
         } catch (err: any) {
             console.error('API Error:', err);
