@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import type { ICumulativeReport, IReportHeader, ISubject } from '@/types/exam/exam-module/report';
-import { Download, Printer } from 'lucide-react';
+import { Download, Printer,FileSpreadsheetIcon } from 'lucide-react';
 import { useState } from 'react';
 import * as XLSX from 'xlsx';
 
@@ -270,20 +270,17 @@ export default function CumulativeReportGridView({
             {/* Header Bar - Print + Excel Buttons */}
             <div className='no-print flex items-center justify-between border-orange-400 border-b-2 bg-orange-100 px-4 py-2 text-sm'>
                 <span style={{ fontSize: '25px', fontWeight: '600' }}>GRID VIEW</span>
-                <div className='flex items-center gap-3'>
-                    <Button onClick={onPrint} size='sm' className='bg-blue-600 hover:bg-blue-700'>
-                        <Printer className='mr-2 h-4 w-4' /> Print
+                <div className='flex gap-2'>
+                <Button onClick={onPrint}  className="bg-blue-600 hover:bg-blue-800 text-white flex w-fit">
+                        <Printer className="h-4 w-4" />
+                        <span>PRINT</span>
                     </Button>
 
-                    <Button
-                        onClick={exportToExcel}
-                        size='sm'
-                        variant='outline'
-                        className='gap-2 border-green-600 text-green-700 hover:bg-green-50'>
-                        <Download className='h-4 w-4' />
-                        Export Excel
-                    </Button>
-                </div>
+                <Button  onClick={exportToExcel} className='bg-green-600 hover:bg-green-800 text-white w-fit'>
+                    <FileSpreadsheetIcon className='h-4 w-4' />
+                    Export to Excel
+                </Button>
+            </div>
             </div>
 
             {/* Report Header */}

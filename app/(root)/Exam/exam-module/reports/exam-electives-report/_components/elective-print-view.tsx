@@ -98,12 +98,13 @@ export default function ElectiveReportPrintView({
                                 />
                             </div>
                         ) : (
-                            <div className="h-32" />
+                            <div className="h-32">
+                                <h3 className="text-3xl font-bold leading-tight">
+                                    {institute.name}
+                                </h3>
+                            </div>
                         )}
 
-                        <h3 className="text-3xl font-bold leading-tight">
-                            {institute.name}
-                        </h3>
                         <h4 className="text-xl font-semibold mt-3">
                             ELECTIVE SUBJECTS REPORT
                         </h4>
@@ -114,13 +115,13 @@ export default function ElectiveReportPrintView({
                         <thead>
                             <tr>
                                 <th rowSpan={2}>Sl.No</th>
-                                <th rowSpan={2} style={{ minWidth: '180px' }}>Student Name</th>
+                                <th rowSpan={2} style={{ width: '180px' }}>Student Name</th>
                                 {showMobile && <th rowSpan={2}>Mobile No</th>}
                                 {showEmail && <th rowSpan={2}>Email ID</th>}
                                 <th rowSpan={2}>Class</th>
                                 <th rowSpan={2}>Section</th>
                                 {groupList.map((group) => (
-                                    <th key={group.emG_Id} style={{ minWidth: '160px' }}>
+                                    <th key={group.emG_Id}>
                                         {group.emG_GroupName}
                                     </th>
                                 ))}
