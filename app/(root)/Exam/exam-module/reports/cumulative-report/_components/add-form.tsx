@@ -84,7 +84,7 @@ export default function CumulativeReportForm({
         { emE_Id: number; emE_ExamName: string }[]
     >([]);
     const [students, setStudents] = useState<
-        { amsT_AdmNo: number; amsT_Id: number; studentName?: string | null }[]
+        { amsT_AdmNo: string; amsT_Id: number; studentName?: string | null }[]
     >([]);
     const [allStudentsSelected, setAllStudentsSelected] = useState(false);
 
@@ -200,15 +200,13 @@ export default function CumulativeReportForm({
                         selectedSection,
                     );
                 const valid = Array.isArray(data)
-                    ? data.filter(
-                        (
-                            s,
-                        ): s is {
-                            amsT_AdmNo: number;
-                            amsT_Id: number;
-                            studentName?: string;
-                        } => !!s?.amsT_Id,
-                    )
+                    ? data
+                        .filter((s) => !!s?.amsT_Id)
+                        .map((s: any) => ({
+                            amsT_Id: s.amsT_Id,
+                            studentName: s.studentName || s.amsT_FirstName || "Unknown",
+                            amsT_AdmNo: String(s.amsT_AdmNo || "N/A"),
+                        }))
                     : [];
                 setStudents(valid);
                 setValue("studentList", []);
