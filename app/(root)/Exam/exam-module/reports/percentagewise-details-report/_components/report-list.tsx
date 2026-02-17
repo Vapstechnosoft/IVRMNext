@@ -48,7 +48,7 @@ export const ReportList: React.FC<ReportListProps> = ({ data, institution, crite
                 <div id='report-print-section' className='bg-white p-4'>
                     {/* Header for Print - Visible only in Print usually, but here shown for preview */}
                     <div className='mb-4 text-center'>
-                        {institution && institution[0] && (
+                        {institution?.[0] && (
                             <>
                                 <h2 className='font-bold text-xl'>{institution[0].mI_Name}</h2>
                                 <p>{institution[0].MI_Address1}</p>

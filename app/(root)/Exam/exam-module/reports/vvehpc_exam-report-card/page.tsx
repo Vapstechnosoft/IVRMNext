@@ -1,13 +1,13 @@
 'use client';
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { getExamReportCard } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
-import type { IExamReportCard, ISubject } from '@/types/exam/exam-module/report';
+import { getExamReportCard, getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
+import type { IExamReportCard, IMasterInstitution, Institution, ISubject } from '@/types/exam/exam-module/report';
 import { Printer } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import ProgressCardReportForm from './_components/add-form';
-import ProgressCardPrintView from './_components/progress-card-printable';
+import ProgressCardReport from './_components/progress-card-report';
 
 export default function ProgressCardReportPage() {
     const [reportData, setReportData] = useState<IExamReportCard[]>([]);
@@ -17,17 +17,18 @@ export default function ProgressCardReportPage() {
     const [examCode] = useState<string>('FA1');
     const [year, setYear] = useState<string>('');
     const [isReportVisible, setIsReportVisible] = useState(false);
+    const [institution, setInstitution] = useState<IMasterInstitution | Institution | null>();
     const printRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if(isReportVisible && printRef.current) {
+        if (isReportVisible && printRef.current) {
             printRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     })
 
     const handleReportSuccess = async (payload: any) => {
         try {
-            console.log('progress card report payload', payload);
+            console.log('Progress Card Report payload:', payload);
             const res = await getExamReportCard(payload);
             if (!res?.success || !Array.isArray(res?.data) || res.data.length === 0) {
                 //toast.error('No records found');
@@ -210,6 +211,20 @@ export default function ProgressCardReportPage() {
         return rows;
     };
 
+    useEffect(() => {
+        const fetchInstitution = async () => {
+            try {
+                const institution_res = await getMasterInstitution();
+                const { data: institution_data } = institution_res;
+                setInstitution(institution_data);
+            } catch (error) {
+                console.error("Error fetching institution:", error);
+            }
+        };
+
+        fetchInstitution();
+    }, []);
+
 
 
 
@@ -222,23 +237,16 @@ export default function ProgressCardReportPage() {
             </CollapsibleSection>
 
             {isReportVisible && (
-                <CollapsibleSection  title='Progress Cards Report' defaultOpen>
-                    <div className='no Print my-4 flex justify-end' ref= {printRef}>
-                        {/* biome-ignore lint/a11y/useButtonType: <explanation> */}
-                        <button
-                            onClick={handlePrint}
-                            className='flex items-center gap-2 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700'>
-                            <Printer className='h-4 w-4' />
-                            Print All Cards
-                        </button>
-                    </div>
-                    <ProgressCardPrintView
+                <CollapsibleSection title='Progress Cards Report' defaultOpen>
+                    <ProgressCardReport
                         reportData={reportData}
+                        institution={institution}
                         subjects={subjects}
                         headerInfo={headerInfo}
                         examName={examName}
                         examCode={examCode}
                         year={year}
+                        onPrint={handlePrint}
                     />
                 </CollapsibleSection>
             )}

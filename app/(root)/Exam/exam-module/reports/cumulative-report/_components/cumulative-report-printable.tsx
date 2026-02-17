@@ -1,17 +1,14 @@
 // _components/cumulative-report-printable.tsx
-import { getMasterInstitution } from "@/server/exam/exam-module/reports/vvehpc_exam-report-card";
-import type {
-  ICumulativeReport,
-  IReportHeader,
-  ISubject,
-} from "@/types/exam/exam-module/report";
-import { useState, useEffect } from "react";
-import Image from "next/image";
+import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
+import type { ICumulativeReport, Institution, IMasterInstitution, IReportHeader, ISubject } from '@/types/exam/exam-module/report';
+import Image from 'next/image';
+import { useState, useEffect } from 'react';
 interface CumulativeReportPrintViewProps {
   reportData: ICumulativeReport[];
+  institution: Institution | IMasterInstitution,
   subjects: ISubject[];
   headerInfo: Partial<IReportHeader>;
-  fontSize: "small" | "medium" | "large";
+  fontSize: 'small' | 'medium' | 'large';
   columnFlags: {
     admno: boolean;
     regno: boolean;
@@ -30,38 +27,17 @@ const fontSizeMap = {
 
 export default function CumulativeReportPrintView({
   reportData,
+  institution,
   subjects,
   headerInfo,
   fontSize,
-  columnFlags,
+  columnFlags
 }: CumulativeReportPrintViewProps) {
   const fontSizeValue = fontSizeMap[fontSize];
 
   // Separate applicable and non-applicable subjects
   const applicableSubjects = subjects.filter((s) => s.eyceS_AplResultFlg);
   const nonApplicableSubjects = subjects.filter((s) => !s.eyceS_AplResultFlg);
-
-  const [institute, setInstitute] = useState<{ name: string; logo: string }>({
-    name: "",
-    logo: "",
-  });
-
-  useEffect(() => {
-    async function fetchInstitute() {
-      try {
-        const res = await getMasterInstitution();
-        if (res?.success && res.data) {
-          setInstitute({
-            name: res.data.mI_Name || "Institution",
-            logo: res.data.mI_Logo || "",
-          });
-        }
-      } catch (err) {
-        console.error("Failed to load institute details for print", err);
-      }
-    }
-    fetchInstitute();
-  }, []);
 
   return (
     <>
@@ -172,7 +148,7 @@ export default function CumulativeReportPrintView({
                             <tr>
                                 <td colSpan={applicableSubjects.length * 2 + 10} className='text-center'>
                                     <h3 style={{ margin: '2px 0', fontSize: '18px' }}>
-                                        {headerInfo.mI_name || 'Vidya Vikasa Vidya Samsthe (R)'}
+                                        {institution.mI_Name || 'Vidya Vikasa Vidya Samsthe (R)'}
                                     </h3>
                                 </td>
                             </tr>
@@ -214,10 +190,10 @@ export default function CumulativeReportPrintView({
                         </tbody>
                     </table> */}
           <div className="text-center mb-8 border-b-2 border-gray-400 pb-6">
-            {institute.logo ? (
+            {institution.mI_Logo ? (
               <div className="flex justify-center mb-6">
                 <Image
-                  src={institute.logo}
+                  src={institution.mI_Logo}
                   alt="Institution Logo"
                   width={1000}
                   height={250}
@@ -229,8 +205,8 @@ export default function CumulativeReportPrintView({
             ) : (
               <div className="h-32">
                 <h3 className="text-3xl font-bold leading-tight">
-              {institute.name}
-            </h3>
+                  {institution.mI_Name}
+                </h3>
               </div>
             )}
             <h4 className="text-xl font-semibold mt-3">

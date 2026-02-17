@@ -57,7 +57,7 @@ export default function CumulativeReportGridView({
 
         // Title rows
         const titleRows = [
-            [headerInfo.mI_name || 'VIDYA VIKASA VIDYA SAMSTHE (R)'],
+            [headerInfo.mI_Name || 'VIDYA VIKASA VIDYA SAMSTHE (R)'],
             ['CLASS WISE CUMULATIVE REPORT'],
             [`Academic Year: ${headerInfo.yr || ''}`],
             [`Class & Section: ${headerInfo.cla || ''} - ${headerInfo.sec || ''}`],
@@ -286,7 +286,7 @@ export default function CumulativeReportGridView({
             {/* Report Header */}
             <div className='mt-6'>
                 <div className='mb-4 text-center'>
-                    <h3 className='text-blue-900 text-xl'>{headerInfo.mI_name || 'VIDYA VIKASA VIDYA SAMSTHE (R)'}</h3>
+                    <h3 className='text-blue-900 text-xl'>{headerInfo.mI_Name || 'VIDYA VIKASA VIDYA SAMSTHE (R)'}</h3>
                     <h5 className='mt-1 text-blue-800 text-lg'>CLASS WISE CUMULATIVE REPORT</h5>
                     <div className='mt-2'>
                         <strong>Academic Year :</strong> {headerInfo.yr}
@@ -379,8 +379,8 @@ export default function CumulativeReportGridView({
                                             {isAbsent
                                                 ? '-'
                                                 : student.estmP_Percentage
-                                                  ? Number(student.estmP_Percentage).toFixed(1) + '%'
-                                                  : '-'}
+                                                    ? Number(student.estmP_Percentage).toFixed(1) + '%'
+                                                    : '-'}
                                         </td>
                                         <td className='border border-gray-400 py-2 text-center'>
                                             {isAbsent ? '' : (student.estmP_TotalGrade ?? '-')}
