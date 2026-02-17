@@ -139,11 +139,7 @@ export default function ExamMonthEndReportPage() {
                 <div class="logo-container">
                     <img src="${institution?.mI_Logo || '/assets/tunbridge_logo.png'}" alt="${institution?.mI_Name || 'Logo'}" class="logo">
                 </div>
-                <div class="school-details">
-                    <h1 class="school-name">${institution?.mI_Name || 'Tunbridge High School'}</h1>
-                    <p class="address">${(institution as Institution)?.mI_Address1 || '86/2 Infantry Road, Bangalore, Karnataka, India 560001'}</p>
-                    <p class="email">Mail Id: ${(institution as Institution)?.mI_SMSAlertToemailids || 'tunbridgehs@gmail.com'}</p>
-                </div>
+                
             </div>
             <div class="report-title">Exam Module</div>
             <div class="sub-title">Unit Test 1 February Month End Report</div>
@@ -170,37 +166,38 @@ export default function ExamMonthEndReportPage() {
                 popupWindow.document.write(`
                     <html>
                         <head>
-                            <title>Exam Month End Report</title>
+                            <title></title>
                             <style>
                                 @page { size: A4; margin: 10mm; }
-                                body { font-family: 'Times New Roman', serif; padding: 0; margin: 0; transform: scale(0.85); transform-origin: top center; width: 117%; } /* Scaled to 0.85 + width compensation (100/0.85 ≈ 117%) */
-                                .header-container { display: flex; align-items: center; justify-content: center; margin-bottom: 5px; border-bottom: 2px solid #ccc; padding-bottom: 5px; position: relative; }
-                                .logo-container { position: absolute; left: 0; top: 0; }
+                                body { font-family: 'Times New Roman', serif; padding: 0; margin: 0; transform: scale(0.85); transform-origin: top center; width: 100%;  } /* Scaled to 0.85 + width compensation (100/0.85 ≈ 117%) */
+                                .header-container { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 5px; border-bottom: 2px solid #ccc; padding-bottom: 5px; position: relative; }
+                                .logo-container { left: 0; top: 0; }
                                 .logo { height: 80px; width: auto; }
                                 .school-details { text-align: center; width: 100%; }
                                 .school-name { font-size: 24px; font-weight: bold; color: #2e57a0; margin: 0; text-transform: capitalize; font-family: sans-serif; }
                                 .address, .email { margin: 2px 0; font-size: 12px; }
-                                .report-title { text-align: center; font-weight: bold; font-size: 14px; margin-top: 5px; }
+                                .report-title { text-align: center; font-weight: bold; font-size: 14px; margin-top: 10px; }
                                 .sub-title { text-align: center; font-weight: bold; font-size: 12px; margin: 2px 0 10px 0; }
                                 
-                                .info-box { width: 100%; margin-bottom: 10px; font-size: 12px; border: 1px solid transparent; }
+                                .info-box { width: 100%; margin-bottom: 15px;margin-top: 10px; font-size: 12px; border: 1px solid transparent; }
                                 .info-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
                                 .info-item { width: 48%; display: flex; }
                                 .label { font-weight: bold; width: 120px; }
                                 .value { flex: 1; border-bottom: 1px dotted #000; }
 
-                                table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 12px; }
+                                table { width: 100%; border-collapse: collapse; margin-top: 25px;  font-size: 12px; }
                                 th { border: 1px solid black; padding: 4px; text-align: left; font-weight: bold; background-color: #fff; }
                                 td { border: 1px solid black; padding: 4px; }
                                 .text-center { text-align: center; }
                                 .text-green-600 { color: #16a34a !important; -webkit-print-color-adjust: exact; }
                                 .text-destructive { color: #dc2626 !important; -webkit-print-color-adjust: exact; }
                                 
-                                .chart-section { margin-top: 10px; page-break-inside: avoid; height: 300px; overflow: hidden; }
+                                .chart-section { margin-top: 20px; page-break-inside: avoid; height: 300px; overflow: hidden; }
                                 .chart-section h3 { margin-bottom: 5px !important; font-size: 12px !important; }
-                                .footer-section { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 10px; page-break-inside: avoid; }
+                                .footer-section { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 10px; page-break-inside: avoid; }
                                 .footer-item { margin-bottom: 10px; }
-                                .footer-line { border-bottom: 1px solid black; margin-bottom: 2px; width: 80%; }
+                                .footer-line { border-bottom: 1px solid black; margin-bottom: 5px; width: 100%; }
+                                .footer-name { text-align: right; }
                             </style>
                         </head>
                         <body onload="window.print(); window.close();">
@@ -208,28 +205,26 @@ export default function ExamMonthEndReportPage() {
                             ${infoBox}
                             ${tableContent.outerHTML}
                             <div class="chart-section">
-                                <h3 style="text-align: center; font-weight: bold; font-size: 14px; text-transform: uppercase;">GRAPHICAL ANALYSIS OF EXAM MONTH END REPORT</h3>
+                               
                                 ${chartContent ? chartContent.innerHTML : ''} 
                                 <!-- Note: Recharts SVG structure usually transfers well via innerHTML if styles are inline -->
                             </div>
                             <div class="footer-section">
                                 <div class="footer-item">
                                     <div class="footer-line"></div>
-                                    <div>Implementation Engineer:</div>
-                                </div>
-                                <div class="footer-item" style="text-align: right;">
-                                    <div style="display: flex; justify-content: flex-end;">
-                                         <div style="border-bottom: 1px solid black; width: 80%; text-align: left;">${currentDate.toLocaleDateString('en-GB')}</div>
-                                    </div>
-                                    <div style="margin-top: 5px;">Date</div>
+                                    <div class="footer-name">Implementation Engineer</div>
                                 </div>
                                 <div class="footer-item">
                                     <div class="footer-line"></div>
-                                    <div>End User:</div>
+                                    <div class="footer-name">Nodal Officer</div>
                                 </div>
                                 <div class="footer-item">
                                     <div class="footer-line"></div>
-                                    <div>Nodal Officer:<br>Seal</div>
+                                    <div class="footer-name">End User</div>
+                                </div>
+                                 <div class="footer-item">
+                                    <div class="footer-line"></div>
+                                    <div class="footer-name">Seal</div>
                                 </div>
                             </div>
                         </body>
@@ -426,13 +421,12 @@ export default function ExamMonthEndReportPage() {
                         </div>
 
                         <div className='flex justify-center gap-4 border-t pt-4'>
-                            <Button type='submit' disabled={isSubmitting} className='w-32 bg-primary hover:bg-primary/90'>
-                                {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Check className='mr-2 h-4 w-4' />}
+                            <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting} className='w-32 '>
+                               
                                 Report
                             </Button>
-                            <Button type='button' variant='destructive' onClick={handleCancel} className='w-32'>
-                                <X className='mr-2 h-4 w-4' />
-                                Cancel
+                            <Button type='button' variant='outline' onClick={handleCancel} className='w-32'>
+                                Clear
                             </Button>
                             <Button
                                 type='button'
@@ -522,7 +516,7 @@ export default function ExamMonthEndReportPage() {
 
                             {/* Chart */}
                             <div className='border-t pt-6' id='reportChart'>
-                                <h3 className='mb-6 text-center font-semibold text-lg uppercase'>Graphical Analysis</h3>
+                                <h3 className='mb-6 text-center font-semibold text-lg uppercase'>GRAPHICAL ANALYSIS OF EXAM MONTH END REPORT</h3>
                                 <div className='h-[350px] w-full'>
                                     <ResponsiveContainer width='100%' height='100%'>
                                         <BarChart data={reportData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>

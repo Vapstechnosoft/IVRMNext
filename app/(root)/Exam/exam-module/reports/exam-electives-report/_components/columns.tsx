@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import type { ElectiveGroup, StudentRow } from '@/types/exam/exam-module/report';
 import { Printer } from 'lucide-react';
 
+import ElectiveReportExcel from './elective-report-excel';
+
 interface ElectiveReportGridViewProps {
     students: StudentRow[];
     groupList: ElectiveGroup[];
@@ -22,17 +24,23 @@ export default function ElectiveReportGridView({
     return (
         <div className="mt-8 print:hidden">
             {/* Controls */}
-            <div className="no-print flex flex-wrap items-center justify-between gap-4 py-2 mb-4">
-                <div>
-                    <Button onClick={onPrint}  className="bg-blue-600 hover:bg-blue-800 text-white flex">
+            <div className="no-print  items-center justify-between gap-4 py-2 mb-4">
+                <div className='flex justify-end gap-2'>
+                    <Button onClick={onPrint} className="hover:bg-orange-800 text-white w-fit ">
                         <Printer className="h-4 w-4" />
                         <span>PRINT</span>
                     </Button>
+                    <ElectiveReportExcel
+                        students={students}
+                        groupList={groupList}
+                        showMobile={showMobile}
+                        showEmail={showEmail}
+                    />
                 </div>
             </div>
 
             {/* Table with ORANGE headers */}
-            <div className="overflow-x-auto rounded-lg border-2 shadow-sm">
+            <div className="overflow-x-auto rounded-lg border-2 shadow-sm ">
                 <table className="w-full border-collapse text-sm ">
                     <thead>
                         <tr className=" bg-blue-900  text-white font-bold">

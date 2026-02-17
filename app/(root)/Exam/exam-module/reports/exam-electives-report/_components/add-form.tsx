@@ -570,8 +570,7 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                     </div>
                     <hr className='my-8' />
                     <div className='flex justify-center gap-4'>
-                        <Button type='submit' disabled={isSubmitting} className='flex'>
-                            {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' /> }
+                        <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting} className='flex'>                            
                             {isSubmitting ? 'Generating Report...' : 'Generate Report'}
                         </Button>
                         <Button type='button' variant='outline' onClick={handleClear}>

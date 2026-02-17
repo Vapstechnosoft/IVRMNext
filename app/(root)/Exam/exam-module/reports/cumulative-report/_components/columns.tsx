@@ -271,12 +271,12 @@ export default function CumulativeReportGridView({
             <div className='no-print flex items-center justify-between border-orange-400 border-b-2 bg-orange-100 px-4 py-2 text-sm'>
                 <span style={{ fontSize: '25px', fontWeight: '600' }}>GRID VIEW</span>
                 <div className='flex gap-2'>
-                <Button onClick={onPrint}  className="bg-blue-600 hover:bg-blue-800 text-white flex w-fit">
+                <Button type="submit" onClick={onPrint}  className="hover:bg-orange-800 text-white flex w-fit">
                         <Printer className="h-4 w-4" />
                         <span>PRINT</span>
                     </Button>
 
-                <Button  onClick={exportToExcel} className='bg-green-600 hover:bg-green-800 text-white w-fit'>
+                <Button type="submit"  onClick={exportToExcel} className='hover:bg-orange-800 text-white w-fit'>
                     <FileSpreadsheetIcon className='h-4 w-4' />
                     Export to Excel
                 </Button>

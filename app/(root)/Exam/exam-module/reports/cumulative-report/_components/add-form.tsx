@@ -202,11 +202,7 @@ export default function CumulativeReportForm({
                     ? data.filter(
                         (
                             s,
-                        ): s is {
-                            amsT_AdmNo: number;
-                            amsT_Id: number;
-                            studentName?: string;
-                        } => !!s?.amsT_Id,
+                        ): s is any => !!s?.amsT_Id,
                     )
                     : [];
                 setStudents(valid);
@@ -627,8 +623,8 @@ export default function CumulativeReportForm({
                                     isSubmitting  || !hasStudentsSelected
                                 }
                                 className="min-w-[140px]"
+                                isLoading = {isSubmitting}
                             >
-                                {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' /> }
                                 {isSubmitting  ? "Generating..." : "Report"}
                             </Button>
                             <Button
@@ -637,7 +633,7 @@ export default function CumulativeReportForm({
                                 onClick={() => reset()}
                                 className="min-w-[100px]"
                             >
-                                Cancel
+                                Clear
                             </Button>
                         </div>
                     </form>
