@@ -15,54 +15,54 @@ export const eventsStudentSRKVSColumns: ColumnDef<IEventsStudentSRKVSData>[] = [
         header: "SL No",
         cell: ({ row }) => row.index + 1,
     },
-
     {
-        accessorKey: "eventName",
-        header: "Event",
+        accessorKey: "asmaY_Year",
+        header: "Year",
     },
     {
         accessorKey: "categoryName",
-        header: "Category",
+        header: "Competition Category",
     },
     {
         accessorKey: "compitionLevel",
-        header: "Level",
+        header: "Competition Level",
     },
     {
-        accessorKey: "spccmeV_EventVenue",
-        header: "Venue",
-    },
-    {
-        accessorKey: "sportsName",
-        header: "Sub Event",
+        accessorKey: "eventName",
+        header: "Competition Name",
     },
     {
         accessorKey: "spccmsccG_SportsCCGroupName",
         header: "Main Event",
     },
     {
-        accessorKey: "uomName",
-        header: "UOM",
+        accessorKey: "sportsName",
+        header: "Sub Event",
     },
+
     {
-        accessorKey: "asmaY_Year",
-        header: "Academic Year",
-    },
-    {
-        accessorKey: "spccE_StartDate",
+        accessorKey: "startDate",
         header: "Start Date",
         cell: ({ row }) => {
-            const date = row.getValue("spccE_StartDate") as string;
+            const date = row.getValue("startDate") as string;
             return date ? new Date(date).toLocaleDateString() : '';
         }
     },
     {
-        accessorKey: "spccE_EndDate",
+        accessorKey: "endDate",
         header: "End Date",
         cell: ({ row }) => {
-            const date = row.getValue("spccE_EndDate") as string;
+            const date = row.getValue("endDate") as string;
             return date ? new Date(date).toLocaleDateString() : '';
         }
+    },
+    {
+        accessorKey: "spccmeV_EventVenue",
+        header: "Venue Name",
+    },
+    {
+        accessorKey: "uomName",
+        header: "UOM",
     },
     {
         accessorKey: "spccesT_ActiveFlag",
@@ -144,6 +144,7 @@ function ActionsCell({ row }: { row: Row<IEventsStudentSRKVSData> }) {
                     isOpen={isViewOpen}
                     onClose={() => setIsViewOpen(false)}
                     data={viewData}
+                    uomId={record.spccmuoM_Id}
                 />
             )}
         </div>

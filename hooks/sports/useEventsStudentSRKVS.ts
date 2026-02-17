@@ -9,7 +9,8 @@ import {
     saveEventsStudentSRKVS,
     getEventsStudentSRKVSList,
     deactivateEventsStudentSRKVS,
-    getEventsStudentSRKVSDetails
+    getEventsStudentSRKVSDetails,
+    updateEventsStudentSRKVS
 } from '@/server/sports/events-student-srkvs';
 import { toast } from 'sonner'; // Ensure toast is imported
 
@@ -83,6 +84,24 @@ export const useEventsStudentSRKVS = () => {
         }
     });
 
+    const updateData = useMutation({
+        mutationFn: (data: any) => updateEventsStudentSRKVS(data),
+        onSuccess: (response) => {
+            if (response.success) {
+                toast.success(response.message);
+                queryClient.invalidateQueries({ queryKey: ['eventsStudentSRKVSList'] });
+                // We might also want to invalidate the details query if it were cached by key, but useEventsStudentSRKVSList seems sufficient for grid.
+                // However, the modal data is fetched on demand via fetchViewDetails mutation which doesn't cache by default in the way useQuery does unless configured.
+            } else {
+                toast.error(response.message || 'Failed to update');
+            }
+        },
+        onError: (error) => {
+            console.error(error);
+            toast.error('An error occurred while updating');
+        }
+    });
+
     return {
         dropdowns,
         gridData,
@@ -93,6 +112,7 @@ export const useEventsStudentSRKVS = () => {
         fetchStudents,
         saveData,
         deactivateData,
-        fetchViewDetails
+        fetchViewDetails,
+        updateData // Added
     };
 };

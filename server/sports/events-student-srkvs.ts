@@ -250,3 +250,22 @@ export async function deactivateEventsStudentSRKVS(data: { id: number, activeFla
     await new Promise(resolve => setTimeout(resolve, 500));
     return { success: true, message: `Record ${data.activeFlag ? 'Activated' : 'Deactivated'} Successfully`, data: null };
 }
+
+// Update Record
+export async function updateEventsStudentSRKVS(data: any): Promise<ApiResponse<any>> {
+    try {
+        const response = await api.post<any>('sports', 'EventsStudentRecord/UpdateStudentSRKVS', data);
+        if (response.success) {
+            if (response.data && response.data.returnVal === "Saved") {
+                return { success: true, message: "Records Updated Successfully", data: response.data };
+            } else {
+                // Fallback if returnVal is missing or not Saved, but success is true
+                return { success: true, message: response.data?.returnVal || "Update processed", data: response.data };
+            }
+        }
+        return { success: false, message: response.message || 'Failed to update records', data: null };
+    } catch (error) {
+        console.error("Error updating SRKVS records:", error);
+        return { success: false, message: 'An error occurred while updating', data: null };
+    }
+}

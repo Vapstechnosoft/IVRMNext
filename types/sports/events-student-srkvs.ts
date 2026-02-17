@@ -42,6 +42,7 @@ export interface IEventsStudentSRKVSViewDetails {
     spccmscC_MultiAttemptFlg: boolean;
     spccmscC_NoOfAttempts: number;
     spccestR_Remarks?: string;
+    spccmuoM_Id?: number;
 }
 
 // Student Dropdown/Selection Item
