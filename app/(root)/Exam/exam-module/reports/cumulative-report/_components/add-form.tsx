@@ -25,6 +25,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 import type { z } from "zod";
 
 
@@ -40,11 +41,9 @@ type FormFields = z.infer<typeof cumulativereportSchema.addOrUpdate> & {
 export default function CumulativeReportForm({
     onSuccess,
     apiSearchParams,
-    isGenerating = false,
 }: {
-    onSuccess?: (payload: any, apiSearchParams?: ApiSearchparams) => void;
+    onSuccess?: (payload: any, apiSearchParams?: ApiSearchparams) => Promise<void> | void;
     apiSearchParams: ApiSearchparams;
-    isGenerating?: boolean;
 }) {
     const methods = useForm<FormFields>({
         resolver: zodResolver(cumulativereportSchema.addOrUpdate),
@@ -245,7 +244,10 @@ export default function CumulativeReportForm({
             //page_size: data.page_size
         };
         console.log("cumulative_report_payload", payload);
-        onSuccess?.(payload, apiSearchParams || { page: 1, page_size: 10 });
+        if(onSuccess){
+            await onSuccess(payload, apiSearchParams || { page: 1, page_size: 10 });
+        }
+        // onSuccess?.(payload, apiSearchParams || { page: 1, page_size: 10 });
         //
     };
 
@@ -622,11 +624,12 @@ export default function CumulativeReportForm({
                             <Button
                                 type="submit"
                                 disabled={
-                                    isSubmitting || isGenerating || !hasStudentsSelected
+                                    isSubmitting  || !hasStudentsSelected
                                 }
                                 className="min-w-[140px]"
                             >
-                                {isSubmitting || isGenerating ? "Generating..." : "Report"}
+                                {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' /> }
+                                {isSubmitting  ? "Generating..." : "Report"}
                             </Button>
                             <Button
                                 type="button"
