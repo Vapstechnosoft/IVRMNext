@@ -39,6 +39,8 @@ export interface IStudentYearlyAttendenceReportList {
         [key: string]: number;
     };
     totalPresent: number;
+    totalWorkingDays: number;
+    totalAbsent: number;
     percentage: string;
 }
 export interface IRigistrationReportList {

@@ -5,7 +5,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
 import { getCumulativeReport } from '@/server/exam/exam-module/reports/cumulative-report';
 import type { ApiSearchparams } from '@/types';
-import type { ICumulativeReport, IReportHeader, ISubject } from '@/types/exam/exam-module/report';
+import type { ICumulativeReport, Institution, IMasterInstitution, IReportHeader, ISubject } from '@/types/exam/exam-module/report';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import CumulativeReportForm from './_components/add-form';
@@ -13,6 +13,7 @@ import CumulativeReportGridView from './_components/columns';
 import CumulativeReportExcel from './_components/cumulative-report-excel';
 import CumulativeReportPrintView from './_components/cumulative-report-printable';
 import { RefreshCw } from 'lucide-react';
+import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 
 export default function CumulativeReportPage() {
     const [reportData, setReportData] = useState<ICumulativeReport[]>([]);
@@ -22,8 +23,7 @@ export default function CumulativeReportPage() {
     const [isReportVisible, setIsReportVisible] = useState(false);
     const [searchParams, setSearchParams] = useState<ApiSearchparams>({});
     const [currentPayload, setCurrentPayload] = useState<any>({});
-    const [isGenerating, setIsGenerating] = useState(false);
-
+    const [institution, setInstitution] = useState<IMasterInstitution | null>(null);
     const tableProps = useDataTableProps(reportTableProsData);
     const printRef = useRef<HTMLDivElement>(null);
 
@@ -38,10 +38,14 @@ export default function CumulativeReportPage() {
 
     const handleReportSuccess = async (payload: any, setSearchParams: any) => {
         if (!payload) return;
-        setIsGenerating(true);
+
         try {
             setCurrentPayload(payload);
             const res = await getCumulativeReport(payload, setSearchParams);
+            const institudtion_res = await getMasterInstitution();
+            const { data: institudtion_data } = institudtion_res;
+            setInstitution(institudtion_data);
+            const _result = Array.isArray(res.data) ? res.data[0] : res.data;
             if (!res?.success) {
                 toast.error(res?.message || 'Failed to generate report');
                 return;
@@ -80,6 +84,7 @@ export default function CumulativeReportPage() {
                 (a, b) => (a.eyceS_SubjectOrder ?? 999) - (b.eyceS_SubjectOrder ?? 999)
             );
 
+
             const formatted: ICumulativeReport[] = rawList.map((s: any) => {
                 const fullName = [s.amsT_FirstName, s.amsT_MiddleName, s.amsT_LastName].filter(Boolean).join(' ').trim();
 
@@ -106,7 +111,7 @@ export default function CumulativeReportPage() {
                 };
             });
 
-            const first = rawList[0];
+            const first = { ...rawList[0], ...institudtion_data }
             const header: Partial<IReportHeader> = {
                 mI_name: first?.mI_Name ?? 'Vidya Vikasa Vidya Samsthe (R)',
                 yr: first?.asmaY_Year ?? '',
@@ -136,10 +141,14 @@ export default function CumulativeReportPage() {
         } catch (e: any) {
             console.error('Report error:', e);
             toast.error(e?.message || 'Error generating report');
-        } finally {
-            setIsGenerating(false);
         }
     };
+
+    useEffect(() => {
+        if (isReportVisible && printRef.current) {
+            printRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [isReportVisible])
 
     // Re-fetch when pagination changes
     useEffect(() => {
@@ -158,28 +167,24 @@ export default function CumulativeReportPage() {
     return (
         <div className='container mx-auto space-y-6 p-4'>
             <CollapsibleSection title='Cumulative Report' defaultOpen>
-                <CumulativeReportForm onSuccess={handleReportSuccess} apiSearchParams={searchParams} isGenerating={isGenerating} />
+                <CumulativeReportForm onSuccess={handleReportSuccess} apiSearchParams={searchParams} />
             </CollapsibleSection>
-
-            {isGenerating && (
-                <div className='flex flex-col items-center justify-center space-y-4 py-12'>
-                    <RefreshCw className='h-8 w-8 animate-spin text-secondary' />
-                    <p className='text-muted-foreground text-sm'>Loading data...</p>
-                </div>
-            )}
 
             {
                 isReportVisible && (
                     <CollapsibleSection title='Grid View' defaultOpen>
                         <div ref={printRef}>
                             {/* Print View */}
-                            <CumulativeReportPrintView
-                                reportData={reportData}
-                                subjects={subjects}
-                                headerInfo={headerInfo}
-                                fontSize='medium'
-                                columnFlags={columnFlags}
-                            />
+                            {institution && (
+                                <CumulativeReportPrintView
+                                    reportData={reportData}
+                                    institution={institution}
+                                    subjects={subjects}
+                                    headerInfo={headerInfo}
+                                    fontSize='medium'
+                                    columnFlags={columnFlags}
+                                />
+                            )}
 
                             {/* Screen View */}
                             <CumulativeReportGridView
