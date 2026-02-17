@@ -82,7 +82,7 @@ export default function TotalStrengthPage() {
         defaultValues: {
             reportType: 'All',
             status: 'Present',
-            withTc: false,
+            withTc: true,
             withDeactive: false,
             academicYear: 0,
             class: '',
@@ -113,8 +113,8 @@ export default function TotalStrengthPage() {
                 amsT_SOL = 'S';
             }
 
-            const withtc = formData.withTc ? 'N' : 'N';
-            const withdeactive = formData.withDeactive ? 'N' : 'N';
+            const withtc = formData.withTc ? 'Y' : 'N';
+            const withdeactive = formData.withDeactive ? 'Y' : 'N';
 
             const electivearray: ElectiveItem[] = selectAll ? [{ ismS_Id: 0, ismS_SubjectName: '0' }] : [];
 
