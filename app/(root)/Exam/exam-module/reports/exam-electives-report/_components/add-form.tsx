@@ -16,6 +16,7 @@ import {
 import { useEffect, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 
 type ReportType = 'All' | 'Indi' | 'subj' | 'csw';
 
@@ -34,7 +35,7 @@ interface FormFields {
 }
 
 interface Props {
-    onSuccess?: (payload: any) => void;
+    onSuccess?: (payload: any) => Promise<void> | void;
 }
 
 export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
@@ -221,7 +222,11 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                 payload.ASMS_Id = data.asmS_Id || 0;
             }
             console.info('Final Payload →', payload); // Debug
-            onSuccess?.(payload);
+
+            // Wait for parent component to finish fetching data
+            if (onSuccess) {
+                await onSuccess(payload);
+            }
         } catch (err: any) {
             toast.error(err.message || 'Failed to generate report');
         }
@@ -364,8 +369,8 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                                     field.value === 'All'
                                                         ? 'All'
                                                         : field.value && field.value !== 0
-                                                          ? String(field.value)
-                                                          : undefined
+                                                            ? String(field.value)
+                                                            : undefined
                                                 }
                                                 onValueChange={(v) => field.onChange(v === 'All' ? 'All' : Number(v))}>
                                                 <SelectTrigger>
@@ -565,7 +570,8 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                     </div>
                     <hr className='my-8' />
                     <div className='flex justify-center gap-4'>
-                        <Button type='submit' disabled={isSubmitting}>
+                        <Button type='submit' disabled={isSubmitting} className='flex'>
+                            {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' /> }
                             {isSubmitting ? 'Generating Report...' : 'Generate Report'}
                         </Button>
                         <Button type='button' variant='outline' onClick={handleClear}>

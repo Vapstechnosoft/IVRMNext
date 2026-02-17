@@ -16,21 +16,21 @@ export const ReportList: React.FC<ReportListProps> = ({ data, institution, crite
     const groupedData: any[] = [];
 
     // Get unique classes
-    const classes = Array.from(new Set(data.map((item) => item.ASMCL_Id))).map((id) => {
-        const item = data.find((i) => i.ASMCL_Id === id);
-        return { id, name: item.ASMCL_ClassName };
+    const classes = Array.from(new Set(data.map((item) => item.asmcL_Id))).map((id) => {
+        const item = data.find((i) => i.asmcL_Id === id);
+        return { id, name: item?.asmcL_ClassName };
     });
 
     classes.forEach((cls) => {
         // Get sections for this class
-        const classItems = data.filter((item) => item.ASMCL_Id === cls.id);
-        const sections = Array.from(new Set(classItems.map((item) => item.ASMS_Id))).map((id) => {
-            const item = classItems.find((i) => i.ASMS_Id === id);
-            return { id, name: item.ASMC_SectionName };
+        const classItems = data.filter((item) => item.asmcL_Id === cls.id);
+        const sections = Array.from(new Set(classItems.map((item) => item.asmS_Id))).map((id) => {
+            const item = classItems.find((i) => i.asmS_Id === id);
+            return { id, name: item?.asmC_SectionName };
         });
 
         sections.forEach((sec) => {
-            const sectionItems = classItems.filter((item) => item.ASMS_Id === sec.id);
+            const sectionItems = classItems.filter((item) => item.asmS_Id === sec.id);
             groupedData.push({
                 className: cls.name,
                 sectionName: sec.name,
@@ -48,7 +48,7 @@ export const ReportList: React.FC<ReportListProps> = ({ data, institution, crite
                 <div id='report-print-section' className='bg-white p-4'>
                     {/* Header for Print - Visible only in Print usually, but here shown for preview */}
                     <div className='mb-4 text-center'>
-                        {institution && institution[0] && (
+                        {institution?.[0] && (
                             <>
                                 <h2 className='font-bold text-xl'>{institution[0].mI_Name}</h2>
                                 <p>{institution[0].MI_Address1}</p>
@@ -91,9 +91,9 @@ export const ReportList: React.FC<ReportListProps> = ({ data, institution, crite
                                                 </td>
                                             )}
                                             <td className='border border-gray-300 p-2 text-left'>{item.studentname}</td>
-                                            <td className='border border-gray-300 p-2'>{item.ESTMP_TotalObtMarks}</td>
-                                            <td className='border border-gray-300 p-2'>{item.ESTMP_TotalMaxMarks}</td>
-                                            <td className='border border-gray-300 p-2'>{item.ESTMP_Percentage}</td>
+                                            <td className='border border-gray-300 p-2'>{item.estmP_TotalObtMarks}</td>
+                                            <td className='border border-gray-300 p-2'>{item.estmP_TotalMaxMarks}</td>
+                                            <td className='border border-gray-300 p-2'>{item.estmP_Percentage}</td>
                                         </tr>
                                     ))
                                 )}
