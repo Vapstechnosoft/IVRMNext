@@ -555,7 +555,7 @@ export default function StudentTcReportPage(props: {
                 )}
             </div>
 
-            <div style={{ display: 'none' }}>
+            <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '297mm' }}>
                 <StudentTcReportPrint
                     ref={componentRef}
                     data={reportData?.data || []}

@@ -67,14 +67,34 @@ export type Student = {
     AMST_Id: number;
     admno: string;
     fathername: string;
+    mothername: string;
     class: string;
+    section: string;
     acadamicyear: string;
     dob: string;
     caste_name: string;
     addressd1: string;
+    addressd13: string;
     city: string;
+    photopath: string;
+    MI_Logo: string;
+    IVRMMCT_Name: string;
+    pincode: string;
+    street: string;
+    area: string;
+    constreet: string;
+    conarea: string;
+    concity: string;
+    dobwords: string;
 };
 
 export type StudyCertificateResponse = {
     studentList: Student[];
+    masterCompany: any[];
+    academicList: any[];
+    principalSign: any[];
+};
+
+export type GenerateQRCodeResponse = {
+    ascisS_QRCode: string;
 };

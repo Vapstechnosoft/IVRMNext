@@ -1,8 +1,9 @@
 'use client';
 
 import { format } from 'date-fns';
-import { CalendarIcon, RotateCcw } from 'lucide-react';
+import { CalendarIcon, RotateCcw, Printer, FileSpreadsheet, QrCode, Check, ChevronsUpDown } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { useReactToPrint } from 'react-to-print';
 
 import { Button } from '@/components/ui/button';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
@@ -10,201 +11,306 @@ import { Label } from '@/components/ui/extension/field';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-import type { DataTableRef } from '@/components/ui/data-table/data-table';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useAcademicYearDropdown, useMasterClassDropdown, useMasterSectionDropdown } from '@/hooks/admission/preadmission/useMasters';
-import { useStudyCertificateReport, useadmissionStudentsDropdown } from '@/hooks/admission/preadmission/useReports';
+import { useCharacterCertificateReport, useGenerateQRCodeCertificate, useadmissionStudentsDropdown, useStudyCertificateLoadData, useStudyCertificateStudentList, useStudyCertificateDetails, useStudyCertificateAcademicYearChange, useStudyCertificateConductDetails, useStudyCertificateSearchFilter, useStudyCertificateQR } from '@/hooks/admission/preadmission/useReports';
 import { getExcelStudyCertificateReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { toast } from 'sonner';
-import CharacterCertificate from './_components/columns';
+import CharacterCertificate from './_components/character-certificate';
 import StudyCertificate from './_components/study-certificate';
 
 export default function CertificateReportPage() {
-    const tableRef = useRef<DataTableRef>(null);
+    const printRef = useRef<HTMLDivElement>(null);
 
     /* -------------------- Masters -------------------- */
-    const { data: academicYear } = useAcademicYearDropdown();
-    const { data: masterClass } = useMasterClassDropdown();
-    const { data: masterSection } = useMasterSectionDropdown();
+    const { data: loadData } = useStudyCertificateLoadData();
 
     /* -------------------- UI State -------------------- */
-    const [studentScope, setStudentScope] = useState<'all' | 'individual'>('all');
-
-    const [studentStatus, setStudentStatus] = useState<'studying' | 'left' | 'deactive'>('studying');
-
-    const [certificateType, setCertificateType] = useState<'SC' | 'CC'>('SC');
-
-    const [addressType, setAddressType] = useState<'permanent' | 'communication'>('permanent');
+    const [studentScope, setStudentScope] = useState<'A' | 'indid'>('A');
+    const [studentStatus, setStudentStatus] = useState<'S' | 'L' | 'D'>('S');
+    const [certificateType, setCertificateType] = useState<'0' | '1'>('0');
+    const [addressType, setAddressType] = useState<'address_per' | 'address_con'>('address_per');
+    const [parentType, setParentType] = useState<'0' | '1' | '2'>('0');
 
     const [academicYearId, setAcademicYearId] = useState<number | null>(null);
     const [classId, setClassId] = useState<number | null>(null);
     const [sectionId, setSectionId] = useState<number | null>(null);
+    const [studentId, setStudentId] = useState<number | null>(null);
+    const [searchFilter, setSearchFilter] = useState('');
+    const [studentOpen, setStudentOpen] = useState(false);
+
+    const { data: academicChangeData } = useStudyCertificateAcademicYearChange({
+        ASMAY_Id: academicYearId,
+        AMST_SOL: studentStatus
+    }, !!academicYearId);
+
+    const { data: searchResults } = useStudyCertificateSearchFilter({
+        ASMAY_Id: academicYearId,
+        AMST_SOL: studentStatus,
+        ASMCL_Id: classId,
+        ASMC_Id: sectionId,
+        searchfilter: searchFilter,
+        allorindid: studentScope
+    }, !!academicYearId && searchFilter.length > 2);
 
     const {
-        data: admissionStudents,
+        data: studentList,
         isLoading: admissionStudentsLoading,
         isError: admissionStudentsError
-    } = useadmissionStudentsDropdown(academicYearId ?? undefined, classId ?? undefined, sectionId ?? undefined);
-    const [studentId, setStudentId] = useState<number | null>(null);
+    } = useStudyCertificateStudentList({
+        ASMAY_Id: academicYearId ?? 0,
+        ASMCL_Id: classId ?? 0,
+        ASMC_Id: sectionId ?? 0,
+        AMST_Id: 0,
+        AMST_SOL: studentStatus
+    }, !!academicYearId);
+
+    const admissionStudents = searchFilter.length > 2 ? searchResults : studentList;
+    const rawStudents = (admissionStudents as any)?.data?.studentList || (admissionStudents as any)?.data?.fillstudlist || [];
+    const students = rawStudents.map((s: any) => ({
+        ...s,
+        studentName: s.studentName || s.amsT_FirstName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
+    }));
+
     const [isLoading, setIsLoading] = useState(false);
-    const [qrCode, setQrCode] = useState('');
+    const [qrCodeScanner, setQrCodeScanner] = useState('');
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
     const [showCertificate, setShowCertificate] = useState(false);
     const [studentData, setStudentData] = useState<any>(null);
+    const [generatedQrCode, setGeneratedQrCode] = useState('');
     const [dateOpen, setDateOpen] = useState(false);
 
-    const studyCertificate = {
+    const reportParams = {
         ASMAY_Id: academicYearId,
-        ASMCL_Id: classId,
-        ASMC_Id: sectionId,
-        AMST_Id: studentId,
-        ASCISS_CertificateFlg: certificateType
+        ASMCL_Id: studentScope === 'A' ? 0 : (classId ?? 0),
+        ASMC_Id: studentScope === 'A' ? 0 : (sectionId ?? 0),
+        AMST_Id: studentId ?? 0,
+        AllOrInd: studentScope === 'indid' ? 'I' : 'A',
+        AMST_SOL: studentStatus,
+        ASCISS_CertificateFlg: certificateType === '0' ? 'SC' : 'CC'
     };
-    const { refetch } = useStudyCertificateReport(studyCertificate, false);
+
+    const studyReport = useStudyCertificateDetails(reportParams, false);
+    const characterReport = useStudyCertificateConductDetails(reportParams, false);
+    const qrcodeGen = useStudyCertificateQR({
+        ...reportParams,
+        ASMAY_Id: reportParams.ASMAY_Id?.toString(),
+        ASCISS_CertificateNo: `SC${reportParams.ASMAY_Id}${reportParams.AMST_Id}`,
+        ASCISS_HtmlTemplate: '<html><body><h1>Study Certificate</h1><p>This is to certify that...</p></body></html>',
+        ASCISS_PDFFileName: `Study_Certificate_${reportParams.AMST_Id}.pdf`
+    }, false);
+
+    const { data: qrcodeload } = useadmissionStudentsDropdown();
 
     /* -------------------- Actions -------------------- */
     const handleReport = async () => {
-        if (!academicYearId || !classId || !sectionId || !selectedDate || !sectionId) {
-            toast.error('Please select Academic Year, Class, Section and Date');
+        if (!academicYearId || (studentScope === 'indid' && (!classId || !sectionId || !studentId)) || !selectedDate) {
+            toast.error('Please select all required fields');
             return;
         }
 
         try {
-            setIsLoading(true); // 🔄 start loader
+            setIsLoading(true);
             setShowCertificate(false);
-            // setStudents([]);
+            setStudentData(null);
 
-            const res = await refetch();
+            const res = certificateType === '0'
+                ? await studyReport.refetch()
+                : await characterReport.refetch();
 
-            const studentList = res.data?.data?.studentList ?? [];
+            const studentListResult = (res.data as any)?.data?.studentList ?? [];
 
-            if (studentList.length > 0) {
-                // setStudents(studentList);
-                setStudentData(studentList);
+            if (studentListResult.length > 0) {
+                const reportData = (res.data as any).data;
+                setStudentData(reportData);
+
+                // Auto-generate QR Code if student exists
+                if (academicYearId && studentId && selectedDate) {
+                    try {
+                        const qrRes = await qrcodeGen.refetch();
+                        const qrCode = (qrRes.data as any)?.ascisS_QRCode || (qrRes.data as any)?.data?.ascisS_QRCode;
+
+                        if (qrCode) {
+                            setGeneratedQrCode(qrCode);
+                        } else {
+                            setGeneratedQrCode('');
+                        }
+                    } catch (qrError) {
+                        console.error('QR Gen Error:', qrError);
+                        setGeneratedQrCode('');
+                    }
+                }
+
                 setShowCertificate(true);
+            } else {
+                toast.error('No records found');
             }
         } catch (error) {
-            toast.error(`report error:${(error as Error).message}`);
+            toast.error(`Report error: ${(error as Error).message}`);
         } finally {
-            setIsLoading(false); // ✅ stop loader
+            setIsLoading(false);
+        }
+    };
+
+    const handleGenerateQRCode = async () => {
+        if (!academicYearId || !studentId || !selectedDate) {
+            toast.error('Please select Academic Year, Student and Date');
+            return;
+        }
+
+        try {
+            const res = await qrcodeGen.refetch();
+            const qrCode = (res.data as any)?.ascisS_QRCode || (res.data as any)?.data?.ascisS_QRCode;
+
+            if (qrCode) {
+                setGeneratedQrCode(qrCode);
+                toast.success('QR Code generated successfully');
+            } else {
+                toast.error('No QR Code found in response');
+            }
+        } catch (error) {
+            toast.error('Failed to generate QR Code');
         }
     };
 
     const handleReset = () => {
-        setStudentScope('all');
-        setStudentStatus('studying');
-        setCertificateType('SC');
-        setAddressType('permanent');
-
+        setStudentScope('A');
+        setStudentStatus('S');
+        setCertificateType('0');
+        setAddressType('address_per');
+        setParentType('0');
         setAcademicYearId(null);
         setClassId(null);
         setSectionId(null);
         setStudentId(null);
-        setQrCode('');
+        setQrCodeScanner('');
         setSelectedDate(new Date());
-
-        tableRef.current?.resetSelection();
+        setShowCertificate(false);
+        setStudentData(null);
+        setGeneratedQrCode('');
     };
+
+    const handlePrint = useReactToPrint({
+        contentRef: printRef
+    });
 
     const downloadExcel = async () => {
         try {
-            if (!academicYearId || !classId || !sectionId || !selectedDate) {
-                toast.error('Please fill all required fields!');
+            if (!academicYearId) {
+                toast.error('Please select Academic Year');
                 return;
             }
 
-            const response = await getExcelStudyCertificateReport(studyCertificate);
+            const response = await getExcelStudyCertificateReport({
+                ...reportParams,
+                AllOrInd: studentScope
+            });
 
-            // Ensure we have a Blob
-            const blob =
-                response instanceof Blob
-                    ? response
-                    : new Blob([new Uint8Array(response)], {
-                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    });
+            const blob = new Blob([new Uint8Array(response)], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
 
-            // Create download link
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
             link.download = 'StudyCertificateReport.xlsx';
             document.body.appendChild(link);
             link.click();
-
-            // Cleanup
-            setTimeout(() => {
-                link.remove();
-                window.URL.revokeObjectURL(url);
-            }, 100);
+            link.remove();
+            window.URL.revokeObjectURL(url);
 
             toast.success('Excel downloaded successfully');
         } catch (error) {
-            console.error('Download error:', error);
             toast.error('Failed to download Excel');
         }
     };
 
+    const isMIId6 = (loadData as any)?.data?.masterCompany?.[0]?.mI_Id === 6;
+
     /* -------------------- UI -------------------- */
     return (
-        <div className='min-h-screen p-4'>
+        <div className='min-h-screen p-4 space-y-6'>
             <CollapsibleSection
                 title='Study Certificate Report'
-                description='Fill in the details below to Student Count Report'
+                description='Generate study or character certificates for students'
                 defaultOpen={true}
                 variant='outline'
-                size='md'
-                className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                <div className='space-y-6 rounded-xl border bg-white p-6 shadow-lg'>
-                    {/* Row 1 */}
+                className='shadow-lg'>
+                <div className='space-y-6 bg-white p-6'>
+                    {/* Top Filters Row */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        <RadioGroup
-                            value={studentScope}
-                            onValueChange={(v) => setStudentScope(v as any)}
-                            className='flex justify-center gap-6 rounded-lg border p-3'>
-                            <RadioGroupItem value='all' />
-                            <Label>All</Label>
-                            <RadioGroupItem value='individual' />
-                            <Label>Individual</Label>
-                        </RadioGroup>
+                        <div className='flex items-center space-x-4 rounded-lg border p-2 bg-gray-50/50'>
+                            <RadioGroup
+                                value={studentScope}
+                                onValueChange={(v) => {
+                                    setStudentScope(v as any);
+                                    if (v === 'A') {
+                                        setClassId(null);
+                                        setSectionId(null);
+                                    }
+                                }}
+                                className='flex space-x-4'>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='A' id='scope-all' />
+                                    <Label htmlFor='scope-all' className='text-sm font-medium'>All</Label>
+                                </div>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='indid' id='scope-ind' />
+                                    <Label htmlFor='scope-ind' className='text-sm font-medium'>Individual</Label>
+                                </div>
+                            </RadioGroup>
+                        </div>
 
-                        <RadioGroup
-                            value={studentStatus}
-                            onValueChange={(v) => setStudentStatus(v as any)}
-                            className='flex justify-center gap-6 rounded-lg border p-3'>
-                            <RadioGroupItem value='studying' />
-                            <Label>Studying</Label>
-                            <RadioGroupItem value='left' />
-                            <Label>Left</Label>
-                            <RadioGroupItem value='deactive' />
-                            <Label>Deactive</Label>
-                        </RadioGroup>
+                        <div className='flex items-center space-x-4 rounded-lg border p-2 bg-gray-50/50'>
+                            <RadioGroup
+                                value={studentStatus}
+                                onValueChange={(v) => setStudentStatus(v as any)}
+                                className='flex space-x-4'>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='S' id='status-studying' />
+                                    <Label htmlFor='status-studying' className='text-sm font-medium'>Studying</Label>
+                                </div>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='L' id='status-left' />
+                                    <Label htmlFor='status-left' className='text-sm font-medium'>Left</Label>
+                                </div>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='D' id='status-deactive' />
+                                    <Label htmlFor='status-deactive' className='text-sm font-medium'>Deactive</Label>
+                                </div>
+                            </RadioGroup>
+                        </div>
 
-                        <RadioGroup
-                            value={certificateType}
-                            onValueChange={(v) => setCertificateType(v as any)}
-                            className='flex justify-center gap-6 rounded-lg border p-3'>
-                            <RadioGroupItem value='SC' />
-                            <Label>Study Certificate</Label>
-                            <RadioGroupItem value='CC' />
-                            <Label>Character Certificate</Label>
-                        </RadioGroup>
+                        <div className='flex items-center space-x-4 rounded-lg border p-2 bg-gray-50/50'>
+                            <RadioGroup
+                                value={certificateType}
+                                onValueChange={(v) => setCertificateType(v as any)}
+                                className='flex space-x-4'>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='1' id='type-character' />
+                                    <Label htmlFor='type-character' className='text-sm font-medium'>Character Certificate</Label>
+                                </div>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='0' id='type-study' />
+                                    <Label htmlFor='type-study' className='text-sm font-medium'>Study Certificate</Label>
+                                </div>
+                            </RadioGroup>
+                        </div>
                     </div>
 
-                    {/* Row 2 */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <div>
-                            <div>
-                                <Label>
-                                    Academic Year <span className='text-red-500'>*</span>
-                                </Label>
-                                <Select onValueChange={(v) => setAcademicYearId(Number(v))}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder='Select Academic Year' />
+                    <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
+                        {/* Left Column */}
+                        <div className='space-y-4'>
+                            <div className='grid grid-cols-[120px_1fr] items-center gap-4'>
+                                <Label className='text-sm font-bold'>Academic Year:<span className='text-red-500'>*</span></Label>
+                                <Select value={academicYearId?.toString()} onValueChange={(v) => setAcademicYearId(Number(v))}>
+                                    <SelectTrigger className='h-8'>
+                                        <SelectValue placeholder='--Select Year--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {academicYear?.data?.map((item) => (
+                                        {(loadData as any)?.data?.allAcademicYear?.map((item: any) => (
                                             <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                 {item.asmaY_Year}
                                             </SelectItem>
@@ -213,16 +319,18 @@ export default function CertificateReportPage() {
                                 </Select>
                             </div>
 
-                            <div>
-                                <Label>
-                                    Class <span className='text-red-500'>*</span>
-                                </Label>
-                                <Select onValueChange={(v) => setClassId(Number(v))}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder='Select Class' />
+                            <div className='grid grid-cols-[120px_1fr] items-center gap-4'>
+                                <Label className='text-sm font-bold'>Class:<span className='text-red-500'>*</span></Label>
+                                <Select
+                                    disabled={studentScope === 'A'}
+                                    value={classId?.toString()}
+                                    onValueChange={(v) => setClassId(Number(v))}
+                                >
+                                    <SelectTrigger className='h-8'>
+                                        <SelectValue placeholder='--Select Class--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {masterClass?.data?.map((item) => (
+                                        {(loadData as any)?.data?.allclasslist?.map((item: any) => (
                                             <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
                                                 {item.asmcL_ClassName}
                                             </SelectItem>
@@ -231,16 +339,18 @@ export default function CertificateReportPage() {
                                 </Select>
                             </div>
 
-                            <div>
-                                <Label>
-                                    Section <span className='text-red-500'>*</span>
-                                </Label>
-                                <Select onValueChange={(v) => setSectionId(Number(v))} disabled={!classId}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder='Select Section' />
+                            <div className='grid grid-cols-[120px_1fr] items-center gap-4'>
+                                <Label className='text-sm font-bold'>Section:<span className='text-red-500'>*</span></Label>
+                                <Select
+                                    disabled={studentScope === 'A' || !classId}
+                                    value={sectionId?.toString()}
+                                    onValueChange={(v) => setSectionId(Number(v))}
+                                >
+                                    <SelectTrigger className='h-8'>
+                                        <SelectValue placeholder='--Select Section--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {masterSection?.data?.map((item) => (
+                                        {(loadData as any)?.data?.allsectionlist?.map((item: any) => (
                                             <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
                                                 {item.asmC_SectionName}
                                             </SelectItem>
@@ -248,144 +358,209 @@ export default function CertificateReportPage() {
                                     </SelectContent>
                                 </Select>
                             </div>
+
+                            <div className='grid grid-cols-[120px_1fr] items-center gap-4'>
+                                <Label className='text-sm font-bold'>QR Code Scanner :</Label>
+                                <input
+                                    value={qrCodeScanner}
+                                    onChange={(e) => setQrCodeScanner(e.target.value)}
+                                    className='flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+                                    placeholder='QR Code Scanner'
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <div>
-                                <Label>
-                                    Date <span className='text-red-500'>*</span>
-                                </Label>
+
+                        {/* Right Column */}
+                        <div className='space-y-4'>
+                            <div className='grid grid-cols-[100px_1fr] items-center gap-4'>
+                                <Label className='text-sm font-bold'>Date:<span className='text-red-500'>*</span></Label>
                                 <Popover open={dateOpen} onOpenChange={setDateOpen}>
                                     <PopoverTrigger asChild>
-                                        <Button variant='outline' className='w-full justify-start'>
+                                        <Button variant='outline' className='h-8 w-full justify-start text-left font-normal'>
                                             <CalendarIcon className='mr-2 h-4 w-4' />
                                             {selectedDate ? format(selectedDate, 'dd-MM-yyyy') : 'Select Date'}
                                         </Button>
                                     </PopoverTrigger>
-
                                     <PopoverContent align='start' className='p-0'>
                                         <DatePickerWithYear
                                             mode='single'
                                             selected={selectedDate || undefined}
                                             onDayClick={(date) => {
                                                 setSelectedDate(date);
-                                                setDateOpen(false); // ✅ auto close
+                                                setDateOpen(false);
                                             }}
                                         />
                                     </PopoverContent>
                                 </Popover>
                             </div>
 
-                            <div className='space-y-4'>
-                                <div className='space-y-2'>
-                                    <Label htmlFor='student' className='font-medium text-gray-900 text-sm'>
-                                        Student <span className='text-red-500'>*</span>
-                                    </Label>
-                                    <Select
-                                        onValueChange={(v) => setStudentId(Number(v))}
-                                        value={studentId !== 0 ? studentId?.toString() : undefined}
-                                        disabled={sectionId === 0}>
-                                        <SelectTrigger id='student' className='w-full'>
-                                            <SelectValue placeholder='Select Student' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {admissionStudentsLoading ? (
-                                                <SelectItem value='loading' disabled>
-                                                    Loading...
-                                                </SelectItem>
-                                            ) : admissionStudentsError ? (
-                                                <SelectItem value='error' disabled>
-                                                    Error loading
-                                                </SelectItem>
-                                            ) : admissionStudents?.data?.length === 0 ? (
-                                                <SelectItem value='no-data' disabled>
-                                                    No students found
-                                                </SelectItem>
-                                            ) : (
-                                                admissionStudents?.data?.map((item: any) => (
-                                                    <SelectItem key={item.amsT_Id} value={item.amsT_Id.toString()}>
-                                                        {item.studentName}
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
+                            <div className='grid grid-cols-[100px_1fr] items-center gap-4 relative'>
+                                <Label className='text-sm font-bold'>Student:</Label>
+                                <div className='space-y-1'>
+                                    <Popover open={studentOpen && students.length > 0} onOpenChange={setStudentOpen}>
+                                        <PopoverTrigger asChild>
+                                            <div className='relative'>
+                                                <input
+                                                    value={studentId ? students.find((s: any) => s.amsT_Id === studentId)?.studentName || searchFilter : searchFilter}
+                                                    onChange={(e) => {
+                                                        setSearchFilter(e.target.value);
+                                                        setStudentId(null);
+                                                        setStudentOpen(true);
+                                                    }}
+                                                    onFocus={() => setStudentOpen(true)}
+                                                    className='flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+                                                    placeholder='Select or search Student'
+                                                />
+                                                {studentId && (
+                                                    <Button
+                                                        variant='ghost'
+                                                        size='sm'
+                                                        className='absolute right-0 top-0 h-8 w-8 p-0'
+                                                        onClick={() => {
+                                                            setStudentId(null);
+                                                            setSearchFilter('');
+                                                        }}
+                                                    >
+                                                        <RotateCcw className='h-3 w-3' />
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </PopoverTrigger>
+                                        <PopoverContent
+                                            className='w-[400px] p-0'
+                                            align='start'
+                                            onOpenAutoFocus={(e) => e.preventDefault()}
+                                        >
+                                            <Command className='w-full'>
+                                                <CommandList>
+                                                    <CommandEmpty>No student found.</CommandEmpty>
+                                                    <CommandGroup>
+                                                        {students.map((s: any, idx: number) => (
+                                                            <CommandItem
+                                                                key={`${s.amsT_Id || 's'}-${idx}`}
+                                                                value={s.studentName}
+                                                                onSelect={() => {
+                                                                    setStudentId(s.amsT_Id);
+                                                                    setSearchFilter(s.studentName);
+                                                                    setStudentOpen(false);
+                                                                }}
+                                                            >
+                                                                <Check
+                                                                    className={cn(
+                                                                        'mr-2 h-4 w-4',
+                                                                        studentId === s.amsT_Id ? 'opacity-100' : 'opacity-0'
+                                                                    )}
+                                                                />
+                                                                {s.studentName}
+                                                            </CommandItem>
+                                                        ))}
+                                                    </CommandGroup>
+                                                </CommandList>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Row 3 */}
-
-                        <div>
-                            <Label>QR Code</Label>
-                            <input
-                                value={qrCode}
-                                onChange={(e) => setQrCode(e.target.value)}
-                                className='w-full rounded-md border px-3 py-2'
-                                placeholder='Scan QR Code'
-                            />
-                        </div>
-
-                        {/* Address */}
-                        <div className=''>
-                            <RadioGroup
-                                value={addressType}
-                                onValueChange={(v) => setAddressType(v as any)}
-                                className='flex justify-center gap-6 rounded-lg border p-3'>
-                                <RadioGroupItem value='permanent' />
-                                <Label>Permanent Address</Label>
-                                <RadioGroupItem value='communication' />
-                                <Label>Communication Address</Label>
-                            </RadioGroup>
+                            <div className='flex justify-center pt-2'>
+                                <RadioGroup
+                                    value={addressType}
+                                    onValueChange={(v) => setAddressType(v as any)}
+                                    className='flex space-x-6'>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='address_per' id='addr-per' />
+                                        <Label htmlFor='addr-per' className='text-sm'>Permanent Address</Label>
+                                    </div>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='address_con' id='addr-con' />
+                                        <Label htmlFor='addr-con' className='text-sm'>Communication Address</Label>
+                                    </div>
+                                </RadioGroup>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Buttons */}
-                    <div className='flex justify-center gap-4 border-t pt-4'>
-                        <Button onClick={handleReport} className='w-fit' disabled={isLoading}>
-                            {isLoading ? (
-                                <span className='flex items-center gap-2'>
-                                    <RotateCcw className='h-4 w-4 animate-spin' />
-                                    Loading...
-                                </span>
-                            ) : (
-                                'REPORT'
-                            )}
+                    {/* Action Buttons */}
+                    <div className='flex flex-wrap justify-center gap-4 pt-6'>
+                        <Button
+                            size='sm'
+                            onClick={handleReport}
+                            disabled={isLoading}
+                            className='min-w-[100px] bg-[#3f51b5] hover:bg-[#303f9f] text-white shadow-md'>
+                            {isLoading ? <RotateCcw className='mr-1 h-3 w-3 animate-spin' /> : <Printer className='mr-1 h-3 w-3' />}
+                            REPORT
                         </Button>
                         <Button
-                            type='button'
-                            variant='outline'
-                            onClick={handleReset}
-                            className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                            Reset
+                            size='sm'
+                            onClick={handleGenerateQRCode}
+                            className='min-w-[100px] bg-[#3f51b5] hover:bg-[#303f9f] text-white shadow-md'>
+                            <QrCode className='mr-1 h-3 w-3' />
+                            QRCODE
                         </Button>
-                        <Button onClick={downloadExcel} className='w-fit'>
-                            Export to Excel
+                        <Button
+                            size='sm'
+                            onClick={handleReset}
+                            className='min-w-[100px] bg-[#ff5722] hover:bg-[#f4511e] text-white shadow-md uppercase'>
+                            <RotateCcw className='mr-1 h-3 w-3' />
+                            CANCEL
+                        </Button>
+                        <Button
+                            size='sm'
+                            onClick={handlePrint}
+                            disabled={!showCertificate}
+                            className='min-w-[100px] bg-[#e0e0e0] hover:bg-[#d5d5d5] text-gray-700 shadow-md disabled:bg-gray-100 uppercase'>
+                            <Printer className='mr-1 h-3 w-3' />
+                            PRINT
                         </Button>
                     </div>
                 </div>
             </CollapsibleSection>
-            <div className='mt-5'>
-                <CollapsibleSection
-                    title='Study Certificate Report'
-                    description='Fill in the details below to Student Count Report'
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    {showCertificate && studentData && (
-                        <div className='mt-6'>
-                            {certificateType === 'SC' ? (
-                                <StudyCertificate
-                                    data={studentData}
-                                    selectedDate={selectedDate ? format(selectedDate, 'dd-MM-yyyy') : undefined}
-                                />
-                            ) : (
-                                <CharacterCertificate data={studentData} />
-                            )}
-                        </div>
-                    )}
-                </CollapsibleSection>
+
+            {/* Hidden Print Container - This is what react-to-print will capture */}
+            <div style={{ position: 'fixed', left: '-10000px', top: 0 }}>
+                {studentData && (
+                    certificateType === '0' ? (
+                        <StudyCertificate
+                            ref={printRef}
+                            data={studentData}
+                            selectedDate={selectedDate}
+                            addressType={addressType}
+                            parentType={parentType}
+                            qrCode={generatedQrCode}
+                        />
+                    ) : (
+                        <CharacterCertificate
+                            ref={printRef}
+                            data={studentData}
+                            selectedDate={selectedDate}
+                            qrCode={generatedQrCode}
+                        />
+                    )
+                )}
             </div>
+
+            {/* UI Certificate Display (Preview Only) */}
+            {showCertificate && studentData && (
+                <div className='mt-8 flex justify-center overflow-x-auto p-4 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300'>
+                    <div className='bg-white shadow-2xl origin-top transition-none'>
+                        {certificateType === '0' ? (
+                            <StudyCertificate
+                                data={studentData}
+                                selectedDate={selectedDate}
+                                addressType={addressType}
+                                parentType={parentType}
+                                qrCode={generatedQrCode}
+                            />
+                        ) : (
+                            <CharacterCertificate
+                                data={studentData}
+                                selectedDate={selectedDate}
+                                qrCode={generatedQrCode}
+                            />
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

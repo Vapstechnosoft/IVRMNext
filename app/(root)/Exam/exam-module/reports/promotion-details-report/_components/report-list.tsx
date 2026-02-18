@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useRef } from 'react';
 import * as XLSX from 'xlsx';
+import { Printer, FileSpreadsheet } from 'lucide-react';
 
 interface ReportListProps {
     data: any;
@@ -144,12 +145,15 @@ export const ReportList = ({ data, isSuperAverage }: ReportListProps) => {
                 </h4>
             </div>
 
-            <div className='flex justify-end space-x-2'>
-                <Button onClick={handlePrint} variant='outline'>
-                    <i className='fa fa-print mr-2' /> Print
-                </Button>
-                <Button onClick={handleExport} variant='outline'>
-                    <i className='fa fa-file-excel-o mr-2' /> Export to Excel
+            <div className='flex justify-end space-x-2 p-2'>
+                <Button onClick={handlePrint}  className=" hover:bg-orange-800 text-white flex w-fit">
+                        <Printer className="h-4 w-4" />
+                        <span>PRINT</span>
+                    </Button>
+
+                <Button  onClick={handleExport} className=' hover:bg-orange-800 text-white w-fit'>
+                    <FileSpreadsheet className='h-4 w-4' />
+                    Export to Excel
                 </Button>
             </div>
 

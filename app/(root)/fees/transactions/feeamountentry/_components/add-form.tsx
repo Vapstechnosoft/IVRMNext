@@ -13,7 +13,7 @@ import {
 } from '@/server/fees/trasactions/feeAmountEntry';
 import type { IFeeClassCategoryDropDownList, IFeeGroupDropDownList } from '@/types/fees/transactions/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
+import { Eye, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -608,8 +608,8 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                                             />
                                         </td> */}
 
-                                        <td>
-                                            <div className='flex items-center justify-center'>
+                                        {/* <td> */}
+                                        {/* <div className='flex items-center justify-center'>
                                                 <Checkbox
                                                     checked={row.fyghM_FineApplicableFlag === true || row.fyghM_FineApplicableFlag === 'Y'}
                                                     onCheckedChange={async (checked: boolean) => {
@@ -641,8 +641,56 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                                                     //     row.fyghM_FineApplicableFlag === 'N'
                                                     // }
                                                 />
+                                            </div> */}
+
+                                        <td>
+                                            <div className='flex items-center justify-center'>
+                                                {row.viewFine ? (
+                                                    // Show eye icon when viewFine is true
+                                                    <button
+                                                        type='button'
+                                                        onClick={() => {
+                                                            // Open view-only modal or handle view action
+                                                            setCurrentHeadId(row.fmH_Id);
+                                                            setCurrentInstallmentId(row.ftI_Id);
+                                                            setIsFineSlabModalOpen(true);
+                                                            // You might want to pass a prop to indicate view-only mode
+                                                        }}
+                                                        className='text-blue-600 hover:text-blue-800'
+                                                        title='View Fine Slabs'>
+                                                        <Eye className='h-5 w-5' />
+                                                    </button>
+                                                ) : (
+                                                    <Checkbox
+                                                        checked={
+                                                            row.fyghM_FineApplicableFlag === true || row.fyghM_FineApplicableFlag === 'Y'
+                                                        }
+                                                        disabled={row.fyghM_FineApplicableFlag === 'N'} // Disable if flag is 'N'
+                                                        onCheckedChange={async (checked: boolean) => {
+                                                            // Handle the checkbox state change
+                                                            if (checked) {
+                                                                // Open the modal when checkbox is checked
+                                                                setCurrentHeadId(row.fmH_Id);
+                                                                setCurrentInstallmentId(row.ftI_Id);
+                                                                setIsFineSlabModalOpen(true);
+                                                            } else {
+                                                                // If unchecking, update the flag and clear saved slabs
+                                                                handleGridChange(index, 'fyghM_FineApplicableFlag', 'N');
+
+                                                                // Clear saved fine slabs for this head/installment
+                                                                const key = `${row.fmH_Id}-${row.ftI_Id}`;
+                                                                setSavedFineSlabs((prev) => {
+                                                                    const updated = { ...prev };
+                                                                    delete updated[key];
+                                                                    return updated;
+                                                                });
+                                                            }
+                                                        }}
+                                                    />
+                                                )}
                                             </div>
                                         </td>
+                                        {/* </td> */}
 
                                         {/* <td>
                       <Checkbox
@@ -689,6 +737,11 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                         onSave={handleSaveFineSlabs}
                         existingRegularSlabs={savedFineSlabs[`${currentHeadId}-${currentInstallmentId}`]?.regular || []}
                         existingEcsSlabs={savedFineSlabs[`${currentHeadId}-${currentInstallmentId}`]?.ecs || []}
+                        mode={
+                            feeGridData.find((row) => row.fmH_Id === currentHeadId && row.ftI_Id === currentInstallmentId)?.viewFine
+                                ? 'view'
+                                : 'edit'
+                        }
                     />
                 )}
 
