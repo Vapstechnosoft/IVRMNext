@@ -139,7 +139,7 @@ export const ReportList = ({ data }: ReportListProps) => {
                   <TableCell className="text-center border border-gray-400">{subjectName}</TableCell>
                   <TableCell
                     className="text-center border border-gray-400"
-                    style={{ color: color, fontWeight: "lighter" }}
+                    style={{ color: color }}
                   >
                     {status}
                   </TableCell>
