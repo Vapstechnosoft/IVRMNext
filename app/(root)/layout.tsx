@@ -1,5 +1,6 @@
 import Navbar from '@/components/layout/navigation/navbar';
 import { PageNavigation } from '@/components/layout/navigation/page-navigation';
+import { NavigationStability } from '@/components/layout/navigation/navigation-stability';
 import type React from 'react';
 
 export default function layout({ children }: { children: React.ReactNode }) {
@@ -7,6 +8,7 @@ export default function layout({ children }: { children: React.ReactNode }) {
         <>
             <Navbar />
             <PageNavigation />
+            <NavigationStability />
             {children}
         </>
     );

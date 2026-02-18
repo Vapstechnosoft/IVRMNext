@@ -1,0 +1,295 @@
+'use client';
+
+import * as React from 'react';
+import { createPortal } from 'react-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Search, X, Grid, LayoutGrid, ArrowRight, Boxes } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useUserAccessibleModules } from '@/hooks/common';
+import { getIconByName } from '@/lib/lucide-icon-registry';
+import { cn } from '@/lib/utils';
+import { useRouter, usePathname } from 'next/navigation';
+import { setNavigationContext } from './navigation-context';
+import {
+    Dialog,
+    DialogContent,
+    DialogTrigger,
+    DialogTitle,
+    DialogHeader,
+} from '@/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+
+export function OperationTools() {
+    const [isOpen, setIsOpen] = React.useState(false);
+    const [searchQuery, setSearchQuery] = React.useState('');
+    const [selectedModuleId, setSelectedModuleId] = React.useState<number | null>(null);
+    const { data: accessibleModules } = useUserAccessibleModules();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    // Close menu when route changes
+    React.useEffect(() => {
+        setIsOpen(false);
+    }, [pathname]);
+
+    const filteredModules = React.useMemo(() => {
+        if (!accessibleModules?.data) return [];
+        return accessibleModules.data.filter((module) =>
+            module.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [accessibleModules, searchQuery]);
+
+    // Set initial selected module when data loads or search changes
+    React.useEffect(() => {
+        if (filteredModules.length > 0 && !selectedModuleId) {
+            setSelectedModuleId(filteredModules[0].id);
+        }
+    }, [filteredModules, selectedModuleId]);
+
+    const selectedModule = React.useMemo(() =>
+        accessibleModules?.data?.find(m => m.id === selectedModuleId),
+        [accessibleModules, selectedModuleId]);
+
+    const handlePageClick = (page: any, menu: any, subMenu: any) => {
+        const navData = {
+            module: selectedModule?.name || '',
+            menu: menu.name,
+            subMenu: subMenu.name,
+            pages: subMenu.pages,
+            title: page.title || '',
+            description: page.description || ''
+        };
+
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem('activeNavigation', JSON.stringify(navData));
+        }
+        setNavigationContext(navData);
+
+        // Close immediately and navigate with a tiny delay to ensure state propagates
+        setIsOpen(false);
+        document.body.style.overflow = '';
+
+        setTimeout(() => {
+            router.push(page.url);
+        }, 10);
+    };
+
+    return (
+        <>
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                <DialogTrigger asChild>
+                    <Button
+                        variant="ghost"
+                        className="group flex items-center gap-2 rounded-full px-4 py-2 text-slate-600 transition-all hover:bg-orange-50 hover:text-orange-600 active:scale-95"
+                    >
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 transition-colors group-hover:bg-orange-100 group-hover:text-orange-600">
+                            <Grid className="h-4 w-4" />
+                        </div>
+                        <span className="text-sm font-bold tracking-tight">Operation Tools</span>
+                    </Button>
+                </DialogTrigger>
+
+                <DialogContent
+                    className="max-w-none w-screen h-screen md:h-[90vh] md:max-w-[1400px] p-0 overflow-hidden rounded-none md:rounded-[3rem] border-none bg-transparent shadow-none ring-0 focus:ring-0 !translate-x-[-50%] !translate-y-[-50%] [&>button:last-child]:hidden"
+                >
+                    <DialogHeader className="sr-only">
+                        <DialogTitle>Module Explorer</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="relative flex h-full w-full gap-0 overflow-hidden bg-white shadow-[0_80px_160px_-30px_rgba(0,0,0,0.3)] cursor-default" onClick={(e) => e.stopPropagation()}>
+                        {/* Custom content remains the same */}
+                        {/* ... (rest of the content handled by replace range) */}
+                        {/* Left Pane: Module Sidebar */}
+                        <div className="flex w-full flex-col border-r border-slate-100 bg-slate-50/50 md:w-[320px] lg:w-[380px]">
+                            {/* Sidebar Header */}
+                            <div className="border-b border-slate-100 p-8 pb-6">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="rounded-2xl bg-orange-600 p-2 text-white shadow-lg shadow-orange-200">
+                                            <LayoutGrid className="h-5 w-5" />
+                                        </div>
+                                        <h2 className="text-xl font-black tracking-tight text-slate-900">Modules</h2>
+                                    </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setIsOpen(false)}
+                                        className="md:hidden rounded-full hover:bg-orange-50 hover:text-orange-600"
+                                    >
+                                        <X className="h-5 w-5" />
+                                    </Button>
+                                </div>
+
+                                <div className="relative mt-6">
+                                    <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                    <Input
+                                        placeholder="Search core tools..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="h-11 rounded-full border-transparent bg-white pl-11 pr-6 text-sm font-medium shadow-sm transition-all focus:ring-orange-500/20"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Module List */}
+                            <div className="flex-1 overflow-y-auto px-4 py-4 scrollbar-hide">
+                                <div className="space-y-1">
+                                    {filteredModules.map((module) => {
+                                        const Icon = getIconByName(module.icon) || Boxes;
+                                        const isActive = selectedModuleId === module.id;
+                                        return (
+                                            <button
+                                                key={module.id}
+                                                onMouseEnter={() => setSelectedModuleId(module.id)}
+                                                onClick={() => setSelectedModuleId(module.id)}
+                                                className={cn(
+                                                    "group relative flex w-full items-center gap-4 rounded-3xl p-4 transition-all duration-300",
+                                                    isActive
+                                                        ? "bg-white shadow-[0_10px_30px_-10px_rgba(255,100,0,0.15)] md:translate-x-2"
+                                                        : "hover:bg-slate-100/80"
+                                                )}
+                                            >
+                                                {isActive && (
+                                                    <motion.div
+                                                        layoutId="sidebar-active"
+                                                        className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-orange-500"
+                                                    />
+                                                )}
+                                                <div className={cn(
+                                                    "flex h-10 w-10 items-center justify-center rounded-2xl transition-colors duration-300",
+                                                    isActive ? "bg-orange-600 text-white shadow-md shadow-orange-100" : "bg-white text-slate-400 group-hover:text-orange-600"
+                                                )}>
+                                                    <Icon className="h-5 w-5" />
+                                                </div>
+                                                <div className="flex-1 text-left">
+                                                    <p className={cn(
+                                                        "text-sm font-black tracking-tight transition-colors",
+                                                        isActive ? "text-slate-900" : "text-slate-500 group-hover:text-orange-600"
+                                                    )}>
+                                                        {module.name}
+                                                    </p>
+                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                                        {module.menu.length} Sections
+                                                    </p>
+                                                </div>
+                                                <ArrowRight className={cn(
+                                                    "h-4 w-4 transition-all",
+                                                    isActive ? "translate-x-0 opacity-100 text-orange-600" : "translate-x-4 opacity-0"
+                                                )} />
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right Pane: Module Details (Hierarchy) */}
+                        <div className="hidden flex-1 flex-col bg-white md:flex">
+                            {/* Details Header */}
+                            <div className="flex h-[110px] items-center justify-between border-b border-slate-50/50 bg-white/50 px-10 py-8 backdrop-blur-md">
+                                <div className="slide-in-from-left-4 animate-in duration-500">
+                                    <h3 className="text-[11px] font-black uppercase tracking-[0.25em] text-orange-500">
+                                        Explorer
+                                    </h3>
+                                    <p className="mt-1 text-2xl font-black tracking-tight text-slate-900">
+                                        {selectedModule?.name || "Select a module"}
+                                    </p>
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setIsOpen(false)}
+                                    className="h-12 w-12 rounded-full bg-slate-50 text-slate-400 transition-all hover:bg-orange-50 hover:text-orange-600 hover:rotate-90"
+                                >
+                                    <X className="h-6 w-6" />
+                                </Button>
+                            </div>
+
+                            {/* Hierarchy Grid */}
+                            <div className="flex-1 overflow-y-auto px-10 py-10 scrollbar-hide">
+                                <AnimatePresence>
+                                    <motion.div
+                                        key={selectedModuleId}
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -20 }}
+                                        transition={{ duration: 0.3 }}
+                                        className="grid gap-12 sm:grid-cols-1 lg:grid-cols-2"
+                                    >
+                                        {selectedModule?.menu.map((menu, menuIdx) => (
+                                            <div key={menuIdx} className="space-y-8">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="h-px flex-1 bg-slate-100" />
+                                                    <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+                                                        {menu.name}
+                                                    </h4>
+                                                    <div className="h-px flex-1 bg-slate-100" />
+                                                </div>
+
+                                                <div className="grid gap-6">
+                                                    {menu.sub_menu.map((subMenu, subIdx) => (
+                                                        <div key={subIdx} className="group relative rounded-[2rem] border border-slate-100 bg-white p-6 transition-all hover:border-transparent hover:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.08)]">
+                                                            <h5 className="mb-4 text-xs font-black uppercase tracking-wider text-orange-600">
+                                                                {subMenu.name}
+                                                            </h5>
+                                                            <div className="grid gap-3">
+                                                                {subMenu.pages.map((page, pageIdx) => {
+                                                                    const PageIcon = getIconByName(page.icon) || Boxes;
+                                                                    return (
+                                                                        <button
+                                                                            key={pageIdx}
+                                                                            onClick={() => handlePageClick(page, menu, subMenu)}
+                                                                            className="group/btn relative flex items-center justify-between overflow-hidden rounded-2xl px-3 py-2 text-left transition-all hover:bg-slate-50 hover:text-orange-600"
+                                                                        >
+                                                                            <div className="flex items-center gap-3">
+                                                                                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100/50 text-slate-400 transition-colors group-hover/btn:bg-orange-100 group-hover/btn:text-orange-600">
+                                                                                    <PageIcon className="h-3.5 w-3.5" />
+                                                                                </div>
+                                                                                <span className="text-sm font-medium text-slate-600 transition-colors group-hover/btn:text-orange-600">
+                                                                                    {page.title}
+                                                                                </span>
+                                                                            </div>
+
+                                                                            {/* Purple Glowing Dot Indicator on the Right */}
+                                                                            <div className="pointer-events-none absolute right-4 flex items-center justify-center opacity-0 transition-all duration-300 group-hover/btn:opacity-100">
+                                                                                <div className="h-2 w-2 rounded-full bg-purple-500 shadow-[0_0_15px_4px_rgba(168,85,247,0.7)]" />
+                                                                            </div>
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </motion.div>
+                                </AnimatePresence>
+
+                                {!selectedModule && (
+                                    <div className="flex h-full flex-col items-center justify-center text-center opacity-40">
+                                        <div className="mb-6 rounded-full bg-slate-50 p-10">
+                                            <Boxes className="h-20 w-20 text-slate-200" />
+                                        </div>
+                                        <p className="text-xl font-black tracking-tight text-slate-400">Select a module to view structure</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <style jsx global>{`
+                .scrollbar-hide::-webkit-scrollbar {
+                    display: none;
+                }
+                .scrollbar-hide {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                }
+            `}</style>
+        </>
+    );
+}
