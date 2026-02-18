@@ -87,3 +87,8 @@ export async function getFineslabDetails(regular?: string, ecs?: string) {
     console.info('Fineslab Details URL:', url);
     return await api.get<any>('fees', url);
 }
+
+export async function getSavedFineSlabs(data: any) {
+    const url = '/fee_amount_entry/getgroupheaddetailsNew';
+    return await api.post<any>('fees', url, data);
+}
