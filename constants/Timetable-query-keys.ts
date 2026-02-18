@@ -32,6 +32,9 @@ export const TIMETABLE_QUERY_KEYS = {
     STAFF_TRANSFER_SECTIONS: 'staff_transfer_sections',
     STAFF_PERIOD_DETAILS: 'staff_period_details',
     MASTER_BUILDING_CLASSSECTION: 'master_building_classsection',
+    MASTER_BUILDING_DROP_DOWN: 'master_building_dropdown',
+    MASTER_CLASS_DROP_DOWN: 'master_class_dropdown',
+    MASTER_SECTION_DROP_DOWN: 'master_section_dropdown',
 
     STAFF_REPLACEMENT_MASTERS: 'staff_replacement_masters',
     STAFF_REPLACEMENT_SECTIONS: 'staff_replacement_sections',

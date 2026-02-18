@@ -11,6 +11,7 @@ import type { IMasterBuildClassSectionGrid } from '@/types/timetable/masters/mas
 import AddMasterBuildingForm from './_components/add-form';
 import { masterBuildingsClassSectionColumns } from './_components/columns';
 import ToggleMasterBuildingClassSectionForm from './_components/toggle-form';
+import UpdateMasterBuildingForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -18,7 +19,7 @@ export default function MasterBuidingClassSectionPage(props: { searchParams: Sea
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = useMasterBuildingClasssection(searchParams);
 
-    console.log('response', response);
+    // console.log('response', response);
 
     return (
         <FormProvider<IMasterBuildClassSectionGrid>>
@@ -30,8 +31,7 @@ export default function MasterBuidingClassSectionPage(props: { searchParams: Sea
 function MasterBuildingPageContent({
     response,
     isLoading,
-    error,
-    refetchAll
+    error
 }: {
     response: any;
     isLoading: boolean;
@@ -136,7 +136,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <UpdateMasterBuildingForm selectedRow={selectedRow} onSuccess={closeEditForm} /> */}
+                            <UpdateMasterBuildingForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

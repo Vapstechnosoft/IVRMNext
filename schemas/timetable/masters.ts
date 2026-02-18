@@ -26,11 +26,13 @@ export const masterDayClasswiseSchema = {
 
 export const masterBuildingSchema = {
     addOrUpdate: z.object({
-        ttmB_Id: z.number().optional(),
-        ttmB_BuildingName: createStringOnlySchema('Building Name', 1, 100)
+        ttmB_Id: number().min(1, 'Please select Category'),
+        // ttmB_BuildingName: createStringOnlySchema('Building Name', 1, 100),
+        calssids: z.array(z.string()).nonempty('Please select at least one Class'),
+        sectionids: z.array(z.string()).nonempty('Please select at least one Section')
     }),
     delete: z.object({
-        ttmB_Id: deleteIdSchema('ttmB_Id')
+        ttmbcS_Id: deleteIdSchema('ttmbcS_Id')
     })
 };
 

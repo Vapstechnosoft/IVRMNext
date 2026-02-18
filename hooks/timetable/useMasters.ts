@@ -7,7 +7,13 @@ import {
     getuseTimeTableClassDropdownDataDetails
 } from '@/server/timetable/masters/categoryclassmapping';
 import { getMasterCategoryDetails } from '@/server/timetable/masters/masterCategory';
-import { getMasterBuildingDetails, getMasterBuildingclasssectionDetails } from '@/server/timetable/masters/masterbuilding';
+import {
+    getMasterBuilding,
+    getMasterBuildingDetails,
+    getMasterBuildingclasssectionDetails,
+    getMasterClass,
+    getMasterSection
+} from '@/server/timetable/masters/masterbuilding';
 import { getMasterDayDetails } from '@/server/timetable/masters/masterday';
 import {
     getAcademicYearDropDropDownMasterDayClasswise,
@@ -587,6 +593,60 @@ export const useMasterBuildingClasssection = (searchParams?: ApiSearchparams) =>
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [TIMETABLE_QUERY_KEYS.MASTER_BUILDING_CLASSSECTION]
+            });
+        }
+    };
+};
+
+export const useMasterBuildingDropDown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_BUILDING_DROP_DOWN],
+            queryFn: async () => getMasterBuilding(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_BUILDING_DROP_DOWN]
+            });
+        }
+    };
+};
+
+export const useMasterClassDropDown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_CLASS_DROP_DOWN],
+            queryFn: async () => getMasterClass(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_CLASS_DROP_DOWN]
+            });
+        }
+    };
+};
+
+export const useMasterSectionDropDown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_SECTION_DROP_DOWN],
+            queryFn: async () => getMasterSection(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_SECTION_DROP_DOWN]
             });
         }
     };

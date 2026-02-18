@@ -459,6 +459,7 @@ export interface PeriodDistruction {
 
 export interface IMasterBuildClassSectionGrid {
     ttmbcS_Id: number;
+    ttmB_Id: number;
     asmcL_ID: number;
     ttmB_BuildingName: string;
     asmcL_ClassName: string;

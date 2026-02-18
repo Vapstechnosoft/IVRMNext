@@ -12,7 +12,7 @@ export async function getMasterBuildingDetails(searchParams?: ApiSearchparams) {
 }
 
 export async function addOrUpdateMasterBuilding(data: any) {
-    const url = '/MasterBuildingFacade/AddorUpdateMasterBuilding';
+    const url = '/MasterBuildingFacade/AddorUpdateMasterBuildingClassSection';
     return await api.post<any>('timetable', url, data);
 }
 
@@ -28,12 +28,27 @@ export async function getMasterBuildingclasssectionDetails(searchParams?: ApiSea
     return await api.get<IMasterBuildClassSectionGrid[]>('timetable', url);
 }
 
+export async function getMasterBuilding() {
+    const url = '/MasterBuildingFacade/GetBuildingDropDown';
+    return await api.get<any>('timetable', url);
+}
+
+export async function getMasterClass() {
+    const url = '/MasterBuildingFacade/GetClassDropDown';
+    return await api.get<any>('timetable', url);
+}
+
+export async function getMasterSection() {
+    const url = '/MasterBuildingFacade/GetSectionDropDown';
+    return await api.get<any>('timetable', url);
+}
+
 export async function addOrUpdateMasterBuildingclasssection(data: any) {
     const url = '/MasterBuildingFacade/AddorUpdateMasterBuilding';
     return await api.post<any>('timetable', url, data);
 }
 
 export async function ToggleMasterBuildingClassSection(ttmbcS_Id: number) {
-    const url = `/MasterBuildingFacade/MasterBuildingActivateDeactivate/${ttmbcS_Id}`;
+    const url = `/MasterBuildingFacade/MasterBuildingClassSectionActivateDeactivate/${ttmbcS_Id}`;
     return await api.put<any>('timetable', url);
 }

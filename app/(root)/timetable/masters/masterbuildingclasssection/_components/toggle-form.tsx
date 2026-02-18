@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
 import { useMasterBuildingClasssection } from '@/hooks/timetable/useMasters';
-import { masterBuildingClassSectionSchema } from '@/schemas/timetable/masters';
+import { type masterBuildingClassSectionSchema, masterBuildingSchema } from '@/schemas/timetable/masters';
 import { ToggleMasterBuildingClassSection } from '@/server/timetable/masters/masterbuilding';
 import type { IMasterBuildClassSectionGrid } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,7 +29,7 @@ export default function ToggleMasterBuildingClassSectionForm({ rowData, onClose 
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(masterBuildingClassSectionSchema.delete),
+        resolver: zodResolver(masterBuildingSchema.delete),
         mode: 'onChange'
     });
 
