@@ -49,7 +49,6 @@ const CharacterCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
                         @media print {
                             @page {
                                 size: A4 portrait;
-                                margin: 0;
                             }
                             * {
                                 -webkit-print-color-adjust: exact !important;
