@@ -453,11 +453,11 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                         </div>
 
                         <div className='mt-8 flex justify-center gap-4'>
-                            <Button type='submit' disabled={isSubmitting}>
-                                {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null} Report
+                            <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting}>
+                                 Report
                             </Button>
                             <Button type='button' variant='outline' onClick={handleClear} disabled={isSubmitting}>
-                                Cancel
+                                Clear
                             </Button>
                         </div>
                     </div>

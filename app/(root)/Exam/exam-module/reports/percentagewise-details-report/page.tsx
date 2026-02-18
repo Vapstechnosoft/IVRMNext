@@ -15,13 +15,13 @@ export default function PercentagewiseDetailsReportPage() {
         if (response?.data) {
             // The API returns data directly in response.data array, not in response.data.datareport
             setReportData(Array.isArray(response.data) ? response.data : []);
-            
+            console.log('Report Data:', response.data);
             setInstitutionDetails(response.data.institution || []);
-
+            console.log('payload', payload);
             // Construct criteria string (simplified for now, ideally derived from payload names)
             // Since we only have IDs in payload, we rely on the component usage or just display basic info
             // In a real scenario, we would map IDs back to names or pass names from the form.
-            setReportCriteria(`Report for Year ID: ${payload.asmaY_Id}, Exam ID: ${payload.emE_Id}`);
+            setReportCriteria(payload);
         } else {
             setReportData([]);
             setInstitutionDetails([]);

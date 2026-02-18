@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useRef } from 'react';
 import * as XLSX from 'xlsx';
-import { Printer, Download } from 'lucide-react';
+import { Printer, Download, FileSpreadsheet } from 'lucide-react';
 
 interface ReportListProps {
     data: any;
@@ -75,13 +75,13 @@ export const ReportList = ({ data }: ReportListProps) => {
     return (
         <div className='space-y-4 bg-gray-200'>
             <div className="flex justify-end gap-2 py-2">
-                <Button onClick={handlePrint} className="bg-blue-600 hover:bg-blue-800 text-white flex w-fit">
+                <Button  onClick={handlePrint} className="hover:bg-orange-800 text-white flex w-fit">
                     <Printer className="h-4 w-4" />
                     <span>PRINT</span>
                 </Button>
 
-                <Button onClick={handleExport} className='bg-green-600 hover:bg-green-800 text-white w-fit'>
-                    <Download className='h-4 w-4' />
+                <Button onClick={handleExport} className=' text-white w-fit'>
+                    <FileSpreadsheet className='h-4 w-4' />
                     Export to Excel
                 </Button>
             </div>
