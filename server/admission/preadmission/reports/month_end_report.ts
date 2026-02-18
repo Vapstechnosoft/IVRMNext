@@ -330,11 +330,12 @@ export async function getExcelDOBReport(
     ASMCL_Id: number,
     ASMS_Id: number,
     AMST_Id: number,
+    AMC_Id: number,
     searchParams?: ApiSearchparams
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
 
-    const url = `/DOBcertificate/ExportAdmDobCertificateToExcel?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}&AMST_Id=${AMST_Id}&${urlParams}`;
+    const url = `/DOBcertificate/ExportAdmDobCertificateToExcel?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}&AMST_Id=${AMST_Id}&AMC_Id=${AMC_Id}&${urlParams}`;
 
     try {
         const responseData = await api.postBinary('admission', url);

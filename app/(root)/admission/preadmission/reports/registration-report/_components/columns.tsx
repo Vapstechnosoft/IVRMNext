@@ -24,7 +24,7 @@ export const registrationColumns: ColumnDef<IRigistrationReportList>[] = [
         size: 24
     },
     {
-        accessorKey: 'user_Name',
+        id: 'sl_no',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -32,8 +32,15 @@ export const registrationColumns: ColumnDef<IRigistrationReportList>[] = [
             const continuousIndex = pageIndex * pageSize + row.index + 1;
             return <div className='w-full pl-6'>{continuousIndex}</div>;
         },
-        enableSorting: true,
+        enableSorting: false,
         enableHiding: false
+    },
+    {
+        accessorKey: 'user_Name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='User Name' />,
+        cell: ({ row }) => <div>{row.getValue('user_Name')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
 
     {

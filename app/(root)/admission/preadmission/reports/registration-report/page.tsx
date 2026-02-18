@@ -46,6 +46,9 @@ export default function RegistrationPageprops(props: {
     const [showTable, setShowTable] = useState(false);
     const [selectedRows, setSelectedRows] = useState<IRigistrationReportList[]>([]);
     const [printData, setPrintData] = useState<IRigistrationReportList[]>([]);
+    const [isPrinting, setIsPrinting] = useState(false);
+
+
 
     /** -----------------------------
      *  Date Filters
@@ -136,6 +139,22 @@ export default function RegistrationPageprops(props: {
         documentTitle: 'Registration_Report'
     });
 
+    /** -----------------------------
+     *  Effects
+     * ----------------------------- */
+    React.useEffect(() => {
+        if (isPrinting && printData.length > 0 && printRef.current && handlePrintContent) {
+            handlePrintContent();
+            setIsPrinting(false);
+        }
+    }, [isPrinting, printData, handlePrintContent]);
+
+    React.useEffect(() => {
+        if (academicYearOptions?.data && academicYearOptions.data.length > 0 && academicYearId === 0) {
+            setAcademicYearId(Number(academicYearOptions.data[0].asmaY_Id));
+        }
+    }, [academicYearOptions, academicYearId]);
+
     const triggerPrint = async () => {
         if (!response?.data?.searchstudentDetails?.length) {
             toast.error('No data available to print');
@@ -145,6 +164,7 @@ export default function RegistrationPageprops(props: {
         try {
             if (selectedRows.length > 0) {
                 setPrintData(selectedRows);
+                setIsPrinting(true);
                 toast.info(`Preparing print for ${selectedRows.length} selected record(s)...`);
             } else {
                 toast.loading('Fetching all records for print...', { id: 'print-fetch' });
@@ -168,22 +188,15 @@ export default function RegistrationPageprops(props: {
                 }
 
                 setPrintData(allData);
+                setIsPrinting(true);
                 toast.dismiss('print-fetch');
                 toast.success(`Ready to print ${allData.length} records`);
             }
-
-            // Give React time to re-render the hidden component with new data
-            setTimeout(() => {
-                if (handlePrintContent) {
-                    handlePrintContent();
-                } else {
-                    toast.error('Print functionality is not ready. Please try again.');
-                }
-            }, 1000);
         } catch (error) {
             console.error('Print error:', error);
             toast.dismiss('print-fetch');
             toast.error('Failed to prepare print');
+            setIsPrinting(false);
         }
     };
 
@@ -224,7 +237,7 @@ export default function RegistrationPageprops(props: {
                                 onValueChange={(value) => setAcademicYearId(Number(value))}
                                 value={academicYearId ? String(academicYearId) : undefined}>
                                 <SelectTrigger className='w-48'>
-                                    <SelectValue placeholder='Select Academic Year' />
+                                    <SelectValue placeholder='--Select Year--' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {academicYearLoading ? (
