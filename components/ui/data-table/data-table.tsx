@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { cn } from '@/lib/utils';
 import { getCommonPinningStyles, tableSearchVariables } from '@/lib/data-table.config';
 import { DoubleArrowLeftIcon, DoubleArrowRightIcon } from '@radix-ui/react-icons';
 import {
@@ -299,38 +300,75 @@ function DataTableInner<TData, TValue>(
 
                                 {/* Pagination Controls */}
                                 <div className='flex items-center space-x-2'>
-                                    <Button
-                                        aria-label='Go to first page'
-                                        variant='outline'
-                                        className='hidden h-8 w-8 p-0 lg:flex'
-                                        onClick={() => table.setPageIndex(0)}
-                                        disabled={!table.getCanPreviousPage()}>
-                                        <DoubleArrowLeftIcon className='h-4 w-4' />
-                                    </Button>
-                                    <Button
-                                        aria-label='Go to previous page'
-                                        variant='outline'
-                                        className='h-8 w-8 p-0'
-                                        onClick={() => table.previousPage()}
-                                        disabled={!table.getCanPreviousPage()}>
-                                        <ChevronLeftIcon className='h-4 w-4' />
-                                    </Button>
-                                    <Button
-                                        aria-label='Go to next page'
-                                        variant='outline'
-                                        className='h-8 w-8 p-0'
-                                        onClick={() => table.nextPage()}
-                                        disabled={!table.getCanNextPage()}>
-                                        <ChevronRightIcon className='h-4 w-4' />
-                                    </Button>
-                                    <Button
-                                        aria-label='Go to last page'
-                                        variant='outline'
-                                        className='hidden h-8 w-8 p-0 lg:flex'
-                                        onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                                        disabled={!table.getCanNextPage()}>
-                                        <DoubleArrowRightIcon className='h-4 w-4' />
-                                    </Button>
+                                    <div className='pagination-bar'>
+                                        <Button
+                                            aria-label='Go to first page'
+                                            variant='ghost'
+                                            size='icon'
+                                            className='h-8 w-8 rounded-full p-0'
+                                            onClick={() => table.setPageIndex(0)}
+                                            disabled={!table.getCanPreviousPage()}>
+                                            <DoubleArrowLeftIcon className='h-4 w-4' />
+                                        </Button>
+                                        <Button
+                                            aria-label='Go to previous page'
+                                            variant='ghost'
+                                            size='icon'
+                                            className='h-8 w-8 rounded-full p-0'
+                                            onClick={() => table.previousPage()}
+                                            disabled={!table.getCanPreviousPage()}>
+                                            <ChevronLeftIcon className='h-4 w-4' />
+                                        </Button>
+
+                                        {(() => {
+                                            const currentPage = table.getState().pagination.pageIndex + 1;
+                                            const totalPages = table.getPageCount();
+                                            const pages = [];
+
+                                            // Show up to 5 page numbers
+                                            let start = Math.max(1, currentPage - 2);
+                                            let end = Math.min(totalPages, start + 4);
+
+                                            if (end - start < 4) {
+                                                start = Math.max(1, end - 4);
+                                            }
+
+                                            for (let i = start; i <= end; i++) {
+                                                pages.push(
+                                                    <button
+                                                        key={i}
+                                                        onClick={() => table.setPageIndex(i - 1)}
+                                                        className={cn(
+                                                            'pagination-item',
+                                                            currentPage === i && 'pagination-item-active'
+                                                        )}
+                                                    >
+                                                        {i}
+                                                    </button>
+                                                );
+                                            }
+                                            return pages;
+                                        })()}
+
+                                        <Button
+                                            aria-label='Go to next page'
+                                            variant='ghost'
+                                            size='icon'
+                                            className='h-8 w-8 rounded-full p-0'
+                                            onClick={() => table.nextPage()}
+                                            disabled={!table.getCanNextPage()}>
+                                            <ChevronRightIcon className='h-4 w-4' />
+                                        </Button>
+                                        <Button
+                                            aria-label='Go to last page'
+                                            variant='ghost'
+                                            size='icon'
+                                            className='h-8 w-8 rounded-full p-0'
+                                            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                                            disabled={!table.getCanNextPage()}>
+                                            <DoubleArrowRightIcon className='h-4 w-4' />
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
