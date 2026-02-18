@@ -16,7 +16,7 @@ export default async function Navbar() {
             <div className='container flex max-h-14 items-center overflow-clip py-2'>
                 <div className='flex w-full items-center gap-2'>
                     <Logo size='icon' herf={ROUTES.DASHBOARD} />
-                    <NavigationSystem />
+                    <NavigationSystem />   
                     <div className='flex items-center gap-4'>
                         <div className='relative'>
                             <span className='-translate-y-1/2 absolute top-1/2 right-5'>

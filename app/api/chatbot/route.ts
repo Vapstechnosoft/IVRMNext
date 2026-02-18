@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Groq from 'groq-sdk';
+import { getUserAccessibleModules } from '@/server/common';
 
 // Initialize Groq clients for different portals
 const adminGroq = new Groq({
@@ -9,6 +10,40 @@ const adminGroq = new Groq({
 const studentGroq = new Groq({
     apiKey: process.env.student_chat_Groq_api_key || process.env.chat_Groq_api_key || ''
 });
+
+
+// Helper to flatten modules into a searchable text format
+async function getNavigationContext() {
+    try {
+        const modulesResponse = await getUserAccessibleModules();
+        if (!modulesResponse.success || !modulesResponse.data) return '';
+
+        let contextText = "AVAILABLE PAGES AND NAVIGATION PATHS:\n";
+
+        // Helper recursive function to traverse the menu structure
+        const traverse = (items: any[], path: string[]) => {
+            items.forEach(item => {
+                const currentPath = [...path, item.name];
+
+                // If it's a page with a URL
+                if (item.url) {
+                    contextText += `- Page: "${item.name}"\n  URL: ${item.url}\n  Path: ${currentPath.join(' > ')}\n  Description: ${item.description || item.title || item.name}\n\n`;
+                }
+
+                // If it has a menu or sub_menu or pages array, recurse
+                if (item.menu) traverse(item.menu, currentPath);
+                if (item.sub_menu) traverse(item.sub_menu, currentPath);
+                if (item.pages) traverse(item.pages, currentPath);
+            });
+        };
+
+        traverse(modulesResponse.data, []);
+        return contextText;
+    } catch (error) {
+        console.error("Error generating navigation context:", error);
+        return "";
+    }
+}
 
 
 // Knowledge Base from user's Python code
@@ -723,6 +758,115 @@ Go to **Std Fee Details** page
     studentTC: {
         keywords: ['transfer certificate', 'tc generation', 'tc details', 'leaving certificate'],
         response: `Generate and manage student Transfer Certificates (TC) in **Admission** > **Preadmission** > **Student Transfer Certificate**. You can record the reason for leaving and generate the official TC document.`
+    },
+    // --- DETAILED PROCEDURES ---
+    howToFillForm: {
+        keywords: ['fill form', 'fill application', 'how to apply', 'application steps', 'admission form steps'],
+        response: `To fill the **Preadmission Form**:
+1. Go to **Admission > Preadmission > Transactions > Preadmission Form**.
+2. **Student Details**: Enter Name, DOB, Gender, Class.
+3. **Parent Details**: Enter Father/Mother Name, Mobile, Email.
+4. **Address**: Fill permanent and communication address.
+5. **Documents**: Upload Photo, Birth Certificate, and other required docs.
+6. Click **Save** to submit your application.`
+    },
+    marksEntrySteps: {
+        keywords: ['how to enter marks', 'marks entry steps', 'upload marks', 'grading steps'],
+        response: `To **Enter Marks**:
+1. Navigate to **Exam > Exam Module > Marks Entry**.
+2. Select **Academic Year**, **Exam**, **Class**, and **Section**.
+3. Choose the **Subject** and click **Search**.
+4. Enter marks for each student in the list.
+5. Click **Save** at the bottom to freeze the scores.`
+    },
+    payFeesSteps: {
+        keywords: ['how to pay fees', 'payment steps', 'paying online'],
+        response: `To **Pay Fees**:
+1. Go to **Fees > Transactions > Fee Online Payment**.
+2. Review **Current Year Charges** and **Outstanding**.
+3. Select the **Fee Groups** you wish to pay (School, Bus, etc.).
+4. Click **Show** to view the total.
+5. Choose your payment method and complete the transaction.`
+    },
+    hallTicketGeneration: {
+        keywords: ['generate hall ticket', 'print hall ticket', 'hall ticket'],
+        response: `To **Generate Hall Tickets**:
+1. Go to **Exam > Exam Mapping > Hall Ticket Generation**.
+2. Select the **Academic Year** and **Exam Type**.
+3. Choose the **Class** and **Section**.
+4. Click **Generate** / **Search** to view eligible students.
+5. Select students and click **Print** or **Download**.`
+    }
+};
+
+// --- STUDENT PORTAL KNOWLEDGE BASE ---
+const STUDENT_KNOWLEDGE_BASE = {
+    // --- ACADEMICS ---
+    examReport: {
+        keywords: ['progress card', 'report card', 'exam results', 'marks card', 'result', 'academic report', 'how much did i score'],
+        response: `To view your result, go to **Reports > Progress Card Report**. You can download your term-wise performance card there.`
+    },
+    timetable: {
+        keywords: ['timetable', 'class schedule', 'period', 'subject time', 'weekly schedule'],
+        response: `Check your **Weekly Class Schedule** in **Academics > Timetable**. It shows your daily periods and subject teachers.`
+    },
+    homework: {
+        keywords: ['homework', 'assignment', 'project', 'classwork', 'pending work', 'submission'],
+        response: `View your daily assignments in **Academics > Student Project / Assignment**. You can download attached files and check submission deadlines.`
+    },
+    lessonPlan: {
+        keywords: ['syllabus', 'lesson plan', 'topic list', 'what is taught', 'chapter details'],
+        response: `Track your syllabus progress in **Lesson Planner > Student Topic List**. It shows completed chapters and upcoming topics.`
+    },
+
+    // --- ADMINISTRATIVE ---
+    onlineLeave: {
+        keywords: ['apply leave', 'leave application', 'absent', 'sick leave', 'request leave', 'holiday request'],
+        response: `To apply for leave, go to **Admission > Leave Apply Online**. Fill in the dates and reason, then submit for approval.`
+    },
+    attendance: {
+        keywords: ['attendance', 'my attendance', 'present days', 'absent days', 'attendance percentage'],
+        response: `Check your **Yearly Attendance** in **Reports > Student Yearly Attendance Report**. It shows your total present/absent days and percentage.`
+    },
+    profile: {
+        keywords: ['my profile', 'student details', 'personal info', 'address', 'contact details', 'update profile'],
+        response: `View your personal details in **Admission > Student Profile**. Contact the school office if you need to update critical information.`
+    },
+
+    // --- FEES ---
+    payFees: {
+        keywords: ['pay fees', 'pay online', 'fee payment', 'due fees', 'outstanding fees'],
+        response: `You can securely pay fees in **Masters > Fee Online Payment**. Select the fee group and proceed to payment via Card/UPI.`
+    },
+    feeReceipt: {
+        keywords: ['download receipt', 'fee receipt', 'payment proof', 'transaction receipt', 'print receipt'],
+        response: `Download your fee receipts from **Fees > Reports > Portal Fee Receipt**. Select the academic year to view all historical transactions.`
+    },
+    feeDashboard: {
+        keywords: ['fee analysis', 'fee structure', 'total fees', 'balance fees', 'fee summary'],
+        response: `View your complete fee history, paid amount, and pending balance in **Fees > Fee Cumulative** dashboard.`
+    },
+
+    // --- UTILITIES ---
+    events: {
+        keywords: ['events', 'school calendar', 'upcoming events', 'holidays', 'schedule', 'annual day', 'sports day'],
+        response: `Check the **Calendar of Events** in the **COE** section to see upcoming school activities, exams, and holidays.`
+    },
+    library: {
+        keywords: ['library', 'search book', 'book status', 'borrowed books', 'return date'],
+        response: `Search for books and check your borrowed items in **Library > Transaction > Book Transaction**. You can see due dates and fine details.`
+    },
+    transport: {
+        keywords: ['bus route', 'transport', 'bus stop', 'pickup point', 'driver details', 'bus timing'],
+        response: `View your allocated bus route and stop details in **Transport > Student Route Mapping**. It shows your vehicle number and timings.`
+    },
+    complaints: {
+        keywords: ['complaint', 'technial issue', 'report problem', 'feedback', 'suggestion', 'help needed'],
+        response: `You can raise complaints in **Feedback > Student Complaints** or submit general feedback in **Student Feedback Details**.`
+    },
+    notifications: {
+        keywords: ['notice', 'circular', 'announcement', 'message', 'school update'],
+        response: `Check the latest school circulars and announcements in the **Notice Board** or **Push Notification** section on your dashboard.`
     }
 };
 
@@ -733,6 +877,9 @@ export async function POST(req: NextRequest) {
         // Select the appropriate Groq client based on context
         const groq = context === 'StudentPortal' ? studentGroq : adminGroq;
 
+        // Select appropriate knowledge base
+        const currentKnowledgeBase = context === 'StudentPortal' ? STUDENT_KNOWLEDGE_BASE : KNOWLEDGE_BASE;
+
         if (!messages || !Array.isArray(messages)) {
             return NextResponse.json({ error: 'Invalid messages format' }, { status: 400 });
         }
@@ -740,7 +887,7 @@ export async function POST(req: NextRequest) {
         const userMessage = messages[messages.length - 1].content.toLowerCase();
 
         // 1. Check Keywords first (Fast Retrieval)
-        for (const [key, data] of Object.entries(KNOWLEDGE_BASE)) {
+        for (const [key, data] of Object.entries(currentKnowledgeBase)) {
             if (data.keywords.some((keyword) => userMessage.includes(keyword))) {
                 // Even if we find a keyword match, let's use the LLM to phrase it naturally,
                 // but give it the exact knowledge snippet to use.
@@ -748,17 +895,17 @@ export async function POST(req: NextRequest) {
                     messages: [
                         {
                             role: 'system',
-                            content: `You are the **AI VRM Help Desk**, a helpful and friendly guide for the AI VRM system. 
+                            content: `You are the **${context === 'StudentPortal' ? 'Student Assistant' : 'AI VRM Help Desk'}**, a helpful guide. 
                             
                             **KNOWLEDGE CONTEXT:**
                             ${data.response}
 
                             **INSTRUCTIONS:**
-                            - **BE EXTREMELY CONCISE**. Answer in **ONE SHORT SENTENCE** only.
+                            - **BE HELPFUL AND PRECISE**.
+                            - If the user asks for steps, provide a clear, numbered list.
                             - Use the KNOWLEDGE CONTEXT to provide the exact navigation path.
-                            - If it's a greeting, just say "Hello! How can I help?".
-                            - **CONSTRAINTS**: No IVRM/HRMS. No AI jargon.
-                            - Do not exceed 15-20 words.`
+                            - **CONSTRAINTS**: No technical jargon.
+                            - Keep response under 60 words for clarity.`
                         },
                         ...messages
                     ],
@@ -770,35 +917,66 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        // 2. If no direct keyword match, use the sophisticated System Prompt with the full context
+        // 2. If no direct keyword match, use dynamic navigation context
+        // Get Dynamic Navigation Context
+        const navigationContext = await getNavigationContext();
+
+        // Use the sophisticated System Prompt with the full context
+        // Use the sophisticated System Prompt with the full context
         const response = await groq.chat.completions.create({
             messages: [
                 {
                     role: 'system',
-                    content: `You are the **AI VRM Help Desk**.
+                    content: `You are the **${context === 'StudentPortal' ? 'Student Assistant' : 'AI VRM Help Desk'}**.
                     
+                    ${context === 'StudentPortal' ?
+                            `**AVAILABLE STUDENT PAGES:**
+                    - Exam Report (/StudentPortal/student-dashboard/Exam/ExamReport)
+                    - Online Leave Application (/StudentPortal/student-dashboard/Admission/OnlineLeaveApp)
+                    - Attendance Details (/StudentPortal/masters/attendance-details)
+                    - Fee Online Payment (/StudentPortal/masters/feeonlinpayment)
+                    - Cumulative Fee Analysis (/StudentPortal/masters/feecumulative)
+                    - Portal Fee Receipt (/StudentPortal/student-dashboard/Fees/Reports/PortalFeeReceipt)
+                    - Calendar of Events (/StudentPortal/coe/coe)
+                    - Student Complaints (/StudentPortal/student-dashboard/Feedback/Transaction/StudentCompliantsView)
+                    ` : navigationContext}
+
                     **CORE RULES:**
-                    1. **ONE SENTENCE ONLY**. Maximum 15 words.
-                    2. If asked "hi", say "Hello! How can I help you?".
-                    3. Only provide navigation steps for AI VRM (Exam, Fees, Admission).
-                    4. No IVRM/HRMS mentions.
-                    5. Be direct. No filler words like "I understand" or "Certainly".`
+                    1. **JSON OUTPUT MANDATORY**: Your response must be a valid JSON object with keys "text" and "link".
+                    Example: { "text": "To fill the form, go to Admission > Preadmission. Enter details...", "link": "/admission/preadmission/form" }
+                    2. **TEXT**: Concise but informative. If asked for immediate steps, provide them. Max 60 words.
+                    3. **LINK**: The exact URL from the context if found, otherwise null.
+                    4. **INTELLIGENCE**: Infer the user's intent.
+                    5. **STRICT SCOPE**: If asked about outside topics (e.g., coding, general knowledge, jokes, weather), respectfully decline. 
+                    ${context === 'StudentPortal' ?
+                            'Say exactly: "As I am an AI VRM help bot, I can help you with anything within ERP."' :
+                            'Say: "I can only assist with AI VRM software queries."'} and return link: null.
+                    6. **NOT FOUND**: If the information is not in the context, say politely: "I couldn't find those details. Please contact the administration." (Max 20 words). link: null.`
                 },
                 ...messages
             ],
             model: 'llama-3.3-70b-versatile',
-            temperature: 0.3,
-            max_tokens: 100
+            temperature: 0.2, // Slightly increased for better phrasing
+            max_tokens: 250, // Increased for detailed steps
+            response_format: { type: "json_object" }
         });
 
-        const reply = response.choices[0]?.message?.content || "I'm sorry, I couldn't process that.";
-
-        return NextResponse.json({ text: reply });
+        const content = response.choices[0]?.message?.content;
+        try {
+            const jsonResponse = JSON.parse(content || '{}');
+            return NextResponse.json(jsonResponse);
+        } catch (e) {
+            console.error("Failed to parse JSON response:", content);
+            return NextResponse.json({ text: "I'm sorry, I couldn't process that request." });
+        }
     } catch (error: any) {
-        console.error('Chatbot API Error:', error);
+        console.error('Chatbot API Error Details:', error.message, error.stack);
+        if (error.response) {
+            console.error('Groq API Error Response:', error.response.data);
+        }
         return NextResponse.json(
             {
-                error: 'Failed to fetch response from AI. Please check your connection or API configuration.'
+                error: `Failed to fetch response from AI: ${error.message || 'Unknown error'}`
             },
             { status: 500 }
         );
