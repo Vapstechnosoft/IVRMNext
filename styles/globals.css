@@ -318,6 +318,153 @@ body {
     .dark .pagination-item-active {
         @apply bg-gradient-to-r from-[#EA580C] to-[#C2410C] text-white;
     }
+
+    .pagination-info {
+        @apply flex items-center px-4 py-1.5 rounded-full bg-slate-50/50 text-slate-500 text-[11px] font-medium border border-slate-100 shadow-sm backdrop-blur-sm;
+    }
+
+    .dark .pagination-info {
+        @apply bg-slate-900/40 text-slate-400 border-white/10;
+    }
+
+    .pagination-number {
+        @apply text-[#EA580C] font-bold mx-0.5;
+    }
+
+    .pagination-size-container {
+        @apply flex items-center gap-3 bg-slate-50/50 px-3 py-1 rounded-full border border-slate-100 backdrop-blur-sm shadow-sm;
+    }
+
+    .dark .pagination-size-container {
+        @apply bg-slate-900/40 border-white/10;
+    }
+
+    /* Premium Grid Header Styling */
+    .grid-header-row {
+        @apply bg-slate-50/80 backdrop-blur-md border-b-2 border-slate-100 transition-colors duration-300;
+    }
+
+    .dark .grid-header-row {
+        @apply bg-slate-900/80 border-white/5;
+    }
+
+    .grid-header-cell {
+        @apply px-4 py-3.5 text-[11px] font-bold text-slate-500 uppercase tracking-widest text-left whitespace-nowrap;
+        @apply transition-all duration-300 hover:bg-slate-100/50;
+    }
+
+    .dark .grid-header-cell {
+        @apply text-slate-400 hover:bg-white/5;
+    }
+
+    .grid-header-cell span {
+        @apply relative inline-block;
+    }
+
+    /* Subtle indicator for interactive headers */
+    .grid-header-cell:has(button):hover {
+        @apply text-orange-600;
+    }
+
+    .dark .grid-header-cell:has(button):hover {
+        @apply text-orange-400;
+    }
+
+    /* Bento-Glassmorphism Design System */
+    .card-bento {
+        @apply rounded-[2.5rem] border border-slate-200/40 bg-white/90 transition-all duration-500 overflow-hidden relative;
+        box-shadow:
+            0 10px 30px -10px rgba(0, 0, 0, 0.05),
+            0 20px 50px -20px rgba(0, 0, 0, 0.02);
+    }
+
+    .card-bento::before {
+        content: '';
+        @apply absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent -translate-x-full transition-transform duration-1000 ease-in-out;
+        pointer-events: none;
+        z-index: 5;
+    }
+
+    .card-bento:hover::before {
+        @apply translate-x-full;
+    }
+
+    .card-bento-shine::before {
+        animation: glass-shine 3s infinite;
+    }
+
+    @keyframes glass-shine {
+        0% {
+            transform: translateX(-100%) translateY(-100%) rotate(45deg);
+        }
+
+        20%,
+        100% {
+            transform: translateX(100%) translateY(100%) rotate(45deg);
+        }
+    }
+
+    .card-bento-reveal {
+        animation: bento-reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    @keyframes bento-reveal {
+        from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.98);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .dark .card-bento {
+        @apply border-white/5 bg-slate-900/60 shadow-none;
+    }
+
+    .glass-pane {
+        @apply backdrop-blur-xl bg-white/40 border border-white/60 rounded-[1.5rem] shadow-inner transition-all duration-300;
+    }
+
+    .dark .glass-pane {
+        @apply bg-slate-950/40 border-white/5 shadow-none;
+    }
+
+    .bento-header {
+        @apply px-8 py-6 flex items-center justify-between relative bg-gradient-to-r from-transparent via-slate-50/30 to-transparent;
+    }
+
+    .bento-title {
+        @apply text-slate-800 font-extrabold tracking-tight text-lg uppercase;
+    }
+
+    .dark .bento-title {
+        @apply text-slate-100;
+    }
+
+    .neon-glow-blue {
+        @apply absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-blue-400 via-blue-500 to-indigo-600 rounded-r-full;
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+    }
+
+    .neon-glow-orange {
+        @apply absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-orange-400 via-orange-500 to-red-600 rounded-r-full;
+        box-shadow: 0 0 15px rgba(249, 115, 22, 0.3);
+    }
+
+    .neon-glow-green {
+        @apply absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-emerald-400 via-emerald-500 to-teal-600 rounded-r-full;
+        box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+    }
+
+    .neon-glow-purple {
+        @apply absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-purple-400 via-purple-500 to-pink-600 rounded-r-full;
+        box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+    }
 }
 
 td button[disabled] {

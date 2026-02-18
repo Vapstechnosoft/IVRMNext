@@ -206,14 +206,14 @@ function DataTableInner<TData, TValue>(
                                 : undefined
                         }>
                         <Table>
-                            <TableHeader className={scrollable ? 'sticky top-0 bg-background z-10' : undefined}>
+                            <TableHeader className='grid-header-row'>
                                 {table.getHeaderGroups().map((headerGroup) => (
-                                    <TableRow key={headerGroup.id}>
+                                    <TableRow key={headerGroup.id} className="border-none hover:bg-transparent">
                                         {headerGroup.headers.map((header) => (
                                             <TableHead
                                                 key={header.id}
                                                 colSpan={header.colSpan}
-                                                className='w-fit'
+                                                className='grid-header-cell sticky top-0 z-10'
                                                 style={{ ...getCommonPinningStyles({ column: header.column }) }}>
                                                 {header.isPlaceholder
                                                     ? null
@@ -266,31 +266,34 @@ function DataTableInner<TData, TValue>(
                                         row(s) selected.
                                     </div>
                                 ) : (
-                                    <div className='flex-1 whitespace-nowrap text-muted-foreground text-sm'>
-                                        {totalItems > 0
-                                            ? `Showing ${paginationState.pageIndex * paginationState.pageSize + 1} to ${Math.min(
-                                                (paginationState.pageIndex + 1) * paginationState.pageSize,
-                                                totalItems
-                                            )} of ${totalItems} entries`
-                                            : 'No entries found'}
+                                    <div className='pagination-info'>
+                                        {totalItems > 0 ? (
+                                            <>
+                                                Showing <span className="pagination-number">{paginationState.pageIndex * paginationState.pageSize + 1}</span>
+                                                to <span className="pagination-number">{Math.min((paginationState.pageIndex + 1) * paginationState.pageSize, totalItems)}</span>
+                                                of <span className="pagination-number">{totalItems}</span> entries
+                                            </>
+                                        ) : (
+                                            'No entries found'
+                                        )}
                                     </div>
                                 )}
 
                                 {/* Rows per page */}
-                                <div className='flex items-center space-x-2'>
-                                    <p className='whitespace-nowrap font-medium text-sm'>Rows per page</p>
+                                <div className='pagination-size-container'>
+                                    <p className='whitespace-nowrap font-semibold text-[11px] text-slate-500 uppercase tracking-wider'>Rows per page</p>
                                     <Select
                                         value={`${paginationState.pageSize}`}
                                         onValueChange={(value) => {
                                             table.setPageSize(Number(value));
                                         }}
                                         searchable={false}>
-                                        <SelectTrigger className='h-8 w-[70px]'>
+                                        <SelectTrigger className='h-7 w-[70px] rounded-full border-none bg-white/50 shadow-none focus:ring-0'>
                                             <SelectValue placeholder={paginationState.pageSize} />
                                         </SelectTrigger>
-                                        <SelectContent side='top'>
+                                        <SelectContent side='top' className="rounded-xl border-slate-100 shadow-xl">
                                             {pageSizeOptions.map((pageSize) => (
-                                                <SelectItem key={pageSize} value={`${pageSize}`}>
+                                                <SelectItem key={pageSize} value={`${pageSize}`} className="rounded-lg">
                                                     {pageSize}
                                                 </SelectItem>
                                             ))}
@@ -323,31 +326,47 @@ function DataTableInner<TData, TValue>(
                                         {(() => {
                                             const currentPage = table.getState().pagination.pageIndex + 1;
                                             const totalPages = table.getPageCount();
-                                            const pages = [];
 
-                                            // Show up to 5 page numbers
-                                            let start = Math.max(1, currentPage - 2);
-                                            let end = Math.min(totalPages, start + 4);
+                                            if (totalPages <= 1) return null;
 
-                                            if (end - start < 4) {
-                                                start = Math.max(1, end - 4);
-                                            }
+                                            const getRange = () => {
+                                                if (totalPages <= 7) {
+                                                    return Array.from({ length: totalPages }, (_, i) => i + 1);
+                                                }
 
-                                            for (let i = start; i <= end; i++) {
-                                                pages.push(
+                                                // Complex range logic
+                                                if (currentPage <= 3) {
+                                                    return [1, 2, 3, 4, '...', totalPages - 2, totalPages - 1, totalPages];
+                                                } else if (currentPage >= totalPages - 2) {
+                                                    return [1, 2, 3, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+                                                } else {
+                                                    return [1, 2, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages - 1, totalPages];
+                                                }
+                                            };
+
+                                            return getRange().map((page, i) => {
+                                                if (page === '...') {
+                                                    return (
+                                                        <span key={`dots-${i}`} className="px-2 text-slate-400">
+                                                            ...
+                                                        </span>
+                                                    );
+                                                }
+
+                                                const pageNum = page as number;
+                                                return (
                                                     <button
-                                                        key={i}
-                                                        onClick={() => table.setPageIndex(i - 1)}
+                                                        key={pageNum}
+                                                        onClick={() => table.setPageIndex(pageNum - 1)}
                                                         className={cn(
                                                             'pagination-item',
-                                                            currentPage === i && 'pagination-item-active'
+                                                            currentPage === pageNum && 'pagination-item-active'
                                                         )}
                                                     >
-                                                        {i}
+                                                        {pageNum}
                                                     </button>
                                                 );
-                                            }
-                                            return pages;
+                                            });
                                         })()}
 
                                         <Button

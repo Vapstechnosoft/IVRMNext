@@ -85,8 +85,8 @@ export function VapsChatWindow({ onClose }: { onClose?: () => void }) {
                         className="w-10 h-10 rounded-full object-cover border-2 border-white"
                     />
                     <div>
-                        <h3 className="font-bold text-sm">Vapstech Support</h3>
-                        <p className="text-[10px] opacity-80 uppercase tracking-widest font-black">Customer Support</p>
+                        <h3 className="font-bold text-sm">AI Edge</h3>
+                        <p className="text-[10px] opacity-80 uppercase tracking-widest font-black">Intelligent Assistant</p>
                     </div>
                 </div>
                 {onClose && (

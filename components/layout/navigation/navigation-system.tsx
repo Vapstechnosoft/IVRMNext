@@ -100,6 +100,7 @@ export function NavigationSystem() {
     const [activeModule, setActiveModule] = useState<string | null>(null);
     const [hoveredModule, setHoveredModule] = useState<string | null>(null);
     const [hoveredSubMenu, setHoveredSubMenu] = useState<{ menuName: string, subMenuName: string, pages: any[] } | null>(null);
+    const [moduleFilter, setModuleFilterState] = useState<string | null>(null);
     const router = useRouter();
     const pathname = usePathname();
 
@@ -157,10 +158,43 @@ export function NavigationSystem() {
         }
     }, [activeDrawer]);
 
+    // Handle external navigation requests (opening modules and filtering)
     useEffect(() => {
-        // Restore navigation context from sessionStorage on mount
+        const handleExternalRequest = (event: any) => {
+            const moduleName = event.detail;
+            if (moduleName && accessibleModule?.data) {
+                const moduleExists = accessibleModule.data.some(m => m.name === moduleName);
+                if (moduleExists) {
+                    handleModuleClick(moduleName);
+                }
+            }
+        };
+
+        const handleFilterRequest = (event: any) => {
+            setModuleFilterState(event.detail);
+            if (typeof window !== 'undefined' && event.detail) {
+                sessionStorage.setItem('moduleFilter', event.detail);
+            } else if (typeof window !== 'undefined') {
+                sessionStorage.removeItem('moduleFilter');
+            }
+        };
+
+        window.addEventListener('module-request', handleExternalRequest);
+        window.addEventListener('module-filter', handleFilterRequest);
+        return () => {
+            window.removeEventListener('module-request', handleExternalRequest);
+            window.removeEventListener('module-filter', handleFilterRequest);
+        };
+    }, [accessibleModule?.data]);
+
+    useEffect(() => {
+        // Restore navigation context and filters from sessionStorage on mount
         if (typeof window !== 'undefined') {
             const savedNav = sessionStorage.getItem('activeNavigation');
+            const savedFilter = sessionStorage.getItem('moduleFilter');
+
+            if (savedFilter) setModuleFilterState(savedFilter);
+
             if (savedNav) {
                 try {
                     const navData = JSON.parse(savedNav);
@@ -247,55 +281,74 @@ export function NavigationSystem() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}>
 
-                <nav className='flex items-center overflow-x-auto scroll-smooth scrollbar-hide' onMouseLeave={() => setHoveredModule(null)}>
+                {/* Horizontal Navigation Bar - Now hidden by default to keep header clean */}
+                <nav className='hidden items-center overflow-x-auto scroll-smooth scrollbar-hide' onMouseLeave={() => setHoveredModule(null)}>
                     <div className='flex items-center space-x-1 px-2 min-w-max relative'>
-                        {accessibleModule?.data?.map((module) => {
-                            const IconComponent = getIconByName(module.icon);
-                            const isActive = activeModule === module.name;
+                        {/* Clear Filter Button if active */}
+                        {moduleFilter && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                    setModuleFilterState(null);
+                                    if (typeof window !== 'undefined') sessionStorage.removeItem('moduleFilter');
+                                }}
+                                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-orange-600 bg-orange-50 hover:bg-orange-100 transition-all font-bold text-[10px] uppercase tracking-wider border border-orange-200/50"
+                            >
+                                <X className="h-3 w-3" />
+                                All Modules
+                            </Button>
+                        )}
 
-                            return (
-                                <div key={module.id} className="relative py-0.5">
-                                    <Button
-                                        variant='ghost'
-                                        className={cn(
-                                            'nav-button group relative inline-flex items-center gap-2 rounded-full px-4 py-2 transition-all duration-500 z-10',
-                                            'hover:bg-transparent active:scale-95',
-                                            isActive
-                                                ? 'text-orange-600'
-                                                : 'text-gray-500 hover:text-orange-600'
-                                        )}
-                                        onMouseEnter={() => setHoveredModule(module.name)}
-                                        onClick={() => handleModuleClick(module.name)}>
+                        {accessibleModule?.data
+                            ?.filter(module => !moduleFilter || module.name === moduleFilter)
+                            ?.map((module) => {
+                                const IconComponent = getIconByName(module.icon);
+                                const isActive = activeModule === module.name;
 
-                                        {isActive && <AuraGlow />}
-
-                                        <motion.div
-                                            whileHover={{ scale: 1.2, x: 2 }}
-                                            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                                return (
+                                    <div key={module.id} className="relative py-0.5">
+                                        <Button
+                                            variant='ghost'
                                             className={cn(
-                                                "flex items-center justify-center p-1.5 rounded-full transition-all duration-500",
+                                                'nav-button group relative inline-flex items-center gap-2 rounded-full px-4 py-2 transition-all duration-500 z-10',
+                                                'hover:bg-transparent active:scale-95',
                                                 isActive
-                                                    ? "bg-orange-500 text-white shadow-[0_4px_12px_rgba(255,100,0,0.3)]"
-                                                    : "bg-gray-100/50 text-gray-400 group-hover:bg-orange-100 group-hover:text-orange-500"
+                                                    ? 'text-orange-600'
+                                                    : 'text-gray-500 hover:text-orange-600'
+                                            )}
+                                            onMouseEnter={() => setHoveredModule(module.name)}
+                                            onClick={() => handleModuleClick(module.name)}>
+
+                                            {isActive && <AuraGlow />}
+
+                                            <motion.div
+                                                whileHover={{ scale: 1.2, x: 2 }}
+                                                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                                                className={cn(
+                                                    "flex items-center justify-center p-1.5 rounded-full transition-all duration-500",
+                                                    isActive
+                                                        ? "bg-orange-500 text-white shadow-[0_4px_12px_rgba(255,100,0,0.3)]"
+                                                        : "bg-gray-100/50 text-gray-400 group-hover:bg-orange-100 group-hover:text-orange-500"
+                                                )}>
+                                                {IconComponent && <IconComponent className="h-3.5 w-3.5" />}
+                                            </motion.div>
+
+                                            <span className={cn(
+                                                'text-[12px] font-bold tracking-[0.05em] uppercase whitespace-nowrap transition-colors duration-500 relative z-10',
+                                                isActive ? 'text-orange-600' : 'text-gray-600 group-hover:text-orange-600'
                                             )}>
-                                            {IconComponent && <IconComponent className="h-3.5 w-3.5" />}
-                                        </motion.div>
+                                                {module.name}
+                                            </span>
 
-                                        <span className={cn(
-                                            'text-[12px] font-bold tracking-[0.05em] uppercase whitespace-nowrap transition-colors duration-500 relative z-10',
-                                            isActive ? 'text-orange-600' : 'text-gray-600 group-hover:text-orange-600'
-                                        )}>
-                                            {module.name}
-                                        </span>
-
-                                        <ChevronDown className={cn(
-                                            'h-3 w-3 transition-transform duration-500 ease-out opacity-40 ml-1 relative z-10',
-                                            isActive && 'rotate-180 text-orange-600 opacity-100'
-                                        )} />
-                                    </Button>
-                                </div>
-                            );
-                        })}
+                                            <ChevronDown className={cn(
+                                                'h-3 w-3 transition-transform duration-500 ease-out opacity-40 ml-1 relative z-10',
+                                                isActive && 'rotate-180 text-orange-600 opacity-100'
+                                            )} />
+                                        </Button>
+                                    </div>
+                                );
+                            })}
                     </div>
                 </nav>
             </motion.div>

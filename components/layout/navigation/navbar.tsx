@@ -5,6 +5,7 @@ import UserNotificationPage from '../user-notification';
 import Logo from './logo';
 import { OperationTools } from './operation-tools';
 import { AIAgentHeader } from './ai-agent-header';
+import { NavigationSystem } from './navigation-system';
 
 export default async function Navbar() {
     const session = await auth();
@@ -16,6 +17,7 @@ export default async function Navbar() {
                     <Logo size='icon' herf={ROUTES.DASHBOARD} />
                     <div className='flex-1' />
                     <div className='flex items-center gap-4'>
+                        <NavigationSystem />
                         <OperationTools />
                         <AIAgentHeader />
                         <UserNotificationPage />
