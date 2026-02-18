@@ -1,7 +1,7 @@
 import {
     getStudentTCDetails,
-    getStudentTCInitialData,
-    getStudentTCList,
+    // getStudentTCInitialData,
+    // getStudentTCList,
     getStudentsByAcademicYear,
     getStudentDetailsOnNameChange,
     getTCCancelDetails,
@@ -34,19 +34,19 @@ export const useTCCancelDetails = () => {
     });
 };
 
-export const useStudentTCInitialData = () => {
-    return useMutation({
-        mutationFn: (data: any) => getStudentTCInitialData(data),
-        mutationKey: ['student_tc_initial_data']
-    });
-};
+// export const useStudentTCInitialData = () => {
+//     return useMutation({
+//         mutationFn: (data: any) => getStudentTCInitialData(data),
+//         mutationKey: ['student_tc_initial_data']
+//     });
+// };
 
-export const useStudentTCList = () => {
-    return useMutation({
-        mutationFn: (data: any) => getStudentTCList(data),
-        mutationKey: ['student_tc_list']
-    });
-};
+// export const useStudentTCList = () => {
+//     return useMutation({
+//         mutationFn: (data: any) => getStudentTCList(data),
+//         mutationKey: ['student_tc_list']
+//     });
+// };
 
 export const useStudentTCDetails = () => {
     return useMutation({

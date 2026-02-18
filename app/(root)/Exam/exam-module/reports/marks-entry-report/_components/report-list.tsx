@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { useRef } from "react";
 import * as XLSX from "xlsx";
-import { Printer, Download } from "lucide-react";
+import { Printer, FileSpreadsheet } from "lucide-react";
 
 interface ReportListProps {
   data: any;
@@ -74,7 +74,7 @@ export const ReportList = ({ data }: ReportListProps) => {
   const examname = firstItem.emE_ExamName || "Exam";
 
   return (
-    <div className="space-y-4  bg-gray-200">
+    <div className="space-y-4  bg-white border rounded-xl">
       
       <div className="space-y-2 text-center flex flex-col justify-center items-center">
         <h3 className="font-bold text-xl pt-3">Marks Entered Report</h3>
@@ -87,10 +87,10 @@ export const ReportList = ({ data }: ReportListProps) => {
           </span>
         </div>
       </div>
-      <div className="flex justify-end gap-2">
+      <div className="flex justify-end gap-2 p-2">
         <Button
           onClick={handlePrint}
-          className="bg-blue-600 hover:bg-blue-800 text-white flex w-fit"
+          className=" hover:bg-orange-800 text-white flex w-fit"
         >
           <Printer className="h-4 w-4" />
           <span>PRINT</span>
@@ -98,9 +98,9 @@ export const ReportList = ({ data }: ReportListProps) => {
 
         <Button
           onClick={handleExport}
-          className="bg-green-600 hover:bg-green-800 text-white w-fit"
+          className="hover:bg-orange-800 text-white w-fit"
         >
-          <Download className="h-4 w-4" />
+          <FileSpreadsheet className="h-4 w-4" />
           Export to Excel
         </Button>
       </div>
@@ -108,14 +108,14 @@ export const ReportList = ({ data }: ReportListProps) => {
       <div className=" rounded-md ">
         <Table ref={tableRef}>
           <TableHeader >
-            <TableRow className="bg-blue-600 hover:bg-blue-600">
-              <TableHead className="w-[80px] text-center text-base font-bold text-white border border-blue-800">
+            <TableRow className="bg-gray-200 hover:bg-gray-200">
+              <TableHead className="w-[80px] text-center text-base font-bold text-black border border-gray-400">
                 Sl No
               </TableHead>
-              <TableHead className="text-center text-base font-bold text-white border border-blue-800">Class</TableHead>
-              <TableHead className="text-center text-base font-bold text-white border border-blue-800">Section</TableHead>
-              <TableHead className="text-center text-base font-bold text-white border border-blue-800">Subject</TableHead>
-              <TableHead className="text-center text-base font-bold text-white border border-blue-800">Status</TableHead>
+              <TableHead className="text-center text-base font-bold text-black border border-gray-400">Class</TableHead>
+              <TableHead className="text-center text-base font-bold text-black border border-gray-400">Section</TableHead>
+              <TableHead className="text-center text-base font-bold text-black border border-gray-400">Subject</TableHead>
+              <TableHead className="text-center text-base font-bold text-black border border-gray-400">Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -139,7 +139,7 @@ export const ReportList = ({ data }: ReportListProps) => {
                   <TableCell className="text-center border border-gray-400">{subjectName}</TableCell>
                   <TableCell
                     className="text-center border border-gray-400"
-                    style={{ color: color, fontWeight: "bold" }}
+                    style={{ color: color }}
                   >
                     {status}
                   </TableCell>

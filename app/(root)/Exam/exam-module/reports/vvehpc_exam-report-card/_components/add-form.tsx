@@ -138,7 +138,7 @@ export default function ProgressCardReportForm({
                     selectedSection
                 );
                 const valid = Array.isArray(data)
-                    ? (data as any[]).filter((s): s is { amsT_AdmNo: number; amsT_Id: number; studentName?: string; amsT_FirstName?: string; amsT_MiddleName?: string; amsT_LastName?: string } => !!s?.amsT_Id)
+                    ? data.filter((s): s is any => !!s?.amsT_Id)
                     : [];
                 if (valid.length === 0) {
                     toast.info('No students found');
@@ -419,8 +419,8 @@ export default function ProgressCardReportForm({
                         <hr className='my-6 border-gray-300' />
 
                         <div className='flex justify-center gap-3'>
-                            <Button type='submit' disabled={isSubmitting || !hasStudentsSelected} className='min-w-[140px]'>
-                                {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                            <Button type='submit' isLoading={isSubmitting} disabled={isSubmitting || !hasStudentsSelected} className='min-w-[140px]'>
+                                  
                                 {isSubmitting ? 'Generating...' : 'Report'}
                             </Button>
                             <Button
@@ -431,7 +431,7 @@ export default function ProgressCardReportForm({
                                     setStudents([]);
                                 }}
                                 className='min-w-[100px]'>
-                                Cancel
+                                Clear
                             </Button>
                         </div>
                     </form>

@@ -287,7 +287,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                     autoReceiptFlag: true,
                     asmaY_Id: selectedAsmayId
                 };
-
+                console.log('term details payload', JSON.stringify(payload));
                 console.log('term details payload', JSON.stringify(payload));
                 const termArray = await getStudentDetails(payload);
                 const termList = JSON.parse(JSON.stringify(termArray.masterGroupDetails || []));

@@ -53,7 +53,7 @@ export const masterClassCategoryColumns: ColumnDef<IMasterClassCategoryList>[] =
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterClassCategoryList }) {
-    const { openToggleForm } = useFormContext<IMasterClassCategoryList>();
+    const { openToggleForm, openEditForm } = useFormContext<IMasterClassCategoryList>();
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
     const handleToggle = useCallback(
@@ -61,6 +61,13 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterClassCategoryList }) {
             openToggleForm(data);
         },
         [openToggleForm]
+    );
+
+    const handleEdit = useCallback(
+        (data: IMasterClassCategoryList) => {
+            openEditForm(data);
+        },
+        [openEditForm]
     );
 
     return (
@@ -77,8 +84,9 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterClassCategoryList }) {
                 </Button>
                 <ActionButtons
                     rowData={rowData}
-                    buttons={{ edit: false, toggle: true, delete: false }}
+                    buttons={{ edit: true, toggle: true, delete: false }}
                     onToggle={handleToggle}
+                    onEdit={handleEdit}
                     toggleConditionKey='is_Active'
                 />
             </div>

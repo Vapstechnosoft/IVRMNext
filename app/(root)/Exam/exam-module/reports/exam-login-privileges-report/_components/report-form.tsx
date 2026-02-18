@@ -547,10 +547,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
             </div>
 
             <div className="mt-8 flex justify-center gap-4">
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
+              <Button type="submit" disabled={isSubmitting} isLoading = {isSubmitting}>
                 Generate Report
               </Button>
               <Button
@@ -568,6 +565,4 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     </div>
   );
 };
-// function zodResolver(examLoginPrivilegesReportSchema: ZodEffects<ZodEffects<ZodObject<{ ASMAY_Id: ZodString; EMCA_Id: ZodString; type: ZodEnum<["all", "individual"]>; ASMCL_Id: ZodOptional<ZodString>; ASMS_Id: ZodOptional<ZodString>; HRME_Id: ZodOptional<ZodString>; employeeChecked: ZodDefault<ZodBoolean>; selectAllEmployees: ZodDefault<ZodBoolean>; }, "strip", ZodTypeAny, { ASMAY_Id: string; EMCA_Id: string; type: "all" | "individual"; employeeChecked: boolean; selectAllEmployees: boolean; ASMCL_Id?: string | undefined; ASMS_Id?: string | undefined; HRME_Id?: string | undefined; }, { ASMAY_Id: string; EMCA_Id: string; type: "all" | "individual"; ASMCL_Id?: string | undefined; ASMS_Id?: string | undefined; HRME_Id?: string | undefined; employeeChecked?: boolean | undefined; selectAllEmployees?: boolean | undefined; }>, { ASMAY_Id: string; EMCA_Id: string; type: "all" | "individual"; employeeChecked: boolean; selectAllEmployees: boolean; ASMCL_Id?: string | undefined; ASMS_Id?: string | undefined; HRME_Id?: string | undefined; }, { ASMAY_Id: string; EMCA_Id: string; type: "all" | "individual"; ASMCL_Id?: string | undefined; ASMS_Id?: string | undefined; HRME_Id?: string | undefined; employeeChecked?: boolean | undefined; selectAllEmployees?: boolean | undefined; }>, { ASMAY_Id: string; EMCA_Id: string; type: "all" | "individual"; employeeChecked: boolean; selectAllEmployees: boolean; ASMCL_Id?: string | undefined; ASMS_Id?: string | undefined; HRME_Id?: string | undefined; }, { ASMAY_Id: string; EMCA_Id: string; type: "all" | "individual"; ASMCL_Id?: string | undefined; ASMS_Id?: string | undefined; HRME_Id?: string | undefined; employeeChecked?: boolean | undefined; selectAllEmployees?: boolean | undefined; }>): import("react-hook-form").Resolver<{ ASMAY_Id: string; EMCA_Id: string; type: "all" | "individual"; employeeChecked: boolean; selectAllEmployees: boolean; ASMCL_Id?: string | undefined; ASMS_Id?: string | undefined; HRME_Id?: string | undefined; }, any> | undefined {
-//     throw new Error('Function not implemented.');
-// }
+
