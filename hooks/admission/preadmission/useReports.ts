@@ -18,6 +18,7 @@ import {
     GetDateOfBirth,
     GetStudentYearlyAttendance,
     getAdmissionRegister,
+    getPreadmissionClassDropdown1,
     getStudentSearch,
     getTotalStrengthReport,
     getadmissionStudentsDropdown
@@ -194,15 +195,15 @@ export const usePreAdmissionEmailSmsReport = (
             })
     };
 };
-export const useStudentYearlyAttendance = (ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number, searchParams?: ApiSearchparams) => {
+export const useStudentYearlyAttendance = (ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number | undefined, searchParams?: ApiSearchparams, enabled: boolean = true) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_STUDENT_LISTS, ASMAY_Id, ASMCL_Id, ASMS_Id, searchParams ?? {}],
-            queryFn: async () => GetStudentYearlyAttendance(ASMAY_Id, ASMCL_Id, ASMS_Id, searchParams),
+            queryFn: async () => GetStudentYearlyAttendance(ASMAY_Id, ASMCL_Id, ASMS_Id ?? 0, searchParams),
             staleTime: 0,
-            enabled: !!ASMAY_Id && ASMS_Id !== undefined && ASMCL_Id !== undefined
+            enabled: enabled && !!ASMAY_Id && ASMS_Id !== undefined && !!ASMCL_Id
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -255,7 +256,10 @@ export const useTotalStrengthReport = (
                 withdeactive,
                 electivearray
             ],
-            queryFn: () => getTotalStrengthReport(asmay_Id, asmcL_Id, amC_Id, statusFlag, amsT_SOL, withtc, withdeactive, electivearray),
+            queryFn: () =>
+                getTotalStrengthReport(asmay_Id, asmcL_Id, amC_Id, statusFlag, amsT_SOL, withtc, withdeactive, electivearray, {
+                    page_size: 100000
+                }),
             enabled: asmay_Id > 0 && statusFlag !== '' && amsT_SOL !== '' && withtc !== '' && withdeactive !== '',
             staleTime: 0
         }),
@@ -484,6 +488,22 @@ export const useDateOfBirth = (ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: numb
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.DATE_OF_BIRTH_REPORT]
+            });
+        }
+    };
+};
+
+export const usePreadmissionClassDropdown1 = () => {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_CLASS_DROPDOWN1],
+            queryFn: async () => getPreadmissionClassDropdown1(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_CLASS_DROPDOWN1]
             });
         }
     };

@@ -18,6 +18,7 @@ import { registrationColumns } from './_components/columns';
 import { CalendarIcon, FileSpreadsheet, Printer, RotateCcw } from 'lucide-react';
 
 import { usePreAdmissionRegistrationReport } from '@/hooks/admission/preadmission/useReports';
+import { getPreAdmissionRegistrationReport } from '@/server/admission/preadmission/reports/report';
 import { getExcelRegistrationReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -43,7 +44,8 @@ export default function RegistrationPageprops(props: {
     const [academicYearId, setAcademicYearId] = useState(0);
     const [reportType, setReportType] = useState('year_wise');
     const [showTable, setShowTable] = useState(false);
-    const [selectedRows, setSelectedRows] = useState<IRigistrationReportList[]>([]);
+    // Removed selection state as per user request
+    const [printData, setPrintData] = useState<IRigistrationReportList[]>([]);
 
     /** -----------------------------
      *  Date Filters
@@ -68,24 +70,11 @@ export default function RegistrationPageprops(props: {
     } = usePreAdmissionRegistrationReport(academicIdParam, fromDateParam, toDateParam, searchParams);
 
     const tableProps = useDataTableProps({
+        ...(response || {}),
         data: response?.data?.searchstudentDetails ?? []
     });
 
     const handleReport = () => {
-        const payload: any = {};
-
-        if (reportType === 'year_wise') {
-            if (academicYearId) {
-                payload.academicYearId = academicYearId;
-            }
-        }
-
-        if (reportType === 'between_dates') {
-            payload.fromDate = watchedFromDate ? format(watchedFromDate, 'yyyy-MM-dd') : null;
-
-            payload.toDate = watchedToDate ? format(watchedToDate, 'yyyy-MM-dd') : null;
-        }
-
         setShowTable(true);
         refetchAdmissionStudents();
     };
@@ -97,7 +86,7 @@ export default function RegistrationPageprops(props: {
         setReportType('year_wise');
         setWatchedFromDate(null);
         setWatchedToDate(null);
-        setSelectedRows([]);
+        setPrintData([]);
         tableRef.current?.resetSelection();
 
         setShowTable(false); // Hide table
@@ -105,24 +94,18 @@ export default function RegistrationPageprops(props: {
 
     const downloadExcel = async () => {
         try {
-            // Check if at least one row is selected
-            if (selectedRows.length === 0) {
-                toast.error('Please select at least one checkbox');
-                return;
-            }
-
             if (!academicIdParam && !fromDateParam && !toDateParam) {
                 toast.error('Please fill all required fields!');
                 return;
             }
 
-            const response = await getExcelRegistrationReport(academicIdParam, fromDateParam, toDateParam, searchParams);
+            const excelResponse = await getExcelRegistrationReport(academicIdParam, fromDateParam, toDateParam, searchParams);
 
             // Ensure we have a Blob
             const blob =
-                response instanceof Blob
-                    ? response
-                    : new Blob([new Uint8Array(response)], {
+                excelResponse instanceof Blob
+                    ? excelResponse
+                    : new Blob([new Uint8Array(excelResponse)], {
                         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                     });
 
@@ -147,16 +130,58 @@ export default function RegistrationPageprops(props: {
         }
     };
 
-    const handlePrint = useReactToPrint({
+    const handlePrintContent = useReactToPrint({
         contentRef: printRef,
-        documentTitle: 'Registration_Report',
-        pageStyle: `
-          @page { size: A4; margin: 20mm; }
-          @media print { 
-            body { -webkit-print-color-adjust: exact; }
-          }
-        `
+        documentTitle: 'Registration_Report'
     });
+
+    const triggerPrint = async () => {
+        if (!response?.data?.searchstudentDetails?.length) {
+            toast.error('No data available to print');
+            return;
+        }
+
+        try {
+            // ALWAYS fetch all data for printing, regardless of selection (selection removed)
+            toast.loading('Fetching all records for print...', { id: 'print-fetch' });
+
+            // Fetch all data by passing a very large page size and resetting page to 1
+            const allDataResponse = await getPreAdmissionRegistrationReport(
+                {
+                    academicYearId: academicIdParam,
+                    fromDate: fromDateParam,
+                    toDate: toDateParam
+                },
+                { ...searchParams, page_size: 1000000, page: 1 }
+            );
+
+            const allData = allDataResponse?.data?.searchstudentDetails || [];
+
+            if (allData.length === 0) {
+                toast.dismiss('print-fetch');
+                toast.error('No data found to print');
+                return;
+            }
+
+            setPrintData(allData);
+            toast.dismiss('print-fetch');
+            toast.success(`Ready to print ${allData.length} records`);
+
+            // Give React time to re-render the hidden component with new data
+            setTimeout(() => {
+                if (handlePrintContent) {
+                    handlePrintContent();
+                } else {
+                    toast.error('Print functionality is not ready. Please try again.');
+                }
+            }, 1000);
+        } catch (error) {
+            console.error('Print error:', error);
+            toast.dismiss('print-fetch');
+            toast.error('Failed to prepare print');
+        }
+    };
+
     /** -----------------------------
      *  JSX
      * ----------------------------- */
@@ -185,7 +210,7 @@ export default function RegistrationPageprops(props: {
                     </RadioGroup>
                 </div>
 
-                {/* ---------------------- Academic Year (Show only for Year Wise) ---------------------- */}
+                {/* ... (rest of filters) ... */}
                 {reportType === 'year_wise' && (
                     <div className='flex justify-center'>
                         <div className='flex w-full max-w-md items-center gap-4'>
@@ -269,7 +294,6 @@ export default function RegistrationPageprops(props: {
                     </div>
                 )}
 
-                {/* ---------------------- Action Buttons ---------------------- */}
                 <div className='flex items-center justify-center gap-3 border-t pt-4'>
                     <Button variant='outline' onClick={handleReset}>
                         <RotateCcw className='mr-2 h-4 w-4' />
@@ -287,20 +311,7 @@ export default function RegistrationPageprops(props: {
 
                     <Button
                         variant='outline'
-                        onClick={() => {
-                            // Check if at least one row is selected
-                            if (selectedRows.length === 0) {
-                                toast.error('Please select at least one checkbox');
-                                return;
-                            }
-
-                            toast.info(`Preparing print for ${selectedRows.length} selected record(s)...`);
-
-                            // Give React time to re-render the print component with selected data
-                            setTimeout(() => {
-                                handlePrint();
-                            }, 100);
-                        }}>
+                        onClick={triggerPrint}>
                         <Printer className='mr-2 h-4 w-4' />
                         Print
                     </Button>
@@ -324,7 +335,6 @@ export default function RegistrationPageprops(props: {
                             error={error}
                             showViewOptions={false}
                             isSearchRequired={true}
-                            onRowSelectionChange={setSelectedRows}
                             showSearchColumns={true}
                             loadingMessage='Loading Registration Reports...'
                             noDataTitle='No Data Found'
@@ -335,7 +345,7 @@ export default function RegistrationPageprops(props: {
                 </div>
             )}
 
-            {/* Print Template */}
+            {/* Print Component */}
             <div
                 style={{
                     position: 'fixed',
@@ -343,15 +353,15 @@ export default function RegistrationPageprops(props: {
                     left: 0,
                     width: 0,
                     height: 0,
-                    overflow: 'hidden',
+                    overflow: 'visible',
                     opacity: 0,
                     pointerEvents: 'none',
                     zIndex: -1
                 }}>
                 <RegistrationReportPrint
                     ref={printRef}
-                    data={selectedRows}
-                    institutionName='VAPS TECHNOSOFT'
+                    data={printData}
+                // institutionName prop removed to eliminate VAPS TECHNOSOFT branding
                 />
             </div>
         </div>

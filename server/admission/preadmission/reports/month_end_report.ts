@@ -66,7 +66,8 @@ export async function getExcelStudentYearlyReport(
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
 
-    const url = `/StudentYearlyAttendance/ExportStudentYearlyAttendanceToExcel?AcayId=${academicYearId}&ClassId=${classId}&SectionId=${sectionId}&AllOrIndiFlag=${'all'}&${urlParams}`;
+    const flag = sectionId === 0 ? 'all' : 'indi';
+    const url = `/StudentYearlyAttendance/ExportStudentYearlyAttendanceToExcel?ASMAY_Id=${academicYearId}&ASMCL_Id=${classId}&ASMS_Id=${sectionId}&AllOrIndiFlag=${flag}&${urlParams}`;
 
     try {
         const responseData = await api.postBinary('admission', url);
@@ -100,20 +101,30 @@ export async function getExcelClassWiseStudentReport(
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
 
-    const url = `/Classwisestudentdetails/ExportClasswiseStudentDetailsToExcel?ASMAY_Id=${ASMAY_Id}
-    &AMST_Id=0
-    &flag=${studentScope}
-    &Concession_Id=${fmcC_Id}
-    &classdetailsdata=${encodeURIComponent(JSON.stringify(payload.classdetailsdata))}
-    &sectionsdetailsdata=${encodeURIComponent(JSON.stringify(payload.sectionsdetailsdata))}
-    &TempararyArrayheadList=${encodeURIComponent(JSON.stringify(payload.TempararyArrayheadList))}
-    &${urlParams}`;
+    // Backend now expects only [FromBody] with all parameters in the request body
+    const url = `/Classwisestudentdetails/ExportClasswiseStudentDetailsToExcel?${urlParams}`;
+
+    // Create complete request body with all parameters matching the DTO
+    const requestBody = {
+        ASMAY_Id: ASMAY_Id,
+        AMST_Id: '0',
+        flag: fmcC_Id.toString(),
+        Concession_Id: studentScope,
+        page: 1,
+        page_size: 50,
+        is_export: true,
+        classdetailsdata: payload.classdetailsdata || [],
+        sectionsdetailsdata: payload.sectionsdetailsdata || [],
+        TempararyArrayheadList: payload.tempararyArrayheadList || []
+    };
 
     try {
-        const responseData = await api.postBinary('admission', url);
+        // Send complete request body with all parameters
+        const responseData = await api.postBinary('admission', url, requestBody);
         return Array.from(new Uint8Array(responseData));
     } catch (error) {
         console.error('Excel export error:', error);
+
         throw error;
     }
 }
@@ -191,8 +202,8 @@ export async function getExcelOverallAttendanceReport(
 
 export async function getExcelStudentAttendanceReport(
     ASMAY_Id: number,
-    ASMCL_Id: number, // Section ID?
-    ASMS_Id: number, // Class ID?
+    ASMCL_Id: number,
+    ASMS_Id: number,
     AMST_Id: number | undefined,
     monthId: number | undefined,
     monthDateWise: number | undefined,
@@ -208,7 +219,7 @@ export async function getExcelStudentAttendanceReport(
     const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
     let url = `${baseUrl}/StudentAttendanceReport/ExportAttendanceMonthwiseToExcel?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}&RadioType=${studentStatus}&Type=${selectionMode}`;
 
-    if (selectionMode === 1 && AMST_Id) {
+    if (selectionMode === 2 && AMST_Id) {
         url += `&AMST_Id=${AMST_Id}`;
     }
 

@@ -44,6 +44,11 @@ const SafeSelectItem = ({
     );
 };
 
+interface DropdownItem {
+    key: string;
+    value: string;
+}
+
 interface UpdateEarningsDeductionsFormProps {
     onSuccess?: () => void;
     className?: string;
@@ -53,50 +58,73 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
     const { refetchAll } = useMasterEarningsDeductions();
 
     // Helper function to map API response to dropdown items
-    const mapToDropdownItems = (response: any) => {
-        const rawData = Array.isArray(response) ? response : response?.data || [];
+    const mapToDropdownItems = (response: any): DropdownItem[] => {
+        // Handle different response structures
+        let rawData: any[] = [];
+        if (Array.isArray(response)) {
+            rawData = response;
+        } else if (response?.data) {
+            if (Array.isArray(response.data)) {
+                rawData = response.data;
+            } else if (response.data?.$values && Array.isArray(response.data.$values)) {
+                rawData = response.data.$values;
+            } else if (typeof response.data === 'object') {
+                // If it's a single object that isn't a wrapper, wrap it
+                rawData = [response.data];
+            }
+        } else if (response?.$values && Array.isArray(response.$values)) {
+            rawData = response.$values;
+        }
+
         return rawData.map((item: any) => {
-            // If already has key/value, use them
-            if (item.key !== undefined && item.value !== undefined) {
-                return item;
+            if (!item || typeof item !== 'object') return { key: String(item || ''), value: String(item || '') };
+
+            // Case 1: Already has key/value or id/name
+            const keyVal = item.key ?? item.id ?? item.idField ?? item.hrmedT_Id ?? item.HRMEDT_Id;
+            const displayVal = item.hrmedT_EarnDedType ?? item.HRMEDT_EarnDedType ?? item.name ?? item.text ?? item.label ?? item.value;
+
+            if (keyVal !== undefined && displayVal !== undefined) {
+                return { key: String(keyVal).trim(), value: String(displayVal).trim() };
             }
 
-            // Find potential ID field (ends with Id or ID, case insensitive)
-            const idField = Object.keys(item).find(k => /Id$/i.test(k));
-            // Find potential Name/Value field (ends with Name, Type, Description, or is specific field)
-            const valueField = Object.keys(item).find(k => /Name$|Type$|Desc$/i.test(k) && !/Id$/i.test(k));
+            // Case 2: Infer from object keys
+            const keys = Object.keys(item);
+            const idField = keys.find((k) => k.toLowerCase().endsWith('id'));
+            const nameField = keys.find(
+                (k) =>
+                    (k.toLowerCase().includes('type') ||
+                        k.toLowerCase().includes('name') ||
+                        k.toLowerCase().includes('flag') ||
+                        k.toLowerCase().includes('desc') ||
+                        k.toLowerCase().includes('text') ||
+                        k.toLowerCase().includes('label')) &&
+                    !k.toLowerCase().endsWith('id')
+            );
+
+            const finalKey = idField ? item[idField] : keyVal ?? (keys[0] ? item[keys[0]] : '');
+            const finalValue = nameField ? item[nameField] : displayVal ?? finalKey;
 
             return {
-                key: item[idField || ''] ?? item.key,
-                value: item[valueField || ''] ?? item.value
+                key: String(finalKey ?? '').trim(),
+                value: String(finalValue ?? '').trim()
             };
         });
     };
 
-    // Earnings Deductions Type dropdown
+    // dropdown data
     const { data: earningsDeductionsTypeDropdownResponse, isLoading: isLoadingEarningsDeductionsTypes } =
         useEarningsDeductionsTypeDropdown();
-    const earningsDeductionsTypeDropdown: IEarningsDeductionsTypeDropdown[] = useMemo(() => {
-        return mapToDropdownItems(earningsDeductionsTypeDropdownResponse);
-    }, [earningsDeductionsTypeDropdownResponse]);
+    const earningsDeductionsTypeDropdown = useMemo(() => mapToDropdownItems(earningsDeductionsTypeDropdownResponse), [earningsDeductionsTypeDropdownResponse]);
 
-    // Rounding Type dropdown
     const { data: roundingTypeDropdownResponse, isLoading: isLoadingRoundingTypes } = useRoundingTypeDropdown();
-    const roundingTypeDropdown: IRoundingTypeDropdown[] = useMemo(() => {
-        return mapToDropdownItems(roundingTypeDropdownResponse);
-    }, [roundingTypeDropdownResponse]);
+    const roundingTypeDropdown = useMemo(() => mapToDropdownItems(roundingTypeDropdownResponse), [roundingTypeDropdownResponse]);
 
-    // Amount Or Percentage dropdown
     const { data: amountOrPercentageDropdownResponse, isLoading: isLoadingAmountOrPercentage } = useAmountOrPercentageDropdown();
-    const amountOrPercentageDropdown: IAmountOrPercentageDropdown[] = useMemo(() => {
-        return mapToDropdownItems(amountOrPercentageDropdownResponse);
-    }, [amountOrPercentageDropdownResponse]);
+    const amountOrPercentageDropdown = useMemo(() => mapToDropdownItems(amountOrPercentageDropdownResponse), [amountOrPercentageDropdownResponse]);
 
-    // Salary Component Type dropdown (Earning/Deduction)
     const { data: salaryComponentTypeDropdownResponse, isLoading: isLoadingSalaryComponentType } = useSalaryComponentTypeDropdown();
-    const salaryComponentTypeDropdown: ISalaryComponentTypeDropdown[] = useMemo(() => {
-        return mapToDropdownItems(salaryComponentTypeDropdownResponse);
-    }, [salaryComponentTypeDropdownResponse]);
+    const salaryComponentTypeDropdown = useMemo(() => mapToDropdownItems(salaryComponentTypeDropdownResponse), [salaryComponentTypeDropdownResponse]);
+
     const {
         register,
         handleSubmit,
@@ -104,32 +132,125 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
         control,
         getValues,
         trigger,
+        setValue,
         formState: { errors, isSubmitting, isDirty }
     } = useForm<MasterEarningsDeductionsInput>({
         mode: 'onChange'
     });
+
     const calculationType = useWatch({
         control,
         name: 'HRMED_AmountPercentFlag',
         defaultValue: 'Amount'
     });
+
+    const findKey = (list: DropdownItem[], val: any) => {
+        if (val === undefined || val === null) return undefined;
+        const stringVal = String(val).trim();
+        if (stringVal === '') return undefined;
+
+        // 1. Try exact key match (Internal ID)
+        const exactKeyMatch = list.find((item: DropdownItem) => String(item.key).trim() === stringVal);
+        if (exactKeyMatch) return String(exactKeyMatch.key).trim();
+
+        // 2. Try exact value/name match (Display Label) - Case Insensitive
+        const exactValueMatch = list.find((item: DropdownItem) => String(item.value).trim().toLowerCase() === stringVal.toLowerCase());
+        if (exactValueMatch) return String(exactValueMatch.key).trim();
+
+        // 3. Try partial matches for common variations (e.g., "Earning" vs "Earnings")
+        const partialMatch = list.find((item: DropdownItem) => {
+            const v = String(item.value).trim().toLowerCase();
+            const s = stringVal.toLowerCase();
+            return v.startsWith(s) || s.startsWith(v) || v.includes(s) || s.includes(v);
+        });
+        if (partialMatch) return String(partialMatch.key).trim();
+
+        return undefined; // Return undefined if no mapping found to prevent showing invalid data
+    };
+
+    const findValue = (list: DropdownItem[], val: any) => {
+        if (val === undefined || val === null) return undefined;
+        const stringVal = String(val).trim();
+        if (stringVal === '') return undefined;
+
+        // 1. Try exact value match (Display Label) - Case Insensitive
+        const exactValueMatch = list.find((item: DropdownItem) => String(item.value).trim().toLowerCase() === stringVal.toLowerCase());
+        if (exactValueMatch) return String(exactValueMatch.value).trim();
+
+        // 2. Try exact key match (Internal ID)
+        const exactKeyMatch = list.find((item: DropdownItem) => String(item.key).trim() === stringVal);
+        if (exactKeyMatch) return String(exactKeyMatch.value).trim();
+
+        // 3. Try partial matches
+        const partialMatch = list.find((item: DropdownItem) => {
+            const v = String(item.value).trim().toLowerCase();
+            const s = stringVal.toLowerCase();
+            return v.startsWith(s) || s.startsWith(v) || v.includes(s) || s.includes(v);
+        });
+        if (partialMatch) return String(partialMatch.value).trim();
+
+        return undefined;
+    };
+
+    // Consolidated row data binding
     useEffect(() => {
-        if (row) {
+        if (row && reset) {
             reset({
                 HRMED_Id: row.hrmeD_Id,
-                MI_Id: row.mI_Id,
-                HRMED_Name: row.hrmeD_Name,
-                HRMED_EDTypeFlag: row.hrmeD_EDTypeFlag,
-                HRMED_EarnDedFlag: row.hrmeD_EarnDedFlag,
-                HRMED_AmountPercentFlag: row.hrmeD_AmountPercentFlag,
-                HRMED_AmountPercent: row.hrmeD_AmountPercent,
+                MI_Id: row.mI_Id || 0,
+                HRMED_Name: row.hrmeD_Name || '',
+                HRMED_EDTypeFlag: findValue(earningsDeductionsTypeDropdown, row.hrmeD_EDTypeFlag),
+                HRMED_EarnDedFlag: findKey(salaryComponentTypeDropdown, row.hrmeD_EarnDedFlag),
+                HRMED_AmountPercentFlag: findKey(amountOrPercentageDropdown, row.hrmeD_AmountPercentFlag),
+                HRMED_AmountPercent: String(row.hrmeD_AmountPercent ?? ''),
                 HRMED_ActiveFlag: row.hrmeD_ActiveFlag,
-                HRMED_RoundOffFlag: row.hrmeD_RoundOffFlag,
+                HRMED_RoundOffFlag: findKey(roundingTypeDropdown, row.hrmeD_RoundOffFlag),
                 HRMED_Order: row.hrmeD_Order,
                 HRMED_ReviseFlg: row.hrmeD_ReviseFlg
-            });
+            }, { keepDefaultValues: false });
         }
-    }, [row, reset]);
+    }, [row, reset]); // Trigger when row changes
+
+    // Robust synchronization as dropdown data arrives
+    useEffect(() => {
+        if (row && earningsDeductionsTypeDropdown.length > 0) {
+            const target = findValue(earningsDeductionsTypeDropdown, row.hrmeD_EDTypeFlag);
+            const current = getValues('HRMED_EDTypeFlag');
+            if (target !== undefined && target !== current) {
+                setValue('HRMED_EDTypeFlag', target, { shouldDirty: false, shouldValidate: true });
+            }
+        }
+    }, [earningsDeductionsTypeDropdown, row, setValue, getValues]);
+
+    useEffect(() => {
+        if (row && salaryComponentTypeDropdown.length > 0) {
+            const target = findKey(salaryComponentTypeDropdown, row.hrmeD_EarnDedFlag);
+            const current = getValues('HRMED_EarnDedFlag');
+            if (target !== undefined && target !== current) {
+                setValue('HRMED_EarnDedFlag', target, { shouldDirty: false, shouldValidate: true });
+            }
+        }
+    }, [salaryComponentTypeDropdown, row, setValue, getValues]);
+
+    useEffect(() => {
+        if (row && amountOrPercentageDropdown.length > 0) {
+            const target = findKey(amountOrPercentageDropdown, row.hrmeD_AmountPercentFlag);
+            const current = getValues('HRMED_AmountPercentFlag');
+            if (target !== undefined && target !== current) {
+                setValue('HRMED_AmountPercentFlag', target, { shouldDirty: false, shouldValidate: true });
+            }
+        }
+    }, [amountOrPercentageDropdown, row, setValue, getValues]);
+
+    useEffect(() => {
+        if (row && roundingTypeDropdown.length > 0) {
+            const target = findKey(roundingTypeDropdown, row.hrmeD_RoundOffFlag);
+            const current = getValues('HRMED_RoundOffFlag');
+            if (target !== undefined && target !== current) {
+                setValue('HRMED_RoundOffFlag', target, { shouldDirty: false, shouldValidate: true });
+            }
+        }
+    }, [roundingTypeDropdown, row, setValue, getValues]);
     const onSubmit = async (data: MasterEarningsDeductionsInput) => {
         try {
             // Build the request body - map to lowercase field names as per API
@@ -178,7 +299,6 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                             placeholder='Enter earning/deduction name'
                             maxLength={EARNING_DEDUCTION_VALIDATION.HRMED_Name.maxLength?.value}
                             error={errors.HRMED_Name?.message}
-                            defaultValue={row.hrmeD_Name}
                             {...register('HRMED_Name', EARNING_DEDUCTION_VALIDATION.HRMED_Name)}
                         />
                     </div>
@@ -206,17 +326,17 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                                             </SelectItem>
                                         ) : (
                                             (earningsDeductionsTypeDropdown || [])
-                                                .filter((item) => {
-                                                    const key = item.key || item.value;
-                                                    return key != null && key !== '' && String(key).trim() !== '';
+                                                .filter((item: DropdownItem) => {
+                                                    const val = item.value || item.key;
+                                                    return val != null && val !== '' && String(val).trim() !== '';
                                                 })
-                                                .map((item) => {
-                                                    const key = (item.key || item.value)?.toString().trim();
-                                                    const value = item.value || String(key);
+                                                .map((item: DropdownItem) => {
+                                                    const key = (item.value || item.key)?.toString().trim();
+                                                    const label = item.value || String(key);
                                                     if (!key || key === '') return null;
                                                     return (
                                                         <SafeSelectItem key={key} value={key}>
-                                                            {value}
+                                                            {label}
                                                         </SafeSelectItem>
                                                     );
                                                 })
@@ -252,11 +372,11 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                                             </SelectItem>
                                         ) : (
                                             (roundingTypeDropdown || [])
-                                                .filter((item) => {
+                                                .filter((item: DropdownItem) => {
                                                     const key = item.key || item.value;
                                                     return key != null && key !== '' && String(key).trim() !== '';
                                                 })
-                                                .map((item) => {
+                                                .map((item: DropdownItem) => {
                                                     const key = (item.key || item.value)?.toString().trim();
                                                     const value = item.value || String(key);
                                                     if (!key || key === '') return null;
@@ -298,11 +418,11 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                                             </SelectItem>
                                         ) : (
                                             (salaryComponentTypeDropdown || [])
-                                                .filter((item) => {
+                                                .filter((item: DropdownItem) => {
                                                     const key = item.key || item.value;
                                                     return key != null && key !== '' && String(key).trim() !== '';
                                                 })
-                                                .map((item) => {
+                                                .map((item: DropdownItem) => {
                                                     const key = (item.key || item.value)?.toString().trim();
                                                     const value = item.value || String(key);
                                                     if (!key || key === '') return null;
@@ -349,11 +469,11 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                                             </SelectItem>
                                         ) : (
                                             (amountOrPercentageDropdown || [])
-                                                .filter((item) => {
+                                                .filter((item: DropdownItem) => {
                                                     const key = item.key || item.value;
                                                     return key != null && key !== '' && String(key).trim() !== '';
                                                 })
-                                                .map((item) => {
+                                                .map((item: DropdownItem) => {
                                                     const key = (item.key || item.value)?.toString().trim();
                                                     const value = item.value || String(key);
                                                     if (!key || key === '') return null;
@@ -380,10 +500,10 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                             placeholder={`Enter ${calculationType === 'Percentage' ? 'percentage' : 'amount'}`}
                             maxLength={calculationType === 'Percentage' ? 5 : undefined}
                             error={errors.HRMED_AmountPercent?.message}
-                            defaultValue={row.hrmeD_AmountPercent}
                             {...register('HRMED_AmountPercent', {
                                 required: EARNING_DEDUCTION_VALIDATION.HRMED_AmountPercent.required,
                                 validate: (value) => {
+                                    if (!value || value.trim() === '') return 'Amount/Percentage is required';
                                     const numValue = Number.parseFloat(value);
                                     if (Number.isNaN(numValue)) {
                                         return 'Amount/Percentage must be a valid number';
@@ -414,7 +534,6 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                             type='checkbox'
                             id='HRMED_ReviseFlg'
                             className='h-4 w-4'
-                            defaultChecked={row.hrmeD_ReviseFlg}
                             {...register('HRMED_ReviseFlg')}
                         />
                         <Label htmlFor='HRMED_ReviseFlg' className='cursor-pointer'>

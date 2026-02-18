@@ -1,44 +1,22 @@
 'use server';
 
-import { api, getSearchParamsUrl, type ApiResponse } from '@/lib/apiService';
+import { api, type ApiResponse } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import { IEventSponsorMapping } from '@/types/sports/transactions/events-sponsor';
+import type { IEventSponsorInitialData } from '@/types/sports/transactions/events-sponsor';
 
 /**
- * Fetch Events Sponsor Mapping with 17 dummy entries.
+ * Fetch Events Sponsor Mapping details.
  */
-export async function getEventsSponsorMapping(searchParams?: ApiSearchparams): Promise<ApiResponse<IEventSponsorMapping[]>> {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/EventSponsorMapping/getDetails/2?${urlParams}`;
-
-    const dummyDataCount = 17;
-    const dummyData: IEventSponsorMapping[] = Array.from({ length: dummyDataCount }, (_, i) => ({
-        spccesP_Id: 1000 + i,
-        mI_Id: 1,
-        spccE_Id: 2000 + i,
-        spccmsP_Id: 3000 + i,
-        spccesP_ActiveFlag: ![2, 5, 8, 12, 15].includes(i),
-        spccpM_Name: `Annual Sports Program ${i + 1}`,
-        sponsorName: `Sponsor Company ${i + 1}`,
-        createdDate: new Date().toISOString(),
-        updatedDate: new Date().toISOString()
-    }));
-
+export async function getEventsSponsorMapping(searchParams?: ApiSearchparams): Promise<ApiResponse<IEventSponsorInitialData>> {
     try {
-        const response = await api.get<IEventSponsorMapping[]>('sports', url);
-        if (response.success && response.data && response.data.length > 0) {
-            return response;
-        }
+        // Controller uses [HttpPost("getDetails")]
+        const response = await api.post<IEventSponsorInitialData>('sports', '/EventsSponsor/getDetails', {});
+        return response;
+    } catch (error: any) {
         return {
-            success: true,
-            message: 'Data fetched successfully (Dummy Data)!!',
-            data: dummyData
-        };
-    } catch (error) {
-        return {
-            success: true,
-            message: 'Data fetched successfully (Dummy Data)!!',
-            data: dummyData
+            success: false,
+            message: error.message || 'Failed to fetch details',
+            data: { events: [], sponsorList: [], sponsormappingList: [] }
         };
     }
 }
@@ -47,14 +25,30 @@ export async function getEventsSponsorMapping(searchParams?: ApiSearchparams): P
  * Save or Update Events Sponsor Mapping.
  */
 export async function saveEventsSponsorMapping(data: any): Promise<ApiResponse<any>> {
-    const url = '/EventSponsorMapping/saveRecord';
-    return await api.post<any>('sports', url, data);
+    // Mapping keys to match the requested body format
+    const payload = {
+        SPCCESP_Id: data.spccesP_Id || 0,
+        SPCCE_Id: data.spccE_Id,
+        SPCCMSP_Id: data.spccmsP_Id
+    };
+    return await api.post<any>('sports', '/EventsSponsor/save', payload);
+}
+
+/**
+ * Get Edit Details.
+ */
+export async function getEditEventsSponsorMapping(id: number): Promise<ApiResponse<any>> {
+    // Controller uses [HttpPost("EditDetails/{id:int}")]
+    return await api.post<any>('sports', `/EventsSponsor/EditDetails/${id}`, {});
 }
 
 /**
  * Deactivate or Activate Events Sponsor Mapping.
  */
-export async function deactivateEventsSponsorMapping(data: any): Promise<ApiResponse<any>> {
-    const url = '/EventSponsorMapping/deactivate';
-    return await api.post<any>('sports', url, data);
+export async function deactivateEventsSponsorMapping(data: { spccesP_Id: number, spccesP_ActiveFlag: boolean }): Promise<ApiResponse<any>> {
+    const payload = {
+        SPCCESP_Id: data.spccesP_Id,
+        SPCCESP_ActiveFlag: data.spccesP_ActiveFlag
+    };
+    return await api.post<any>('sports', '/EventsSponsor/deactivate', payload);
 }

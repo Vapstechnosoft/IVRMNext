@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 export const studentAgeCalculationSchema = z.object({
     ASMAY_Id: z.coerce.number().min(1, 'Select Academic Year'),
-    asmcL_Id: z.coerce.number().min(1, 'Select Class'),
-    asmS_Id: z.coerce.number().min(1, 'Select Section'),
+    ASMCL_Id: z.coerce.number().min(1, 'Select Class'),
+    ASMS_Id: z.coerce.number().min(1, 'Select Section'),
     student: z.array(z.coerce.number()).min(1, 'Select at least one Student'),
     Till_Date: z.date({
         required_error: "Age Till Date is required",

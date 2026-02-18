@@ -452,6 +452,28 @@ export default function DailyFeeCollectionReportForm() {
                     Cheque: data.chequeDate ? '1' : '0',
                     GroupFlag: selectedGroupIds.length > 0 ? '1' : '0'
                 };
+            } else {
+                const allList = selectedGroupIds.map((id) => ({
+                    FMG_Id: String(id)
+                }));
+                payload = {
+                    AMAY_Id: asmaY_Id,
+                    classid: 0,
+                    Fromdate: formatDate(fromDate),
+                    Todate: formatDate(toDate),
+                    TempararyArrayListstring: reportdate,
+                    allorindivflag: data.rpttyp,
+                    allorstdorothersflag: Fmc_allorsudentorother,
+                    allorcorchoronlineflag: Fmc_allorcorddorop,
+                    mid: 30,
+                    classflag: data.enableAllClasses ? '0' : '1',
+                    groupflag: selectedGroupIds.length > 0 ? '1' : '0',
+                    regornamedetails: report,
+                    All_List: allList,
+                    cheque: data.chequeDate ? '1' : '0',
+                    headwise: headwise,
+                    paymentwise: paymentwise
+                };
             }
 
             console.log('payload', JSON.stringify(payload));

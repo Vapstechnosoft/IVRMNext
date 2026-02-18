@@ -82,7 +82,7 @@ export default function TotalStrengthPage() {
         defaultValues: {
             reportType: 'All',
             status: 'Present',
-            withTc: false,
+            withTc: true,
             withDeactive: false,
             academicYear: 0,
             class: '',
@@ -113,8 +113,8 @@ export default function TotalStrengthPage() {
                 amsT_SOL = 'S';
             }
 
-            const withtc = formData.withTc ? 'N' : 'N';
-            const withdeactive = formData.withDeactive ? 'N' : 'N';
+            const withtc = formData.withTc ? 'Y' : 'N';
+            const withdeactive = formData.withDeactive ? 'Y' : 'N';
 
             const electivearray: ElectiveItem[] = selectAll ? [{ ismS_Id: 0, ismS_SubjectName: '0' }] : [];
 
@@ -549,10 +549,13 @@ export default function TotalStrengthPage() {
                                                         <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Sl.No</th>
                                                         <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Class</th>
                                                         <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Section</th>
+                                                          <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Boys</th>
+                                                            <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Girls</th>
+
                                                         <th className='border border-gray-300 px-4 py-2 text-right font-semibold'>Total</th>
-                                                        <th className='border border-gray-300 px-4 py-2 text-right font-semibold'>
+                                                        {/* <th className='border border-gray-300 px-4 py-2 text-right font-semibold'>
                                                             New Admission
-                                                        </th>
+                                                        </th> */}
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -571,22 +574,29 @@ export default function TotalStrengthPage() {
                                                                             {sectionIndex === 0 ? item.classname : ''}
                                                                         </td>
                                                                         <td className='border border-gray-300 px-4 py-2'>{item.sectionname}</td>
+
+                                                                        <td className='border border-gray-300 px-4 py-2'>{item.boys}</td>
+                                                                        <td className='border border-gray-300 px-4 py-2'>{item.girls}</td>
+
+
                                                                         <td className='border border-gray-300 px-4 py-2 text-right'>
                                                                             {item.totalstudents}
                                                                         </td>
-                                                                        <td className='border border-gray-300 px-4 py-2 text-right'>
+                                                                        {/* <td className='border border-gray-300 px-4 py-2 text-right'>
                                                                             {item.newAdmission || ''}
-                                                                        </td>
+                                                                        </td> */}
                                                                     </tr>
                                                                 ))}
                                                                 <tr key={`total-${rowNumber}`} className='bg-white font-semibold'>
                                                                     <td colSpan={3} className='border border-gray-300 px-4 py-2 text-right'>
-                                                                        Total {sections[0]?.classname}
+                                                                      Total  {/* Total {sections[0]?.classname} */}
                                                                     </td>
+                                                                 <td className='border border-gray-300 px-4 py-2 text-right'> </td>
+                                                                  <td className='border border-gray-300 px-4 py-2 text-right'>  </td>
                                                                     <td className='border border-gray-300 px-4 py-2 text-right'>
                                                                         {calculateClassTotal(Number(rowNumber))}
                                                                     </td>
-                                                                    <td className='border border-gray-300 px-4 py-2 text-right' />
+                                                                    {/* <td className='border border-gray-300 px-4 py-2 text-right' /> */}
                                                                 </tr>
                                                             </Fragment>
                                                         ))}
@@ -594,6 +604,8 @@ export default function TotalStrengthPage() {
                                                         <td colSpan={3} className='border border-gray-300 px-4 py-2 text-right'>
                                                             Grand Total
                                                         </td>
+                                                        <td> </td>
+                                                      
                                                         <td className='border border-gray-300 px-4 py-2 text-right'>{calculateGrandTotal()}</td>
                                                         <td className='border border-gray-300 px-4 py-2 text-right' />
                                                     </tr>

@@ -320,12 +320,7 @@ class ApiService {
         return this.request<T>(baseUrlKey, 'POST', url, config, data);
     }
 
-    public async postBinary(
-        baseUrlKey: ApiBaseUrlKey,
-        url: string,
-        data?: unknown,
-        config?: AxiosRequestConfig
-    ): Promise<any> {
+    public async postBinary(baseUrlKey: ApiBaseUrlKey, url: string, data?: unknown, config?: AxiosRequestConfig): Promise<any> {
         try {
             const instance = this.getOrCreateInstance(baseUrlKey);
             const response = await instance.request({

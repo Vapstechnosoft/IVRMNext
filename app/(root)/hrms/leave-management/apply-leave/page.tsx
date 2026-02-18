@@ -4,45 +4,68 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useAdminOnDutyApplyList } from '@/hooks/hrms/leave-management/useAdminOnDutyApply';
-import { useDeleteEmployeeLeaveById } from '@/hooks/hrms/leave-management/useOnlineLeaveApplication';
+import { useEmployeeLeaveDetails, useEmployeeLeaveStatusDetails, useDeleteEmployeeLeaveById } from '@/hooks/hrms/leave-management/useOnlineLeaveApplication';
 import { Plus, X } from 'lucide-react';
-import { use } from 'react';
+import { useMemo } from 'react';
 import AddApplyLeaveForm from './_components/add-form';
-import { type LeaveHistoryRow, createLeaveHistoryColumns } from './_components/columns';
+import { type LeaveHistoryRow, createLeaveHistoryColumns, leaveBalanceColumns } from './_components/columns';
 
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+export default function ApplyLeavePage() {
+    const { data: statusData, isLoading: isStatusLoading, error: statusError, refetchAll } = useEmployeeLeaveStatusDetails();
+    const { data: employeeData, isLoading: isEmployeeLoading } = useEmployeeLeaveDetails();
 
-export default function ApplyLeavePage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
+    const response = useMemo(() => {
+        if (!statusData) return null;
+        return {
+            success: true,
+            data: statusData.leaveApplications,
+            total: statusData.leaveApplications.length
+        };
+    }, [statusData]);
 
-    const { data: response, isLoading, error, refetchAll } = useAdminOnDutyApplyList(searchParams as any);
+    const isLoading = isStatusLoading || isEmployeeLoading;
+    const error = statusError;
 
-    // Transform response data to match table columns expected format
-    const transformedResponse = {
-        ...response,
-        data: response?.data?.map((item: any) => ({
-            id: item.id,
-            employeeName: item.employeeName,
-            leaveType: item.leaveName,
-            leaveReason: item.leaveReason,
-            fromDate: item.fromDate,
-            toDate: item.toDate,
-            noOfDays: item.totalDays,
-            days: item.totalDays,
-            status: item.status,
-            remark: item.leaveReason,
-            document: ''
-        })) || []
-    };
+    const employeeDetails = useMemo(() => {
+        if (!employeeData?.employeeDetails) {
+            return {
+                id: 0,
+                name: '',
+                designation: '',
+                doj: '',
+                email: '',
+                phone: ''
+            };
+        }
+        const emp = employeeData.employeeDetails;
+        return {
+            id: emp.hrmE_Id,
+            name: emp.hrmE_EmployeeName,
+            designation: emp.hrmdeS_DesignationName,
+            doj: emp.hrmE_DOJ,
+            email: emp.hrmE_EmailId,
+            phone: String(emp.hrmE_MobileNo)
+        };
+    }, [employeeData]);
+
+    const leaveBalancesData = useMemo(() => {
+        if (!employeeData?.leaveBalances) return null;
+        return {
+            success: true,
+            data: employeeData.leaveBalances,
+            total: employeeData.leaveBalances.length
+        };
+    }, [employeeData]);
 
     return (
         <FormProvider<LeaveHistoryRow>>
             <ApplyLeavePageContent
-                response={transformedResponse}
+                response={response}
                 isLoading={isLoading}
                 error={error}
                 refetchAll={refetchAll}
+                defaultEmployee={employeeDetails}
+                leaveBalancesData={leaveBalancesData}
             />
         </FormProvider>
     );
@@ -52,25 +75,21 @@ function ApplyLeavePageContent({
     response,
     isLoading,
     error,
-    refetchAll
+    refetchAll,
+    defaultEmployee,
+    leaveBalancesData
 }: {
     response: any;
     isLoading: boolean;
     error: any;
     refetchAll: () => void;
+    defaultEmployee: any;
+    leaveBalancesData: any;
 }) {
-    const { openAddForm } = useFormContext<LeaveHistoryRow>();
+    const { closeAddForm, openAddForm } = useFormContext<LeaveHistoryRow>();
     const tableProps = useDataTableProps(response);
-    const { mutate: deleteLeave } = useDeleteEmployeeLeaveById();
 
-    // Mock employee data
-    const defaultEmployee = {
-        name: 'Admin',
-        designation: 'Administrator',
-        doj: '2023-01-01',
-        email: 'admin@example.com',
-        phone: '9876543210'
-    };
+    const { mutate: deleteLeave } = useDeleteEmployeeLeaveById();
 
     const handleDelete = (id: number) => {
         if (window.confirm('Are you sure you want to delete this leave application?')) {
@@ -85,25 +104,29 @@ function ApplyLeavePageContent({
     const columns = createLeaveHistoryColumns(handleDelete);
 
     return (
-        <div className='min-h-screen'>
-            <div className='container space-y-4 p-1'>
-                {/* Header */}
-                <div className='flex justify-end'>
-                    <Button
-                        type='button'
-                        onClick={openAddForm}
-                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4' />
-                        Apply Leave
-                    </Button>
+        <div className='min-h-screen bg-muted/20 pb-8'>
+            <div className='container space-y-6 py-6'>
+                {/* Header with Title and Action */}
+                <div className='flex items-center justify-between'>
+
+                    <div className="flex justify-end w-full">
+                        <Button
+                            type='button'
+                            onClick={openAddForm}
+                            className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'
+                        >
+                            <Plus className='mr-2 h-4 w-4' />
+                            Apply Leave
+                        </Button>
+                    </div>
                 </div>
 
-                {/* Data Table Section */}
+                {/* Box 1: Leave History */}
                 <CollapsibleSection
+                    title='Employee Leave History'
                     defaultOpen={true}
                     variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    className='bg-white shadow-lg'>
                     <GenericDataTable<LeaveHistoryRow>
                         {...tableProps}
                         columns={columns}
@@ -113,13 +136,15 @@ function ApplyLeavePageContent({
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading leave history...'
                         noDataTitle='No Leave History'
-                        noDataDescription='Apply for leave to see your history here'
-                        errorTitle='Error Loading Leave History'
+                        noDataDescription='Your applied leaves will appear here.'
                     />
                 </CollapsibleSection>
 
-                {/* Forms */}
-                <FormSections refetchAll={refetchAll} defaultEmployee={defaultEmployee} />
+                {/* Box 2: Form Sections (Appears on click) */}
+                <FormSections
+                    refetchAll={refetchAll}
+                    defaultEmployee={defaultEmployee}
+                />
             </div>
         </div>
     );
@@ -137,38 +162,70 @@ function FormSections({ refetchAll, defaultEmployee }: FormSectionsProps) {
         addFormRef,
     } = useFormContext<LeaveHistoryRow>();
 
+    if (!isAddFormOpen) return null;
+
     return (
-        <>
+        <div ref={addFormRef} className='space-y-6 animate-in slide-in-from-top-4 duration-300'>
             {/* Add Application Form */}
-            {isAddFormOpen && (
-                <div ref={addFormRef}>
-                    <CollapsibleSection
-                        title='New Leave Application'
-                        description='Fill in the details below to apply for leave'
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                        <div className='relative'>
-                            <Button
-                                type='button'
-                                onClick={closeAddForm}
-                                variant='ghost'
-                                size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
-                            </Button>
-                            <AddApplyLeaveForm
-                                defaultEmployee={defaultEmployee}
-                                onSuccess={() => {
-                                    refetchAll();
-                                    closeAddForm();
-                                }}
-                            />
-                        </div>
-                    </CollapsibleSection>
+            <CollapsibleSection
+                title='New Leave Application'
+                description='Fill in the details below to apply for leave'
+                defaultOpen={true}
+                variant='outline'
+                size='md'
+                className='shadow-lg'>
+                <div className='relative'>
+                    <Button
+                        type='button'
+                        onClick={closeAddForm}
+                        variant='ghost'
+                        size='sm'
+                        className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                        <X className='h-4 w-4 text-destructive' /> Close
+                    </Button>
+                    <AddApplyLeaveForm
+                        defaultEmployee={defaultEmployee}
+                        onSuccess={() => {
+                            refetchAll();
+                            closeAddForm();
+                        }}
+                    />
                 </div>
-            )}
-        </>
+            </CollapsibleSection>
+
+            {/* Box 1: Employee Information */}
+            <CollapsibleSection
+                title='Employee Information'
+                defaultOpen={true}
+                variant='outline'
+                className='bg-white shadow-sm'>
+                <div className='grid grid-cols-1 gap-6 p-2 md:grid-cols-2'>
+                    <div className='space-y-4'>
+                        <div className='flex items-center gap-3 border-b pb-2'>
+                            <span className='font-semibold text-muted-foreground min-w-[120px]'>Employee Name</span>
+                            <span className='text-foreground'>: {defaultEmployee.name || '-'}</span>
+                        </div>
+                        <div className='flex items-center gap-3 border-b pb-2'>
+                            <span className='font-semibold text-muted-foreground min-w-[120px]'>DOJ</span>
+                            <span className='text-foreground'>: {defaultEmployee.doj ? new Date(defaultEmployee.doj).toLocaleDateString('en-GB') : '-'}</span>
+                        </div>
+                    </div>
+                    <div className='space-y-4'>
+                        <div className='flex items-center gap-3 border-b pb-2'>
+                            <span className='font-semibold text-muted-foreground min-w-[120px]'>Designation</span>
+                            <span className='text-foreground'>: {defaultEmployee.designation || '-'}</span>
+                        </div>
+                        <div className='flex items-center gap-3 border-b pb-2'>
+                            <span className='font-semibold text-muted-foreground min-w-[120px]'>Email</span>
+                            <span className='text-foreground'>: {defaultEmployee.email || '-'}</span>
+                        </div>
+                        <div className='flex items-center gap-3 border-b pb-2'>
+                            <span className='font-semibold text-muted-foreground min-w-[120px]'>Phone</span>
+                            <span className='text-foreground'>: {defaultEmployee.phone || '-'}</span>
+                        </div>
+                    </div>
+                </div>
+            </CollapsibleSection>
+        </div>
     );
 }

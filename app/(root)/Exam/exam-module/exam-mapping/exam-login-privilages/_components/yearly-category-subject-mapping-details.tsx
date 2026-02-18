@@ -32,8 +32,6 @@ export default function LoginPrivilegesDetailsPage({ rowData, onClose }: LoginPr
 
     useEffect(() => {
         refetch();
-        console.log(rowData);
-        console.log(apiResponse);
     }, [rowData.elP_Id, rowData.asmcL_Id, rowData.asmS_Id, refetch]);
 
     if (error) {

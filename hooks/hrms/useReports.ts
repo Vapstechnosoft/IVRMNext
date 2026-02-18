@@ -66,6 +66,12 @@ import {
     filterEmployeesByYearMonth,
     generateSalarySlip
 } from '@/server/hrms/hrmsConfig/reports/salary-slip-report';
+import {
+    getYearWiseSalaryDetails,
+    getMonthWiseSalaryDetails,
+    type YearWiseSalaryResponse,
+    type MonthWiseSalaryResponse
+} from '@/server/hrms/reports/employee-salary-details';
 import type {
     SalarySlipFilterRequest,
     SalarySlipGenerateRequest
@@ -368,3 +374,28 @@ export function useGenerateSalarySlip() {
         }
     });
 }
+
+/**
+ * Hook for Year-wise Employee Salary Details
+ */
+export function useYearWiseSalaryDetails(year: string) {
+    return useQuery({
+        queryKey: ['year-wise-salary-details', year],
+        queryFn: () => getYearWiseSalaryDetails(year),
+        enabled: !!year,
+        staleTime: 1000 * 60 * 5
+    });
+}
+
+/**
+ * Hook for Month-wise Employee Salary Details (Department breakdown)
+ */
+export function useMonthWiseSalaryDetails(year: string, month: string) {
+    return useQuery({
+        queryKey: ['month-wise-salary-details', year, month],
+        queryFn: () => getMonthWiseSalaryDetails(year, month),
+        enabled: !!year && !!month,
+        staleTime: 1000 * 60 * 5
+    });
+}
+

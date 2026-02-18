@@ -2,7 +2,8 @@ import {
     deleteEmployeeLeaveById,
     getEmployeeLeaveDetails,
     getEmployeeLeaveStatusDetails,
-    saveOnlineLeaveApplication
+    saveOnlineLeaveApplication,
+    saveLeaveRequestDocument
 } from '@/server/hrms/leave-management/transaction/online-leave-application';
 import type {
     EmployeeDetail,
@@ -148,6 +149,27 @@ export function useDeleteEmployeeLeaveById() {
         onSuccess: (data) => {
             toast.success(data.message);
             queryClient.invalidateQueries({ queryKey: [ONLINE_LEAVE_APPLICATION_KEYS.STATUS_DETAILS] });
+        },
+        onError: (error: Error) => {
+            toast.error(error.message);
+        }
+    });
+}
+
+/**
+ * Hook to save leave request document
+ */
+export function useSaveLeaveRequestDocument() {
+    return useMutation({
+        mutationFn: async ({ hrmeId, formData }: { hrmeId: number; formData: FormData }) => {
+            const response = await saveLeaveRequestDocument(hrmeId, formData);
+            if (!response.success) {
+                throw new Error(response.message);
+            }
+            return response;
+        },
+        onSuccess: (data) => {
+            toast.success(data.message);
         },
         onError: (error: Error) => {
             toast.error(error.message);

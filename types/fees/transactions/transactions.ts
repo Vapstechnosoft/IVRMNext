@@ -772,6 +772,10 @@ export interface IFeeConcessionStudentConcessionGrid {
     fsC_Id: number;
     asmaY_Id: number;
     fscI_ID: number;
+    fsC_ConcessionType: string;
+    fsC_ConcessionReason: string;
+    fmT_Name: string;
+    fmT_Id: number;
 }
 
 export interface IFeeRefundableStudentDropDownList {

@@ -115,8 +115,8 @@ export async function getclasswiseStudentDetails(
 }
 export async function getAttendanceAbsentSmsReport(ASMAY_Id: number, from_date: string, frequency: string, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');
-    const url = `/OveralldailyattendanceabsentsmsFacade/GetOverallDailyAbsentAttendance?${urlParams}&ASMAY_Id=${ASMAY_Id}&FromDate=${from_date}&Flag=${frequency}`;
-    return await api.post<any[]>('admission', url);
+    const url = `/OveralldailyattendanceabsentsmsFacade/GetOverallDailyAbsentAttendance?${urlParams}&ASMAY_Id=${ASMAY_Id}&FromDate=${from_date}&Flag=${frequency}&AMC_Id=0&AttType=D`;
+    return await api.post<any>('admission', url);
 }
 export async function getAttendanceReport(ASMAY_Id: number, from_date: string, frequency: string, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');
@@ -139,9 +139,9 @@ export async function getStudentAttendanceReport(
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');
 
-    let baseUrl = `/StudentAttendanceReport/GetAttendanceMonthwiseData?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMS_Id}&ASMS_Id=${ASMCL_Id}&RadioType=${studentStatus}&Type=${selectionMode}`;
+    let baseUrl = `/StudentAttendanceReport/GetAttendanceMonthwiseData?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}&RadioType=${studentStatus}&Type=${selectionMode}`;
 
-    if (selectionMode === 1 && AMST_Id) {
+    if (selectionMode === 2 && AMST_Id) {
         baseUrl += `&AMST_Id=${AMST_Id}`;
     }
 

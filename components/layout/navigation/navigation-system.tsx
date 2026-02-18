@@ -10,7 +10,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, ChevronRight, X, Settings, BarChart3, ReceiptText } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
-import { setNavigationContext } from './navigation-context';
+import { getNavigationContext, setNavigationContext } from './navigation-context';
 
 // Premium Border Beam Component for "Running Border" effect
 const BorderBeam = ({
@@ -157,7 +157,6 @@ export function NavigationSystem() {
         }
     }, [activeDrawer]);
 
-    // Add this after the existing useEffect
     useEffect(() => {
         // Restore navigation context from sessionStorage on mount
         if (typeof window !== 'undefined') {
@@ -173,6 +172,46 @@ export function NavigationSystem() {
             }
         }
     }, []);
+
+    // Auto-sync navigation context with current URL
+    useEffect(() => {
+        if (!accessibleModule?.data || !pathname || pathname === '/') return;
+
+        const currentNav = getNavigationContext().activeNavigation;
+
+        // If current navigation already contains this page, just ensure module is active
+        if (currentNav?.pages?.some(p => p.url === pathname)) {
+            if (activeModule !== currentNav.module) {
+                setActiveModule(currentNav.module);
+            }
+            return;
+        }
+
+        // Search for the page in all modules to sync context
+        for (const module of accessibleModule.data) {
+            for (const menu of module.menu) {
+                for (const subMenu of menu.sub_menu) {
+                    const matchedPage = subMenu.pages.find(p => p.url === pathname);
+                    if (matchedPage) {
+                        const navData: ActiveNavigation = {
+                            module: module.name,
+                            menu: menu.name,
+                            subMenu: subMenu.name,
+                            pages: subMenu.pages,
+                            title: matchedPage.title || '',
+                            description: matchedPage.description || ''
+                        };
+                        setNavigationContext(navData);
+                        if (typeof window !== 'undefined') {
+                            sessionStorage.setItem('activeNavigation', JSON.stringify(navData));
+                        }
+                        setActiveModule(module.name);
+                        return;
+                    }
+                }
+            }
+        }
+    }, [accessibleModule, pathname, activeModule]);
 
     if (activeModule !== null && activeDrawer === null && (pathname === '/' || pathname === null)) {
         setActiveDrawer(null);

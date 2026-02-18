@@ -50,11 +50,33 @@ export default function UpdateYearlyGroupForm({ onSuccess, selectedRow }: Update
     const [search, setSearch] = useState('');
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
     const [isInitializing, setIsInitializing] = useState(false);
+
+    console.log('selectedRow', selectedRow);
+
+    // // Add this at the top of UpdateYearlyGroupForm
+    // const componentKey = useRef(selectedRow.fyG_Id);
+
+    // useEffect(() => {
+    //     if (componentKey.current !== selectedRow.fyG_Id) {
+    //         componentKey.current = selectedRow.fyG_Id;
+    //         // Reset ALL state when switching to a different record
+    //         setSearch('');
+    //         setIsPopoverOpen(false);
+    //         reset({
+    //             academicYear: selectedRow.asmaY_Id?.toString() || '',
+    //             feeGroupIds: [],
+    //             rebateApplicable: false,
+    //             rebateType: undefined,
+    //             rebateValue: 0
+    //         });
+    //     }
+    // }, [selectedRow.fyG_Id]);
+
     const _initRetryRef = useRef<{ tries: number; timerId: any }>({
         tries: 0,
         timerId: null
     });
-    const { data: academicYearOptions, isLoading: isAcademicYearLoading } = useAcademicYearDropdown();
+    const { data: academicYearOptions, isLoading: isAcademicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const { data: groupData, isLoading: isGroupDataLoading } = useMasterGroupListDropDown();
     const { refetchAll } = useMasterFeeYearlyGroup();
     const { refetchAll: refetchCategory } = useMasterGetYearlyCategory();
@@ -77,7 +99,7 @@ export default function UpdateYearlyGroupForm({ onSuccess, selectedRow }: Update
         resolver: zodResolver(YearlyGroupSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            academicYear: '',
+            academicYear: selectedRow.asmaY_Id?.toString() || '',
             feeGroupIds: [],
             rebateApplicable: false,
             rebateType: undefined,
@@ -193,6 +215,7 @@ export default function UpdateYearlyGroupForm({ onSuccess, selectedRow }: Update
                 }
                 reset();
                 onSuccess?.();
+                refetchAll?.();
             } else {
                 toast.error(response.message || 'Failed to update yearly group');
             }
@@ -222,7 +245,7 @@ export default function UpdateYearlyGroupForm({ onSuccess, selectedRow }: Update
                 <div className='grid grid-cols-1 gap-6 sm:grid-cols-2'>
                     {/* Academic Year Dropdown */}
                     <div className='flex flex-col'>
-                        <Label htmlFor='academicYear'>
+                        {/* <Label htmlFor='academicYear'>
                             Academic Year <span className='text-red-500'>*</span>
                         </Label>
                         <Controller
@@ -237,9 +260,7 @@ export default function UpdateYearlyGroupForm({ onSuccess, selectedRow }: Update
                                         id='academicYear'
                                         className={cn('transition-colors', errors.academicYear ? 'border-red-500' : '')}>
                                         <SelectValue placeholder='Select Academic Year'>
-                                            {/* Prefer the selected form value; if missing (timing race),
-                          fall back to the selectedRow's display year so the UI
-                          shows the correct year even before form state settles. */}
+                                            
                                             {(() => {
                                                 const v = field.value;
                                                 if (v) {
@@ -267,6 +288,51 @@ export default function UpdateYearlyGroupForm({ onSuccess, selectedRow }: Update
                                         ) : (
                                             <div className='px-2 py-1 text-gray-500 text-sm'>No academic years available</div>
                                         )}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        /> */}
+                        <Label aria-label='academicYear' htmlFor='academicYear'>
+                            Academic Year <span className='ml-1 text-red-500'>*</span>
+                        </Label>
+                        <Controller
+                            name='academicYear'
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    onValueChange={(value) => {
+                                        field.onChange(value); // Keep as string, don't convert to number
+                                    }}
+                                    value={field.value}
+                                    // disabled={isEditMode}
+                                >
+                                    <SelectTrigger className='w-full'>
+                                        <SelectValue placeholder='Select Term' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectContent>
+                                            {isAcademicYearLoading ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading Academic Years...
+                                                </SelectItem>
+                                            ) : academicYearError ? (
+                                                <SelectItem value='error' disabled>
+                                                    Error loading Academic Years
+                                                </SelectItem>
+                                            ) : academicYearOptions?.data &&
+                                              Array.isArray(academicYearOptions.data) &&
+                                              academicYearOptions.data.length > 0 ? (
+                                                academicYearOptions.data.map((item) => (
+                                                    <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                        {item.asmaY_Year}
+                                                    </SelectItem>
+                                                ))
+                                            ) : (
+                                                <SelectItem value='no-data' disabled>
+                                                    No academic years available
+                                                </SelectItem>
+                                            )}
+                                        </SelectContent>
                                     </SelectContent>
                                 </Select>
                             )}

@@ -37,6 +37,7 @@ export interface IReportHeader {
     cla?: string;
     sec?: string;
     exmmid?: string;
+    mI_Name?: string;
 }
 export interface IAcademicYearandClass {
     mI_Id?: number;
@@ -173,3 +174,88 @@ export interface IMasterInstitution {
     mI_Name: string;
     mI_Logo: string;
 }
+
+// types/institution.ts
+
+export interface Institution {
+    mI_Id: number;
+    mO_Id: number;
+    mI_Name: string;
+    mI_Type: string;
+    mI_Address1: string;
+    mI_Address2: string;
+    mI_Address3: string;
+    mI_AddressArea: string | null;
+    ivrmmcT_Name: string;
+    ivrmmS_Id: number;
+    ivrmmC_Id: number;
+    mI_Pincode: number;
+    mI_FaxNo: string | null;
+    mI_BackgroundImage: string | null;
+    mI_FormColor: string;
+    mI_FontColor: string;
+    mI_FontSize: number;
+    mI_WeekStartDay: string | null;
+    mI_DateFormat: string | null;
+    mI_DateSeparator: string | null;
+    mI_Logo: string;
+    mI_Precision: number | null;
+    mI_GradingSystem: string | null;
+    mI_PasswordFlag: string | null;
+    mI_ActiveFlag: number;
+    mI_FranchiseFlag: number;
+    mI_Affiliation: string;
+    organisation: string | null;
+    mI_Subdomain: string;
+    mI_AboutInstitute: string;
+    mI_ContactDetails: string;
+    mI_HelpFile: string;
+    mI_SchoolCollegeFlag: string;
+    mI_PAN: string | null;
+    mI_TAN: string | null;
+    mI_GPSUserName: string | null;
+    mI_IVRSVirtualNo: string | null;
+    mI_IVRSOutboundNo: string | null;
+    mI_NAAC_InstitutionTypeFlg: string;
+    mI_NAAC_SubInstitutionTypeFlg: string;
+    mI_VCStudentFlag: string;
+    mI_VCOthersFlag: string;
+    mI_80GRegNo: string | null;
+    mI_PaymentReminderAPI: string | null;
+    mI_Code: string | null;
+    mI_MSTeamsClientId: string | null;
+    mI_MSTeamsTenentId: string | null;
+    mI_MSTemasClinetSecretCode: string | null;
+    mI_MSTeamsAppAccessTockenURL: string | null;
+    mI_MSTeamsUserAceessTockenURL: string | null;
+    mI_MSTeamsMeetingScheduleURL: string | null;
+    mI_MSTeamsAdminUsername: string | null;
+    mI_MSTeamsAdminPassword: string | null;
+    mI_MSTeamsScope: string | null;
+    mI_MSTeamsGrantType: string | null;
+    mI_SMSAlertToemailids: string | null;
+    mI_SMSCountAlert: number | null;
+    mI_WhatsAppTextUrl: string | null;
+    mI_WhatsAppImageUrl: string | null;
+    mI_WhatsAppPdfUrl: string | null;
+    mI_WhatsAppVideoUrl: string | null;
+    mI_WhatsAppAudioUrl: string | null;
+    mI_EntityId: string;
+    mI_PGRegisteredEmailId: string | null;
+    mI_WhatsAppto: string | null;
+    mI_WhatsAppName: string | null;
+    mI_WhatsApptype: string | null;
+    mI_WhatsAppToken: string | null;
+    createdDate: string;
+    updatedDate: string;
+}
+
+export interface InstitutionResponse {
+    success: boolean;
+    message: string;
+    data: Institution;
+    total: number | null;
+    page: number | null;
+    page_size: number | null;
+}
+
