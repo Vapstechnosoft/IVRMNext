@@ -59,7 +59,7 @@ export async function getStudents(sectionId: any) {
 }
 
 export async function getReportDetails(data: any) {
-    const url = '/JSHSExamReportsFacade/promotion_report_card';
+    const url = '/JSHSExamReportsFacade/promotion_report_card_';
     try {
         const response = await api.post<any>('exam', url, data);
         console.log('response', response);
