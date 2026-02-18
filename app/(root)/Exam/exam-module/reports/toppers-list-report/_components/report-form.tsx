@@ -590,12 +590,11 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                         <Controller control={control} name='sub_check_type' render={({ field }) => <input type='hidden' {...field} />} />
 
                         <div className='flex justify-center space-x-4 pt-4'>
-                            <Button type='submit' disabled={loading || isSubmitting}>
-                                {loading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                            <Button type='submit' disabled={loading || isSubmitting} isLoading={isSubmitting}>
                                 Generate Report
                             </Button>
                             <Button type='button' variant='outline' onClick={handleCancel}>
-                                Cancel
+                                Clear
                             </Button>
                         </div>
                     </form>

@@ -3,7 +3,7 @@
 
 import { Button } from '@/components/ui/button';
 import type { ElectiveGroup, StudentRow } from '@/types/exam/exam-module/report';
-import { Download } from 'lucide-react';
+import { FileSpreadsheet } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface Props {
@@ -65,8 +65,8 @@ export default function ElectiveReportExcel({ students, groupList, showMobile, s
     };
 
     return (
-        <Button onClick={exportToExcel} size='sm' variant='outline' className='border-green-600 text-green-700 hover:bg-green-50'>
-            <Download className='mr-2 h-4 w-4' /> Export Excel
+        <Button onClick={exportToExcel}  className="hover:bg-orange-800 text-white w-fit " >
+            <FileSpreadsheet className=' h-4 w-4' /> Export Excel
         </Button>
     );
 }

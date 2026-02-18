@@ -161,7 +161,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                     Number(watchSection)
                 );
                 const valid = Array.isArray(data)
-                    ? (data as any[]).filter((s): s is { amsT_AdmNo: number; amsT_Id: number; studentName?: string, amsT_FirstName?: string, amsT_MiddleName?: string, amsT_LastName?: string } => !!s?.amsT_Id)
+                    ? data.filter((s): s is any => !!s?.amsT_Id)
                     : [];
 
                 // Map to consistent format if needed, but the cumulative report logic returns objects with amsT_Id and studentName/amsT_FirstName
@@ -467,11 +467,11 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                         </div>
 
                         <div className='mt-8 flex justify-center gap-4'>
-                            <Button type='submit' disabled={isSubmitting}>
-                                {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null} Report
+                            <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting}>
+                                 Report
                             </Button>
-                            <Button type='button' variant='destructive' onClick={handleClear} disabled={isSubmitting}>
-                                Cancel
+                            <Button type='button' variant='outline' onClick={handleClear} disabled={isSubmitting}>
+                                Clear
                             </Button>
                         </div>
                     </div>

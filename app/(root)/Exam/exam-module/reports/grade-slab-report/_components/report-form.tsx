@@ -211,13 +211,11 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                     </div>
 
                     <div className='flex justify-center gap-4 border-t pt-4'>
-                        <Button type='submit' disabled={isSubmitting} className='flex w-fit'>
-                            {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                        <Button type='submit' disabled={isSubmitting} className='flex w-fit' isLoading={isSubmitting}>
                             Report
                         </Button>
                         <Button type='button' variant='outline' onClick={handleCancel} className='flex w-fit'>
-                            <X className='mr-2 h-4 w-4' />
-                            Cancel
+                            Clear
                         </Button>
                     </div>
                 </form>

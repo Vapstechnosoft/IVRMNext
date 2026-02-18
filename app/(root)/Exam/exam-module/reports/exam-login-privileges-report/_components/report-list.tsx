@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useRef } from 'react';
 import * as XLSX from 'xlsx';
-import { Printer, Download } from 'lucide-react';
+import { Printer, FileSpreadsheet } from 'lucide-react';
 
 interface ReportListProps {
     data: any[];
@@ -40,8 +40,8 @@ export const ReportList = ({ data }: ReportListProps) => {
                             text-align: center;
                         }
                         th {
-                            background-color: #2563EB !important; 
-                            color: white !important;
+                            
+                            color: black !important;
                             -webkit-print-color-adjust: exact;
                             print-color-adjust: exact;
                         }
@@ -73,28 +73,31 @@ export const ReportList = ({ data }: ReportListProps) => {
     };
 
     return (
-        <div className='space-y-4 bg-gray-200'>
-            <div className='flex justify-end gap-2'>
-                <Button onClick={handlePrint}  className="bg-blue-600 hover:bg-blue-800 text-white flex w-fit">
+        <div className='space-y-4 border rounded-lg bg-white'>
+            
+            <h1 className='text-2xl font-bold text-center mt-3'>Exam Login Privileges Report</h1>
+            <div className='flex justify-end gap-2 p-2'>
+                <Button onClick={handlePrint}  className=" hover:bg-orange-800 text-white flex w-fit">
                         <Printer className="h-4 w-4" />
                         <span>PRINT</span>
                     </Button>
 
-                <Button  onClick={handleExport} className='bg-green-600 hover:bg-green-800 text-white w-fit'>
-                    <Download className='h-4 w-4' />
+                <Button  onClick={handleExport} className=' hover:bg-orange-800 text-white w-fit'>
+                    <FileSpreadsheet className='h-4 w-4' />
                     Export to Excel
                 </Button>
             </div>
+            
 
-            <div className='rounded-md border'>
+            <div className='rounded-md '>
                 <Table ref={tableRef}>
                     <TableHeader >
-                        <TableRow className='bg-blue-600 hover:bg-blue-600 text-white'> 
-                            <TableHead className='w-[80px] text-center border border-gray-700 font-bold text-white text-m '>Sl. No.</TableHead>
-                            <TableHead className='border border-gray-700 font-bold text-white text-md text-center'>Class</TableHead>
-                            <TableHead className='border border-gray-700 font-bold text-white text-md text-center'>Section</TableHead>
-                            <TableHead className='border border-gray-700 font-bold text-white text-md text-center'>Teacher Name</TableHead>
-                            <TableHead className='border border-gray-700 font-bold text-white text-md text-center'>Subject Name</TableHead>
+                        <TableRow className='bg-gray-200 hover:bg-gray-200 text-black'> 
+                            <TableHead className='w-[80px] text-center border border-gray-400 font-bold text-black text-m '>Sl. No.</TableHead>
+                            <TableHead className='border border-gray-400 font-bold text-black text-md text-center'>Class</TableHead>
+                            <TableHead className='border border-gray-400 font-bold text-black text-md text-center'>Section</TableHead>
+                            <TableHead className='border border-gray-400 font-bold text-black text-md text-center'>Teacher Name</TableHead>
+                            <TableHead className='border border-gray-400 font-bold text-black text-md text-center'>Subject Name</TableHead>
                         </TableRow>
                     </TableHeader>
 
@@ -115,25 +118,25 @@ export const ReportList = ({ data }: ReportListProps) => {
 
                             return (
                                 <>
-                                    <TableRow key={`${index}-0`} className='border border-gray-600'>
-                                        <TableCell rowSpan={subjects.length} className='text-center border border-gray-600'>
+                                    <TableRow key={`${index}-0`} className='border border-gray-400'>
+                                        <TableCell rowSpan={subjects.length} className='text-center border border-gray-400'>
                                             {index + 1}
                                         </TableCell>
-                                        <TableCell rowSpan={subjects.length} className=' border border-gray-600'>
+                                        <TableCell rowSpan={subjects.length} className=' border border-gray-400'>
                                             {item.asmcL_ClassName}
                                         </TableCell>
-                                        <TableCell rowSpan={subjects.length} className=' border border-gray-600'>
+                                        <TableCell rowSpan={subjects.length} className=' border border-gray-400'>
                                             {item.asmC_SectionName}
                                         </TableCell>
-                                        <TableCell rowSpan={subjects.length} className=' border border-gray-600'>
+                                        <TableCell rowSpan={subjects.length} className=' border border-gray-400'>
                                             {item.hrmE_EmployeeName}
                                         </TableCell>
-                                        <TableCell className='border border-gray-600'>{subjects[0].ismS_SubjectName}</TableCell>
+                                        <TableCell className='border border-gray-400'>{subjects[0].ismS_SubjectName}</TableCell>
                                     </TableRow>
 
                                     {subjects.slice(1).map((sub: any, subIndex: number) => (
                                         <TableRow key={`${index}-${subIndex + 1}`} >
-                                            <TableCell className='border border-gray-600'>{sub.ismS_SubjectName}</TableCell>
+                                            <TableCell className='border border-gray-400'>{sub.ismS_SubjectName}</TableCell>
                                         </TableRow>
                                     ))}
                                 </>
