@@ -1722,8 +1722,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/masters/religion-category-mapping',
                                             title: 'Religion-Category Mapping',
                                             description: 'Map Religion & Category'
-                                        },
-
+                                        }
                                     ]
                                 },
                                 {
@@ -2014,7 +2013,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
-                        }
+                        },
                         // ,
                         // {
                         //     id: 2,
@@ -2327,7 +2326,7 @@ export async function getUserAccessibleModules() {
                         //         }
                         //     ]
                         // },
-                        , {
+                        {
                             id: 4,
                             name: 'Leave Management',
                             icon: 'Calendar',
@@ -3075,6 +3074,14 @@ export async function getUserAccessibleModules() {
                                             url: '/timetable/masters/masterbuilding',
                                             title: 'Master Building',
                                             description: 'Manage Master Building Details'
+                                        },
+                                        {
+                                            id: 11111111,
+                                            name: 'Master Building Class Section',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterbuildingclasssection',
+                                            title: 'Master Building Class Section',
+                                            description: 'Manage Master Building Class Section Details'
                                         },
                                         {
                                             id: 3,
@@ -5172,8 +5179,7 @@ export async function getUserAccessibleModules() {
                 }
             ]
         };
-    }
-    else if (session?.role.toUpperCase() === 'STUDENT') {
+    } else if (session?.role.toUpperCase() === 'STUDENT') {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
@@ -5416,8 +5422,7 @@ export async function getUserAccessibleModules() {
                 }
             ]
         };
-    }
-    else if (session?.role.toUpperCase() === 'SUPER ADMIN') {
+    } else if (session?.role.toUpperCase() === 'SUPER ADMIN') {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
@@ -5640,12 +5645,10 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
-
+                }
             ]
         };
-    }
-    else {
+    } else {
         response = {
             success: true,
             message: 'Data fetched successfully!!',

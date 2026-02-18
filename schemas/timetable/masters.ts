@@ -177,3 +177,12 @@ export const periodTimeSettingSchema = {
         endTime: z.date({ required_error: 'End Time is required' })
     })
 };
+export const masterBuildingClassSectionSchema = {
+    addOrUpdate: z.object({
+        // ttmB_Id: z.number().optional(),
+        // ttmB_BuildingName: createStringOnlySchema('Building Name', 1, 100)
+    }),
+    delete: z.object({
+        ttmbcS_Id: deleteIdSchema('ttmbcS_Id')
+    })
+};

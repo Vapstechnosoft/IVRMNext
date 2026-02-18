@@ -7,7 +7,7 @@ import {
     getuseTimeTableClassDropdownDataDetails
 } from '@/server/timetable/masters/categoryclassmapping';
 import { getMasterCategoryDetails } from '@/server/timetable/masters/masterCategory';
-import { getMasterBuildingDetails } from '@/server/timetable/masters/masterbuilding';
+import { getMasterBuildingDetails, getMasterBuildingclasssectionDetails } from '@/server/timetable/masters/masterbuilding';
 import { getMasterDayDetails } from '@/server/timetable/masters/masterday';
 import {
     getAcademicYearDropDropDownMasterDayClasswise,
@@ -569,6 +569,24 @@ export const useClassPeriodDistrubution = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_DISTRUBUTION_CLASS]
+            });
+        }
+    };
+};
+
+export const useMasterBuildingClasssection = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_BUILDING_CLASSSECTION, searchParams ?? {}],
+            queryFn: async () => getMasterBuildingclasssectionDetails(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_BUILDING_CLASSSECTION]
             });
         }
     };

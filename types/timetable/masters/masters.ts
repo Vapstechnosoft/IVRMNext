@@ -456,3 +456,13 @@ export interface PeriodDistruction {
     ismS_Id: number; //subject
     ismS_SubjectName: string; //subject
 }
+
+export interface IMasterBuildClassSectionGrid {
+    ttmbcS_Id: number;
+    asmcL_ID: number;
+    ttmB_BuildingName: string;
+    asmcL_ClassName: string;
+    asmS_ID: number;
+    ttmbcS_ActiveFlag: boolean;
+    asmC_SectionName: string;
+}
