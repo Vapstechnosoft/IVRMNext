@@ -168,10 +168,14 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
 
     const onSubmit = async (data: PercentageWiseDetailsReportSchema) => {
         setLoading(true);
-
+        
         try {
             const classId = data.qualification_type === 'all' ? 0 : data.ASMCL_Id;
             const sectionId = data.qualification_type === 'all' ? 0 : data.ASMS_Id;
+
+            const selected_Year = academicYears.find((y: any) => y.asmaY_Id === Number(data.ASMAY_Id))?.asmaY_Year;
+            const select_Exam = exams.find((e:any) => e.emE_Id === Number(data.EME_Id))?.emE_ExamName
+
 
             const payload = {
                 mI_Id: 0, // usually institution id (set from session later if needed)
@@ -202,7 +206,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                 if (response.data.length === 0) {
                     toast.info('No records found');
                 }
-                onReportGenerated(response, payload);
+                onReportGenerated(response, {selected_Year, select_Exam});
             } else {
                 toast.error(response.message || 'Failed to generate report');
             }
@@ -477,12 +481,11 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                     </div>
 
                     <div className='flex justify-center space-x-4'>
-                        <Button type='submit' disabled={loading}>
-                            {loading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                        <Button type='submit' disabled={loading} isLoading={loading}>
                             Report
                         </Button>
-                        <Button type='button' variant='destructive' onClick={handleCancel}>
-                            Cancel
+                        <Button type='button' variant='outline' onClick={handleCancel}>
+                            Clear
                         </Button>
                         <Button
                             type='button'

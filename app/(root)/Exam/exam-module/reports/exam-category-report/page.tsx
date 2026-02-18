@@ -399,13 +399,11 @@ export default function ExamCategoryReportPage() {
                         </div>
 
                         <div className='flex justify-center gap-4 border-t pt-4'>
-                            <Button type='submit' disabled={isSubmitting} className='w-32 bg-primary hover:bg-primary/90'>
-                                {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Check className='mr-2 h-4 w-4' />}
+                            <Button type='submit' disabled={isSubmitting} className='w-32 '>
                                 Report
                             </Button>
-                            <Button type='button' variant='destructive' onClick={handleCancel} className='w-32'>
-                                <X className='mr-2 h-4 w-4' />
-                                Cancel
+                            <Button type='button' variant='outline' onClick={handleCancel} className='w-32'>
+                                Clear
                             </Button>
                             <Button
                                 type='button'
