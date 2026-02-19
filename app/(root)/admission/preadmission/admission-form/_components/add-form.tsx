@@ -14,17 +14,22 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
-import { useAcademicYearDropdown, useConcessionDropdown, useMasterCategoryDropdown, useMasterSectionHeld } from '@/hooks/admission/preadmission/useMasters';
+import {
+    useAcademicYearDropdown,
+    useConcessionDropdown,
+    useMasterCategoryDropdown,
+    useMasterSectionHeld
+} from '@/hooks/admission/preadmission/useMasters';
 import {
     useActivePreadmissionDetails,
     useAdmissionClassDropdown,
     useCasteDropdown,
     useCountryDropdown,
+    useDistrictDropdown,
     useReferenceDropdown,
     useReligionDropdown,
     useSourceDropdown,
-    useStateDropdown,
-    useDistrictDropdown
+    useStateDropdown
 } from '@/hooks/admission/preadmission/useTransactions';
 import { getIconByName } from '@/lib/lucide-icon-registry';
 import { calculateAge, dateToWords } from '@/lib/utils';
@@ -247,18 +252,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     const perCountryId = watch('amsT_PerCountry');
 
     const conStateId = watch('amsT_ConState');
-    const {
-        data: conDistrict,
-        isLoading: conDistrictLoading,
-        error: conDistrictError
-    } = useDistrictDropdown(Number(conStateId));
+    const { data: conDistrict, isLoading: conDistrictLoading, error: conDistrictError } = useDistrictDropdown(Number(conStateId));
 
     const perStateId = watch('amsT_PerState');
-    const {
-        data: perDistrict,
-        isLoading: perDistrictLoading,
-        error: perDistrictError
-    } = useDistrictDropdown(Number(perStateId));
+    const { data: perDistrict, isLoading: perDistrictLoading, error: perDistrictError } = useDistrictDropdown(Number(perStateId));
 
     // Watch guardian fields to conditionally show uploads when guardian name is present
     const watchedGuardians = watch('guardian');
@@ -603,9 +600,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 amsT_BPLCardNo: formData.amsT_BPLCardNo ?? '',
                 mobileCountryCode: (() => {
                     const mobileNos = getValues('mobileNos') as any[];
-                    return Array.isArray(mobileNos) && mobileNos.length > 0
-                        ? String(mobileNos[0]?.amstsmS_CountryCode ?? '')
-                        : '';
+                    return Array.isArray(mobileNos) && mobileNos.length > 0 ? String(mobileNos[0]?.amstsmS_CountryCode ?? '') : '';
                 })(),
                 mobileNumber: (() => {
                     const mobileNos = getValues('mobileNos') as any[];
@@ -656,6 +651,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             };
 
             console.debug('[Admission] saveFirstTab payload:', payload);
+
 
             // Send JSON payload directly
             const res = await saveFirstTabApi(payload);
@@ -1715,6 +1711,17 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
     const handleDOBChange = (date: Date | undefined) => {
         if (date) {
+            // Validate the date
+            if (Number.isNaN(date.getTime())) {
+                return;
+            }
+
+            // Ensure date is not in the future
+            const today = new Date();
+            if (date > today) {
+                return;
+            }
+
             const dobInWords = dateToWords(date);
             setValue('amsT_DOB_Words', dobInWords);
 
@@ -1885,7 +1892,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             setValue('amsT_PerCity', city, { shouldValidate: true, shouldDirty: true });
             setValue('amsT_PerPincode', pincode, { shouldValidate: true, shouldDirty: true });
 
-            trigger(['amsT_PerStreet', 'amsT_PerArea', 'amsT_PerCountry', 'amsT_PerState', 'amsT_PerDistrict', 'amsT_PerCity', 'amsT_PerPincode']);
+            trigger([
+                'amsT_PerStreet',
+                'amsT_PerArea',
+                'amsT_PerCountry',
+                'amsT_PerState',
+                'amsT_PerDistrict',
+                'amsT_PerCity',
+                'amsT_PerPincode'
+            ]);
         } else {
             setValue('amsT_PerStreet', '', { shouldValidate: true, shouldDirty: true });
             setValue('amsT_PerArea', '', { shouldValidate: true, shouldDirty: true });
@@ -1895,7 +1910,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             setValue('amsT_PerCity', '', { shouldValidate: true, shouldDirty: true });
             setValue('amsT_PerPincode', '', { shouldValidate: true, shouldDirty: true });
 
-            clearErrors(['amsT_PerStreet', 'amsT_PerArea', 'amsT_PerCountry', 'amsT_PerState', 'amsT_PerDistrict', 'amsT_PerCity', 'amsT_PerPincode']);
+            clearErrors([
+                'amsT_PerStreet',
+                'amsT_PerArea',
+                'amsT_PerCountry',
+                'amsT_PerState',
+                'amsT_PerDistrict',
+                'amsT_PerCity',
+                'amsT_PerPincode'
+            ]);
         }
     };
 
@@ -3713,7 +3736,12 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                             (Array.isArray(studentCategory) ? studentCategory : []);
                                                                         return items?.map((item: any) => (
                                                                             <SelectItem
-                                                                                key={item.asmcC_Id || item.amC_Id || item.studentCategoryId || item.imC_Id}
+                                                                                key={
+                                                                                    item.asmcC_Id ||
+                                                                                    item.amC_Id ||
+                                                                                    item.studentCategoryId ||
+                                                                                    item.imC_Id
+                                                                                }
                                                                                 value={(
                                                                                     item.asmcC_Id ||
                                                                                     item.amC_Id ||
@@ -3729,7 +3757,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         ));
                                                                     })()
                                                                 )}
-
                                                             </SelectContent>
                                                         </Select>
                                                     )}

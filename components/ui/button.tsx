@@ -9,7 +9,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-    'w-full inline-flex items-center justify-center text-nowrap whitespace-nowrap rounded-md text-sm font-medium  focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none',
+    'w-full inline-flex items-center justify-center text-nowrap whitespace-nowrap rounded-full text-sm font-medium  focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none',
     {
         variants: {
             variant: {
@@ -29,8 +29,8 @@ const buttonVariants = cva(
             size: {
                 default: 'h-9 px-4 py-2',
                 xs: 'h-6 px-2 py-1 text-[10px]',
-                sm: 'h-8 rounded-md px-3 text-xs',
-                lg: 'h-10 rounded-md px-8',
+                sm: 'h-8 rounded-full px-3 text-xs',
+                lg: 'h-10 rounded-full px-8',
                 icon: 'h-8 w-8'
             },
             shape: {

@@ -16,7 +16,12 @@ import { calculateAge, dateToWords } from '@/lib/utils';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
-import { useAcademicYearDropdown, useConcessionDropdown, useMasterCategoryDropdown, useMasterSectionHeld } from '@/hooks/admission/preadmission/useMasters';
+import {
+    useAcademicYearDropdown,
+    useConcessionDropdown,
+    useMasterCategoryDropdown,
+    useMasterSectionHeld
+} from '@/hooks/admission/preadmission/useMasters';
 import {
     useActivePreadmissionDetails,
     useAdmissionClassDropdown,
@@ -247,16 +252,40 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             payload = {
                 ...combined,
                 // normalize arrays and legacy shapes
-                adm_M_Student_EmailIdDTO: tabSrc.firstTab?.emailIds || tabSrc.emailIds || tabSrc.adm_M_Student_EmailIdDTO || combined.adm_M_Student_EmailIdDTO || [],
+                adm_M_Student_EmailIdDTO:
+                    tabSrc.firstTab?.emailIds ||
+                    tabSrc.emailIds ||
+                    tabSrc.adm_M_Student_EmailIdDTO ||
+                    combined.adm_M_Student_EmailIdDTO ||
+                    [],
                 mobileNos: tabSrc.firstTab?.mobileNos || tabSrc.mobileNos || combined.mobileNos || [],
                 // Mapping common key variations from backend to schema keys
-                amsT_MobileNo: combined.amsT_MobileNo ?? combined.mobileNo ?? combined.mobile_No ?? combined.amsT_Mobile_No ?? combined.mobileNumber ?? tabSrc.firstTab?.amsT_MobileNo ?? '',
-                amsT_emailId: combined.amsT_emailId ?? combined.emailId ?? combined.email_Id ?? combined.amsT_Email_Id ?? tabSrc.firstTab?.amsT_emailId ?? '',
+                amsT_MobileNo:
+                    combined.amsT_MobileNo ??
+                    combined.mobileNo ??
+                    combined.mobile_No ??
+                    combined.amsT_Mobile_No ??
+                    combined.mobileNumber ??
+                    tabSrc.firstTab?.amsT_MobileNo ??
+                    '',
+                amsT_emailId:
+                    combined.amsT_emailId ??
+                    combined.emailId ??
+                    combined.email_Id ??
+                    combined.amsT_Email_Id ??
+                    tabSrc.firstTab?.amsT_emailId ??
+                    '',
                 amsT_Sex: combined.amsT_Sex ?? combined.gender ?? combined.sex ?? combined.amsT_Gender ?? '',
                 amsT_DOB: combined.amsT_DOB ?? combined.dob ?? combined.dateOfBirth ?? combined.pasR_DOB ?? null,
                 amsT_Date: combined.amsT_Date ?? combined.admissionDate ?? combined.date ?? null,
-                amsT_MotherTongue: combined.amsT_MotherTongue ?? combined.motherTongue ?? combined.mother_Tongue ?? combined.amsT_Mother_Tongue ?? '',
-                amsT_LanguageSpoken: combined.amsT_LanguageSpoken ?? combined.languagesSpoken ?? combined.languageSpoken ?? combined.amsT_Language_Spoken ?? '',
+                amsT_MotherTongue:
+                    combined.amsT_MotherTongue ?? combined.motherTongue ?? combined.mother_Tongue ?? combined.amsT_Mother_Tongue ?? '',
+                amsT_LanguageSpoken:
+                    combined.amsT_LanguageSpoken ??
+                    combined.languagesSpoken ??
+                    combined.languageSpoken ??
+                    combined.amsT_Language_Spoken ??
+                    '',
                 amsT_AadharNo: combined.amsT_AadharNo ?? combined.aadharNo ?? combined.aadhar_No ?? combined.amsT_Aadhar_No ?? '',
 
                 // Caste and Religion mapping
@@ -282,12 +311,16 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 amsT_PerArea: combined.amsT_PerArea ?? combined.perArea ?? combined.per_Area ?? '',
                 amsT_PerCity: combined.amsT_PerCity ?? combined.perCity ?? combined.per_City ?? '',
                 amsT_PerPincode: combined.amsT_PerPincode ?? combined.perPincode ?? combined.per_Pincode ?? combined.amsT_PerPincode ?? '',
-                amsT_ConDistrict: combined.amsT_ConDistrict ?? combined.amsT_ConDistrictId ?? combined.conDistrict ?? combined.conDistrictId ?? 0,
-                amsT_PerDistrict: combined.amsT_PerDistrict ?? combined.amsT_PerDistrictId ?? combined.perDistrict ?? combined.perDistrictId ?? 0,
+                amsT_ConDistrict:
+                    combined.amsT_ConDistrict ?? combined.amsT_ConDistrictId ?? combined.conDistrict ?? combined.conDistrictId ?? 0,
+                amsT_PerDistrict:
+                    combined.amsT_PerDistrict ?? combined.amsT_PerDistrictId ?? combined.perDistrict ?? combined.perDistrictId ?? 0,
 
                 // Parent Nationality mapping
-                fatherNationality: combined.fatherNationalityId ?? combined.father_Nationality ?? combined.fatherNationality ?? combined.ivrmmC_Id ?? 0,
-                motherNationality: combined.motherNationalityId ?? combined.mother_Nationality ?? combined.motherNationality ?? combined.ivrmmC_Id ?? 0,
+                fatherNationality:
+                    combined.fatherNationalityId ?? combined.father_Nationality ?? combined.fatherNationality ?? combined.ivrmmC_Id ?? 0,
+                motherNationality:
+                    combined.motherNationalityId ?? combined.mother_Nationality ?? combined.motherNationality ?? combined.ivrmmC_Id ?? 0,
 
 
                 studentCategoryId: combined.studentCategoryId ?? combined.asmcC_Id ?? combined.amsT_StudentCategory_Id ?? combined.amC_Id ?? combined.amc_Id ?? combined.categoryId ?? 0,
@@ -298,10 +331,12 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 previousSchools: tabSrc.previousSchools || tabSrc.previous_schools || combined.previousSchools || [],
                 siblings: tabSrc.siblings || tabSrc.student_siblings || combined.siblings || [],
                 guardian: tabSrc.guardians || tabSrc.guardian || combined.guardian || [],
-                selectedSourceDetails: (tabSrc.selectedSourceDetails || tabSrc.selectedSource || tabSrc.student_sources || []).map((s: any) => ({
-                    pamS_Id: String(s.pamS_Id),
-                    pamS_SourceName: s.pamS_SourceName || s.name || ''
-                })),
+                selectedSourceDetails: (tabSrc.selectedSourceDetails || tabSrc.selectedSource || tabSrc.student_sources || []).map(
+                    (s: any) => ({
+                        pamS_Id: String(s.pamS_Id),
+                        pamS_SourceName: s.pamS_SourceName || s.name || ''
+                    })
+                ),
                 selectedRefrenceDetails: (tabSrc.selectedRefrenceDetails || tabSrc.selectedReference || tabSrc.student_refrences || []).map(
                     (r: any) => ({
                         pamR_Id: String(r.pamR_Id),
@@ -329,7 +364,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             payload.amsT_ConState = payload.amsT_ConStateId ?? payload.amsT_ConState_Id ?? payload.ivrmmS_Id ?? payload.amsT_ConState ?? payload.conStateId ?? 0;
             payload.fatherNationality = payload.fatherNationalityId ?? payload.ivrmmC_Id ?? payload.fatherNationality ?? 0;
             payload.motherNationality = payload.motherNationalityId ?? payload.ivrmmC_Id ?? payload.motherNationality ?? 0;
-            payload.amsT_PlaceOfBirthCountry = payload.amsT_PlaceOfBirthCountryId ?? payload.ivrmmC_Id ?? payload.amsT_PlaceOfBirthCountry ?? 0;
+            payload.amsT_PlaceOfBirthCountry =
+                payload.amsT_PlaceOfBirthCountryId ?? payload.ivrmmC_Id ?? payload.amsT_PlaceOfBirthCountry ?? 0;
             payload.amsT_PlaceOfBirthState = payload.amsT_PlaceOfBirthStateId ?? payload.ivrmmS_Id ?? payload.amsT_PlaceOfBirthState ?? 0;
             payload.asmcC_Id = payload.asmcC_Id ?? payload.studentCategoryId ?? payload.amsT_StudentCategory_Id ?? payload.amC_Id ?? payload.amc_Id ?? payload.categoryId ?? 0;
             payload.studentCategoryId = payload.asmcC_Id;
@@ -344,23 +380,40 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             payload.amsT_PerArea = payload.amsT_PerArea ?? payload.perArea ?? payload.per_Area ?? '';
             payload.amsT_PerCity = payload.amsT_PerCity ?? payload.perCity ?? payload.per_City ?? '';
             payload.amsT_PerPincode = payload.amsT_PerPincode ?? payload.perPincode ?? payload.per_Pincode ?? payload.amsT_PerPincode ?? '';
-            payload.amsT_ConDistrict = payload.amsT_ConDistrict ?? payload.amsT_ConDistrictId ?? payload.conDistrict ?? payload.conDistrictId ?? 0;
-            payload.amsT_PerDistrict = payload.amsT_PerDistrict ?? payload.amsT_PerDistrictId ?? payload.perDistrict ?? payload.perDistrictId ?? 0;
+            payload.amsT_ConDistrict =
+                payload.amsT_ConDistrict ?? payload.amsT_ConDistrictId ?? payload.conDistrict ?? payload.conDistrictId ?? 0;
+            payload.amsT_PerDistrict =
+                payload.amsT_PerDistrict ?? payload.amsT_PerDistrictId ?? payload.perDistrict ?? payload.perDistrictId ?? 0;
         }
 
         // Normalize mobile array to shape: { amsT_MobileNo: string }
-        const mobileSource = (Array.isArray(payload.mobileNos) && payload.mobileNos.length > 0)
-            ? payload.mobileNos
-            : (Array.isArray(payload.adm_M_Student_MobileNoDTO) && payload.adm_M_Student_MobileNoDTO.length > 0)
-                ? payload.adm_M_Student_MobileNoDTO
-                : (payload.amsT_MobileNo || payload.mobileNo || payload.mobile_No || payload.amsT_Mobile_No || payload.mobileNumber)
-                    ? [{ amsT_MobileNo: payload.amsT_MobileNo || payload.mobileNo || payload.mobile_No || payload.amsT_Mobile_No || payload.mobileNumber }]
-                    : [];
+        const mobileSource =
+            Array.isArray(payload.mobileNos) && payload.mobileNos.length > 0
+                ? payload.mobileNos
+                : Array.isArray(payload.adm_M_Student_MobileNoDTO) && payload.adm_M_Student_MobileNoDTO.length > 0
+                    ? payload.adm_M_Student_MobileNoDTO
+                    : payload.amsT_MobileNo || payload.mobileNo || payload.mobile_No || payload.amsT_Mobile_No || payload.mobileNumber
+                        ? [
+                            {
+                                amsT_MobileNo:
+                                    payload.amsT_MobileNo ||
+                                    payload.mobileNo ||
+                                    payload.mobile_No ||
+                                    payload.amsT_Mobile_No ||
+                                    payload.mobileNumber
+                            }
+                        ]
+                        : [];
         payload.mobileNos = (Array.isArray(mobileSource) ? mobileSource : [mobileSource]).map((m: any) => {
             if (typeof m === 'string') return { amsT_MobileNo: m };
             if (typeof m === 'object' && m !== null) {
                 return {
-                    amsT_MobileNo: m.amsT_MobileNo ?? (Array.isArray(m.amstsmS_MobileNo) ? m.amstsmS_MobileNo[0] : m.amstsmS_MobileNo) ?? m.mobileNo ?? m.mobileNumber ?? ''
+                    amsT_MobileNo:
+                        m.amsT_MobileNo ??
+                        (Array.isArray(m.amstsmS_MobileNo) ? m.amstsmS_MobileNo[0] : m.amstsmS_MobileNo) ??
+                        m.mobileNo ??
+                        m.mobileNumber ??
+                        ''
                 };
             }
             return { amsT_MobileNo: String(m ?? '') };
@@ -372,7 +425,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 ? payload.adm_M_Student_EmailIdDTO
                 : Array.isArray(payload.emailIds) && payload.emailIds.length > 0
                     ? payload.emailIds
-                    : (payload.amsT_emailId || payload.emailId || payload.email_Id)
+                    : payload.amsT_emailId || payload.emailId || payload.email_Id
                         ? [{ amsT_emailId: payload.amsT_emailId || payload.emailId || payload.email_Id }]
                         : payload.adm_M_Student_EmailIdDTO || [];
 
@@ -1382,12 +1435,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         refetchAll: refetchAdmissionClass
     } = useAdmissionClassDropdown();
 
-    const {
-        data: category,
-        isLoading: categoryLoading,
-        isError: categoryError,
-        refetchAll: refetchCategory
-    } = useMasterCategoryDropdown();
+    const { data: category, isLoading: categoryLoading, isError: categoryError, refetchAll: refetchCategory } = useMasterCategoryDropdown();
 
     const classId = watch('asmcL_Id');
     const {
@@ -1399,9 +1447,19 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
     const { data: country, isLoading: countryLoading, isError: countryError, refetchAll: refetchCountry } = useCountryDropdown();
 
-    const { data: studentState, isLoading: studentStateLoading, isError: studentStateError, refetchAll: refetchStudentState } = useStateDropdown(Number(studentCountryId));
+    const {
+        data: studentState,
+        isLoading: studentStateLoading,
+        isError: studentStateError,
+        refetchAll: refetchStudentState
+    } = useStateDropdown(Number(studentCountryId));
 
-    const { data: conState, isLoading: conStateLoading, isError: conStateError, refetchAll: refetchConState } = useStateDropdown(Number(conCountryId));
+    const {
+        data: conState,
+        isLoading: conStateLoading,
+        isError: conStateError,
+        refetchAll: refetchConState
+    } = useStateDropdown(Number(conCountryId));
     const [conStateId, setConStateId] = useState<number | string>('');
     const {
         data: conDistrict,
@@ -1410,7 +1468,12 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         refetchAll: refetchConDistrict
     } = useDistrictDropdown(Number(conStateId));
 
-    const { data: perState, isLoading: perStateLoading, isError: perStateError, refetchAll: refetchPerState } = useStateDropdown(Number(perCountryId));
+    const {
+        data: perState,
+        isLoading: perStateLoading,
+        isError: perStateError,
+        refetchAll: refetchPerState
+    } = useStateDropdown(Number(perCountryId));
     const [perStateId, setPerStateId] = useState<number | string>('');
     const {
         data: perDistrict,
@@ -1518,7 +1581,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         refetchPerDistrict();
         refetchStudentState();
     };
-
 
     const PreviousSchoolRow = ({ idx }: { idx: number }) => {
         const countryId = watch(`previousSchools.${idx}.countryId` as const) as any;
@@ -2121,9 +2183,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         { field: 'asecS_Branch', label: 'Branch Name' }
                     ];
 
-                    const missingEcsFields = requiredEcsFields.filter(
-                        ({ field }) => !String(getValues(field as any) ?? '').trim()
-                    );
+                    const missingEcsFields = requiredEcsFields.filter(({ field }) => !String(getValues(field as any) ?? '').trim());
 
                     if (missingEcsFields.length > 0) {
                         missingEcsFields.forEach(({ field, label }) => {
@@ -2135,7 +2195,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     }
                 }
             }
-
 
             // Check if there are any validation errors (schema + custom)
             // We need to check both isValid and the errors object because custom errors are added after trigger()
@@ -2150,9 +2209,10 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 console.log('[UpdateForm] Validation failed. Errors:', errors);
                 // Count total errors to show in toast
                 const errorCount = Object.keys(errors).length;
-                const errorMessage = errorCount > 1
-                    ? `Please fix ${errorCount} validation errors before proceeding`
-                    : 'Please fix the validation error before proceeding';
+                const errorMessage =
+                    errorCount > 1
+                        ? `Please fix ${errorCount} validation errors before proceeding`
+                        : 'Please fix the validation error before proceeding';
 
                 toast.error(errorMessage);
 
@@ -2843,6 +2903,17 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
     const handleDOBChange = (date: Date | undefined) => {
         if (date) {
+            // Validate the date
+            if (Number.isNaN(date.getTime())) {
+                return;
+            }
+
+            // Ensure date is not in the future
+            const today = new Date();
+            if (date > today) {
+                return;
+            }
+
             const dobInWords = dateToWords(date);
             setValue('amsT_DOB_Words', dobInWords);
 
@@ -3106,7 +3177,15 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             setValue('amsT_PerCity', city);
             setValue('amsT_PerPincode', pincode ?? undefined);
 
-            trigger(['amsT_PerStreet', 'amsT_PerArea', 'amsT_PerCountry', 'amsT_PerState', 'amsT_PerDistrict', 'amsT_PerCity', 'amsT_PerPincode']);
+            trigger([
+                'amsT_PerStreet',
+                'amsT_PerArea',
+                'amsT_PerCountry',
+                'amsT_PerState',
+                'amsT_PerDistrict',
+                'amsT_PerCity',
+                'amsT_PerPincode'
+            ]);
         } else {
             setValue('amsT_PerStreet', '');
             setValue('amsT_PerArea', '');
@@ -3117,7 +3196,15 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             setValue('amsT_PerCity', '');
             setValue('amsT_PerPincode', '');
 
-            clearErrors(['amsT_PerStreet', 'amsT_PerArea', 'amsT_PerCountry', 'amsT_PerState', 'amsT_PerDistrict', 'amsT_PerCity', 'amsT_PerPincode']);
+            clearErrors([
+                'amsT_PerStreet',
+                'amsT_PerArea',
+                'amsT_PerCountry',
+                'amsT_PerState',
+                'amsT_PerDistrict',
+                'amsT_PerCity',
+                'amsT_PerPincode'
+            ]);
         }
     };
 
@@ -4584,9 +4671,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         </Select>
                                                     )}
                                                 />
-                                                {(errors as any).imC_Id && (
-                                                    <FormError>{(errors as any).imC_Id.message}</FormError>
-                                                )}
+                                                {(errors as any).imC_Id && <FormError>{(errors as any).imC_Id.message}</FormError>}
                                             </div>
                                             {/* <InputText
                                                 label='Caste '
@@ -5321,7 +5406,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         {errors.amsT_ConState && <FormError>{errors.amsT_ConState.message}</FormError>}
                                                     </div>
 
-
                                                     <InputText
                                                         label='City'
                                                         id='amsT_ConCity'
@@ -5507,7 +5591,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         />
                                                         {errors.amsT_PerState && <FormError>{errors.amsT_PerState.message}</FormError>}
                                                     </div>
-
 
                                                     <InputText
                                                         label='City'
