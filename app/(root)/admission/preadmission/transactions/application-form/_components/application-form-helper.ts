@@ -16,6 +16,14 @@ export const validateAgeForClass = (
         };
     }
 
+    // Additional validation to ensure DOB is valid and not in the future
+    if (!dob || Number.isNaN(dob.getTime())) {
+        return {
+            isValid: false,
+            reason: 'Invalid date of birth provided'
+        };
+    }
+
     const age = calculateAge(dob, cutOffDate);
 
     // Check minimum age if flag is enabled
