@@ -11,7 +11,7 @@ import {
     useMasterSectionDropDown
 } from '@/hooks/timetable/useMasters';
 import { cn } from '@/lib/utils';
-import { masterBuildingSchema } from '@/schemas/timetable/masters';
+import { masterBuildingClassSectionSchema } from '@/schemas/timetable/masters';
 import { addOrUpdateMasterBuilding } from '@/server/timetable/masters/masterbuilding';
 import type { ClassDropDownDataTT } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,7 +21,7 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof masterBuildingSchema.addOrUpdate>;
+type FormFields = z.infer<typeof masterBuildingClassSectionSchema.addOrUpdate>;
 
 interface AddMasterBuildingProps {
     onSuccess?: () => void;
@@ -39,7 +39,7 @@ export default function AddMasterBuildingForm({ onSuccess, buildingname = '' }: 
         watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(masterBuildingSchema.addOrUpdate),
+        resolver: zodResolver(masterBuildingClassSectionSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {}
     });

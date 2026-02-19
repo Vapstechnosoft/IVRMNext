@@ -26,13 +26,11 @@ export const masterDayClasswiseSchema = {
 
 export const masterBuildingSchema = {
     addOrUpdate: z.object({
-        ttmB_Id: number().min(1, 'Please select Category'),
-        // ttmB_BuildingName: createStringOnlySchema('Building Name', 1, 100),
-        calssids: z.array(z.string()).nonempty('Please select at least one Class'),
-        sectionids: z.array(z.string()).nonempty('Please select at least one Section')
+        ttmB_Id: number().optional(),
+        ttmB_BuildingName: createStringOnlySchema('Building Name', 1, 100)
     }),
     delete: z.object({
-        ttmbcS_Id: deleteIdSchema('ttmbcS_Id')
+        ttmB_Id: deleteIdSchema('ttmB_Id')
     })
 };
 
@@ -181,8 +179,10 @@ export const periodTimeSettingSchema = {
 };
 export const masterBuildingClassSectionSchema = {
     addOrUpdate: z.object({
-        // ttmB_Id: z.number().optional(),
-        // ttmB_BuildingName: createStringOnlySchema('Building Name', 1, 100)
+        ttmB_Id: number().min(1, 'Please select Category'),
+        // ttmB_BuildingName: createStringOnlySchema('Building Name', 1, 100),
+        calssids: z.array(z.string()).nonempty('Please select at least one Class'),
+        sectionids: z.array(z.string()).nonempty('Please select at least one Section')
     }),
     delete: z.object({
         ttmbcS_Id: deleteIdSchema('ttmbcS_Id')
