@@ -51,6 +51,7 @@ interface GenericDataTableProps<T> {
     scrollable?: boolean;
     maxHeight?: string;
     //manualPagination?: boolean;
+    // Bento-Glass Props
 }
 
 export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<any>>(function GenericDataTable<T>(
@@ -80,7 +81,6 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         // manualPagination = true
         scrollable = false,
         maxHeight = '600px'
-        //manualPagination = false
     }: GenericDataTableProps<T>,
     ref: React.Ref<DataTableRef>
 ) {

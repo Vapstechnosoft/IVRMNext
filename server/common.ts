@@ -1738,8 +1738,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/masters/religion-category-mapping',
                                             title: 'Religion-Category Mapping',
                                             description: 'Map Religion & Category'
-                                        },
-
+                                        }
                                     ]
                                 },
                                 {
@@ -2343,161 +2342,161 @@ export async function getUserAccessibleModules() {
                         //         }
                         //     ]
                         // },
-                        , {
-                            id: 4,
-                            name: 'Leave Management',
-                            icon: 'Calendar',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Masters',
-                                    icon: 'Database',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Master Leave',
-                                            icon: 'Calendar',
-                                            url: '/hrms/leave-management/masters/master-leave',
-                                            title: 'Master Leave',
-                                            description: 'Manage Leave Types'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Leave Authorization',
-                                            icon: 'Shield',
-                                            url: '/hrms/leave-management/masters/leave-authorization',
-                                            title: 'Leave Authorization',
-                                            description: 'Configure Leave Approvers'
-                                        }
-                                        // {
-                                        //     id: 3,
-                                        //     name: 'Master Leave Year',
-                                        //     icon: 'CalendarRange',
-                                        //     url: '/hrms/leave-management/masters/master-leaveYear',
-                                        //     title: 'Master Leave Year',
-                                        //     description: 'Manage Leave Year'
-                                        // }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Apply Leave',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Apply Leave',
-                                            icon: 'FilePlus',
-                                            url: '/hrms/leave-management/apply-leave',
-                                            title: 'Apply Leave',
-                                            description: 'Submit Leave Application'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Leave Approval',
-                                            icon: 'CheckCircle',
-                                            url: '/hrms/leave-management/leave-approval',
-                                            title: 'Leave Approval',
-                                            description: 'Approve or Reject Leave Requests'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 3,
-                                    name: 'Transaction',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Leave Transfer',
-                                            icon: 'Plus',
-                                            url: '/hrms/leave-management/transaction/leave-transfer',
-                                            title: 'Leave Transfer',
-                                            description: 'Transfer Leave'
-                                        },
-                                        // {
-                                        //     id: 2,
-                                        //     name: 'Comp Off Approval',
-                                        //     icon: 'CheckSquare',
-                                        //     url: '/hrms/leave-management/transaction/comp-off-approval',
-                                        //     title: 'Comp Off Approval',
-                                        //     description: 'Approve Compensatory Off'
-                                        // },
-                                        // {
-                                        //     id: 3,
-                                        //     name: 'Comp Off Request',
-                                        //     icon: 'FileText',
-                                        //     url: '/hrms/leave-management/transaction/comp-off-request',
-                                        //     title: 'Comp Off Request',
-                                        //     description: 'Request Compensatory Off'
-                                        // },
-                                        {
-                                            id: 4,
-                                            name: 'Leave Credit Details',
-                                            icon: 'Info',
-                                            url: '/hrms/leave-management/transaction/leave-credit-details',
-                                            title: 'Leave  Details',
-                                            description: 'View Leave Credit Details'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Leave Transaction',
-                                            icon: 'List',
-                                            url: '/hrms/leave-management/transaction/leave-credit-transaction',
-                                            title: 'Leave Transaction',
-                                            description: 'Leave Transaction'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Leave Opening Balance',
-                                            icon: 'Database',
-                                            url: '/hrms/leave-management/transaction/leave-opening-balance',
-                                            title: 'Leave Opening Balance',
-                                            description: 'Manage Leave Opening Balance'
-                                        },
-                                        {
-                                            id: 7,
-                                            name: 'Admin On Duty Apply',
-                                            icon: 'Briefcase',
-                                            url: '/hrms/leave-management/transaction/admin-on-duty-apply',
-                                            title: 'Admin On Duty Apply',
-                                            description: 'Apply for On Duty Leave'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 4,
-                                    name: 'Report',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Leave Report',
-                                            icon: 'FileSearch',
-                                            url: '/hrms/leave-management/reports/leave-report',
-                                            title: 'Leave Report',
-                                            description: 'Leave Summary Report'
-                                        }
-                                        // {
-                                        //     id: 2,
-                                        //     name: 'Overall Report',
-                                        //     icon: 'BarChart3',
-                                        //     url: '/hrms/leave-management/reports/overAll-report',
-                                        //     title: 'Overall Report',
-                                        //     description: 'Overall Leave Analysis'
-                                        // },
-                                        // {
-                                        //     id: 3,
-                                        //     name: 'Unauthorized Leave Report',
-                                        //     icon: 'AlertTriangle',
-                                        //     url: '/hrms/leave-management/reports/unauthorizedLeaveCount-report',
-                                        //     title: 'Unauthorized Leave Report',
-                                        //     description: 'Unauthorized Leave Count'
-                                        // }
-                                    ]
-                                }
-                            ]
-                        }
+                        // , {
+                        //     id: 4,
+                        //     name: 'Leave Management',
+                        //     icon: 'Calendar',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'Masters',
+                        //             icon: 'Database',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Master Leave',
+                        //                     icon: 'Calendar',
+                        //                     url: '/hrms/leave-management/masters/master-leave',
+                        //                     title: 'Master Leave',
+                        //                     description: 'Manage Leave Types'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Leave Authorization',
+                        //                     icon: 'Shield',
+                        //                     url: '/hrms/leave-management/masters/leave-authorization',
+                        //                     title: 'Leave Authorization',
+                        //                     description: 'Configure Leave Approvers'
+                        //                 }
+                        //                 // {
+                        //                 //     id: 3,
+                        //                 //     name: 'Master Leave Year',
+                        //                 //     icon: 'CalendarRange',
+                        //                 //     url: '/hrms/leave-management/masters/master-leaveYear',
+                        //                 //     title: 'Master Leave Year',
+                        //                 //     description: 'Manage Leave Year'
+                        //                 // }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 2,
+                        //             name: 'Apply Leave',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Apply Leave',
+                        //                     icon: 'FilePlus',
+                        //                     url: '/hrms/leave-management/apply-leave',
+                        //                     title: 'Apply Leave',
+                        //                     description: 'Submit Leave Application'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Leave Approval',
+                        //                     icon: 'CheckCircle',
+                        //                     url: '/hrms/leave-management/leave-approval',
+                        //                     title: 'Leave Approval',
+                        //                     description: 'Approve or Reject Leave Requests'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 3,
+                        //             name: 'Transaction',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Leave Transfer',
+                        //                     icon: 'Plus',
+                        //                     url: '/hrms/leave-management/transaction/leave-transfer',
+                        //                     title: 'Leave Transfer',
+                        //                     description: 'Transfer Leave'
+                        //                 },
+                        //                 // {
+                        //                 //     id: 2,
+                        //                 //     name: 'Comp Off Approval',
+                        //                 //     icon: 'CheckSquare',
+                        //                 //     url: '/hrms/leave-management/transaction/comp-off-approval',
+                        //                 //     title: 'Comp Off Approval',
+                        //                 //     description: 'Approve Compensatory Off'
+                        //                 // },
+                        //                 // {
+                        //                 //     id: 3,
+                        //                 //     name: 'Comp Off Request',
+                        //                 //     icon: 'FileText',
+                        //                 //     url: '/hrms/leave-management/transaction/comp-off-request',
+                        //                 //     title: 'Comp Off Request',
+                        //                 //     description: 'Request Compensatory Off'
+                        //                 // },
+                        //                 {
+                        //                     id: 4,
+                        //                     name: 'Leave Credit Details',
+                        //                     icon: 'Info',
+                        //                     url: '/hrms/leave-management/transaction/leave-credit-details',
+                        //                     title: 'Leave  Details',
+                        //                     description: 'View Leave Credit Details'
+                        //                 },
+                        //                 {
+                        //                     id: 5,
+                        //                     name: 'Leave Transaction',
+                        //                     icon: 'List',
+                        //                     url: '/hrms/leave-management/transaction/leave-credit-transaction',
+                        //                     title: 'Leave Transaction',
+                        //                     description: 'Leave Transaction'
+                        //                 },
+                        //                 {
+                        //                     id: 6,
+                        //                     name: 'Leave Opening Balance',
+                        //                     icon: 'Database',
+                        //                     url: '/hrms/leave-management/transaction/leave-opening-balance',
+                        //                     title: 'Leave Opening Balance',
+                        //                     description: 'Manage Leave Opening Balance'
+                        //                 },
+                        //                 {
+                        //                     id: 7,
+                        //                     name: 'Admin On Duty Apply',
+                        //                     icon: 'Briefcase',
+                        //                     url: '/hrms/leave-management/transaction/admin-on-duty-apply',
+                        //                     title: 'Admin On Duty Apply',
+                        //                     description: 'Apply for On Duty Leave'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 4,
+                        //             name: 'Report',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Leave Report',
+                        //                     icon: 'FileSearch',
+                        //                     url: '/hrms/leave-management/reports/leave-report',
+                        //                     title: 'Leave Report',
+                        //                     description: 'Leave Summary Report'
+                        //                 }
+                        //                 // {
+                        //                 //     id: 2,
+                        //                 //     name: 'Overall Report',
+                        //                 //     icon: 'BarChart3',
+                        //                 //     url: '/hrms/leave-management/reports/overAll-report',
+                        //                 //     title: 'Overall Report',
+                        //                 //     description: 'Overall Leave Analysis'
+                        //                 // },
+                        //                 // {
+                        //                 //     id: 3,
+                        //                 //     name: 'Unauthorized Leave Report',
+                        //                 //     icon: 'AlertTriangle',
+                        //                 //     url: '/hrms/leave-management/reports/unauthorizedLeaveCount-report',
+                        //                 //     title: 'Unauthorized Leave Report',
+                        //                 //     description: 'Unauthorized Leave Count'
+                        //                 // }
+                        //             ]
+                        //         }
+                        //     ]
+                        // }
                         // {
                         //     id: 5,
                         //     name: 'Exit Management',
@@ -4072,8 +4071,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                }
-
+                },
                 //         {
                 //             id: 3,
                 //             name: 'Interaction',
@@ -4648,8 +4646,7 @@ export async function getUserAccessibleModules() {
                 //                 }
                 //             ]
                 //         }
-                // 
-                ,
+                //
                 {
                     id: 111,
                     name: 'Transport',
@@ -4800,7 +4797,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Transport Approve',
                                             description: 'Manage Transport Approve'
                                         }
-
                                     ]
                                 },
                                 {
@@ -4845,7 +4841,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
+                }
                 //         //    ,
                 //         //        {
                 //         //         id: 8,
@@ -5203,8 +5199,7 @@ export async function getUserAccessibleModules() {
                 }
             ]
         };
-    }
-    else if (session?.role.toUpperCase() === 'STUDENT') {
+    } else if (session?.role.toUpperCase() === 'STUDENT') {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
@@ -5447,8 +5442,7 @@ export async function getUserAccessibleModules() {
                 }
             ]
         };
-    }
-    else if (session?.role.toUpperCase() === 'SUPER ADMIN') {
+    } else if (session?.role.toUpperCase() === 'SUPER ADMIN') {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
@@ -5671,12 +5665,10 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
-
+                }
             ]
         };
-    }
-    else {
+    } else {
         response = {
             success: true,
             message: 'Data fetched successfully!!',

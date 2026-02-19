@@ -21,13 +21,13 @@ export const getTCCancelDetails = async (asmayId: number, amstId: number, reason
     return api.post('admission', `/StudentTc/GetTCCancelDetails?ASMAY_Id=${asmayId}&AMST_Id=${amstId}&TC_CancelReason=${reason}`, {});
 };
 
-export const getStudentTCInitialData = async (data: any): Promise<any> => {
-    return api.post('admission', '/StudentTc/GetStudentNameList', data);
-};
+// export const getStudentTCInitialData = async (data: any): Promise<any> => {
+//     return api.post('admission', '/StudentTc/GetStudentNameList', data);
+// };
 
-export const getStudentTCList = async (data: any): Promise<any> => {
-    return api.post('admission', '/StudentTc/GetStudentNameList', data);
-};
+// export const getStudentTCList = async (data: any): Promise<any> => {
+//     return api.post('admission', '/StudentTc/GetStudentNameList', data);
+// };
 
 export const getStudentTCDetails = async (data: any): Promise<any> => {
     return api.post('admission', '/StudentTc/GetTcDetails', data);

@@ -13,6 +13,8 @@ import { tableSearchVariables } from '@/lib/data-table.config';
 import AddMasterPageForm from './_components/add-form';
 import { columns } from './_components/columns';
 import { PageProvider } from './_components/page-context';
+import { PageHeader } from '@/components/ui/layout/page-header';
+import { SectionCard } from '@/components/ui/layout/section-card';
 
 export default function MasterPage() {
     return (
@@ -64,34 +66,39 @@ function MasterPageContent() {
 
     return (
         <PageProvider refreshData={fetchData}>
-            <div className='container space-y-4 p-1'>
-                <div className='flex gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
+            <div className='container mx-auto space-y-8 p-6'>
+                <PageHeader
+                    title="Master Pages"
+                    highlightWord="Pages"
+                    description="Manage core application pages, define their properties, and control global visibility settings."
+                >
                     <Button
                         type='button'
                         onClick={openAddForm}
-                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4 mr-2' />
+                        className='h-11 rounded-full bg-[#7C3AED] px-6 font-bold text-white shadow-lg shadow-purple-200 transition-all hover:scale-105 hover:bg-[#6D28D9]'>
+                        <Plus className='mr-2 h-4 w-4' />
                         Add Master Page
                     </Button>
-                </div>
+                </PageHeader>
 
-                <CollapsibleSection
-                    title='Master Pages'
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg'
-                >
-                    <div className='p-4'>
-                        <GenericDataTable
-                            data={data}
-                            columns={columns}
-                            isLoading={isLoading}
-                            isPaginationRequired={true}
-                            totalItems={totalItems}
-                        />
-                    </div>
-                </CollapsibleSection>
+                <SectionCard>
+                    <CollapsibleSection
+                        title='Master Pages List'
+                        defaultOpen={true}
+                        variant='default'
+                        size='lg'
+                    >
+                        <div className='p-4'>
+                            <GenericDataTable
+                                data={data}
+                                columns={columns}
+                                isLoading={isLoading}
+                                isPaginationRequired={true}
+                                totalItems={totalItems}
+                            />
+                        </div>
+                    </CollapsibleSection>
+                </SectionCard>
 
                 <FormSections onRefresh={fetchData} />
             </div>

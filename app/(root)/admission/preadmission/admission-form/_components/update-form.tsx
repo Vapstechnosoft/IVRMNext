@@ -240,7 +240,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 adm_M_Student_EmailIdDTO: tabSrc.firstTab?.emailIds || tabSrc.emailIds || tabSrc.adm_M_Student_EmailIdDTO || combined.adm_M_Student_EmailIdDTO || [],
                 mobileNos: tabSrc.firstTab?.mobileNos || tabSrc.mobileNos || combined.mobileNos || [],
                 // Mapping common key variations from backend to schema keys
-                amsT_MobileNo: combined.amsT_MobileNo ?? combined.mobileNo ?? combined.mobile_No ?? combined.amsT_Mobile_No ?? tabSrc.firstTab?.amsT_MobileNo ?? '',
+                amsT_MobileNo: combined.amsT_MobileNo ?? combined.mobileNo ?? combined.mobile_No ?? combined.amsT_Mobile_No ?? combined.mobileNumber ?? tabSrc.firstTab?.amsT_MobileNo ?? '',
                 amsT_emailId: combined.amsT_emailId ?? combined.emailId ?? combined.email_Id ?? combined.amsT_Email_Id ?? tabSrc.firstTab?.amsT_emailId ?? '',
                 amsT_Sex: combined.amsT_Sex ?? combined.gender ?? combined.sex ?? combined.amsT_Gender ?? '',
                 amsT_DOB: combined.amsT_DOB ?? combined.dob ?? combined.dateOfBirth ?? combined.pasR_DOB ?? null,
@@ -309,7 +309,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             // Not tabbed, ensure basic fields are mapped if rowData is a flat student object
             payload.imC_Id = payload.imC_Id ?? payload.imcC_Id ?? payload.caste_Id ?? payload.casteId ?? payload.amsT_CasteCategoryId ?? 0;
             payload.amsT_ReligionId = payload.amsT_ReligionId ?? payload.ivrmmR_Id ?? payload.religion_Id ?? payload.religionId ?? 0;
-            payload.amsT_MobileNo = payload.amsT_MobileNo ?? payload.mobileNo ?? payload.mobile_No ?? payload.amsT_Mobile_No ?? '';
+            payload.amsT_MobileNo = payload.amsT_MobileNo ?? payload.mobileNo ?? payload.mobile_No ?? payload.amsT_Mobile_No ?? payload.mobileNumber ?? '';
             payload.amsT_emailId = payload.amsT_emailId ?? payload.emailId ?? payload.email_Id ?? payload.amsT_Email_Id ?? '';
             payload.amsT_StudentCountry = payload.amsT_StudentCountryId ?? payload.amsT_StudentCountry_Id ?? payload.ivrmmC_Id ?? payload.amsT_StudentCountry ?? 0;
             payload.amsT_StudentState = payload.amsT_StudentStateId ?? payload.amsT_StudentState_Id ?? payload.ivrmmS_Id ?? payload.amsT_StudentState ?? 0;
@@ -343,14 +343,14 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             ? payload.mobileNos
             : (Array.isArray(payload.adm_M_Student_MobileNoDTO) && payload.adm_M_Student_MobileNoDTO.length > 0)
                 ? payload.adm_M_Student_MobileNoDTO
-                : (payload.amsT_MobileNo || payload.mobileNo || payload.mobile_No || payload.amsT_Mobile_No)
-                    ? [{ amsT_MobileNo: payload.amsT_MobileNo || payload.mobileNo || payload.mobile_No || payload.amsT_Mobile_No }]
+                : (payload.amsT_MobileNo || payload.mobileNo || payload.mobile_No || payload.amsT_Mobile_No || payload.mobileNumber)
+                    ? [{ amsT_MobileNo: payload.amsT_MobileNo || payload.mobileNo || payload.mobile_No || payload.amsT_Mobile_No || payload.mobileNumber }]
                     : [];
         payload.mobileNos = (Array.isArray(mobileSource) ? mobileSource : [mobileSource]).map((m: any) => {
             if (typeof m === 'string') return { amsT_MobileNo: m };
             if (typeof m === 'object' && m !== null) {
                 return {
-                    amsT_MobileNo: m.amsT_MobileNo ?? (Array.isArray(m.amstsmS_MobileNo) ? m.amstsmS_MobileNo[0] : m.amstsmS_MobileNo) ?? m.mobileNo ?? ''
+                    amsT_MobileNo: m.amsT_MobileNo ?? (Array.isArray(m.amstsmS_MobileNo) ? m.amstsmS_MobileNo[0] : m.amstsmS_MobileNo) ?? m.mobileNo ?? m.mobileNumber ?? ''
                 };
             }
             return { amsT_MobileNo: String(m ?? '') };
@@ -682,7 +682,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             // as custom pincode inputs may depend on state data being available
             // Mapping common key variations at root level if not tabbed
             if (!hasTabbed) {
-                payload.amsT_MobileNo = payload.amsT_MobileNo ?? payload.mobileNo ?? payload.mobile_No ?? payload.amsT_Mobile_No ?? '';
+                payload.amsT_MobileNo = payload.amsT_MobileNo ?? payload.mobileNo ?? payload.mobile_No ?? payload.amsT_Mobile_No ?? payload.mobileNumber ?? '';
                 payload.amsT_emailId = payload.amsT_emailId ?? payload.emailId ?? payload.email_Id ?? payload.amsT_Email_Id ?? '';
                 payload.amsT_Sex = payload.amsT_Sex ?? payload.gender ?? payload.sex ?? '';
                 payload.amsT_MotherTongue = payload.amsT_MotherTongue ?? payload.motherTongue ?? payload.mother_Tongue ?? '';
@@ -779,7 +779,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         if (Array.isArray(m?.amstsmS_MobileNo) && m.amstsmS_MobileNo.length > 0) raw = String(m.amstsmS_MobileNo[0] ?? '');
                         else raw = String(m?.amsT_MobileNo ?? m?.mobileNo ?? (typeof m === 'string' ? m : ''));
 
-                        const country = String(m?.amstsmS_CountryCode ?? m?.countryCode ?? '91').replace('+', '');
+                        const country = String(m?.amstsmS_CountryCode ?? m?.countryCode ?? m?.mobileCountryCode ?? '91').replace('+', '');
                         let numberOnly = raw.replace(/\D/g, '');
 
                         // Strip country code if it's already at the beginning of the number
@@ -1222,9 +1222,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             }
 
             // Pre-fill Mobile Number if not set by array normalization
-            if ((data.amsT_MobileNo || data.mobileNo || data.mobile_No) && !phoneValues.amsT_MobileNo) {
-                const rawMob = String(data.amsT_MobileNo ?? data.mobileNo ?? data.mobile_No).replace(/\D/g, '');
-                const formatted = rawMob.length === 10 ? `+91 ${rawMob}` : (data.amsT_MobileNo ?? data.mobileNo ?? data.mobile_No);
+            if ((data.amsT_MobileNo || data.mobileNo || data.mobile_No || data.mobileNumber) && !phoneValues.amsT_MobileNo) {
+                const rawMob = String(data.amsT_MobileNo ?? data.mobileNo ?? data.mobile_No ?? data.mobileNumber).replace(/\D/g, '');
+                const formatted = rawMob.length === 10 ? `+91 ${rawMob}` : (data.amsT_MobileNo ?? data.mobileNo ?? data.mobile_No ?? data.mobileNumber);
                 setValue('amsT_MobileNo', formatted);
                 setPhoneValues((prev) => ({ ...prev, amsT_MobileNo: formatted }));
             }
@@ -2009,7 +2009,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     'studentCategoryId',
                     'feeConcessionType',
                     'asmS_Id',
-                    'caste_Id' // Added - was missing
+                    'imC_Id' // Changed to imC_Id to match UI field name
                 ];
                 // If EMIS checkbox is set, ensure the EMIS field is validated
                 if (Number(getValues('isEmisBpl') ?? 0) === 1) {

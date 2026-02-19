@@ -9,6 +9,7 @@ import { useUserNotification } from '@/hooks/common';
 import { cn } from '@/lib/utils';
 import { markAllReadUserNotification, markReadUserNotification } from '@/server/common';
 import type { UserNotification } from '@/types';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, Bell, BellRing, Check, ExternalLink, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -210,34 +211,40 @@ export default function UserNotificationPage() {
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <TooltipProvider>
-                <Tooltip>
+                <Tooltip delayDuration={300}>
                     <TooltipTrigger asChild>
                         <PopoverTrigger asChild>
-                            <Button variant='ghost' size='icon' className='relative'>
+                            <Button variant='ghost' size='icon' className='group relative h-9 w-9 rounded-full bg-gray-50/50 hover:bg-orange-50 transition-all duration-500'>
+                                <div className="absolute inset-0 rounded-full bg-orange-500/0 group-hover:bg-orange-500/10 blur-lg transition-all" />
+
                                 {unreadCounts.high > 0 ? (
-                                    <BellRing className={cn('h-5 w-5 text-red-500', bellAnimating && 'animate-bell')} />
+                                    <BellRing className={cn('h-4.5 w-4.5 text-red-500 relative z-10', bellAnimating && 'animate-bell')} />
                                 ) : (
-                                    <Bell className={cn('h-5 w-5', bellAnimating && 'animate-bell')} />
+                                    <Bell className={cn('h-4.5 w-4.5 text-gray-500 group-hover:text-orange-500 transition-colors relative z-10', bellAnimating && 'animate-bell')} />
                                 )}
-                                {totalUnread > 0 && (
-                                    <Badge
-                                        className={cn(
-                                            '-top-1 -right-1 absolute flex h-5 min-w-5 items-center justify-center rounded-full',
-                                            unreadCounts.high > 0 ? 'bg-red-500' : 'bg-primary',
-                                            'px-1 text-primary-foreground text-xs',
-                                            bellAnimating && 'animate-pulse'
-                                        )}>
-                                        {totalUnread > 99 ? '99+' : totalUnread}
-                                    </Badge>
-                                )}
+
+                                <AnimatePresence>
+                                    {totalUnread > 0 && (
+                                        <motion.div
+                                            initial={{ scale: 0.5, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            exit={{ scale: 0.5, opacity: 0 }}
+                                            className={cn(
+                                                '-top-0.5 -right-0.5 absolute z-20 flex h-4.5 min-w-[18px] items-center justify-center rounded-full border-2 border-white',
+                                                unreadCounts.high > 0 ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.4)]' : 'bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.4)]',
+                                                'px-1 text-white text-[9px] font-black leading-none'
+                                            )}>
+                                            {totalUnread > 99 ? '99+' : totalUnread}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </Button>
                         </PopoverTrigger>
                     </TooltipTrigger>
-                    <TooltipContent side='bottom' className='bg-accent text-foreground text-xs'>
-                        <p>Notifications</p>
-                        {unreadCounts.high > 0 && <p className='text-red-500'>{unreadCounts.high} high priority</p>}
-                        {unreadCounts.medium > 0 && <p className='text-yellow-500'>{unreadCounts.medium} medium priority</p>}
-                        {unreadCounts.normal > 0 && <p className='text-blue-500'>{unreadCounts.normal} normal priority</p>}
+                    <TooltipContent side='bottom' className='bg-white/90 backdrop-blur-md border border-white/40 text-gray-800 text-[10px] px-3 py-1.5 rounded-lg shadow-xl font-bold uppercase tracking-wider'>
+                        <div className="flex flex-col gap-0.5">
+                            {totalUnread === 0 ? 'Everything read' : `${totalUnread} Notification${totalUnread > 1 ? 's' : ''}`}
+                        </div>
                     </TooltipContent>
                 </Tooltip>
             </TooltipProvider>

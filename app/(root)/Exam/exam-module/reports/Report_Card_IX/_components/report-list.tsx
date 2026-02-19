@@ -93,7 +93,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             obtainedGrade = markObj.obtainedGrade || markObj.ObtainedGrade;
             passFailFlg = markObj.passFailFlg || markObj.PassFailFlag;
 
-            if (obtainedMarks && obtainedMarks !== -1) {
+            if (obtainedMarks && obtainedMarks !== '') {
                 displayValue = obtainedMarks.toString();
             } else if (obtainedGrade) {
                 displayValue = obtainedGrade;
