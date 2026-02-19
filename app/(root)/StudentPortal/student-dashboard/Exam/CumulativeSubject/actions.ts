@@ -1,4 +1,4 @@
-'use server';
+'use server'; // Server actions
 
 import { api } from '@/lib/apiService';
 import { auth } from '@/lib/auth';
@@ -15,14 +15,14 @@ export async function getAcademicYearList() {
 
 export async function getExamDataforExamReport(asmay_Id: number, type: string) {
     const session = await auth();
-    const amst_Id = session?.amst_id || 18828;
+    const amst_Id = (session as any)?.amst_id || 18828;
     const url = `/ExamReport/get-exam-data?AMST_Id=${amst_Id}&ASMAY_Id=${asmay_Id}&Type=${type}`;
     return await api.post<any>('portal', url,);
 }
 
 export async function getSubjectDataforExamReport(asmay_Id: number) {
     const session = await auth();
-    const amst_Id = session?.amst_id || 18828;
+    const amst_Id = (session as any)?.amst_id || 18828;
     const payload = {
         "amsT_Id": amst_Id,
         "asmaY_Id": asmay_Id
@@ -31,7 +31,4 @@ export async function getSubjectDataforExamReport(asmay_Id: number) {
     return await api.post<any>('portal', url, payload);
 }
 
-export async function getExamReportDataforExamReport(payload: any) {
-    const url = '/ExamReport/get-report-data';
-    return await api.post<any>('portal', url, payload);
-}
+

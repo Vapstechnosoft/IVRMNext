@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getSubjectDataforCumulatiSubject, getExamDetails } from "./cumulativesubject"; // Import actions
 import { AcademicYear, Subject, ExamGrade, CumulativeSubjectLoadData } from "../types";
-//import { AcademicYear, Subject, ExamGrade, CumulativeSubjectLoadData } from "../types";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
