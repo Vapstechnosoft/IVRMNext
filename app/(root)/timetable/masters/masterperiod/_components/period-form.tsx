@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useCategoryDropDownMasterPeriod } from '@/hooks/timetable/useMasters';
+import { useCategoryDropDownMasterPeriod, useMasterPeriodDetails } from '@/hooks/timetable/useMasters';
 import { cn } from '@/lib/utils';
 
 import { masterPeriodSchema } from '@/schemas/timetable/masters';
@@ -22,6 +22,7 @@ interface MasterPeriodFormProps {
 }
 
 export default function MasterPeriodForm({ onSuccess }: MasterPeriodFormProps) {
+    const { data: response, isLoading, error, refetchAll } = useMasterPeriodDetails();
     const {
         register,
         handleSubmit,
@@ -100,17 +101,16 @@ export default function MasterPeriodForm({ onSuccess }: MasterPeriodFormProps) {
             console.info('Payload', JSON.stringify(payload));
 
             const response = await ADDORUPDATEMasterPeriod(payload);
-            if (response.returnval) {
-                toast.success('Saved successfully');
+            if (response.success) {
+                toast.success(response.message);
+                reset();
+                refetchAll();
                 onSuccess?.();
-                masterPerioddataRefetch();
-            } else if (response.returnduplicatestatus === 'Duplicate') {
-                toast.error('Records Already Exist');
             } else {
-                toast.error('Not Saved');
+                toast.error(response.message);
             }
         } catch (error: any) {
-            toast.error(error.message || 'An error occurred');
+            toast.error(error.message);
         }
     };
 

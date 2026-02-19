@@ -106,7 +106,7 @@ class ApiService {
             // Create config with optional SSL bypass for localhost in development
             const config: AxiosRequestConfig = {
                 baseURL,
-                timeout: 60000,
+                timeout: 180000,
                 headers: {
                     'Content-Type': 'application/json',
                     Accept: '*/*'

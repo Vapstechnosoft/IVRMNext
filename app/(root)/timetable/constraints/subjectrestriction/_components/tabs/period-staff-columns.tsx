@@ -11,6 +11,8 @@ export interface IPeriodStaffList {
     asmaY_Year: string;
     ttmP_PeriodName: string;
     staffName: string;
+    ttrpS_ActiveFlag: boolean;
+    ttrpS_SUbSelcFlag: boolean;
 }
 
 export const columns: ColumnDef<IPeriodStaffList>[] = [
@@ -51,7 +53,7 @@ export const columns: ColumnDef<IPeriodStaffList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IPeriodStaffList }) {
-    const { openEditForm, openDeleteForm } = useFormContext<IPeriodStaffList>();
+    const { openEditForm, openToggleForm } = useFormContext<IPeriodStaffList>();
 
     const handleEdit = useCallback(
         (data: IPeriodStaffList) => {
@@ -60,12 +62,20 @@ function ActionButtonsCell({ rowData }: { rowData: IPeriodStaffList }) {
         [openEditForm]
     );
 
-    const handleDelete = useCallback(
+    const handleToggle = useCallback(
         (data: IPeriodStaffList) => {
-            if (openDeleteForm) openDeleteForm(data);
+            if (openToggleForm) openToggleForm(data);
         },
-        [openDeleteForm]
+        [openToggleForm]
     );
 
-    return <ActionButtons rowData={rowData} buttons={{ edit: true, delete: true }} onEdit={handleEdit} onDelete={handleDelete} />;
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: true, delete: false }}
+            onEdit={handleEdit}
+            onToggle={handleToggle}
+            toggleConditionKey='ttrpS_ActiveFlag'
+        />
+    );
 }

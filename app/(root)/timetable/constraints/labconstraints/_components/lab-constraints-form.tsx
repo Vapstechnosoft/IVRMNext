@@ -6,8 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type LabConstraintsSchema, labConstraintsSchema } from '@/schemas/timetable/constraints/labconstraints';
 import {
+    getAcademicYearDropDown,
+    getCategoryDropDown,
     getClassDetails,
     getLabConstraintsEditDetails,
+    getLabDetails,
     getSectionDetails,
     saveLabConstraintsDetail
 } from '@/server/timetable/constraints/labconstraints';
@@ -16,6 +19,39 @@ import { Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+
+const extractList = (data: any, preferredKey?: string) => {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+
+    // Identify the actual data object (handle ApiResponse wrapper)
+    const target = data?.data !== undefined ? data.data : data;
+    if (Array.isArray(target)) return target;
+    if (!target) return [];
+
+    // If a preferred key is provided, try that first
+    if (preferredKey && Array.isArray(target[preferredKey])) return target[preferredKey];
+
+    // Try known backend list keys
+    const keys = [
+        'academiclist',
+        'catelist',
+        'classlist',
+        'sectionlist',
+        'lablist',
+        'yearlist',
+        'categorylist',
+        'sectionlist',
+        'classList',
+        'sectionList',
+        'categoryList'
+    ];
+    for (const key of keys) {
+        if (Array.isArray(target[key])) return target[key];
+    }
+
+    return [];
+};
 
 interface LabConstraintsFormProps {
     initialData: any;
@@ -26,13 +62,13 @@ interface LabConstraintsFormProps {
 
 export default function LabConstraintsForm({ initialData, editData, onSuccess, onCancel }: LabConstraintsFormProps) {
     // Dropdown options
-    const academicList = initialData?.yearlist || [];
-    const categoryList = initialData?.categorylist || [];
-    const labList = initialData?.lablist || [];
+    const [academicList, setAcademicList] = useState<any[]>(extractList(initialData, 'yearlist'));
+    const [categoryList, setCategoryList] = useState<any[]>(extractList(initialData, 'categorylist'));
+    const [labList, setLabList] = useState<any[]>(extractList(initialData, 'lablist'));
 
     // Local state for dropdowns
-    const [classList, setClassList] = useState<any[]>([]);
-    const [sectionList, setSectionList] = useState<any[]>([]);
+    const [classList, setClassList] = useState<any[]>(extractList(initialData, 'classlist'));
+    const [sectionList, setSectionList] = useState<any[]>(extractList(initialData, 'sectionlist'));
 
     const form = useForm<LabConstraintsSchema>({
         resolver: zodResolver(labConstraintsSchema),
@@ -60,6 +96,34 @@ export default function LabConstraintsForm({ initialData, editData, onSuccess, o
     const watchedAcademicYear = watch('ASMAY_Id');
     const watchedCategory = watch('TTMC_Id');
     const watchedClass = watch('ASMCL_Id');
+    const watchedSection = watch('ASMS_Id');
+
+    // Initial Loading of lists if missing
+    useEffect(() => {
+        const loadInitialData = async () => {
+            try {
+                if (academicList.length === 0) {
+                    const res = await getAcademicYearDropDown();
+                    setAcademicList(extractList(res, 'yearlist'));
+                }
+                if (categoryList.length === 0) {
+                    const res = await getCategoryDropDown();
+                    setCategoryList(extractList(res, 'categorylist'));
+                }
+                if (classList.length === 0) {
+                    const res = await getClassDetails();
+                    setClassList(extractList(res, 'classlist'));
+                }
+                if (sectionList.length === 0) {
+                    const res = await getSectionDetails();
+                    setSectionList(extractList(res, 'sectionlist'));
+                }
+            } catch (error) {
+                console.error('Failed to load initial dropdowns', error);
+            }
+        };
+        loadInitialData();
+    }, []);
 
     // Fetch Edit Details
     useEffect(() => {
@@ -91,50 +155,25 @@ export default function LabConstraintsForm({ initialData, editData, onSuccess, o
         }
     }, [editData, reset]);
 
-    // Fetch Classes on Year/Category Change
+    // Lab Details (Lab Name) cascading on Class/Section
     useEffect(() => {
-        const fetchClassesHelper = async () => {
-            if (watchedAcademicYear && watchedCategory) {
+        const fetchLabs = async () => {
+            if (watchedAcademicYear && watchedCategory && watchedClass && watchedSection) {
                 try {
-                    const res = await getClassDetails({
-                        ASMAY_Id: watchedAcademicYear,
-                        TTMC_Id: watchedCategory
-                    });
-                    if (Array.isArray(res?.classlist)) {
-                        setClassList(res.classlist);
-                    } else {
-                        setClassList([]);
-                    }
-                } catch (error) {
-                    console.error(error);
-                }
-            }
-        };
-        fetchClassesHelper();
-    }, [watchedAcademicYear, watchedCategory]);
-
-    // Fetch Sections on Class Change
-    useEffect(() => {
-        const fetchSectionsHelper = async () => {
-            if (watchedAcademicYear && watchedClass && watchedCategory) {
-                try {
-                    const res = await getSectionDetails({
+                    const res = await getLabDetails({
                         ASMAY_Id: watchedAcademicYear,
                         TTMC_Id: watchedCategory,
-                        ASMCL_Id: watchedClass
+                        ASMCL_Id: watchedClass,
+                        ASMS_Id: watchedSection
                     });
-                    if (Array.isArray(res?.sectionlist)) {
-                        setSectionList(res.sectionlist);
-                    } else {
-                        setSectionList([]);
-                    }
+                    setLabList(extractList(res, 'lablist'));
                 } catch (error) {
                     console.error(error);
                 }
             }
         };
-        fetchSectionsHelper();
-    }, [watchedAcademicYear, watchedClass, watchedCategory]);
+        fetchLabs();
+    }, [watchedAcademicYear, watchedCategory, watchedClass, watchedSection]);
 
     const onSubmit: SubmitHandler<LabConstraintsSchema> = async (data) => {
         try {
@@ -169,11 +208,15 @@ export default function LabConstraintsForm({ initialData, editData, onSuccess, o
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {academicList.map((item: any) => (
-                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                            {item.asmaY_Year}
-                                        </SelectItem>
-                                    ))}
+                                    {academicList.map((item: any) => {
+                                        const id = item.asmaY_Id || item.ASMAY_Id || item.id;
+                                        const year = item.asmaY_Year || item.asmay_Year || item.year;
+                                        return (
+                                            <SelectItem key={id} value={id?.toString()}>
+                                                {year}
+                                            </SelectItem>
+                                        );
+                                    })}
                                 </SelectContent>
                             </Select>
                         )}
@@ -194,11 +237,15 @@ export default function LabConstraintsForm({ initialData, editData, onSuccess, o
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {categoryList.map((item: any) => (
-                                        <SelectItem key={item.ttmC_Id} value={item.ttmC_Id.toString()}>
-                                            {item.ttmC_CategoryName}
-                                        </SelectItem>
-                                    ))}
+                                    {categoryList.map((item: any) => {
+                                        const id = item.ttmC_Id || item.TTMC_Id || item.id;
+                                        const name = item.ttmC_CategoryName || item.categoryName || item.ttmC_CategoryName;
+                                        return (
+                                            <SelectItem key={id} value={id?.toString()}>
+                                                {name}
+                                            </SelectItem>
+                                        );
+                                    })}
                                 </SelectContent>
                             </Select>
                         )}
@@ -219,11 +266,15 @@ export default function LabConstraintsForm({ initialData, editData, onSuccess, o
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {classList.map((item: any) => (
-                                        <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                            {item.asmcL_ClassName}
-                                        </SelectItem>
-                                    ))}
+                                    {classList.map((item: any) => {
+                                        const id = item.asmcL_Id || item.ASMCL_Id || item.asmcL_Id;
+                                        const name = item.asmcL_ClassName || item.className || item.asmcL_ClassName;
+                                        return (
+                                            <SelectItem key={id} value={id?.toString()}>
+                                                {name}
+                                            </SelectItem>
+                                        );
+                                    })}
                                 </SelectContent>
                             </Select>
                         )}
@@ -244,11 +295,15 @@ export default function LabConstraintsForm({ initialData, editData, onSuccess, o
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {sectionList.map((item: any) => (
-                                        <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
-                                            {item.asmC_SectionName}
-                                        </SelectItem>
-                                    ))}
+                                    {sectionList.map((item: any) => {
+                                        const id = item.asmS_Id || item.ASMS_Id || item.asms_Id;
+                                        const name = item.asmC_SectionName || item.asmS_SectionName || item.sectionName;
+                                        return (
+                                            <SelectItem key={id} value={id?.toString()}>
+                                                {name}
+                                            </SelectItem>
+                                        );
+                                    })}
                                 </SelectContent>
                             </Select>
                         )}
@@ -269,11 +324,15 @@ export default function LabConstraintsForm({ initialData, editData, onSuccess, o
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {labList.map((item: any) => (
-                                        <SelectItem key={item.labLibId} value={item.labLibId.toString()}>
-                                            {item.labName}
-                                        </SelectItem>
-                                    ))}
+                                    {labList.map((item: any) => {
+                                        const id = item.labLibId || item.ttlaB_LABLibId || item.id;
+                                        const name = item.labName || item.labLibName || item.name;
+                                        return (
+                                            <SelectItem key={id} value={id?.toString()}>
+                                                {name}
+                                            </SelectItem>
+                                        );
+                                    })}
                                 </SelectContent>
                             </Select>
                         )}
@@ -286,7 +345,7 @@ export default function LabConstraintsForm({ initialData, editData, onSuccess, o
                 <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting}>
                     <Save className='mr-2 h-4 w-4' /> {editData ? 'Update' : 'Save'}
                 </Button>
-                <Button type='button' variant='destructive' onClick={onCancel}>
+                <Button type='button' variant='outline' onClick={onCancel}>
                     Cancel
                 </Button>
             </div>

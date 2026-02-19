@@ -7,6 +7,8 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
+import { useTimeTableCategoryDropDownData } from '@/hooks/timetable/useMasters';
 import {
     type BifurcationConstraintsSchema,
     bifurcationConstraintsSchema,
@@ -70,6 +72,21 @@ export default function BifurcationConstraintsForm({ initialData, editData, onSu
             combinationlist: []
         }
     });
+
+    const {
+        data: categorydropdowndata,
+        isLoading: categorydropdownloading,
+        error: categorydropdownerror,
+        refetchAll: refetchAllCategory
+    } = useTimeTableCategoryDropDownData();
+
+    const {
+        data: academicyeardata,
+        isLoading: academicyearloading,
+        error: academicyearerror,
+        refetchAll: refetchAllAcademicYear
+    } = usebifurcationAcademicYear();
+
 
     const {
         register,
@@ -284,28 +301,39 @@ export default function BifurcationConstraintsForm({ initialData, editData, onSu
                 {/* Left Column */}
                 <div className='space-y-4'>
                     <div className='space-y-2'>
-                        <Label>
-                            Academic Year <span className='text-red-500'>*</span>
-                        </Label>
+                        <Label className='font-bold text-purple-900'>Academic Year *</Label>
                         <Controller
-                            control={control}
                             name='ASMAY_Id'
+                            control={control}
                             render={({ field }) => (
-                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder='--Select--' />
+                                <Select
+                                    // onValueChange={field.onChange}
+                                    //  value={field.value}
+                                    key={field.value || 'empty'}
+                                    onValueChange={(value) => {
+                                        field.onChange(value || '');
+                                    }}
+                                    value={field.value?.toString() || undefined}>
+                                    <SelectTrigger className='h-11 border-purple-100'>
+                                        <SelectValue placeholder='-- Select Year --' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {academicList.map((item: any) => (
-                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                {item.asmaY_Year}
+                                        {academicyearloading ? (
+                                            <SelectItem value='loading' disabled>
+                                                Loading Years...
                                             </SelectItem>
-                                        ))}
+                                        ) : (
+                                            ((academicyeardata as any)?.data || (Array.isArray(academicyeardata) ? academicyeardata : []) || []).map((y: any) => (
+                                                <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
+                                                    {y.asmaY_Year}
+                                                </SelectItem>
+                                            ))
+                                        )}
                                     </SelectContent>
                                 </Select>
                             )}
                         />
-                        {errors.ASMAY_Id && <FormError>{errors.ASMAY_Id.message}</FormError>}
+                        {errors.ASMAY_Id && <p className='text-red-500 text-xs'>{errors.ASMAY_Id.message}</p>}
                     </div>
 
                     <div className='space-y-2'>
@@ -394,11 +422,21 @@ export default function BifurcationConstraintsForm({ initialData, editData, onSu
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {categoryList.map((item: any) => (
-                                            <SelectItem key={item.ttmC_Id} value={item.ttmC_Id.toString()}>
-                                                {item.ttmC_CategoryName}
+                                        {categorydropdownloading ? (
+                                            <SelectItem value='loading' disabled>
+                                                Loading Categories
                                             </SelectItem>
-                                        ))}
+                                        ) : categorydropdownerror ? (
+                                            <SelectItem value='error' disabled>
+                                                Error loading Categories
+                                            </SelectItem>
+                                        ) : (
+                                            categorydropdowndata?.data?.map((item) => (
+                                                <SelectItem key={item.ttmC_Id} value={item.ttmC_Id.toString()}>
+                                                    {item.ttmC_CategoryName}
+                                                </SelectItem>
+                                            ))
+                                        )}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -567,9 +605,9 @@ export default function BifurcationConstraintsForm({ initialData, editData, onSu
 
             <div className='flex justify-center gap-4 pt-4'>
                 <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting}>
-                    <Save className='mr-2 h-4 w-4' /> {editData ? 'Update' : 'Save'}
+                    <Save className='mr-1.5 h-4 w-4' /> {editData ? 'Update' : 'Save'}
                 </Button>
-                <Button type='button' variant='destructive' onClick={onCancel}>
+                <Button type='button' variant='outline' onClick={onCancel}>
                     Cancel
                 </Button>
             </div>
