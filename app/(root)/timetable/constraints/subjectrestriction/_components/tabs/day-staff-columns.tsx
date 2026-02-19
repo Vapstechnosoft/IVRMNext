@@ -52,7 +52,7 @@ export const columns: ColumnDef<IDayStaffList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IDayStaffList }) {
-    const { openEditForm, openDeleteForm } = useFormContext<IDayStaffList>();
+    const { openEditForm, openToggleForm } = useFormContext<IDayStaffList>();
 
     const handleEdit = useCallback(
         (data: IDayStaffList) => {
@@ -61,12 +61,20 @@ function ActionButtonsCell({ rowData }: { rowData: IDayStaffList }) {
         [openEditForm]
     );
 
-    const handleDelete = useCallback(
+    const handleToggle = useCallback(
         (data: IDayStaffList) => {
-            if (openDeleteForm) openDeleteForm(data);
+            if (openToggleForm) openToggleForm(data);
         },
-        [openDeleteForm]
+        [openToggleForm]
     );
 
-    return <ActionButtons rowData={rowData} buttons={{ edit: true, delete: true }} onEdit={handleEdit} onDelete={handleDelete} />;
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: true, delete: false }}
+            onEdit={handleEdit}
+            onToggle={handleToggle}
+            toggleConditionKey='ttrdsU_ActiveFlag'
+        />
+    );
 }

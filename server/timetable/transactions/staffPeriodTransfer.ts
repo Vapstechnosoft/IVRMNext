@@ -17,17 +17,55 @@ export async function getStaffPeriodTransferMasters(): Promise<StaffPeriodTransf
         const [years, classes, staff, subjects] = await Promise.all([
             api.get<AcademicYear[]>('timetable', '/TimeTableCommon/GetAcademicYearData'),
             api.get<Class[]>('timetable', '/TimeTableCommon/GetClassData'),
-            api.get<Staff[]>('timetable', '/TimeTableCommon/GetStaffDetails'),
+            api.get<Staff[]>('timetable', '/StaffPeriodTransformFacade/GetFromStaffDetails'),
             api.get<Subject[]>('timetable', '/TimeTableCommon/subject-details')
         ]);
 
+        // Helper to safely extract array from various API response formats
+        const extractArray = <T>(response: any): T[] => {
+            // 1. If response matches ApiResponse structure with data property under data
+            if (response?.data && Array.isArray(response.data)) return response.data;
+            if (response?.data?.$values && Array.isArray(response.data.$values)) return response.data.$values;
+
+            // 2. If response matches ApiResponse structure but data is under '$values' directly on the object (if cast improperly)
+            if (response?.$values && Array.isArray(response.$values)) return response.$values;
+
+            // 3. If response is the array itself (unwrapped)
+            if (Array.isArray(response)) return response;
+
+            // 4. Fallback for nested 'data' property
+            if (response?.data?.data && Array.isArray(response.data.data)) return response.data.data;
+
+            // 5. If we have a 'success' field but no data found above, it might be an empty list or error
+            // console.log('Response structure:', JSON.stringify(response, null, 2)); 
+
+            return [];
+        };
+
+        const staffData = extractArray<any>(staff);
+        const mappedStaff: Staff[] = staffData
+            .map((s) => ({
+                hrmE_Id: s.hrmE_Id || s.HRME_Id,
+                staffNamelst:
+                    s.staffNamelst ||
+                    (s.firstName ? `${s.firstName} ${s.middleName || ''} ${s.lastName || ''}`.trim() : '') ||
+                    (s.hrmE_EmployeeFirstName
+                        ? `${s.hrmE_EmployeeFirstName} ${s.hrmE_EmployeeMiddleName || ''} ${s.hrmE_EmployeeLastName || ''}`.trim()
+                        : '') ||
+                    (s.HRME_EmployeeFirstName
+                        ? `${s.HRME_EmployeeFirstName} ${s.HRME_EmployeeMiddleName || ''} ${s.HRME_EmployeeLastName || ''}`.trim()
+                        : '') ||
+                    '' // Default to empty string if no name found
+            }))
+            .filter((s) => s.staffNamelst !== '' && s.staffNamelst !== 'Unknown Staff'); // Filter out staff with no name
+
         // 2. Return the data structure exactly as defined in StaffPeriodTransferMasters
         return {
-            years: years.data ?? (years as unknown as AcademicYear[]),
+            years: extractArray(years),
             sections: [], // Sections are fetched dynamically by class
-            classes: classes.data ?? (classes as unknown as Class[]),
-            staff: staff.data ?? (staff as unknown as Staff[]),
-            subjects: subjects.data ?? (subjects as unknown as Subject[])
+            classes: extractArray(classes),
+            staff: mappedStaff,
+            subjects: extractArray(subjects)
         };
     } catch (error) {
         console.error('Staff Period Transfer Master Fetch Error:', error);
@@ -43,7 +81,7 @@ export async function getStaffPeriodTransferMasters(): Promise<StaffPeriodTransf
 
 export async function saveStaffPeriodTransfer(payload: any) {
     try {
-        const response = await api.post<any>('timetable', 'StaffPeriodTransferFacade/SaveTransfer', payload);
+        const response = await api.post<any>('timetable', '/StaffPeriodTransferFacade/SaveTransfer', payload);
         const result = response.data;
 
         revalidatePath('/timetable/transactions/staff-period-transfer');
@@ -72,7 +110,7 @@ export async function getStaffPeriodDetails(payload: any) {
     try {
         const { asmaY_Id, hrmE_Id, asmcL_Id, asms_Id, ismS_Id } = payload;
 
-        const url = `StaffPeriodTransferFacade/GetPeriodDetails/${asmaY_Id}/${hrmE_Id}/${asmcL_Id}/${asms_Id}/${ismS_Id || 0}`;
+        const url = `/StaffPeriodTransferFacade/GetPeriodDetails/${asmaY_Id}/${hrmE_Id}/${asmcL_Id}/${asms_Id}/${ismS_Id || 0}`;
 
         const response = await api.get<any>('timetable', url);
 
@@ -109,7 +147,7 @@ export async function getSectionsByClass(asmcL_Id: number): Promise<Section[]> {
 
 export async function deleteStaffPeriodTransfer(payload: any) {
     try {
-        const response = await api.post<any>('timetable', 'StaffPeriodTransferFacade/DeleteTransfer', payload);
+        const response = await api.post<any>('timetable', '/StaffPeriodTransferFacade/DeleteTransfer', payload);
         const result = response.data;
 
         revalidatePath('/timetable/transactions/staff-period-transfer');

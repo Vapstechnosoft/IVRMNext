@@ -2021,7 +2021,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
-                        }
+                        },
                         // ,
                         // {
                         //     id: 2,
@@ -2334,6 +2334,7 @@ export async function getUserAccessibleModules() {
                         //         }
                         //     ]
                         // },
+
                         // , {
                         //     id: 4,
                         //     name: 'Leave Management',
@@ -2489,6 +2490,163 @@ export async function getUserAccessibleModules() {
                         //         }
                         //     ]
                         // }
+
+                        {
+                            id: 4,
+                            name: 'Leave Management',
+                            icon: 'Calendar',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Masters',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Leave',
+                                            icon: 'Calendar',
+                                            url: '/hrms/leave-management/masters/master-leave',
+                                            title: 'Master Leave',
+                                            description: 'Manage Leave Types'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Leave Authorization',
+                                            icon: 'Shield',
+                                            url: '/hrms/leave-management/masters/leave-authorization',
+                                            title: 'Leave Authorization',
+                                            description: 'Configure Leave Approvers'
+                                        }
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Master Leave Year',
+                                        //     icon: 'CalendarRange',
+                                        //     url: '/hrms/leave-management/masters/master-leaveYear',
+                                        //     title: 'Master Leave Year',
+                                        //     description: 'Manage Leave Year'
+                                        // }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Apply Leave',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Apply Leave',
+                                            icon: 'FilePlus',
+                                            url: '/hrms/leave-management/apply-leave',
+                                            title: 'Apply Leave',
+                                            description: 'Submit Leave Application'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Leave Approval',
+                                            icon: 'CheckCircle',
+                                            url: '/hrms/leave-management/leave-approval',
+                                            title: 'Leave Approval',
+                                            description: 'Approve or Reject Leave Requests'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Transaction',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Leave Transfer',
+                                            icon: 'Plus',
+                                            url: '/hrms/leave-management/transaction/leave-transfer',
+                                            title: 'Leave Transfer',
+                                            description: 'Transfer Leave'
+                                        },
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Comp Off Approval',
+                                        //     icon: 'CheckSquare',
+                                        //     url: '/hrms/leave-management/transaction/comp-off-approval',
+                                        //     title: 'Comp Off Approval',
+                                        //     description: 'Approve Compensatory Off'
+                                        // },
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Comp Off Request',
+                                        //     icon: 'FileText',
+                                        //     url: '/hrms/leave-management/transaction/comp-off-request',
+                                        //     title: 'Comp Off Request',
+                                        //     description: 'Request Compensatory Off'
+                                        // },
+                                        {
+                                            id: 4,
+                                            name: 'Leave Credit Details',
+                                            icon: 'Info',
+                                            url: '/hrms/leave-management/transaction/leave-credit-details',
+                                            title: 'Leave  Details',
+                                            description: 'View Leave Credit Details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Leave Transaction',
+                                            icon: 'List',
+                                            url: '/hrms/leave-management/transaction/leave-credit-transaction',
+                                            title: 'Leave Transaction',
+                                            description: 'Leave Transaction'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Leave Opening Balance',
+                                            icon: 'Database',
+                                            url: '/hrms/leave-management/transaction/leave-opening-balance',
+                                            title: 'Leave Opening Balance',
+                                            description: 'Manage Leave Opening Balance'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Admin On Duty Apply',
+                                            icon: 'Briefcase',
+                                            url: '/hrms/leave-management/transaction/admin-on-duty-apply',
+                                            title: 'Admin On Duty Apply',
+                                            description: 'Apply for On Duty Leave'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 4,
+                                    name: 'Report',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Leave Report',
+                                            icon: 'FileSearch',
+                                            url: '/hrms/leave-management/reports/leave-report',
+                                            title: 'Leave Report',
+                                            description: 'Leave Summary Report'
+                                        }
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Overall Report',
+                                        //     icon: 'BarChart3',
+                                        //     url: '/hrms/leave-management/reports/overAll-report',
+                                        //     title: 'Overall Report',
+                                        //     description: 'Overall Leave Analysis'
+                                        // },
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Unauthorized Leave Report',
+                                        //     icon: 'AlertTriangle',
+                                        //     url: '/hrms/leave-management/reports/unauthorizedLeaveCount-report',
+                                        //     title: 'Unauthorized Leave Report',
+                                        //     description: 'Unauthorized Leave Count'
+                                        // }
+                                    ]
+                                }
+                            ]
+                        }
+
                         // {
                         //     id: 5,
                         //     name: 'Exit Management',
@@ -3043,313 +3201,306 @@ export async function getUserAccessibleModules() {
                 //     ]
                 // },
 
-                // {
-                //     id: 6,
-                //     name: 'Time Table',
-                //     icon: 'Clock',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Time Table',
-                //             icon: 'Clock',
-                //             sub_menu: [
-                //                 // {
-                //                 //     id: 4,
-                //                 //     name: 'Configuration',
-                //                 //     icon: 'BadgeIndianRupee',
-                //                 //     pages: [
-                //                 //         {
-                //                 //             id: 21,
-                //                 //             name: 'Fee configuration',
-                //                 //             icon: 'BadgeIndianRupee',
-                //                 //             url: '/fees/configuration/masterfeeconfig',
-                //                 //             title: 'Fee configuration',
-                //                 //             description: 'Fee configuration'
-                //                 //         }
-                //                 //     ]
-                //                 // },
-                //                 {
-                //                     id: 1,
-                //                     name: 'Masters',
-                //                     icon: 'Clock',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Master Day',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/masterday',
-                //                             title: 'Master Day',
-                //                             description: 'Manage Master Day Details'
-                //                         },
-                //                         {
-                //                             id: 9,
-                //                             name: 'Master Day Class Wise',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/masterdayclasswise',
-                //                             title: 'Master Day Class Wise',
-                //                             description: 'Manage Master Day Class Wise Details'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Master Building',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/masterbuilding',
-                //                             title: 'Master Building',
-                //                             description: 'Manage Master Building Details'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Staff Abbreviation',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/staffabbreviations',
-                //                             title: 'Staff Abbreviation',
-                //                             description: 'Manage Staff Abbreviation Details'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Subject Abbreviation',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/subjectabbreviations',
-                //                             title: 'Subject Abbreviation',
-                //                             description: 'Manage Subject Abbreviation Details'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Category Class Mapping',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/categoryclassmapping',
-                //                             title: 'Category Class Mapping',
-                //                             description: 'Manage Category Class Mapping Details'
-                //                         },
-                //                         {
-                //                             id: 6,
-                //                             name: 'Master Category',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/mastercategory',
-                //                             title: 'Master Category',
-                //                             description: 'Manage Master Category Details'
-                //                         },
-                //                         {
-                //                             id: 7,
-                //                             name: 'Master Break Time Settings',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/breaktimesettings',
-                //                             title: 'Master Break Time Settings',
-                //                             description: 'Manage Master Break Time Settings Details'
-                //                         },
-                //                         {
-                //                             id: 8,
-                //                             name: 'Master Period',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/masterperiod',
-                //                             title: 'Master Period',
-                //                             description: 'Manage Master Period Details'
-                //                         },
+                {
+                    id: 6,
+                    name: 'Time Table',
+                    icon: 'Clock',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Time Table',
+                            icon: 'Clock',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Masters',
+                                    icon: 'Clock',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Day',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterday',
+                                            title: 'Master Day',
+                                            description: 'Manage Master Day Details'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Master Day Class Wise',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterdayclasswise',
+                                            title: 'Master Day Class Wise',
+                                            description: 'Manage Master Day Class Wise Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Master Building',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterbuilding',
+                                            title: 'Master Building',
+                                            description: 'Manage Master Building Details'
+                                        },
+                                        {
+                                            id: 11111111,
+                                            name: 'Master Building Class Section',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterbuildingclasssection',
+                                            title: 'Master Building Class Section',
+                                            description: 'Manage Master Building Class Section Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Staff Abbreviation',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/staffabbreviations',
+                                            title: 'Staff Abbreviation',
+                                            description: 'Manage Staff Abbreviation Details'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Subject Abbreviation',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/subjectabbreviations',
+                                            title: 'Subject Abbreviation',
+                                            description: 'Manage Subject Abbreviation Details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Category Class Mapping',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/categoryclassmapping',
+                                            title: 'Category Class Mapping',
+                                            description: 'Manage Category Class Mapping Details'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Master Category',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/mastercategory',
+                                            title: 'Master Category',
+                                            description: 'Manage Master Category Details'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Master Break Time Settings',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/breaktimesettings',
+                                            title: 'Master Break Time Settings',
+                                            description: 'Manage Master Break Time Settings Details'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Master Period',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterperiod',
+                                            title: 'Master Period',
+                                            description: 'Manage Master Period Details'
+                                        },
 
-                //                         {
-                //                             id: 10,
-                //                             name: 'Period Distribution',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/perioddistribution',
-                //                             title: 'Period Distribution',
-                //                             description: 'Manage Period Distribution Details'
-                //                         },
-                //                         {
-                //                             id: 11,
-                //                             name: 'Period Allocation Master Period',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/periodallocationmasterperiod',
-                //                             title: 'Period Allocation Master Period',
-                //                             description: 'Manage Period Allocation Master Period Details'
-                //                         },
-                //                         {
-                //                             id: 12,
-                //                             name: 'Master Period Class',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/masterperiodclass',
-                //                             title: 'Master Period Class',
-                //                             description: 'Manage Master Period Class Details'
-                //                         },
+                                        {
+                                            id: 10,
+                                            name: 'Period Distribution',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/perioddistribution',
+                                            title: 'Period Distribution',
+                                            description: 'Manage Period Distribution Details'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Period Allocation Master Period',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/periodallocationmasterperiod',
+                                            title: 'Period Allocation Master Period',
+                                            description: 'Manage Period Allocation Master Period Details'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Master Period Class',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterperiodclass',
+                                            title: 'Master Period Class',
+                                            description: 'Manage Master Period Class Details'
+                                        },
 
-                //                         {
-                //                             id: 13,
-                //                             name: 'Period Time Setting',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/periodtimesetting',
-                //                             title: 'Period Time Setting',
-                //                             description: 'Manage Period Time Settings'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 3,
-                //                     name: 'Constraints',
-                //                     icon: 'Clock',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Bifurcation Constraints',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/constraints/bifurcationconstraints',
-                //                             title: 'Bifurcation Constraints',
-                //                             description: 'Manage Bifurcation Constraints Details'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'consecutive',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/constraints/consecutive',
-                //                             title: 'Consecutive Constraints',
-                //                             description: 'Manage Consecutive Constraints Details'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Fixing',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/constraints/fixing',
-                //                             title: 'Fixing Constraints',
-                //                             description: 'Manage Fixing Constraints Details'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Lab Constraints',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/constraints/labconstraints',
-                //                             title: 'Lab Constraints',
-                //                             description: 'Manage Lab Constraints Details'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Subject Restrictions',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/constraints/subjectrestriction',
-                //                             title: 'Subject Restrictions',
-                //                             description: 'Manage Subject Restrictions Details'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 4,
-                //                     name: 'Transactions',
-                //                     icon: 'Clock',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Class Section Time Table Report',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/class-section-report/class-section-report',
-                //                             title: 'Class Section Time Table Report',
-                //                             description: 'View and generate class-wise timetable grids'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Deputation',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/deputation',
-                //                             title: 'Deputation',
-                //                             description: 'ABSENT STAFF ALLOTMENT DETAILS'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Manual Period Insertion',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/manual-Period-insersion',
-                //                             title: 'Manual Period Insertion',
-                //                             description: 'ABSENT STAFF ALLOTMENT DETAILS'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Staff Period Transfer',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/staff-Periods-Transfer',
-                //                             title: 'Staff Period Transfer',
-                //                             description: 'Transfer Staff Periods Between Classes and Sections'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Staff Replacement Existing To New',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/staff-replacement-existing-to-new',
-                //                             title: 'Staff Replacement Existing To New',
-                //                             description: 'Replacing staff Existing To New'
-                //                         },
-                //                         {
-                //                             id: 6,
-                //                             name: 'Staff Replacement In Their TimeTable',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/staff-replacement-In-their-timeTable',
-                //                             title: 'Staff Replacement In Their TimeTable',
-                //                             description: 'Staff Replacement In Their TimeTable'
-                //                         },
-                //                         {
-                //                             id: 7,
-                //                             name: 'Staff Replacement In Unallocated Period',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/staff-replacement-in-unallocated-period',
-                //                             title: 'Staff Replacement In Unallocated Period',
-                //                             description: 'Staff Replacement In Unallocated Period'
-                //                         },
-                //                         {
-                //                             id: 8,
-                //                             name: 'Time Table Generation',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/time-table-generation',
-                //                             title: 'Time Table Generation',
-                //                             description: 'Time Table Generation'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 2,
-                //                     name: 'Reports',
-                //                     icon: 'Clock',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Consolidated Report',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/reports/consolidated',
-                //                             title: 'Consolidated Report',
-                //                             description: 'TimeTable Consolidated Report'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Class Wise TimeTable',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/reports/classwisett',
-                //                             title: 'Class Wise TimeTable',
-                //                             description: 'Class Wise TimeTable Report'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Subject Wise TimeTable',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/reports/subjectwisett',
-                //                             title: 'Subject Wise TimeTable',
-                //                             description: 'Subject Wise TimeTable Report'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Staff Wise TimeTable',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/reports/staffwisett',
-                //                             title: 'Staff Wise TimeTable',
-                //                             description: 'Staff Wise TimeTable Report'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Deputation Report',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/reports/deputationreport',
-                //                             title: 'Deputation Report',
-                //                             description: 'Deputation Report'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
+                                        {
+                                            id: 13,
+                                            name: 'Period Time Setting',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/periodtimesetting',
+                                            title: 'Period Time Setting',
+                                            description: 'Manage Period Time Settings'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Constraints',
+                                    icon: 'Clock',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Bifurcation Constraints',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/bifurcationconstraints',
+                                            title: 'Bifurcation Constraints',
+                                            description: 'Manage Bifurcation Constraints Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'consecutive',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/consecutive',
+                                            title: 'Consecutive Constraints',
+                                            description: 'Manage Consecutive Constraints Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Fixing',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/fixing',
+                                            title: 'Fixing Constraints',
+                                            description: 'Manage Fixing Constraints Details'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Lab Constraints',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/labconstraints',
+                                            title: 'Lab Constraints',
+                                            description: 'Manage Lab Constraints Details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Subject Restrictions',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/subjectrestriction',
+                                            title: 'Subject Restrictions',
+                                            description: 'Manage Subject Restrictions Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 4,
+                                    name: 'Transactions',
+                                    icon: 'Clock',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Class Section Time Table Report',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/class-section-report/class-section-report',
+                                            title: 'Class Section Time Table Report',
+                                            description: 'View and generate class-wise timetable grids'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Deputation',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/deputation',
+                                            title: 'Deputation',
+                                            description: 'ABSENT STAFF ALLOTMENT DETAILS'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Manual Period Insertion',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/manual-Period-insersion',
+                                            title: 'Manual Period Insertion',
+                                            description: 'ABSENT STAFF ALLOTMENT DETAILS'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Staff Period Transfer',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/staff-Periods-Transfer',
+                                            title: 'Staff Period Transfer',
+                                            description: 'Transfer Staff Periods Between Classes and Sections'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Staff Replacement Existing To New',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/staff-replacement-existing-to-new',
+                                            title: 'Staff Replacement Existing To New',
+                                            description: 'Replacing staff Existing To New'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Staff Replacement In Their TimeTable',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/staff-replacement-In-their-timeTable',
+                                            title: 'Staff Replacement In Their TimeTable',
+                                            description: 'Staff Replacement In Their TimeTable'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Staff Replacement In Unallocated Period',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/staff-replacement-in-unallocated-period',
+                                            title: 'Staff Replacement In Unallocated Period',
+                                            description: 'Staff Replacement In Unallocated Period'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Time Table Generation',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/time-table-generation',
+                                            title: 'Time Table Generation',
+                                            description: 'Time Table Generation'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Reports',
+                                    icon: 'Clock',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Consolidated Report',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/consolidated',
+                                            title: 'Consolidated Report',
+                                            description: 'TimeTable Consolidated Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Class Wise TimeTable',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/classwisett',
+                                            title: 'Class Wise TimeTable',
+                                            description: 'Class Wise TimeTable Report'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Subject Wise TimeTable',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/subjectwisett',
+                                            title: 'Subject Wise TimeTable',
+                                            description: 'Subject Wise TimeTable Report'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Staff Wise TimeTable',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/staffwisett',
+                                            title: 'Staff Wise TimeTable',
+                                            description: 'Staff Wise TimeTable Report'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Deputation Report',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/deputationreport',
+                                            title: 'Deputation Report',
+                                            description: 'Deputation Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
                 // {
                 //     id: 7,
                 //     name: 'Library',
