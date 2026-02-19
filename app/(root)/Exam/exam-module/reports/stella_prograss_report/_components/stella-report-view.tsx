@@ -71,6 +71,7 @@ export const StellaReportView = ({
                     left: 0;
                     top: 0;
                     width: 100%;
+                    
                 }
                 .no-print {
                     display: none !important;
@@ -92,6 +93,12 @@ export const StellaReportView = ({
                     background-color: #f3f4f6 !important;
                     -webkit-print-color-adjust: exact !important;
                     print-color-adjust: exact !important;
+                }
+                .signatures {
+                   margin-top: 50px !important;
+                }
+                .promotions {
+                   margin-top: 50px !important;
                 }
             }
             `}
@@ -560,7 +567,7 @@ export const StellaReportView = ({
           );
         })}
         {/* Signatures */}
-        <div className="mt-4 flex justify-between items-end text-sm font-bold px-8">
+        <div className="mt-4 flex justify-between items-end text-sm font-bold px-8 signatures">
           <div className="text-center">
             <div className="border-t border-black pt-1 w-32 mx-auto">
               Class Teacher
@@ -579,7 +586,7 @@ export const StellaReportView = ({
         </div>
 
         {/* Promotion */}
-        <div className="mt-4 text-center text-xs font-bold">
+        <div className="mt-4 text-center text-xs font-bold promotions">
           Promoted to Class: ________________________ New Session Begins:
           ________________________
         </div>
