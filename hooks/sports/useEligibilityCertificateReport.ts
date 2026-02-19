@@ -5,7 +5,7 @@ import {
     getAge,
     generateEligibilityCertificateReport
 } from '@/server/sports/reports/eligibility-certificate-report';
-import { IEligibilityCertificateReport } from '@/types/sports/reports/eligibility-certificate-report';
+import type { IEligibilityCertificateReport } from '@/types/sports/reports/eligibility-certificate-report';
 
 export const useEligibilityCertificateReport = () => {
     const { data, isLoading, error } = useQuery({

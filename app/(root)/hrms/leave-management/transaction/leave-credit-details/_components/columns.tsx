@@ -6,12 +6,17 @@ import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
 export interface LeaveCreditDetail extends BaseEntity {
+    leaveId: number;
+    leaveName: string;
+    leaveCode?: string;
     type: string[];
     department: string[];
     designation: string[];
     grade?: string[];
-    leaveName: string;
-    leaveCode?: string;
+    typeName?: string[];
+    departmentName?: string[];
+    designationName?: string[];
+    gradeName?: string[];
     noOfDays: number;
     maxLeaveApplicable: number;
     leaveCarryForward?: boolean;
@@ -67,18 +72,18 @@ export const getLeaveCreditDetailColumns = ({ onEdit, onDelete }: LeaveCreditDet
         enableSorting: false
     },
     {
-        accessorKey: 'department',
+        accessorKey: 'departmentName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='DEPARTMENT NAME' />,
         cell: ({ row }) => {
-            const dept = row.getValue('department') as string[];
+            const dept = row.getValue('departmentName') as string[];
             return <div>{dept && dept.length > 0 ? dept.join(', ') : '-'}</div>;
         }
     },
     {
-        accessorKey: 'designation',
+        accessorKey: 'designationName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='DESIGNATION' />,
         cell: ({ row }) => {
-            const desg = row.getValue('designation') as string[];
+            const desg = row.getValue('designationName') as string[];
             return <div>{desg && desg.length > 0 ? desg.join(', ') : '-'}</div>;
         }
     },

@@ -22,8 +22,8 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useAcademicYearDropdown, useMasterClassDropdown, useMasterSectionDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useStudentAttendanceReport, useadmissionStudentsDropdown } from '@/hooks/admission/preadmission/useReports';
 import { getExcelStudentAttendanceReport } from '@/server/admission/preadmission/reports/month_end_report';
-import type { IRigistrationReportList } from '@/types/admission/preadmission/reports';
-import { registrationColumns } from './_components/columns';
+import type { IStudentAttendanceReportList } from '@/types/admission/preadmission/reports';
+import { attendanceColumns } from './_components/columns';
 
 /* ---------------- Schema ---------------- */
 
@@ -57,10 +57,11 @@ export default function StudyCertificateReportPage() {
     } = useForm<FormFields>({
         resolver: zodResolver(schema),
         defaultValues: {
-            selectionMode: 2, // all
+            selectionMode: 1, // all
             studentStatus: 1, // Monthly
             certificateType: 'admNo',
-            monthDateWise: 0
+            monthDateWise: 0,
+            studentId: 0
         }
     });
     const tableRef = useRef<DataTableRef>(null);
@@ -92,7 +93,7 @@ export default function StudyCertificateReportPage() {
         academicYearId,
         classId,
         sectionId,
-        studentId,
+        selectionMode === 2 ? studentId : 0, // Conditional studentId handling
         month,
         monthDateWise,
         fromDate,
@@ -118,7 +119,7 @@ export default function StudyCertificateReportPage() {
         }));
     }, [studentStatus, reset]);
     useEffect(() => {
-        if (selectionMode === 2) {
+        if (selectionMode === 1) {
             reset((prev) => ({
                 ...prev,
                 studentId: 0,
@@ -168,7 +169,7 @@ export default function StudyCertificateReportPage() {
                 academicYearId,
                 classId,
                 sectionId,
-                studentId,
+                selectionMode === 2 ? studentId : 0, // Conditional studentId handling
                 month,
                 monthDateWise,
                 fromDate,
@@ -183,8 +184,8 @@ export default function StudyCertificateReportPage() {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -219,8 +220,8 @@ export default function StudyCertificateReportPage() {
                             name='selectionMode'
                             control={control}
                             options={[
-                                { label: 'all', value: 2 },
-                                { label: 'individual', value: 1 }
+                                { label: 'all', value: 1 },
+                                { label: 'individual', value: 2 }
                             ]}
                         />
 
@@ -231,7 +232,7 @@ export default function StudyCertificateReportPage() {
                                 { label: 'admNo', value: 'admNo' },
                                 { label: 'name', value: 'name' }
                             ]}
-                            disabled={selectionMode !== 1}
+                            disabled={selectionMode !== 2}
                         />
 
                         <RadioField
@@ -285,7 +286,7 @@ export default function StudyCertificateReportPage() {
                             options={students?.data}
                             labelKey='studentName'
                             valueKey='amsT_Id'
-                            disabled={selectionMode !== 1 || !sectionId || studentsLoading}
+                            disabled={selectionMode !== 2 || !sectionId || studentsLoading}
                         />
 
                         {/* -------- Month -------- */}
@@ -298,7 +299,9 @@ export default function StudyCertificateReportPage() {
                                     render={({ field }) => (
                                         <div>
                                             <Label>Month</Label>
-                                            <Select onValueChange={(v) => field.onChange(Number(v))}>
+                                            <Select
+                                                value={field.value ? String(field.value) : undefined}
+                                                onValueChange={(v) => field.onChange(Number(v))}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Month' />
                                                 </SelectTrigger>
@@ -365,10 +368,56 @@ export default function StudyCertificateReportPage() {
                     variant='outline'
                     size='md'
                     className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <GenericDataTable<IRigistrationReportList>
+                    {/* Institution Header */}
+                    {(studentsAttendance as any)?.data?.institutionDetails?.[0] && (
+                        <div className='mb-6 border-b pb-6 text-center'>
+                            <div className='flex flex-col items-center gap-4'>
+                                {(studentsAttendance as any).data.institutionDetails[0].mI_Logo && (
+                                    <img
+                                        src={(studentsAttendance as any).data.institutionDetails[0].mI_Logo}
+                                        alt='Logo'
+                                        className='h-24 w-auto object-contain'
+                                    />
+                                )}
+                                <div>
+                                    <h1 className='text-2xl font-bold uppercase'>
+                                        {(studentsAttendance as any).data.institutionDetails[0].mI_Name}
+                                    </h1>
+                                    <p className='text-sm text-muted-foreground'>
+                                        {(studentsAttendance as any).data.institutionDetails[0].mI_Address1}
+                                        {(studentsAttendance as any).data.institutionDetails[0].mI_Address2 &&
+                                            `, ${(studentsAttendance as any).data.institutionDetails[0].mI_Address2}`}
+                                        {(studentsAttendance as any).data.institutionDetails[0].mI_Address3 &&
+                                            `, ${(studentsAttendance as any).data.institutionDetails[0].mI_Address3}`}
+                                    </p>
+                                    <h2 className='mt-2 text-lg font-bold tracking-wide'>STUDENT ATTENDANCE REPORT</h2>
+                                    <div className='mt-4 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-semibold'>
+                                        {academicYearId && (
+                                            <span>
+                                                Academic Year: {academicYears?.data?.find((y: any) => y.asmaY_Id === academicYearId)?.asmaY_Year}
+                                            </span>
+                                        )}
+                                        {classId && (
+                                            <span>
+                                                Class: {classes?.data?.find((c: any) => c.asmcL_Id === classId)?.asmcL_ClassName}
+                                            </span>
+                                        )}
+                                        {sectionId && (
+                                            <span>
+                                                Section: {sections?.data?.find((s: any) => s.asmS_Id === sectionId)?.asmC_SectionName}
+                                            </span>
+                                        )}
+                                        {month && <span>Month: {monthList.find((m) => m.id === month)?.name}</span>}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <GenericDataTable<IStudentAttendanceReportList>
                         {...tableProps}
                         ref={tableRef}
-                        columns={registrationColumns}
+                        columns={attendanceColumns}
                         isLoading={isLoading}
                         error={error}
                         showViewOptions={false}
@@ -416,7 +465,10 @@ function SelectField({ label, name, control, options, labelKey, valueKey, error,
                 name={name}
                 control={control}
                 render={({ field }) => (
-                    <Select disabled={disabled} onValueChange={(v) => field.onChange(Number(v))}>
+                    <Select
+                        disabled={disabled}
+                        value={field.value ? String(field.value) : undefined}
+                        onValueChange={(v) => field.onChange(Number(v))}>
                         <SelectTrigger>
                             <SelectValue placeholder={`Select ${label}`} />
                         </SelectTrigger>

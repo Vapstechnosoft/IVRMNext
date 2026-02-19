@@ -20,6 +20,7 @@ export interface AdminOnDutyApply {
     outTime: string; // hrelapD_OutTime
     leaveId: number; // hrmL_Id
     employeeId: number; // hrmE_Id
+    isActive?: boolean; // hrelaP_ActiveFlg
 }
 
 /**
@@ -39,6 +40,7 @@ export interface AdminOnDutyApplyApiData {
     hrelaP_LeaveReason: string;
     hrelapD_InTime: string;
     hrelapD_OutTime: string;
+    hrelaP_ActiveFlg?: boolean;
 }
 
 /**

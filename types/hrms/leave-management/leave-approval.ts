@@ -365,3 +365,51 @@ export interface PeriodLeaveStatusResponse {
     returnval_Update?: boolean;
 }
 
+/**
+ * Leave Approval Grid Item
+ */
+export interface LeaveApprovalGridItem {
+    hrmE_Id: number;
+    hrelaP_Id: number;
+    hrmE_FullName: string;
+    hrmL_LeaveName: string;
+    hreltD_FromDate: string;
+    hrelaP_FromDate: string;
+    hreltD_ToDate: string;
+    hrelaP_ToDate: string;
+    hreltD_TotDays: number;
+    hrelapD_TotalDays: number;
+    hrmE_EmployeeCode: string;
+    hrelT_Status: string;
+    hrelapD_LeaveStatus: string;
+    hrelapA_Remarks: string | null;
+    rejectionFlag: number;
+}
+
+/**
+ * Approve or Reject Leave Status Request
+ */
+export interface ApproveRejectLeaveStatusRequest {
+    approveRejectType: string;
+    hrmE_Id: number;
+    hreltD_FromDate: string;
+    hreltD_ToDate: string;
+    get_leave_status: {
+        hrelaP_Id: number;
+        hrelT_Status: string;
+        hrelapA_Remarks: string;
+    }[];
+}
+
+/**
+ * Leave Balance History Item
+ */
+export interface LeaveBalanceHistoryItem {
+    empName: string;
+    empLeaveType: string;
+    empCreatedLeaves: number;
+    empUsedLeaves1: number;
+    empBalanceLeaves: number;
+    empUsedLeaves: number;
+}
+

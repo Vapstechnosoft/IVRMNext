@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Store, PlusCircle, Pencil } from 'lucide-react';
 import { useInvMasterStore } from '@/hooks/inventory/masters/use-inv-master-store';
 import type { IInvMasterStore } from '@/types/inventory/masters/inv-master-store';
 import AddInvMasterStoreForm from './_components/add-form';
@@ -60,7 +60,9 @@ function InvMasterStorePageContent({
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
+                    title='Store List'
+                    icon={<Store className='h-5 w-5' />}>
                     <GenericDataTable<IInvMasterStore>
                         {...tableProps}
                         data={response?.data?.get_store || []}
@@ -104,7 +106,8 @@ function FormSections({ empname_list }: { empname_list: any[] }) {
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'
+                        icon={<PlusCircle className='h-5 w-5' />}>
                         <div className='relative'>
                             <Button
                                 type='button'
@@ -127,7 +130,8 @@ function FormSections({ empname_list }: { empname_list: any[] }) {
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'
+                        icon={<Pencil className='h-5 w-5' />}>
                         <div className='relative'>
                             <Button
                                 type='button'

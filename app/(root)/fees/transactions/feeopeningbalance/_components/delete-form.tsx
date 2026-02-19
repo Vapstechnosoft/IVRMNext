@@ -17,9 +17,10 @@ interface DeleteOpeningBalanceFormProps {
     rowData: any;
     onClose: () => void;
     onSuccess: () => void;
+    activeTab: 'Fee' | 'PDA';
 }
 
-export default function DeleteOpeningBalanceForm({ rowData, onClose, onSuccess }: DeleteOpeningBalanceFormProps) {
+export default function DeleteOpeningBalanceForm({ rowData, onClose, onSuccess, activeTab }: DeleteOpeningBalanceFormProps) {
     const {
         handleSubmit,
         formState: { isSubmitting },
@@ -43,7 +44,9 @@ export default function DeleteOpeningBalanceForm({ rowData, onClose, onSuccess }
             const id = rowData.fmoB_Id || rowData.fmC_Id;
             const isPDA = !!rowData.fmoB_Id; // fmoB_Id = PDA, fmC_Id = Fee
 
-            const response = await deleteOpeningBalance(isPDA ? 'PDA' : 'Fee', id);
+            // const response = await deleteOpeningBalance(isPDA ? 'PDA' : 'Fee', id);
+
+            const response = await deleteOpeningBalance(activeTab, id);
 
             if (response.success) {
                 toast.success(response.message || 'Opening balance deleted successfully');

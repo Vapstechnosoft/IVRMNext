@@ -237,23 +237,29 @@ export function LeaveCreditDetailsForm({
                                 Leave Name <span className='text-red-500'>*</span>
                             </Label>
                             <Controller
-                                name='leaveName'
+                                name='leaveId'
                                 control={control}
                                 rules={{ required: 'Leave Name is required' }}
-                                render={({ field }) => (
-                                    <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger id='leave-name-select' className={errors.leaveName ? 'border-red-500' : ''}>
-                                            <SelectValue placeholder='--Select--' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {leaveNames.map((leave) => (
-                                                <SelectItem key={leave.id} value={leave.name}>
-                                                    {leave.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                )}
+                                render={({ field }) => {
+                                    const stringValue = field.value ? String(field.value) : undefined;
+                                    return (
+                                        <Select
+                                            value={stringValue}
+                                            onValueChange={(val) => field.onChange(Number(val))}
+                                        >
+                                            <SelectTrigger id='leave-name-select' className={errors.id ? 'border-red-500' : ''}>
+                                                <SelectValue placeholder='--Select--' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {leaveNames.map((leave) => (
+                                                    <SelectItem key={leave.id} value={String(leave.id)}>
+                                                        {leave.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    );
+                                }}
                             />
                             {errors.leaveName && <FormError>{errors.leaveName.message}</FormError>}
                         </div>

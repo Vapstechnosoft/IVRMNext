@@ -10,9 +10,11 @@ import * as XLSX from 'xlsx';
 const DEFAULT_LOGO_BASE64 =
     'data:image/png;base64,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';
 
+import type { IMasterInstitution, Institution } from '@/types/exam/exam-module/report';
+
 interface ReportListProps {
     data: any[];
-    institution: any;
+    institution: IMasterInstitution | Institution | null;
 }
 
 export const ReportList: React.FC<ReportListProps> = ({ data, institution }) => {
@@ -20,8 +22,10 @@ export const ReportList: React.FC<ReportListProps> = ({ data, institution }) => 
     const [searchTerm, setSearchTerm] = useState('');
 
     const handlePrint = () => {
-        const inst = institution && institution.length > 0 ? institution[0] : null;
-        const logoSrc = inst?.mI_Logo ? inst.mI_Logo : DEFAULT_LOGO_BASE64;
+        const logoSrc = institution?.mI_Logo ? institution.mI_Logo : DEFAULT_LOGO_BASE64;
+        const schoolName = institution?.mI_Name || "School Name";
+        const address = (institution as Institution)?.mI_Address1 || "";
+        const email = (institution as Institution)?.mI_SMSAlertToemailids || "";
 
         const printWindow = window.open('', '', 'height=800,width=1000');
         if (printWindow) {
@@ -50,14 +54,8 @@ export const ReportList: React.FC<ReportListProps> = ({ data, institution }) => 
 
             printWindow.document.write(`
                 <div class="header-container">
-                    <div class="header-content">
-                        <img src="${logoSrc}" class="logo-img" id="printLogo" alt="Logo" />
-                        <div class="text-content">
-                            <div class="school-name">${inst?.mI_Name || "St. Thomas' Church School"}</div>
-                            <div class="school-address">(Diocese of Calcutta, CNI)</div>
-                            <div class="school-address">${inst?.mI_Address1 || '3, Church Road, Howrah-711101 West Bengal, India'}</div>
-                            <div class="school-address">Phone No : +91 33 2641 2138, Email ID : stcsh1860@gmail.com</div>
-                        </div>
+                    <div class="header-content" style="display: flex; justify-content: center;">
+                        <img src="${logoSrc}" class="logo-img" id="printLogo" alt="Logo" style="margin: 0 auto;" />
                     </div>
                 </div>
                 <div class="report-title">GRADE SLAB REPORT</div>
@@ -82,14 +80,13 @@ export const ReportList: React.FC<ReportListProps> = ({ data, institution }) => 
     };
 
     const handleExport = () => {
-        const inst = institution && institution.length > 0 ? institution[0] : null;
-
         const wsData: any[][] = [];
 
         // Appending Header Info
-        wsData.push([inst?.mI_Name || 'SCHOOL NAME']);
-        wsData.push([inst?.mI_Address1 || 'SCHOOL ADDRESS']);
-        wsData.push(['(Diocese of Calcutta, CNI)']);
+        wsData.push([institution?.mI_Name || 'SCHOOL NAME']);
+        if ((institution as Institution)?.mI_Address1) {
+            wsData.push([(institution as Institution)?.mI_Address1]);
+        }
         wsData.push(['Grade Slab Report']);
         wsData.push([]);
 
@@ -194,14 +191,12 @@ export const ReportList: React.FC<ReportListProps> = ({ data, institution }) => 
                 <div className='flex space-x-2'>
                     <Button
                         onClick={handleExport}
-                        variant='outline'
-                        className='flex h-8 items-center gap-2 border-green-600 bg-white text-green-700 hover:bg-gray-50'>
+                        className='flex h-8 items-center gap-2 hover:bg-orange-700'>
                         <FileSpreadsheet className='h-4 w-4' /> Excel
                     </Button>
                     <Button
                         onClick={handlePrint}
-                        variant='outline'
-                        className='flex h-8 items-center gap-2 border-blue-600 bg-white text-blue-700 hover:bg-gray-50'>
+                        className='flex h-8 items-center gap-2 hover:bg-orange-700'>
                         <Printer className='h-4 w-4' /> Print
                     </Button>
                 </div>

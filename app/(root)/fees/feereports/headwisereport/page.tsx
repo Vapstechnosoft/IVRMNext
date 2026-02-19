@@ -210,6 +210,8 @@ export default function FeeHeadWiseReportForm() {
 
             const { asmaY_Id, classcategoryid } = data;
 
+            console.log('headwisereportpayload', data);
+
             const response = await getHeadWiseReportData(Number(asmaY_Id), Number(classcategoryid));
             if ((response as any)?.data?.length > 0) {
                 toast.success('Report Genarated Successfully');

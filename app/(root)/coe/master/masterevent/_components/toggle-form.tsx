@@ -21,7 +21,7 @@ export default function ToggleEventForm({ rowData, onClose }: ToggleEventFormPro
     const handleConfirm = async () => {
         try {
             setIsLoading(true);
-            const response = await toggleUploadEvent(rowData.coemE_Id);
+            const response = await toggleUploadEvent(rowData.coemE_Id, rowData.coee_Id);
 
             if (response.success) {
                 toast.success(response.message);

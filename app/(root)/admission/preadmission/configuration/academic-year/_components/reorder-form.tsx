@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { usePreAdmissionAcademicYearSetOrder } from '@/hooks/admission/preadmission/useConfigurations';
+import { usePreAdmissionAcademicYear, usePreAdmissionAcademicYearSetOrder } from '@/hooks/admission/preadmission/useConfigurations';
 import { getPreAdmissionSetOrder, updateAcademicYearSetorder } from '@/server/admission/preadmission/configuration/academic_year_master';
 import type { IMasterSetOrderList } from '@/types/admission/preadmission/configaration';
 import { GitCompareArrows, GripVertical } from 'lucide-react';
@@ -11,16 +11,26 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 export default function ReorderAcademicYearForm() {
-    const { refetchAll } = usePreAdmissionAcademicYearSetOrder();
+    const { refetchAll: refetchSetOrder } = usePreAdmissionAcademicYearSetOrder();
+    const { refetchAll: refetchMainList } = usePreAdmissionAcademicYear();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [orderedItems, setOrderedItems] = useState<IMasterSetOrderList[]>([]);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
 
     const handleOpenDialog = async () => {
-        const orderResponse = await getPreAdmissionSetOrder();
-        setOrderedItems(orderResponse?.data ?? []);
-        setIsDialogOpen(true);
+        try {
+            const orderResponse = await getPreAdmissionSetOrder();
+            console.log('🔵 [ReorderAcademicYearForm] API Response:', orderResponse);
+            const data = orderResponse?.data;
+            const items = Array.isArray(data) ? data : (data as any)?.academic_year_order_list || (data as any)?.records || [];
+            console.log('🔵 [ReorderAcademicYearForm] Extracted Items:', items);
+            setOrderedItems(items);
+            setIsDialogOpen(true);
+        } catch (error) {
+            console.error('🔴 [ReorderAcademicYearForm] Failed to open dialog:', error);
+            toast.error('Failed to load academic years for reordering');
+        }
     };
 
     const handleDragStart = (index: number) => {
@@ -50,16 +60,20 @@ export default function ReorderAcademicYearForm() {
         setIsSaving(true);
         try {
             // build a simple payload with new order; adjust shape as your API expects
-            const payload = orderedItems.map((item, index) => ({ asmaY_Id: item.asmaY_Id, asmaY_Order: index + 1 }));
+            const payload = orderedItems.map((item, index) => ({
+                asmaY_Id: Number(item.asmaY_Id),
+                asmaY_Order: index + 1
+            }));
 
             const response = await updateAcademicYearSetorder(payload as any);
 
             if (response.success) {
-                toast.success(response.message);
-                refetchAll();
+                toast.success(response.message || 'Order updated successfully');
+                refetchSetOrder();
+                refetchMainList();
                 setIsDialogOpen(false);
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to update order');
             }
         } catch (error: any) {
             toast.error(error?.message ?? 'An error occurred');
@@ -86,9 +100,8 @@ export default function ReorderAcademicYearForm() {
                                         onDragStart={() => handleDragStart(index)}
                                         onDragOver={(e) => handleDragOver(e, index)}
                                         onDragEnd={handleDragEnd}
-                                        className={`flex cursor-move items-center gap-3 rounded-md bg-muted/50 p-3 transition-all ${
-                                            draggedIndex === index ? 'opacity-50' : 'hover:bg-muted'
-                                        }`}>
+                                        className={`flex cursor-move items-center gap-3 rounded-md bg-muted/50 p-3 transition-all ${draggedIndex === index ? 'opacity-50' : 'hover:bg-muted'
+                                            }`}>
                                         <GripVertical className='size-4' />
                                         <div className='flex-1 font-medium text-sm'>{item.asmaY_Year}</div>
                                     </div>

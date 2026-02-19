@@ -699,6 +699,7 @@ export default function FeeInstallemntReport() {
 
         try {
             let payload: any = {};
+            console.log('selectedCatg', payload);
             const albumNameArraygroupids: any[] = [];
             const header_list: any[] = [];
             const fillgrouparrayname: any[] = [];
@@ -898,8 +899,8 @@ export default function FeeInstallemntReport() {
 
                     payload = {
                         ASMAY_Id: Number(data.academicYearId),
-                        classarray: classarray,
-                        sectionarray: sectionarray,
+                        classarray: data.con === 'Datewise' ? [] : classarray,
+                        sectionarray: data.con === 'Datewise' ? [] : sectionarray,
                         reporttype: selectedCatg,
                         todate: todate1,
                         fromdate: fromdate1,
@@ -1508,13 +1509,14 @@ export default function FeeInstallemntReport() {
                                                 <Input
                                                     id='fromDate'
                                                     type='date'
-                                                    value={filters.fromDate.toISOString().split('T')[0]}
-                                                    onChange={(e) =>
+                                                    value={filters.fromDate ? filters.fromDate.toISOString().split('T')[0] : ''}
+                                                    onChange={(e) => {
+                                                        const dateValue = e.target.value;
                                                         setFilters((prev) => ({
                                                             ...prev,
-                                                            fromDate: new Date(e.target.value)
-                                                        }))
-                                                    }
+                                                            fromDate: dateValue ? new Date(dateValue) : prev.fromDate // Keep previous value if empty
+                                                        }));
+                                                    }}
                                                     className='rounded border px-3 py-1'
                                                 />
                                             </div>
@@ -1525,13 +1527,14 @@ export default function FeeInstallemntReport() {
                                                 <Input
                                                     id='toDate'
                                                     type='date'
-                                                    value={filters.toDate.toISOString().split('T')[0]}
-                                                    onChange={(e) =>
+                                                    value={filters.toDate ? filters.toDate.toISOString().split('T')[0] : ''}
+                                                    onChange={(e) => {
+                                                        const dateValue = e.target.value;
                                                         setFilters((prev) => ({
                                                             ...prev,
-                                                            toDate: new Date(e.target.value)
-                                                        }))
-                                                    }
+                                                            toDate: dateValue ? new Date(e.target.value) : prev.toDate
+                                                        }));
+                                                    }}
                                                     className='rounded border px-3 py-1'
                                                 />
                                             </div>
@@ -1844,7 +1847,6 @@ export default function FeeInstallemntReport() {
                                         </div>
                                     </div>
                                 )}
-
                                 {(selectedCatg === 'Class' || selectedCatg === 'Category') && termwise !== 1 && (
                                     <div className='mt-4 flex items-start gap-6'>
                                         {/* Label */}
@@ -1869,26 +1871,47 @@ export default function FeeInstallemntReport() {
                                                     />
                                                 </div>
 
+                                                {/* Select All Option */}
+                                                {filteredInstallments.length > 0 && (
+                                                    <div className='mb-3 border-b pb-2'>
+                                                        <Label className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
+                                                            <Checkbox
+                                                                checked={
+                                                                    filteredInstallments.length > 0 &&
+                                                                    filteredInstallments.every((installment) =>
+                                                                        watch('installmentIds')?.includes(installment.ftI_Id)
+                                                                    )
+                                                                }
+                                                                onCheckedChange={(checked: any) => {
+                                                                    if (checked) {
+                                                                        // Select all filtered installments
+                                                                        const currentIds = watch('installmentIds') || [];
+                                                                        const filteredIds = filteredInstallments.map((i) => i.ftI_Id);
+                                                                        const newIds = [...new Set([...currentIds, ...filteredIds])];
+                                                                        setValue('installmentIds', newIds);
+                                                                    } else {
+                                                                        // Deselect all filtered installments
+                                                                        const currentIds = watch('installmentIds') || [];
+                                                                        const filteredIds = filteredInstallments.map((i) => i.ftI_Id);
+                                                                        const newIds = currentIds.filter((id) => !filteredIds.includes(id));
+                                                                        setValue('installmentIds', newIds);
+                                                                    }
+                                                                }}
+                                                            />
+                                                            <span className='font-mediu text-sm'>
+                                                                <strong>Select All</strong>
+                                                            </span>
+                                                            <span className='text-gray-500 text-xs'>
+                                                                ({filteredInstallments.length} installments)
+                                                            </span>
+                                                        </Label>
+                                                    </div>
+                                                )}
+
                                                 <div className='max-h-64 space-y-3 overflow-y-auto'>
                                                     {feeInstallmentLoading ? (
                                                         <div className='py-6 text-center text-gray-500'>Loading...</div>
-                                                    ) : // feeInstallments.length > 0 ? (
-                                                    //     feeInstallments.map((installment) => (
-                                                    //         <Label
-                                                    //             key={installment.ftI_Id}
-                                                    //             htmlFor={`installment-${installment.ftI_Id}`}
-                                                    //             className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
-                                                    //             <Checkbox
-                                                    //                 id={`installment-${installment.ftI_Id}`}
-                                                    //                 checked={watch('installmentIds')?.includes(installment.ftI_Id)}
-                                                    //                 onCheckedChange={() => toggleInstallment(installment.ftI_Id)}
-                                                    //             />
-                                                    //             <span className='text-sm'>{installment.ftI_Name}</span>
-                                                    //         </Label>
-                                                    //     ))
-                                                    // )
-
-                                                    filteredInstallments.length > 0 ? (
+                                                    ) : filteredInstallments.length > 0 ? (
                                                         filteredInstallments.map((installment) => (
                                                             <Label
                                                                 key={installment.ftI_Id}
@@ -1903,7 +1926,6 @@ export default function FeeInstallemntReport() {
                                                             </Label>
                                                         ))
                                                     ) : (
-                                                        // <div className='py-4 text-center text-gray-500'>No installments</div>
                                                         <div className='py-4 text-center text-gray-500'>
                                                             {installmentSearch ? 'No installments found' : 'No installments'}
                                                         </div>

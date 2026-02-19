@@ -42,9 +42,9 @@ export const LoginPrivilegesDetailsColumns: ColumnDef<ILoginPrivilegeDetails>[] 
     },
 
     {
-        accessorKey: 'subSubjectName',
+        accessorKey: 'emsS_SubSubjectName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SubSubject Name' />,
-        cell: ({ row }) => <div>{row.getValue('subSubjectName')}</div>,
+        cell: ({ row }) => <div>{row.getValue('emsS_SubSubjectName')}</div>,
         enableSorting: true
     },
 

@@ -287,7 +287,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                     autoReceiptFlag: true,
                     asmaY_Id: selectedAsmayId
                 };
-
+                console.log('term details payload', JSON.stringify(payload));
                 console.log('term details payload', JSON.stringify(payload));
                 const termArray = await getStudentDetails(payload);
                 const termList = JSON.parse(JSON.stringify(termArray.masterGroupDetails || []));
@@ -317,7 +317,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
             const updatedTerms = [...terms];
             for (let i = 0; i < terms.length; i++) {
                 const matchingTerm = disableTerms.find((dt) => dt.fmtId === terms[i].fmT_Id);
-                if (matchingTerm && matchingTerm.netAmount <= matchingTerm.paid) {
+                if (matchingTerm && matchingTerm.balance === 0) {
                     updatedTerms[i].disablepaisterms = true;
                 } else {
                     updatedTerms[i].disablepaisterms = false;
@@ -1124,25 +1124,53 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                     />
 
                                     {studentSearch.trim() !== '' && !selectedStudent && (
-                                        <ul className='absolute top-full left-0 z-10 mt-1 max-h-40 w-full overflow-y-auto rounded border bg-white shadow-md'>
-                                            {loadingStudents ? (
-                                                <li className='px-3 py-2 text-gray-500'>Loading...</li>
-                                            ) : students.length === 0 ? (
-                                                <li className='px-3 py-2 text-gray-500'>No students found</li>
+                                        <>
+                                            {/* For regular filter type - check minimum letters */}
+                                            {filterType === 'regular' ? (
+                                                studentSearch.trim().length >= Number.parseInt(searchByLet) && (
+                                                    <ul className='absolute top-full left-0 z-10 mt-1 max-h-40 w-full overflow-y-auto rounded border bg-white shadow-md'>
+                                                        {loadingStudents ? (
+                                                            <li className='px-3 py-2 text-gray-500'>Loading...</li>
+                                                        ) : students.length === 0 ? (
+                                                            <li className='px-3 py-2 text-gray-500'>No students found</li>
+                                                        ) : (
+                                                            students.map((student) => (
+                                                                <li
+                                                                    key={student.amst_Id}
+                                                                    onClick={() => {
+                                                                        setSelectedStudent(student);
+                                                                        setStudentSearch(student.amsT_StudentName);
+                                                                    }}
+                                                                    className='cursor-pointer px-3 py-2 hover:bg-blue-100'>
+                                                                    {student.amsT_StudentName}
+                                                                </li>
+                                                            ))
+                                                        )}
+                                                    </ul>
+                                                )
                                             ) : (
-                                                students.map((student) => (
-                                                    <li
-                                                        key={student.amst_Id}
-                                                        onClick={() => {
-                                                            setSelectedStudent(student);
-                                                            setStudentSearch(student.amsT_StudentName);
-                                                        }}
-                                                        className='cursor-pointer px-3 py-2 hover:bg-blue-100'>
-                                                        {student.amsT_StudentName}
-                                                    </li>
-                                                ))
+                                                /* For non-regular filter types - show immediately */
+                                                <ul className='absolute top-full left-0 z-10 mt-1 max-h-40 w-full overflow-y-auto rounded border bg-white shadow-md'>
+                                                    {loadingStudents ? (
+                                                        <li className='px-3 py-2 text-gray-500'>Loading...</li>
+                                                    ) : students.length === 0 ? (
+                                                        <li className='px-3 py-2 text-gray-500'>No students found</li>
+                                                    ) : (
+                                                        students.map((student) => (
+                                                            <li
+                                                                key={student.amst_Id}
+                                                                onClick={() => {
+                                                                    setSelectedStudent(student);
+                                                                    setStudentSearch(student.amsT_StudentName);
+                                                                }}
+                                                                className='cursor-pointer px-3 py-2 hover:bg-blue-100'>
+                                                                {student.amsT_StudentName}
+                                                            </li>
+                                                        ))
+                                                    )}
+                                                </ul>
                                             )}
-                                        </ul>
+                                        </>
                                     )}
                                 </div>
                             </div>

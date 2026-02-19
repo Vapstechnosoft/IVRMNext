@@ -16,8 +16,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { Checkbox } from '@/components/ui/checkbox';
-import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { InputText } from '@/components/ui/extension/input-text';
+import { FeesCustomMultiSelectBox } from '@/components/ui/feesmultiselect';
 import { Input } from '@/components/ui/input';
 import { useStudentClassDropDown, useStudentSectionDropDown } from '@/hooks/fees/useMasters';
 import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
@@ -1028,7 +1028,7 @@ export default function UpdateStudentFeeTransactionStThomas({ onSuccess, asmayId
                             </div>
 
                             <div className='w-80'>
-                                <CustomMultiSelectBox
+                                <FeesCustomMultiSelectBox
                                     options={terms.map((ex) => ({
                                         label: ex.fmG_GroupName,
                                         value: ex.fmG_Id.toString()
