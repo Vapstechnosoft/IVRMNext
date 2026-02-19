@@ -1567,13 +1567,21 @@ export async function getUserAccessibleModules() {
                                             description: 'Report Card_X'
                                         },
                                         {
+                                            id: 90,
+                                            name: 'Stella Progress Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/stella_prograss_report',
+                                            title: 'Stella Progress Report',
+                                            description: 'Manage Stella Progress Card Report Details'
+                                        },
+                                        {
                                             id: 89,
                                             name: 'AI Performance Analysis',
                                             icon: 'Sparkles',
                                             url: '/Exam/exam-module/ai-performance-analysis',
                                             title: 'AI Performance Analysis',
                                             description: 'AI-driven student performance analysis and insights'
-                                        }
+                                        },
                                     ]
                                 }
                             ]
@@ -4642,7 +4650,7 @@ export async function getUserAccessibleModules() {
                 //         }
                 // 
                 ,
-               {
+                {
                     id: 111,
                     name: 'Transport',
                     icon: 'BookOpen',
@@ -4792,7 +4800,7 @@ export async function getUserAccessibleModules() {
                                             title: 'Transport Approve',
                                             description: 'Manage Transport Approve'
                                         }
- 
+
                                     ]
                                 },
                                 {
