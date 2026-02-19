@@ -1,6 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getCommonPinningStyles } from '@/lib/data-table.config';
 import type { ApiSearchparams } from '@/types';
@@ -44,7 +46,7 @@ export interface DataTableRef {
     resetSelection: () => void;
 }
 
-export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(function DataTable(props, ref) {
+function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref: React.Ref<DataTableRef>) {
     const {
         columns,
         data,
@@ -227,14 +229,14 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                                     ))}
                                 </colgroup>
 
-                                <TableHeader className="bg-card">
+                                <TableHeader className='grid-header-row'>
                                     {table.getHeaderGroups().map(headerGroup => (
-                                        <TableRow key={headerGroup.id}>
+                                        <TableRow key={headerGroup.id} className="border-none hover:bg-transparent">
                                             {headerGroup.headers.map(header => (
                                                 <TableHead
                                                     key={header.id}
                                                     colSpan={header.colSpan}
-                                                    className="sticky top-0 z-20 bg-card border-b whitespace-nowrap"
+                                                    className="grid-header-cell sticky top-0 z-10"
                                                     style={getCommonPinningStyles({ column: header.column })}  // 👈 pinning works here
                                                 >
                                                     {header.isPlaceholder ? null :
@@ -287,66 +289,124 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                                         row(s) selected.
                                     </div>
                                 ) : (
-                                    <div className='flex-1 whitespace-nowrap text-muted-foreground text-sm'>
-                                        {totalItems > 0
-                                            ? `Showing ${paginationState.pageIndex * paginationState.pageSize + 1} to ${Math.min(
-                                                (paginationState.pageIndex + 1) * paginationState.pageSize,
-                                                totalItems
-                                            )} of ${totalItems} entries`
-                                            : 'No entries found'}
+                                    <div className='pagination-info'>
+                                        {totalItems > 0 ? (
+                                            <>
+                                                Showing <span className="pagination-number">{paginationState.pageIndex * paginationState.pageSize + 1}</span>
+                                                to <span className="pagination-number">{Math.min((paginationState.pageIndex + 1) * paginationState.pageSize, totalItems)}</span>
+                                                of <span className="pagination-number">{totalItems}</span> entries
+                                            </>
+                                        ) : (
+                                            'No entries found'
+                                        )}
                                     </div>
                                 )}
 
                                 {/* Rows per page */}
-                                {/* <div className='flex items-center space-x-2'>
-                                    <p className='whitespace-nowrap font-medium text-sm'>Rows per page</p>
+                                <div className='pagination-size-container'>
+                                    <p className='whitespace-nowrap font-semibold text-[11px] text-slate-500 uppercase tracking-wider'>Rows per page</p>
                                     <Select
                                         value={`${paginationState.pageSize}`}
-                                        onValueChange={(v) => table.setPageSize(Number(v))}
+                                        onValueChange={(value) => {
+                                            table.setPageSize(Number(value));
+                                        }}
                                         searchable={false}>
-                                        <SelectTrigger className='h-8 w-[70px]'>
+                                        <SelectTrigger className='h-7 w-[70px] rounded-full border-none bg-white/50 shadow-none focus:ring-0'>
                                             <SelectValue placeholder={paginationState.pageSize} />
                                         </SelectTrigger>
-                                        <SelectContent side='top'>
-                                            {pageSizeOptions.map((size) => (
-                                                <SelectItem key={size} value={`${size}`}>
-                                                    {size}
+                                        <SelectContent side='top' className="rounded-xl border-slate-100 shadow-xl">
+                                            {pageSizeOptions.map((pageSize) => (
+                                                <SelectItem key={pageSize} value={`${pageSize}`} className="rounded-lg">
+                                                    {pageSize}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                </div> */}
+                                </div>
+                            </div>
 
-                                {/* Controls */}
-                                <div className='flex items-center space-x-2'>
+                            {/* Controls */}
+                            <div className='flex items-center space-x-2'>
+                                <div className='pagination-bar'>
                                     <Button
                                         aria-label='First page'
-                                        variant='outline'
-                                        className='hidden h-8 w-8 p-0 lg:flex'
+                                        variant='ghost'
+                                        size='icon'
+                                        className='h-8 w-8 rounded-full p-0'
                                         onClick={() => table.setPageIndex(0)}
                                         disabled={!table.getCanPreviousPage()}>
                                         <DoubleArrowLeftIcon className='h-4 w-4' />
                                     </Button>
                                     <Button
                                         aria-label='Previous page'
-                                        variant='outline'
-                                        className='h-8 w-8 p-0'
+                                        variant='ghost'
+                                        size='icon'
+                                        className='h-8 w-8 rounded-full p-0'
                                         onClick={() => table.previousPage()}
                                         disabled={!table.getCanPreviousPage()}>
                                         <ChevronLeftIcon className='h-4 w-4' />
                                     </Button>
+
+                                    {(() => {
+                                        const currentPage = table.getState().pagination.pageIndex + 1;
+                                        const totalPages = table.getPageCount();
+
+                                        if (totalPages <= 1) return null;
+
+                                        const getRange = () => {
+                                            if (totalPages <= 7) {
+                                                return Array.from({ length: totalPages }, (_, i) => i + 1);
+                                            }
+
+                                            // Complex range logic
+                                            if (currentPage <= 3) {
+                                                return [1, 2, 3, 4, '...', totalPages - 2, totalPages - 1, totalPages];
+                                            } else if (currentPage >= totalPages - 2) {
+                                                return [1, 2, 3, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+                                            } else {
+                                                return [1, 2, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages - 1, totalPages];
+                                            }
+                                        };
+
+                                        return getRange().map((page, i) => {
+                                            if (page === '...') {
+                                                return (
+                                                    <span key={`dots-${i}`} className="px-2 text-slate-400">
+                                                        ...
+                                                    </span>
+                                                );
+                                            }
+
+                                            const pageNum = page as number;
+                                            return (
+                                                <button
+                                                    key={pageNum}
+                                                    onClick={() => table.setPageIndex(pageNum - 1)}
+                                                    className={cn(
+                                                        'pagination-item',
+                                                        currentPage === pageNum && 'pagination-item-active'
+                                                    )}
+                                                >
+                                                    {pageNum}
+                                                </button>
+                                            );
+                                        });
+                                    })()}
+
                                     <Button
                                         aria-label='Next page'
-                                        variant='outline'
-                                        className='h-8 w-8 p-0'
+                                        variant='ghost'
+                                        size='icon'
+                                        className='h-8 w-8 rounded-full p-0'
                                         onClick={() => table.nextPage()}
                                         disabled={!table.getCanNextPage()}>
                                         <ChevronRightIcon className='h-4 w-4' />
                                     </Button>
                                     <Button
                                         aria-label='Last page'
-                                        variant='outline'
-                                        className='hidden h-8 w-8 p-0 lg:flex'
+                                        variant='ghost'
+                                        size='icon'
+                                        className='h-8 w-8 rounded-full p-0'
                                         onClick={() => table.setPageIndex(table.getPageCount() - 1)}
                                         disabled={!table.getCanNextPage()}>
                                         <DoubleArrowRightIcon className='h-4 w-4' />
@@ -359,4 +419,8 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
             )}
         </div>
     );
-}) as <TData, TValue>(props: DataTableProps<TData, TValue> & { ref?: React.Ref<DataTableRef> }) => React.ReactElement;
+}
+
+export const DataTable = forwardRef(DataTableInner) as <TData, TValue>(
+    props: DataTableProps<TData, TValue> & { ref?: React.Ref<DataTableRef> }
+) => React.ReactElement;

@@ -18,12 +18,12 @@ import {
     useMasterSectionDropdown
 } from '@/hooks/admission/preadmission/useMasters';
 import {
-    useStudentTCInitialData,
-    useStudentTCList,
+    // useStudentTCInitialData,
+    // useStudentTCList,
     useStudentTCDetails,
     useSaveStudentTC,
-    useStudentsByAcademicYear,
-    useStudentDetailsOnNameChange
+    useStudentsByAcademicYear
+    // useStudentDetailsOnNameChange
 } from '@/hooks/admission/preadmission/useStudentTc';
 import { Search, Save, XCircle, ChevronRight, ChevronLeft, Loader2, Info, Check, ChevronsUpDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -101,68 +101,70 @@ export default function StudentTCApplyPage() {
     const { data: classes } = useMasterClassDropdown();
     const { data: sections } = useMasterSectionDropdown();
 
-    const initialDataMutation = useStudentTCInitialData();
-    const searchMutation = useStudentTCList();
+    // const initialDataMutation = useStudentTCInitialData();
+    // const searchMutation = useStudentTCList();
     const detailsMutation = useStudentTCDetails();
     const saveMutation = useSaveStudentTC();
     const { data: studentListRaw, isLoading: studentListLoading } = useStudentsByAcademicYear(Number(asmayId));
     const studentList = Array.isArray(studentListRaw) ? studentListRaw : (studentListRaw?.studentList || studentListRaw?.$values || []);
 
     // --- Initial Data Loading ---
-    useEffect(() => {
-        initialDataMutation.mutate({
-            ASMAY_Id: 0,
-            ASMCL_Id: 0,
-            ASMS_Id: 0,
-            flag: 'S'
-        }, {
-            onError: (error) => {
-                console.error('Initial data load error:', error);
-                toast.error('Failed to load initial data for TC application');
-            }
-        });
-    }, []);
+    // Commented out since getStudentTCInitialData is not needed
+    // useEffect(() => {
+    //     initialDataMutation.mutate({
+    //         ASMAY_Id: 0,
+    //         ASMCL_Id: 0,
+    //         ASMS_Id: 0,
+    //         flag: 'S'
+    //     }, {
+    //         onError: (error) => {
+    //             console.error('Initial data load error:', error);
+    //             toast.error('Failed to load initial data for TC application');
+    //         }
+    //     });
+    // }, []);
 
     // --- Handlers ---
-    const handleSearch = () => {
-        if (!asmayId) {
-            toast.error('Please select Academic Year');
-            return;
-        }
+    // Search is handled via the Student Name combobox now
+    // const handleSearch = () => {
+    //     if (!asmayId) {
+    //         toast.error('Please select Academic Year');
+    //         return;
+    //     }
 
-        const payload = {
-            ASMAY_Id: Number(asmayId),
-            ASMCL_Id: Number(asmclId),
-            ASMS_Id: Number(asmsId),
-            Status_flag: studentStatus,
-            allorindividual: searchType === 'all' ? 'All' : 'Individual',
-            adm_num_flag: searchOrder
-        };
+    //     const payload = {
+    //         ASMAY_Id: Number(asmayId),
+    //         ASMCL_Id: Number(asmclId),
+    //         ASMS_Id: Number(asmsId),
+    //         Status_flag: studentStatus,
+    //         allorindividual: searchType === 'all' ? 'All' : 'Individual',
+    //         adm_num_flag: searchOrder
+    //     };
 
-        searchMutation.mutate(payload, {
-            onSuccess: (response: any) => {
-                if (response?.student_name_list && response.student_name_list.length > 0) {
-                    const transformed = response.student_name_list.map((item: any) => ({
-                        id: item.amsT_Id,
-                        admNo: item.amsT_AdmNo,
-                        studentName: item.studentName,
-                        class: item.asmcL_ClassName,
-                        section: item.asmS_SectionName,
-                        original: item
-                    }));
-                    setData(transformed);
-                } else {
-                    setData([]);
-                    toast.info('No students found for given criteria');
-                }
-            },
-            onError: () => {
-                toast.error('Failed to search students');
-            }
-        });
-        setSelectedStudent(null);
-        setSelectedStudentDetails(null);
-    };
+    //     searchMutation.mutate(payload, {
+    //         onSuccess: (response: any) => {
+    //             if (response?.student_name_list && response.student_name_list.length > 0) {
+    //                 const transformed = response.student_name_list.map((item: any) => ({
+    //                     id: item.amsT_Id,
+    //                     admNo: item.amsT_AdmNo,
+    //                     studentName: item.studentName,
+    //                     class: item.asmcL_ClassName,
+    //                     section: item.asmS_SectionName,
+    //                     original: item
+    //                 }));
+    //                 setData(transformed);
+    //             } else {
+    //                 setData([]);
+    //                 toast.info('No students found for given criteria');
+    //             }
+    //         },
+    //         onError: () => {
+    //             toast.error('Failed to search students');
+    //         }
+    //     });
+    //     setSelectedStudent(null);
+    //     setSelectedStudentDetails(null);
+    // };
 
     const handleSelect = (student: IStudentSearch) => {
         setSelectedStudent(student);
@@ -183,9 +185,10 @@ export default function StudentTCApplyPage() {
                     setSelectedStudentDetails(response);
 
                     // --- 1. Dues & Configuration Check ---
-                    const config = initialDataMutation.data?.admissioncongigurationList?.[0];
-                    const paymentTcFlag = config?.admC_TCAllowBalanceFlg; // 1 means check dues
-                    const libraryTcFlag = config?.asC_LibraryAllowBalanceFlg; // 1 means check dues
+                    // Configuration flags should come from response, not initialDataMutation
+                    // Default to checking dues (flag = 1) if not present
+                    const paymentTcFlag = response.admissioncongigurationList?.[0]?.admC_TCAllowBalanceFlg ?? 1;
+                    const libraryTcFlag = response.admissioncongigurationList?.[0]?.asC_LibraryAllowBalanceFlg ?? 1;
 
                     // Fee Dues
                     let feeDueAmount = 0;
@@ -338,7 +341,7 @@ export default function StudentTCApplyPage() {
     const tableProps = {
         data: data,
         totalItems: data.length,
-        isLoading: searchMutation.isPending,
+        isLoading: false, // searchMutation removed
         error: null,
         success: true
     };
@@ -553,12 +556,13 @@ export default function StudentTCApplyPage() {
                     </div>
 
                     <div className='mt-6 flex justify-center gap-4'>
-                        <Button
+                        {/* Search button removed - now using Student Name combobox */}
+                        {/* <Button
                             onClick={handleSearch}
                             disabled={searchMutation.isPending}
                             className='min-w-[120px] bg-indigo-600 px-8 text-white hover:bg-indigo-700'>
                             {searchMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className='mr-2 h-4 w-4' />} Search
-                        </Button>
+                        </Button> */}
                         <Button
                             onClick={handleReset}
                             variant="outline"
@@ -573,7 +577,7 @@ export default function StudentTCApplyPage() {
                         <GenericDataTable<IStudentSearch>
                             {...tableProps}
                             columns={studentSearchColumns(handleSelect)}
-                            isLoading={searchMutation.isPending}
+                            isLoading={false} // searchMutation removed
                             showViewOptions={false}
                             loadingMessage='Searching...'
                         />
@@ -608,7 +612,7 @@ export default function StudentTCApplyPage() {
                                     <TCDetailsTab
                                         formData={formData}
                                         setFormData={setFormData}
-                                        initialData={initialDataMutation.data}
+                                        initialData={undefined} // initialDataMutation removed
                                     />
                                 </TabsContent>
                                 <TabsContent value="other-details">

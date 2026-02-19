@@ -885,7 +885,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     'amsT_MobileNo',
                     'asmcC_Id',
                     'studentCategoryId',
-                    'feeConcessionType'
+                    'feeConcessionType',
+                    'imC_Id'
                 ];
                 // If EMIS checkbox is set, ensure the EMIS field is validated
                 if (Number(getValues('isEmisBpl') ?? 0) === 1) {
