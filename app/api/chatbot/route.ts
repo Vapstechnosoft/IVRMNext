@@ -867,6 +867,10 @@ const STUDENT_KNOWLEDGE_BASE = {
     notifications: {
         keywords: ['notice', 'circular', 'announcement', 'message', 'school update'],
         response: `Check the latest school circulars and announcements in the **Notice Board** or **Push Notification** section on your dashboard.`
+    },
+    studentDetails: {
+        keywords: ['student details', 'my details', 'personal information', 'student info', 'my profile'],
+        response: `You can view your full **Student Details** and personal profile in **Admission > Student Profile**.`
     }
 };
 
@@ -909,7 +913,7 @@ export async function POST(req: NextRequest) {
                         },
                         ...messages
                     ],
-                    model: 'llama-3.3-70b-versatile',
+                    model: 'llama-3.1-70b-versatile',
                     temperature: 0.2, // Even lower for absolute precision
                     max_tokens: 100 // Further reduced
                 });
@@ -951,11 +955,11 @@ export async function POST(req: NextRequest) {
                     ${context === 'StudentPortal' ?
                             'Say exactly: "As I am an AI VRM help bot, I can help you with anything within ERP."' :
                             'Say: "I can only assist with AI VRM software queries."'} and return link: null.
-                    6. **NOT FOUND**: If the information is not in the context, say politely: "I couldn't find those details. Please contact the administration." (Max 20 words). link: null.`
+                    6. **NOT FOUND**: If the information is not in the context, say politely: "I couldn't find specific details in my valid list. Please contact the school office." (Max 20 words). link: null.`
                 },
                 ...messages
             ],
-            model: 'llama-3.3-70b-versatile',
+            model: 'llama-3.1-70b-versatile',
             temperature: 0.2, // Slightly increased for better phrasing
             max_tokens: 250, // Increased for detailed steps
             response_format: { type: "json_object" }
