@@ -72,7 +72,7 @@ export const studentAdmissionFormSchema = {
             pasR_Section_Id: z.number().int({ message: 'Section is required' }),
             amsT_DOB_Words: createStringOnlyOptionalSchema('Date Of Birth In Words', 1, 1000).optional(),
             pasR_Age: z.number().int({ message: 'Age is required' }),
-            imC_Id: createStringOnlySchema('Caste', 1, 100),
+            imC_Id: z.coerce.number().int({ message: 'Caste is required' }),
             amsT_SubCasteIMC_Id: createStringOnlyOptionalSchema('Sub Caste', 1, 100).optional(),
 
             amsT_BirthCertNO: createOptionalAlphaNumericSchema('Birth Certificate Number', 1, 50),

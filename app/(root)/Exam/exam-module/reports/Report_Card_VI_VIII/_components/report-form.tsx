@@ -14,6 +14,7 @@ import {
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { getReportDetails } from '@/server/exam/exam-module/reports/Report_Card_VI_VIII';
+import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -118,7 +119,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                     Number(watchSection)
                 );
                 const valid = Array.isArray(data)
-                    ? data.filter((s): s is { amsT_AdmNo: number; amsT_Id: number; studentName?: string, amsT_FirstName?: string, amsT_MiddleName?: string, amsT_LastName?: string } => !!s?.amsT_Id)
+                    ? (data as any[]).filter((s): s is { amsT_AdmNo: number; amsT_Id: number; studentName?: string, amsT_FirstName?: string, amsT_MiddleName?: string, amsT_LastName?: string } => !!s?.amsT_Id)
                     : [];
 
                 // Map to consistent format if needed, but the cumulative report logic returns objects with amsT_Id and studentName/amsT_FirstName
@@ -160,9 +161,13 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     };
 
     const onSubmit = async (data: ReportCardViViiiSchema) => {
+        console.log('Report Card VI_VIII payload:', data);
         try {
-            const result = await getReportDetails(data);
-            onReportGenerated(result, data);
+            const [result, institutionRes] = await Promise.all([
+                getReportDetails(data),
+                getMasterInstitution()
+            ]);
+            onReportGenerated({ ...result, institution: institutionRes?.data }, data);
         } catch (error) {
             console.error('Error:', error);
             toast.error('Failed to generate report');

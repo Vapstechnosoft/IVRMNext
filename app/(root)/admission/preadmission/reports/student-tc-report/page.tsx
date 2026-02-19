@@ -520,9 +520,9 @@ export default function StudentTcReportPage(props: {
                         <RotateCcw className='mr-2 h-4 w-4' />
                         Cancel
                     </Button>
-                    <Button onClick={downloadExcel} className='w-full sm:w-fit'>
+                    {/* <Button onClick={downloadExcel} className='w-full sm:w-fit'>
                         Export to Excel
-                    </Button>
+                    </Button> */}
                     <Button onClick={handlePrint} className='w-full sm:w-fit'>
                         <Printer className='mr-2 h-4 w-4' />
                         Print
