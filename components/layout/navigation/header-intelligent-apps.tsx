@@ -30,6 +30,7 @@ import { useState, useEffect } from 'react';
 import { chatGPT, whatsAppCall, languageTranslator } from '@/server/intelligent-apps';
 
 export function IntelligentAppsMenu() {
+    // Force Rebuild: Intelligent Apps Menu
     const [openDialog, setOpenDialog] = useState<string | null>(null);
 
     return (
