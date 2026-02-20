@@ -76,6 +76,17 @@ import type {
     SalarySlipFilterRequest,
     SalarySlipGenerateRequest
 } from '@/types/hrms/reports/salary-slip-report';
+import {
+    getEmployeeDetailsReportOnload,
+    searchEmployeeDetailsReport,
+    getEmployeeAndEmployeeType,
+    getLoginBasedDepartmentsByGroupType,
+    filterEmployeeDetailsReport,
+    type EmployeeDetailsReportRequest
+} from '@/server/hrms/reports/employee-details-report';
+
+export type { EmployeeDetailsReportRequest };
+
 import { toast } from 'sonner';
 
 
@@ -399,3 +410,65 @@ export function useMonthWiseSalaryDetails(year: string, month: string) {
     });
 }
 
+
+/**
+ * Hook for Employee Details Report Onload
+ */
+export function useEmployeeDetailsReportOnload() {
+    return useQuery({
+        queryKey: ['employee-details-report-onload'],
+        queryFn: () => getEmployeeDetailsReportOnload(),
+        staleTime: 1000 * 60 * 10
+    });
+}
+
+/**
+ * Hook for Searching Employee Details Report
+ */
+export function useSearchEmployeeDetailsReport() {
+    return useMutation({
+        mutationFn: (data: EmployeeDetailsReportRequest) => searchEmployeeDetailsReport(data),
+        onError: (error: Error) => {
+            console.error('SEARCH MUTATION ERROR:', error);
+            toast.error(error.message || 'Failed to fetch report');
+        }
+    });
+}
+
+/**
+ * Hook for Filtering Employee Details
+ */
+export function useFilterEmployeeDetails() {
+    return useMutation({
+        mutationFn: (data: any) => filterEmployeeDetailsReport(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to filter data');
+        }
+    });
+}
+
+/**
+ * Hook for fetching Employee and Employee Type
+ */
+export function useEmployeeAndEmployeeType() {
+    return useMutation({
+        mutationFn: (data: any) => getEmployeeAndEmployeeType(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch employee types');
+        }
+    });
+}
+
+
+
+/**
+ * Hook for fetching Departments based on Group Type selection
+ */
+export function useLoginBasedDepartments(groupTypeIds: number[]) {
+    return useQuery({
+        queryKey: ['login-based-departments', groupTypeIds],
+        queryFn: () => getLoginBasedDepartmentsByGroupType(groupTypeIds),
+        enabled: !!groupTypeIds && groupTypeIds.length > 0,
+        staleTime: 1000 * 60 * 5
+    });
+}

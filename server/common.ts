@@ -1832,6 +1832,25 @@ export async function getUserAccessibleModules() {
                                             title: 'Cumulative Salary Report',
                                             description: 'Cumulative Salary Analysis'
                                         },
+                                        
+
+                                        {
+
+                                            id: 23,
+
+                                            name: 'Employee Details Report',
+
+                                            icon: 'FileText',
+
+                                            url: '/hrms/reports/employeeDetailsReport',
+
+                                            title: 'Employee Details Report',
+
+                                            description: 'Detailed Employee Information Report'
+
+                                        },
+
+
                                         //,
                                         // {
                                         //     id: 2,
