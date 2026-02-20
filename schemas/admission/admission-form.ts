@@ -65,14 +65,14 @@ export const studentAdmissionFormSchema = {
             amsT_MiddleName: createStringOnlySchema('Middle Name', 1, 100),
             amsT_LastName: createStringOnlySchema('Last Name', 1, 100),
             amsT_RegistrationNo: createAllAllowedRequired('Registration Number', 1, 50),
-            asmcL_Id: z.number().int({ message: 'Class is required' }),
+            asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, 'Class is required'),
             amsT_AdmissionNo: createAllAllowedRequired('Admission No', 1, 50),
-            caste_Id: z.coerce.number().int({ message: 'Caste is required' }),
+            caste_Id: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number({ invalid_type_error: 'Select Caste' }).int().optional()),
             pasR_Student_Pic_Path: createOptionalStringSchema('Student Photo Path', 1, 500).optional(),
-            pasR_Section_Id: z.number().int({ message: 'Section is required' }),
+            pasR_Section_Id: z.number().int().optional(),
             amsT_DOB_Words: createStringOnlyOptionalSchema('Date Of Birth In Words', 1, 1000).optional(),
-            pasR_Age: z.number().int({ message: 'Age is required' }),
-            imC_Id: createStringOnlySchema('Caste', 1, 100),
+            pasR_Age: z.number().int().optional(),
+            imC_Id: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number({ required_error: 'Caste is required', invalid_type_error: 'Select Caste' }).min(1, 'Caste is required')),
             amsT_SubCasteIMC_Id: createStringOnlyOptionalSchema('Sub Caste', 1, 100).optional(),
 
             amsT_BirthCertNO: createOptionalAlphaNumericSchema('Birth Certificate Number', 1, 50),
@@ -80,11 +80,12 @@ export const studentAdmissionFormSchema = {
             amsT_BiometricId: createOptionalAlphaNumericSchema('Biometric Id', 1, 50),
             amsT_RFCardNo: createOptionalAlphaNumericSchema('RF Card Number', 1, 50),
             amsT_BloodGroup: createOptionalStringSchema('Blood Group', 1, 50),
-            studentCategoryId: z.number().int({ message: 'Student Category is required' }),
-            amsT_DOB: z.date({ message: 'Date Of Birth is required' }),
+            studentCategoryId: z.number().int().optional(),
+            asmcC_Id: z.coerce.number().int().optional(),
+            amsT_DOB: z.preprocess((val) => (val === '' || val === null ? undefined : val), z.coerce.date({ required_error: 'Select date', invalid_type_error: 'Select date' }).refine((d) => !isNaN(d.getTime()), { message: 'Select date' })),
 
             //ecs flag
-            amsT_ECSFlag: z.number().int({ message: 'ECS Flag is required' }),
+            amsT_ECSFlag: z.number().int().optional(),
 
             asecS_AccountNo: createNumberOnlyStringSchema('Bank Account Number', 1, 50).optional(),
             asecS_BankName: createStringOnlySchema('Bank Name', 1, 100).optional(),
@@ -103,7 +104,7 @@ export const studentAdmissionFormSchema = {
 
             // EMIS flag
 
-            isEmisBpl: z.number().int(),
+            isEmisBpl: z.number().int().optional(),
             amsT_BPLCardNo: createOptionalAlphaNumericSchema('EMIS Card No', 1, 50).optional(),
 
             amsT_Tpin: createOptionalAlphaNumericSchema('Student TPIN', 1, 50),
@@ -113,65 +114,47 @@ export const studentAdmissionFormSchema = {
             // NATIONALITY - STRING
             amsT_FatherNationality: z.number().int().optional(),
 
-            amsT_MobileNo: z.string().refine((val) => !val.startsWith('0'), {
-                message: 'Mobile number cannot start with 0'
-            }),
+            amsT_MobileNo: z.string({ required_error: 'Mobile Number is required' }).min(1, 'Mobile Number is required'),
 
             amsT_BirthPlace: createStringOnlyOptionalSchema('Student Birth Place', 1, 100),
-            asmS_Id: z.preprocess(
-                (val) => (val === undefined || val === null || val === '' ? 0 : Number(val)),
-                z.number().int().min(1, { message: 'Section is required' })
-            ),
-            religion_Id: z.preprocess(
-                (val) => (val === undefined || val === null || val === '' ? 0 : Number(val)),
-                z.number().int().min(1, { message: 'Religion is required' })
-            ),
-            amsT_StudentCategory_Id: z.preprocess(
-                (val) => (val === undefined || val === null || val === '' ? 0 : Number(val)),
-                z.number().int().min(1, { message: 'Caste Category is required' })
-            ),
+            asmS_Id: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number({ required_error: 'Section is required', invalid_type_error: 'Select Section' }).min(1, 'Section is required')),
+            religion_Id: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number({ invalid_type_error: 'Select Religion' }).int().optional()),
+            amsT_StudentCategory_Id: z.coerce.number().int().optional(),
 
-            amsT_ReligionId: z.preprocess(
-                (val) => (val === undefined || val === null || val === '' ? 0 : Number(val)),
-                z.number().int().min(1, { message: 'Religion is required' })
-            ),
-            amsT_Date: z.date({ message: 'Date Of Admission is required' }),
-            amsT_Sex: z.string().min(1, { message: 'Gender is required' }),
-            amsT_StudentCountry: z.string().min(1, { message: 'Country is required' }),
-            amsT_StudentState: z.coerce.number().int().optional(),
+            amsT_ReligionId: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number({ required_error: 'Religion is required', invalid_type_error: 'Select Religion' }).min(1, 'Religion is required')),
+            amsT_Date: z.preprocess((val) => (val === '' || val === null ? undefined : val), z.coerce.date({ required_error: 'Select date', invalid_type_error: 'Select date' }).refine((d) => !isNaN(d.getTime()), { message: 'Select date' })),
+            amsT_Sex: z.string({ required_error: 'Gender is required' }).min(1, 'Gender is required'),
+            amsT_Nationality: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number({ required_error: 'Country is required', invalid_type_error: 'Select Country' }).min(1, 'Country is required')),
+            amsT_State: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number({ required_error: 'State is required', invalid_type_error: 'Select State' }).min(1, 'State is required')),
 
-            pasR_DOB: z.date({ message: 'Date Of Birth is required' }).refine(() => true),
+            pasR_DOB: z.coerce.date().optional(),
 
-            feeConcessionType: z.coerce.number().int().min(1, { message: 'Fee Concession Type is required' }),
+            feeConcessionType: z.coerce.number({ required_error: 'Fee Concession Type is required' }).min(1, 'Fee Concession Type is required'),
             // Student email (required)
-            amsT_emailId: createEmailSchema('Student Email', 1, 50),
+            amsT_emailId: z.string({ required_error: 'Email is required' }).email('Invalid email address'),
             // Support multiple student emails (array). Each item may be empty or a valid email.
             adm_M_Student_EmailIdDTO: z
                 .array(
                     z.object({
-                        amsT_emailId: z.union([createEmailSchema('Student Email', 1, 50), z.literal('')])
+                        amsT_emailId: z.string().email().optional().nullable().or(z.literal(''))
                     })
                 )
                 .optional(),
+
             // Support multiple student mobile numbers stored by the UI
             mobileNos: z
                 .array(
                     z.object({
-                        amsT_MobileNo: z.string().optional(),
-                        amstsmS_CountryCode: z.string().optional()
+                        amsT_MobileNo: z.string().optional().nullable(),
+                        amstsmS_CountryCode: z.string().optional().nullable()
                     })
                 )
                 .optional(),
-            amsT_MotherTongue: createStringOnlyOptionalSchema('Student Mother Tongue', 1, 100),
+            amsT_MotherTongue: z.string().optional().nullable(),
 
             // Other Details
-            amsT_AadharNo: z
-                .string()
-                .refine((val) => val === '' || val.length === 12, {
-                    message: 'Aadhar No must be exactly 12 digits'
-                })
-                .optional(),
-            amsT_LanguageSpoken: createStringOnlyOptionalallowComma('Student Language Speaking At Home', 1, 100),
+            amsT_AadharNo: z.string().optional().nullable(),
+            amsT_LanguageSpoken: z.string().optional().nullable(),
 
             reference_ids: z.array(z.string()).optional(),
 
@@ -182,184 +165,133 @@ export const studentAdmissionFormSchema = {
             healthMedicalDetails: HealthMedicalDetailsSchema.optional(),
 
             // Residential Address
-            amsT_ConStreet: createStringOnlySchema('Street', 1, 100),
-            amsT_ConArea: createStringOnlySchema('Area', 1, 100),
-            amsT_ConCountry: z.string().min(1, { message: 'Country is required' }),
-            amsT_ConState: z.coerce.number().int().min(1, { message: 'State is required' }),
-            amsT_ConDistrict: z.coerce.number().int().optional(),
-            amsT_ConCity: createStringOnlySchema('City', 1, 100),
+            amsT_ConStreet: z.string().optional().nullable(),
+            amsT_ConArea: z.string().optional().nullable(),
+            amsT_ConCountry: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number({ invalid_type_error: 'Select Country' }).int().optional().nullable()),
+            amsT_ConState: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number({ invalid_type_error: 'Select State' }).int().optional()),
+            amsT_ConDistrict: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number({ invalid_type_error: 'Select District' }).int().optional()),
+            amsT_ConCity: z.string().optional().nullable(),
             amsT_ConPincode: z
                 .union([z.string(), z.number()])
-                .refine((val) => val !== undefined && val !== null && val !== '', { message: 'Pincode is required' })
-                .transform((val) => String(val)),
+                .optional()
+                .nullable()
+                .transform((val) => (val === undefined || val === null || val === '' ? undefined : String(val))),
 
             // Permanent Address
-            amsT_PerStreet: createStringOnlyOptionalSchema('Street', 1, 100),
-            amsT_PerArea: createStringOnlyOptionalSchema('Area', 1, 100),
-            amsT_PerCountry: z.string().optional(),
-            amsT_PerState: z.coerce.number().int().optional(),
-            amsT_PerDistrict: z.coerce.number().int().optional(),
-            amsT_PerCity: createStringOnlyOptionalSchema('City', 1, 100),
+            amsT_PerStreet: z.string().optional().nullable(),
+            amsT_PerArea: z.string().optional().nullable(),
+            amsT_PerCountry: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number({ invalid_type_error: 'Select Country' }).int().optional().nullable()),
+            amsT_PerState: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number({ invalid_type_error: 'Select State' }).int().optional()),
+            amsT_PerDistrict: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number({ invalid_type_error: 'Select District' }).int().optional()),
+            amsT_PerCity: z.string().optional().nullable(),
             amsT_PerPincode: z
                 .union([z.string(), z.number()])
                 .optional()
-                .transform((val) => val ? String(val) : ''),
+                .nullable()
+                .transform((val) => (val === undefined || val === null || val === '' ? undefined : String(val))),
 
             //step=3
 
             // Father Details
-            fatherAliveFlag: z.boolean(),
-            fatherName: createStringOnlySchema('Father Name', 1, 100).optional(),
-            fatherSurname: createStringOnlyOptionalSchema('Father Surname', 1, 100),
-            fatherAadharNo: z
-                .string()
-                .optional()
-                // Allow undefined or empty string (user cleared the field) OR a 12-digit Aadhar
-                .refine((val) => val === undefined || val === '' || /^[0-9]{12}$/.test(val), {
-                    message: 'Aadhar No must be exactly 12 digits'
-                }),
+            fatherAliveFlag: z.boolean().optional(),
+            fatherName: z.string().optional().nullable(),
+            fatherSurname: z.string().optional().nullable(),
+            fatherAadharNo: z.string().optional().nullable(),
 
-            FatherEducation: createStringOnlyOptionalSchema('Father Education', 1, 100),
+            FatherEducation: z.string().optional().nullable(),
             // pasR_FatherOccupation: createOptionalStringSchema('Father Occupation', 1, 100),
-            fatherPAN: createAlphanumericSchemaPanCard('Father PAN Number', true),
-            fatherDesignation: createStringOnlyOptionalSchema('Father Designation', 1, 100),
-            fatherMobileNumbers: z
-                .string()
-                .refine((val) => !val.startsWith('0'), {
-                    message: 'Mobile number cannot start with 0'
-                })
-                .optional(),
-            fatherMaritalStatus: z.string().optional(),
+            fatherPAN: z.string().optional().nullable(),
+            fatherDesignation: z.string().optional().nullable(),
+            fatherMobileNumbers: z.string().optional().nullable(),
+            fatherMaritalStatus: z.string().optional().nullable(),
 
-            fatherEmailIds: createEmailSchema('Student Email', 1, 50).optional(),
-            fatherHomePhone: createOptionalNumberOnlyStringSchema('Father Home Phone No', 1, 15),
+            fatherEmailIds: z.string().optional().nullable(),
+            fatherHomePhone: z.string().optional().nullable(),
 
-            fatherNationality: z.string().optional(),
+            fatherNationality: z.string().optional().nullable(),
 
             fatherPresentAddress: z.object({
-                address: createOptionalStringSchema('Father Address', 1, 200),
-
-                state: z.number().int().optional(),
-
-                city: createOptionalAlphaNumericSchema('City', 1, 100),
-
-                pincode: z
-                    .union([z.string(), z.number()])
-                    .optional()
-                    .transform((val) => (val === undefined || val === null || val === '' ? undefined : String(val))),
-
-                po: createOptionalStringSchema('PO', 1, 100),
-
-                country: z.string().optional(),
-
-                ps: createOptionalStringSchema('PS', 1, 100).optional()
-            }),
+                address: z.string().optional().nullable().or(z.literal('')),
+                state: z.number().optional().nullable(),
+                city: z.string().optional().nullable().or(z.literal('')),
+                pincode: z.union([z.string(), z.number()]).optional().nullable().transform(val => val ? String(val) : ''),
+                po: z.string().optional().nullable().or(z.literal('')),
+                country: z.string().optional().nullable().or(z.literal('')),
+                ps: z.string().optional().nullable().or(z.literal(''))
+            }).optional().nullable(),
 
             fatherPermanentAddress: z.object({
-                address: createOptionalStringSchema('Permanent Address', 1, 200),
+                address: z.string().optional().nullable().or(z.literal('')),
+                state: z.number().optional().nullable(),
+                city: z.string().optional().nullable().or(z.literal('')),
+                pincode: z.union([z.string(), z.number()]).optional().nullable().transform(val => val ? String(val) : ''),
+                po: z.string().optional().nullable().or(z.literal('')),
+                ps: z.string().optional().nullable().or(z.literal('')),
+                country: z.string().optional().nullable().or(z.literal(''))
+            }).optional().nullable(),
+            fatherOfficeAddress: z.string().optional().nullable(),
 
-                state: z.number().int().optional(),
-
-                city: createOptionalAlphaNumericSchema('Permanent City', 1, 100),
-
-                pincode: z
-                    .union([z.string(), z.number()])
-                    .optional()
-                    .transform((val) => (val === undefined || val === null || val === '' ? undefined : String(val))),
-
-                po: createOptionalStringSchema('Permanent PO', 1, 100),
-
-                ps: createOptionalStringSchema('Permanent PS', 1, 100),
-
-                country: z.string().optional()
-            }),
-            fatherOfficeAddress: createOptionalStringSchema('Father Office Address', 1, 100),
-
-            fatherCasteCertificateNo: createOptionalAlphaNumericSchema('Father Caste Certificate No', 1, 100),
-            fatherOccupation: createStringOnlyOptionalSchema('Father Occupation', 1, 100),
+            fatherCasteCertificateNo: z.string().optional().nullable(),
+            fatherOccupation: z.string().optional().nullable(),
             amsT_FatherPassingYear: z.preprocess(
                 (val) => (val === undefined || val === null || val === '' ? undefined : Number(val)),
                 z.number().int({ message: 'Father Passing Year must be a valid year' }).optional()
             ),
-            fatherAnnualIncome: z.number().optional(),
-            fatherReligionId: z.number().int().optional(),
-            fatherCasteId: z.number().int().optional(),
-            fatherSubCaste: createStringOnlyOptionalSchema('Father Sub Caste', 1, 100).optional(),
-            fatherOfficePhone: z.string().min(1, 'Father Office Phone No').max(15).optional(),
+            fatherAnnualIncome: z.number().optional().nullable(),
+            fatherReligionId: z.number().int().optional().nullable(),
+            fatherCasteId: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number({ invalid_type_error: 'Select Caste' }).int().optional().nullable()),
+            fatherSubCaste: z.string().optional().nullable(),
+            fatherOfficePhone: z.string().optional().nullable(),
 
             // New camelCase mother fields (aliases / API-friendly keys)
             motherAliveFlag: z.boolean().optional(),
             MotherAliveFlag: z.boolean().optional(),
-            motherName: createStringOnlySchema('Mother Name', 1, 100).optional(),
-            motherSurname: createStringOnlyOptionalSchema('Mother Surname', 1, 100),
-            motherAadharNo: z
-                .string()
-                .optional()
-                .refine((val) => val === undefined || val === '' || /^[0-9]{12}$/.test(val), {
-                    message: 'Aadhar No must be exactly 12 digits'
-                }),
-            motherMaritalStatus: z.string().optional(),
+            motherName: z.string().optional().nullable(),
+            motherSurname: z.string().optional().nullable(),
+            motherAadharNo: z.string().optional().nullable(),
+            motherMaritalStatus: z.string().optional().nullable(),
 
-            motherMobileNumbers: z
-                .string()
-                .refine((val) => !val.startsWith('0'), {
-                    message: 'Mobile number cannot start with 0'
-                })
-                .optional(),
-            motherEmailIds: createEmailSchema('Mother Email', 1, 50).optional(),
-            motherHomePhone: createOptionalNumberOnlyStringSchema('Mother Home Phone', 1, 15).optional(),
-            motherNationality: z.string().optional(),
+            motherMobileNumbers: z.string().optional().nullable(),
+            motherEmailIds: z.string().optional().nullable(),
+            motherHomePhone: z.string().optional().nullable(),
+            motherNationality: z.string().optional().nullable(),
 
-            motherQualification: createStringOnlyOptionalSchema('Mother Qualification', 1, 100).optional(),
+            motherQualification: z.string().optional().nullable(),
             motherPassingYear: z.preprocess(
                 (val) => (val === undefined || val === null || val === '' ? undefined : Number(val)),
                 z.number().int({ message: 'Mother Passing Year must be a valid year' }).optional()
             ),
-            motherPresentAddress: z
-                .object({
-                    address: createOptionalStringSchema('Address', 1, 200),
-                    country: z.string().optional(),
-                    city: createOptionalAlphaNumericSchema('City', 1, 100),
-                    state: z.number().int().optional(),
-                    po: createOptionalStringSchema('PO', 1, 100),
-                    pincode: z
-                        .union([z.string(), z.number()])
-                        .optional()
-                        .transform((val) => (val === undefined || val === null || val === '' ? undefined : String(val))),
-                    ps: createOptionalStringSchema('PS', 1, 100)
-                })
-                .optional(),
-            motherPermanentAddress: z
-                .object({
-                    address: createOptionalStringSchema('Address', 1, 200),
-                    country: z.string().optional(),
-                    city: createOptionalAlphaNumericSchema('City', 1, 100),
-                    state: z.number().int().optional(),
-                    po: createOptionalStringSchema('PO', 1, 100),
-                    pincode: z
-                        .union([z.string(), z.number()])
-                        .optional()
-                        .transform((val) => (val === undefined || val === null || val === '' ? undefined : String(val))),
-                    ps: createOptionalStringSchema('PS', 1, 100)
-                })
-                .optional(),
-            motherOfficeAddress: createOptionalStringSchema('Mother Office Address', 1, 200).optional(),
+            motherPresentAddress: z.object({
+                address: z.string().optional().nullable().or(z.literal('')),
+                country: z.string().optional().nullable().or(z.literal('')),
+                city: z.string().optional().nullable().or(z.literal('')),
+                state: z.number().optional().nullable(),
+                po: z.string().optional().nullable().or(z.literal('')),
+                pincode: z.union([z.string(), z.number()]).optional().nullable().transform(val => val ? String(val) : ''),
+                ps: z.string().optional().nullable().or(z.literal(''))
+            }).optional().nullable(),
 
-            motherOfficePhone: z
-                .string()
-                .refine((val) => !val.startsWith('0'), {
-                    message: 'Mobile number cannot start with 0'
-                })
-                .optional(),
-            motherOccupation: createStringOnlyOptionalSchema('Mother Occupation', 1, 100).optional(),
-            motherDesignation: createStringOnlyOptionalSchema('Mother Designation', 1, 100).optional(),
-            motherReligionId: z.number().int().optional(),
-            motherCasteId: z.number().int().optional(),
-            motherSubCaste: createStringOnlyOptionalSchema('Mother Sub Caste', 1, 100).optional(),
-            motherAnnualIncome: z.number().optional(),
-            amsT_MotherPermanentState: z.number().int().optional(),
-            motherCasteCertificateNo: createOptionalAlphaNumericSchema('Mother Caste Certificate No', 1, 100).optional(),
-            motherPAN: createAlphanumericSchemaPanCard('Mother PAN Number', true).optional(),
+            motherPermanentAddress: z.object({
+                address: z.string().optional().nullable().or(z.literal('')),
+                country: z.string().optional().nullable().or(z.literal('')),
+                city: z.string().optional().nullable().or(z.literal('')),
+                state: z.number().optional().nullable(),
+                po: z.string().optional().nullable().or(z.literal('')),
+                pincode: z.union([z.string(), z.number()]).optional().nullable().transform(val => val ? String(val) : ''),
+                ps: z.string().optional().nullable().or(z.literal(''))
+            }).optional().nullable(),
+            motherOfficeAddress: z.string().optional().nullable(),
+
+            motherOfficePhone: z.string().optional().nullable(),
+            motherOccupation: z.string().optional().nullable(),
+            motherDesignation: z.string().optional().nullable(),
+            motherReligionId: z.number().int().optional().nullable(),
+            motherCasteId: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number({ invalid_type_error: 'Select Caste' }).int().optional().nullable()),
+            motherSubCaste: z.string().optional().nullable(),
+            motherAnnualIncome: z.number().optional().nullable(),
+            amsT_MotherPermanentState: z.number().int().optional().nullable(),
+            motherCasteCertificateNo: z.string().optional().nullable(),
+            motherPAN: z.string().optional().nullable(),
             motherSelfEmployedFlg: z.boolean().optional(),
 
             //Step=4
@@ -424,8 +356,8 @@ export const studentAdmissionFormSchema = {
                 .optional(),
             // Place of Birth Details
 
-            amsT_PlaceOfBirthCountry: z.number().min(1, 'Select a country').optional(),
-            amsT_PlaceOfBirthState: z.number().min(1, 'Select a state').optional(),
+            amsT_PlaceOfBirthCountry: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number({ invalid_type_error: 'Select Country' }).optional()),
+            amsT_PlaceOfBirthState: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number({ invalid_type_error: 'Select State' }).optional()),
             amsT_Distirct: createStringOnlyOptionalSchema('District', 1, 100).optional(),
             amsT_Taluk: createStringOnlyOptionalSchema('Taluk', 1, 100).optional(),
             amsT_Town: createStringOnlyOptionalSchema('Town', 1, 100).optional(),
@@ -447,7 +379,7 @@ export const studentAdmissionFormSchema = {
             //Other Details
             pasA_AdmittingReason: createOptionalStringSchema('Admitting Reason', 1, 250),
             pasA_WillingToContributeRemarks: createOptionalStringSchema('Willing to Contribute Remarks', 1, 250),
-            pasA_WillingToContributeFlg: z.number().int({ message: 'Willing to Contribute Flag' }),
+            pasA_WillingToContributeFlg: z.number().int().optional(),
 
             //health
             amsT_Studentillness: createStringOnlyOptionalSchema('Student Illness', 1, 100).optional(),
@@ -474,194 +406,7 @@ export const studentAdmissionFormSchema = {
             transportRequired: z.boolean().optional().default(false)
 
             // Final
-        })
-        .refine(
-            (data) => {
-                if (data.isEmisBpl === 1) {
-                    const val = data.amsT_BPLCardNo;
-                    return typeof val === 'string' && val.trim() !== '';
-                }
-                return true;
-            },
-            {
-                message: 'EMIS / BPL / STS No. is required when EMIS is selected',
-                path: ['amsT_EMIS_BPL_STS_No']
-            }
-        )
-        .refine(
-            (data) => {
-                if (data.fatherAliveFlag) {
-                    return data.fatherName && data.fatherName.trim() !== '';
-                }
-                return true;
-            },
-            {
-                message: 'Father Name is required when father is alive',
-                path: ['fatherName']
-            }
-        )
-
-        .refine(
-            (data) => {
-                if (data.fatherAliveFlag) {
-                    return (
-                        data.fatherMaritalStatus !== null &&
-                        data.fatherMaritalStatus !== undefined &&
-                        String(data.fatherMaritalStatus).trim() !== ''
-                    );
-                }
-                return true;
-            },
-            {
-                message: 'Father Marital Status is required when father is alive',
-                path: ['fatherMaritalStatus']
-            }
-        )
-
-        .refine(
-            (data) => {
-                if (data.fatherAliveFlag) {
-                    return (
-                        data.fatherNationality !== null &&
-                        data.fatherNationality !== undefined &&
-                        String(data.fatherNationality).trim() !== ''
-                    );
-                }
-                return true;
-            },
-            {
-                message: 'Father Country is required when father is alive',
-                path: ['fatherNationality']
-            }
-        )
-
-        .refine(
-            (data) => {
-                if (data.fatherAliveFlag) {
-                    return (
-                        data.fatherReligionId !== null && data.fatherReligionId !== undefined && String(data.fatherReligionId).trim() !== ''
-                    );
-                }
-                return true;
-            },
-            {
-                message: 'Father Religion is required when father is alive',
-                path: ['fatherReligionId']
-            }
-        )
-
-        .refine(
-            (data) => {
-                if (data.fatherAliveFlag) {
-                    return data.fatherCasteId !== null && data.fatherCasteId !== undefined && String(data.fatherCasteId).trim() !== '';
-                }
-                return true;
-            },
-            {
-                message: 'Father Caste is required when father is alive',
-                path: ['fatherCasteId']
-            }
-        )
-
-        .refine(
-            (data) => {
-                if (data.fatherAliveFlag) {
-                    return data.fatherSubCaste && String(data.fatherSubCaste).trim() !== '';
-                }
-                return true;
-            },
-            {
-                message: 'Father Sub Caste is required when father is alive',
-                path: ['fatherSubCaste']
-            }
-        )
-
-        .refine(
-            (data) => {
-                const alive = Boolean(data.motherAliveFlag || data.MotherAliveFlag);
-                if (alive) {
-                    return data.motherName && data.motherName.trim() !== '';
-                }
-                return true;
-            },
-            {
-                message: 'Mother Name is required when mother is alive',
-                path: ['motherName']
-            }
-        )
-        .refine(
-            (data) => {
-                const alive = Boolean(data.motherAliveFlag || data.MotherAliveFlag);
-                if (alive) {
-                    return data.motherNationality !== null && data.motherNationality !== undefined && String(data.motherNationality) !== '';
-                }
-                return true;
-            },
-            {
-                message: 'Mother Country is required when mother is alive',
-                path: ['motherNationality']
-            }
-        )
-        .refine(
-            (data) => {
-                const alive = Boolean(data.motherAliveFlag || data.MotherAliveFlag);
-                if (alive) {
-                    return (
-                        data.motherMaritalStatus !== null &&
-                        data.motherMaritalStatus !== undefined &&
-                        String(data.motherMaritalStatus).trim() !== ''
-                    );
-                }
-                return true;
-            },
-            {
-                message: 'Mother Marital Status is required when mother is alive',
-                path: ['motherMaritalStatus']
-            }
-        )
-        .refine(
-            (data) => {
-                const alive = Boolean(data.motherAliveFlag || data.MotherAliveFlag);
-                if (alive) {
-                    return (
-                        data.motherReligionId !== null && data.motherReligionId !== undefined && String(data.motherReligionId).trim() !== ''
-                    );
-                }
-                return true;
-            },
-            {
-                message: 'Mother Religion is required when mother is alive',
-                path: ['motherReligionId']
-            }
-        )
-
-        .refine(
-            (data) => {
-                const alive = Boolean(data.motherAliveFlag || data.MotherAliveFlag);
-                if (alive) {
-                    return data.motherCasteId !== null && data.motherCasteId !== undefined && String(data.motherCasteId).trim() !== '';
-                }
-                return true;
-            },
-            {
-                message: 'Mother Caste is required when mother is alive',
-                path: ['motherCasteId']
-            }
-        )
-
-        .refine(
-            (data) => {
-                const alive = Boolean(data.motherAliveFlag || data.MotherAliveFlag);
-                if (alive) {
-                    return data.motherSubCaste && String(data.motherSubCaste).trim() !== '';
-                }
-                return true;
-            },
-            {
-                message: 'Mother Sub Caste is required when mother is alive',
-                path: ['motherSubCaste']
-            }
-        ),
+        }),
 
     delete: z.object({
         pasr_id: deleteIdSchema('pasr_id')

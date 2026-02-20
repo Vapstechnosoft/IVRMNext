@@ -101,16 +101,30 @@ export async function getExcelClassWiseStudentReport(
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
 
-    // Matching the parameter mapping from report.tsx which is known to work
-    // report.tsx maps: Concession_Id = studentScope, flag = fmcC_Id
-    const url = `/Classwisestudentdetails/ExportClasswiseStudentDetailsToExcel?ASMAY_Id=${ASMAY_Id}&AMST_Id=0&Concession_Id=${studentScope}&flag=${fmcC_Id}&${urlParams}`;
+    // Backend now expects only [FromBody] with all parameters in the request body
+    const url = `/Classwisestudentdetails/ExportClasswiseStudentDetailsToExcel?${urlParams}`;
+
+    // Create complete request body with all parameters matching the DTO
+    const requestBody = {
+        ASMAY_Id: ASMAY_Id,
+        AMST_Id: '0',
+        flag: fmcC_Id.toString(),
+        Concession_Id: studentScope,
+        page: 1,
+        page_size: 50,
+        is_export: true,
+        classdetailsdata: payload.classdetailsdata || [],
+        sectionsdetailsdata: payload.sectionsdetailsdata || [],
+        TempararyArrayheadList: payload.tempararyArrayheadList || []
+    };
 
     try {
-        // Passing payload in the body instead of URL query string
-        const responseData = await api.postBinary('admission', url, payload);
+        // Send complete request body with all parameters
+        const responseData = await api.postBinary('admission', url, requestBody);
         return Array.from(new Uint8Array(responseData));
     } catch (error) {
         console.error('Excel export error:', error);
+
         throw error;
     }
 }
@@ -316,11 +330,12 @@ export async function getExcelDOBReport(
     ASMCL_Id: number,
     ASMS_Id: number,
     AMST_Id: number,
+    AMC_Id: number,
     searchParams?: ApiSearchparams
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
 
-    const url = `/DOBcertificate/ExportAdmDobCertificateToExcel?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}&AMST_Id=${AMST_Id}&${urlParams}`;
+    const url = `/DOBcertificate/ExportAdmDobCertificateToExcel?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}&AMST_Id=${AMST_Id}&AMC_Id=${AMC_Id}&${urlParams}`;
 
     try {
         const responseData = await api.postBinary('admission', url);

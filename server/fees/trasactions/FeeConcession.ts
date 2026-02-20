@@ -148,3 +148,10 @@ export async function getFeesConcessionStudentData(asmaY_Id: number, amsT_Id: nu
     const url = `/FeeConcessionFacade/get-student-data?asmayId=${asmaY_Id || 0}&amst_id=${amsT_Id || 0}`;
     return await api.get<IFeeConcessionStudentData[]>('fees', url);
 }
+
+export async function deleteFeeConcessionnew(fsC_Id: number, asmay_id: number, FSCI_ID: number, FSCI_ConcessionAmount: number) {
+    const url = `/FeeConcessionFacade/deletefeeconcessionnew/${fsC_Id}/${asmay_id}/${FSCI_ID}/${FSCI_ConcessionAmount}`;
+
+    console.info('deleteFeeConcessionnew url:', url);
+    return await api.delete<any>('fees', url);
+}

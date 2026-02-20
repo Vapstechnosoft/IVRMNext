@@ -9,9 +9,11 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
+import { useDaySubjectGridData } from '@/hooks/timetable/constraints/fixingData';
 import { type FixingDaySubjectSchema, fixingDaySubjectSchema } from '@/schemas/timetable/constraints/fixing';
+import { getSubjectDropDown } from '@/server/timetable/constraints/FixingForm';
 import {
-    deactivateFixingDaySubject,
     getClassByCategory,
     getFixingDaySubjectDetails,
     getSectionByClass,
@@ -24,8 +26,10 @@ import { Plus, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { type IFixingDaySubjectList, daySubjectColumns } from './columns';
+import { daySubjectColumns } from './columns';
+import { TTDaySubjectGridData } from '@/types/timetable/constraints/fixing';
 import { FixingViewModal } from './fixing-view-modal';
+import ToggleDaySubjectForm from './DaysSubjectToggle';
 
 interface DaySubjectTabProps {
     initialData: any;
@@ -46,17 +50,32 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         closeDetailsView
     } = useFormContext();
 
-    const [academicList] = useState<any[]>(initialData?.yearlist || []);
+    const { data: academicData } = usebifurcationAcademicYear();
+    const academicList = (academicData as any)?.data || [];
+
     const [dayList] = useState<any[]>(initialData?.daylist || []);
-    const [subjectList, setSubjectList] = useState<any[]>(initialData?.subjectlist || []);
-    const [gridData, setGridData] = useState<IFixingDaySubjectList[]>(initialData?.fix_day_subject_list || []);
+    const [subjectList, setSubjectList] = useState<any[]>([]);
+
+    const { data: gridResponse } = useDaySubjectGridData();
+    let gridData: TTDaySubjectGridData[] = [];
+    if (gridResponse) {
+        if (Array.isArray(gridResponse)) {
+            gridData = gridResponse;
+        } else if (Array.isArray((gridResponse as any)?.data)) {
+            gridData = (gridResponse as any).data;
+        } else if (Array.isArray((gridResponse as any)?.fix_day_subject_list)) {
+            gridData = (gridResponse as any).fix_day_subject_list;
+        }
+    }
+    if (gridData.length === 0 && initialData?.fix_day_subject_list) {
+        gridData = initialData.fix_day_subject_list;
+    }
 
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subStaffList, setSubStaffList] = useState<any[]>([]);
     const [categoryList] = useState<any[]>(initialData?.categorylist || []);
 
-    // View Modal State
     const [viewDetails, setViewDetails] = useState<any[]>([]);
     const [isLoadingView, setIsLoadingView] = useState(false);
 
@@ -87,22 +106,25 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         name: 'TempararyArrayList'
     });
 
-    // Effect to populate form on Edit
+    useEffect(() => {
+        const loadDropdowns = async () => {
+            try {
+                const [subject] = await Promise.all([getSubjectDropDown()]);
+                setSubjectList(subject || []);
+            } catch (error) {
+                console.error('Failed to load dropdowns:', error);
+                toast.error('Failed to load dropdown options');
+            }
+        };
+        loadDropdowns();
+    }, []);
+
     useEffect(() => {
         if (isEditFormOpen && selectedRow) {
             onEdit(selectedRow);
         }
     }, [isEditFormOpen, selectedRow]);
 
-    // Effect to handle Toggle
-    useEffect(() => {
-        if (isToggleFormOpen && selectedRow) {
-            onToggle(selectedRow);
-            closeToggleForm();
-        }
-    }, [isToggleFormOpen, selectedRow]);
-
-    // Effect to handle View
     useEffect(() => {
         if (isDetailsViewOpen && viewRow) {
             onView(viewRow);
@@ -120,7 +142,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         if (ASMAY_Id && categoryId) {
             try {
                 const res = await getClassByCategory({ ASMAY_Id, TTMC_Id: categoryId });
-                if (Array.isArray(res) && res && res.classbycategory) setClassList(res.classbycategory as any[]);
+                if (res && res.classbycategory) setClassList(res.classbycategory as any[]);
             } catch (e) {
                 console.error(e);
             }
@@ -136,7 +158,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         if (ASMAY_Id && selectedCategory && classId) {
             try {
                 const res = await getSectionByClass({ ASMAY_Id, ASMCL_Id: classId, TTMC_Id: selectedCategory });
-                if (Array.isArray(res) && res && res.sectionlist) setSectionList(res.sectionlist as any[]);
+                if (res && res.sectionlist) setSectionList(res.sectionlist as any[]);
             } catch (e) {
                 console.error(e);
             }
@@ -155,7 +177,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                     ASMCL_Id: selectedClass,
                     ASMS_Id: sectionId
                 });
-                if (Array.isArray(res) && res && res.staffbyall) setSubStaffList(res.staffbyall as any[]);
+                if (res && res.staffbyall) setSubStaffList(res.staffbyall as any[]);
             } catch (e) {
                 console.error(e);
             }
@@ -172,7 +194,6 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         const secObj = sectionList.find((s) => s.asmS_Id === selectedSection);
         const staffObj = subStaffList.find((s) => s.hrmE_Id === selectedStaff);
 
-        // Check duplicate
         const exists = fields.some(
             (f: any) => f.ASMCL_Id === selectedClass && f.ASMS_Id === selectedSection && f.HRME_Id === selectedStaff
         );
@@ -211,7 +232,6 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         [remove]
     );
 
-    // View Columns
     const viewColumns: ColumnDef<any>[] = useMemo(
         () => [
             { accessorKey: 'clsDisplay', header: 'Class' },
@@ -275,21 +295,6 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         }
     };
 
-    const onToggle = async (item: any) => {
-        try {
-            const payload = { TTFDSU_Id: item.ttfdsU_Id, TTFDSU_ActiveFlag: !item.ttfdsU_ActiveFlag };
-            const res = await deactivateFixingDaySubject(payload);
-            if (res?.returnval === true) {
-                toast.success('Status Updated');
-                window.location.reload();
-            } else {
-                toast.error('Failed to update status');
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    };
-
     const onSubmit = async (data: FixingDaySubjectSchema) => {
         try {
             if (!data.TTFDSU_SUbSelcFlag) {
@@ -333,6 +338,10 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                 <GenericDataTable data={gridData} columns={daySubjectColumns} totalItems={gridData.length} isLoading={false} />
             </CollapsibleSection>
 
+            {isToggleFormOpen && selectedRow && (
+                <ToggleDaySubjectForm rowData={selectedRow} onClose={closeToggleForm} />
+            )}
+
             {(isAddFormOpen || isEditFormOpen) && (
                 <CollapsibleSection
                     title={isEditFormOpen ? 'Edit Day Subject Constraint' : 'Add New Day Subject Constraint'}
@@ -366,11 +375,13 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {academicList.map((item: any) => (
-                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                                {item.asmaY_Year}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {academicList
+                                                            .filter((item: any) => item.asmaY_Id)
+                                                            .map((item: any) => (
+                                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                    {item.asmaY_Year}
+                                                                </SelectItem>
+                                                            ))}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -416,11 +427,13 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {subjectList.map((item: any) => (
-                                                            <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
-                                                                {item.ismS_SubjectName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {subjectList
+                                                            .filter((item: any) => item.ismS_Id)
+                                                            .map((item: any) => (
+                                                                <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
+                                                                    {item.ismS_SubjectName}
+                                                                </SelectItem>
+                                                            ))}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />

@@ -25,6 +25,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 import type { z } from "zod";
 
 
@@ -40,11 +41,9 @@ type FormFields = z.infer<typeof cumulativereportSchema.addOrUpdate> & {
 export default function CumulativeReportForm({
     onSuccess,
     apiSearchParams,
-    isGenerating = false,
 }: {
-    onSuccess?: (payload: any, apiSearchParams?: ApiSearchparams) => void;
+    onSuccess?: (payload: any, apiSearchParams?: ApiSearchparams) => Promise<void> | void;
     apiSearchParams: ApiSearchparams;
-    isGenerating?: boolean;
 }) {
     const methods = useForm<FormFields>({
         resolver: zodResolver(cumulativereportSchema.addOrUpdate),
@@ -84,7 +83,7 @@ export default function CumulativeReportForm({
         { emE_Id: number; emE_ExamName: string }[]
     >([]);
     const [students, setStudents] = useState<
-        { amsT_AdmNo: number; amsT_Id: number; studentName?: string | null }[]
+        { amsT_AdmNo: string; amsT_Id: number; studentName?: string | null }[]
     >([]);
     const [allStudentsSelected, setAllStudentsSelected] = useState(false);
 
@@ -203,11 +202,7 @@ export default function CumulativeReportForm({
                     ? data.filter(
                         (
                             s,
-                        ): s is {
-                            amsT_AdmNo: number;
-                            amsT_Id: number;
-                            studentName?: string;
-                        } => !!s?.amsT_Id,
+                        ): s is any => !!s?.amsT_Id,
                     )
                     : [];
                 setStudents(valid);
@@ -245,7 +240,10 @@ export default function CumulativeReportForm({
             //page_size: data.page_size
         };
         console.log("cumulative_report_payload", payload);
-        onSuccess?.(payload, apiSearchParams || { page: 1, page_size: 10 });
+        if(onSuccess){
+            await onSuccess(payload, apiSearchParams || { page: 1, page_size: 10 });
+        }
+        // onSuccess?.(payload, apiSearchParams || { page: 1, page_size: 10 });
         //
     };
 
@@ -622,11 +620,12 @@ export default function CumulativeReportForm({
                             <Button
                                 type="submit"
                                 disabled={
-                                    isSubmitting || isGenerating || !hasStudentsSelected
+                                    isSubmitting  || !hasStudentsSelected
                                 }
                                 className="min-w-[140px]"
+                                isLoading = {isSubmitting}
                             >
-                                {isSubmitting || isGenerating ? "Generating..." : "Report"}
+                                {isSubmitting  ? "Generating..." : "Report"}
                             </Button>
                             <Button
                                 type="button"
@@ -634,7 +633,7 @@ export default function CumulativeReportForm({
                                 onClick={() => reset()}
                                 className="min-w-[100px]"
                             >
-                                Cancel
+                                Clear
                             </Button>
                         </div>
                     </form>

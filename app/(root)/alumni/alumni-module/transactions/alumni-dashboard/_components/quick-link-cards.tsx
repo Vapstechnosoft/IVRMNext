@@ -38,14 +38,14 @@ export default function QuickLinkCards({
             detail: 'View your profile details',
             color: 'border-green-500/20'
         },
-        {
-            title: 'DONATION',
-            icon: '/assets/logo1.png',
-            fallbackIcon: <HeartHandshake className='h-8 w-8 text-blue-500' />,
-            action: onDonation,
-            detail: `Total Donate: ₹${donationAmount}`,
-            color: 'border-blue-500/20'
-        },
+        // {
+        //     title: 'DONATION',
+        //     icon: '/assets/logo1.png',
+        //     fallbackIcon: <HeartHandshake className='h-8 w-8 text-blue-500' />,
+        //     action: onDonation,
+        //     detail: `Total Donate: ₹${donationAmount}`,
+        //     color: 'border-blue-500/20'
+        // },
         {
             title: 'GALLERY',
             icon: '/assets/sophia_banner.jpg',

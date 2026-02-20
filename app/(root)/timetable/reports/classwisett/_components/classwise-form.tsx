@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useClassDetails, useSectionDropDown } from '@/hooks/timetable/reports';
+import { useTimeTableAcademicYear, useTimeTableCategoryDropDownData } from '@/hooks/timetable/useMasters';
 import { classWiseReportSchema } from '@/schemas/timetable/reports';
-import { getClassByCategory } from '@/server/timetable/reports/classwisett';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Search, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
@@ -21,17 +21,32 @@ interface ClassWiseFormProps {
 }
 
 export default function ClassWiseForm({ initialData, onSubmit, onCancel }: ClassWiseFormProps) {
-    const [classList, setClassList] = useState<any[]>([]);
+    const {
+        data: academicyeardata,
+    } = useTimeTableAcademicYear();
 
-    const academicList = initialData?.acayear || [];
-    const categoryList = initialData?.categorylist || [];
-    const sectionList = initialData?.sectionlist || [];
+    const {
+        data: categorydropdowndata,
+    } = useTimeTableCategoryDropDownData();
+
+    // Using new hook for classes
+    const {
+        data: classdata,
+    } = useClassDetails();
+
+    // Using new hook for sections
+    const {
+        data: sectiondata,
+    } = useSectionDropDown();
+
+    const academicList = (academicyeardata as any)?.data || [];
+    const categoryList = (categorydropdowndata as any)?.data || [];
+    const classList = (classdata as any)?.data || (Array.isArray(classdata) ? classdata : []);
+    const sectionList = (sectiondata as any)?.data || (Array.isArray(sectiondata) ? sectiondata : []);
 
     const {
         control,
         handleSubmit,
-        watch,
-        setValue,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(classWiseReportSchema.search),
@@ -41,42 +56,8 @@ export default function ClassWiseForm({ initialData, onSubmit, onCancel }: Class
         }
     });
 
-    const watchedAcademicYear = watch('asmaY_Id');
-    const watchedCategory = watch('ttmC_Id');
-
-    // Fetch classes when Academic Year or Category changes
-    useEffect(() => {
-        const fetchClasses = async () => {
-            setValue('classId', []);
-            if (watchedAcademicYear && watchedCategory) {
-                try {
-                    const res = await getClassByCategory({
-                        ASMAY_Id: watchedAcademicYear,
-                        TTMC_Id: watchedCategory
-                    });
-                    if (res && Array.isArray(res.classlist)) {
-                        setClassList(res.classlist);
-                    } else {
-                        setClassList([]);
-                    }
-                } catch (err) {
-                    console.error('Error fetching classes', err);
-                    setClassList([]);
-                }
-            } else {
-                setClassList([]);
-            }
-        };
-        fetchClasses();
-    }, [watchedAcademicYear, watchedCategory, setValue]);
-
     const onFormSubmit = (data: FormFields) => {
-        // Construct payload matching AngularJS requirement
-        // "ASMAY_Id": $scope.asmaY_Id,
-        // "TTMC_Id": $scope.ttmC_Id,
-        // classarray: $scope.albumNameArray1, (selected classes)
-        // sectionarray: $scope.albumNameArray2, (selected sections)
-
+        // Construct payload
         const selectedClasses = classList.filter((c: any) => data.classId?.includes(c.asmcL_Id));
         const selectedSections = sectionList.filter((s: any) => data.sectionId?.includes(s.asmS_Id));
 
@@ -191,7 +172,7 @@ export default function ClassWiseForm({ initialData, onSubmit, onCancel }: Class
                     <Search className='mr-2 h-4 w-4' />
                     Report
                 </Button>
-                <Button type='button' variant='destructive' onClick={onCancel}>
+                <Button type='button' variant='outline' onClick={onCancel}>
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>

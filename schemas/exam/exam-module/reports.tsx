@@ -372,9 +372,9 @@ export const toppersListReportSchema = z
     .object({
         type: z.enum(['1', '2']), // 1: All, 2: Individual
         ASMAY_Id: z.string().min(1, 'Academic Year is required'),
-        EMCA_Id: z.string().min(1, 'Category is required'),
+        EMCA_Id: z.string().optional().default('0'),
         ASMCL_Id: z.string().optional(), // Class (Required only for Individual type)
-        ASMS_Id: z.string().optional(), // Section (Required only for Individual type)
+        ASMS_Id: z.string().optional().default('0'), // Section
         topper: z
             .string()
             .min(1, 'Top count is required')
@@ -398,15 +398,6 @@ export const toppersListReportSchema = z
             });
         }
 
-        // Conditional validation for Section when type is Individual (2)
-        if (data.type === '2' && !data.ASMS_Id) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Section is required for Individual type',
-                path: ['ASMS_Id']
-            });
-        }
-
         // Conditional validation for Subject when subjectwise is checked
         if (data.subjectwise && !data.ISMS_Id) {
             ctx.addIssue({
@@ -417,7 +408,7 @@ export const toppersListReportSchema = z
         }
 
         // Set derived report_type based on type
-        data.report_type = data.type === '1' ? 'All' : 'Individual';
+        data.report_type = data.type === '1' ? 'All' : 'Indi';
 
         // Set exm_check_type based on EME_Id
         data.exm_check_type = data.EME_Id ? '1' : '0';
