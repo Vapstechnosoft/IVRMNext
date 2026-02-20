@@ -1730,12 +1730,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/masters/religion-category-mapping',
                                             title: 'Religion-Category Mapping',
                                             description: 'Map Religion & Category'
-<<<<<<< HEAD
-                                        },
-
-=======
                                         }
->>>>>>> 8fabd361771f933a860a789aee73f62d1b1c61f9
                                     ]
                                 },
                                 {
