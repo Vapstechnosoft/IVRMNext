@@ -82,7 +82,8 @@ export default function ReportFilter({ onFetch }: ReportFilterProps) {
                                             onValueChange={(value) => {
                                                 field.onChange(value || '');
                                             }}
-                                            value={field.value?.toString() || undefined}>
+                                            value={field.value?.toString() || undefined}
+                                            >
                                             <SelectTrigger className={`h-9 text-sm ${errors.asmay_id ? 'border-red-500' : ''}`}>
                                                 <SelectValue placeholder={ayLoading ? 'Loading...' : 'Select Year'} />
                                             </SelectTrigger>

@@ -12,7 +12,11 @@ import { ClassAnalysisView } from './_components/class-analysis-view';
 import { FileUploader } from './_components/file-uploader';
 import { StudentAnalysisView } from './_components/student-analysis-view';
 
-import { analyzeClassPerformance, analyzeStudentPerformance } from '@/server/exam/exam-module/ai-analysis_/ai-analysis';
+import {
+    analyzeClassPerformance,
+    analyzeStudentPerformance,
+    extractStudentDataFromPdf
+} from '@/server/exam/exam-module/ai-analysis_/ai-analysis';
 import type { ClassAnalysis, IndividualAnalysis, StudentPerformance, StudentSubject } from '@/types/exam/exam-module/ai-analysis';
 import { StudentTable } from './_components/student-table';
 
@@ -27,25 +31,42 @@ export default function AiPerformanceAnalysisPage() {
     const handleFileSelect = async (file: File) => {
         setIsLoading(true);
         try {
-            const data = await file.arrayBuffer();
-            const workbook = read(data);
-
             let students: StudentPerformance[] = [];
 
-            // Iterate through sheets until we find valid data
-            for (const sheetName of workbook.SheetNames) {
-                const sheet = workbook.Sheets[sheetName];
-                const jsonData = utils.sheet_to_json(sheet, { header: 1 }) as any[][];
-                const parsed = parseStudentData(jsonData);
+            if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+                // PDF HANDLING
+                toast.info('Extracting data from PDF using AI. This may take a few seconds...');
+                const reader = new FileReader();
+                const base64Promise = new Promise<string>((resolve, reject) => {
+                    reader.onload = () => {
+                        const base64 = (reader.result as string).split(',')[1];
+                        resolve(base64);
+                    };
+                    reader.onerror = reject;
+                });
+                reader.readAsDataURL(file);
+                const base64 = await base64Promise;
+                students = await extractStudentDataFromPdf(base64);
+            } else {
+                // EXCEL/CSV HANDLING
+                const data = await file.arrayBuffer();
+                const workbook = read(data);
 
-                if (parsed.length > 0) {
-                    students = parsed;
-                    break; // Found valid data, stop searching
+                // Iterate through sheets until we find valid data
+                for (const sheetName of workbook.SheetNames) {
+                    const sheet = workbook.Sheets[sheetName];
+                    const jsonData = utils.sheet_to_json(sheet, { header: 1 }) as any[][];
+                    const parsed = parseStudentData(jsonData);
+
+                    if (parsed.length > 0) {
+                        students = parsed;
+                        break; // Found valid data, stop searching
+                    }
                 }
             }
 
             if (students.length === 0) {
-                toast.error('No valid student data found in any sheet. Please check the file format.');
+                toast.error('No valid student data found. Please check the file format.');
                 return;
             }
 
@@ -58,7 +79,7 @@ export default function AiPerformanceAnalysisPage() {
             setSelectedStudentName('');
         } catch (error: any) {
             console.error(error);
-            toast.error('Error parsing file: ' + error.message);
+            toast.error('Error processing file: ' + error.message);
         } finally {
             setIsLoading(false);
         }
@@ -289,41 +310,100 @@ export default function AiPerformanceAnalysisPage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-6 p-4 md:p-6'>
-                <div className='flex flex-col gap-2'>
-                    <h1 className='font-bold text-3xl tracking-tight'>AI Performance Analysis</h1>
-                    <p className='text-muted-foreground'>Analyze performance metrics and AI-driven insights.</p>
-                </div>
                 <Separator />
+
+                {/* Introduction Section for Teachers */}
+                <div className='bg-primary/5 rounded-lg p-3 border border-primary/10 space-y-1.5'>
+                    <h2 className='text-base font-semibold text-primary flex items-center gap-2'>
+                        <span className='bg-primary text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]'>?</span>
+                        How to use this tool?
+                    </h2>
+                    <p className='text-muted-foreground text-xs leading-relaxed'>
+                        Transform raw exam data into insights. Upload reports to see trends,
+                        identify students needing support, and generate automated summaries instantly.
+                    </p>
+                </div>
 
                 {/* Step 1: Upload */}
                 <CollapsibleSection
                     title='1. Data Upload'
-                    description='Upload class cumulative report (CSV/Excel)'
+                    description='Upload class cumulative report (CSV/Excel/PDF)'
                     defaultOpen={!allStudents.length}>
-                    <div className='p-4'>
-                        <FileUploader onFileSelect={handleFileSelect} isLoading={isLoading} />
-
-                        {allStudents.length > 0 && (
-                            <div className='mt-6 space-y-4'>
-                                <div className='flex items-center justify-between'>
-                                    <div>
-                                        <h3 className='font-semibold text-lg'>📄 Uploaded Report Data</h3>
-                                        <p className='text-muted-foreground text-sm'>{allStudents.length} students found</p>
-                                    </div>
+                    <div className='p-4 space-y-4'>
+                        {/* Sample Format Info */}
+                        {!allStudents.length && (
+                            <div className='border rounded-lg p-4 bg-muted/30 space-y-3'>
+                                <h4 className='font-medium text-sm flex items-center gap-2'>
+                                    💡 Sample of correct file format:
+                                </h4>
+                                <div className='overflow-x-auto'>
+                                    <table className='min-w-full text-[11px] border-collapse'>
+                                        <thead>
+                                            <tr className='bg-muted'>
+                                                <th className='border p-2 text-left'>Student Name</th>
+                                                <th className='border p-2 text-center'>English</th>
+                                                <th className='border p-2 text-center'>Hindi</th>
+                                                <th className='border p-2 text-center'>Maths</th>
+                                                <th className='border p-2 text-center'>Science</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td className='border p-2'>Abhishek Kumar</td>
+                                                <td className='border p-2 text-center'>85</td>
+                                                <td className='border p-2 text-center'>78</td>
+                                                <td className='border p-2 text-center'>92</td>
+                                                <td className='border p-2 text-center'>88</td>
+                                            </tr>
+                                            <tr className='bg-muted/20'>
+                                                <td className='border p-2'>Sneha Reddy</td>
+                                                <td className='border p-2 text-center'>72</td>
+                                                <td className='border p-2 text-center'>89</td>
+                                                <td className='border p-2 text-center'>65</td>
+                                                <td className='border p-2 text-center'>80</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
-
-                                <StudentTable students={allStudents} />
-
-                                <div className='flex justify-end border-t pt-4'>
-                                    <Button onClick={handleClassAnalysis} disabled={isLoading} size='lg' className='w-full sm:w-auto'>
-                                        {isLoading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
-                                        Analyze Class Performance
-                                    </Button>
-                                </div>
+                                <p className='text-[11px] text-muted-foreground italic'>
+                                    Note: The file must contain a "Student Name" column or similar. Subject columns should contain numeric marks.
+                                </p>
                             </div>
                         )}
+
+                        <FileUploader onFileSelect={handleFileSelect} isLoading={isLoading} />
                     </div>
                 </CollapsibleSection>
+
+                {allStudents.length > 0 && (
+                    <div className='space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500'>
+                        <div className='bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 p-3 rounded-lg flex items-center justify-center gap-2 animate-bounce'>
+                            <span className='text-green-600 dark:text-green-400 font-medium text-sm'>
+                                ✅ File uploaded successfully! Scroll down to see the data and start analysis.
+                            </span>
+                        </div>
+
+                        <div className='space-y-4'>
+                            <div className='flex items-center justify-between'>
+                                <div>
+                                    <h3 className='font-semibold text-lg'>📄 Uploaded Report Data</h3>
+                                    <p className='text-muted-foreground text-sm'>{allStudents.length} students found</p>
+                                </div>
+                            </div>
+
+                            <div className='border rounded-xl overflow-hidden bg-card shadow-sm'>
+                                <StudentTable students={allStudents} />
+                            </div>
+
+                            <div className='flex justify-end border-t pt-4'>
+                                <Button onClick={handleClassAnalysis} disabled={isLoading} size='lg' className='w-full sm:w-auto shadow-lg'>
+                                    {isLoading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
+                                    Analyze Class Performance
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Step 2: Class Analysis */}
                 {classAnalysis && (

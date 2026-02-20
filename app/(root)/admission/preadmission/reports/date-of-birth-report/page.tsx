@@ -1,20 +1,18 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import type { DataTableRef } from '@/components/ui/data-table/data-table';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
 import {
-    useActivePreadmissionDetails,
     usePreadmissionClassDropdown1,
     useadmissionSectionDropdown
 } from '@/hooks/admission/preadmission/useTransactions';
+import { useReactToPrint } from 'react-to-print';
+import { BirthCertificatePrint } from './_components/birth-certificate-print';
 
-import type { IStudentYearlyAttendenceReportList } from '@/types/admission/preadmission/reports';
 import { FileText, Printer, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useMemo, useRef, useState } from 'react';
@@ -22,7 +20,6 @@ import { toast } from 'sonner';
 
 import { useDateOfBirth, useadmissionStudentsDropdown } from '@/hooks/admission/preadmission/useReports';
 import { getExcelDOBReport } from '@/server/admission/preadmission/reports/month_end_report';
-import { birthCertificateColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -33,14 +30,9 @@ export default function BirthCertificatePageReport(props: {
     const router = useRouter();
     const pathname = usePathname();
 
-    const tableRef = useRef<DataTableRef>(null);
     const printRef = useRef<HTMLDivElement>(null);
 
     const [showReport, setShowReport] = useState(false);
-
-    const handleResetSelection = () => {
-        tableRef.current?.resetSelection();
-    };
 
     const handleFilterChange = (filterType: 'class' | 'section' | 'academic_year' | 'student', value: number) => {
         if (filterType === 'class') {
@@ -57,8 +49,6 @@ export default function BirthCertificatePageReport(props: {
         }
     };
 
-    const { data: activePreadmission, isLoading: activePreadmissionDeLoading } = useActivePreadmissionDetails();
-
     const { data: academicYearOptions, isLoading: academicYearLoading, isError: academicYearError } = useAcademicYearDropdown();
 
     const {
@@ -72,8 +62,6 @@ export default function BirthCertificatePageReport(props: {
     const [sectionId, setSectionId] = useState<number>(0);
     const [studentId, setStudentId] = useState<number>(0);
     const [purpose, setPurpose] = useState<string>('');
-
-    const [selectedStudents, setSelectedStudents] = useState<IStudentYearlyAttendenceReportList[]>([]);
 
     const {
         data: admissionSection,
@@ -91,22 +79,23 @@ export default function BirthCertificatePageReport(props: {
         data: response,
         isLoading,
         error
-    } = useDateOfBirth((academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0, classId, sectionId, studentId, searchParams);
+    } = useDateOfBirth((academicYearId || 0) ?? 0, classId, sectionId, studentId, 0, searchParams, showReport);
 
     const transformedData = useMemo(() => {
         if (!response?.data || !showReport) {
             return [];
         }
 
-        // DOB Certificate API returns data directly as an array
         const data = response.data as any;
 
-        // If it's an array, return it directly
+        if (data.studentList) {
+            return data.studentList;
+        }
+
         if (Array.isArray(data)) {
             return data;
         }
 
-        // If data has a nested array property (e.g., $values), extract it
         if (data?.$values) {
             return data.$values;
         }
@@ -114,63 +103,41 @@ export default function BirthCertificatePageReport(props: {
         return [];
     }, [response?.data, showReport]);
 
-    const tableProps = useDataTableProps({
-        ...response,
-        data: transformedData
-    });
-
-    const handleSelectStudent = (selectedRows: IStudentYearlyAttendenceReportList[]) => {
-        setSelectedStudents(selectedRows);
-    };
-
     const handleClear = () => {
         setAcademicYearId(0);
         setClassId(0);
         setSectionId(0);
         setStudentId(0);
         setPurpose('');
-        setSelectedStudents([]);
         setShowReport(false);
-        handleResetSelection();
 
         router.replace(pathname);
 
         toast.success('Filters cleared successfully');
     };
 
-    const handlePrint = () => {
-        if (!transformedData || transformedData.length === 0) {
-            toast.error('No data available to print');
-            return;
-        }
-
-        if (selectedStudents.length === 0) {
-            toast.error('Please select at least one student to print');
-            return;
-        }
-
-        window.print();
-    };
+    const handlePrint = useReactToPrint({
+        contentRef: printRef
+    });
 
     const downloadExcel = async () => {
         try {
             const response = await getExcelDOBReport(
-                (academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0,
+                (academicYearId || 0) ?? 0,
                 classId,
                 sectionId,
                 studentId,
+                0,
                 searchParams
             );
 
-            // Ensure we have a Blob
             const blob =
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
-            // Create download link
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -178,13 +145,12 @@ export default function BirthCertificatePageReport(props: {
             document.body.appendChild(link);
             link.click();
 
-            // Cleanup
             setTimeout(() => {
                 link.remove();
                 window.URL.revokeObjectURL(url);
             }, 100);
 
-            setShowReport(false);
+            // setShowReport(false);
 
             toast.success('Excel downloaded successfully');
         } catch (error) {
@@ -194,7 +160,6 @@ export default function BirthCertificatePageReport(props: {
     };
 
     const handleGenerate = () => {
-        // Validate all dropdowns are selected
         if (!academicYearId || academicYearId === 0) {
             toast.error('Please select Academic Year');
             return;
@@ -210,44 +175,12 @@ export default function BirthCertificatePageReport(props: {
             return;
         }
 
-        if (!studentId || studentId === 0) {
-            toast.error('Please select Student');
-            return;
-        }
-
-        if (!purpose.trim()) {
-            toast.error('Please enter Purpose');
-            return;
-        }
-
         setShowReport(true);
         toast.success('Generating report...');
     };
 
     return (
         <div className='min-h-screen p-8'>
-            <style>
-                {`
-          @media print {
-            body * {
-              visibility: hidden;
-            }
-            #printable-report, #printable-report * {
-              visibility: visible;
-            }
-            #printable-report {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100%;
-            }
-            .no-print {
-              display: none !important;
-            }
-          }
-        `}
-            </style>
-
             <div className='container space-y-4 p-1'>
                 <CollapsibleSection
                     title='Date of Birth Certificate Report'
@@ -266,7 +199,7 @@ export default function BirthCertificatePageReport(props: {
                                         onValueChange={(value) => handleFilterChange('academic_year', Number(value))}
                                         value={academicYearId !== 0 ? academicYearId?.toString() : undefined}>
                                         <SelectTrigger id='academic-year' className='w-full'>
-                                            <SelectValue placeholder='Select Academic Year' />
+                                            <SelectValue placeholder='--Select Year--' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {academicYearLoading ? (
@@ -278,8 +211,8 @@ export default function BirthCertificatePageReport(props: {
                                                     Error loading
                                                 </SelectItem>
                                             ) : (
-                                                academicYearOptions?.data?.map((item) => (
-                                                    <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
+                                                academicYearOptions?.data?.map((item, index) => (
+                                                    <SelectItem key={`${item.asmaY_Id}-${index}`} value={String(item.asmaY_Id)}>
                                                         {item.asmaY_Year}
                                                     </SelectItem>
                                                 ))
@@ -296,7 +229,7 @@ export default function BirthCertificatePageReport(props: {
                                         onValueChange={(value) => handleFilterChange('class', Number(value))}
                                         value={classId !== 0 ? classId?.toString() : undefined}>
                                         <SelectTrigger id='class' className='w-full'>
-                                            <SelectValue placeholder='Select Class' />
+                                            <SelectValue placeholder='--Select Class--' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {preadmissionClassLoading ? (
@@ -308,8 +241,8 @@ export default function BirthCertificatePageReport(props: {
                                                     Error loading
                                                 </SelectItem>
                                             ) : (
-                                                preadmissionClass?.data?.map((item) => (
-                                                    <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                                preadmissionClass?.data?.map((item, index) => (
+                                                    <SelectItem key={`${item.asmcL_Id}-${index}`} value={item.asmcL_Id.toString()}>
                                                         {item.asmcL_ClassName}
                                                     </SelectItem>
                                                 ))
@@ -327,7 +260,7 @@ export default function BirthCertificatePageReport(props: {
                                         value={sectionId !== 0 ? sectionId?.toString() : undefined}
                                         disabled={classId === 0}>
                                         <SelectTrigger id='section' className='w-full'>
-                                            <SelectValue placeholder='Select Section' />
+                                            <SelectValue placeholder='--Select Section--' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {admissionSectionLoading ? (
@@ -339,8 +272,8 @@ export default function BirthCertificatePageReport(props: {
                                                     Error loading
                                                 </SelectItem>
                                             ) : (
-                                                admissionSection?.data?.map((item: any) => (
-                                                    <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
+                                                admissionSection?.data?.map((item: any, index: number) => (
+                                                    <SelectItem key={`${item.asmS_Id}-${index}`} value={item.asmS_Id.toString()}>
                                                         {item.asmC_SectionName}
                                                     </SelectItem>
                                                 ))
@@ -360,7 +293,7 @@ export default function BirthCertificatePageReport(props: {
                                         value={studentId !== 0 ? studentId?.toString() : undefined}
                                         disabled={sectionId === 0}>
                                         <SelectTrigger id='student' className='w-full'>
-                                            <SelectValue placeholder='Select Student' />
+                                            <SelectValue placeholder='--Select Student--' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {admissionStudentsLoading ? (
@@ -376,9 +309,9 @@ export default function BirthCertificatePageReport(props: {
                                                     No students found
                                                 </SelectItem>
                                             ) : (
-                                                admissionStudents?.data?.map((item: any) => (
-                                                    <SelectItem key={item.amsT_Id} value={item.amsT_Id.toString()}>
-                                                        {item.studentName}
+                                                admissionStudents?.data?.map((item: any, index: number) => (
+                                                    <SelectItem key={`${item.amsT_Id}-${index}`} value={item.amsT_Id.toString()}>
+                                                        {item.studentName || item.stuname}
                                                     </SelectItem>
                                                 ))
                                             )}
@@ -388,7 +321,7 @@ export default function BirthCertificatePageReport(props: {
 
                                 <div className='space-y-2'>
                                     <Label htmlFor='purpose' className='font-medium text-gray-900 text-sm'>
-                                        Purpose <span className='text-red-500'>*</span>
+                                        Purpose
                                     </Label>
                                     <Input
                                         id='purpose'
@@ -427,8 +360,7 @@ export default function BirthCertificatePageReport(props: {
                                 <Button
                                     variant='outline'
                                     className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
-                                    onClick={handlePrint}
-                                    disabled={selectedStudents.length === 0}>
+                                    onClick={() => handlePrint()}>
                                     <Printer className='mr-2 h-4 w-4' />
                                     Print
                                 </Button>
@@ -438,27 +370,33 @@ export default function BirthCertificatePageReport(props: {
                 </CollapsibleSection>
 
                 {showReport && transformedData && transformedData.length > 0 && (
-                    <div id='printable-report' ref={printRef}>
+                    <div className='no-print slide-in-from-top-4 animate-in shadow-lg duration-300'>
                         <CollapsibleSection
-                            title='Date of Birth Certificate Report'
+                            title='Birth Certificate Preview'
                             defaultOpen={true}
                             variant='outline'
-                            size='md'
-                            className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                            <GenericDataTable<any>
-                                {...tableProps}
-                                ref={tableRef}
-                                columns={birthCertificateColumns}
-                                isLoading={activePreadmissionDeLoading || isLoading}
-                                error={error}
-                                showViewOptions={false}
-                                loadingMessage='Loading attendance report...'
-                                noDataTitle='No Data Found'
-                                noDataDescription='No attendance records found. Please select filters to view data.'
-                                errorTitle='Error Loading Attendance Report'
-                                onRowSelectionChange={handleSelectStudent}
-                            />
+                            size='md'>
+                            <div className='rounded-lg border bg-white p-4 shadow-sm'>
+                                <BirthCertificatePrint
+                                    students={transformedData}
+                                    purpose={purpose}
+                                    masterCompany={(response?.data as any)?.masterCompany}
+                                    principalSign={(response?.data as any)?.principalSign}
+                                />
+                            </div>
                         </CollapsibleSection>
+                    </div>
+                )}
+
+                {showReport && transformedData && transformedData.length > 0 && (
+                    <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '210mm' }}>
+                        <BirthCertificatePrint
+                            ref={printRef}
+                            students={transformedData}
+                            purpose={purpose}
+                            masterCompany={(response?.data as any)?.masterCompany}
+                            principalSign={(response?.data as any)?.principalSign}
+                        />
                     </div>
                 )}
             </div>

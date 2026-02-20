@@ -543,14 +543,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Date Of Birth Report',
                                             description: 'Date Of Birth Report'
                                         },
-                                        {
-                                            id: 12,
-                                            name: 'Overall Daily Attendance Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/overall-daily-attendance-report',
-                                            title: 'Overall Daily Attendance Report',
-                                            description: 'Overall Daily Attendance Report'
-                                        },
+                                        // {
+                                        //     id: 12,
+                                        //     name: 'Overall Daily Attendance Report',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/reports/overall-daily-attendance-report',
+                                        //     title: 'Overall Daily Attendance Report',
+                                        //     description: 'Overall Daily Attendance Report'
+                                        // },
                                         {
                                             id: 13,
                                             name: 'Student Attendance Report',
@@ -1565,6 +1565,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Report_Card_X',
                                             title: 'Report Card_X',
                                             description: 'Report Card_X'
+                                        },
+                                        {
+                                            id: 89,
+                                            name: 'AI Performance Analysis',
+                                            icon: 'Sparkles',
+                                            url: '/Exam/exam-module/ai-performance-analysis',
+                                            title: 'AI Performance Analysis',
+                                            description: 'AI-driven student performance analysis and insights'
                                         }
                                     ]
                                 }
@@ -1722,8 +1730,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/masters/religion-category-mapping',
                                             title: 'Religion-Category Mapping',
                                             description: 'Map Religion & Category'
-                                        },
-                                        
+                                        }
                                     ]
                                 },
                                 {
@@ -1757,7 +1764,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 3,
+                                    id: 7,
                                     name: 'Transactions',
                                     icon: 'FileText',
                                     pages: [
@@ -1820,7 +1827,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 4,
+                                    id: 6,
                                     name: 'Reports',
                                     icon: 'FileText',
                                     pages: [
@@ -2033,7 +2040,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
-                        }
+                        },
                         // ,
                         // {
                         //     id: 2,
@@ -2346,7 +2353,164 @@ export async function getUserAccessibleModules() {
                         //         }
                         //     ]
                         // },
-                        , {
+
+                        // , {
+                        //     id: 4,
+                        //     name: 'Leave Management',
+                        //     icon: 'Calendar',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'Masters',
+                        //             icon: 'Database',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Master Leave',
+                        //                     icon: 'Calendar',
+                        //                     url: '/hrms/leave-management/masters/master-leave',
+                        //                     title: 'Master Leave',
+                        //                     description: 'Manage Leave Types'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Leave Authorization',
+                        //                     icon: 'Shield',
+                        //                     url: '/hrms/leave-management/masters/leave-authorization',
+                        //                     title: 'Leave Authorization',
+                        //                     description: 'Configure Leave Approvers'
+                        //                 }
+                        //                 // {
+                        //                 //     id: 3,
+                        //                 //     name: 'Master Leave Year',
+                        //                 //     icon: 'CalendarRange',
+                        //                 //     url: '/hrms/leave-management/masters/master-leaveYear',
+                        //                 //     title: 'Master Leave Year',
+                        //                 //     description: 'Manage Leave Year'
+                        //                 // }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 2,
+                        //             name: 'Apply Leave',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Apply Leave',
+                        //                     icon: 'FilePlus',
+                        //                     url: '/hrms/leave-management/apply-leave',
+                        //                     title: 'Apply Leave',
+                        //                     description: 'Submit Leave Application'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Leave Approval',
+                        //                     icon: 'CheckCircle',
+                        //                     url: '/hrms/leave-management/leave-approval',
+                        //                     title: 'Leave Approval',
+                        //                     description: 'Approve or Reject Leave Requests'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 3,
+                        //             name: 'Transaction',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Leave Transfer',
+                        //                     icon: 'Plus',
+                        //                     url: '/hrms/leave-management/transaction/leave-transfer',
+                        //                     title: 'Leave Transfer',
+                        //                     description: 'Transfer Leave'
+                        //                 },
+                        //                 // {
+                        //                 //     id: 2,
+                        //                 //     name: 'Comp Off Approval',
+                        //                 //     icon: 'CheckSquare',
+                        //                 //     url: '/hrms/leave-management/transaction/comp-off-approval',
+                        //                 //     title: 'Comp Off Approval',
+                        //                 //     description: 'Approve Compensatory Off'
+                        //                 // },
+                        //                 // {
+                        //                 //     id: 3,
+                        //                 //     name: 'Comp Off Request',
+                        //                 //     icon: 'FileText',
+                        //                 //     url: '/hrms/leave-management/transaction/comp-off-request',
+                        //                 //     title: 'Comp Off Request',
+                        //                 //     description: 'Request Compensatory Off'
+                        //                 // },
+                        //                 {
+                        //                     id: 4,
+                        //                     name: 'Leave Credit Details',
+                        //                     icon: 'Info',
+                        //                     url: '/hrms/leave-management/transaction/leave-credit-details',
+                        //                     title: 'Leave  Details',
+                        //                     description: 'View Leave Credit Details'
+                        //                 },
+                        //                 {
+                        //                     id: 5,
+                        //                     name: 'Leave Transaction',
+                        //                     icon: 'List',
+                        //                     url: '/hrms/leave-management/transaction/leave-credit-transaction',
+                        //                     title: 'Leave Transaction',
+                        //                     description: 'Leave Transaction'
+                        //                 },
+                        //                 {
+                        //                     id: 6,
+                        //                     name: 'Leave Opening Balance',
+                        //                     icon: 'Database',
+                        //                     url: '/hrms/leave-management/transaction/leave-opening-balance',
+                        //                     title: 'Leave Opening Balance',
+                        //                     description: 'Manage Leave Opening Balance'
+                        //                 },
+                        //                 {
+                        //                     id: 7,
+                        //                     name: 'Admin On Duty Apply',
+                        //                     icon: 'Briefcase',
+                        //                     url: '/hrms/leave-management/transaction/admin-on-duty-apply',
+                        //                     title: 'Admin On Duty Apply',
+                        //                     description: 'Apply for On Duty Leave'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 4,
+                        //             name: 'Report',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Leave Report',
+                        //                     icon: 'FileSearch',
+                        //                     url: '/hrms/leave-management/reports/leave-report',
+                        //                     title: 'Leave Report',
+                        //                     description: 'Leave Summary Report'
+                        //                 }
+                        //                 // {
+                        //                 //     id: 2,
+                        //                 //     name: 'Overall Report',
+                        //                 //     icon: 'BarChart3',
+                        //                 //     url: '/hrms/leave-management/reports/overAll-report',
+                        //                 //     title: 'Overall Report',
+                        //                 //     description: 'Overall Leave Analysis'
+                        //                 // },
+                        //                 // {
+                        //                 //     id: 3,
+                        //                 //     name: 'Unauthorized Leave Report',
+                        //                 //     icon: 'AlertTriangle',
+                        //                 //     url: '/hrms/leave-management/reports/unauthorizedLeaveCount-report',
+                        //                 //     title: 'Unauthorized Leave Report',
+                        //                 //     description: 'Unauthorized Leave Count'
+                        //                 // }
+                        //             ]
+                        //         }
+                        //     ]
+                        // }
+
+                        {
                             id: 4,
                             name: 'Leave Management',
                             icon: 'Calendar',
@@ -2380,6 +2544,21 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Master Leave Year',
                                         //     description: 'Manage Leave Year'
                                         // }
+                                    ]
+                                },
+                                {
+                                    id: 4,
+                                    name: 'Leave Config',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Leave Configuration',
+                                            icon: 'CheckSquare',
+                                            url: '/hrms/leave-management/leave-Configuration',
+                                            title: 'Leave Configuration',
+                                            description: 'Leave Configuration'
+                                        }
                                     ]
                                 },
                                 {
@@ -2434,14 +2613,14 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Comp Off Request',
                                         //     description: 'Request Compensatory Off'
                                         // },
-                                        {
-                                            id: 4,
-                                            name: 'Leave Credit Details',
-                                            icon: 'Info',
-                                            url: '/hrms/leave-management/transaction/leave-credit-details',
-                                            title: 'Leave  Details',
-                                            description: 'View Leave Credit Details'
-                                        },
+                                        // {
+                                        //     id: 4,
+                                        //     name: 'Leave Credit Details',
+                                        //     icon: 'Info',
+                                        //     url: '/hrms/leave-management/transaction/leave-credit-details',
+                                        //     title: 'Leave  Details',
+                                        //     description: 'View Leave Credit Details'
+                                        // },
                                         {
                                             id: 5,
                                             name: 'Leave Transaction',
@@ -2469,7 +2648,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 4,
+                                    id: 5,
                                     name: 'Report',
                                     icon: 'FileText',
                                     pages: [
@@ -2501,6 +2680,7 @@ export async function getUserAccessibleModules() {
                                 }
                             ]
                         }
+
                         // {
                         //     id: 5,
                         //     name: 'Exit Management',
@@ -2601,11 +2781,10 @@ export async function getUserAccessibleModules() {
                         // }
                     ]
                 },
-
                 {
                     id: 5,
                     name: 'AI Edge',
-                    icon: 'Users',
+                    icon: 'Sparkles',
                     menu: [
                         {
                             id: 1,
@@ -3056,313 +3235,306 @@ export async function getUserAccessibleModules() {
                 //     ]
                 // },
 
-                // {
-                //     id: 6,
-                //     name: 'Time Table',
-                //     icon: 'Clock',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Time Table',
-                //             icon: 'Clock',
-                //             sub_menu: [
-                //                 // {
-                //                 //     id: 4,
-                //                 //     name: 'Configuration',
-                //                 //     icon: 'BadgeIndianRupee',
-                //                 //     pages: [
-                //                 //         {
-                //                 //             id: 21,
-                //                 //             name: 'Fee configuration',
-                //                 //             icon: 'BadgeIndianRupee',
-                //                 //             url: '/fees/configuration/masterfeeconfig',
-                //                 //             title: 'Fee configuration',
-                //                 //             description: 'Fee configuration'
-                //                 //         }
-                //                 //     ]
-                //                 // },
-                //                 {
-                //                     id: 1,
-                //                     name: 'Masters',
-                //                     icon: 'Clock',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Master Day',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/masterday',
-                //                             title: 'Master Day',
-                //                             description: 'Manage Master Day Details'
-                //                         },
-                //                         {
-                //                             id: 9,
-                //                             name: 'Master Day Class Wise',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/masterdayclasswise',
-                //                             title: 'Master Day Class Wise',
-                //                             description: 'Manage Master Day Class Wise Details'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Master Building',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/masterbuilding',
-                //                             title: 'Master Building',
-                //                             description: 'Manage Master Building Details'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Staff Abbreviation',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/staffabbreviations',
-                //                             title: 'Staff Abbreviation',
-                //                             description: 'Manage Staff Abbreviation Details'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Subject Abbreviation',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/subjectabbreviations',
-                //                             title: 'Subject Abbreviation',
-                //                             description: 'Manage Subject Abbreviation Details'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Category Class Mapping',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/categoryclassmapping',
-                //                             title: 'Category Class Mapping',
-                //                             description: 'Manage Category Class Mapping Details'
-                //                         },
-                //                         {
-                //                             id: 6,
-                //                             name: 'Master Category',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/mastercategory',
-                //                             title: 'Master Category',
-                //                             description: 'Manage Master Category Details'
-                //                         },
-                //                         {
-                //                             id: 7,
-                //                             name: 'Master Break Time Settings',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/breaktimesettings',
-                //                             title: 'Master Break Time Settings',
-                //                             description: 'Manage Master Break Time Settings Details'
-                //                         },
-                //                         {
-                //                             id: 8,
-                //                             name: 'Master Period',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/masterperiod',
-                //                             title: 'Master Period',
-                //                             description: 'Manage Master Period Details'
-                //                         },
+                {
+                    id: 6,
+                    name: 'Time Table',
+                    icon: 'Clock',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Time Table',
+                            icon: 'Clock',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Masters',
+                                    icon: 'Clock',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Day',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterday',
+                                            title: 'Master Day',
+                                            description: 'Manage Master Day Details'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Master Day Class Wise',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterdayclasswise',
+                                            title: 'Master Day Class Wise',
+                                            description: 'Manage Master Day Class Wise Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Master Building',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterbuilding',
+                                            title: 'Master Building',
+                                            description: 'Manage Master Building Details'
+                                        },
+                                        {
+                                            id: 11111111,
+                                            name: 'Master Building Class Section',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterbuildingclasssection',
+                                            title: 'Master Building Class Section',
+                                            description: 'Manage Master Building Class Section Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Staff Abbreviation',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/staffabbreviations',
+                                            title: 'Staff Abbreviation',
+                                            description: 'Manage Staff Abbreviation Details'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Subject Abbreviation',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/subjectabbreviations',
+                                            title: 'Subject Abbreviation',
+                                            description: 'Manage Subject Abbreviation Details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Category Class Mapping',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/categoryclassmapping',
+                                            title: 'Category Class Mapping',
+                                            description: 'Manage Category Class Mapping Details'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Master Category',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/mastercategory',
+                                            title: 'Master Category',
+                                            description: 'Manage Master Category Details'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Master Break Time Settings',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/breaktimesettings',
+                                            title: 'Master Break Time Settings',
+                                            description: 'Manage Master Break Time Settings Details'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Master Period',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterperiod',
+                                            title: 'Master Period',
+                                            description: 'Manage Master Period Details'
+                                        },
 
-                //                         {
-                //                             id: 10,
-                //                             name: 'Period Distribution',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/perioddistribution',
-                //                             title: 'Period Distribution',
-                //                             description: 'Manage Period Distribution Details'
-                //                         },
-                //                         {
-                //                             id: 11,
-                //                             name: 'Period Allocation Master Period',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/periodallocationmasterperiod',
-                //                             title: 'Period Allocation Master Period',
-                //                             description: 'Manage Period Allocation Master Period Details'
-                //                         },
-                //                         {
-                //                             id: 12,
-                //                             name: 'Master Period Class',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/masterperiodclass',
-                //                             title: 'Master Period Class',
-                //                             description: 'Manage Master Period Class Details'
-                //                         },
+                                        {
+                                            id: 10,
+                                            name: 'Period Distribution',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/perioddistribution',
+                                            title: 'Period Distribution',
+                                            description: 'Manage Period Distribution Details'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Period Allocation Master Period',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/periodallocationmasterperiod',
+                                            title: 'Period Allocation Master Period',
+                                            description: 'Manage Period Allocation Master Period Details'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Master Period Class',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterperiodclass',
+                                            title: 'Master Period Class',
+                                            description: 'Manage Master Period Class Details'
+                                        },
 
-                //                         {
-                //                             id: 13,
-                //                             name: 'Period Time Setting',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/periodtimesetting',
-                //                             title: 'Period Time Setting',
-                //                             description: 'Manage Period Time Settings'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 3,
-                //                     name: 'Constraints',
-                //                     icon: 'Clock',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Bifurcation Constraints',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/constraints/bifurcationconstraints',
-                //                             title: 'Bifurcation Constraints',
-                //                             description: 'Manage Bifurcation Constraints Details'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'consecutive',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/constraints/consecutive',
-                //                             title: 'Consecutive Constraints',
-                //                             description: 'Manage Consecutive Constraints Details'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Fixing',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/constraints/fixing',
-                //                             title: 'Fixing Constraints',
-                //                             description: 'Manage Fixing Constraints Details'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Lab Constraints',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/constraints/labconstraints',
-                //                             title: 'Lab Constraints',
-                //                             description: 'Manage Lab Constraints Details'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Subject Restrictions',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/constraints/subjectrestriction',
-                //                             title: 'Subject Restrictions',
-                //                             description: 'Manage Subject Restrictions Details'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 4,
-                //                     name: 'Transactions',
-                //                     icon: 'Clock',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Class Section Time Table Report',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/class-section-report/class-section-report',
-                //                             title: 'Class Section Time Table Report',
-                //                             description: 'View and generate class-wise timetable grids'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Deputation',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/deputation',
-                //                             title: 'Deputation',
-                //                             description: 'ABSENT STAFF ALLOTMENT DETAILS'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Manual Period Insertion',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/manual-Period-insersion',
-                //                             title: 'Manual Period Insertion',
-                //                             description: 'ABSENT STAFF ALLOTMENT DETAILS'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Staff Period Transfer',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/staff-Periods-Transfer',
-                //                             title: 'Staff Period Transfer',
-                //                             description: 'Transfer Staff Periods Between Classes and Sections'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Staff Replacement Existing To New',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/staff-replacement-existing-to-new',
-                //                             title: 'Staff Replacement Existing To New',
-                //                             description: 'Replacing staff Existing To New'
-                //                         },
-                //                         {
-                //                             id: 6,
-                //                             name: 'Staff Replacement In Their TimeTable',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/staff-replacement-In-their-timeTable',
-                //                             title: 'Staff Replacement In Their TimeTable',
-                //                             description: 'Staff Replacement In Their TimeTable'
-                //                         },
-                //                         {
-                //                             id: 7,
-                //                             name: 'Staff Replacement In Unallocated Period',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/staff-replacement-in-unallocated-period',
-                //                             title: 'Staff Replacement In Unallocated Period',
-                //                             description: 'Staff Replacement In Unallocated Period'
-                //                         },
-                //                         {
-                //                             id: 8,
-                //                             name: 'Time Table Generation',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/time-table-generation',
-                //                             title: 'Time Table Generation',
-                //                             description: 'Time Table Generation'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 2,
-                //                     name: 'Reports',
-                //                     icon: 'Clock',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Consolidated Report',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/reports/consolidated',
-                //                             title: 'Consolidated Report',
-                //                             description: 'TimeTable Consolidated Report'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Class Wise TimeTable',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/reports/classwisett',
-                //                             title: 'Class Wise TimeTable',
-                //                             description: 'Class Wise TimeTable Report'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Subject Wise TimeTable',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/reports/subjectwisett',
-                //                             title: 'Subject Wise TimeTable',
-                //                             description: 'Subject Wise TimeTable Report'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Staff Wise TimeTable',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/reports/staffwisett',
-                //                             title: 'Staff Wise TimeTable',
-                //                             description: 'Staff Wise TimeTable Report'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Deputation Report',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/reports/deputationreport',
-                //                             title: 'Deputation Report',
-                //                             description: 'Deputation Report'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
+                                        {
+                                            id: 13,
+                                            name: 'Period Time Setting',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/periodtimesetting',
+                                            title: 'Period Time Setting',
+                                            description: 'Manage Period Time Settings'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Constraints',
+                                    icon: 'Clock',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Bifurcation Constraints',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/bifurcationconstraints',
+                                            title: 'Bifurcation Constraints',
+                                            description: 'Manage Bifurcation Constraints Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'consecutive',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/consecutive',
+                                            title: 'Consecutive Constraints',
+                                            description: 'Manage Consecutive Constraints Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Fixing',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/fixing',
+                                            title: 'Fixing Constraints',
+                                            description: 'Manage Fixing Constraints Details'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Lab Constraints',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/labconstraints',
+                                            title: 'Lab Constraints',
+                                            description: 'Manage Lab Constraints Details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Subject Restrictions',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/subjectrestriction',
+                                            title: 'Subject Restrictions',
+                                            description: 'Manage Subject Restrictions Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 4,
+                                    name: 'Transactions',
+                                    icon: 'Clock',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Class Section Time Table Report',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/class-section-report/class-section-report',
+                                            title: 'Class Section Time Table Report',
+                                            description: 'View and generate class-wise timetable grids'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Deputation',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/deputation',
+                                            title: 'Deputation',
+                                            description: 'ABSENT STAFF ALLOTMENT DETAILS'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Manual Period Insertion',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/manual-Period-insersion',
+                                            title: 'Manual Period Insertion',
+                                            description: 'ABSENT STAFF ALLOTMENT DETAILS'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Staff Period Transfer',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/staff-Periods-Transfer',
+                                            title: 'Staff Period Transfer',
+                                            description: 'Transfer Staff Periods Between Classes and Sections'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Staff Replacement Existing To New',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/staff-replacement-existing-to-new',
+                                            title: 'Staff Replacement Existing To New',
+                                            description: 'Replacing staff Existing To New'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Staff Replacement In Their TimeTable',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/staff-replacement-In-their-timeTable',
+                                            title: 'Staff Replacement In Their TimeTable',
+                                            description: 'Staff Replacement In Their TimeTable'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Staff Replacement In Unallocated Period',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/staff-replacement-in-unallocated-period',
+                                            title: 'Staff Replacement In Unallocated Period',
+                                            description: 'Staff Replacement In Unallocated Period'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Time Table Generation',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/time-table-generation',
+                                            title: 'Time Table Generation',
+                                            description: 'Time Table Generation'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Reports',
+                                    icon: 'Clock',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Consolidated Report',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/consolidated',
+                                            title: 'Consolidated Report',
+                                            description: 'TimeTable Consolidated Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Class Wise TimeTable',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/classwisett',
+                                            title: 'Class Wise TimeTable',
+                                            description: 'Class Wise TimeTable Report'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Subject Wise TimeTable',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/subjectwisett',
+                                            title: 'Subject Wise TimeTable',
+                                            description: 'Subject Wise TimeTable Report'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Staff Wise TimeTable',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/staffwisett',
+                                            title: 'Staff Wise TimeTable',
+                                            description: 'Staff Wise TimeTable Report'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Deputation Report',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/deputationreport',
+                                            title: 'Deputation Report',
+                                            description: 'Deputation Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
                 // {
                 //     id: 7,
                 //     name: 'Library',
@@ -4076,8 +4248,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                }
-
+                },
                 //         {
                 //             id: 3,
                 //             name: 'Interaction',
@@ -4652,203 +4823,202 @@ export async function getUserAccessibleModules() {
                 //                 }
                 //             ]
                 //         }
-                // ,
-                // {
-                //     id: 111,
-                //     name: 'Transport',
-                //     icon: 'BookOpen',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Transport',
-                //             icon: 'BookOpen',
-                //             sub_menu: [
-                //                 {
-                //                     id: 3000,
-                //                     name: 'Masters',
-                //                     icon: 'Database',
-                //                     pages: [
-                //                         {
-                //                             id: 30001,
-                //                             name: 'Master Area',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-area',
-                //                             title: 'Master Area / Zone',
-                //                             description: 'Master Area / Zone Details'
-                //                         },
-                //                         {
-                //                             id: 30002,
-                //                             name: 'Master Driver',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-driver',
-                //                             title: 'Master Driver',
-                //                             description: 'Master Driver Details'
-                //                         },
-                //                         {
-                //                             id: 30003,
-                //                             name: 'Master Fuel Type',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-fuel-type',
-                //                             title: 'Master Fuel Type',
-                //                             description: 'Master Fuel Type Details'
-                //                         },
-                //                         {
-                //                             id: 30004,
-                //                             name: 'Master Location',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-location',
-                //                             title: 'Master Location',
-                //                             description: 'Master Location Details'
-                //                         },
-                //                         {
-                //                             id: 30005,
-                //                             name: 'Master Route',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-route',
-                //                             title: 'Master Route',
-                //                             description: 'Master Route Details'
-                //                         },
-                //                         {
-                //                             id: 30006,
-                //                             name: 'Route Area Mapping',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/route-area-mapping',
-                //                             title: 'Route Area Mapping',
-                //                             description: 'Route Area Mapping Details'
-                //                         },
-                //                         {
-                //                             id: 30007,
-                //                             name: 'Master Service Station',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-service-station',
-                //                             title: 'Master Service Station',
-                //                             description: 'Master Service Station Details'
-                //                         },
-                //                         {
-                //                             id: 30008,
-                //                             name: 'Master Session',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-session',
-                //                             title: 'Master Session',
-                //                             description: 'Master Session Details'
-                //                         },
-                //                         {
-                //                             id: 30009,
-                //                             name: 'Master Vehicle Type',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-vehicle-type',
-                //                             title: 'Master Vehicle Type',
-                //                             description: 'Master Vehicle Type Details'
-                //                         },
-                //                         {
-                //                             id: 30010,
-                //                             name: 'Master Route Schedule',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-route-schedule',
-                //                             title: 'Master Route Schedule',
-                //                             description: 'Master Route Schedule Details'
-                //                         },
-                //                         {
-                //                             id: 30011,
-                //                             name: 'Master Vehicle',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-vehicle',
-                //                             title: 'Master Vehicle',
-                //                             description: 'Master Vehicle Details'
-                //                         },
-                //                         {
-                //                             id: 30012,
-                //                             name: 'Expiry Settings',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/expiry-settings',
-                //                             title: 'Expiry Settings',
-                //                             description: 'Transport Expiry Settings'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 3001,
-                //                     name: 'Transactions',
-                //                     icon: 'BookOpen',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Route Location Mapping',
-                //                             icon: 'Settings',
-                //                             url: '/Transport/transport-module/transaction/route-location-mapping',
-                //                             title: 'Route Location Mapping',
-                //                             description: 'Manage Route Location Mapping'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Vehicle Driver Mapping',
-                //                             icon: 'Settings',
-                //                             url: '/Transport/transport-module/transaction/vehicle-driver-mapping',
-                //                             title: 'Vehicle Driver Mapping',
-                //                             description: 'Manage Vehicle Driver Mapping'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Vehicle Route Mapping',
-                //                             icon: 'Settings',
-                //                             url: '/Transport/transport-module/transaction/vehicle-route-mapping',
-                //                             title: 'Vehicle Route Mapping',
-                //                             description: 'Manage Vehicle Route Mapping'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Transport Approve',
-                //                             icon: 'Settings',
-                //                             url: '/Transport/transport-module/transaction/transport-approve',
-                //                             title: 'Transport Approve',
-                //                             description: 'Manage Transport Approve'
-                //                         }
-
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 3002,
-                //                     name: 'Reports',
-                //                     icon: 'BookOpen',
-                //                     pages: [
-                //                         {
-                //                             id: 30201,
-                //                             name: 'Month End Report',
-                //                             icon: 'FileText',
-                //                             url: '/Transport/transport-module/reports/month-end-report',
-                //                             title: 'Month End Report',
-                //                             description: 'Transport Month End Report'
-                //                         },
-                //                         {
-                //                             id: 30202,
-                //                             name: 'Transport Report',
-                //                             icon: 'FileText',
-                //                             url: '/Transport/transport-module/reports/transport-report',
-                //                             title: 'Transport Report',
-                //                             description: 'Transport Report'
-                //                         },
-                //                         {
-                //                             id: 30203,
-                //                             name: 'Fee Student Route Mapping Report',
-                //                             icon: 'FileText',
-                //                             url: '/Transport/transport-module/reports/fee-student-route-mapping-report',
-                //                             title: 'Fee Student Route Mapping Report',
-                //                             description: 'Fee Student Route Mapping Report'
-                //                         },
-                //                         {
-                //                             id: 30204,
-                //                             name: 'Student Route Mapping Report',
-                //                             icon: 'FileText',
-                //                             url: '/Transport/transport-module/reports/student-route-mapping-report',
-                //                             title: 'Student Route Mapping Report',
-                //                             description: 'Student Route Mapping Report'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
+                //
+                {
+                    id: 111,
+                    name: 'Transport',
+                    icon: 'BookOpen',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Transport',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 3000,
+                                    name: 'Masters',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 30001,
+                                            name: 'Master Area',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-area',
+                                            title: 'Master Area / Zone',
+                                            description: 'Master Area / Zone Details'
+                                        },
+                                        {
+                                            id: 30002,
+                                            name: 'Master Driver',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-driver',
+                                            title: 'Master Driver',
+                                            description: 'Master Driver Details'
+                                        },
+                                        {
+                                            id: 30003,
+                                            name: 'Master Fuel Type',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-fuel-type',
+                                            title: 'Master Fuel Type',
+                                            description: 'Master Fuel Type Details'
+                                        },
+                                        {
+                                            id: 30004,
+                                            name: 'Master Location',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-location',
+                                            title: 'Master Location',
+                                            description: 'Master Location Details'
+                                        },
+                                        {
+                                            id: 30005,
+                                            name: 'Master Route',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-route',
+                                            title: 'Master Route',
+                                            description: 'Master Route Details'
+                                        },
+                                        {
+                                            id: 30006,
+                                            name: 'Route Area Mapping',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/route-area-mapping',
+                                            title: 'Route Area Mapping',
+                                            description: 'Route Area Mapping Details'
+                                        },
+                                        {
+                                            id: 30007,
+                                            name: 'Master Service Station',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-service-station',
+                                            title: 'Master Service Station',
+                                            description: 'Master Service Station Details'
+                                        },
+                                        {
+                                            id: 30008,
+                                            name: 'Master Session',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-session',
+                                            title: 'Master Session',
+                                            description: 'Master Session Details'
+                                        },
+                                        {
+                                            id: 30009,
+                                            name: 'Master Vehicle Type',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-vehicle-type',
+                                            title: 'Master Vehicle Type',
+                                            description: 'Master Vehicle Type Details'
+                                        },
+                                        {
+                                            id: 30010,
+                                            name: 'Master Route Schedule',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-route-schedule',
+                                            title: 'Master Route Schedule',
+                                            description: 'Master Route Schedule Details'
+                                        },
+                                        {
+                                            id: 30011,
+                                            name: 'Master Vehicle',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-vehicle',
+                                            title: 'Master Vehicle',
+                                            description: 'Master Vehicle Details'
+                                        },
+                                        {
+                                            id: 30012,
+                                            name: 'Expiry Settings',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/expiry-settings',
+                                            title: 'Expiry Settings',
+                                            description: 'Transport Expiry Settings'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3001,
+                                    name: 'Transactions',
+                                    icon: 'BookOpen',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Route Location Mapping',
+                                            icon: 'Settings',
+                                            url: '/Transport/transport-module/transaction/route-location-mapping',
+                                            title: 'Route Location Mapping',
+                                            description: 'Manage Route Location Mapping'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Vehicle Driver Mapping',
+                                            icon: 'Settings',
+                                            url: '/Transport/transport-module/transaction/vehicle-driver-mapping',
+                                            title: 'Vehicle Driver Mapping',
+                                            description: 'Manage Vehicle Driver Mapping'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Vehicle Route Mapping',
+                                            icon: 'Settings',
+                                            url: '/Transport/transport-module/transaction/vehicle-route-mapping',
+                                            title: 'Vehicle Route Mapping',
+                                            description: 'Manage Vehicle Route Mapping'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Transport Approve',
+                                            icon: 'Settings',
+                                            url: '/Transport/transport-module/transaction/transport-approve',
+                                            title: 'Transport Approve',
+                                            description: 'Manage Transport Approve'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3002,
+                                    name: 'Reports',
+                                    icon: 'BookOpen',
+                                    pages: [
+                                        {
+                                            id: 30201,
+                                            name: 'Month End Report',
+                                            icon: 'FileText',
+                                            url: '/Transport/transport-module/reports/month-end-report',
+                                            title: 'Month End Report',
+                                            description: 'Transport Month End Report'
+                                        },
+                                        {
+                                            id: 30202,
+                                            name: 'Transport Report',
+                                            icon: 'FileText',
+                                            url: '/Transport/transport-module/reports/transport-report',
+                                            title: 'Transport Report',
+                                            description: 'Transport Report'
+                                        },
+                                        {
+                                            id: 30203,
+                                            name: 'Fee Student Route Mapping Report',
+                                            icon: 'FileText',
+                                            url: '/Transport/transport-module/reports/fee-student-route-mapping-report',
+                                            title: 'Fee Student Route Mapping Report',
+                                            description: 'Fee Student Route Mapping Report'
+                                        },
+                                        {
+                                            id: 30204,
+                                            name: 'Student Route Mapping Report',
+                                            icon: 'FileText',
+                                            url: '/Transport/transport-module/reports/student-route-mapping-report',
+                                            title: 'Student Route Mapping Report',
+                                            description: 'Student Route Mapping Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
                 //         //    ,
                 //         //        {
                 //         //         id: 8,
@@ -5142,7 +5312,7 @@ export async function getUserAccessibleModules() {
                             sub_menu: [
                                 {
                                     id: 80016,
-                                    name: 'Leave Management',
+                                    name: 'Leave Config',
                                     icon: 'CalendarDays',
                                     pages: [
                                         {
@@ -5206,8 +5376,7 @@ export async function getUserAccessibleModules() {
                 }
             ]
         };
-    }
-    else if (session?.role.toUpperCase() === 'STUDENT') {
+    } else if (session?.role.toUpperCase() === 'STUDENT') {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
@@ -5415,13 +5584,42 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
+                        },
+                        {
+                            id: 8,
+                            name: 'User Password Creation',
+                            icon: 'MessageSquare',
+                            sub_menu: [
+                                {
+                                    id: 40010,
+                                    name: 'Transaction',
+                                    icon: 'List',
+                                    pages: [
+                                        {
+                                            id: 40012,
+                                            name: 'User Password Creation',
+                                            icon: 'KeyRound',
+                                            url: '/StudentPortal/transactions/user-password-creation',
+                                            title: 'User Password Creation',
+                                            description: 'Generate Usernames and Passwords'
+                                        },
+                                        {
+                                            id: 40013,
+                                            name: 'Student Password Creation',
+                                            icon: 'LockKeyhole',
+                                            url: '/StudentPortal/transactions/student-password-creation',
+                                            title: 'Student Password Creation',
+                                            description: 'Student Credentials Management'
+                                        }
+                                    ]
+                                }
+                            ]
                         }
                     ]
                 }
             ]
         };
-    }
-    else if (session?.role.toUpperCase() === 'SUPER ADMIN') {
+    } else if (session?.role.toUpperCase() === 'SUPER ADMIN') {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
@@ -5644,12 +5842,10 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
-
+                }
             ]
         };
-    }
-    else {
+    } else {
         response = {
             success: true,
             message: 'Data fetched successfully!!',

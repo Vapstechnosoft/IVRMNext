@@ -1509,13 +1509,14 @@ export default function FeeInstallemntReport() {
                                                 <Input
                                                     id='fromDate'
                                                     type='date'
-                                                    value={filters.fromDate.toISOString().split('T')[0]}
-                                                    onChange={(e) =>
+                                                    value={filters.fromDate ? filters.fromDate.toISOString().split('T')[0] : ''}
+                                                    onChange={(e) => {
+                                                        const dateValue = e.target.value;
                                                         setFilters((prev) => ({
                                                             ...prev,
-                                                            fromDate: new Date(e.target.value)
-                                                        }))
-                                                    }
+                                                            fromDate: dateValue ? new Date(dateValue) : prev.fromDate // Keep previous value if empty
+                                                        }));
+                                                    }}
                                                     className='rounded border px-3 py-1'
                                                 />
                                             </div>
@@ -1526,13 +1527,14 @@ export default function FeeInstallemntReport() {
                                                 <Input
                                                     id='toDate'
                                                     type='date'
-                                                    value={filters.toDate.toISOString().split('T')[0]}
-                                                    onChange={(e) =>
+                                                    value={filters.toDate ? filters.toDate.toISOString().split('T')[0] : ''}
+                                                    onChange={(e) => {
+                                                        const dateValue = e.target.value;
                                                         setFilters((prev) => ({
                                                             ...prev,
-                                                            toDate: new Date(e.target.value)
-                                                        }))
-                                                    }
+                                                            toDate: dateValue ? new Date(e.target.value) : prev.toDate
+                                                        }));
+                                                    }}
                                                     className='rounded border px-3 py-1'
                                                 />
                                             </div>

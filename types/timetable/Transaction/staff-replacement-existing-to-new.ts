@@ -29,3 +29,20 @@ export interface StaffReplacementExistingToNewMasters {
     staff: Staff[];
     subjects: Subject[];
 }
+
+export interface StaffReplacementGridData {
+    ttmC_CategoryName: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    ismS_SubjectName: string;
+    ttmP_PeriodName: string;
+}
+
+export interface StaffReplacementGridResponse {
+    success: boolean;
+    message: string;
+    data: StaffReplacementGridData[];
+    total: number;
+    page: number;
+    page_size: number;
+}

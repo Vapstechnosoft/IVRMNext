@@ -110,7 +110,10 @@ export const PREADMISSION_QUERY_KEYS = {
     STUDENT_COUNT_REPORT: 'student_count_report',
     STUDENT_APPLICATION_FORM: 'student_application_form',
     ACADEMIC_YEAR_MASTER_CONFIGURATION: 'academic_year_master_configuration',
-    PARENTS_DASHBOARD: 'parents_dashboard'
+    PARENTS_DASHBOARD: 'parents_dashboard',
+    STUDY_CERTIFICATE_REPORT: 'study_certificate_report',
+    CHARACTER_CERTIFICATE_REPORT: 'character_certificate_report',
+    GENERATE_QR_CODE_CERTIFICATE: 'generate_qr_code_certificate'
 };
 
 export const FEES_QUERY_KEYS = {
@@ -474,6 +477,7 @@ export const HRMS_QUERY_KEYS = {
     LEAVE_HISTORY: 'leave_leave_history',
     APPLY_LEAVE: 'leave_apply_leave',
     LEAVE_APPROVAL: 'leave_leave_approval',
+    LEAVE_CONFIGURATION: 'leave_leave_configuration',
 
     // Master drop down
     MASTER_GROUP_TYPES: 'hrms_master_group_type',

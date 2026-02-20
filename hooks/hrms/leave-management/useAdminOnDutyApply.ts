@@ -5,7 +5,8 @@ import {
     getLeaveDetailsById,
     saveOnDutyLeaveRequest,
     viewOnDutyLeaveDetailsById,
-    toggleActiveStatusOnDuty
+    toggleActiveStatusOnDuty,
+    getAdminOnDutyEmployeeDropdown
 } from '@/server/hrms/leave-management/transaction/admin-on-duty-apply';
 import type { ApiSearchparams } from '@/types';
 import type {
@@ -227,5 +228,26 @@ export function useToggleOnDutyStatus() {
         onError: (error: Error) => {
             toast.error(error.message);
         }
+    });
+}
+
+export function useAdminOnDutyEmployeeDropdown() {
+    return useQuery({
+        queryKey: [ADMIN_ON_DUTY_APPLY_KEYS.LIST, 'employee-dropdown'],
+        queryFn: async () => {
+            const response = await getAdminOnDutyEmployeeDropdown();
+            if (!response.success) {
+                // We don't throw here to allow the form to still render
+                return [];
+            }
+            const data = response.data;
+            if (!data || !Array.isArray(data)) return [];
+
+            return data.map((item: any) => ({
+                hrmE_Id: item.hrmE_Id || item.hrme_id || item.HRME_Id || 0,
+                employeeName: item.hrmE_EmployeeFirstName || item.employeeName || item.employee_name || 'Unknown'
+            }));
+        },
+        staleTime: 1000 * 60 * 10 // 10 minutes
     });
 }

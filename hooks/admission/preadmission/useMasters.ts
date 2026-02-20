@@ -7,11 +7,11 @@ import { getClassSetOrder, getMasterClass } from '@/server/admission/preadmissio
 import {
     getAcademicYearDropdown,
     getClassCategorySection,
-    getMasterCategoryDropdown,
     getMasterClassCategory,
     getMasterClassDropdown,
     getMasterSectionDropdown,
-    getMasterUnmappedClassDropdown
+    getMasterUnmappedClassDropdown,
+    getMasterCategoryDropdown
 } from '@/server/admission/preadmission/masters/class_category';
 import { getMasterMonthDropDownList, getMasterSectionHeld } from '@/server/admission/preadmission/masters/class_held';
 import { getEmployeeDrowpDown, getMasterClassTeacher, getTeacherClassSection } from '@/server/admission/preadmission/masters/class_teacher';
@@ -300,22 +300,101 @@ export const useMasterReligionCasteCategory = (searchParams?: ApiSearchparams) =
     };
 };
 
-export const useUnmappedCasteCategoryDropdown = () => {
+export const useMasterUnMappedClassDropdown = (asmaY_Id?: number, amC_Id?: number) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
-            queryKey: [ADMISSION_QUERY_KEYS.UNMAPPED_CASTE_CATEGORY_DROPDOWN],
-            queryFn: async () => getUnmappedCasteCategoryDropdown(),
-            staleTime: 0
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_UNMAPPED_CLASS_DROPDOWN, asmaY_Id, amC_Id],
+            queryFn: async () => getMasterUnmappedClassDropdown(asmaY_Id, amC_Id),
+            staleTime: 0,
+            enabled: !!asmaY_Id && !!amC_Id
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [ADMISSION_QUERY_KEYS.UNMAPPED_CASTE_CATEGORY_DROPDOWN]
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_UNMAPPED_CLASS_DROPDOWN]
             });
         }
     };
 };
+export const useConcessionDropdown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.CONCESSION_DROPDOWN_DATA],
+            queryFn: async () => getConcessionDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.CONCESSION_DROPDOWN_DATA]
+            });
+        }
+    };
+};
+
+export const useMasterCategoryDropdown = () => {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_CATEGORY_DROPDOWN],
+            queryFn: async () => getMasterCategoryDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_CATEGORY_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useMasterSubjectDropdown = (mI_Id?: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.MASTER_SUBJECT_DROPDOWN_LIST, mI_Id ?? {}],
+            queryFn: async () => {
+                if (!mI_Id || mI_Id <= 0) {
+                    return { data: [] } as any;
+                }
+                return await getMasterSubjectDropdownList();
+            },
+            enabled: Boolean(mI_Id && mI_Id > 0),
+            staleTime: 0
+        }),
+        refetchAll: (id?: number) => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.MASTER_SUBJECT_DROPDOWN_LIST, id ?? {}]
+            });
+        }
+    };
+};
+
+export const useMasterClassCategorySection = (asmcc_id?: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_CLASS_CATEGORY_SECTION, asmcc_id ?? {}],
+            queryFn: async () => {
+                if (!asmcc_id || Number(asmcc_id) <= 0) {
+                    return { data: [] } as any;
+                }
+                return await getClassCategorySection(Number(asmcc_id));
+            },
+            enabled: Boolean(asmcc_id && Number(asmcc_id) > 0),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_CLASS_CATEGORY_SECTION]
+            });
+        }
+    };
+};
+
 export const useClassTeacher = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
@@ -479,100 +558,6 @@ export const useMasterStudentList = (
         refetchAll: (amst_solArg?: string, year?: number, clazz?: number, section?: number) => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.ACTIVE_DEACTIVE_STUDENTS, amst_solArg ?? {}, year ?? {}, clazz ?? {}, section ?? {}]
-            });
-        }
-    };
-};
-export const useMasterClassCategorySection = (asmcc_id?: number) => {
-    const queryClient = useQueryClient();
-
-    return {
-        ...useQuery({
-            queryKey: [ADMISSION_QUERY_KEYS.MASTER_CLASS_CATEGORY_SECTION, asmcc_id ?? {}],
-            queryFn: async () => {
-                if (!asmcc_id || Number(asmcc_id) <= 0) {
-                    return { data: [] } as any;
-                }
-                return await getClassCategorySection(Number(asmcc_id));
-            },
-            enabled: Boolean(asmcc_id && Number(asmcc_id) > 0),
-            staleTime: 0
-        }),
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [ADMISSION_QUERY_KEYS.MASTER_CLASS_CATEGORY_SECTION]
-            });
-        }
-    };
-};
-
-export const useMasterUnMappedClassDropdown = (asmaY_Id?: number, amC_Id?: number) => {
-    const queryClient = useQueryClient();
-    return {
-        ...useQuery({
-            queryKey: [ADMISSION_QUERY_KEYS.MASTER_UNMAPPED_CLASS_DROPDOWN, asmaY_Id, amC_Id],
-            queryFn: async () => getMasterUnmappedClassDropdown(asmaY_Id, amC_Id),
-            staleTime: 0,
-            enabled: !!asmaY_Id && !!amC_Id
-        }),
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [ADMISSION_QUERY_KEYS.MASTER_UNMAPPED_CLASS_DROPDOWN]
-            });
-        }
-    };
-};
-export const useConcessionDropdown = () => {
-    const queryClient = useQueryClient();
-
-    return {
-        ...useQuery({
-            queryKey: [ADMISSION_QUERY_KEYS.CONCESSION_DROPDOWN_DATA],
-            queryFn: async () => getConcessionDropdown(),
-            staleTime: 0
-        }),
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [ADMISSION_QUERY_KEYS.CONCESSION_DROPDOWN_DATA]
-            });
-        }
-    };
-};
-
-export const useMasterCategoryDropdown = () => {
-    const queryClient = useQueryClient();
-    return {
-        ...useQuery({
-            queryKey: [ADMISSION_QUERY_KEYS.MASTER_CATEGORY_DROPDOWN],
-            queryFn: async () => getMasterCategoryDropdown(),
-            staleTime: 0
-        }),
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [ADMISSION_QUERY_KEYS.MASTER_CATEGORY_DROPDOWN]
-            });
-        }
-    };
-};
-
-export const useMasterSubjectDropdown = (mI_Id?: number) => {
-    const queryClient = useQueryClient();
-
-    return {
-        ...useQuery({
-            queryKey: [EXAM_QUERY_KEYS.MASTER_SUBJECT_DROPDOWN_LIST, mI_Id ?? {}],
-            queryFn: async () => {
-                if (!mI_Id || mI_Id <= 0) {
-                    return { data: [] } as any;
-                }
-                return await getMasterSubjectDropdownList();
-            },
-            enabled: Boolean(mI_Id && mI_Id > 0),
-            staleTime: 0
-        }),
-        refetchAll: (id?: number) => {
-            return queryClient.invalidateQueries({
-                queryKey: [EXAM_QUERY_KEYS.MASTER_SUBJECT_DROPDOWN_LIST, id ?? {}]
             });
         }
     };

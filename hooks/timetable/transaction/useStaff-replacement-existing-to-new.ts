@@ -2,9 +2,11 @@ import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
 import {
     getSectionsByClass,
     getStaffReplacementExistingToNewMasters,
+    getStaffReplacementGridData,
     getTimetableData
 } from '@/server/timetable/transactions/staff-replacement-existing-to-new';
-import { useQuery } from '@tanstack/react-query';
+import { ApiSearchparams } from '@/types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useStaffReplacementExistingToNewMasters = () => {
     return useQuery({
@@ -27,4 +29,24 @@ export const useTimetableData = (payload: any) => {
         queryFn: () => getTimetableData(payload),
         enabled: !!payload && !!payload.ttmC_Id && !!payload.hrmE_Id_From
     });
+};
+
+
+
+export const useStaffReplacementGridData = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.STAFF_REPLACEMENT_GRID_DATA, searchParams ?? {}],
+            queryFn: async () => getStaffReplacementGridData(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_DAY]
+            });
+        }
+    };
 };

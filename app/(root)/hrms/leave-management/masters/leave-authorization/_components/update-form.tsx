@@ -5,13 +5,14 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
+    useInstitutionsByLoginBased,
     useLeaveAuthorization,
     useLeaveAuthorizationDropdowns,
     useLeaveAuthorizationForEdit,
     useUpdateLeaveAuthorization
 } from '@/hooks/hrms/leave-management/useMasters';
 import { LEAVE_AUTHORIZATION_VALIDATION } from '@/lib/validation/hrms-master-validation';
-import { Save, X } from 'lucide-react';
+import { Loader2, Save, X } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveAuthorization } from './columns';
@@ -30,6 +31,20 @@ export default function UpdateLeaveAuthorizationForm({
     const { refetchAll } = useLeaveAuthorization();
     const { mutate: updateLeaveAuthorization, isPending } = useUpdateLeaveAuthorization();
     const { data: dropdownData, isLoading: isLoadingDropdowns } = useLeaveAuthorizationDropdowns();
+    const { data: institutionsData, isLoading: isLoadingInstitutions } = useInstitutionsByLoginBased();
+
+    // Extract institution options from API
+    const institutionOptions = useMemo(() => {
+        if (!institutionsData?.data || !Array.isArray(institutionsData.data)) {
+            return [];
+        }
+        return institutionsData.data
+            .map((item: any) => ({
+                value: String(item.mI_Id || ''),
+                label: String(item.mI_Name || '')
+            }))
+            .filter((item: { value: string; label: string }) => item.value && item.label);
+    }, [institutionsData]);
     // Fetch leave authorization data for editing from API
     const { data: editData, isLoading: isLoadingEditData, error: editError } = useLeaveAuthorizationForEdit(row?.id || null);
     // Extract dropdown options from API
@@ -78,63 +93,44 @@ export default function UpdateLeaveAuthorizationForm({
         reset,
         formState: { errors, isSubmitting }
     } = useForm<LeaveAuthorization>({
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            institution: '',
+            hrmG_GradeName: '',
+            hrmgT_EmployeeGroupType: '',
+            hrmD_DepartmentName: '',
+            hrmdeS_DesignationName: '',
+            hrmL_LeaveName: '',
+            hrlaoN_SanctionLevelNo: '',
+            hrmE_EmployeeFirstName: '',
+            finalFlag: false
+        }
     });
     // Load data from API when edit data is fetched
     useEffect(() => {
-        if (editData?.data) {
-            const apiRow = editData.data;
-            const gradeId = gradeOptions.find((opt) => opt.label === apiRow.gradeName || opt.value == apiRow.gradeName)?.value || '';
-            const groupTypeId = groupTypeOptions.find((opt) => opt.label === apiRow.groupTypeName || opt.value == apiRow.groupTypeName)?.value || '';
-            const departmentId = departmentOptions.find((opt) => opt.label === apiRow.departmentName || opt.value == apiRow.departmentName)?.value || '';
-            const designationId = designationOptions.find((opt) => opt.label === apiRow.designationName || opt.value == apiRow.designationName)?.value || '';
-            const leaveTypeId = leaveTypeOptions.find((opt) => opt.label === apiRow.leaveType || opt.value == apiRow.leaveType)?.value || '';
-            const approvalPersonId = approvalPersonOptions.find((opt) => opt.label === apiRow.approvalPerson || opt.value == apiRow.approvalPerson)?.value || '';
+        // Only bind if we have the API data
+        if (!editData?.data) return;
 
-            reset({
-                institution: apiRow.institution || 'Vaps Knowledge Services Pvt Ltd',
-                gradeName: gradeId,
-                groupTypeName: groupTypeId,
-                departmentName: departmentId,
-                designationName: designationId,
-                leaveType: leaveTypeId,
-                orderOfApproval: apiRow.orderOfApproval || '',
-                approvalPerson: approvalPersonId,
-                finalFlag: apiRow.finalFlag ?? false
-            });
-        } else if (row && !isLoadingEditData) {
-            // Fallback to selectedRow if API data is not available
-            const gradeId = gradeOptions.find((opt) => opt.label === row.gradeName || opt.value == row.gradeName)?.value || '';
-            const groupTypeId = groupTypeOptions.find((opt) => opt.label === row.groupTypeName || opt.value == row.groupTypeName)?.value || '';
-            const departmentId = departmentOptions.find((opt) => opt.label === row.departmentName || opt.value == row.departmentName)?.value || '';
-            const designationId = designationOptions.find((opt) => opt.label === row.designationName || opt.value == row.designationName)?.value || '';
-            const leaveTypeId = leaveTypeOptions.find((opt) => opt.label === row.leaveType || opt.value == row.leaveType)?.value || '';
-            const approvalPersonId = approvalPersonOptions.find((opt) => opt.label === row.approvalPerson || opt.value == row.approvalPerson)?.value || '';
+        const dataToUse = editData.data;
+        console.log('🔄 [UpdateForm] API Data received:', dataToUse);
 
-            reset({
-                institution: row.institution || 'Vaps Knowledge Services Pvt Ltd',
-                gradeName: gradeId,
-                groupTypeName: groupTypeId,
-                departmentName: departmentId,
-                designationName: designationId,
-                leaveType: leaveTypeId,
-                orderOfApproval: row.orderOfApproval || '',
-                approvalPerson: approvalPersonId,
-                finalFlag: row.finalFlag ?? false
-            });
-        }
-    }, [
-        editData,
-        row,
-        reset,
-        isLoadingEditData,
-        gradeOptions,
-        groupTypeOptions,
-        departmentOptions,
-        designationOptions,
-        leaveTypeOptions,
-        approvalPersonOptions
-    ]);
+        // Map values to strings for form state
+        const formValues = {
+            institution: String(dataToUse.institution || 'Vaps Knowledge Services Pvt Ltd'),
+            // Normalize all ID fields to strings
+            hrmG_GradeName: String((dataToUse as any).hrmG_Id || (dataToUse as any).gradeId || ''),
+            hrmgT_EmployeeGroupType: String((dataToUse as any).hrmgT_Id || (dataToUse as any).groupTypeId || ''),
+            hrmD_DepartmentName: String((dataToUse as any).hrmD_Id || (dataToUse as any).departmentId || ''),
+            hrmdeS_DesignationName: String((dataToUse as any).hrmdeS_Id || (dataToUse as any).designationId || ''),
+            hrmL_LeaveName: String((dataToUse as any).hrmL_Id || (dataToUse as any).leaveTypeId || ''),
+            hrlaoN_SanctionLevelNo: String(dataToUse.hrlaoN_SanctionLevelNo || (dataToUse as any).orderOfApproval || ''),
+            hrmE_EmployeeFirstName: String((dataToUse as any).approvalPersonId || (dataToUse as any).hrmE_Id || ''),
+            finalFlag: !!dataToUse.finalFlag
+        };
+
+        console.log('🚀 [UpdateForm] Resetting form with:', formValues);
+        reset(formValues);
+    }, [editData, reset]);
     const onSubmit: SubmitHandler<LeaveAuthorization> = async (data) => {
         updateLeaveAuthorization(
             {
@@ -157,8 +153,9 @@ export default function UpdateLeaveAuthorizationForm({
     if (isLoadingEditData) {
         return (
             <div className={`${className} flex items-center justify-center p-8`}>
-                <div className='text-center'>
-                    <div className='mb-2 text-muted-foreground text-sm'>Loading leave authorization data...</div>
+                <div className='flex flex-col items-center gap-2'>
+                    <Loader2 className='h-8 w-8 animate-spin text-primary' />
+                    <p className='text-muted-foreground animate-pulse font-medium'>Fetching data...</p>
                 </div>
             </div>
         );
@@ -181,31 +178,70 @@ export default function UpdateLeaveAuthorizationForm({
     }
     return (
         <div className={`${className}`}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 animate-in fade-in slide-in-from-top-4 duration-500'>
                 {/* Institution Field */}
                 <div className='mb-4'>
-                    <label htmlFor='institution-display' className='mb-2 block font-medium text-gray-700 text-sm'>
-                        Institution
-                    </label>
-                    <div id='institution-display' className='rounded-md bg-gray-100 p-3 text-gray-600'>
-                        {watch('institution')}
-                    </div>
+                    <Controller
+                        name='institution'
+                        control={control}
+                        rules={{ required: 'Institution is required' }}
+                        render={({ field }) => (
+                            <div>
+                                <label htmlFor='update-institution-select' className='mb-2 block font-medium text-gray-700 text-sm'>
+                                    Institution <span className='text-red-500'>*</span>
+                                </label>
+                                <Select
+                                    key={field.value || 'empty'}
+                                    onValueChange={(value) => {
+                                        field.onChange(value || '');
+                                    }}
+                                    value={field.value?.toString() || undefined}>
+                                    <SelectTrigger
+                                        id='update-institution-select'
+                                        className={errors.institution ? 'border-red-500' : ''}>
+                                        <SelectValue placeholder='--Select Institution--' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {institutionOptions.map((option) => (
+                                            <SelectItem key={option.value} value={option.label}>
+                                                {option.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {errors.institution && <FormError>{errors.institution.message}</FormError>}
+                            </div>
+                        )}
+                    />
                 </div>
+
+                {/* DEBUG: Remove after fixing mapping */}
+                {/* <div className='rounded bg-gray-100 p-2 text-xs'>
+                    <strong>Debug Data:</strong>
+                    <pre>{JSON.stringify(editData?.data, null, 2)}</pre>
+                </div>  */}
                 {/* Form Fields Grid */}
                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                     {/* Left Column */}
                     <div className='space-y-4'>
                         <Controller
-                            name='gradeName'
+                            name='hrmG_GradeName'
                             control={control}
-                            rules={LEAVE_AUTHORIZATION_VALIDATION.gradeName}
+                            rules={LEAVE_AUTHORIZATION_VALIDATION.hrmG_GradeName}
                             render={({ field }) => (
                                 <div>
-                                    <label htmlFor='grade-select' className='mb-2 block font-medium text-gray-700 text-sm'>
+                                    <label htmlFor='update-grade-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Select Grade <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingDropdowns}>
-                                        <SelectTrigger id='grade-select' className={errors.gradeName ? 'border-red-500' : ''}>
+                                    <Select
+                                        key={field.value || 'empty'}
+                                        onValueChange={(value) => {
+                                            field.onChange(value || '');
+                                        }}
+                                        value={field.value?.toString() || undefined}>
+                                        <SelectTrigger
+                                            id='update-grade-select'
+                                            className={errors.hrmG_GradeName ? 'border-red-500' : ''}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -222,21 +258,28 @@ export default function UpdateLeaveAuthorizationForm({
                                             )}
                                         </SelectContent>
                                     </Select>
-                                    {errors.gradeName && <FormError>{errors.gradeName.message}</FormError>}
+                                    {errors.hrmG_GradeName && <FormError>{errors.hrmG_GradeName.message}</FormError>}
                                 </div>
                             )}
                         />
                         <Controller
-                            name='groupTypeName'
+                            name='hrmgT_EmployeeGroupType'
                             control={control}
-                            rules={LEAVE_AUTHORIZATION_VALIDATION.groupTypeName}
+                            rules={LEAVE_AUTHORIZATION_VALIDATION.hrmgT_EmployeeGroupType}
                             render={({ field }) => (
                                 <div>
-                                    <label htmlFor='group-type-select' className='mb-2 block font-medium text-gray-700 text-sm'>
+                                    <label htmlFor='update-group-type-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Group Type <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingDropdowns}>
-                                        <SelectTrigger id='group-type-select' className={errors.groupTypeName ? 'border-red-500' : ''}>
+                                    <Select
+                                        key={field.value || 'empty'}
+                                        onValueChange={(value) => {
+                                            field.onChange(value || '');
+                                        }}
+                                        value={field.value?.toString() || undefined}>
+                                        <SelectTrigger
+                                            id='update-group-type-select'
+                                            className={errors.hrmgT_EmployeeGroupType ? 'border-red-500' : ''}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -253,21 +296,28 @@ export default function UpdateLeaveAuthorizationForm({
                                             )}
                                         </SelectContent>
                                     </Select>
-                                    {errors.groupTypeName && <FormError>{errors.groupTypeName.message}</FormError>}
+                                    {errors.hrmgT_EmployeeGroupType && <FormError>{errors.hrmgT_EmployeeGroupType.message}</FormError>}
                                 </div>
                             )}
                         />
                         <Controller
-                            name='departmentName'
+                            name='hrmD_DepartmentName'
                             control={control}
-                            rules={LEAVE_AUTHORIZATION_VALIDATION.departmentName}
+                            rules={LEAVE_AUTHORIZATION_VALIDATION.hrmD_DepartmentName}
                             render={({ field }) => (
                                 <div>
-                                    <label htmlFor='department-select' className='mb-2 block font-medium text-gray-700 text-sm'>
+                                    <label htmlFor='update-department-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Department Type <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingDropdowns}>
-                                        <SelectTrigger id='department-select' className={errors.departmentName ? 'border-red-500' : ''}>
+                                    <Select
+                                        key={field.value || 'empty'}
+                                        onValueChange={(value) => {
+                                            field.onChange(value || '');
+                                        }}
+                                        value={field.value?.toString() || undefined}>
+                                        <SelectTrigger
+                                            id='update-department-select'
+                                            className={errors.hrmD_DepartmentName ? 'border-red-500' : ''}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -284,21 +334,28 @@ export default function UpdateLeaveAuthorizationForm({
                                             )}
                                         </SelectContent>
                                     </Select>
-                                    {errors.departmentName && <FormError>{errors.departmentName.message}</FormError>}
+                                    {errors.hrmD_DepartmentName && <FormError>{errors.hrmD_DepartmentName.message}</FormError>}
                                 </div>
                             )}
                         />
                         <Controller
-                            name='designationName'
+                            name='hrmdeS_DesignationName'
                             control={control}
-                            rules={LEAVE_AUTHORIZATION_VALIDATION.designationName}
+                            rules={LEAVE_AUTHORIZATION_VALIDATION.hrmdeS_DesignationName}
                             render={({ field }) => (
                                 <div>
-                                    <label htmlFor='designation-select' className='mb-2 block font-medium text-gray-700 text-sm'>
+                                    <label htmlFor='update-designation-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Designation Type <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingDropdowns}>
-                                        <SelectTrigger id='designation-select' className={errors.designationName ? 'border-red-500' : ''}>
+                                    <Select
+                                        key={field.value || 'empty'}
+                                        onValueChange={(value) => {
+                                            field.onChange(value || '');
+                                        }}
+                                        value={field.value?.toString() || undefined}>
+                                        <SelectTrigger
+                                            id='update-designation-select'
+                                            className={errors.hrmdeS_DesignationName ? 'border-red-500' : ''}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -315,7 +372,7 @@ export default function UpdateLeaveAuthorizationForm({
                                             )}
                                         </SelectContent>
                                     </Select>
-                                    {errors.designationName && <FormError>{errors.designationName.message}</FormError>}
+                                    {errors.hrmdeS_DesignationName && <FormError>{errors.hrmdeS_DesignationName.message}</FormError>}
                                 </div>
                             )}
                         />
@@ -323,19 +380,26 @@ export default function UpdateLeaveAuthorizationForm({
                     {/* Right Column */}
                     <div className='space-y-4'>
                         <Controller
-                            name='leaveType'
+                            name='hrmL_LeaveName'
                             control={control}
-                            rules={LEAVE_AUTHORIZATION_VALIDATION.leaveType}
+                            rules={LEAVE_AUTHORIZATION_VALIDATION.hrmL_LeaveName}
                             render={({ field }) => (
                                 <div>
-                                    <label htmlFor='leave-type-select' className='mb-2 block font-medium text-gray-700 text-sm'>
+                                    <label htmlFor='update-leave-type-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Leave Type <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingDropdowns}>
-                                        <SelectTrigger id='leave-type-select' className={errors.leaveType ? 'border-red-500' : ''}>
+                                    <Select
+                                        key={field.value || 'empty'}
+                                        onValueChange={(value) => {
+                                            field.onChange(value || '');
+                                        }}
+                                        value={field.value?.toString() || undefined}>
+                                        <SelectTrigger
+                                            id='update-leave-type-select'
+                                            className={errors.hrmL_LeaveName ? 'border-red-500' : ''}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
-                                        <SelectContent>
+                                        <SelectContent side='top'>
                                             {leaveTypeOptions.length > 0 ? (
                                                 leaveTypeOptions.map((option) => (
                                                     <SelectItem key={option.value} value={option.value}>
@@ -349,35 +413,44 @@ export default function UpdateLeaveAuthorizationForm({
                                             )}
                                         </SelectContent>
                                     </Select>
-                                    {errors.leaveType && <FormError>{errors.leaveType.message}</FormError>}
+                                    {errors.hrmL_LeaveName && <FormError>{errors.hrmL_LeaveName.message}</FormError>}
                                 </div>
                             )}
                         />
-                        <InputText
-                            label='Order of Approval'
-                            required
-                            id='orderOfApproval'
-                            type='number'
-                            {...register('orderOfApproval', LEAVE_AUTHORIZATION_VALIDATION.orderOfApproval)}
-                            error={errors.orderOfApproval?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+                        <div className='mb-4'>
+                            <InputText
+                                label='Order'
+                                id='update-hrlaoN_SanctionLevelNo'
+                                required
+                                type='number'
+                                {...register('hrlaoN_SanctionLevelNo', LEAVE_AUTHORIZATION_VALIDATION.hrlaoN_SanctionLevelNo)}
+                                error={errors.hrlaoN_SanctionLevelNo?.message}
+                                className='transition-all duration-200 focus:ring-2 focus:ring-primary/20'
+                            />
+                        </div>
                         <Controller
-                            name='approvalPerson'
+                            name='hrmE_EmployeeFirstName'
                             control={control}
-                            rules={LEAVE_AUTHORIZATION_VALIDATION.approvalPerson}
+                            rules={LEAVE_AUTHORIZATION_VALIDATION.hrmE_EmployeeFirstName}
                             render={({ field }) => (
                                 <div>
-                                    <label htmlFor='approval-person-select' className='mb-2 block font-medium text-gray-700 text-sm'>
+                                    <label
+                                        htmlFor='update-approval-person-select'
+                                        className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Approval Person <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingDropdowns}>
+                                    <Select
+                                        key={field.value || 'empty'}
+                                        onValueChange={(value) => {
+                                            field.onChange(value || '');
+                                        }}
+                                        value={field.value?.toString() || undefined}>
                                         <SelectTrigger
-                                            id='approval-person-select'
-                                            className={errors.approvalPerson ? 'border-red-500' : ''}>
+                                            id='update-approval-person-select'
+                                            className={errors.hrmE_EmployeeFirstName ? 'border-red-500' : ''}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
-                                        <SelectContent>
+                                        <SelectContent side='top'>
                                             {approvalPersonOptions.length > 0 ? (
                                                 approvalPersonOptions.map((option) => (
                                                     <SelectItem key={option.value} value={option.value}>
@@ -391,19 +464,28 @@ export default function UpdateLeaveAuthorizationForm({
                                             )}
                                         </SelectContent>
                                     </Select>
-                                    {errors.approvalPerson && <FormError>{errors.approvalPerson.message}</FormError>}
+                                    {errors.hrmE_EmployeeFirstName && <FormError>{errors.hrmE_EmployeeFirstName.message}</FormError>}
                                 </div>
                             )}
                         />
-                        <div className='flex items-center space-x-2'>
+                        {/* Checkbox */}
+                        <div className='pt-2'>
                             <Controller
                                 name='finalFlag'
                                 control={control}
-                                render={({ field }) => <Checkbox id='finalFlag' checked={field.value} onCheckedChange={field.onChange} />}
+                                render={({ field }) => (
+                                    <div className='flex items-center space-x-2'>
+                                        <Checkbox
+                                            id='update-finalFlag'
+                                            checked={field.value}
+                                            onCheckedChange={(checked) => field.onChange(!!checked)}
+                                        />
+                                        <label htmlFor='update-finalFlag' className='cursor-pointer font-medium text-gray-700 text-sm'>
+                                            Final Flag
+                                        </label>
+                                    </div>
+                                )}
                             />
-                            <label htmlFor='finalFlag' className='font-medium text-gray-700 text-sm'>
-                                Final Flag
-                            </label>
                         </div>
                     </div>
                 </div>

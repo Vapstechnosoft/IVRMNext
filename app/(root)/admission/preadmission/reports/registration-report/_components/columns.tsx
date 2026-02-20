@@ -1,5 +1,4 @@
 'use client';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { IRigistrationReportList } from '@/types/admission/preadmission/reports';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -8,32 +7,28 @@ import { format } from 'date-fns';
 
 export const registrationColumns: ColumnDef<IRigistrationReportList>[] = [
     {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllRowsSelected() || (table.getIsSomeRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
+
+        id: 'sl_no',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        cell: ({ row, table }) => {
+            // Get the current page index and page size from the table state
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+
+            // Calculate the continuous index based on the current page and row index
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+
+            return <div className='w-full pl-6'>{continuousIndex}</div>;
+        },
         enableSorting: false,
-        enableHiding: false,
-        size: 24
+        enableHiding: false
     },
     {
         accessorKey: 'user_Name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
-        cell: ({ row, table }) => {
-            const pageIndex = table.getState().pagination.pageIndex;
-            const pageSize = table.getState().pagination.pageSize;
-            const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div className='w-full pl-6'>{continuousIndex}</div>;
-        },
+        header: ({ column }) => <DataTableColumnHeader column={column} title='User Name' />,
+        cell: ({ row }) => <div>{row.getValue('user_Name')}</div>,
         enableSorting: true,
-        enableHiding: false
+        enableHiding: true
     },
 
     {
@@ -64,6 +59,7 @@ export const registrationColumns: ColumnDef<IRigistrationReportList>[] = [
             const raw = row.getValue('created_Date');
             const dateStr = typeof raw === 'string' || typeof raw === 'number' ? raw : '';
 
+            // Format the date if it's valid
             const formattedDate = dateStr ? format(new Date(dateStr), 'dd-MM-yyyy') : '';
 
             return <div>{formattedDate}</div>;

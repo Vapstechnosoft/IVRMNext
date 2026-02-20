@@ -287,7 +287,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                     autoReceiptFlag: true,
                     asmaY_Id: selectedAsmayId
                 };
-
+                console.log('term details payload', JSON.stringify(payload));
                 console.log('term details payload', JSON.stringify(payload));
                 const termArray = await getStudentDetails(payload);
                 const termList = JSON.parse(JSON.stringify(termArray.masterGroupDetails || []));
@@ -317,7 +317,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
             const updatedTerms = [...terms];
             for (let i = 0; i < terms.length; i++) {
                 const matchingTerm = disableTerms.find((dt) => dt.fmtId === terms[i].fmT_Id);
-                if (matchingTerm && matchingTerm.netAmount <= matchingTerm.paid) {
+                if (matchingTerm && matchingTerm.balance === 0) {
                     updatedTerms[i].disablepaisterms = true;
                 } else {
                     updatedTerms[i].disablepaisterms = false;

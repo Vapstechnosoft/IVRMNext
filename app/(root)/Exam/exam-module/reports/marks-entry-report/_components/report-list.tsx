@@ -1,130 +1,154 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useRef } from 'react';
-import * as XLSX from 'xlsx';
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useRef } from "react";
+import * as XLSX from "xlsx";
+import { Printer, FileSpreadsheet } from "lucide-react";
 
 interface ReportListProps {
-    data: any;
+  data: any;
 }
 
 export const ReportList = ({ data }: ReportListProps) => {
-    const tableRef = useRef<HTMLTableElement>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
+  // Transformation logic removed as we are rendering a flat list directly.
 
-    if (!data || !data.sectionlist || data.sectionlist.length === 0) {
-        return null;
+  // Check if data exists
+  if (
+    !data ||
+    (Array.isArray(data) && data.length === 0) ||
+    (data.sectionlist && data.sectionlist.length === 0)
+  ) {
+    return null;
+  }
+
+  // For "display all dummy data", we will render a flat list of items
+  // This ignores grouping by section and just lists every subject entry as a row.
+
+  const handlePrint = () => {
+    const printContent = tableRef.current?.outerHTML;
+    if (printContent) {
+      const printWindow = window.open("", "", "height=600,width=800");
+      if (printWindow) {
+        printWindow.document.write(
+          "<html><head><title>Marks Entry Report</title>",
+        );
+        printWindow.document.write(
+          "<style>table { width: 100%; border-collapse: collapse; text-align: center; } th, td { border: 1px solid black; padding: 8px; } th { background-color: #f2f2f2; }</style>",
+        );
+        printWindow.document.write("</head><body>");
+        printWindow.document.write(
+          '<div style="text-align: center; margin-bottom: 20px;">',
+        );
+        printWindow.document.write("<h3>Marks Entered Report</h3>");
+        printWindow.document.write("</div>");
+        printWindow.document.write(printContent);
+        printWindow.document.write("</body></html>");
+        printWindow.document.close();
+        printWindow.print();
+      }
     }
+  };
 
-    const { subjectlist, sectionlist, yearname, classname, sectioname, examname } = data;
+  const handleExport = () => {
+    if (tableRef.current) {
+      const wb = XLSX.utils.table_to_book(tableRef.current);
+      XLSX.writeFile(wb, "Marks_Entry_Report.xlsx");
+    }
+  };
 
-    const handlePrint = () => {
-        const printContent = tableRef.current?.outerHTML;
-        if (printContent) {
-            const printWindow = window.open('', '', 'height=600,width=800');
-            if (printWindow) {
-                printWindow.document.write('<html><head><title>Marks Entry Report</title>');
-                printWindow.document.write(
-                    '<style>table { width: 100%; border-collapse: collapse; text-align: center; } th, td { border: 1px solid black; padding: 8px; } th { background-color: #f2f2f2; }</style>'
-                );
-                printWindow.document.write('</head><body>');
-                printWindow.document.write('<div style="text-align: center; margin-bottom: 20px;">');
-                printWindow.document.write('<h3>Marks Entered Report</h3>');
-                printWindow.document.write(`<p><strong>ACADEMIC YEAR:</strong> ${yearname}</p>`);
-                printWindow.document.write(
-                    `<p><strong>CLASS:</strong> ${classname} &nbsp;&nbsp;&nbsp; <strong>SECTION:</strong> ${sectioname}</p>`
-                );
-                printWindow.document.write(`<p><strong>EXAM:</strong> ${examname}</p>`);
-                printWindow.document.write('</div>');
-                printWindow.document.write(printContent);
-                printWindow.document.write('</body></html>');
-                printWindow.document.close();
-                printWindow.print();
-            }
-        }
-    };
+  // Use the raw array for the flat list
+  const reportList = Array.isArray(data) ? data : [];
 
-    const handleExport = () => {
-        if (tableRef.current) {
-            const wb = XLSX.utils.table_to_book(tableRef.current);
-            XLSX.writeFile(wb, 'Marks_Entry_Report.xlsx');
-        }
-    };
+  // Extract metadata from first item if available
+  const firstItem = reportList[0] || {};
+  const yearname = firstItem.asmaY_Year || "2023-2024";
+  const examname = firstItem.emE_ExamName || "Exam";
 
-    return (
-        <div className='space-y-4'>
-            <div className='space-y-2 border-b pb-4 text-center'>
-                <h3 className='font-bold text-xl'>Marks Entered Report</h3>
-                <div className='flex justify-center space-x-8 text-sm'>
-                    <span>
-                        <strong>ACADEMIC YEAR:</strong> {yearname}
-                    </span>
-                </div>
-                <div className='flex justify-center space-x-8 text-sm'>
-                    <span>
-                        <strong>CLASS:</strong> {classname}
-                    </span>
-                    <span>
-                        <strong>SECTION:</strong> {sectioname}
-                    </span>
-                </div>
-                <div className='flex justify-center space-x-8 text-sm'>
-                    <span>
-                        <strong>EXAM:</strong> {examname}
-                    </span>
-                </div>
-            </div>
-
-            <div className='flex justify-end space-x-2'>
-                <Button onClick={handlePrint} variant='outline'>
-                    <i className='fa fa-print mr-2' /> Print
-                </Button>
-                <Button onClick={handleExport} variant='outline'>
-                    <i className='fa fa-file-excel-o mr-2' /> Export to Excel
-                </Button>
-            </div>
-
-            <div className='overflow-x-auto rounded-md border'>
-                <Table ref={tableRef}>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className='w-[80px] text-center font-bold'>Sl No</TableHead>
-                            <TableHead className='text-center font-bold'>Class</TableHead>
-                            <TableHead className='font-bold'>Section</TableHead>
-                            {subjectlist.map((sub: any) => (
-                                <TableHead key={sub.ISMS_Id} className='max-w-[150px] text-wrap text-center font-bold'>
-                                    {sub.ISMS_SubjectName}
-                                </TableHead>
-                            ))}
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {sectionlist.map((user: any, index: number) => (
-                            <TableRow key={index}>
-                                <TableCell className='text-center'>{index + 1}</TableCell>
-                                <TableCell className='text-center'>{user.ASMCL_ClassName}</TableCell>
-                                <TableCell>{user.ASMC_SectionName}</TableCell>
-                                {subjectlist.map((sub: any) => {
-                                    // Find the marks for this subject in the user's data
-                                    const subje = user.subjecttemp?.find((s: any) => s.ISMS_Id === sub.ISMS_Id);
-
-                                    let color = 'black';
-                                    if (subje) {
-                                        if (subje.SourceMarksColorFlag) color = subje.SourceMarksColorFlag; // If API provides color
-                                        // Or mimic logic: Flag 1=Green? logic from angular template seemed to just use SourceMarksColorFlag
-                                    }
-
-                                    return (
-                                        <TableCell key={sub.ISMS_Id} className='text-center' style={{ color: color }}>
-                                            {subje ? subje.SourceMarksEntry : '-'}
-                                        </TableCell>
-                                    );
-                                })}
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </div>
+  return (
+    <div className="space-y-4  bg-white border rounded-xl">
+      
+      <div className="space-y-2 text-center flex flex-col justify-center items-center">
+        <h3 className="font-bold text-xl pt-3">Marks Entered Report</h3>
+        <div className="flex space-x-8 text-sm">
+          <span>
+            <strong>ACADEMIC YEAR:</strong> {yearname}
+          </span>
+          <span>
+            <strong>EXAM:</strong> {examname}
+          </span>
         </div>
-    );
+      </div>
+      <div className="flex justify-end gap-2 p-2">
+        <Button
+          onClick={handlePrint}
+          className=" hover:bg-orange-800 text-white flex w-fit"
+        >
+          <Printer className="h-4 w-4" />
+          <span>PRINT</span>
+        </Button>
+
+        <Button
+          onClick={handleExport}
+          className="hover:bg-orange-800 text-white w-fit"
+        >
+          <FileSpreadsheet className="h-4 w-4" />
+          Export to Excel
+        </Button>
+      </div>
+
+      <div className=" rounded-md ">
+        <Table ref={tableRef}>
+          <TableHeader >
+            <TableRow className="bg-gray-200 hover:bg-gray-200">
+              <TableHead className="w-[80px] text-center text-base font-bold text-black border border-gray-400">
+                Sl No
+              </TableHead>
+              <TableHead className="text-center text-base font-bold text-black border border-gray-400">Class</TableHead>
+              <TableHead className="text-center text-base font-bold text-black border border-gray-400">Section</TableHead>
+              <TableHead className="text-center text-base font-bold text-black border border-gray-400">Subject</TableHead>
+              <TableHead className="text-center text-base font-bold text-black border border-gray-400">Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {reportList.map((item: any, index: number) => {
+              const className = item.asmcL_ClassName || item.ASMCL_ClassName;
+              const sectionName =
+                item.asmC_SectionName || item.ASMC_SectionName;
+              const subjectName =
+                item.ismS_SubjectName || item.ISMS_SubjectName;
+              const status = item.sourceMarksEntry || item.SourceMarksEntry;
+              const color =
+                item.sourceMarksColorFlag ||
+                item.SourceMarksColorFlag ||
+                "black";
+
+              return (
+                <TableRow key={index}>
+                  <TableCell className="text-center border border-gray-400">{index + 1}</TableCell>
+                  <TableCell className="text-center border border-gray-400">{className}</TableCell>
+                  <TableCell className="text-center border border-gray-400">{sectionName}</TableCell>
+                  <TableCell className="text-center border border-gray-400">{subjectName}</TableCell>
+                  <TableCell
+                    className="text-center border border-gray-400"
+                    style={{ color: color }}
+                  >
+                    {status}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
 };

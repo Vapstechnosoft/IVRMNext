@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import type { ICumulativeReport, IReportHeader, ISubject } from '@/types/exam/exam-module/report';
-import { Download, Printer } from 'lucide-react';
+import { Download, Printer,FileSpreadsheetIcon } from 'lucide-react';
 import { useState } from 'react';
 import * as XLSX from 'xlsx';
 
@@ -57,7 +57,7 @@ export default function CumulativeReportGridView({
 
         // Title rows
         const titleRows = [
-            [headerInfo.mI_name || 'VIDYA VIKASA VIDYA SAMSTHE (R)'],
+            [headerInfo.mI_Name || 'VIDYA VIKASA VIDYA SAMSTHE (R)'],
             ['CLASS WISE CUMULATIVE REPORT'],
             [`Academic Year: ${headerInfo.yr || ''}`],
             [`Class & Section: ${headerInfo.cla || ''} - ${headerInfo.sec || ''}`],
@@ -270,26 +270,23 @@ export default function CumulativeReportGridView({
             {/* Header Bar - Print + Excel Buttons */}
             <div className='no-print flex items-center justify-between border-orange-400 border-b-2 bg-orange-100 px-4 py-2 text-sm'>
                 <span style={{ fontSize: '25px', fontWeight: '600' }}>GRID VIEW</span>
-                <div className='flex items-center gap-3'>
-                    <Button onClick={onPrint} size='sm' className='bg-blue-600 hover:bg-blue-700'>
-                        <Printer className='mr-2 h-4 w-4' /> Print
+                <div className='flex gap-2'>
+                <Button type="submit" onClick={onPrint}  className="hover:bg-orange-800 text-white flex w-fit">
+                        <Printer className="h-4 w-4" />
+                        <span>PRINT</span>
                     </Button>
 
-                    <Button
-                        onClick={exportToExcel}
-                        size='sm'
-                        variant='outline'
-                        className='gap-2 border-green-600 text-green-700 hover:bg-green-50'>
-                        <Download className='h-4 w-4' />
-                        Export Excel
-                    </Button>
-                </div>
+                <Button type="submit"  onClick={exportToExcel} className='hover:bg-orange-800 text-white w-fit'>
+                    <FileSpreadsheetIcon className='h-4 w-4' />
+                    Export to Excel
+                </Button>
+            </div>
             </div>
 
             {/* Report Header */}
             <div className='mt-6'>
                 <div className='mb-4 text-center'>
-                    <h3 className='text-blue-900 text-xl'>{headerInfo.mI_name || 'VIDYA VIKASA VIDYA SAMSTHE (R)'}</h3>
+                    <h3 className='text-blue-900 text-xl'>{headerInfo.mI_Name || 'VIDYA VIKASA VIDYA SAMSTHE (R)'}</h3>
                     <h5 className='mt-1 text-blue-800 text-lg'>CLASS WISE CUMULATIVE REPORT</h5>
                     <div className='mt-2'>
                         <strong>Academic Year :</strong> {headerInfo.yr}
@@ -382,8 +379,8 @@ export default function CumulativeReportGridView({
                                             {isAbsent
                                                 ? '-'
                                                 : student.estmP_Percentage
-                                                  ? Number(student.estmP_Percentage).toFixed(1) + '%'
-                                                  : '-'}
+                                                    ? Number(student.estmP_Percentage).toFixed(1) + '%'
+                                                    : '-'}
                                         </td>
                                         <td className='border border-gray-400 py-2 text-center'>
                                             {isAbsent ? '' : (student.estmP_TotalGrade ?? '-')}
