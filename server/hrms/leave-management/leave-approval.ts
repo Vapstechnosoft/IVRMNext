@@ -439,18 +439,28 @@ export async function getLeaveAppliedOrApprovalGrid(): Promise<ApiResponse<Leave
  */
 export async function approveOrRejectLeaveStatus(data: ApproveRejectLeaveStatusRequest): Promise<ApiResponse<any>> {
     const url = '/api/LeaveApproval/approve_or_reject_leave_status';
+
+    // Add MI_Id and other common fields if missing
+    const payload = {
+        MI_Id: HRMS_MI_ID,
+        ...data
+    };
+
     console.log('🟠 [SERVER] POST Request URL:', url);
+    console.log('📦 [SERVER] Payload:', JSON.stringify(payload, null, 2));
+
     try {
-        const response = await api.post<any>('hmslms', url, data);
+        const response = await api.post<any>('hmslms', url, payload);
         const res = response as any;
-        const isSuccess = res.success === true || String(res.success) === 'true';
+        const isSuccess = res.success === true || String(res.success) === 'true' || res.returnval === true;
 
         return {
             success: isSuccess,
-            message: res.message || 'Leave Approved successfully.',
+            message: res.message || (isSuccess ? 'Leave processed successfully.' : 'Failed to process leave.'),
             data: res.data || null
         };
     } catch (error: any) {
+        console.error('🔴 [SERVER] approveOrRejectLeaveStatus Error:', error);
         throw new Error(error?.message || 'Failed to process leave status');
     }
 }

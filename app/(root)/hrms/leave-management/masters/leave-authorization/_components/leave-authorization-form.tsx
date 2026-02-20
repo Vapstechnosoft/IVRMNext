@@ -29,13 +29,13 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
     } = useForm<LeaveAuthorization>({
         defaultValues: editingLeaveAuthorization || {
             institution: 'Vaps Knowledge Services Pvt Ltd',
-            gradeName: '',
-            groupTypeName: '',
-            departmentName: '',
-            designationName: '',
-            leaveType: '',
-            orderOfApproval: '',
-            approvalPerson: '',
+            hrmG_GradeName: '',
+            hrmgT_EmployeeGroupType: '',
+            hrmD_DepartmentName: '',
+            hrmdeS_DesignationName: '',
+            hrmL_LeaveName: '',
+            hrlaoN_SanctionLevelNo: '',
+            hrmE_EmployeeFirstName: '',
             finalFlag: false
         }
     });
@@ -71,8 +71,8 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                         <label htmlFor='grade-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                             Select Grade <span className='text-red-500'>*</span>
                         </label>
-                        <Select value={watch('gradeName')} onValueChange={(value) => setValue('gradeName', value)}>
-                            <SelectTrigger id='grade-select' className={errors.gradeName ? 'border-red-500' : ''}>
+                        <Select value={watch('hrmG_GradeName')} onValueChange={(value) => setValue('hrmG_GradeName', value)}>
+                            <SelectTrigger id='grade-select' className={errors.hrmG_GradeName ? 'border-red-500' : ''}>
                                 <SelectValue placeholder='--Select--' />
                             </SelectTrigger>
                             <SelectContent>
@@ -82,14 +82,14 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                                 <SelectItem value='Director'>Director</SelectItem>
                             </SelectContent>
                         </Select>
-                        {errors.gradeName && <FormError>{errors.gradeName.message}</FormError>}
+                        {errors.hrmG_GradeName && <FormError>{errors.hrmG_GradeName.message}</FormError>}
                     </div>
                     <div>
                         <label htmlFor='group-type-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                             Group Type <span className='text-red-500'>*</span>
                         </label>
-                        <Select value={watch('groupTypeName')} onValueChange={(value) => setValue('groupTypeName', value)}>
-                            <SelectTrigger id='group-type-select' className={errors.groupTypeName ? 'border-red-500' : ''}>
+                        <Select value={watch('hrmgT_EmployeeGroupType')} onValueChange={(value) => setValue('hrmgT_EmployeeGroupType', value)}>
+                            <SelectTrigger id='group-type-select' className={errors.hrmgT_EmployeeGroupType ? 'border-red-500' : ''}>
                                 <SelectValue placeholder='--Select--' />
                             </SelectTrigger>
                             <SelectContent>
@@ -99,14 +99,14 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                                 <SelectItem value='Finance'>Finance</SelectItem>
                             </SelectContent>
                         </Select>
-                        {errors.groupTypeName && <FormError>{errors.groupTypeName.message}</FormError>}
+                        {errors.hrmgT_EmployeeGroupType && <FormError>{errors.hrmgT_EmployeeGroupType.message}</FormError>}
                     </div>
                     <div>
                         <label htmlFor='department-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                             Department Type <span className='text-red-500'>*</span>
                         </label>
-                        <Select value={watch('departmentName')} onValueChange={(value) => setValue('departmentName', value)}>
-                            <SelectTrigger id='department-select' className={errors.departmentName ? 'border-red-500' : ''}>
+                        <Select value={watch('hrmD_DepartmentName')} onValueChange={(value) => setValue('hrmD_DepartmentName', value)}>
+                            <SelectTrigger id='department-select' className={errors.hrmD_DepartmentName ? 'border-red-500' : ''}>
                                 <SelectValue placeholder='--Select--' />
                             </SelectTrigger>
                             <SelectContent>
@@ -117,14 +117,14 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                                 <SelectItem value='IT'>IT</SelectItem>
                             </SelectContent>
                         </Select>
-                        {errors.departmentName && <FormError>{errors.departmentName.message}</FormError>}
+                        {errors.hrmD_DepartmentName && <FormError>{errors.hrmD_DepartmentName.message}</FormError>}
                     </div>
                     <div>
                         <label htmlFor='designation-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                             Designation Type <span className='text-red-500'>*</span>
                         </label>
-                        <Select value={watch('designationName')} onValueChange={(value) => setValue('designationName', value)}>
-                            <SelectTrigger id='designation-select' className={errors.designationName ? 'border-red-500' : ''}>
+                        <Select value={watch('hrmdeS_DesignationName')} onValueChange={(value) => setValue('hrmdeS_DesignationName', value)}>
+                            <SelectTrigger id='designation-select' className={errors.hrmdeS_DesignationName ? 'border-red-500' : ''}>
                                 <SelectValue placeholder='--Select--' />
                             </SelectTrigger>
                             <SelectContent>
@@ -137,7 +137,7 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                                 <SelectItem value='Senior Manager'>Senior Manager</SelectItem>
                             </SelectContent>
                         </Select>
-                        {errors.designationName && <FormError>{errors.designationName.message}</FormError>}
+                        {errors.hrmdeS_DesignationName && <FormError>{errors.hrmdeS_DesignationName.message}</FormError>}
                     </div>
                 </div>
                 {/* Right Column */}
@@ -146,8 +146,8 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                         <label htmlFor='leave-type-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                             Leave Type <span className='text-red-500'>*</span>
                         </label>
-                        <Select value={watch('leaveType')} onValueChange={(value) => setValue('leaveType', value)}>
-                            <SelectTrigger id='leave-type-select' className={errors.leaveType ? 'border-red-500' : ''}>
+                        <Select value={watch('hrmL_LeaveName')} onValueChange={(value) => setValue('hrmL_LeaveName', value)}>
+                            <SelectTrigger id='leave-type-select' className={errors.hrmL_LeaveName ? 'border-red-500' : ''}>
                                 <SelectValue placeholder='--Select--' />
                             </SelectTrigger>
                             <SelectContent>
@@ -159,14 +159,14 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                                 <SelectItem value='Privilege Leave'>Privilege Leave</SelectItem>
                             </SelectContent>
                         </Select>
-                        {errors.leaveType && <FormError>{errors.leaveType.message}</FormError>}
+                        {errors.hrmL_LeaveName && <FormError>{errors.hrmL_LeaveName.message}</FormError>}
                     </div>
                     <div>
                         <label htmlFor='order-approval-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                             Order Of Approval <span className='text-red-500'>*</span>
                         </label>
-                        <Select value={watch('orderOfApproval')} onValueChange={(value) => setValue('orderOfApproval', value)}>
-                            <SelectTrigger id='order-approval-select' className={errors.orderOfApproval ? 'border-red-500' : ''}>
+                        <Select value={watch('hrlaoN_SanctionLevelNo')} onValueChange={(value) => setValue('hrlaoN_SanctionLevelNo', value)}>
+                            <SelectTrigger id='order-approval-select' className={errors.hrlaoN_SanctionLevelNo ? 'border-red-500' : ''}>
                                 <SelectValue placeholder='--Select--' />
                             </SelectTrigger>
                             <SelectContent>
@@ -177,14 +177,14 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                                 <SelectItem value='5'>5</SelectItem>
                             </SelectContent>
                         </Select>
-                        {errors.orderOfApproval && <FormError>{errors.orderOfApproval.message}</FormError>}
+                        {errors.hrlaoN_SanctionLevelNo && <FormError>{errors.hrlaoN_SanctionLevelNo.message}</FormError>}
                     </div>
                     <div>
                         <label htmlFor='approval-person-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                             Approval Person <span className='text-red-500'>*</span>
                         </label>
-                        <Select value={watch('approvalPerson')} onValueChange={(value) => setValue('approvalPerson', value)}>
-                            <SelectTrigger id='approval-person-select' className={errors.approvalPerson ? 'border-red-500' : ''}>
+                        <Select value={watch('hrmE_EmployeeFirstName')} onValueChange={(value) => setValue('hrmE_EmployeeFirstName', value)}>
+                            <SelectTrigger id='approval-person-select' className={errors.hrmE_EmployeeFirstName ? 'border-red-500' : ''}>
                                 <SelectValue placeholder='--Select--' />
                             </SelectTrigger>
                             <SelectContent>
@@ -194,7 +194,7 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                                 <SelectItem value='Jane Smith'>Jane Smith</SelectItem>
                             </SelectContent>
                         </Select>
-                        {errors.approvalPerson && <FormError>{errors.approvalPerson.message}</FormError>}
+                        {errors.hrmE_EmployeeFirstName && <FormError>{errors.hrmE_EmployeeFirstName.message}</FormError>}
                     </div>
                     <div className='flex items-center space-x-2'>
                         <Checkbox

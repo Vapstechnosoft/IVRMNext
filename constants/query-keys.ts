@@ -477,6 +477,7 @@ export const HRMS_QUERY_KEYS = {
     LEAVE_HISTORY: 'leave_leave_history',
     APPLY_LEAVE: 'leave_apply_leave',
     LEAVE_APPROVAL: 'leave_leave_approval',
+    LEAVE_CONFIGURATION: 'leave_leave_configuration',
 
     // Master drop down
     MASTER_GROUP_TYPES: 'hrms_master_group_type',
