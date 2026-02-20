@@ -35,6 +35,7 @@ export const TIMETABLE_QUERY_KEYS = {
     MASTER_BUILDING_DROP_DOWN: 'master_building_dropdown',
     MASTER_CLASS_DROP_DOWN: 'master_class_dropdown',
     MASTER_SECTION_DROP_DOWN: 'master_section_dropdown',
+    MASTER_PERIOD_DROPDOWN: 'master_period_dropdown',
 
     STAFF_REPLACEMENT_MASTERS: 'staff_replacement_masters',
     STAFF_REPLACEMENT_SECTIONS: 'staff_replacement_sections',

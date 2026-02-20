@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
 import { useMasterBuildingClasssection } from '@/hooks/timetable/useMasters';
-import { type masterBuildingClassSectionSchema, masterBuildingSchema } from '@/schemas/timetable/masters';
+import { masterBuildingClassSectionSchema } from '@/schemas/timetable/masters';
 import { ToggleMasterBuildingClassSection } from '@/server/timetable/masters/masterbuilding';
 import type { IMasterBuildClassSectionGrid } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,7 +29,7 @@ export default function ToggleMasterBuildingClassSectionForm({ rowData, onClose 
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(masterBuildingSchema.delete),
+        resolver: zodResolver(masterBuildingClassSectionSchema.delete),
         mode: 'onChange'
     });
 
@@ -54,7 +54,7 @@ export default function ToggleMasterBuildingClassSectionForm({ rowData, onClose 
     };
 
     return (
-        <AdaptiveDialog title='Toggle Master Building' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Toggle Master Building Class Section' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('ttmbcS_Id')} defaultValue={rowData.ttmbcS_Id} />

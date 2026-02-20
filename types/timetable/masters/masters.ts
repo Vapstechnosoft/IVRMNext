@@ -467,3 +467,12 @@ export interface IMasterBuildClassSectionGrid {
     ttmbcS_ActiveFlag: boolean;
     asmC_SectionName: string;
 }
+
+export type PeriodDropdownData = {
+    ttmP_Id: number;
+    mI_Id: number;
+    ttmP_PeriodName: string;
+    ttmP_ActiveFlag: boolean;
+    createdDate: string;
+    updatedDate: string;
+};

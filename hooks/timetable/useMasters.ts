@@ -30,6 +30,7 @@ import {
     getClassPeriodDistrubution,
     getPeriodDistributionDetails,
     getPeriodDistributionViewData,
+    getPeriodDropdown,
     getSectionPeriodDistrubution,
     getStaffPeriodDistrubution,
     getSubjectPeriodDistrubution
@@ -647,6 +648,24 @@ export const useMasterSectionDropDown = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [TIMETABLE_QUERY_KEYS.MASTER_SECTION_DROP_DOWN]
+            });
+        }
+    };
+};
+
+export const usePeriodDropdown = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getPeriodDropdown(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_DROPDOWN]
             });
         }
     };

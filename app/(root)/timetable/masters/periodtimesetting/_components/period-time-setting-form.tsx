@@ -1,19 +1,26 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { InputText } from '@/components/ui/extension/input-text';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TimePicker } from '@/components/ui/time-picker/time-picker';
-import { usePeriodDistributionDetails } from '@/hooks/timetable/useMasters';
+import {
+    useAcademicYearPeriodDistrubution,
+    useCategtoryPeriodDistrubution,
+    useDayDropDownMasterDayClasswise,
+    usePeriodDropdown,
+    usePeriodTimeSettingDetails
+} from '@/hooks/timetable/useMasters';
+import { cn } from '@/lib/utils';
 import { periodTimeSettingSchema } from '@/schemas/timetable/masters';
 import { getPeriodTimeSettingDetails, savePeriodTimeSetting } from '@/server/timetable/masters/periodtimesetting';
-import type { IPeriodTimeSettingData, ITimeTableMasterAcademicYear, ITimeTableMasterCategory } from '@/types/timetable/masters/masters';
+import type { IPeriodTimeSettingData } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { Save, X } from 'lucide-react';
-import { useEffect } from 'react';
+import { CheckSquare, Save, Square } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -25,13 +32,24 @@ interface PeriodTimeSettingFormProps {
 }
 
 export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFormProps) {
-    const { data: response } = usePeriodDistributionDetails();
+    const { data: response, refetch } = usePeriodTimeSettingDetails();
     const { selectedRow: editData, closeEditForm } = useFormContext<IPeriodTimeSettingData>();
+    const [daySearch, setDaySearch] = useState('');
+    const { data: academicData } = useAcademicYearPeriodDistrubution();
+    const { data: categoryData } = useCategtoryPeriodDistrubution();
 
-    // Explicitly Type Data Sources
-    const academicList: ITimeTableMasterAcademicYear[] = (response as any)?.academiclist || [];
-    const categoryList: ITimeTableMasterCategory[] = (response as any)?.catelist || [];
-    const periodList: any[] = (response as any)?.perioddrp || [];
+    const { data: periodList, isLoading: perioddataloading, error: perioddataError, refetchAll: perioddataRefetch } = usePeriodDropdown();
+
+    console.log('periodList', periodList);
+
+    const {
+        data: Masterdaydata,
+        isLoading: masterdaydataloading,
+        error: masterdaydataError,
+        refetchAll: masterdaydataRefetch
+    } = useDayDropDownMasterDayClasswise();
+
+    //const periodList: any[] = (response as any)?.perioddrp || [];
     const dayList: any[] = (response as any)?.daydrp || [];
 
     const {
@@ -45,12 +63,39 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
     } = useForm<FormFields>({
         resolver: zodResolver(periodTimeSettingSchema.save),
         defaultValues: {
-            dayIds: []
+            dayids: undefined
         }
     });
 
-    const watchedDayIds = watch('dayIds');
+    const day_ids = watch('dayids') || [];
+    const startTime = watch('startTime');
 
+    // Reset endTime when startTime changes (Requirement: ng-change="validateTomintime(StartTime)")
+    useEffect(() => {
+        if (startTime) {
+            setValue('endTime', undefined as any, { shouldValidate: true });
+        }
+    }, [startTime, setValue]);
+
+    const filteredDayIds = Masterdaydata?.data?.filter((d) => d.ttmD_DayName.toLowerCase().includes(daySearch.toLowerCase())) ?? [];
+
+    const toggleDay = (id: string) => {
+        let updated: string[] = [];
+
+        if (day_ids.includes(id)) {
+            updated = day_ids.filter((v) => v !== id);
+        } else {
+            updated = [...day_ids, id];
+        }
+
+        if (updated.length === 0) {
+            setValue('dayids', undefined as any);
+        } else {
+            setValue('dayids', updated as [string, ...string[]], {
+                shouldValidate: true
+            });
+        }
+    };
     // Populate Form on Edit
     useEffect(() => {
         if (Array.isArray(editData) && editData.ttmdpT_Id) {
@@ -91,7 +136,7 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
                         // We will set the single day in the array
                         const selectedDay = dayList.find((d) => d.ttmD_Id === data.ttmD_Id);
                         if (selectedDay) {
-                            setValue('dayIds', [selectedDay]); // Just set the object directly if schema allows or structure accordingly
+                            setValue('dayids', [selectedDay.ttmD_Id.toString()]); // Just set the object directly if schema allows or structure accordingly
                         }
                     }
                 } catch (err) {
@@ -109,51 +154,40 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
             const formatTime = (date: Date) => format(date, 'h:mm a');
 
             const payload = {
-                TTMDPT_Id: data.ttmdpT_Id || 0,
-                ASMAY_Id: data.asmaY_Id,
-                TTMC_Id: data.ttmC_Id,
-                TTMP_Id: data.ttmP_Id,
-                TTMDPT_StartTime: formatTime(data.startTime),
-                TTMDPT_EndTime: formatTime(data.endTime),
-                datidss: data.dayIds.map((d: any) => ({
-                    ttmD_Id: d.ttmD_Id,
-                    cls: true // Legacy expects this boolean structure inside the object often
+                ttmdpT_Id: data.ttmdpT_Id || 0,
+                asmaY_Id: data.asmaY_Id,
+                ttmC_Id: data.ttmC_Id,
+                ttmP_Id: data.ttmP_Id,
+                ttmdpT_StartTime: formatTime(data.startTime),
+                ttmdpT_EndTime: formatTime(data.endTime),
+                datidss: data.dayids.map((id) => ({
+                    ttmD_Id: Number(id)
                 }))
             };
 
-            // Legacy sends the day object with 'cls' property set to true.
-            // My schema expects Objects.
+            // Validation: End Time must be greater than Start Time
+            if (data.endTime <= data.startTime) {
+                toast.error('To Time must be greater than From Time');
+                return;
+            }
 
+            console.log('Submitting Payload:', JSON.stringify(payload));
             const response = await savePeriodTimeSetting(payload);
             if (response.returnval) {
-                toast.success('Record Saved/Updated Successfully');
+                toast.success(response.message);
                 onSuccess?.();
                 cancelEdit();
             } else {
-                toast.error('Failed to Save Record');
+                toast.error(response.message);
             }
         } catch (error: any) {
-            toast.error(error.message || 'An error occurred');
+            toast.error(error.message);
         }
     };
 
     const cancelEdit = () => {
         reset();
         closeEditForm();
-    };
-
-    // Helper to toggle day selection
-    const toggleDay = (day: any) => {
-        const currentDays = watch('dayIds') || [];
-        const exists = currentDays.find((d: any) => d.ttmD_Id === day.ttmD_Id);
-        if (exists) {
-            setValue(
-                'dayIds',
-                currentDays.filter((d: any) => d.ttmD_Id !== day.ttmD_Id)
-            );
-        } else {
-            setValue('dayIds', [...currentDays, day]);
-        }
     };
 
     return (
@@ -172,7 +206,7 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {academicList.map((item) => (
+                                    {(academicData || []).map((item) => (
                                         <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                             {item.asmaY_Year}
                                         </SelectItem>
@@ -197,7 +231,7 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {categoryList.map((item) => (
+                                    {(categoryData || []).map((item) => (
                                         <SelectItem key={item.ttmC_Id} value={item.ttmC_Id.toString()}>
                                             {item.ttmC_CategoryName}
                                         </SelectItem>
@@ -217,42 +251,104 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
                         control={control}
                         name='ttmP_Id'
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='--Select--' />
+                            <Select
+                                key={field.value?.toString() || 'empty'}
+                                onValueChange={(value) => {
+                                    field.onChange(value ? Number(value) : '');
+                                }}
+                                value={field.value?.toString() || undefined}>
+                                <SelectTrigger className='w-full'>
+                                    <SelectValue placeholder='Select Period' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {periodList.map((item: any) => (
-                                        <SelectItem key={item.ttmP_Id} value={item.ttmP_Id.toString()}>
-                                            {item.ttmP_PeriodName}
+                                    {perioddataloading ? (
+                                        <SelectItem value='loading' disabled>
+                                            Loading Periods
                                         </SelectItem>
-                                    ))}
+                                    ) : perioddataError ? (
+                                        <SelectItem value='error' disabled>
+                                            Error loading Periods
+                                        </SelectItem>
+                                    ) : (
+                                        periodList?.data?.map((item) => (
+                                            <SelectItem key={item.ttmP_Id} value={item.ttmP_Id.toString()}>
+                                                {item.ttmP_PeriodName}
+                                            </SelectItem>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
                         )}
                     />
                     {errors.ttmP_Id && <span className='text-red-500 text-sm'>{errors.ttmP_Id.message}</span>}
                 </div>
-
                 <div className='space-y-2'>
                     <Label>
                         Day <span className='text-red-500'>*</span>
                     </Label>
-                    <div className='flex max-h-40 flex-wrap gap-2 overflow-y-auto rounded-md border bg-muted/20 p-2'>
-                        {dayList.map((day: any) => (
+
+                    <div className='mt-2 rounded-md border border-gray-300 bg-white p-3'>
+                        <InputText
+                            placeholder='Search Day...'
+                            value={daySearch}
+                            onChange={(e) => setDaySearch(e.target.value)}
+                            className='mb-3'
+                        />
+
+                        {/* {Masterdaydata?.data && (
                             <div
-                                key={day.ttmD_Id}
-                                className='flex cursor-pointer items-center space-x-2 rounded border bg-background p-2 hover:bg-accent'
-                                onClick={() => toggleDay(day)}>
-                                <Checkbox
-                                    checked={watchedDayIds?.some((d: any) => d.ttmD_Id === day.ttmD_Id)}
-                                    onCheckedChange={() => toggleDay(day)}
-                                />
-                                <Label className='cursor-pointer font-normal'>{day.ttmD_DayName}</Label>
+                                onClick={selectAllDayIds}
+                                className={cn(
+                                    'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
+                                    day_ids.length === (daySearch.trim() ? filteredDayIds.length : Masterdaydata.data.length) &&
+                                        day_ids.length > 0
+                                        ? 'border-primary bg-primary/5 text-primary'
+                                        : 'border-gray-300 hover:border-primary/40'
+                                )}>
+                                {day_ids.length === (daySearch.trim() ? filteredDayIds.length : Masterdaydata.data.length) &&
+                                day_ids.length > 0 ? (
+                                    <CheckSquare className='h-4 w-4 text-primary' />
+                                ) : (
+                                    <Square className='h-4 w-4 text-gray-400' />
+                                )}
+                                <span>Select All</span>
                             </div>
-                        ))}
+                        )} */}
+
+                        <div className='max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
+                            {masterdaydataloading ? (
+                                <div className='py-4 text-center text-gray-500 text-sm'>Loading Days...</div>
+                            ) : filteredDayIds.length === 0 ? (
+                                <div className='py-4 text-center text-gray-500 text-sm'>No Day found</div>
+                            ) : (
+                                filteredDayIds.map((d) => {
+                                    const id = d.ttmD_Id.toString();
+                                    const selected = day_ids.includes(id);
+
+                                    return (
+                                        <div
+                                            key={d.ttmD_Id}
+                                            onClick={() => toggleDay(id)}
+                                            className={cn(
+                                                'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',
+                                                selected
+                                                    ? 'border-primary bg-primary/5 text-primary'
+                                                    : 'border-gray-300 hover:border-primary/40'
+                                            )}>
+                                            {selected ? (
+                                                <CheckSquare className='h-4 w-4 text-primary' />
+                                            ) : (
+                                                <Square className='h-4 w-4 text-gray-400' />
+                                            )}
+                                            <span>{d.ttmD_DayName}</span>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
                     </div>
-                    {errors.dayIds && <span className='text-red-500 text-sm'>{errors.dayIds.message}</span>}
+
+                    {errors.dayids && <span className='text-red-500 text-sm'>{errors.dayids.message}</span>}
                 </div>
 
                 <div className='space-y-2'>
@@ -280,7 +376,34 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
                 </div>
             </div>
 
-            <div className='flex justify-center gap-3'>
+            <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                <Button
+                    type='button'
+                    variant='outline'
+                    onClick={cancelEdit}
+                    disabled={isSubmitting}
+                    className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                    Reset
+                </Button>
+
+                <Button
+                    type='submit'
+                    disabled={isSubmitting}
+                    className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                    isLoading={isSubmitting}
+                    loadingText='Saving...'>
+                    <div className='flex items-center'>
+                        <Save className='mr-2 h-4 w-4' />
+                        Save
+                    </div>
+                </Button>
+                {/* <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting}>
+                    <Save className='mr-2 h-4 w-4' />
+                    {editData ? 'Update' : 'Save'}
+                </Button> */}
+            </div>
+
+            {/* <div className='flex justify-center gap-3'>
                 <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting}>
                     <Save className='mr-2 h-4 w-4' />
                     {editData ? 'Update' : 'Save'}
@@ -289,7 +412,7 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
-            </div>
+            </div> */}
         </form>
     );
 }
