@@ -22,7 +22,7 @@ ChartJS.register(
     Title,
     Tooltip,
     Legend,
-    ArcElement // Register ArcElement for Pie charts
+    ArcElement
 );
 
 interface ReportListProps {
@@ -37,26 +37,19 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         window.print();
     };
 
-    // Main Data Sources
-    // Main Data Sources
-    // Console log to debug data
-    console.log('ReportList Received Data:', data);
-
-    // Check various casing possibilities and ensure we don't trap on empty array if valid data exists elsewhere
-    const studentDetails = data.getstudentdetails;
-
-    console.log('Resolved studentDetails:', studentDetails);
+    // Main Data Sources – using correct camelCase property names
+    const studentDetails = data.getstudentdetails || [];
     const groupDetails = data.getgroupdetails || [];
     const groupWiseExamList = data.groupwiseexamlist || [];
-    const institution = (data.institutionList?.[0]) || data.masterinstitution || data.institution || data.getinstitution;
-    const gradeDetails = data.getallgrade || []; // For Co-Scholastic grades
-    const skillDetails = data.skillDetails || data.getskill || []; // For Co-Scholastic skills
+    const institution = data.institutionList?.[0] || data.masterinstitution || data.institution || data.getinstitution;
+    const gradeDetails = data.getallgrade || [];
+    const skillDetails = data.getstudentwiseskillslist || data.getskill || [];
     const examWiseTotalDetails = data.getexamwisetotaldetails || [];
-    const promotionRemarks = data.promotionRemarks || data.getpromotionremarksdetails || [];
-    const studentGraphDetails = data.studentGraphDetails || data.studentdetailsgraph || [];
+    const promotionRemarks = data.getpromotionremarksdetails || [];
+    const studentGraphDetails = data.studentdetailsgraph || [];
 
     // Attendance Sources
-    const presentAttendance = data.work_attendence || [];
+    const presentAttendance = data.present_attendence || [];
 
     // Config Flags
     const showLogo = params.printLogo;
@@ -65,80 +58,71 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
     // Helper to get attendance
     const getAttendance = (amsT_Id: number) => {
-        const presentFn = presentAttendance.find((a: any) => (a.amsT_Id === amsT_Id || a.AMST_Id === amsT_Id));
-        if (presentFn) return presentFn.attendancePercentage || presentFn.ATTENDANCEPERCENTAGE || presentFn.total_Percentage || 0;
-        return 0;
+        const present = presentAttendance.find((a: any) => a.amsT_Id === amsT_Id);
+        return present ? present.attendancePercentage || 0 : 0;
     };
 
     // Helper to get mark for a cell
-    // Matches logic: subj.ISMS_Id==mrks.ISMS_Id && grpexam.EME_Id==mrks.EME_Id && mrks.EMPSG_DisplayName==grpexam.EMPG_DistplayName
     const getMarkValue = (report: any, subjectId: number, examId: number, groupDisplayName: string, examNameDisplay: string) => {
-        const mark = (report.marks || report.studentmarks || []).find((m: any) =>
-            (m.ISMS_Id === subjectId || m.ismS_Id === subjectId) &&
-            (m.EME_Id === examId || m.emE_Id === examId) &&
-            (m.EMPSG_DisplayName === groupDisplayName || m.empsG_DisplayName === groupDisplayName)
+        const marksArray = report.studentmarks || report.marks || [];
+        const mark = marksArray.find((m: any) =>
+            m.ismS_Id === subjectId &&
+            m.emE_Id === examId &&
+            m.empsG_DisplayName === groupDisplayName
         );
 
         if (!mark) return null;
 
-        if (['AB', 'M', 'L'].includes(mark.PassFailFlag)) {
-            // Logic: if PassFailFlag is AB/M/L, show it.
-            // But if ObtainedMarks > 0 and exam name is not AVG, show obtained marks in brackets? 
-            // The Angular HTML says:
-            // <span ng-if="marks.ObtainedMarks>0 && grpexam.EME_ExamName!='AVG'"> ({{marks.ObtainedMarks}}) </span>
-            // This seems to refer to `marks` which might be a typo in Angular for `mrks` or available in scope. 
-            // Standard logic: Show Flag.
-            return mark.PassFailFlag;
+        if (['AB', 'M', 'L'].includes(mark.passFailFlag)) {
+            return mark.passFailFlag;
         }
 
         const isAvgExam = examNameDisplay === 'AVG';
 
-        if (mark.ObtainedMarks >= 0 && !['AB', 'M', 'L'].includes(mark.PassFailFlag)) {
+        if (mark.obtainedMarks >= 0 && !['AB', 'M', 'L'].includes(mark.passFailFlag)) {
             if (isAvgExam) {
-                return <b>{mark.ObtainedMarks}</b>;
+                return <b>{mark.obtainedMarks}</b>;
             }
-            return mark.ObtainedMarks;
+            return mark.obtainedMarks;
         }
 
-        if (isAvgExam && mark.ESG_Id > 0) { // For Grade based subjects in AVG column?
-            return <b>{mark.ObtainedMarks}</b>;
+        if (isAvgExam && mark.esG_Id > 0) {
+            return <b>{mark.obtainedMarks}</b>;
         }
 
-        // Fallback for Grade if obtained marks is null/undefined but grade exists (e.g. for non-applicable to result)
-        if (mark.ObtainedGrade && examNameDisplay === 'AVG') {
-            return mark.ObtainedGrade;
+        if (mark.obtainedGrade && examNameDisplay === 'AVG') {
+            return mark.obtainedGrade;
         }
 
         return null;
     };
 
-    // Get Total Mark for a specific exam column in the Total Row
+    // Get total/avg marks for total row
     const getTotalMarkValue = (report: any, examId: number, groupDisplayName: string) => {
-        const mark = (report.student_marks || []).find((m: any) =>
-            (m.EME_Id === examId || m.emE_Id === examId) &&
-            (m.EMPSG_DisplayName === groupDisplayName || m.empsG_DisplayName === groupDisplayName)
+        const marksArray = report.studentmarks || report.marks || [];
+        const mark = marksArray.find((m: any) =>
+            m.emE_Id === examId && m.empsG_DisplayName === groupDisplayName
         );
-        return mark ? mark.ObtainedMarks : null;
+        return mark ? mark.obtainedMarks : null;
     };
 
     const getTotalPercentageValue = (report: any, examId: number, groupDisplayName: string) => {
-        const mark = (report.student_marks || []).find((m: any) =>
-            (m.EME_Id === examId || m.emE_Id === examId) &&
-            (m.EMPSG_DisplayName === groupDisplayName || m.empsG_DisplayName === groupDisplayName)
+        const marksArray = report.studentmarks || report.marks || [];
+        const mark = marksArray.find((m: any) =>
+            m.emE_Id === examId && m.empsG_DisplayName === groupDisplayName
         );
-        return mark ? mark.TotalPercentage : null;
+        return mark ? mark.totalPercentage : null;
     };
 
     const getRankValue = (report: any, examId: number, groupDisplayName: string) => {
-        const mark = (report.student_marks || []).find((m: any) =>
-            (m.EME_Id === examId || m.emE_Id === examId) &&
-            (m.EMPSG_DisplayName === groupDisplayName || m.empsG_DisplayName === groupDisplayName)
+        const marksArray = report.studentmarks || report.marks || [];
+        const mark = marksArray.find((m: any) =>
+            m.emE_Id === examId && m.empsG_DisplayName === groupDisplayName
         );
-        return mark ? mark.ESTMPP_SectionRank : null;
+        return mark ? mark.estmppS_SectionRank : null;
     };
 
-
-    // Personality Profile Questions (from Angular HTML)
+    // Personality Profile Questions
     const personalityQuestions = [
         "IS SELF-MOTIVATED AND COMPLETES TASK",
         "WORKS WELL WITH MINIMUM DIRECTION",
@@ -160,32 +144,25 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             </div>
 
             <div ref={printRef} className="print-area">
-                {studentDetails && studentDetails.length > 0 ? (
+                {studentDetails.length > 0 ? (
                     studentDetails.map((report: any, index: number) => {
-                        // Filter Subjects
-                        const appSubjects = (report.studentsubjects || []).filter((s: any) => s.EMPS_AppToResultFlg);
-                        const nonAppSubjects = (report.studentsubjects || []).filter((s: any) => !s.EMPS_AppToResultFlg);
+                        // Use all subjects from studentsubjects (no filtering based on missing flag)
+                        const allSubjects = report.studentsubjects || [];
 
-                        // Filter Remarks
-                        const remarks = promotionRemarks.filter((r: any) => r.AMST_Id === report.AMST_Id || r.amsT_Id === report.amsT_Id);
+                        // Remarks for this student
+                        const remarks = promotionRemarks.filter((r: any) => r.amsT_Id === report.amsT_Id);
 
-                        // Filter Graph Data
-                        const graphData = studentGraphDetails.find((g: any) => g.AMST_Id === report.AMST_Id || g.amsT_Id === report.amsT_Id);
+                        // Graph data (if any)
+                        const graphData = studentGraphDetails.find((g: any) => g.amsT_Id === report.amsT_Id);
 
                         return (
-                            <div key={index} className="bg-white p-4 mb-8 border border-gray-300 shadow-sm print:shadow-none print:border-none print:m-0 print:p-0 page-break-before-always">
+                            <div key={index} className='page-break-before-always mb-8 border border-gray-300 bg-white p-4 shadow-sm print:m-0 print:border-none print:p-0 print:shadow-none'>
 
-                                {/* Header Logic from Angular: ng-if="logo==true" */}
+                                {/* Header with logo */}
                                 {showLogo && (
-                                    <div className="flex flex-row items-center justify-between mb-4">
-                                        <div className="w-24 h-24">
-                                            {/* Left Logo - using hardcoded URL from Angular if dynamic not present, or institution logo */}
-                                            <img src={institution?.logoUrl} className="w-full h-full object-contain" alt="Left Logo" />
-                                        </div>
+                                    <div className='mb-4 flex flex-row items-center justify-between'>
                                         <div className="flex-1 text-center">
-                                            {/* Center Logo/Text */}
-                                            <img src={institution?.mI_lg} className="h-[70px] mx-auto object-contain" alt="Header Logo" />
-
+                                            <img src={institution?.mI_Logo} className='mx-auto h-auto w-auto object-contain' alt="Header Logo" />
                                         </div>
                                         <div className="w-24">&nbsp;</div>
                                     </div>
@@ -193,28 +170,28 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                 {!showLogo && <div className="mt-[130px]">&nbsp;</div>}
 
                                 <div className="relative">
-                                    {/* Background Image Wrapper */}
-                                    <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none opacity-20 print:opacity-20">
-                                        <img src={institution?.watermarkUrl} className="w-[420px] h-[417px] object-contain" alt="Watermark" />
-                                    </div>
+                                    {/* Watermark */}
+                                    {/* <div className='pointer-events-none absolute inset-0 z-0 flex items-center justify-center opacity-20 print:opacity-20'>
+                                        <img src={institution?.mI_BackgroundImage} className='h-[417px] w-[420px] object-contain' alt="Watermark" />
+                                    </div> */}
 
                                     <div className="relative z-10">
                                         {/* Exam Title */}
-                                        <table className="w-full bg-transparent mb-2">
+                                        <table className='mb-2 w-full bg-transparent'>
                                             <tbody>
                                                 <tr>
-                                                    <th className="text-center w-full uppercase text-lg border-none">
-                                                        <span>{examName} REPORT CARD {report.Accdemic || ''}</span>
+                                                    <th className='w-full border-none text-center text-lg uppercase'>
+                                                        <span>{examName} REPORT CARD {report.academicYear || ''}</span>
                                                     </th>
                                                 </tr>
                                             </tbody>
                                         </table>
 
                                         {/* Student Details */}
-                                        <table className="w-full border-collapse border border-gray-400 mb-2 bg-transparent text-sm">
+                                        <table className='mb-2 w-full border-collapse border border-gray-400 bg-transparent text-sm'>
                                             <tbody>
                                                 <tr>
-                                                    <td className="w-1/4 p-2 border border-gray-400 border-r-0 border-b-0 border-t-0 align-top">
+                                                    <td className='w-1/4 border border-gray-400 border-t-0 border-r-0 border-b-0 p-2 align-top'>
                                                         <div className="flex gap-2 mb-1">
                                                             <span className="font-bold">NAME :</span>
                                                             <span className="font-bold">{report.studentname}</span>
@@ -224,11 +201,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                             <span className="font-bold">{report.classname || params.classs}-{report.sectionname || params.clasection}</span>
                                                         </div>
                                                     </td>
-                                                    <td className="w-1/4 p-2 text-center border-none align-middle">
+                                                    <td className='w-1/4 border-none p-2 text-center align-middle'>
                                                         <b>NO. IN CLASS: <span>{studentDetails.length}</span></b>
                                                     </td>
                                                     <td className="w-1/4 p-2 text-center border-none align-middle">
-                                                        <b>ATTENDANCE: <span>{getAttendance(report.AMST_Id || report.amsT_Id).toFixed(0)}%</span></b>
+                                                        <b>ATTENDANCE: <span>{getAttendance(report.amsT_Id).toFixed(0)}%</span></b>
                                                     </td>
                                                     <td className="w-1/4 p-2 text-right border-none align-middle pr-4">
                                                         <b>STUDENT&apos;S ID: {report.admno}</b>
@@ -248,8 +225,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                 <tr className="border-[0.5px] border-gray-500">
                                                     <th className="border-[0.5px] border-gray-500 text-[13px] w-[250px] p-1">SUBJECTS</th>
                                                     {groupDetails.map((grp: any, i: number) => (
-                                                        <th key={i} colSpan={grp.groupewiseexam?.length || grp.exams?.length || 0} className="border-[0.5px] border-gray-500 text-[13px] p-1 uppercase">
-                                                            {grp.empG_DistplayName || grp.displayName}
+                                                        <th key={i} colSpan={grp.groupewiseexam?.length || 0} className="border-[0.5px] border-gray-500 text-[13px] p-1 uppercase">
+                                                            {grp.empG_DistplayName}
                                                         </th>
                                                     ))}
                                                     <th colSpan={groupDetails.length + 1} className="border-[0.5px] border-gray-500 text-[13px] p-1 uppercase">
@@ -260,15 +237,14 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                     <th className="border-[0.5px] border-gray-500 p-1" />
                                                     {groupWiseExamList.map((exa: any, i: number) => (
                                                         <th key={i} className="border-[0.5px] border-gray-500 text-[13px] w-[70px] p-1 text-center font-normal">
-                                                            {/* Logic for showing Max Marks or Exam Name */}
-                                                            {exa.examnamedisplay !== 'Total' && exa.examnamedisplay !== 'AVG' && (
-                                                                <span>{exa.EMPSGE_ForMaxMarkrs || exa.maxMarks}</span>
+                                                            {exa.displayName !== 'Total' && exa.displayName !== 'AVG' && (
+                                                                <span>{exa.maxMarks}</span>
                                                             )}
-                                                            {exa.examnamedisplay === 'Total' && exa.examnamedisplay !== 'AVG' && exa.examnamedisplay !== 'Marks Obtained' && (
-                                                                <span>{exa.EMPSGE_ForMaxMarkrs || exa.maxMarks}/50</span>
+                                                            {exa.displayName === 'Total' && (
+                                                                <span>{exa.maxMarks}/50</span>
                                                             )}
-                                                            {exa.examnamedisplay === 'AVG' && exa.examnamedisplay !== 'Total' && exa.examnamedisplay !== 'Marks Obtained' && (
-                                                                <span>{exa.examnamedisplay}</span>
+                                                            {exa.displayName === 'AVG' && (
+                                                                <span>{exa.displayName}</span>
                                                             )}
                                                         </th>
                                                     ))}
@@ -277,36 +253,36 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {/* App Subjects */}
-                                                {appSubjects.map((subj: any, i: number) => (
+                                                {/* All Subjects (no filtering) */}
+                                                {allSubjects.map((subj: any, i: number) => (
                                                     <tr key={i}>
                                                         <td className="border-[0.5px] border-gray-500 p-1 pl-2 text-left">
-                                                            {subj.ESTMPPSG_GroupAVGMarks > 0 ? (
-                                                                <span className="font-semibold">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{subj.ISMS_SubjectName}</span>
+                                                            {subj.groupAVGMarks > 0 ? (
+                                                                <span className="font-semibold">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{subj.ismS_SubjectName}</span>
                                                             ) : (
-                                                                <span className="font-normal">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{subj.ISMS_SubjectName}</span>
+                                                                <span className="font-normal">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{subj.ismS_SubjectName}</span>
                                                             )}
                                                         </td>
                                                         {groupWiseExamList.map((exa: any, j: number) => {
-                                                            const grpDisplayName = exa.EMPG_DistplayName || exa.group?.displayName; // Ensure this exists in groupWiseExamList usually
-                                                            // Note: groupWiseExamList in Angular seems to be a flat list of all columns across all groups
-
-                                                            const val = getMarkValue(report, subj.ISMS_Id, exa.EME_Id, grpDisplayName, exa.examnamedisplay || exa.EME_ExamName);
+                                                            // Find which group this exam belongs to – we need groupDisplayName
+                                                            // For simplicity, we assume groupWiseExamList entries have groupName property
+                                                            const groupDisplayName = exa.groupName;
+                                                            const val = getMarkValue(report, subj.ismS_Id, exa.examId, groupDisplayName, exa.displayName);
                                                             return (
                                                                 <td key={j} className="border-[0.5px] border-gray-500 p-1 text-center w-[50px]">
                                                                     {val}
                                                                 </td>
-                                                            )
+                                                            );
                                                         })}
                                                         {/* Super Average Columns */}
                                                         <td className="border-[0.5px] border-gray-500 p-1 text-center">
-                                                            {(subj.ISMS_Id < 1000 && showSuperAverage) && (
-                                                                <span>{subj.ESTMPPSG_GroupObtMarks}</span>
+                                                            {(subj.ismS_Id < 1000 && showSuperAverage) && (
+                                                                <span>{subj.estmppsG_GroupObtMarks}</span>
                                                             )}
                                                         </td>
                                                         <td className="border-[0.5px] border-gray-500 p-1 text-center">
-                                                            {((subj.ESG_Id === 0 || subj.ISMS_Id > 1000) && showSuperAverage) && (
-                                                                <span className="font-semibold">{subj.ESTMPPSG_GroupAVGMarks}</span>
+                                                            {((subj.esG_Id === 0 || subj.ismS_Id > 1000) && showSuperAverage) && (
+                                                                <span className="font-semibold">{subj.groupAVGMarks}</span>
                                                             )}
                                                         </td>
                                                     </tr>
@@ -318,14 +294,13 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TOTAL
                                                     </td>
                                                     {groupWiseExamList.map((exa: any, i: number) => {
-                                                        // Only show totals for 'Marks Obtained' (9800000) and 'AVG' (9800001) exams usually
-                                                        const isTotalExam = exa.EME_Id === 9800000;
-                                                        const isAvgExam = exa.EME_Id === 9800001;
-                                                        const grpDisplayName = exa.EMPG_DistplayName || exa.group?.displayName;
+                                                        const isTotalExam = exa.displayName === 'Total';
+                                                        const isAvgExam = exa.displayName === 'AVG';
+                                                        const groupDisplayName = exa.groupName;
 
                                                         let val = null;
                                                         if (isTotalExam || isAvgExam) {
-                                                            const mVal = getTotalMarkValue(report, exa.EME_Id, grpDisplayName);
+                                                            const mVal = getTotalMarkValue(report, exa.examId, groupDisplayName);
                                                             if (mVal !== null) val = <span className="font-bold">{Number(mVal).toFixed(0)}</span>;
                                                         }
 
@@ -333,20 +308,20 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                             <td key={i} className="border-[0.5px] border-gray-500 p-1 text-center">
                                                                 {val}
                                                             </td>
-                                                        )
+                                                        );
                                                     })}
                                                     {/* Super Average Totals */}
                                                     <td className="border-[0.5px] border-gray-500 p-1 text-center">
                                                         {showSuperAverage && (
                                                             <span className="font-bold">
-                                                                {examWiseTotalDetails.find((t: any) => t.AMST_Id === report.AMST_Id)?.ESTMPPSG_GroupObtMarks}
+                                                                {examWiseTotalDetails.find((t: any) => t.amsT_Id === report.amsT_Id)?.estmppsG_GroupObtMarks}
                                                             </span>
                                                         )}
                                                     </td>
                                                     <td className="border-[0.5px] border-gray-500 p-1 text-center">
                                                         {showSuperAverage && (
                                                             <span className="font-bold">
-                                                                {examWiseTotalDetails.find((t: any) => t.AMST_Id === report.AMST_Id)?.ESTMPPSG_GroupAVGMarks}
+                                                                {examWiseTotalDetails.find((t: any) => t.amsT_Id === report.amsT_Id)?.estmppsG_GroupAvgMarks}
                                                             </span>
                                                         )}
                                                     </td>
@@ -358,13 +333,13 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PERCENTAGE
                                                     </td>
                                                     {groupWiseExamList.map((exa: any, i: number) => {
-                                                        const isTotalExam = exa.EME_Id === 9800000;
-                                                        const isAvgExam = exa.EME_Id === 9800001;
-                                                        const grpDisplayName = exa.EMPG_DistplayName || exa.group?.displayName;
+                                                        const isTotalExam = exa.displayName === 'Total';
+                                                        const isAvgExam = exa.displayName === 'AVG';
+                                                        const groupDisplayName = exa.groupName;
 
                                                         let val = null;
                                                         if (isTotalExam || isAvgExam) {
-                                                            const pVal = getTotalPercentageValue(report, exa.EME_Id, grpDisplayName);
+                                                            const pVal = getTotalPercentageValue(report, exa.examId, groupDisplayName);
                                                             if (pVal !== null) val = <span className="font-bold">{Number(pVal).toFixed(0)}</span>;
                                                         }
 
@@ -372,19 +347,19 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                             <td key={i} className="border-[0.5px] border-gray-500 p-1 text-center">
                                                                 {val}
                                                             </td>
-                                                        )
+                                                        );
                                                     })}
                                                     <td className="border-[0.5px] border-gray-500 p-1 text-center">
                                                         {showSuperAverage && (
                                                             <span className="font-bold">
-                                                                {examWiseTotalDetails.find((t: any) => t.AMST_Id === report.AMST_Id)?.TotalPercentage}
+                                                                {examWiseTotalDetails.find((t: any) => t.amsT_Id === report.amsT_Id)?.totalPercentage}
                                                             </span>
                                                         )}
                                                     </td>
                                                     <td className="border-[0.5px] border-gray-500 p-1 text-center">
                                                         {showSuperAverage && (
                                                             <span className="font-bold">
-                                                                {examWiseTotalDetails.find((t: any) => t.AMST_Id === report.AMST_Id)?.totaver}
+                                                                {examWiseTotalDetails.find((t: any) => t.amsT_Id === report.amsT_Id)?.totaver}
                                                             </span>
                                                         )}
                                                     </td>
@@ -396,12 +371,12 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RANK
                                                     </td>
                                                     {groupWiseExamList.map((exa: any, i: number) => {
-                                                        const isTotalExam = exa.EME_Id === 9800000;
-                                                        const grpDisplayName = exa.EMPG_DistplayName || exa.group?.displayName;
+                                                        const isTotalExam = exa.displayName === 'Total';
+                                                        const groupDisplayName = exa.groupName;
 
                                                         let val = null;
                                                         if (isTotalExam) {
-                                                            const rVal = getRankValue(report, exa.EME_Id, grpDisplayName);
+                                                            const rVal = getRankValue(report, exa.examId, groupDisplayName);
                                                             if (rVal !== null) val = <span className="font-bold">{rVal}</span>;
                                                         }
 
@@ -409,45 +384,16 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                             <td key={i} className="border-[0.5px] border-gray-500 p-1 text-center">
                                                                 {val}
                                                             </td>
-                                                        )
+                                                        );
                                                     })}
                                                     <td colSpan={2} className="border-[0.5px] border-gray-500 p-1 text-center" />
                                                 </tr>
-
-                                                {/* Non-App Subjects */}
-                                                {nonAppSubjects.map((subj: any, i: number) => (
-                                                    <tr key={i}>
-                                                        <td className="border-[0.5px] border-gray-500 p-1 pl-2 text-left text-[12px]">{subj.ISMS_SubjectName}</td>
-                                                        {groupWiseExamList.map((exa: any, j: number) => {
-                                                            const grpDisplayName = exa.EMPG_DistplayName || exa.group?.displayName;
-                                                            // Logic for non-app subjects is slightly different in Angular:
-                                                            // It iterates report.studentmarks again. I'll use the same getMarkValue helper but logic might vary check 'mrks.PassFailFlag'
-                                                            const val = getMarkValue(report, subj.ISMS_Id, exa.EME_Id, grpDisplayName, exa.examnamedisplay || exa.EME_ExamName);
-                                                            return (
-                                                                <td key={j} className="border-[0.5px] border-gray-500 p-1 text-center w-[50px]">
-                                                                    {val}
-                                                                </td>
-                                                            )
-                                                        })}
-                                                        <td className="border-[0.5px] border-gray-500 p-1 text-center">
-                                                            {showSuperAverage && <span className="font-bold">{subj.ESTMPPSG_GroupObtMarks}</span>}
-                                                        </td>
-                                                        <td className="border-[0.5px] border-gray-500 p-1 text-center">
-                                                            {showSuperAverage && <span className="font-bold">{subj.ESTMPPSG_GroupObtGrade}</span>}
-                                                        </td>
-                                                    </tr>
-                                                ))}
-
                                             </tbody>
                                         </table>
 
                                         {/* Bottom Section: Co-Scholastic & Personality */}
                                         <div className="flex border-[0.5px] border-gray-500 border-t-0">
-
-                                            {/* Left Column: Graded Subjects & Personality - Wait, Angular puts Table LEFT: Co-Scholastic? No.
-                                                Angular: Table 1 (Graded Subjects), Table 2 (Personality) are in col-sm-7.
-                                                Chart is in col-sm-5.
-                                            */}
+                                            {/* Left Column: Graded Subjects & Personality */}
                                             <div className="w-[60%] border-r-[0.5px] border-gray-500">
                                                 {/* Graded Subjects */}
                                                 <table className="w-full text-[13px] bg-transparent">
@@ -461,17 +407,18 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                     <tbody>
                                                         {skillDetails.map((skill: any, i: number) => (
                                                             <tr key={i} className="border-b-[0.5px] border-gray-500 last:border-b-0">
-                                                                <td className="border-r-[0.5px] border-gray-500 p-1 pl-4 text-left font-normal text-[13px]">&nbsp;&nbsp;&nbsp;{skill.ECACT_SkillName}</td>
-                                                                {/* Mapping Grades for this skill */}
-                                                                {/* Assuming 2 terms? Angular iterates `getallgrade` matching skill ID */}
+                                                                <td className="border-r-[0.5px] border-gray-500 p-1 pl-4 text-left font-normal text-[13px]">&nbsp;&nbsp;&nbsp;{skill.ecactA_SkillArea || skill.skillName}</td>
                                                                 <td className="border-r-[0.5px] border-gray-500 p-1 text-center text-[11px]">
-                                                                    {/* Half Yearly Logic - Needs data structure verification. Assuming first match is HY? or filtered? */}
-                                                                    {/* Angular does: ng-repeat cce in getallgrade. if cce.ECACT_Id == ccce.ECACT_Id. Show EMGD_Name. */}
-                                                                    {/* It renders multiple TDs in Angular. Here strict columns. */}
-                                                                    {gradeDetails.find((g: any) => g.AMST_Id === report.AMST_Id && g.ECACT_Id === skill.ECACT_Id && g.ECSACTT_Score > 0 /* Add term logic if needed */)?.EMGD_Name}
+                                                                    {gradeDetails
+                                                                        .filter((g: any) => g.amsT_Id === report.amsT_Id && g.ecacT_SkillName === skill.ecactA_SkillArea && g.emE_ExamName === 'First Unit Test')
+                                                                        .map((g: any) => g.emgD_Name)
+                                                                        .join(', ')}
                                                                 </td>
                                                                 <td className="p-1 text-center text-[11px]">
-                                                                    {/* Final Logic - Placeholder or second item */}
+                                                                    {gradeDetails
+                                                                        .filter((g: any) => g.amsT_Id === report.amsT_Id && g.ecacT_SkillName === skill.ecactA_SkillArea && g.emE_ExamName === 'FINAL EXAMINATION')
+                                                                        .map((g: any) => g.emgD_Name)
+                                                                        .join(', ')}
                                                                 </td>
                                                             </tr>
                                                         ))}
@@ -510,16 +457,13 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                     <tbody>
                                                         <tr>
                                                             <td className="pt-4 flex justify-center h-[252px]">
-                                                                {/* Using a Pie Chart as seen in Angular logic (pieChart id) - wait angular has "pieChart" but also "bar"? angular says "pieChart" 
-                                                                    Data sources needed.
-                                                                 */}
                                                                 <div className="relative w-[250px] h-[250px]">
-                                                                    {/* Placeholder Chart */}
+                                                                    {/* Placeholder Pie Chart – replace with actual data */}
                                                                     <Pie
                                                                         data={{
-                                                                            labels: ['English', 'Maths', 'Science', 'Social', 'Hindi'], // Mock
+                                                                            labels: ['English', 'Maths', 'Science', 'Social', 'Hindi'],
                                                                             datasets: [{
-                                                                                data: [80, 75, 90, 85, 88], // Mock
+                                                                                data: [80, 75, 90, 85, 88],
                                                                                 backgroundColor: [
                                                                                     'rgba(255, 99, 132, 0.6)',
                                                                                     'rgba(54, 162, 235, 0.6)',
@@ -564,7 +508,6 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                 </tr>
                                             </thead>
                                         </table>
-
                                     </div>
                                 </div>
                             </div>
