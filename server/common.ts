@@ -1723,7 +1723,7 @@ export async function getUserAccessibleModules() {
                                             title: 'Religion-Category Mapping',
                                             description: 'Map Religion & Category'
                                         },
-                                        
+
                                     ]
                                 },
                                 {
@@ -1757,7 +1757,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 3,
+                                    id: 7,
                                     name: 'Transactions',
                                     icon: 'FileText',
                                     pages: [
@@ -1820,7 +1820,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 4,
+                                    id: 6,
                                     name: 'Reports',
                                     icon: 'FileText',
                                     pages: [
@@ -2364,6 +2364,21 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
+                                    id: 4,
+                                    name: 'Leave Config',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Leave Configuration',
+                                            icon: 'CheckSquare',
+                                            url: '/hrms/leave-management/leave-Configuration',
+                                            title: 'Leave Configuration',
+                                            description: 'Leave Configuration'
+                                        }
+                                    ]
+                                },
+                                {
                                     id: 2,
                                     name: 'Apply Leave',
                                     icon: 'FileText',
@@ -2415,14 +2430,14 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Comp Off Request',
                                         //     description: 'Request Compensatory Off'
                                         // },
-                                        {
-                                            id: 4,
-                                            name: 'Leave Credit Details',
-                                            icon: 'Info',
-                                            url: '/hrms/leave-management/transaction/leave-credit-details',
-                                            title: 'Leave  Details',
-                                            description: 'View Leave Credit Details'
-                                        },
+                                        // {
+                                        //     id: 4,
+                                        //     name: 'Leave Credit Details',
+                                        //     icon: 'Info',
+                                        //     url: '/hrms/leave-management/transaction/leave-credit-details',
+                                        //     title: 'Leave  Details',
+                                        //     description: 'View Leave Credit Details'
+                                        // },
                                         {
                                             id: 5,
                                             name: 'Leave Transaction',
@@ -2450,7 +2465,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 4,
+                                    id: 5,
                                     name: 'Report',
                                     icon: 'FileText',
                                     pages: [
@@ -5123,7 +5138,7 @@ export async function getUserAccessibleModules() {
                             sub_menu: [
                                 {
                                     id: 80016,
-                                    name: 'Leave Management',
+                                    name: 'Leave Config',
                                     icon: 'CalendarDays',
                                     pages: [
                                         {
