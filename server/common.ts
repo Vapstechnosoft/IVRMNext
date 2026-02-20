@@ -1567,6 +1567,14 @@ export async function getUserAccessibleModules() {
                                             description: 'Report Card_X'
                                         },
                                         {
+                                            id: 89,
+                                            name: 'AI Performance Analysis',
+                                            icon: 'Sparkles',
+                                            url: '/Exam/exam-module/ai-performance-analysis',
+                                            title: 'AI Performance Analysis',
+                                            description: 'AI-driven student performance analysis and insights'
+                                        },
+                                        {
                                             id: 90,
                                             name: 'Stella Progress Report',
                                             icon: 'BookOpen',
@@ -1575,13 +1583,22 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Stella Progress Card Report Details'
                                         },
                                         {
-                                            id: 89,
-                                            name: 'AI Performance Analysis',
-                                            icon: 'Sparkles',
-                                            url: '/Exam/exam-module/ai-performance-analysis',
-                                            title: 'AI Performance Analysis',
-                                            description: 'AI-driven student performance analysis and insights'
+                                            id: 91,
+                                            name:  'Stella Marks Entry Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/stella_marks_entry_report',
+                                            title: 'Stella Marks Entry Report',
+                                            description: 'Manage Stella Marks Entry Report Details'
+
                                         },
+                                        {
+                                            id: 92,
+                                            name: "Vidyaniketan Performance Ananlysis Report",
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/vidyaniketan-performance-analysis-report',
+                                            title: "Vidyaniketan Performance Ananlysis Report",
+                                            description: "Manage Vidyaniketan Performance Ananlysis Report Details"
+                                        }
                                     ]
                                 }
                             ]
