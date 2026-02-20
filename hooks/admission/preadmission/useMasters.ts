@@ -10,7 +10,8 @@ import {
     getMasterClassCategory,
     getMasterClassDropdown,
     getMasterSectionDropdown,
-    getMasterUnmappedClassDropdown
+    getMasterUnmappedClassDropdown,
+    getMasterCategoryDropdown
 } from '@/server/admission/preadmission/masters/class_category';
 import { getMasterMonthDropDownList, getMasterSectionHeld } from '@/server/admission/preadmission/masters/class_held';
 import { getEmployeeDrowpDown, getMasterClassTeacher, getTeacherClassSection } from '@/server/admission/preadmission/masters/class_teacher';
@@ -337,7 +338,7 @@ export const useMasterCategoryDropdown = () => {
     return {
         ...useQuery({
             queryKey: [ADMISSION_QUERY_KEYS.MASTER_CATEGORY_DROPDOWN],
-            queryFn: async () => getMasterCategory({ page: 1, page_size: 10000 }),
+            queryFn: async () => getMasterCategoryDropdown(),
             staleTime: 0
         }),
         refetchAll: () => {

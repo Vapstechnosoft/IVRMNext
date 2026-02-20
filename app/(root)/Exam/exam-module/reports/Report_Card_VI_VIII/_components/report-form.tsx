@@ -161,12 +161,24 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     };
 
     const onSubmit = async (data: ReportCardViViiiSchema) => {
-        console.log('Report Card VI_VIII payload:', data);
+        // Transform data to match the requested payload format
+        const payload = {
+            asmaY_Id: Number(data.ASMAY_Id),
+            asmcL_Id: Number(data.ASMCL_Id),
+            asmS_Id: Number(data.ASMS_Id),
+            temp_AmstIds: data.selectedStudents.map(id => ({
+                amsT_Id: Number(id)
+            }))
+        };
+
+        console.log('Report Card VI_VIII payload:', payload);
         try {
             const [result, institutionRes] = await Promise.all([
-                getReportDetails(data),
+                getReportDetails(payload),
                 getMasterInstitution()
             ]);
+            console.log('Report Card VI_VIII result:', result);
+            console.log('Report Card VI_VIII institution:', institutionRes);
             onReportGenerated({ ...result, institution: institutionRes?.data }, data);
         } catch (error) {
             console.error('Error:', error);

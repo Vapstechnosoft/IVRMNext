@@ -15,6 +15,10 @@ export async function savePeriod(data: any) {
     return await api.post<any>('timetable', url, data);
 }
 
+export async function savePeriodPeriodAllocation(data: any) {
+    const url = '/TimeTableCommon/AddOrUpdateMasterPeriod';
+    return await api.post<any>('timetable', url, data);
+}
 export async function savePeriodClass(data: any) {
     const url = '/PeriodAllocation/savedetail/';
     return await api.post<any>('timetable', url, data);
