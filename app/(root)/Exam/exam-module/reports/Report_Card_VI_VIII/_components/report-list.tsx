@@ -38,18 +38,25 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     };
 
     // Main Data Sources
-    const studentDetails = data.studentDetails || data.getstudentdetails || [];
-    const groupDetails = data.groupDetails || data.getgroupdetails || [];
-    const groupWiseExamList = data.groupWiseExamList || data.groupwiseexamlist || [];
-    const institution = (data.institutionList && data.institutionList[0]) || data.masterinstitution || data.institution || data.getinstitution;
-    const gradeDetails = data.gradeDetails || data.getallgrade || []; // For Co-Scholastic grades
+    // Main Data Sources
+    // Console log to debug data
+    console.log('ReportList Received Data:', data);
+
+    // Check various casing possibilities and ensure we don't trap on empty array if valid data exists elsewhere
+    const studentDetails = data.getstudentdetails;
+
+    console.log('Resolved studentDetails:', studentDetails);
+    const groupDetails = data.getgroupdetails || [];
+    const groupWiseExamList = data.groupwiseexamlist || [];
+    const institution = (data.institutionList?.[0]) || data.masterinstitution || data.institution || data.getinstitution;
+    const gradeDetails = data.getallgrade || []; // For Co-Scholastic grades
     const skillDetails = data.skillDetails || data.getskill || []; // For Co-Scholastic skills
-    const examWiseTotalDetails = data.examWiseTotalDetails || data.getexamwisetotaldetails || [];
+    const examWiseTotalDetails = data.getexamwisetotaldetails || [];
     const promotionRemarks = data.promotionRemarks || data.getpromotionremarksdetails || [];
     const studentGraphDetails = data.studentGraphDetails || data.studentdetailsgraph || [];
 
     // Attendance Sources
-    const presentAttendance = data.presentAttendance || data.stud_present_attendence || [];
+    const presentAttendance = data.work_attendence || [];
 
     // Config Flags
     const showLogo = params.printLogo;
@@ -173,17 +180,12 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                     <div className="flex flex-row items-center justify-between mb-4">
                                         <div className="w-24 h-24">
                                             {/* Left Logo - using hardcoded URL from Angular if dynamic not present, or institution logo */}
-                                            <img src="https://dcampusstrg.blob.core.windows.net/files/17/Trnsportdocuments/7115f492-3955-47e6-97d9-187413d0f3a5.jpg" className="w-full h-full object-contain" alt="Left Logo" />
+                                            <img src={institution?.logoUrl} className="w-full h-full object-contain" alt="Left Logo" />
                                         </div>
                                         <div className="flex-1 text-center">
                                             {/* Center Logo/Text */}
-                                            <img src="https://sthomashowrah.blob.core.windows.net/files/Logo Header stt.jpg" className="h-[70px] mx-auto object-contain" alt="Header Logo" />
-                                            <div className="text-[9px] leading-tight space-y-0.5 mt-1">
-                                                <p>(Diocese of Calcutta, CNI)</p>
-                                                <p>A Christian Minority Co-Educational English Medium School under Article 30 of the Indian Constitution)</p>
-                                                <p>3, Church Road, Howrah-711101 West Bengal, India</p>
-                                                <p>Phone No: +91 33 2641 2138,+91 33 2641 3590 Email ID: stesh1860@gmail.com</p>
-                                            </div>
+                                            <img src={institution?.mI_lg} className="h-[70px] mx-auto object-contain" alt="Header Logo" />
+
                                         </div>
                                         <div className="w-24">&nbsp;</div>
                                     </div>
@@ -193,7 +195,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                 <div className="relative">
                                     {/* Background Image Wrapper */}
                                     <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none opacity-20 print:opacity-20">
-                                        <img src="https://sthomashowrah.blob.core.windows.net/files/4/stthomos.jpeg" className="w-[420px] h-[417px] object-contain" alt="Watermark" />
+                                        <img src={institution?.watermarkUrl} className="w-[420px] h-[417px] object-contain" alt="Watermark" />
                                     </div>
 
                                     <div className="relative z-10">
@@ -255,7 +257,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                     </th>
                                                 </tr>
                                                 <tr>
-                                                    <th className="border-[0.5px] border-gray-500 p-1"></th>
+                                                    <th className="border-[0.5px] border-gray-500 p-1" />
                                                     {groupWiseExamList.map((exa: any, i: number) => (
                                                         <th key={i} className="border-[0.5px] border-gray-500 text-[13px] w-[70px] p-1 text-center font-normal">
                                                             {/* Logic for showing Max Marks or Exam Name */}
@@ -337,14 +339,14 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                     <td className="border-[0.5px] border-gray-500 p-1 text-center">
                                                         {showSuperAverage && (
                                                             <span className="font-bold">
-                                                                {(examWiseTotalDetails.find((t: any) => t.AMST_Id === report.AMST_Id) || {}).ESTMPPSG_GroupObtMarks}
+                                                                {examWiseTotalDetails.find((t: any) => t.AMST_Id === report.AMST_Id)?.ESTMPPSG_GroupObtMarks}
                                                             </span>
                                                         )}
                                                     </td>
                                                     <td className="border-[0.5px] border-gray-500 p-1 text-center">
                                                         {showSuperAverage && (
                                                             <span className="font-bold">
-                                                                {(examWiseTotalDetails.find((t: any) => t.AMST_Id === report.AMST_Id) || {}).ESTMPPSG_GroupAVGMarks}
+                                                                {examWiseTotalDetails.find((t: any) => t.AMST_Id === report.AMST_Id)?.ESTMPPSG_GroupAVGMarks}
                                                             </span>
                                                         )}
                                                     </td>
@@ -375,14 +377,14 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                     <td className="border-[0.5px] border-gray-500 p-1 text-center">
                                                         {showSuperAverage && (
                                                             <span className="font-bold">
-                                                                {(examWiseTotalDetails.find((t: any) => t.AMST_Id === report.AMST_Id) || {}).TotalPercentage}
+                                                                {examWiseTotalDetails.find((t: any) => t.AMST_Id === report.AMST_Id)?.TotalPercentage}
                                                             </span>
                                                         )}
                                                     </td>
                                                     <td className="border-[0.5px] border-gray-500 p-1 text-center">
                                                         {showSuperAverage && (
                                                             <span className="font-bold">
-                                                                {(examWiseTotalDetails.find((t: any) => t.AMST_Id === report.AMST_Id) || {}).totaver}
+                                                                {examWiseTotalDetails.find((t: any) => t.AMST_Id === report.AMST_Id)?.totaver}
                                                             </span>
                                                         )}
                                                     </td>
@@ -409,7 +411,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                             </td>
                                                         )
                                                     })}
-                                                    <td colSpan={2} className="border-[0.5px] border-gray-500 p-1 text-center"></td>
+                                                    <td colSpan={2} className="border-[0.5px] border-gray-500 p-1 text-center" />
                                                 </tr>
 
                                                 {/* Non-App Subjects */}
@@ -466,7 +468,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                                     {/* Half Yearly Logic - Needs data structure verification. Assuming first match is HY? or filtered? */}
                                                                     {/* Angular does: ng-repeat cce in getallgrade. if cce.ECACT_Id == ccce.ECACT_Id. Show EMGD_Name. */}
                                                                     {/* It renders multiple TDs in Angular. Here strict columns. */}
-                                                                    {(gradeDetails.find((g: any) => g.AMST_Id === report.AMST_Id && g.ECACT_Id === skill.ECACT_Id && g.ECSACTT_Score > 0 /* Add term logic if needed */) || {}).EMGD_Name}
+                                                                    {gradeDetails.find((g: any) => g.AMST_Id === report.AMST_Id && g.ECACT_Id === skill.ECACT_Id && g.ECSACTT_Score > 0 /* Add term logic if needed */)?.EMGD_Name}
                                                                 </td>
                                                                 <td className="p-1 text-center text-[11px]">
                                                                     {/* Final Logic - Placeholder or second item */}
