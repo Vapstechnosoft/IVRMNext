@@ -40,8 +40,8 @@ export default function UpdateLeaveAuthorizationForm({
         }
         return institutionsData.data
             .map((item: any) => ({
-                value: String(item.mI_Id || ''),
-                label: String(item.mI_Name || '')
+                value: String(item.mI_Id || item.MI_Id || item.miId || ''),
+                label: String(item.mI_Name || item.MI_Name || item.institutionName || item.miName || item.institution || '')
             }))
             .filter((item: { value: string; label: string }) => item.value && item.label);
     }, [institutionsData]);
@@ -116,15 +116,17 @@ export default function UpdateLeaveAuthorizationForm({
 
         // Map values to strings for form state
         const formValues = {
-            institution: String(dataToUse.institution || 'Vaps Knowledge Services Pvt Ltd'),
+            id: dataToUse.id,
+            _HRLA_Id: (dataToUse as any)._HRLA_Id,
+            institution: String((dataToUse as any).mI_Id || (dataToUse as any).MI_Id || (dataToUse as any).miId || ''),
             // Normalize all ID fields to strings
-            hrmG_GradeName: String((dataToUse as any).hrmG_Id || (dataToUse as any).gradeId || ''),
-            hrmgT_EmployeeGroupType: String((dataToUse as any).hrmgT_Id || (dataToUse as any).groupTypeId || ''),
-            hrmD_DepartmentName: String((dataToUse as any).hrmD_Id || (dataToUse as any).departmentId || ''),
-            hrmdeS_DesignationName: String((dataToUse as any).hrmdeS_Id || (dataToUse as any).designationId || ''),
-            hrmL_LeaveName: String((dataToUse as any).hrmL_Id || (dataToUse as any).leaveTypeId || ''),
-            hrlaoN_SanctionLevelNo: String(dataToUse.hrlaoN_SanctionLevelNo || (dataToUse as any).orderOfApproval || ''),
-            hrmE_EmployeeFirstName: String((dataToUse as any).approvalPersonId || (dataToUse as any).hrmE_Id || ''),
+            hrmG_GradeName: String((dataToUse as any).hrmG_Id || (dataToUse as any).gradeId || (dataToUse as any).HRMG_Id || ''),
+            hrmgT_EmployeeGroupType: String((dataToUse as any).hrmgT_Id || (dataToUse as any).groupTypeId || (dataToUse as any).HRMGT_Id || ''),
+            hrmD_DepartmentName: String((dataToUse as any).hrmD_Id || (dataToUse as any).departmentId || (dataToUse as any).HRMD_Id || ''),
+            hrmdeS_DesignationName: String((dataToUse as any).hrmdeS_Id || (dataToUse as any).designationId || (dataToUse as any).HRMDES_Id || ''),
+            hrmL_LeaveName: String((dataToUse as any).hrmL_Id || (dataToUse as any).leaveTypeId || (dataToUse as any).HRML_Id || ''),
+            hrlaoN_SanctionLevelNo: String(dataToUse.hrlaoN_SanctionLevelNo || (dataToUse as any).orderOfApproval || (dataToUse as any).HRLAON_SanctionLevelNo || ''),
+            hrmE_EmployeeFirstName: String((dataToUse as any).approvalPersonId || (dataToUse as any).hrmE_Id || (dataToUse as any).HRME_Id || ''),
             finalFlag: !!dataToUse.finalFlag
         };
 
@@ -135,7 +137,8 @@ export default function UpdateLeaveAuthorizationForm({
         updateLeaveAuthorization(
             {
                 ...data,
-                id: row.id
+                id: data.id || row.id,
+                _HRLA_Id: data._HRLA_Id || row._HRLA_Id
             },
             {
                 onSuccess: () => {
@@ -203,7 +206,7 @@ export default function UpdateLeaveAuthorizationForm({
                                     </SelectTrigger>
                                     <SelectContent>
                                         {institutionOptions.map((option) => (
-                                            <SelectItem key={option.value} value={option.label}>
+                                            <SelectItem key={option.value} value={option.value}>
                                                 {option.label}
                                             </SelectItem>
                                         ))}

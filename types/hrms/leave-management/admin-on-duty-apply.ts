@@ -84,6 +84,9 @@ export interface EmployeeDetails {
  * API Request for saving On Duty Leave
  */
 export interface OnDutyLeaveSaveRequest {
+    MI_Id?: number;
+    UserId?: number;
+    hrelaP_Id?: number;
     hrmE_Id: number;
     hrmL_LeaveType: string;
     hrelaP_LeaveReason: string;

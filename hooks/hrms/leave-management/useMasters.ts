@@ -21,6 +21,7 @@ import {
     toggleMasterLeave as toggleMasterLeaveAPI,
     updateMasterLeaveOrder as updateMasterLeaveOrderAPI
 } from '@/server/hrms/leave-management/masters/master-leave';
+import { getMasterLeaveYear } from '@/server/hrms/hrmsConfig/master/leave-year';
 import { getTimetableData } from '@/server/timetable/transactions/staff-replacement-in-unallocated-period';
 import type { ApiSearchparams } from '@/types';
 import type { LeaveAuthorizationGetResponseData } from '@/types/hrms/leave-management/leave-authorization';
@@ -450,14 +451,35 @@ export function useMasterLeaveYear() {
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR],
+            // queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR],
             queryFn: async () => {
-                return {
-                    success: true,
-                    data: db.list(),
-                    message: 'Master leave year fetched successfully'
-                };
+                try {
+                    const response = await getMasterLeaveYear();
+                    const res = response as any;
+
+                    // Handle wrapped response
+                    if (res.success !== undefined && !res.success) {
+                        throw new Error(res.message || 'Failed to fetch master leave year');
+                    }
+
+                    const data = res.data || res || [];
+
+                    return {
+                        success: true,
+                        data: Array.isArray(data) ? data : [],
+                        message: 'Master leave year fetched successfully'
+                    };
+                } catch (error: any) {
+                    console.error('Error fetching master leave year:', error);
+                    // Fallback to empty array to avoid breaking UI
+                    return {
+                        success: false,
+                        data: [],
+                        message: error?.message || 'Failed to fetch master leave year'
+                    };
+                }
             },
-            staleTime: 0
+            staleTime: 5 * 60 * 1000 // Cache for 5 mins
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -531,10 +553,9 @@ function mapApiDataToLeaveAuthorization(apiData: LeaveAuthorizationGetResponseDa
         return null;
     }
     const data = apiData as any;
-    // Normalize mapping for both camelCase and PascalCase
-    // Normalize mapping for both camelCase and PascalCase
     const mappedData: LeaveAuthorization & {
         _HRLA_Id?: number;
+        mI_Id?: number;
         hrmG_Id?: number;
         hrmgT_Id?: number;
         hrmD_Id?: number;
@@ -554,6 +575,7 @@ function mapApiDataToLeaveAuthorization(apiData: LeaveAuthorizationGetResponseDa
             0,
         createdAt: data.createdDate || data.CreatedDate ? new Date(data.createdDate || data.CreatedDate) : new Date(),
         institution: data.mI_Name || data.institutionName || data.InstitutionName || data.institution || '',
+        mI_Id: data.mI_Id || data.MI_Id,
         hrmG_GradeName: data.hrmG_GradeName || data.HRMG_GradeName || data.gradeName || '',
         hrmgT_EmployeeGroupType:
             data.hrmgT_EmployeeGroupType ||
@@ -1030,29 +1052,29 @@ function mapApiDataToLeaveConfiguration(apiData: LeaveConfigurationData | null):
  */
 function mapLeaveConfigurationToApiData(data: LeaveConfigurationFormData): LeaveConfigurationSaveRequest {
     return {
-        HRLPC_Id: data.id || 0,
-        MI_Id: HRMS_MI_ID,
-        HRLPC_SpOrGenFlg: data.spOrGenFlg,
-        HRLPC_PunchGAPTime: data.punchGapTime || '00:15',
-        HRLPC_AbsentFlag: data.absentFlag,
-        HRLPC_LateInEarlyOutFlag: data.lateInEarlyOutFlag,
-        HRLPC_LateInRelaxFlag: data.lateInRelaxFlag,
-        HRLPC_LateInEarlyOut: data.lateInEarlyOut || 'LateIn',
-        HRLPC_LateInTime: data.lateInTime,
-        HRLPC_EarlyOutRelaxFlag: data.earlyOutRelaxFlag,
-        HRLPC_EarlyOutTime: data.earlyOutTime,
-        HRLPC_CummulativeTimeFlag: data.cummulativeTimeFlag,
-        HRLPC_CummulativeTime: Number(data.cummulativeTime),
-        HRLPC_AfterCummulativeTime: data.afterCummulativeTime,
-        HRLPC_NoOfLatesFlag: data.noOfLatesFlag,
-        HRLPC_NoofMonthlyLateInExempted: Number(data.noofMonthlyLateInExempted),
-        HRLPC_NoOfLates: Number(data.noOfLates),
-        HRLPC_NoOfLatesCFFlag: data.noOfLatesCFFlag,
-        HRLPC_LeavePrefixSuffixFlag: data.leavePrefixSuffixFlag,
-        HRLPC_IncludeHolidayFlag: data.includeHolidayFlag,
-        HRLPC_ActiveFlag: data.activeFlag,
-        HRLPC_CreatedBy: 0,
-        HRLPC_UpdatedBy: 0
+        hrlpC_Id: data.id || 0,
+        mI_Id: HRMS_MI_ID,
+        hrlpC_SpOrGenFlg: data.spOrGenFlg,
+        hrlpC_PunchGAPTime: data.punchGapTime || '00:15',
+        hrlpC_AbsentFlag: data.absentFlag,
+        hrlpC_LateInEarlyOutFlag: data.lateInEarlyOutFlag,
+        hrlpC_LateInRelaxFlag: data.lateInRelaxFlag,
+        hrlpC_LateInEarlyOut: data.lateInEarlyOut || 'LateIn',
+        hrlpC_LateInTime: data.lateInTime,
+        hrlpC_EarlyOutRelaxFlag: data.earlyOutRelaxFlag,
+        hrlpC_EarlyOutTime: data.earlyOutTime,
+        hrlpC_CummulativeTimeFlag: data.cummulativeTimeFlag,
+        hrlpC_CummulativeTime: Number(data.cummulativeTime),
+        hrlpC_AfterCummulativeTime: data.afterCummulativeTime,
+        hrlpC_NoOfLatesFlag: data.noOfLatesFlag,
+        hrlpC_NoofMonthlyLateInExempted: Number(data.noofMonthlyLateInExempted),
+        hrlpC_NoOfLates: Number(data.noOfLates),
+        hrlpC_NoOfLatesCFFlag: data.noOfLatesCFFlag,
+        hrlpC_LeavePrefixSuffixFlag: data.leavePrefixSuffixFlag,
+        hrlpC_IncludeHolidayFlag: data.includeHolidayFlag,
+        hrlpC_ActiveFlag: data.activeFlag,
+        hrlpC_CreatedBy: 0,
+        hrlpC_UpdatedBy: 0
     };
 }
 

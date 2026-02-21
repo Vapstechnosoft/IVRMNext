@@ -2555,14 +2555,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Apply Leave',
                                             description: 'Submit Leave Application'
                                         },
-                                        {
-                                            id: 2,
-                                            name: 'Leave Approval',
-                                            icon: 'CheckCircle',
-                                            url: '/hrms/leave-management/leave-approval',
-                                            title: 'Leave Approval',
-                                            description: 'Approve or Reject Leave Requests'
-                                        }
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Leave Approval',
+                                        //     icon: 'CheckCircle',
+                                        //     url: '/hrms/leave-management/leave-approval',
+                                        //     title: 'Leave Approval',
+                                        //     description: 'Approve or Reject Leave Requests'
+                                        // }
                                     ]
                                 },
                                 {
@@ -5293,7 +5293,7 @@ export async function getUserAccessibleModules() {
                             sub_menu: [
                                 {
                                     id: 80016,
-                                    name: 'Leave Config',
+                                    name: 'Leave Management',
                                     icon: 'CalendarDays',
                                     pages: [
                                         {
@@ -5303,6 +5303,15 @@ export async function getUserAccessibleModules() {
                                             url: '/StaffPortal/leave-management/online-leave-application',
                                             title: 'Online Leave Application',
                                             description: 'Apply for leaves'
+                                        },
+
+                                        {
+                                            id: 80019,
+                                            name: 'Leave Approval',
+                                            icon: 'CheckCircle',
+                                            url: '/StaffPortal/leave-management/leave-approval',
+                                            title: 'Leave Approval',
+                                            description: 'Approve or Reject Leave Requests'
                                         }
                                     ]
                                 }
@@ -5430,6 +5439,8 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/masters/attendance-details',
                                             title: 'Attendance Details'
                                         },
+
+
                                         {
                                             id: 40003,
                                             name: 'Online Leave Apply',
