@@ -1,14 +1,12 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { usebifurcationGrid } from '@/hooks/timetable/constraints/bifurcationconstraints';
 import { Plus, X } from 'lucide-react';
-import BifurcationConstraintsForm from './bifurcation-constraints-form';
-import { type IBifurcationConstraintList, columns } from './columns';
-import ToggleBifurcationConstraints from './toggle-form';
+import type { IBifurcationConstraintList } from './columns';
 import BifurcationViewModal from './view-modal';
 
 interface BifurcationConstraintsProps {
@@ -51,7 +49,7 @@ function BifurcationConstraintsContent({ initialData }: BifurcationConstraintsPr
                     )}
                 </div>
 
-                <CollapsibleSection
+                {/* <CollapsibleSection
                     defaultOpen={true}
                     variant='default'
                     size='lg'
@@ -60,13 +58,13 @@ function BifurcationConstraintsContent({ initialData }: BifurcationConstraintsPr
                         isLoading={isLoading}
                         {...tableProps}
                         //data={dataList}
-                        columns={columns}
+                        // columns={columns}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading constraints...'
                         noDataTitle='No Bifurcation Constraints Found'
                         noDataDescription='Add a new constraint to get started'
                     />
-                </CollapsibleSection>
+                </CollapsibleSection> */}
 
                 <FormSections initialData={initialData} refetchAll={refetchAll} />
             </div>
@@ -116,7 +114,7 @@ function FormSections({ initialData, refetchAll }: { initialData: any; refetchAl
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <BifurcationConstraintsForm initialData={initialData} onSuccess={handleSuccess} onCancel={closeAddForm} />
+                            {/* <BifurcationConstraintsForm initialData={initialData} onSuccess={handleSuccess} onCancel={closeAddForm} /> */}
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -139,21 +137,21 @@ function FormSections({ initialData, refetchAll }: { initialData: any; refetchAl
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <BifurcationConstraintsForm
+                            {/* <BifurcationConstraintsForm
                                 initialData={initialData}
                                 editData={selectedRow}
                                 onSuccess={handleSuccess}
                                 onCancel={closeEditForm}
-                            />
+                            /> */}
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
 
             {/* Toggle Form (Alert Dialog) */}
-            {isToggleFormOpen && selectedRow && (
+            {/* {isToggleFormOpen && selectedRow && (
                 <ToggleBifurcationConstraints rowData={selectedRow} onClose={closeToggleForm} onSuccess={handleSuccess} />
-            )}
+            )} */}
 
             {/* View Details Modal */}
             {isDetailsViewOpen && selectedRow && <BifurcationViewModal rowData={selectedRow} onClose={closeDetailsView} />}

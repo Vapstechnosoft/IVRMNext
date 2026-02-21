@@ -1,13 +1,30 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { bifurcationconstraints } from '@/types/timetable/constraints/bifurcationconstraints';
+import type {
+    ClassDropdownDataTTBifurcation,
+    SectionDropdownDataBifurcation,
+    StaffDropdownDataBifurcation,
+    SubjectDropdownData,
+    bifurcationconstraints
+} from '@/types/timetable/constraints/bifurcationconstraints';
 
 // Load initial data (Grid and Dropdowns)
+// export async function getBifurcationConstraintsDetails(searchParams?: ApiSearchparams) {
+
+//     const url = '/BifurcationFacade/BifurcationConstraintsGridData';
+//     return await api.get<bifurcationconstraints>('timetable', url);
+// }
+
 export async function getBifurcationConstraintsDetails(searchParams?: ApiSearchparams) {
-    const url = '/BifurcationFacade/BifurcationConstraintsGridData';
-    return await api.get<bifurcationconstraints>('timetable', url);
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'asmaY_Year,ttmC_CategoryName,ttmD_DayName,ttmP_PeriodName,staffName,className,sectionName,subjectName,ttfBifurcation_Id,ttfBifurcation_ActiveFlag'
+    );
+    const url = `/BifurcationFacade/BifurcationConstraintsGridData?${urlParams}`;
+    console.info('BifurcationFacade', url);
+    return await api.get<bifurcationconstraints[]>('timetable', url);
 }
 
 // Get Class details based on Academic Year and Category
@@ -24,9 +41,9 @@ export async function getAcademicYear(searchParams: ApiSearchparams | undefined)
 }
 
 // Get Class details based on Academic Year and Category
-export async function getClassDetails(data: { ASMAY_Id: number; TTMC_Id: number }) {
-    const url = '/Bifurcation/getClassdetails';
-    return await api.post<any>('timetable', url, data);
+export async function getClassDetails(TTMC_Id: number) {
+    const url = `/BifurcationFacade/GetClassBasedOncategory/${TTMC_Id}`;
+    return await api.get<ClassDropdownDataTTBifurcation[]>('timetable', url);
 }
 
 // Get Staff based on Class and Section (Fixing Controller)
@@ -43,7 +60,7 @@ export async function getSubjectStaff(data: { ASMAY_Id: number; TTMC_Id: number;
 
 // Save Bifurcation Constraints
 export async function saveBifurcationConstraintsDetail(data: any) {
-    const url = '/Bifurcation/savedetail';
+    const url = '/BifurcationFacade/AddOrUpdateBifurcationConstraints';
     return await api.post<any>('timetable', url, data);
 }
 
@@ -68,4 +85,19 @@ export async function getBifurcationConstraintsViewRecords(id: number) {
 export async function getBifurcationViewData(id: number) {
     const url = `/BifurcationFacade/BifurcationViewData/${id}`;
     return await api.get<any>('timetable', url);
+}
+
+export async function getStaffDropdownBifurcationConstraints() {
+    const url = '/BifurcationFacade/GetStaffDropDownData';
+    return await api.get<StaffDropdownDataBifurcation[]>('timetable', url);
+}
+
+export async function getSectioDropdownBifurcationConstraints() {
+    const url = '/BifurcationFacade/GetSectionDropDownData';
+    return await api.get<SectionDropdownDataBifurcation[]>('timetable', url);
+}
+
+export async function getSubjectDropdownBifurcationConstraints() {
+    const url = '/BifurcationFacade/GetSubjectDropDownData';
+    return await api.get<SubjectDropdownData[]>('timetable', url);
 }
