@@ -1584,7 +1584,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 91,
-                                            name:  'Stella Marks Entry Report',
+                                            name: 'Stella Marks Entry Report',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/stella_marks_entry_report',
                                             title: 'Stella Marks Entry Report',
@@ -1864,7 +1864,7 @@ export async function getUserAccessibleModules() {
                                             title: 'Cumulative Salary Report',
                                             description: 'Cumulative Salary Analysis'
                                         },
-                                        
+
 
                                         {
 
@@ -5408,12 +5408,12 @@ export async function getUserAccessibleModules() {
             message: 'Data fetched successfully!!',
             data: [
                 {
-                    id: 9,
+                    id: 40000,
                     name: 'Student Portal',
                     icon: 'Users',
                     menu: [
                         {
-                            id: 1,
+                            id: 40000,
                             name: 'Home',
                             icon: 'BookOpen',
                             sub_menu: [
@@ -5422,11 +5422,20 @@ export async function getUserAccessibleModules() {
                                     name: 'Home',
                                     icon: 'Database',
                                     pages: [
+                                        // {
+                                        //     id: 40000,
+                                        //     name: 'Dashboard',
+                                        //     icon: 'LayoutDashboard',
+                                        //     url: '/StudentPortal/student-dashboard',
+                                        //     title: 'StudentDashboard',
+                                        //     description: 'Main Dashboard'
+                                        // },
+
                                         {
-                                            id: 40000,
-                                            name: 'Dashboard',
+                                            id: 402000,
+                                            name: 'Dashboard Demo',
                                             icon: 'LayoutDashboard',
-                                            url: '/StudentPortal/student-dashboard',
+                                            url: '/StudentPortal/StudentPortalDashboard',
                                             title: 'StudentDashboard',
                                             description: 'Main Dashboard'
                                         }
