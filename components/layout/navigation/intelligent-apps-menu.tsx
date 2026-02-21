@@ -29,6 +29,7 @@ import { ChevronDown, Sparkles, Volume2, Play, Square } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Script from 'next/script';
 import { chatGPT, whatsAppCall, languageTranslator } from '@/server/intelligent-apps';
+import { SchoolAssistantBot } from '@/components/chatbot/school-assistant-bot';
 
 export function IntelligentAppsMenu() {
     // Force Rebuild: Intelligent Apps Menu
@@ -38,18 +39,14 @@ export function IntelligentAppsMenu() {
         <>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button
-                        variant="ghost"
-                        className="group flex items-center gap-2 rounded-full px-4 py-2 text-slate-600 transition-all hover:bg-orange-50 hover:text-orange-600 active:scale-95"
-                    >
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 transition-colors group-hover:bg-orange-100 group-hover:text-orange-600">
-                            <Sparkles className="h-4 w-4" />
-                        </div>
-                        <span className="text-sm font-bold tracking-tight">Intelligent Apps</span>
-                        <ChevronDown className="h-3 w-3 text-muted-foreground group-hover:text-orange-600" />
-                    </Button>
+                    <div className='flex cursor-pointer items-center gap-1'>
+                        <Sparkles className='text-muted-foreground' size={16} />
+                        <p className='text-sm font-medium'>Intelligent Apps</p>
+                        <ChevronDown className='text-muted-foreground' size={14} />
+                    </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align='end'>
+                    <DropdownMenuItem onSelect={() => setOpenDialog('schoolbot')}>Intelligent Bot</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => setOpenDialog('whatsapp')}>Whatsapp</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => setOpenDialog('chatgpt')}>ChatGPT</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => setOpenDialog('translator')}>Language Translator</DropdownMenuItem>
@@ -62,6 +59,7 @@ export function IntelligentAppsMenu() {
 
             <WhatsAppDialog open={openDialog === 'whatsapp'} onOpenChange={(open) => !open && setOpenDialog(null)} />
             <ChatGPTDialog open={openDialog === 'chatgpt'} onOpenChange={(open) => !open && setOpenDialog(null)} />
+            <SchoolAssistantBot open={openDialog === 'schoolbot'} onOpenChange={(open) => !open && setOpenDialog(null)} />
             <LanguageTranslatorDialog open={openDialog === 'translator'} onOpenChange={(open) => !open && setOpenDialog(null)} />
             <TextToSpeechDialog open={openDialog === 'speech'} onOpenChange={(open) => !open && setOpenDialog(null)} />
             <PdfConverterDialog open={openDialog === 'pdf'} onOpenChange={(open) => !open && setOpenDialog(null)} />

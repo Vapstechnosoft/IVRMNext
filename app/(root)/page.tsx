@@ -30,6 +30,9 @@ export default function Page() {
         } else if (role === ROLES.STAFF) {
             router.push('/StaffPortal/staff-dashboard');
         }
+        else if (session?.data?.role?.toUpperCase() === ROLES.CHAIRMAN) {
+            router.push('/chairman');
+        }
     }, [session?.data?.role, router]);
 
     return (
