@@ -5,11 +5,11 @@ import { ReportList } from './_components/report-list';
 
 export default function MarksEntryReportPage() {
     const [reportData, setReportData] = useState<any>(null);
-    const [selectedYear, setSelectedYear] = useState<string>('');
-    const [selectedExam, setSelectedExam] = useState<string>('');
+    const [selectedYear, setSelectedYear] = useState<any>('');
+    const [selectedExam, setSelectedExam] = useState<any>('');
     const listRef = useRef<HTMLDivElement>(null);
 
-    const handleReportGenerated = (data: any, year: string, exam: string) => {
+    const handleReportGenerated = (data: any, year: any, exam: any) => {
         setReportData(data);
         setSelectedYear(year);
         setSelectedExam(exam);
