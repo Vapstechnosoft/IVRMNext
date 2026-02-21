@@ -140,7 +140,7 @@ export default function SalarySlipPage() {
     };
 
     const handleOptionChange = (option: keyof SalarySlipFiltersType['options'], checked: boolean) => {
-        setFilters(prev => ({
+        setFilters((prev: SalarySlipFiltersType) => ({
             ...prev,
             options: { ...prev.options, [option]: checked }
         }));
@@ -248,6 +248,26 @@ export default function SalarySlipPage() {
         );
     }
 
+    const handleReset = () => {
+        setFilters({
+            groupType: [],
+            department: [],
+            designation: [],
+            month: '',
+            year: '',
+            slipPerPage: '1',
+            options: {
+                lopDays: false,
+                leaveDetails: false,
+                panCardNo: false,
+                bankDetails: false,
+            }
+        });
+        setEmployees([]);
+        setSearchTerm('');
+        toast.info('Filters have been reset');
+    };
+
     return (
         <div className="container mx-auto p-4 space-y-6">
             <div className="flex items-center justify-between">
@@ -274,6 +294,7 @@ export default function SalarySlipPage() {
                     onSelectEmployee={handleSelectEmployee}
                     onGenerateSlip={handleGenerateSlip}
                     onCancel={() => { }}
+                    onReset={handleReset}
                 />
             ) : (
                 <div className="space-y-6">

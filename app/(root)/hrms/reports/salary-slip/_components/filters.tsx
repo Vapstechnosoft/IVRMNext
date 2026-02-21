@@ -7,10 +7,11 @@ import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { FileText, X, Search } from 'lucide-react';
+import { FileText, X, Search, RotateCcw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { EmployeeSalarySlipDisplay } from './columns';
 import { getSalarySlipColumns } from './columns';
+
 export interface SalarySlipFilters {
     groupType: number[];
     department: number[];
@@ -25,6 +26,7 @@ export interface SalarySlipFilters {
         bankDetails: boolean;
     };
 }
+
 interface SalarySlipFiltersProps {
     filters: SalarySlipFilters;
     groupTypes: any[];
@@ -44,7 +46,9 @@ interface SalarySlipFiltersProps {
     onSelectEmployee: (employeeId: number, checked: boolean) => void;
     onGenerateSlip: () => void;
     onCancel: () => void;
+    onReset: () => void;
 }
+
 export function SalarySlipFilters({
     filters,
     groupTypes,
@@ -63,13 +67,18 @@ export function SalarySlipFilters({
     onSelectAll,
     onSelectEmployee,
     onGenerateSlip,
-    onCancel
+    onCancel,
+    onReset
 }: SalarySlipFiltersProps) {
+    const handleReset = () => {
+        onReset();
+    };
     const [_currentYear, setCurrentYear] = useState<number | null>(null);
     useEffect(() => {
         setCurrentYear(new Date().getFullYear());
     }, []);
     const columns = getSalarySlipColumns({ onSelectAll, onSelectEmployee });
+
     return (
         <CollapsibleSection
             title='Salary Slip Configuration'
@@ -82,7 +91,7 @@ export function SalarySlipFilters({
             <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                 {/* Group Type Filter */}
                 <div className='space-y-2'>
-                    <Label>Group Type</Label>
+                    <Label>Group Type <span className='text-red-500'>*</span></Label>
                     <MultiSelect
                         options={groupTypes.map((gt) => ({
                             label: gt.value || gt.HRMGT_EmployeeGroupType,
@@ -100,7 +109,7 @@ export function SalarySlipFilters({
                 </div>
                 {/* Department Filter */}
                 <div className='space-y-2'>
-                    <Label>Department</Label>
+                    <Label>Department <span className='text-red-500'>*</span></Label>
                     <MultiSelect
                         options={departments.map((dept) => ({
                             label: dept.hrmD_DepartmentName || dept.HRMD_DepartmentName,
@@ -118,7 +127,7 @@ export function SalarySlipFilters({
                 </div>
                 {/* Designation Filter */}
                 <div className='space-y-2'>
-                    <Label>Designation</Label>
+                    <Label>Designation <span className='text-red-500'>*</span></Label>
                     <MultiSelect
                         options={designations.map((desg) => ({
                             label: desg.hrmdeS_DesignationName || desg.HRMDES_DesignationName,
@@ -140,7 +149,7 @@ export function SalarySlipFilters({
                 {/* Month Filter */}
                 <div className='mt-3 mb-3 space-y-2'>
                     <label htmlFor='month-select' className='font-medium text-foreground text-sm'>
-                        Month
+                        Month <span className='text-red-500'>*</span>
                     </label>
                     <Select value={filters.month} onValueChange={(value) => onFilterChange({ ...filters, month: value })}>
                         <SelectTrigger id='month-select'>
@@ -187,7 +196,7 @@ export function SalarySlipFilters({
                 {/* Year Filter */}
                 <div className='mt-3 mb-3 space-y-2'>
                     <label htmlFor='year-select' className='font-medium text-foreground text-sm'>
-                        Year
+                        Year <span className='text-red-500'>*</span>
                     </label>
                     <Select value={filters.year} onValueChange={(value) => onFilterChange({ ...filters, year: value })}>
                         <SelectTrigger id='year-select'>
@@ -306,13 +315,13 @@ export function SalarySlipFilters({
             </div>
             {/* Action Buttons */}
             <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-end'>
-                <Button variant='outline' onClick={onCancel}>
-                    <X className='mr-2 h-4 w-4' />
-                    CANCEL
+                <Button variant='outline' onClick={handleReset} type='button'>
+                    <RotateCcw className='mr-2 h-4 w-4' />
+                    Cancel
                 </Button>
                 <Button onClick={onGenerateSlip} disabled={selectedCount === 0}>
                     <FileText className='mr-2 h-4 w-4' />
-                    GENERATE SLIP
+                    Generate Slip
                 </Button>
             </div>
         </CollapsibleSection>

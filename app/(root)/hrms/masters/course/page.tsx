@@ -76,6 +76,7 @@ function MasterCoursePageContent({
                         isLoading={isLoading}
                         error={error}
                         showViewOptions={false}
+                        showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading courses...'
                         noDataTitle='No Courses Found'

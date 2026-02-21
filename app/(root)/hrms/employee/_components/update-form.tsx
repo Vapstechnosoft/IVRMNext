@@ -622,7 +622,23 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             religions: religionDropdown || [],
             casteCategories: casteCategoryDropdown || [],
             castes: casteDropdown || [],
-            modeOfPayment: paymentModeDropdown || [],
+            modeOfPayment: (() => {
+                const modes = [...(paymentModeDropdown || [])];
+                const required = ['Cash', 'Cheque', 'Bank'];
+                // biome-ignore lint/complexity/noForEach: <explanation>
+                required.forEach((req) => {
+                    const index = modes.findIndex(
+                        (m) => String(m.value || m.ivrmmod_ModeOfPayment || '').toLowerCase() === req.toLowerCase()
+                    );
+                    if (index === -1) {
+                        modes.push({ key: req, value: req });
+                    } else {
+                        // If found, ensure key is also the name to satisfy watch('modeOfPayment') === 'Bank'
+                        modes[index] = { ...modes[index], key: req };
+                    }
+                });
+                return modes;
+            })(),
             banks: bankDropdown || [],
             countries: countryDropdown || [],
             departments: departmentDropdown || [],
@@ -2161,7 +2177,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         error={errors.employeeCode?.message as string | undefined}
                                                     />
                                                     <InputText
-                                                        label="Father's Name *"
+                                                        label="Father's Name "
+                                                        required
                                                         id='fatherName'
                                                         maxLength={50}
                                                         onKeyDown={(e) => {
@@ -2196,7 +2213,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         error={errors.fatherName?.message as string | undefined}
                                                     />
                                                     <InputText
-                                                        label="Mother's Name *"
+                                                        label="Mother's Name "
+                                                        required
                                                         id='motherName'
                                                         maxLength={50}
                                                         onKeyDown={(e) => {

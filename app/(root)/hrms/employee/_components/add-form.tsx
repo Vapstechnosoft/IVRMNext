@@ -524,7 +524,24 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             religions: religionDropdown || [],
             casteCategories: casteCategoryDropdown || [],
             castes: casteDropdown || [],
-            modeOfPayment: paymentModeDropdown || [],
+            modeOfPayment: (() => {
+                const modes = [...(paymentModeDropdown || [])];
+                const required = ['Cash', 'Cheque', 'Bank'];
+                required.forEach((req) => {
+                    const index = modes.findIndex(
+                        (m) =>
+                            String(m.value || m.ivrmmod_ModeOfPayment || '').toLowerCase() === req.toLowerCase()
+                    );
+                    if (index === -1) {
+                        modes.push({ key: req, value: req });
+                    } else {
+                        // If found, ensure key is also the name to satisfy watch('modeOfPayment') === 'Bank'
+                        // but only if it's one of the required ones to avoid breaking other IDs
+                        modes[index] = { ...modes[index], key: req };
+                    }
+                });
+                return modes;
+            })(),
             banks: bankDropdown || [],
             departments: departmentDropdown || [],
             countries: countryDropdown || [],
@@ -2142,7 +2159,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         error={errors.employeeCode?.message as string | undefined}
                                                     />
                                                     <InputText
-                                                        label="Father's Name *"
+                                                        label="Father's Name"
+                                                        required
                                                         id='fatherName'
                                                         maxLength={50}
                                                         onKeyDown={(e) => {
@@ -2177,7 +2195,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         error={errors.fatherName?.message as string | undefined}
                                                     />
                                                     <InputText
-                                                        label="Mother's Name *"
+                                                        label="Mother's Name "
+                                                        required
                                                         id='motherName'
                                                         maxLength={50}
                                                         onKeyDown={(e) => {
@@ -3032,6 +3051,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     <Controller
                                                         name='dateOfBirth'
                                                         control={control}
+                                                        rules={{ required: false }}
                                                         render={({ field, fieldState }) => (
                                                             <DateField
                                                                 field={field}
