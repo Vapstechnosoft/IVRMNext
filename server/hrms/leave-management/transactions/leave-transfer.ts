@@ -1,6 +1,6 @@
 'use server';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { api, type ApiResponse, getSearchParamsUrl } from '@/lib/apiService';
 import type {
     GetLeaveTransferBasicDataRequest,
     GetLeaveTransferBasicDataResponseData,
@@ -17,6 +17,13 @@ import type {
     DeleteLeaveTransferRequest,
     DeleteLeaveTransferResponseData
 } from '@/types/hrms/leave-management/leave-transfer';
+import type {
+    GetLeaveCreditAndBalanceGridResponse,
+    UpdateLeaveStatusTabPayload,
+    LeaveAdditionStatusTabPayload,
+    LeaveCarryForwardStatusTabPayload,
+    DeleteLeaveStatusByIdRequest
+} from '@/types/hrms/leave-management/leave-transfer-new';
 /**
  * Get basic data for leave transfer page
  * POST /api/LeaveTransferWrapperFacade/GetBasicData
@@ -44,10 +51,10 @@ export async function getLeaveTransferBasicData(request: GetLeaveTransferBasicDa
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch leave transfer basic data';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to fetch leave transfer basic data';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -81,10 +88,10 @@ export async function getLeaveOB(request: GetLeaveOBRequest): Promise<ApiRespons
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch leave OB data';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to fetch leave OB data';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -119,10 +126,10 @@ export async function getDepartments(request: GetDepartmentsRequest): Promise<Ap
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch departments';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to fetch departments';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -157,10 +164,10 @@ export async function getDesignation(request: GetDesignationRequest): Promise<Ap
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch designations';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to fetch designations';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -199,13 +206,13 @@ export async function saveLeaveTransferDetails(data: SaveLeaveTransferDetailsReq
         console.log('🟢 [SERVER] Response:', JSON.stringify(response, null, 2));
         // Extract return message from response
         const responseData = response as any;
-        const retrunMsg = responseData?.retrunMsg || 
-                         responseData?.data?.retrunMsg || 
-                         responseData?.message || 
-                         '';
+        const retrunMsg = responseData?.retrunMsg ||
+            responseData?.data?.retrunMsg ||
+            responseData?.message ||
+            '';
         // Check for duplicate
-        const isDuplicate = retrunMsg === 'Duplicate' || 
-                           (retrunMsg?.toLowerCase().includes('duplicate') ?? false);
+        const isDuplicate = retrunMsg === 'Duplicate' ||
+            (retrunMsg?.toLowerCase().includes('duplicate') ?? false);
         if (isDuplicate) {
             return {
                 success: false,
@@ -214,15 +221,15 @@ export async function saveLeaveTransferDetails(data: SaveLeaveTransferDetailsReq
             };
         }
         // Check for success indicators
-        const isUpdateSuccess = retrunMsg === 'Update' || 
-                               retrunMsg === 'Saved' || 
-                               retrunMsg === 'Add' ||
-                               retrunMsg === 'Success' ||
-                               responseData?.returnval_Update === true ||
-                               responseData?.returnval_add === true ||
-                               responseData?.returnval === true;
-        const isSuccess = isUpdateSuccess || 
-                         (response?.success === true);
+        const isUpdateSuccess = retrunMsg === 'Update' ||
+            retrunMsg === 'Saved' ||
+            retrunMsg === 'Add' ||
+            retrunMsg === 'Success' ||
+            responseData?.returnval_Update === true ||
+            responseData?.returnval_add === true ||
+            responseData?.returnval === true;
+        const isSuccess = isUpdateSuccess ||
+            (response?.success === true);
         let message = retrunMsg || 'Failed to save leave transfer details';
         if (isSuccess) {
             message = retrunMsg || 'Leave transfer details saved successfully';
@@ -234,10 +241,10 @@ export async function saveLeaveTransferDetails(data: SaveLeaveTransferDetailsReq
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to save leave transfer details';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to save leave transfer details';
         throw new Error(errorMessage);
     }
 }
@@ -260,13 +267,13 @@ export async function leaveCarryForward(request: LeaveCarryForwardRequest): Prom
         console.log('🟢 [SERVER] Response:', JSON.stringify(response, null, 2));
         // Extract return message from response
         const responseData = response as any;
-        const retrunMsg = responseData?.retrunMsg || 
-                         responseData?.data?.retrunMsg || 
-                         responseData?.message || 
-                         '';
+        const retrunMsg = responseData?.retrunMsg ||
+            responseData?.data?.retrunMsg ||
+            responseData?.message ||
+            '';
         // Check for duplicate
-        const isDuplicate = retrunMsg === 'Duplicate' || 
-                           (retrunMsg?.toLowerCase().includes('duplicate') ?? false);
+        const isDuplicate = retrunMsg === 'Duplicate' ||
+            (retrunMsg?.toLowerCase().includes('duplicate') ?? false);
         if (isDuplicate) {
             return {
                 success: false,
@@ -275,17 +282,17 @@ export async function leaveCarryForward(request: LeaveCarryForwardRequest): Prom
             };
         }
         // Check for success indicators
-        const isUpdateSuccess = retrunMsg === 'Update' || 
-                               retrunMsg === 'Saved' || 
-                               retrunMsg === 'Add' ||
-                               retrunMsg === 'Success' ||
-                               retrunMsg === 'CarryForward' ||
-                               retrunMsg === 'Carry Forward' ||
-                               responseData?.returnval_Update === true ||
-                               responseData?.returnval_add === true ||
-                               responseData?.returnval === true;
-        const isSuccess = isUpdateSuccess || 
-                         (response?.success === true);
+        const isUpdateSuccess = retrunMsg === 'Update' ||
+            retrunMsg === 'Saved' ||
+            retrunMsg === 'Add' ||
+            retrunMsg === 'Success' ||
+            retrunMsg === 'CarryForward' ||
+            retrunMsg === 'Carry Forward' ||
+            responseData?.returnval_Update === true ||
+            responseData?.returnval_add === true ||
+            responseData?.returnval === true;
+        const isSuccess = isUpdateSuccess ||
+            (response?.success === true);
         let message = retrunMsg || 'Failed to process leave carry forward';
         if (isSuccess) {
             message = retrunMsg || 'Leave carry forward processed successfully';
@@ -297,10 +304,10 @@ export async function leaveCarryForward(request: LeaveCarryForwardRequest): Prom
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to process leave carry forward';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to process leave carry forward';
         throw new Error(errorMessage);
     }
 }
@@ -322,16 +329,16 @@ export async function deleteLeaveTransfer(request: DeleteLeaveTransferRequest): 
         console.log('🔴 [SERVER] Response:', JSON.stringify(response, null, 2));
         // Extract return message from response
         const responseData = response as any;
-        const retrunMsg = responseData?.retrunMsg || 
-                         responseData?.data?.retrunMsg || 
-                         responseData?.message || 
-                         '';
+        const retrunMsg = responseData?.retrunMsg ||
+            responseData?.data?.retrunMsg ||
+            responseData?.message ||
+            '';
         // Check for success indicators
-        const isSuccess = retrunMsg === 'Delete' || 
-                         retrunMsg === 'Deleted' ||
-                         retrunMsg === 'Success' ||
-                         responseData?.returnval === true ||
-                         response?.success === true;
+        const isSuccess = retrunMsg === 'Delete' ||
+            retrunMsg === 'Deleted' ||
+            retrunMsg === 'Success' ||
+            responseData?.returnval === true ||
+            response?.success === true;
         let message = retrunMsg || 'Failed to delete leave transfer';
         if (isSuccess) {
             message = retrunMsg || 'Leave transfer deleted successfully';
@@ -343,10 +350,98 @@ export async function deleteLeaveTransfer(request: DeleteLeaveTransferRequest): 
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to delete leave transfer';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to delete leave transfer';
         throw new Error(errorMessage);
+    }
+}
+
+/**
+ * Get leave credit and balance grid
+ * GET /api/LeaveTransfer/get_leave_credit_and_balance_grid
+ */
+export async function getLeaveCreditAndBalanceGrid(params?: any): Promise<GetLeaveCreditAndBalanceGridResponse> {
+    const baseUrl = '/api/LeaveTransfer/get_leave_credit_and_balance_grid';
+    const queryString = getSearchParamsUrl(params);
+    const url = queryString ? `${baseUrl}?${queryString}` : baseUrl;
+    try {
+        const response = await api.get<GetLeaveCreditAndBalanceGridResponse>('hmslms', url);
+        return response as unknown as GetLeaveCreditAndBalanceGridResponse;
+    } catch (error: any) {
+        throw new Error(error?.message || 'Failed to fetch leave credit and balance grid');
+    }
+}
+
+/**
+ * Update leave status tab
+ * POST /api/LeaveTransfer/update_leave_status_tab
+ */
+export async function updateLeaveStatusTab(data: UpdateLeaveStatusTabPayload): Promise<ApiResponse<null>> {
+    const url = '/api/LeaveTransfer/update_leave_status_tab';
+    try {
+        const response = await api.post<null>('hmslms', url, data);
+        return {
+            success: true,
+            message: (response as any)?.message || 'Leave status added successfully.',
+            data: null
+        };
+    } catch (error: any) {
+        throw new Error(error?.message || 'Failed to update leave status');
+    }
+}
+
+/**
+ * Leave addition status tab
+ * POST /api/LeaveTransfer/leave_addition_status_tab
+ */
+export async function leaveAdditionStatusTab(data: LeaveAdditionStatusTabPayload): Promise<ApiResponse<null>> {
+    const url = '/api/LeaveTransfer/leave_addition_status_tab';
+    try {
+        const response = await api.post<null>('hmslms', url, data);
+        return {
+            success: true,
+            message: (response as any)?.message || 'Leave status updated successfully.',
+            data: null
+        };
+    } catch (error: any) {
+        throw new Error(error?.message || 'Failed to add leave status');
+    }
+}
+
+/**
+ * Leave carry forward status tab
+ * POST /api/LeaveTransfer/leave_carry_forward_status_tab
+ */
+export async function leaveCarryForwardStatusTab(data: LeaveCarryForwardStatusTabPayload): Promise<ApiResponse<null>> {
+    const url = '/api/LeaveTransfer/leave_carry_forward_status_tab';
+    try {
+        const response = await api.post<null>('hmslms', url, data);
+        return {
+            success: true,
+            message: (response as any)?.message || 'Leave carry forward details saved successfully.',
+            data: null
+        };
+    } catch (error: any) {
+        throw new Error(error?.message || 'Failed to carry forward leave status');
+    }
+}
+
+/**
+ * Delete leave status by id
+ * DELETE /api/LeaveTransfer/delete_leave_status_by_id
+ */
+export async function deleteLeaveStatusById(data: DeleteLeaveStatusByIdRequest): Promise<ApiResponse<null>> {
+    const url = `/api/LeaveTransfer/delete_leave_status_by_id?hrels_id=${data.hrels_id}`;
+    try {
+        const response = await api.delete<null>('hmslms', url);
+        return {
+            success: true,
+            message: (response as any)?.message || 'Leave status record deleted successfully.',
+            data: null
+        };
+    } catch (error: any) {
+        throw new Error(error?.message || 'Failed to delete leave status');
     }
 }

@@ -92,7 +92,7 @@ export function OperationTools() {
                 </DialogTrigger>
 
                 <DialogContent
-                    className="max-w-none w-screen h-screen md:h-[90vh] md:max-w-[1400px] p-0 overflow-hidden rounded-none md:rounded-[3rem] border-none bg-transparent shadow-none ring-0 focus:ring-0 !translate-x-[-50%] !translate-y-[-50%] [&>button:last-child]:hidden"
+                    className="max-w-none w-screen h-screen md:h-[90vh] md:max-w-[1400px] p-0 overflow-hidden rounded-none md:rounded-[3rem] border-none bg-transparent shadow-none ring-0 focus:ring-0 !translate-x-[-50%] !translate-y-[-50%] [&>button]:hidden"
                 >
                     <DialogHeader className="sr-only">
                         <DialogTitle>Module Explorer</DialogTitle>
@@ -188,24 +188,22 @@ export function OperationTools() {
                         {/* Right Pane: Module Details (Hierarchy) */}
                         <div className="hidden flex-1 flex-col bg-white md:flex">
                             {/* Details Header */}
-                            <div className="flex h-[110px] items-center justify-between border-b border-slate-50/50 bg-white/50 px-10 py-8 backdrop-blur-md">
-                                <div className="slide-in-from-left-4 animate-in duration-500">
-                                    <h3 className="text-[11px] font-black uppercase tracking-[0.25em] text-orange-500">
-                                        Explorer
-                                    </h3>
-                                    <p className="mt-1 text-2xl font-black tracking-tight text-slate-900">
-                                        {selectedModule?.name || "Select a module"}
+                            <div className='flex h-[110px] items-center justify-between border-b border-slate-50/50 bg-white/50 px-10 py-8 backdrop-blur-md'>
+                                <div className='slide-in-from-left-4 animate-in duration-500'>
+                                    <h3 className='text-[11px] font-black uppercase tracking-[0.25em] text-orange-500'>Explorer</h3>
+                                    <p className='mt-1 text-2xl font-black tracking-tight text-slate-900'>
+                                        {selectedModule?.name || 'Select a module'}
                                     </p>
                                 </div>
                                 <Button
-                                    variant="ghost"
-                                    size="icon"
+                                    variant='ghost'
+                                    size='icon'
                                     onClick={() => setIsOpen(false)}
-                                    className="h-12 w-12 rounded-full bg-slate-50 text-slate-400 transition-all hover:bg-orange-50 hover:text-orange-600 hover:rotate-90"
-                                >
-                                    <X className="h-6 w-6" />
+                                    className='h-12 w-12 rounded-full bg-slate-50 text-slate-400 transition-all hover:bg-orange-50 hover:text-orange-600 hover:rotate-90'>
+                                    <X className='h-6 w-6' />
                                 </Button>
                             </div>
+
 
                             {/* Hierarchy Grid */}
                             <div className="flex-1 overflow-y-auto px-10 py-10 scrollbar-hide">
@@ -279,8 +277,8 @@ export function OperationTools() {
                             </div>
                         </div>
                     </div>
-                </DialogContent>
-            </Dialog>
+                </DialogContent >
+            </Dialog >
 
             <style jsx global>{`
                 .scrollbar-hide::-webkit-scrollbar {

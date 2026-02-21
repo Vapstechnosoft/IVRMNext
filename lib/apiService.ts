@@ -450,5 +450,13 @@ export function getSearchParamsUrl(searchParams: ApiSearchparams | undefined, se
         }
     }
 
+    // Add any other arbitrary parameters from searchParams
+    const handledKeys = ['page', 'page_size', 'sort_column', 'sort_direction', 'search_query', 'search_columns', 'search_column'];
+    for (const key in searchParams) {
+        if (!handledKeys.includes(key) && searchParams[key] !== undefined && searchParams[key] !== null) {
+            url += `&${key}=${encodeURIComponent(String(searchParams[key]))}`;
+        }
+    }
+
     return url;
 }
