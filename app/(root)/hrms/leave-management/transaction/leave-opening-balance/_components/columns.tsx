@@ -1,18 +1,20 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { BaseEntity } from '@/lib/localdb';
+import type { LeaveOpeningBalanceEntry } from '@/types/hrms/leave-management/transaction/leave-opening-balance';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Edit } from 'lucide-react';
-export interface LeaveOpeningBalance extends BaseEntity {
-    employeeName: string;
-    leaveName: string;
-    leaveBalance: number;
-}
+import { Edit, Trash2 } from 'lucide-react';
+
+export interface LeaveOpeningBalance extends BaseEntity, LeaveOpeningBalanceEntry { }
+
 interface LeaveOpeningBalanceColumnsProps {
     onEdit: (row: LeaveOpeningBalance) => void;
+    onDelete: (row: LeaveOpeningBalance) => void;
 }
-export const getLeaveOpeningBalanceColumns = ({ onEdit }: LeaveOpeningBalanceColumnsProps): ColumnDef<LeaveOpeningBalance>[] => [
+
+export const getLeaveOpeningBalanceColumns = ({ onEdit, onDelete }: LeaveOpeningBalanceColumnsProps): ColumnDef<LeaveOpeningBalance>[] => [
     {
         id: 'sl',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl No' />,
@@ -25,19 +27,19 @@ export const getLeaveOpeningBalanceColumns = ({ onEdit }: LeaveOpeningBalanceCol
         enableSorting: false
     },
     {
-        accessorKey: 'employeeName',
+        accessorKey: 'hrmE_EmployeeName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='EMPLOYEE NAME' />,
-        cell: ({ row }) => <div className='font-medium'>{row.getValue('employeeName')}</div>
+        cell: ({ row }) => <div className='font-medium'>{row.getValue('hrmE_EmployeeName')}</div>
     },
     {
-        accessorKey: 'leaveName',
+        accessorKey: 'hrmL_LeaveName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='LEAVE NAME' />,
-        cell: ({ row }) => <div>{row.getValue('leaveName')}</div>
+        cell: ({ row }) => <div>{row.getValue('hrmL_LeaveName')}</div>
     },
     {
-        accessorKey: 'leaveBalance',
+        accessorKey: 'hreobL_OBLeaves',
         header: ({ column }) => <DataTableColumnHeader column={column} title='LEAVE BALANCE' />,
-        cell: ({ row }) => <div className='text-center'>{row.getValue('leaveBalance')}</div>
+        cell: ({ row }) => <div className='text-center'>{row.getValue('hreobL_OBLeaves')}</div>
     },
     {
         id: 'actions',
@@ -46,8 +48,16 @@ export const getLeaveOpeningBalanceColumns = ({ onEdit }: LeaveOpeningBalanceCol
             const entity = row.original;
             return (
                 <div className='flex gap-2'>
-                    <Button variant='outline' size='sm' onClick={() => onEdit(entity)}>
+                    {/* <Button variant='outline' size='sm' onClick={() => onEdit(entity)}>
                         <Edit className='h-4 w-4' />
+                    </Button> */}
+                    <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={() => onDelete(entity)}
+                        className='text-destructive hover:text-destructive'
+                    >
+                        <Trash2 className='h-4 w-4' />
                     </Button>
                 </div>
             );
