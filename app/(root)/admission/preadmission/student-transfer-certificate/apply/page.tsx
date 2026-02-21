@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -12,33 +13,38 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
+import { ensureArray } from '@/lib/utils';
 import {
-    useAcademicYearDropdown,
-    useMasterClassDropdown,
-    useMasterSectionDropdown
+    useAcademicYearDropdown
 } from '@/hooks/admission/preadmission/useMasters';
 import {
     // useStudentTCInitialData,
     // useStudentTCList,
     useStudentTCDetails,
     useSaveStudentTC,
-    useStudentsByAcademicYear
+    useStudentsByAcademicYear,
+    useCheckTCDuplication,
+    useStudentNameList,
+    useStudentSearchFilter
     // useStudentDetailsOnNameChange
 } from '@/hooks/admission/preadmission/useStudentTc';
 import { Search, Save, XCircle, ChevronRight, ChevronLeft, Loader2, Info, Check, ChevronsUpDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
-import { type IStudentSearch, studentSearchColumns } from './_components/columns';
+import { type IStudentSearch, studentSearchColumns, generatedTCColumns, deletedTCColumns, type IGeneratedTC, type IDeletedTC } from './_components/columns';
 import {
     StudentDetailsTab,
     TCDetailsTab,
     OtherDetailsTab,
-    DueDetailsTab
+    DueDetailsTab,
+    StudentHeaderSummary,
+    StudentPersonalDetailsTab
 } from './_components';
 
 export interface ITCFormData {
     tc_no: string;
+    sts_no: string; // Added field
     reason: string;
     last_class: string;
     app_date: string;
@@ -55,6 +61,43 @@ export interface ITCFormData {
     academic_year_join: string;
     subjects_stud: string;
     qual_class: string;
+    remarks: string;
+    scholarship: string;
+    electives_stud: string;
+    promotion_date: string;
+    last_date_attendance: string; // New field
+    left_date: string; // New field
+
+    // New fields for Personal Details
+    dob: string;
+    dob_words: string;
+    bank_ifsc: string;
+    birth_place: string;
+    birth_cert_no: string;
+    caste_cert_no: string;
+    age: number;
+    gender: string;
+    mother_tongue: string;
+    nationality: string;
+    mobile: string;
+    email: string;
+    aadhar_no: string;
+    blood_group: string;
+    bank_ac_no: string;
+    bpl_card_no: string;
+
+    // New fields for Other Details
+    fee_concession: string;
+    last_exam_details: string;
+    result: string;
+    failed_details: string;
+    ncc_cadet: string;
+
+    // UI Refactor existing
+    admission_date: string;
+    caste: string;
+    mediumOfInstruction: string;
+    // subjects_stud: string; // Removed duplicate
 }
 
 export default function StudentTCApplyPage() {
@@ -64,12 +107,15 @@ export default function StudentTCApplyPage() {
     const [selectedStudentDetails, setSelectedStudentDetails] = useState<any>(null);
     const [activeTab, setActiveTab] = useState<string>('student-details');
     const [openStudentSelect, setOpenStudentSelect] = useState(false);
+    const [isBlocked, setIsBlocked] = useState(false);
+    const [tcConfig, setTcConfig] = useState<any>(null);
+    const [maxEnabledTabIndex, setMaxEnabledTabIndex] = useState(0);
+
+    const TABS = ['student-details', 'tc-details', 'personal-details', 'other-details', 'due-details'];
 
     // Search Parameters
     const [asmayId, setAsmayId] = useState<string>('');
     const [studentListId, setStudentListId] = useState<string>('');
-    const [asmclId, setAsmclId] = useState<string>('0');
-    const [asmsId, setAsmsId] = useState<string>('0');
     const [searchType, setSearchType] = useState<string>('all');
     const [studentStatus, setStudentStatus] = useState<string>('active');
     const [isTemporaryTC, setIsTemporaryTC] = useState<boolean>(false);
@@ -80,8 +126,15 @@ export default function StudentTCApplyPage() {
         tc_no: '',
         reason: '',
         last_class: '',
+        sts_no: '',
         app_date: new Date().toISOString().split('T')[0],
         tc_date: new Date().toISOString().split('T')[0],
+        last_date_attendance: new Date().toISOString().split('T')[0], // New field
+        left_date: new Date().toISOString().split('T')[0], // New field
+        admission_date: '',
+        caste: '',
+        mediumOfInstruction: '',
+        subjects_stud: '',
         Promotion_Flag: 'qualified',
         Fee_Due_Flag: 'yes',
         Medically_Exam_Flag: 'no',
@@ -92,21 +145,106 @@ export default function StudentTCApplyPage() {
         extracurricular: '',
         games_played: '',
         academic_year_join: '',
-        subjects_stud: '',
-        qual_class: ''
+        qual_class: '',
+        remarks: '',
+        scholarship: '',
+        electives_stud: '',
+        promotion_date: new Date().toISOString().split('T')[0],
+
+        // Initialize Personal Details
+        dob: '',
+        dob_words: '',
+        bank_ifsc: '',
+        birth_place: '',
+        birth_cert_no: '',
+        caste_cert_no: '',
+        age: 0,
+        gender: '',
+        mother_tongue: '',
+        nationality: '',
+        mobile: '',
+        email: '',
+        aadhar_no: '',
+        blood_group: '',
+        bank_ac_no: '',
+        bpl_card_no: '',
+
+        // Initialize Other Details
+        fee_concession: '',
+        last_exam_details: '',
+        result: '',
+        failed_details: '',
+        ncc_cadet: 'no'
     });
+
+    const [openPreview, setOpenPreview] = useState(false); // State for preview modal
 
     // --- Hooks ---
     const { data: academicYears, isLoading: academicYearLoading } = useAcademicYearDropdown();
-    const { data: classes } = useMasterClassDropdown();
-    const { data: sections } = useMasterSectionDropdown();
 
     // const initialDataMutation = useStudentTCInitialData();
     // const searchMutation = useStudentTCList();
     const detailsMutation = useStudentTCDetails();
     const saveMutation = useSaveStudentTC();
+    const duplicateCheckMutation = useCheckTCDuplication();
+    const searchFilterMutation = useStudentSearchFilter(); // New hook
+    const [searchText, setSearchText] = useState(''); // Search state
+
     const { data: studentListRaw, isLoading: studentListLoading } = useStudentsByAcademicYear(Number(asmayId));
-    const studentList = Array.isArray(studentListRaw) ? studentListRaw : (studentListRaw?.studentList || studentListRaw?.$values || []);
+    const { data: studentNameListRaw, isLoading: studentNameListLoading } = useStudentNameList(Number(asmayId));
+
+    // Effect for Search Filter
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (searchText && asmayId) {
+                let flag = 'N'; // Default Name
+                if (/^\d+$/.test(searchText)) {
+                    flag = 'A'; // Adm No if digits
+                }
+
+                const solMap: Record<string, string> = {
+                    'active': 'S',
+                    'left': 'L',
+                    'deactive': 'D',
+                    'temporary': 'T'
+                };
+                const sol = solMap[studentStatus] || 'S';
+
+                searchFilterMutation.mutate({
+                    asmayId: Number(asmayId),
+                    amstSol: sol,
+                    searchfilter: searchText,
+                    flag: flag
+                });
+            }
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchText, asmayId, studentStatus]);
+
+    // Extract lists from response
+    // ... (rest of extraction logic)
+    const responseData = studentListRaw?.data || studentListRaw;
+    const studentNameData = studentNameListRaw?.data || studentNameListRaw;
+
+    const academicList = responseData?.academicList || [];
+    const classList = responseData?.classlist || responseData?.classList || [];
+
+    // Search Results handling
+    // API returns { success: true, data: [ ...students ] }
+    const searchResults = searchFilterMutation.data?.data || [];
+
+    // Consolidated Student List: Use Search Results if searching, else Initial List
+    let studentList = [];
+    if (searchText) {
+        studentList = searchResults;
+    } else {
+        studentList = Array.isArray(studentNameData) ? studentNameData : (studentNameData?.studentList || studentNameData?.student_name_list || studentNameData?.$values || []);
+    }
+
+    // New lists from backend
+    const generatedTCList: IGeneratedTC[] = responseData?.getstudenttcdetails || [];
+    const deletedTCList: IDeletedTC[] = responseData?.getdeletedtcdetails || [];
 
     // --- Initial Data Loading ---
     // Commented out since getStudentTCInitialData is not needed
@@ -168,48 +306,56 @@ export default function StudentTCApplyPage() {
 
     const handleSelect = (student: IStudentSearch) => {
         setSelectedStudent(student);
+        setActiveTab('student-details');
+        setMaxEnabledTabIndex(0);
 
-        // Payload for `gettcdetails` as per controller
-        const payload = {
-            AMST_Id: student.id,
-            ASMAY_Id: Number(asmayId),
-            Status_flag: studentStatus,
-            allorindividual: searchType === 'all' ? 'All' : 'Individual',
-            adm_num_flag: searchOrder
+        const solMap: Record<string, string> = {
+            'active': 'S',
+            'left': 'L',
+            'deactive': 'D',
+            'temporary': 'T'
         };
+        const statusFlag = solMap[studentStatus] || 'S';
+
+        const payload = {
+            amstId: student.id,
+            asmayId: Number(asmayId),
+            statusFlag: statusFlag,
+            feetobepaid: 0
+        };
+
+        // Reset Blocked Status on new selection
+        setIsBlocked(false);
+        setTcConfig(null);
 
         // Use detailsMutation (getStudentTCDetails POST)
         detailsMutation.mutate(payload, {
             onSuccess: (response: any) => {
-                if (response?.studentListById && response.studentListById.length > 0) {
-                    setSelectedStudentDetails(response);
 
-                    // --- 1. Dues & Configuration Check ---
-                    // Configuration flags should come from response, not initialDataMutation
-                    // Default to checking dues (flag = 1) if not present
-                    const paymentTcFlag = response.admissioncongigurationList?.[0]?.admC_TCAllowBalanceFlg ?? 1;
-                    const libraryTcFlag = response.admissioncongigurationList?.[0]?.asC_LibraryAllowBalanceFlg ?? 1;
+                // --- 1. Dues & Configuration Check ---
+                // Configuration flags should come from response, not initialDataMutation
+                // Default to checking dues (flag = 1) if not present
+                const actualData = response.data || response;
 
-                    // Fee Dues
-                    let feeDueAmount = 0;
-                    response.studentListById.forEach((item: any) => {
-                        if (item.feetobepaid > 0) feeDueAmount += item.feetobepaid;
-                    });
+                if (actualData?.studentList?.length > 0 || actualData?.studentListById?.length > 0 || actualData?.getjoineddetails?.length > 0) {
+                    setSelectedStudentDetails(actualData);
 
-                    // Library Dues
-                    let libraryDueCount = 0;
-                    if (response.count_issuebooks?.length > 0) {
-                        libraryDueCount = response.count_issuebooks.length;
-                    }
+                    // --- 1. Dues Check ---
+                    const feeDueAmount = actualData.fee_Due_Amnt || 0;
+                    const libraryDueCount = actualData.library_Due_Amnt || 0;
+                    const pdaDueAmount = actualData.pdA_Due || 0;
 
-                    // PDA Dues
-                    let pdaDueAmount = 0;
-                    if (response.pdadata?.length > 0) {
-                        pdaDueAmount = response.pdadata[0].pdaS_CBStudentDue;
-                    }
+                    // Flags - support both transnumconfigsettings and admissioncongigurationList
+                    const config = actualData.admissioncongigurationList?.[0] || actualData.transnumconfigsettings?.[0];
 
-                    // Blocking Logic based on Flags
+                    // IF admC_TCAllowBalanceFlg is 0, it means balance is NOT allowed (paymentTcFlag = 1)
+                    // IF it is 1, balance IS allowed (paymentTcFlag = 0)
+                    const paymentTcFlag = config?.transnumconfigsettings_Payment_TC_Flag ?? (config?.admC_TCAllowBalanceFlg === 0 ? 1 : 0);
+                    const libraryTcFlag = config?.transnumconfigsettings_Library_TC_Flag ?? (config?.asC_LibraryAllowBalanceFlg === 0 ? 1 : 0);
+
                     let blockMessage = '';
+
+
                     if (paymentTcFlag === 1) {
                         if (feeDueAmount > 0) {
                             blockMessage += `Rs ${feeDueAmount}/- Amount is Due in Fee! `;
@@ -224,31 +370,34 @@ export default function StudentTCApplyPage() {
                     }
 
                     if (blockMessage) {
+                        setIsBlocked(true); // BLOCK THE FORM
                         Swal.fire({
                             title: 'Cannot Generate TC',
                             text: blockMessage + ' Please clear dues first.',
                             icon: 'error',
                             confirmButtonColor: '#d33'
                         });
-                        // Optional: clear selection or allow view-only? Controller allows view but blocks save.
-                        // For now we assume we load data but warn loudly.
                     }
+
+                    // Store Config
+                    setTcConfig(config || null);
 
 
                     // --- 2. Approval Workflow Check ---
                     // "acertapP_ApprovaReqlFlg"
-                    const approvalMaster = response.getapprovalmasterdetails?.[0];
+                    const approvalMaster = actualData.getapprovalmasterdetails?.[0];
                     const allowApproval = approvalMaster?.acertapP_ApprovaReqlFlg;
-                    const tcGenerated = response.tcgeneratedornot;
+                    const tcGenerated = actualData.tcgeneratedornot;
 
                     if (!tcGenerated && allowApproval === true) {
-                        const studentApplied = response.getstudentapplieddetails?.[0];
-                        const approvalResult = response.getapprovalresultdetails?.[0];
+                        const studentApplied = actualData.getstudentapplieddetails?.[0];
+                        const approvalResult = actualData.getapprovalresultdetails?.[0];
 
                         if (studentApplied) {
                             // Check status
                             const status = approvalResult?.ascaP_Status || studentApplied.ascA_Status;
                             if (status !== 'Approved') {
+                                setIsBlocked(true);
                                 Swal.fire({
                                     title: 'Approval Pending',
                                     text: `Certificate Status is "${status}". TC cannot be generated.`,
@@ -256,6 +405,7 @@ export default function StudentTCApplyPage() {
                                 });
                             }
                         } else {
+                            setIsBlocked(true);
                             Swal.fire({
                                 title: 'Approval Required',
                                 text: 'For Approval Process, First Student Need To Put Request For Certificate From Portal.',
@@ -266,16 +416,79 @@ export default function StudentTCApplyPage() {
 
 
                     // --- 3. Populate Form Data ---
-                    const studentInfo = response.studentListById[0];
+                    const studentInfo = actualData.studentList?.[0];
+                    const joinedInfo = actualData.getjoineddetails?.[0];
+                    const electiveSub = ensureArray(actualData.get_elective_subjects_common)
+                        .map((sub: any) => sub.ismS_SubjectName)
+                        .join(', ');
+                    const langSub = ensureArray(actualData.get_lang_subjects_common)
+                        .map((sub: any) => sub.ismS_SubjectName)
+                        .join(', ');
+                    const subjects = ensureArray(actualData.get_subjects_common)
+                        .map((sub: any) => sub.ismS_SubjectName)
+                        .join(', ');
+
                     if (studentInfo) {
                         setFormData((prev: ITCFormData) => ({
                             ...prev,
-                            last_class: studentInfo.asmcL_ClassName || '',
-                            academic_year_join: studentInfo.joinedYear || studentInfo.asmaY_Year || '',
-                            language_stud: studentInfo.amsT_LanguageStudied || '',
-                            extracurricular: studentInfo.amsT_ExtraCurricular || '',
-                            games_played: studentInfo.amsT_GamesPlayed || '',
-                            tc_no: response.astC_TCNO || ''
+                            // Map existing fields
+                            tc_no: joinedInfo?.astC_TCNO || '',
+                            sts_no: studentInfo.stsno || '',
+                            reason: joinedInfo?.astC_LeavingReason || '',
+                            remarks: joinedInfo?.astC_Remarks || '',
+                            conduct: joinedInfo?.astC_Conduct || 'Good',
+                            last_class: studentInfo.asmcl_classname || '',
+                            academic_year_join: joinedInfo?.asmaY_Year ? joinedInfo.asmaY_Year.toString() : (studentInfo.asmay_year || ''),
+
+                            // Dates
+                            app_date: joinedInfo?.astC_TCApplicationDate ? new Date(joinedInfo.astC_TCApplicationDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                            tc_date: joinedInfo?.astC_TCIssueDate ? new Date(joinedInfo.astC_TCIssueDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                            last_date_attendance: actualData.todateatt ? new Date(actualData.todateatt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                            left_date: joinedInfo?.astC_TCDate ? new Date(joinedInfo.astC_TCDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                            promotion_date: joinedInfo?.astC_PromotionDate ? new Date(joinedInfo.astC_PromotionDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                            admission_date: studentInfo.amst_date ? new Date(studentInfo.amst_date).toISOString().split('T')[0] : '',
+
+                            // Other Details
+                            scholarship: joinedInfo?.astC_Scholarship || '',
+                            electives_stud: joinedInfo?.astC_ElectivesStudied || '',
+                            language_stud: joinedInfo?.astC_LanguageStudied || '',
+                            extracurricular: joinedInfo?.astC_ExtraActivities || '',
+                            subjects_stud: subjects || joinedInfo?.astC_SubjectsStudied || '',
+                            games_played: joinedInfo?.astC_ExtraActivities || '', // Mapping extra activities to games played as fallback or check specific field
+
+                            // New UI Fields
+                            caste: studentInfo.imc_castename || '',
+                            mediumOfInstruction: joinedInfo?.astC_MediumOfINStruction || '',
+
+                            // Flags
+                            Promotion_Flag: joinedInfo?.astC_Qual_PromotionFlag || 'qualified',
+                            Fee_Due_Flag: joinedInfo?.astC_FeePaid || 'yes',
+                            Medically_Exam_Flag: joinedInfo?.astC_MedicallyExam || 'no',
+                            qual_class: joinedInfo?.astC_Qual_Class || '',
+                            // Personal Details (Mapping from studentInfo)
+                            dob: studentInfo.amst_dob ? new Date(studentInfo.amst_dob).toISOString().split('T')[0] : '',
+                            dob_words: studentInfo.amst_dob_words || '',
+                            bank_ifsc: studentInfo.amst_student_bank_ifsc_code || '',
+                            birth_place: studentInfo.amst_birthplace || '',
+                            birth_cert_no: studentInfo.amst_birthcertificateno || '',
+                            caste_cert_no: studentInfo.castecertno || '', // Verify field name
+                            age: studentInfo.age || 0, // Calculate if needed, assume data has it or default 0
+                            gender: studentInfo.amst_sex || '',
+                            mother_tongue: studentInfo.mothertongue || '',
+                            nationality: studentInfo.nationality || '',
+                            mobile: studentInfo.amst_mobile || '',
+                            email: studentInfo.amst_emailid || '',
+                            aadhar_no: studentInfo.amst_aadharno || '',
+                            blood_group: studentInfo.bloodgroup || '',
+                            bank_ac_no: studentInfo.amst_student_bank_account_no || '',
+                            bpl_card_no: studentInfo.amst_bplcardno || '',
+
+                            // Other Details (New sections)
+                            fee_concession: joinedInfo?.astC_FeeConcession || '',
+                            last_exam_details: joinedInfo?.astC_LastExamDetails || '',
+                            result: joinedInfo?.astC_Result || '',
+                            failed_details: joinedInfo?.astC_FailedDetails || '',
+                            ncc_cadet: joinedInfo?.astC_NCC || 'no',
                         }));
                     }
 
@@ -292,8 +505,6 @@ export default function StudentTCApplyPage() {
 
     const handleReset = () => {
         setAsmayId('');
-        setAsmclId('0');
-        setAsmsId('0');
         setSearchType('all');
         setStudentStatus('active');
         setIsTemporaryTC(false);
@@ -302,38 +513,190 @@ export default function StudentTCApplyPage() {
         setData([]);
         setSelectedStudent(null);
         setSelectedStudentDetails(null);
+        setActiveTab('student-details');
+        setMaxEnabledTabIndex(0);
+    };
+
+
+
+    // Parsing Qualified Class if it contains text like "Granted to Class X"
+    useEffect(() => {
+        if (formData.qual_class && formData.qual_class.includes('Granted to Class')) {
+            const parsed = formData.qual_class.replace('Granted to Class', '').trim();
+            // Check if this parsed class exists in the dropdown options
+            // If strictly needed to match ID, we might need more logic, but for now we set the string
+            // Assuming the simple string match works for the Select value
+            if (parsed !== formData.qual_class) {
+                setFormData(prev => ({ ...prev, qual_class: parsed }));
+            }
+        }
+    }, [formData.qual_class]);
+
+    // Sync TC Config from studentListRaw (getstudenttcdata)
+    useEffect(() => {
+        const config = responseData?.admissioncongigurationList?.[0] || responseData?.transnumconfigsettings?.[0];
+        if (config) {
+            setTcConfig(config);
+        }
+    }, [responseData]);
+
+    // Validation for Next Button
+    const validateTab = (tabValue: string) => {
+        const isAutoTC = tcConfig?.imN_AutoManualFlag === 'Auto';
+
+        if (tabValue === 'student-details') {
+            // Basic check if data is loaded, though selection already handles this
+            if (!formData.last_class) {
+                // toast.error('Student details are not fully loaded');
+                // return false;
+            }
+            return true;
+        }
+
+        if (tabValue === 'tc-details') {
+            if (!isAutoTC && !formData.tc_no) {
+                toast.error('TC Number is required');
+                return false;
+            }
+            if (!formData.reason) {
+                toast.error('Reason for leaving is required');
+                return false;
+            }
+            if (!formData.app_date || !formData.tc_date || !formData.last_date_attendance || !formData.left_date) {
+                toast.error('All dates in TC Details are required');
+                return false;
+            }
+            return true;
+        }
+
+        if (tabValue === 'personal-details') {
+            // No mandatory fields strictly enforced here by user yet
+            return true;
+        }
+
+        if (tabValue === 'other-details') {
+            if (!formData.conduct) {
+                toast.error('Conduct / Character is required');
+                return false;
+            }
+            if (formData.Promotion_Flag === 'qualified' && !formData.qual_class) {
+                toast.error('Qualified for which class is required');
+                return false;
+            }
+            return true;
+        }
+
+        return true;
+    };
+
+    const handleNext = () => {
+        const currentIndex = TABS.indexOf(activeTab);
+        if (currentIndex < TABS.length - 1) {
+            if (validateTab(activeTab)) {
+                const nextTab = TABS[currentIndex + 1];
+                setMaxEnabledTabIndex(prev => Math.max(prev, currentIndex + 1));
+                setActiveTab(nextTab);
+            }
+        }
+    };
+
+    const handlePrevious = () => {
+        const currentIndex = TABS.indexOf(activeTab);
+        if (currentIndex > 0) {
+            setActiveTab(TABS[currentIndex - 1]);
+        }
     };
 
     const handleSave = () => {
-        if (!formData.tc_no || !formData.reason || !formData.app_date || !formData.tc_date) {
+        const isAutoTC = tcConfig?.imN_AutoManualFlag === 'Auto';
+
+        if ((!isAutoTC && !formData.tc_no) || !formData.reason || !formData.app_date || !formData.tc_date || !formData.last_date_attendance || !formData.left_date) {
             toast.error('Please fill all required fields in TC Details tab');
             setActiveTab('tc-details');
             return;
         }
 
         const payload = {
-            ...formData,
-            AMST_Id: selectedStudent?.id,
-            ASMAY_Id: Number(asmayId),
-            Status_flag: studentStatus,
-            isTemporaryTC: isTemporaryTC
+            "amst_Id": selectedStudent?.id,
+            "asmaY_Id": Number(asmayId),
+            "asmcL_Id": selectedStudent?.classId,
+            "asmS_Id": selectedStudent?.sectionId,
+            "astC_ActiveFlag": studentStatus === 'left' ? 'L' : 'S',
+            "astC_TemporaryFlag": isTemporaryTC ? 1 : 0,
+            "astC_TCNO": formData.tc_no,
+            "astC_LeavingReason": formData.reason,
+            "astC_TCDate": formData.tc_date,
+            "astC_LastAttendedDate": formData.last_date_attendance,
+            "astC_WorkingDays": formData.working_days,
+            "astC_AttendedDays": formData.present_days,
+            "astC_PromotionDate": formData.promotion_date,
+            "astC_MediumOfINStruction": formData.mediumOfInstruction,
+            "astC_LanguageStudied": formData.language_stud,
+            "astC_ElectivesStudied": formData.electives_stud,
+            "astC_Scholarship": formData.scholarship,
+            "astC_MedicallyExam": formData.Medically_Exam_Flag === 'yes' ? 'Fit' : (formData.Medically_Exam_Flag === 'no' ? 'Unfit' : formData.Medically_Exam_Flag),
+            "astC_NCCDetails": formData.ncc_cadet === 'yes' ? 'Yes' : 'No',
+            "astC_ExtraActivities": formData.extracurricular,
+            "astC_Conduct": formData.conduct,
+            "astC_Remarks": formData.remarks,
+            "astC_FeePaid": formData.Fee_Due_Flag === 'yes' ? 'Yes' : 'No',
+            "astC_FeeConcession": formData.fee_concession,
+            "astC_LastExamDetails": formData.last_exam_details,
+            "astC_Result": formData.result,
+            "astC_ResultDetails": formData.result,
+            "astC_Qual_Class": formData.qual_class,
+            "astC_Qual_PromotionFlag": formData.Promotion_Flag === 'qualified' ? 'Y' : 'N',
+            "astC_TCApplicationDate": formData.app_date,
+            "astC_TCIssueDate": formData.tc_date,
+            "astC_SubjectsStudied": formData.subjects_stud,
+            "last_Class_Studied": formData.last_class,
+            "returnval": true,
+            "email_flag": "Yes",
+            "transnumconfigsettings": tcConfig || { imN_AutoManualFlag: "Manual" }
         };
 
         saveMutation.mutate(payload, {
             onSuccess: (response: any) => {
-                if (response?.success) {
+                const actualResponse = (response?.success !== undefined || response?.returnval !== undefined)
+                    ? response
+                    : (response?.data || response);
+
+                if (actualResponse?.success || actualResponse?.returnval) {
                     Swal.fire({
                         title: 'Success!',
-                        text: 'Student TC details saved successfully.',
+                        text: actualResponse?.message || 'Student TC details saved successfully.',
                         icon: 'success'
                     });
                     handleReset();
                 } else {
-                    toast.error(response?.message || 'Failed to save TC details');
+                    toast.error(actualResponse?.message || 'Failed to save TC details');
                 }
             },
             onError: () => {
                 toast.error('An error occurred while saving.');
+            }
+        });
+    };
+
+    const handleCheckDuplicateTC = (tcNo: string) => {
+        if (!tcNo || !asmayId) return;
+
+        duplicateCheckMutation.mutate({
+            asmayId: Number(asmayId),
+            tcNo: tcNo
+        }, {
+            onSuccess: (response: any) => {
+                if (response?.data?.tcnoduplicate > 0) {
+                    Swal.fire({
+                        title: 'Duplicate TC Number',
+                        text: `The TC Number "${tcNo}" already exists. Please enter a different number.`,
+                        icon: 'warning'
+                    });
+                    setFormData((prev: any) => ({ ...prev, tc_no: '' }));
+                }
+            },
+            onError: (error: any) => {
+                console.error('Duplicate check error:', error);
             }
         });
     };
@@ -352,36 +715,35 @@ export default function StudentTCApplyPage() {
                 <CollapsibleSection title='STUDENT TC' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                     <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
                         {/* Left Side Group */}
-                        <div className='space-y-4 rounded-md border p-4 shadow-sm'>
+                        <div className='space-y-6 p-4'>
                             {/* Search Type Radio */}
-                            <div className='flex items-center gap-6 rounded-md border p-3 bg-muted/20'>
-                                <Label className="font-semibold px-2">Search Type:</Label>
-                                <RadioGroup value={searchType} onValueChange={setSearchType} className='flex items-center gap-6'>
+                            <div className='flex justify-center mb-6'>
+                                <RadioGroup value={searchType} onValueChange={setSearchType} className='flex items-center gap-8'>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='all' id='st-all' />
-                                        <Label htmlFor='st-all'>All</Label>
+                                        <Label htmlFor='st-all' className="font-medium">All</Label>
                                     </div>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='individual' id='st-individual' />
-                                        <Label htmlFor='st-individual'>Individual</Label>
+                                        <Label htmlFor='st-individual' className="font-medium">Individual</Label>
                                     </div>
                                 </RadioGroup>
                             </div>
 
                             {/* Academic Year */}
                             <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[140px_1fr] md:gap-4'>
-                                <Label htmlFor='academic-year-select' className='text-left font-medium text-sm md:text-right'>
+                                <Label htmlFor='academic-year-select' className='text-left font-medium text-sm md:text-right text-indigo-900'>
                                     Academic Year:<span className='text-red-500'>*</span>
                                 </Label>
                                 <Select value={asmayId} onValueChange={setAsmayId}>
-                                    <SelectTrigger id='academic-year-select'>
+                                    <SelectTrigger id='academic-year-select' className="border-indigo-200">
                                         <SelectValue placeholder='Select Academic Year' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {academicYearLoading ? (
                                             <SelectItem value='loading' disabled>Loading...</SelectItem>
                                         ) : (
-                                            academicYears?.data?.map((item) => (
+                                            (academicList.length > 0 ? academicList : (academicYears?.data || [])).map((item: any) => (
                                                 <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                     {item.asmaY_Year}
                                                 </SelectItem>
@@ -391,9 +753,11 @@ export default function StudentTCApplyPage() {
                                 </Select>
                             </div>
 
-                            {/* Student Search Combobox - NEW */}
+
+
+                            {/* Student Search Combobox */}
                             <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[140px_1fr] md:gap-4'>
-                                <Label className='text-left font-medium text-sm md:text-right'>
+                                <Label className='text-left font-medium text-sm md:text-right text-indigo-900'>
                                     Student Name:<span className='text-red-500'>*</span>
                                 </Label>
                                 <Popover open={openStudentSelect} onOpenChange={setOpenStudentSelect}>
@@ -402,104 +766,72 @@ export default function StudentTCApplyPage() {
                                             variant="outline"
                                             role="combobox"
                                             aria-expanded={openStudentSelect}
-                                            className="w-full justify-between"
+                                            className="w-full justify-between border-indigo-200"
                                             disabled={!asmayId}
                                         >
                                             {selectedStudent
                                                 ? `${selectedStudent.studentName} (${selectedStudent.admNo})`
-                                                : "Select student..."}
+                                                : "Select or search Student in the list..."}
                                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-[400px] p-0">
-                                        <Command>
-                                            <CommandInput placeholder="Search student..." />
+                                        <Command shouldFilter={false}>
+                                            <CommandInput
+                                                placeholder="Search student..."
+                                                value={searchText}
+                                                onValueChange={setSearchText}
+                                            />
                                             <CommandList>
                                                 <CommandEmpty>No student found.</CommandEmpty>
                                                 <CommandGroup>
-                                                    {studentList?.map((student: any) => (
-                                                        <CommandItem
-                                                            key={student.amsT_Id}
-                                                            value={`${student.studentName} ${student.amsT_AdmNo}`}
-                                                            onSelect={() => {
-                                                                const mappedStudent: IStudentSearch = {
-                                                                    id: student.amsT_Id,
-                                                                    admNo: student.amsT_AdmNo,
-                                                                    studentName: student.studentName,
-                                                                    class: student.asmcL_ClassName,
-                                                                    section: student.asmS_SectionName
-                                                                };
-                                                                handleSelect(mappedStudent);
-                                                                setOpenStudentSelect(false);
-                                                            }}
-                                                        >
-                                                            <Check
-                                                                className={cn(
-                                                                    "mr-2 h-4 w-4",
-                                                                    selectedStudent?.id === student.amsT_Id ? "opacity-100" : "opacity-0"
-                                                                )}
-                                                            />
-                                                            <div className="flex flex-col">
-                                                                <span>{student.studentName}</span>
-                                                                <span className="text-xs text-muted-foreground">Adm: {student.amsT_AdmNo} | Class: {student.asmcL_ClassName}-{student.asmC_SectionName}</span>
-                                                            </div>
-                                                        </CommandItem>
-                                                    ))}
+                                                    {studentList?.map((student: any, index: number) => {
+                                                        const displayName = student.amsT_FirstName || student.studentName;
+                                                        const displayAdmNo = student.amsT_AdmNo || '';
+                                                        const fullLabel = student.amsT_FirstName ? student.amsT_FirstName : `${student.studentName} ${displayAdmNo}`;
+
+                                                        return (
+                                                            <CommandItem
+                                                                key={`${student.amsT_Id}-${index}`}
+                                                                value={fullLabel}
+                                                                onSelect={() => {
+                                                                    const mappedStudent: IStudentSearch = {
+                                                                        id: student.amsT_Id,
+                                                                        admNo: displayAdmNo,
+                                                                        studentName: displayName,
+                                                                        class: student.asmcL_ClassName || '',
+                                                                        section: student.asmS_SectionName || '',
+                                                                        classId: student.asmcL_Id,
+                                                                        sectionId: student.asmS_Id
+                                                                    };
+                                                                    handleSelect(mappedStudent);
+                                                                    setOpenStudentSelect(false);
+                                                                }}
+                                                            >
+                                                                <Check
+                                                                    className={cn(
+                                                                        "mr-2 h-4 w-4",
+                                                                        selectedStudent?.id === student.amsT_Id ? "opacity-100" : "opacity-0"
+                                                                    )}
+                                                                />
+                                                                {fullLabel}
+                                                            </CommandItem>
+                                                        );
+                                                    })}
                                                 </CommandGroup>
                                             </CommandList>
                                         </Command>
                                     </PopoverContent>
                                 </Popover>
                             </div>
-
-                            {/* Class Selection */}
-                            <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[140px_1fr] md:gap-4'>
-                                <Label htmlFor='class-select' className='text-left font-medium text-sm md:text-right'>
-                                    Class:
-                                </Label>
-                                <Select value={asmclId} onValueChange={setAsmclId}>
-                                    <SelectTrigger id='class-select'>
-                                        <SelectValue placeholder='Select Class' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value='0'>All</SelectItem>
-                                        {classes?.data?.map((item) => (
-                                            <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                                {item.asmcL_ClassName}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* Section Selection */}
-                            <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[140px_1fr] md:gap-4'>
-                                <Label htmlFor='section-select' className='text-left font-medium text-sm md:text-right'>
-                                    Section:
-                                </Label>
-                                <Select value={asmsId} onValueChange={setAsmsId}>
-                                    <SelectTrigger id='section-select'>
-                                        <SelectValue placeholder='Select Section' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value='0'>All</SelectItem>
-                                        {sections?.data?.map((item) => (
-                                            <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
-                                                {item.asmC_SectionName}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
                         </div>
 
                         {/* Right Side Group (Student Selection Box) */}
-                        <div className='overflow-hidden rounded-md border border-indigo-600 shadow-sm'>
-                            <div className='bg-indigo-600 px-4 py-2 font-medium text-white'>Selection Criteria</div>
+                        <div className='overflow-hidden rounded-md border border-[#2b589f] shadow-sm'>
+                            <div className='bg-[#2b589f] px-4 py-2 font-medium text-white'>Student Selection</div>
                             <div className='space-y-4 bg-white p-4'>
                                 {/* Student Status Radio */}
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Student Status</Label>
                                     <RadioGroup
                                         value={studentStatus}
                                         onValueChange={setStudentStatus}
@@ -518,7 +850,7 @@ export default function StudentTCApplyPage() {
                                         </div>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='temporary' id='ss-temporary' />
-                                            <Label htmlFor='ss-temporary'>Temporary</Label>
+                                            <Label htmlFor='ss-temporary'>Temporary Students</Label>
                                         </div>
                                     </RadioGroup>
                                 </div>
@@ -532,14 +864,13 @@ export default function StudentTCApplyPage() {
                                         checked={isTemporaryTC}
                                         onCheckedChange={(checked) => setIsTemporaryTC(checked as boolean)}
                                     />
-                                    <Label htmlFor='temp-tc' className="font-semibold">Temporary TC</Label>
+                                    <Label htmlFor='temp-tc' className="font-medium">Temporary TC</Label>
                                 </div>
 
                                 <div className='my-2 border-t' />
 
                                 {/* Search Order Radio */}
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Search Order</Label>
                                     <RadioGroup value={searchOrder} onValueChange={setSearchOrder} className='flex items-center gap-6'>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='admno_name' id='so-adm' />
@@ -572,6 +903,38 @@ export default function StudentTCApplyPage() {
                     </div>
                 </CollapsibleSection>
 
+                {/* Generated TC List */}
+                {generatedTCList.length > 0 && !selectedStudent && (
+                    <CollapsibleSection title="Generated TC List" defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
+                        <GenericDataTable<IGeneratedTC>
+                            data={generatedTCList}
+                            totalItems={generatedTCList.length}
+                            isLoading={false}
+                            columns={generatedTCColumns}
+                            success={true}
+                            error={null}
+                            showViewOptions={false}
+                            loadingMessage='Loading Generated TCs...'
+                        />
+                    </CollapsibleSection>
+                )}
+
+                {/* Deleted TC List */}
+                {deletedTCList.length > 0 && !selectedStudent && (
+                    <CollapsibleSection title="Cancelled / Deleted TC List" defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
+                        <GenericDataTable<IDeletedTC>
+                            data={deletedTCList}
+                            totalItems={deletedTCList.length}
+                            isLoading={false}
+                            columns={deletedTCColumns}
+                            success={true}
+                            error={null}
+                            showViewOptions={false}
+                            loadingMessage='Loading Deleted TCs...'
+                        />
+                    </CollapsibleSection>
+                )}
+
                 {data.length > 0 && !selectedStudent && (
                     <CollapsibleSection title="Search Results" defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                         <GenericDataTable<IStudentSearch>
@@ -591,13 +954,29 @@ export default function StudentTCApplyPage() {
                         variant='default'
                         size='lg'
                         className='shadow-lg pb-6'>
-                        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                        {selectedStudentDetails && selectedStudentDetails.studentList && (
+                            <div className="mb-4">
+                                <StudentHeaderSummary student={selectedStudentDetails.studentList[0]} />
+                            </div>
+                        )}
+
+                        <Tabs value={activeTab} onValueChange={(val) => {
+                            const idx = TABS.indexOf(val);
+                            if (idx <= maxEnabledTabIndex) {
+                                setActiveTab(val);
+                            }
+                        }} className="w-full">
                             <TabsList className="grid w-full grid-cols-5 p-1 bg-muted/30">
-                                <TabsTrigger value="student-details" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white">Student Details</TabsTrigger>
-                                <TabsTrigger value="tc-details" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white">TC Details</TabsTrigger>
-                                <TabsTrigger value="other-details" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white">Other Details</TabsTrigger>
-                                <TabsTrigger value="due-details" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white">Due Details</TabsTrigger>
-                                <TabsTrigger value="approval-details" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white">Approval</TabsTrigger>
+                                {TABS.map((tab, idx) => (
+                                    <TabsTrigger
+                                        key={tab}
+                                        value={tab}
+                                        disabled={idx > maxEnabledTabIndex}
+                                        className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white"
+                                    >
+                                        {tab.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                                    </TabsTrigger>
+                                ))}
                             </TabsList>
 
                             <div className="mt-4 min-h-[400px] border rounded-lg p-2 bg-muted/5">
@@ -605,61 +984,149 @@ export default function StudentTCApplyPage() {
                                     {detailsMutation.isPending ? (
                                         <div className="flex h-60 items-center justify-center"><Loader2 className="h-10 w-10 animate-spin text-indigo-600" /></div>
                                     ) : (
-                                        <StudentDetailsTab data={selectedStudentDetails} />
+                                        <StudentDetailsTab
+                                            formData={formData}
+                                            setFormData={setFormData}
+                                            disabled={isBlocked}
+                                        />
                                     )}
                                 </TabsContent>
                                 <TabsContent value="tc-details">
                                     <TCDetailsTab
                                         formData={formData}
                                         setFormData={setFormData}
-                                        initialData={undefined} // initialDataMutation removed
+                                        initialData={selectedStudentDetails} // Keep this as is, mapping logic handles it
+                                        onCheckDuplicate={handleCheckDuplicateTC}
+                                        tcConfig={tcConfig}
+                                        disabled={isBlocked}
+                                    />
+                                </TabsContent>
+                                <TabsContent value="personal-details">
+                                    <StudentPersonalDetailsTab
+                                        formData={formData}
+                                        setFormData={setFormData}
+                                        disabled={isBlocked}
                                     />
                                 </TabsContent>
                                 <TabsContent value="other-details">
                                     <OtherDetailsTab
                                         formData={formData}
                                         setFormData={setFormData}
+                                        initialData={{ ...selectedStudentDetails, classlistnew: studentNameData?.classlistnew }}
+                                        disabled={isBlocked}
                                     />
                                 </TabsContent>
                                 <TabsContent value="due-details">
-                                    <DueDetailsTab data={selectedStudentDetails} />
-                                </TabsContent>
-                                <TabsContent value="approval-details">
-                                    <div className="p-8 text-center text-muted-foreground">
-                                        <Info className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                                        <p>Approval history and status information will appear here.</p>
-                                    </div>
+                                    <DueDetailsTab
+                                        data={selectedStudentDetails}
+                                        disabled={isBlocked}
+                                    />
                                 </TabsContent>
                             </div>
 
                             <div className="flex justify-between items-center px-4 mt-6 border-t pt-4">
-                                <Button variant="ghost" className="text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => setSelectedStudent(null)}>
+                                <Button variant="ghost" className="text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => {
+                                    setSelectedStudent(null);
+                                    setMaxEnabledTabIndex(0);
+                                    setActiveTab('student-details');
+                                }}>
                                     <XCircle className="mr-2 h-4 w-4" /> Cancel Selection
                                 </Button>
                                 <div className="flex gap-4">
-                                    <Button variant="outline" disabled={activeTab === 'student-details'} onClick={() => {
-                                        const tabs = ['student-details', 'tc-details', 'other-details', 'due-details', 'approval-details'];
-                                        const idx = tabs.indexOf(activeTab);
-                                        if (idx > 0) setActiveTab(tabs[idx - 1]);
-                                    }}>
+                                    <Button
+                                        variant="outline"
+                                        disabled={activeTab === 'student-details'}
+                                        onClick={handlePrevious}
+                                    >
                                         <ChevronLeft className="mr-2 h-4 w-4" /> Previous
                                     </Button>
-                                    <Button variant="outline" disabled={activeTab === 'approval-details'} onClick={() => {
-                                        const tabs = ['student-details', 'tc-details', 'other-details', 'due-details', 'approval-details'];
-                                        const idx = tabs.indexOf(activeTab);
-                                        if (idx < tabs.length - 1) setActiveTab(tabs[idx + 1]);
-                                    }}>
-                                        Next <ChevronRight className="ml-2 h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        onClick={handleSave}
-                                        disabled={saveMutation.isPending}
-                                        className="bg-green-600 hover:bg-green-700 text-white min-w-[140px]">
-                                        {saveMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />} Save Application
-                                    </Button>
+
+                                    {activeTab !== 'due-details' ? (
+                                        <Button
+                                            variant="outline"
+                                            className="bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100"
+                                            onClick={handleNext}
+                                        >
+                                            Next <ChevronRight className="ml-2 h-4 w-4" />
+                                        </Button>
+                                    ) : (
+                                        <>
+                                            <Button
+                                                onClick={handleSave}
+                                                disabled={saveMutation.isPending}
+                                                className="bg-green-600 hover:bg-green-700 text-white min-w-[140px]">
+                                                {saveMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />} Save Application
+                                            </Button>
+                                            <Button
+                                                variant="secondary"
+                                                onClick={() => setOpenPreview(true)}
+                                                className="min-w-[100px]"
+                                            >
+                                                Preview
+                                            </Button>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </Tabs>
+
+                        {/* Preview Modal */}
+                        {openPreview && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                                <div className="max-h-[80vh] w-[800px] overflow-y-auto rounded-lg bg-white p-6 shadow-xl">
+                                    <div className="mb-4 flex items-center justify-between border-b pb-2">
+                                        <h2 className="text-xl font-bold">Student TC Details - Preview</h2>
+                                        <Button variant="ghost" size="icon" onClick={() => setOpenPreview(false)}>
+                                            <XCircle className="h-5 w-5" />
+                                        </Button>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4 text-sm">
+                                        {/* Row 1 */}
+                                        <div className="font-semibold">Class:</div><div>{formData.last_class}</div>
+                                        <div className="font-semibold">TC No.:</div><div>{formData.tc_no}</div>
+
+                                        {/* Row 2 */}
+                                        <div className="font-semibold">Section:</div><div>{selectedStudent?.section}</div>
+                                        <div className="font-semibold">TC Application Date:</div><div>{formData.app_date}</div>
+
+                                        {/* Row 3 */}
+                                        <div className="font-semibold">Father Name:</div><div>{selectedStudentDetails?.studentListById?.[0]?.father || '-'}</div>
+                                        <div className="font-semibold">Leaving Reason:</div><div>{formData.reason}</div>
+
+                                        {/* Row 4 */}
+                                        <div className="font-semibold">Category:</div><div>{selectedStudentDetails?.studentListById?.[0]?.AMC_Name || '-'}</div>
+                                        <div className="font-semibold">TC Date:</div><div>{formData.tc_date}</div>
+
+                                        {/* Row 5 */}
+                                        <div className="font-semibold">Admission Academic Year:</div><div>{formData.academic_year_join}</div>
+                                        <div className="font-semibold">Last Date Of Attendance:</div><div>{formData.last_date_attendance}</div>
+
+                                        {/* Row 6 */}
+                                        <div className="font-semibold">Registration No.:</div><div>{selectedStudentDetails?.studentListById?.[0]?.AMST_RegistrationNo || '-'}</div>
+                                        <div className="font-semibold">No. Of School Days:</div><div>{formData.working_days}</div>
+
+                                        {/* Row 7 */}
+                                        <div className="font-semibold">Date Of Admission:</div><div>{selectedStudentDetails?.studentListById?.[0]?.AMST_Date ? new Date(selectedStudentDetails.studentListById[0].AMST_Date).toLocaleDateString() : '-'}</div>
+                                        <div className="font-semibold">No. Of Attended Days:</div><div>{formData.present_days}</div>
+
+                                        {/* Row 8 */}
+                                        <div className="font-semibold">Date Of Promotion:</div><div>{formData.promotion_date}</div>
+                                        <div className="font-semibold">Qualified for which class:</div><div>{formData.qual_class}</div>
+
+                                        {/* Row 9 */}
+                                        <div className="font-semibold">Last Class Studied:</div><div>{formData.last_class}</div>
+                                        <div className="font-semibold">Conduct / Character:</div><div>{formData.conduct}</div>
+
+                                        {/* Row 10 */}
+                                        <div className="font-semibold">Caste:</div><div>{selectedStudentDetails?.studentListById?.[0]?.IMC_CasteName || '-'}</div>
+                                        <div className="font-semibold">Fee Due:</div><div>{selectedStudentDetails?.studentListById?.[0]?.feetobepaid || 0}</div>
+                                    </div>
+                                    <div className="mt-6 flex justify-end">
+                                        <Button onClick={() => setOpenPreview(false)}>Close</Button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </CollapsibleSection>
                 )}
             </div>

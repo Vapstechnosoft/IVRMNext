@@ -14,10 +14,12 @@ import * as XLSX from "xlsx";
 import { Printer, FileSpreadsheet } from "lucide-react";
 
 interface ReportListProps {
-  data: any;
+  data: any,
+  selected_Year: any;
+  selected_Exam: any;
 }
 
-export const ReportList = ({ data }: ReportListProps) => {
+export const ReportList = ({ data, selected_Year, selected_Exam }: ReportListProps) => {
   const tableRef = useRef<HTMLTableElement>(null);
   // Transformation logic removed as we are rendering a flat list directly.
 
@@ -46,10 +48,11 @@ export const ReportList = ({ data }: ReportListProps) => {
         );
         printWindow.document.write("</head><body>");
         printWindow.document.write(
-          '<div style="text-align: center; margin-bottom: 20px;">',
+          `<div style="text-align: center; margin-bottom: 20px;">
+             <h3>Marks Entered Report</h3>
+             <p><strong>ACADEMIC YEAR:</strong> ${yearname} &nbsp;&nbsp; <strong>EXAM:</strong> ${examname}</p>
+           </div>`
         );
-        printWindow.document.write("<h3>Marks Entered Report</h3>");
-        printWindow.document.write("</div>");
         printWindow.document.write(printContent);
         printWindow.document.write("</body></html>");
         printWindow.document.close();
@@ -68,14 +71,13 @@ export const ReportList = ({ data }: ReportListProps) => {
   // Use the raw array for the flat list
   const reportList = Array.isArray(data) ? data : [];
 
-  // Extract metadata from first item if available
-  const firstItem = reportList[0] || {};
-  const yearname = firstItem.asmaY_Year || "2023-2024";
-  const examname = firstItem.emE_ExamName || "Exam";
+
+  const yearname = selected_Year || "2023-2024";
+  const examname = selected_Exam || "Exam";
 
   return (
     <div className="space-y-4  bg-white border rounded-xl">
-      
+
       <div className="space-y-2 text-center flex flex-col justify-center items-center">
         <h3 className="font-bold text-xl pt-3">Marks Entered Report</h3>
         <div className="flex space-x-8 text-sm">

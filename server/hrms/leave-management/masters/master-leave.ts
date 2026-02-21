@@ -146,7 +146,8 @@ export async function getMasterLeave(
         }
 
         // If returned data exists even if success is not explicitly true
-        if (response && response.data) {
+        // biome-ignore lint/complexity/useOptionalChain: <explanation>
+                if (response && response.data) {
             return {
                 success: true,
                 message: response.message || 'Data fetched',
@@ -192,6 +193,7 @@ export async function saveMasterLeave(data: MasterLeaveSaveRequest): Promise<Api
         hrmL_LeaveType: data.HRML_LeaveType,
         hrmL_LateDeductFlag: !!data.HRML_LateDeductFlag,
         hrmL_LateDeductOrder: Number(data.HRML_LateDeductOrder || 0),
+        // biome-ignore lint/complexity/noUselessTernary: <explanation>
         hrmL_ActiveFlag: data.HRML_ActiveFlag === false || data.HRML_ActiveFlag === 0 ? false : true,
         hrmL_ProbationNotApplicableFlg: !!data.HRML_ProbationNotApplicableFlg,
         hrmL_WhenToApplyFlg: data.HRML_LeaveApplyCriteria || null,
@@ -208,7 +210,17 @@ export async function saveMasterLeave(data: MasterLeaveSaveRequest): Promise<Api
         const response = await api.post<any>('hmslms', url, requestBody);
         console.log('🟢 [SERVER] Response:', JSON.stringify(response, null, 2));
 
-        const res = response as any;
+        let res = response as any;
+
+        // Handle case where response is a string
+        if (typeof res === 'string') {
+            try {
+                res = JSON.parse(res);
+            } catch (e) {
+                console.error('🟠 [SERVER] Failed to parse response string:', e);
+            }
+        }
+
         const isSuccess = res.success === true || String(res.success) === 'true';
 
         if (isSuccess) {
@@ -243,7 +255,17 @@ export async function toggleMasterLeave(HRML_Id: number): Promise<ApiResponse<an
         const response = await api.put<any>('hmslms', url, {});
         console.log('🟡 [SERVER] Response:', JSON.stringify(response, null, 2));
 
-        const res = response as any;
+        let res = response as any;
+
+        // Handle case where response is a string
+        if (typeof res === 'string') {
+            try {
+                res = JSON.parse(res);
+            } catch (e) {
+                console.error('🟡 [SERVER] Failed to parse response string:', e);
+            }
+        }
+
         const isSuccess = res.success === true || String(res.success) === 'true';
 
         return {
@@ -272,7 +294,17 @@ export async function updateMasterLeaveOrder(orders: Array<{ id: number; order: 
         const response = await api.put<any>('hmslms', url, orders);
         console.log('🟡 [SERVER] Response:', JSON.stringify(response, null, 2));
 
-        const res = response as any;
+        let res = response as any;
+
+        // Handle case where response is a string
+        if (typeof res === 'string') {
+            try {
+                res = JSON.parse(res);
+            } catch (e) {
+                console.error('🟡 [SERVER] Failed to parse response string:', e);
+            }
+        }
+
         const isSuccess = res.success === true || String(res.success) === 'true';
 
         return {
@@ -294,21 +326,56 @@ export async function updateMasterLeaveOrder(orders: Array<{ id: number; order: 
  */
 export async function deleteMasterLeave(HRML_Id: number): Promise<ApiResponse<any>> {
     const url = `/api/MasterLeave/delete_master_leave_by_id/${HRML_Id}`;
-    console.log('🔴 [SERVER] DELETE Request URL:', url);
+    console.log(`🔴 [SERVER] DELETE Request URL: ${url}`);
+
     try {
         const response = await api.delete<any>('hmslms', url);
         console.log('🔴 [SERVER] Response:', JSON.stringify(response, null, 2));
 
-        const res = response as any;
+        let res = response as any;
+
+        // Double-serialized JSON handling (kept as safety net based on previous findings)
+        if (typeof res === 'string') {
+            try {
+                res = JSON.parse(res);
+            } catch (e) {
+                console.error('🔴 [SERVER] Parsing error:', e);
+            }
+        }
+
         const isSuccess = res.success === true || String(res.success) === 'true' || res.returnval === true;
+        let message = res.message || (isSuccess ? 'Deleted successfully' : 'Failed to delete');
+
+        // Friendly error mapping
+        if (message && (message.toLowerCase().includes('saving the entity changes') || message.toLowerCase().includes('constraint'))) {
+            message = 'Cannot delete this record because it is currently in use or referenced by other records.';
+        }
 
         return {
             success: isSuccess,
-            message: res.message || (isSuccess ? 'Deleted successfully' : 'Failed to delete'),
+            message: message,
             data: res.data || null
         };
+
     } catch (error: any) {
-        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete master leave';
+        console.error('🔴 [SERVER] Error:', error);
+
+        // Handle successful response that was thrown as error (e.g. status code issue)
+        if (error?.response?.data?.success === true || error?.response?.data?.returnval === true) {
+            const res = error.response.data;
+            return {
+                success: true,
+                message: res.message || 'Deleted successfully',
+                data: res.data || null
+            };
+        }
+
+        let errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete master leave';
+
+        if (errorMessage.toLowerCase().includes('saving the entity changes') || errorMessage.toLowerCase().includes('constraint')) {
+            errorMessage = 'Cannot delete this record because it is currently in use or referenced by other records.';
+        }
+
         throw new Error(errorMessage);
     }
 }

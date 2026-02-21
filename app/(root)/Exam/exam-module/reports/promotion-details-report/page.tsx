@@ -2,11 +2,26 @@
 import { useEffect, useRef, useState } from 'react';
 import { ReportForm } from './_components/report-form';
 import { ReportList } from './_components/report-list';
+import { IMasterInstitution } from '@/types/exam/exam-module/report';
+import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
+
 
 export default function PromotionDetailsReportPage() {
     const [reportData, setReportData] = useState<any>(null);
     const [isSuperAverage, setIsSuperAverage] = useState(false);
     const listRef = useRef<HTMLDivElement>(null);
+
+    const [institution, setInstitution] = useState<IMasterInstitution | null>(null);
+    
+        useEffect(() => {
+            const fetchInstitution = async () => {
+                const inst = await getMasterInstitution();
+                console.log('inst', inst);
+                if(inst.data?.mI_Name.trim()==='') return;
+                setInstitution(inst.data);
+            };
+            fetchInstitution();
+        },[]);
 
     const handleReportGenerated = (data: any, superAverage: boolean) => {
         setReportData(data);
@@ -35,9 +50,9 @@ export default function PromotionDetailsReportPage() {
             <ReportForm onReportGenerated={handleReportGenerated} onReset={handleReset} />
 
             <div ref={listRef} className='mt-6 duration-300 ease-in-out'>
-                {reportData && (
+                {reportData && institution && (
                     <div className='fade-in slide-in-from-bottom-4 animate-in duration-500'>
-                        <ReportList data={reportData} isSuperAverage={isSuperAverage} />
+                        <ReportList data={reportData} isSuperAverage={isSuperAverage} institution={institution} />
                     </div>
                 )}
             </div>

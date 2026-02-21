@@ -1573,6 +1573,31 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/ai-performance-analysis',
                                             title: 'AI Performance Analysis',
                                             description: 'AI-driven student performance analysis and insights'
+                                        },
+                                        {
+                                            id: 90,
+                                            name: 'Stella Progress Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/stella_prograss_report',
+                                            title: 'Stella Progress Report',
+                                            description: 'Manage Stella Progress Card Report Details'
+                                        },
+                                        {
+                                            id: 91,
+                                            name: 'Stella Marks Entry Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/stella_marks_entry_report',
+                                            title: 'Stella Marks Entry Report',
+                                            description: 'Manage Stella Marks Entry Report Details'
+
+                                        },
+                                        {
+                                            id: 92,
+                                            name: "Vidyaniketan Performance Ananlysis Report",
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/vidyaniketan-performance-analysis-report',
+                                            title: "Vidyaniketan Performance Ananlysis Report",
+                                            description: "Manage Vidyaniketan Performance Ananlysis Report Details"
                                         }
                                     ]
                                 }
@@ -1764,7 +1789,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 3,
+                                    id: 7,
                                     name: 'Transactions',
                                     icon: 'FileText',
                                     pages: [
@@ -1827,7 +1852,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 4,
+                                    id: 6,
                                     name: 'Reports',
                                     icon: 'FileText',
                                     pages: [
@@ -1839,6 +1864,25 @@ export async function getUserAccessibleModules() {
                                             title: 'Cumulative Salary Report',
                                             description: 'Cumulative Salary Analysis'
                                         },
+
+
+                                        {
+
+                                            id: 23,
+
+                                            name: 'Employee Details Report',
+
+                                            icon: 'FileText',
+
+                                            url: '/hrms/reports/employeeDetailsReport',
+
+                                            title: 'Employee Details Report',
+
+                                            description: 'Detailed Employee Information Report'
+
+                                        },
+
+
                                         //,
                                         // {
                                         //     id: 2,
@@ -2334,6 +2378,7 @@ export async function getUserAccessibleModules() {
                         //         }
                         //     ]
                         // },
+
                         // , {
                         //     id: 4,
                         //     name: 'Leave Management',
@@ -2489,6 +2534,178 @@ export async function getUserAccessibleModules() {
                         //         }
                         //     ]
                         // }
+
+                        // {
+                        //     id: 4,
+                        //     name: 'Leave Management',
+                        //     icon: 'Calendar',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'Masters',
+                        //             icon: 'Database',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Master Leave',
+                        //                     icon: 'Calendar',
+                        //                     url: '/hrms/leave-management/masters/master-leave',
+                        //                     title: 'Master Leave',
+                        //                     description: 'Manage Leave Types'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Leave Authorization',
+                        //                     icon: 'Shield',
+                        //                     url: '/hrms/leave-management/masters/leave-authorization',
+                        //                     title: 'Leave Authorization',
+                        //                     description: 'Configure Leave Approvers'
+                        //                 }
+                        //                 // {
+                        //                 //     id: 3,
+                        //                 //     name: 'Master Leave Year',
+                        //                 //     icon: 'CalendarRange',
+                        //                 //     url: '/hrms/leave-management/masters/master-leaveYear',
+                        //                 //     title: 'Master Leave Year',
+                        //                 //     description: 'Manage Leave Year'
+                        //                 // }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 4,
+                        //             name: 'Leave Config',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Leave Configuration',
+                        //                     icon: 'CheckSquare',
+                        //                     url: '/hrms/leave-management/leave-Configuration',
+                        //                     title: 'Leave Configuration',
+                        //                     description: 'Leave Configuration'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 2,
+                        //             name: 'Apply Leave',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Apply Leave',
+                        //                     icon: 'FilePlus',
+                        //                     url: '/hrms/leave-management/apply-leave',
+                        //                     title: 'Apply Leave',
+                        //                     description: 'Submit Leave Application'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Leave Approval',
+                        //                     icon: 'CheckCircle',
+                        //                     url: '/hrms/leave-management/leave-approval',
+                        //                     title: 'Leave Approval',
+                        //                     description: 'Approve or Reject Leave Requests'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 3,
+                        //             name: 'Transaction',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Leave Transfer',
+                        //                     icon: 'Plus',
+                        //                     url: '/hrms/leave-management/transaction/leave-transfer',
+                        //                     title: 'Leave Transfer',
+                        //                     description: 'Transfer Leave'
+                        //                 },
+                        //                 // {
+                        //                 //     id: 2,
+                        //                 //     name: 'Comp Off Approval',
+                        //                 //     icon: 'CheckSquare',
+                        //                 //     url: '/hrms/leave-management/transaction/comp-off-approval',
+                        //                 //     title: 'Comp Off Approval',
+                        //                 //     description: 'Approve Compensatory Off'
+                        //                 // },
+                        //                 // {
+                        //                 //     id: 3,
+                        //                 //     name: 'Comp Off Request',
+                        //                 //     icon: 'FileText',
+                        //                 //     url: '/hrms/leave-management/transaction/comp-off-request',
+                        //                 //     title: 'Comp Off Request',
+                        //                 //     description: 'Request Compensatory Off'
+                        //                 // },
+                        //                 // {
+                        //                 //     id: 4,
+                        //                 //     name: 'Leave Credit Details',
+                        //                 //     icon: 'Info',
+                        //                 //     url: '/hrms/leave-management/transaction/leave-credit-details',
+                        //                 //     title: 'Leave  Details',
+                        //                 //     description: 'View Leave Credit Details'
+                        //                 // },
+                        //                 {
+                        //                     id: 5,
+                        //                     name: 'Leave Transaction',
+                        //                     icon: 'List',
+                        //                     url: '/hrms/leave-management/transaction/leave-credit-transaction',
+                        //                     title: 'Leave Transaction',
+                        //                     description: 'Leave Transaction'
+                        //                 },
+                        //                 {
+                        //                     id: 6,
+                        //                     name: 'Leave Opening Balance',
+                        //                     icon: 'Database',
+                        //                     url: '/hrms/leave-management/transaction/leave-opening-balance',
+                        //                     title: 'Leave Opening Balance',
+                        //                     description: 'Manage Leave Opening Balance'
+                        //                 },
+                        //                 {
+                        //                     id: 7,
+                        //                     name: 'Admin On Duty Apply',
+                        //                     icon: 'Briefcase',
+                        //                     url: '/hrms/leave-management/transaction/admin-on-duty-apply',
+                        //                     title: 'Admin On Duty Apply',
+                        //                     description: 'Apply for On Duty Leave'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 5,
+                        //             name: 'Report',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Leave Report',
+                        //                     icon: 'FileSearch',
+                        //                     url: '/hrms/leave-management/reports/leave-report',
+                        //                     title: 'Leave Report',
+                        //                     description: 'Leave Summary Report'
+                        //                 }
+                        //                 // {
+                        //                 //     id: 2,
+                        //                 //     name: 'Overall Report',
+                        //                 //     icon: 'BarChart3',
+                        //                 //     url: '/hrms/leave-management/reports/overAll-report',
+                        //                 //     title: 'Overall Report',
+                        //                 //     description: 'Overall Leave Analysis'
+                        //                 // },
+                        //                 // {
+                        //                 //     id: 3,
+                        //                 //     name: 'Unauthorized Leave Report',
+                        //                 //     icon: 'AlertTriangle',
+                        //                 //     url: '/hrms/leave-management/reports/unauthorizedLeaveCount-report',
+                        //                 //     title: 'Unauthorized Leave Report',
+                        //                 //     description: 'Unauthorized Leave Count'
+                        //                 // }
+                        //             ]
+                        //         }
+                        //     ]
+                        // }
+
                         // {
                         //     id: 5,
                         //     name: 'Exit Management',
@@ -2628,6 +2845,44 @@ export async function getUserAccessibleModules() {
                                             title: 'AI Performance Analysis',
                                             description: 'Analyze performance metrics and AI-driven insights'
                                         }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                 {
+                    id: 9001,
+                    name: 'Visual Insights',
+                    icon: 'bar-chart-3',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Visual Insights',
+                            icon: 'bar-chart-3',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Visual Insights Tools',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Custom Templates',
+                                            icon: 'FileText',
+                                            url: '/visual-insights/custom-templates',
+                                            title: 'Custom Templates',
+                                            description: 'Create and manage custom templates for visual insights'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Statistical Analysis',
+                                            icon: 'FileText',
+                                            url: '/visual-insights/statistics-graphs',
+                                            title: 'Statistical Analysis',
+                                            description: 'Analyze data and generate statistical insights'
+                                        }
+                                       
                                     ]
                                 }
                             ]
@@ -3053,21 +3308,6 @@ export async function getUserAccessibleModules() {
                 //             name: 'Time Table',
                 //             icon: 'Clock',
                 //             sub_menu: [
-                //                 // {
-                //                 //     id: 4,
-                //                 //     name: 'Configuration',
-                //                 //     icon: 'BadgeIndianRupee',
-                //                 //     pages: [
-                //                 //         {
-                //                 //             id: 21,
-                //                 //             name: 'Fee configuration',
-                //                 //             icon: 'BadgeIndianRupee',
-                //                 //             url: '/fees/configuration/masterfeeconfig',
-                //                 //             title: 'Fee configuration',
-                //                 //             description: 'Fee configuration'
-                //                 //         }
-                //                 //     ]
-                //                 // },
                 //                 {
                 //                     id: 1,
                 //                     name: 'Masters',
@@ -3096,6 +3336,14 @@ export async function getUserAccessibleModules() {
                 //                             url: '/timetable/masters/masterbuilding',
                 //                             title: 'Master Building',
                 //                             description: 'Manage Master Building Details'
+                //                         },
+                //                         {
+                //                             id: 11111111,
+                //                             name: 'Master Building Class Section',
+                //                             icon: 'Clock',
+                //                             url: '/timetable/masters/masterbuildingclasssection',
+                //                             title: 'Master Building Class Section',
+                //                             description: 'Manage Master Building Class Section Details'
                 //                         },
                 //                         {
                 //                             id: 3,
@@ -3793,66 +4041,67 @@ export async function getUserAccessibleModules() {
                 //         }
                 //     ]
                 // },
-                {
-                    id: 25,
-                    name: 'COE',
-                    icon: 'Settings',
-                    menu: [
-                        {
-                            id: 1,
-                            name: 'Calendar of Events',
-                            icon: 'Settings',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Master',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Master Event',
-                                            icon: 'Settings',
-                                            url: '/coe/master/masterevent',
-                                            title: 'Master Event',
-                                            description: 'Manage Master Event Details'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Mapping',
-                                            icon: 'Settings',
-                                            url: '/coe/master/master-coe',
-                                            title: 'Mapping',
-                                            description: 'Manage Mapping Details'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Report',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'COE Report',
-                                            icon: 'Settings',
-                                            url: '/coe/report/coereport',
-                                            title: 'COE Report',
-                                            description: 'Manage COE Report'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'COE Month End Report',
-                                            icon: 'Settings',
-                                            url: '/coe/report/coemonthendreport',
-                                            title: 'COE Month End Report',
-                                            description: 'Manage COE Month End Report'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
+                // {
+                //     id: 25,
+                //     name: 'COE',
+                //     icon: 'Settings',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'Calendar of Events',
+                //             icon: 'Settings',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Master',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'Master Event',
+                //                             icon: 'Settings',
+                //                             url: '/coe/master/masterevent',
+                //                             title: 'Master Event',
+                //                             description: 'Manage Master Event Details'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'Mapping',
+                //                             icon: 'Settings',
+                //                             url: '/coe/master/master-coe',
+                //                             title: 'Mapping',
+                //                             description: 'Manage Mapping Details'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Report',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'COE Report',
+                //                             icon: 'Settings',
+                //                             url: '/coe/report/coereport',
+                //                             title: 'COE Report',
+                //                             description: 'Manage COE Report'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'COE Month End Report',
+                //                             icon: 'Settings',
+                //                             url: '/coe/report/coemonthendreport',
+                //                             title: 'COE Month End Report',
+                //                             description: 'Manage COE Month End Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
+
                 {
                     id: 10,
                     name: 'Inventory Management',
@@ -5127,7 +5376,7 @@ export async function getUserAccessibleModules() {
                             sub_menu: [
                                 {
                                     id: 80016,
-                                    name: 'Leave Management',
+                                    name: 'Leave Config',
                                     icon: 'CalendarDays',
                                     pages: [
                                         {
@@ -5197,12 +5446,12 @@ export async function getUserAccessibleModules() {
             message: 'Data fetched successfully!!',
             data: [
                 {
-                    id: 9,
+                    id: 40000,
                     name: 'Student Portal',
                     icon: 'Users',
                     menu: [
                         {
-                            id: 1,
+                            id: 40000,
                             name: 'Home',
                             icon: 'BookOpen',
                             sub_menu: [
@@ -5211,11 +5460,20 @@ export async function getUserAccessibleModules() {
                                     name: 'Home',
                                     icon: 'Database',
                                     pages: [
+                                        // {
+                                        //     id: 40000,
+                                        //     name: 'Dashboard',
+                                        //     icon: 'LayoutDashboard',
+                                        //     url: '/StudentPortal/student-dashboard',
+                                        //     title: 'StudentDashboard',
+                                        //     description: 'Main Dashboard'
+                                        // },
+
                                         {
-                                            id: 40000,
-                                            name: 'Dashboard',
+                                            id: 402000,
+                                            name: 'Dashboard Demo',
                                             icon: 'LayoutDashboard',
-                                            url: '/StudentPortal/student-dashboard',
+                                            url: '/StudentPortal/StudentPortalDashboard',
                                             title: 'StudentDashboard',
                                             description: 'Main Dashboard'
                                         }

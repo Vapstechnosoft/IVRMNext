@@ -1,11 +1,12 @@
 import { ROUTES } from '@/constants/routes';
 import { auth } from '@/lib/auth';
-import { UserNav } from '../user-nav';
+import { IntelligentAppsMenu } from './intelligent-apps-menu';
 import UserNotificationPage from '../user-notification';
+import { UserNav } from '../user-nav';
 import Logo from './logo';
-import { OperationTools } from './operation-tools';
-import { AIAgentHeader } from './ai-agent-header';
 import { NavigationSystem } from './navigation-system';
+import { HeaderSearch } from './header-search';
+import { OperationTools } from './operation-tools';
 
 export default async function Navbar() {
     const session = await auth();
@@ -15,11 +16,11 @@ export default async function Navbar() {
             <div className='container flex max-h-14 items-center py-2'>
                 <div className='flex w-full items-center gap-2'>
                     <Logo size='icon' herf={ROUTES.DASHBOARD} />
-                    <div className='flex-1' />
+                    <NavigationSystem />
                     <div className='flex items-center gap-4'>
-                        <NavigationSystem />
+                        <HeaderSearch />
                         <OperationTools />
-                        <AIAgentHeader />
+                        <IntelligentAppsMenu />
                         <UserNotificationPage />
                         <UserNav session={session} />
                     </div>

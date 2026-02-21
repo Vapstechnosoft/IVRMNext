@@ -90,13 +90,13 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
         mode: 'onChange',
         defaultValues: {
             institution: '',
-            gradeName: '',
-            groupTypeName: '',
-            departmentName: '',
-            designationName: '',
-            leaveType: '',
-            orderOfApproval: '',
-            approvalPerson: '',
+            hrmG_GradeName: '',
+            hrmgT_EmployeeGroupType: '',
+            hrmD_DepartmentName: '',
+            hrmdeS_DesignationName: '',
+            hrmL_LeaveName: '',
+            hrlaoN_SanctionLevelNo: '',
+            hrmE_EmployeeFirstName: '',
             finalFlag: false
         }
     });
@@ -157,9 +157,9 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                     {/* Left Column */}
                     <div className='space-y-4'>
                         <Controller
-                            name='gradeName'
+                            name='hrmG_GradeName'
                             control={control}
-                            rules={LEAVE_AUTHORIZATION_VALIDATION.gradeName}
+                            rules={LEAVE_AUTHORIZATION_VALIDATION.hrmG_GradeName}
                             render={({ field }) => (
                                 <div>
                                     <label htmlFor='grade-select' className='mb-2 block font-medium text-gray-700 text-sm'>
@@ -171,7 +171,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                             field.onChange(value || '');
                                         }}
                                         value={field.value?.toString() || undefined}>
-                                        <SelectTrigger id='grade-select' className={errors.gradeName ? 'border-red-500' : ''}>
+                                        <SelectTrigger id='grade-select' className={errors.hrmG_GradeName ? 'border-red-500' : ''}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -188,14 +188,14 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                             )}
                                         </SelectContent>
                                     </Select>
-                                    {errors.gradeName && <FormError>{errors.gradeName.message}</FormError>}
+                                    {errors.hrmG_GradeName && <FormError>{errors.hrmG_GradeName.message}</FormError>}
                                 </div>
                             )}
                         />
                         <Controller
-                            name='groupTypeName'
+                            name='hrmgT_EmployeeGroupType'
                             control={control}
-                            rules={LEAVE_AUTHORIZATION_VALIDATION.groupTypeName}
+                            rules={LEAVE_AUTHORIZATION_VALIDATION.hrmgT_EmployeeGroupType}
                             render={({ field }) => (
                                 <div>
                                     <label htmlFor='group-type-select' className='mb-2 block font-medium text-gray-700 text-sm'>
@@ -207,7 +207,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                             field.onChange(value || '');
                                         }}
                                         value={field.value?.toString() || undefined}>
-                                        <SelectTrigger id='group-type-select' className={errors.groupTypeName ? 'border-red-500' : ''}>
+                                        <SelectTrigger id='group-type-select' className={errors.hrmgT_EmployeeGroupType ? 'border-red-500' : ''}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -224,14 +224,14 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                             )}
                                         </SelectContent>
                                     </Select>
-                                    {errors.groupTypeName && <FormError>{errors.groupTypeName.message}</FormError>}
+                                    {errors.hrmgT_EmployeeGroupType && <FormError>{errors.hrmgT_EmployeeGroupType.message}</FormError>}
                                 </div>
                             )}
                         />
                         <Controller
-                            name='departmentName'
+                            name='hrmD_DepartmentName'
                             control={control}
-                            rules={LEAVE_AUTHORIZATION_VALIDATION.departmentName}
+                            rules={LEAVE_AUTHORIZATION_VALIDATION.hrmD_DepartmentName}
                             render={({ field }) => (
                                 <div>
                                     <label htmlFor='department-select' className='mb-2 block font-medium text-gray-700 text-sm'>
@@ -243,7 +243,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                             field.onChange(value || '');
                                         }}
                                         value={field.value?.toString() || undefined}>
-                                        <SelectTrigger id='department-select' className={errors.departmentName ? 'border-red-500' : ''}>
+                                        <SelectTrigger id='department-select' className={errors.hrmD_DepartmentName ? 'border-red-500' : ''}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -260,14 +260,14 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                             )}
                                         </SelectContent>
                                     </Select>
-                                    {errors.departmentName && <FormError>{errors.departmentName.message}</FormError>}
+                                    {errors.hrmD_DepartmentName && <FormError>{errors.hrmD_DepartmentName.message}</FormError>}
                                 </div>
                             )}
                         />
                         <Controller
-                            name='designationName'
+                            name='hrmdeS_DesignationName'
                             control={control}
-                            rules={LEAVE_AUTHORIZATION_VALIDATION.designationName}
+                            rules={LEAVE_AUTHORIZATION_VALIDATION.hrmdeS_DesignationName}
                             render={({ field }) => (
                                 <div>
                                     <label htmlFor='designation-select' className='mb-2 block font-medium text-gray-700 text-sm'>
@@ -279,7 +279,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                             field.onChange(value || '');
                                         }}
                                         value={field.value?.toString() || undefined}>
-                                        <SelectTrigger id='designation-select' className={errors.designationName ? 'border-red-500' : ''}>
+                                        <SelectTrigger id='designation-select' className={errors.hrmdeS_DesignationName ? 'border-red-500' : ''}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -296,7 +296,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                             )}
                                         </SelectContent>
                                     </Select>
-                                    {errors.designationName && <FormError>{errors.designationName.message}</FormError>}
+                                    {errors.hrmdeS_DesignationName && <FormError>{errors.hrmdeS_DesignationName.message}</FormError>}
                                 </div>
                             )}
                         />
@@ -304,9 +304,9 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                     {/* Right Column */}
                     <div className='space-y-4'>
                         <Controller
-                            name='leaveType'
+                            name='hrmL_LeaveName'
                             control={control}
-                            rules={LEAVE_AUTHORIZATION_VALIDATION.leaveType}
+                            rules={LEAVE_AUTHORIZATION_VALIDATION.hrmL_LeaveName}
                             render={({ field }) => (
                                 <div>
                                     <label htmlFor='leave-type-select' className='mb-2 block font-medium text-gray-700 text-sm'>
@@ -318,10 +318,10 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                             field.onChange(value || '');
                                         }}
                                         value={field.value?.toString() || undefined}>
-                                        <SelectTrigger id='leave-type-select' className={errors.leaveType ? 'border-red-500' : ''}>
+                                        <SelectTrigger id='leave-type-select' className={errors.hrmL_LeaveName ? 'border-red-500' : ''}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
-                                        <SelectContent>
+                                        <SelectContent side='top'>
                                             {leaveTypeOptions.length > 0 ? (
                                                 leaveTypeOptions.map((option) => (
                                                     <SelectItem key={option.value} value={option.value}>
@@ -335,23 +335,25 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                             )}
                                         </SelectContent>
                                     </Select>
-                                    {errors.leaveType && <FormError>{errors.leaveType.message}</FormError>}
+                                    {errors.hrmL_LeaveName && <FormError>{errors.hrmL_LeaveName.message}</FormError>}
                                 </div>
                             )}
                         />
-                        <InputText
-                            label='Order of Approval'
-                            required
-                            id='orderOfApproval'
-                            type='number'
-                            {...register('orderOfApproval', LEAVE_AUTHORIZATION_VALIDATION.orderOfApproval)}
-                            error={errors.orderOfApproval?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+                        <div className='mb-4'>
+                            <InputText
+                                label='Order'
+                                id='hrlaoN_SanctionLevelNo'
+                                required
+                                type='number'
+                                {...register('hrlaoN_SanctionLevelNo', LEAVE_AUTHORIZATION_VALIDATION.hrlaoN_SanctionLevelNo)}
+                                error={errors.hrlaoN_SanctionLevelNo?.message}
+                                className='transition-all duration-200 focus:ring-2 focus:ring-primary/20'
+                            />
+                        </div>
                         <Controller
-                            name='approvalPerson'
+                            name='hrmE_EmployeeFirstName'
                             control={control}
-                            rules={LEAVE_AUTHORIZATION_VALIDATION.approvalPerson}
+                            rules={LEAVE_AUTHORIZATION_VALIDATION.hrmE_EmployeeFirstName}
                             render={({ field }) => (
                                 <div>
                                     <label htmlFor='approval-person-select' className='mb-2 block font-medium text-gray-700 text-sm'>
@@ -365,10 +367,10 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                         value={field.value?.toString() || undefined}>
                                         <SelectTrigger
                                             id='approval-person-select'
-                                            className={errors.approvalPerson ? 'border-red-500' : ''}>
+                                            className={errors.hrmE_EmployeeFirstName ? 'border-red-500' : ''}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
-                                        <SelectContent>
+                                        <SelectContent side='top'>
                                             {approvalPersonOptions.length > 0 ? (
                                                 approvalPersonOptions.map((option) => (
                                                     <SelectItem key={option.value} value={option.value}>
@@ -382,19 +384,28 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                             )}
                                         </SelectContent>
                                     </Select>
-                                    {errors.approvalPerson && <FormError>{errors.approvalPerson.message}</FormError>}
+                                    {errors.hrmE_EmployeeFirstName && <FormError>{errors.hrmE_EmployeeFirstName.message}</FormError>}
                                 </div>
                             )}
                         />
-                        <div className='flex items-center space-x-2'>
+                        {/* Checkbox */}
+                        <div className='pt-2'>
                             <Controller
                                 name='finalFlag'
                                 control={control}
-                                render={({ field }) => <Checkbox id='finalFlag' checked={field.value} onCheckedChange={field.onChange} />}
+                                render={({ field }) => (
+                                    <div className='flex items-center space-x-2'>
+                                        <Checkbox
+                                            id='finalFlag'
+                                            checked={field.value}
+                                            onCheckedChange={(checked) => field.onChange(!!checked)}
+                                        />
+                                        <label htmlFor='finalFlag' className='cursor-pointer font-medium text-gray-700 text-sm'>
+                                            Final Flag
+                                        </label>
+                                    </div>
+                                )}
                             />
-                            <label htmlFor='finalFlag' className='font-medium text-gray-700 text-sm'>
-                                Final Flag
-                            </label>
                         </div>
                     </div>
                 </div>

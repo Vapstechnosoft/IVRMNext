@@ -11,6 +11,8 @@ export interface IPeriodSubjectList {
     asmaY_Year: string;
     ttmP_PeriodName: string;
     ismS_SubjectName: string;
+    ttrpsU_ActiveFlag: boolean;
+    ttrpsU_SUbSelcFlag: boolean;  //action
 }
 
 export const columns: ColumnDef<IPeriodSubjectList>[] = [
@@ -42,6 +44,15 @@ export const columns: ColumnDef<IPeriodSubjectList>[] = [
         cell: ({ row }) => <div>{row.getValue('ismS_SubjectName')}</div>
     },
     {
+        accessorKey: 'ttrpsU_SUbSelcFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Restriction Level' />,
+        cell: ({ row }) => (
+            <div className={`font-medium ${row.original.ttrpsU_SUbSelcFlag ? 'text-blue-600' : 'text-green-600'}`}>
+                {row.original.ttrpsU_SUbSelcFlag ? 'Class-Section Wise' : 'General'}
+            </div>
+        )
+    },
+    {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
         accessorFn: (row) => row,
@@ -51,13 +62,20 @@ export const columns: ColumnDef<IPeriodSubjectList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IPeriodSubjectList }) {
-    const { openEditForm, openDeleteForm } = useFormContext<IPeriodSubjectList>();
+    const { openEditForm, openToggleForm, openDeleteForm } = useFormContext<IPeriodSubjectList>();
 
     const handleEdit = useCallback(
         (data: IPeriodSubjectList) => {
             openEditForm(data);
         },
         [openEditForm]
+    );
+
+    const handleToggle = useCallback(
+        (data: IPeriodSubjectList) => {
+            if (openToggleForm) openToggleForm(data);
+        },
+        [openToggleForm]
     );
 
     const handleDelete = useCallback(
@@ -67,5 +85,15 @@ function ActionButtonsCell({ rowData }: { rowData: IPeriodSubjectList }) {
         [openDeleteForm]
     );
 
-    return <ActionButtons rowData={rowData} buttons={{ edit: true, delete: true }} onEdit={handleEdit} onDelete={handleDelete} />;
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: true, delete: true }}
+            onEdit={handleEdit}
+            onToggle={handleToggle}
+            onDelete={handleDelete}
+            toggleConditionKey='ttrpsU_ActiveFlag'
+        />
+    );
 }
+

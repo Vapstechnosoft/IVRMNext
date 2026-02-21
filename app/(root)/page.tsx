@@ -1,6 +1,7 @@
 'use client';
 import ParentsDashboard from '@/components/ui/dashboard/parents-dashboard';
 import { ROLES } from '@/constants';
+import { ROUTES } from '@/constants/routes';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -22,16 +23,20 @@ export default function Page() {
             router.push('/school-admin');
         } else if (role === ROLES.CHAIRMAN) {
             router.push('/chairman');
-        } else if (role === ROLES.GENERAL_STAFF || role === ROLES.HR_ADMIN || role === ROLES.SUPER_ADMIN || role === ROLES.STAFF) {
+        } else if (
+            role === ROLES.GENERAL_STAFF ||
+            role === ROLES.HR_ADMIN ||
+            role === ROLES.SUPER_ADMIN
+        ) {
             router.push('/StaffPortal/staff-dashboard');
         }
     }, [session?.data?.role, router]);
 
     return (
         <main className='container px-0 py-2'>
-            {session?.data?.role !== undefined && session?.data?.role.toUpperCase() === ROLES.ONLINE_PREADMISSION_USER && (
-                <ParentsDashboard />
-            )}
+            {session?.data?.role !== undefined &&
+                session?.data?.role.toUpperCase() === ROLES.ONLINE_PREADMISSION_USER &&
+                <ParentsDashboard />}
         </main>
     );
 }

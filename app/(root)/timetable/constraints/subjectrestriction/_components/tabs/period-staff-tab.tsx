@@ -8,8 +8,12 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+    useAcademicYearDropDownMasterDayClasswise,
+    useStaffDropDownDayStaff,
+    useSubjectRestrictionPeriodStaffGridData
+} from '@/hooks/timetable/constraints/subjectrestriction';
 import { periodStaffSchema } from '@/schemas/timetable/constraints/subjectrestriction';
-import { savePeriodStaffDetail } from '@/server/timetable/constraints/subjectrestriction';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Save, Trash, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -17,12 +21,26 @@ import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-ho
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import PeriodStaffList from './period-staff-list';
+import TogglePeriodStaffForm from '../toggleButton/periodStaffToggle';
 
 type PeriodStaffSchema = z.infer<typeof periodStaffSchema>;
 
 interface PeriodStaffTabProps {
     initialData: any;
 }
+
+const extractList = (data: any, preferredKey?: string) => {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    const target = data?.data !== undefined ? data.data : data;
+    if (Array.isArray(target)) return target;
+    if (preferredKey && Array.isArray(target[preferredKey])) return target[preferredKey];
+    const keys = ['yearlist', 'stafflist', 'periodlist', 'classlist', 'sectionlist', 'subjectlist', 'periodstafflist'];
+    for (const key of keys) {
+        if (Array.isArray(target[key])) return target[key];
+    }
+    return [];
+};
 
 export default function PeriodStaffTab({ initialData }: PeriodStaffTabProps) {
     return (
@@ -33,13 +51,24 @@ export default function PeriodStaffTab({ initialData }: PeriodStaffTabProps) {
 }
 
 function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
-    const { isAddFormOpen, isEditFormOpen, openAddForm, closeAddForm, closeEditForm } = useFormContext();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        openAddForm,
+        closeAddForm,
+        closeEditForm,
+        selectedRow,
+        isToggleFormOpen,
+        closeToggleForm
+    } = useFormContext();
 
-    const academicList = initialData?.yearlist || [];
-    const periodList = initialData?.periodlist || [];
-    const staffListInitial = initialData?.stafflist || [];
+    // Use hooks for dropdowns
+    const { data: academicYearData, isLoading: academicLoading } = useAcademicYearDropDownMasterDayClasswise();
+    const { data: staffData, isLoading: staffLoading } = useStaffDropDownDayStaff();
 
-    const [staffList, setStaffList] = useState<any[]>(staffListInitial);
+    const academicList = extractList(academicYearData) || extractList(initialData, 'yearlist');
+    const staffList = extractList(staffData) || extractList(initialData, 'stafflist');
+    const periodList = extractList(initialData, 'periodlist');
 
     const form = useForm<PeriodStaffSchema>({
         resolver: zodResolver(periodStaffSchema),
@@ -62,6 +91,13 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         formState: { errors, isSubmitting }
     } = form;
 
+    const watchedYear = watch('ASMAY_Id');
+
+    const { data: gridData, isLoading: gridLoading } = useSubjectRestrictionPeriodStaffGridData({
+        ASMAY_Id: watchedYear,
+        TTMC_Id: 0 // Mock Category if not needed for Period Staff but required by hook signature
+    });
+
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'combinationlist'
@@ -80,9 +116,47 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subjectList, setSubjectList] = useState<any[]>([]);
 
+    // Load Class, Section, Subject Dropdowns for sub-grid
     useEffect(() => {
-        // Fetch sub-lists logic if needed
+        const loadSubDropdowns = async () => {
+            try {
+                const { getClassDropdown, getSectionDropDown, getSubjectDropDown } = await import(
+                    '@/server/timetable/constraints/FixingForm'
+                );
+                const [classes, sections, subjects] = await Promise.all([getClassDropdown(), getSectionDropDown(), getSubjectDropDown()]);
+                setClassList(classes || []);
+                setSectionList(sections || []);
+                setSubjectList(subjects || []);
+            } catch (error) {
+                console.error('Failed to load sub-dropdowns:', error);
+            }
+        };
+        loadSubDropdowns();
     }, []);
+
+    // Effect for population on Edit
+    useEffect(() => {
+        if (isEditFormOpen && selectedRow) {
+            const fetchEditData = async () => {
+                try {
+                    const { getPeriodStaffEditDetails } = await import('@/server/timetable/constraints/subjectrestriction');
+                    const res = await getPeriodStaffEditDetails((selectedRow as any).ttrpS_Id || (selectedRow as any).ttrps_Id);
+                    const data = (res as any)?.periodstafflist?.[0] || selectedRow;
+                    reset({
+                        TTRPS_Id: (data as any).ttrpS_Id || (data as any).ttrps_Id,
+                        ASMAY_Id: (data as any).asmaY_Id,
+                        TTMP_Id: (data as any).ttmP_Id,
+                        HRME_Id: (data as any).hrmE_Id,
+                        TTRPS_SUbSelcFlag: (data as any).ttrpS_SUbSelcFlag === 1 || (data as any).ttrpS_SUbSelcFlag === true,
+                        combinationlist: (data as any).combinationlist || []
+                    });
+                } catch (err) {
+                    toast.error('Failed to load edit details');
+                }
+            };
+            fetchEditData();
+        }
+    }, [isEditFormOpen, selectedRow, reset]);
 
     const handleAdd = () => {
         if (!tempInput.ASMCL_Id || !tempInput.ASMS_Id || !tempInput.ISMS_Id || !tempInput.NOD) {
@@ -100,14 +174,21 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
 
     const onSubmit: SubmitHandler<PeriodStaffSchema> = async (data) => {
         try {
-            const res = await savePeriodStaffDetail(data);
-            if (res.returnval === true) {
+            const { savePeriodStaffDetail } = await import('@/server/timetable/constraints/subjectrestriction');
+            const payload = {
+                ...data,
+                TTRPS_SUbSelcFlag: data.TTRPS_SUbSelcFlag ? 1 : 0
+            };
+            const res = await savePeriodStaffDetail(payload);
+            if (res.success || res.returnval === true) {
                 toast.success('Saved Successfully');
                 reset();
-                closeAddForm();
-                closeEditForm();
+                if (isAddFormOpen) closeAddForm();
+                if (isEditFormOpen) closeEditForm();
+            } else if (res.returnduplicatestatus === 'Duplicate') {
+                toast.warning('Records Already Exist !');
             } else {
-                toast.error('Failed to Save');
+                toast.error(res.message || 'Failed to Save');
             }
         } catch (error) {
             console.error(error);
@@ -128,7 +209,15 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                     </Button>
                 </div>
 
-                <PeriodStaffList data={initialData?.periodstafflist || []} />
+                <PeriodStaffList
+                    data={extractList(gridData) || extractList(initialData, 'periodstafflist')}
+                    isLoading={gridLoading}
+                    asmaY_Id={watchedYear}
+                />
+
+                {isToggleFormOpen && selectedRow && (
+                    <TogglePeriodStaffForm rowData={selectedRow as any} onClose={closeToggleForm} />
+                )}
 
                 {(isAddFormOpen || isEditFormOpen) && (
                     <CollapsibleSection
@@ -148,7 +237,6 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                             </Button>
 
                             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 bg-white p-6'>
-                                {/* Existing form content */}
                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
                                     <div className='space-y-2'>
                                         <Label>
@@ -162,14 +250,18 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                                                     onValueChange={(val) => field.onChange(Number(val))}
                                                     value={field.value?.toString()}>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder='--Select--' />
+                                                        <SelectValue placeholder={academicLoading ? 'Loading...' : '--Select--'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {academicList.map((item: any) => (
-                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                                {item.asmaY_Year}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {academicList.map((item: any) => {
+                                                            const id = item.asmaY_Id || item.ASMAY_Id || item.id;
+                                                            const year = item.asmaY_Year || item.asmay_Year || item.year;
+                                                            return (
+                                                                <SelectItem key={id} value={id?.toString()}>
+                                                                    {year}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             )}
@@ -212,14 +304,18 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                                                     onValueChange={(val) => field.onChange(Number(val))}
                                                     value={field.value?.toString()}>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder='--Select--' />
+                                                        <SelectValue placeholder={staffLoading ? 'Loading...' : '--Select--'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {staffList.map((item: any) => (
-                                                            <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
-                                                                {item.staffName ? item.staffName : item.hrmE_EmployeeFirstName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {staffList.map((item: any) => {
+                                                            const id = item.hrmE_Id || item.HRME_Id || item.id;
+                                                            const name = item.staffName || item.hrmE_EmployeeFirstName || item.employeeName;
+                                                            return (
+                                                                <SelectItem key={id} value={id?.toString()}>
+                                                                    {name}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             )}
@@ -343,7 +439,7 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                                     </Button>
                                     <Button
                                         type='button'
-                                        variant='destructive'
+                                        variant='outline'
                                         onClick={() => {
                                             reset();
                                             if (isEditFormOpen) closeEditForm();

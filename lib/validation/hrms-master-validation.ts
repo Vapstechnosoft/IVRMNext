@@ -683,7 +683,7 @@ export const LEAVE_YEAR_VALIDATION = {
 
 // Master Leave Validation
 export const MASTER_LEAVE_VALIDATION = {
-    leaveName: {
+    hrmL_LeaveName: {
         required: VALIDATION_MESSAGES.REQUIRED('Leave Name'),
         maxLength: {
             value: 100,
@@ -708,7 +708,7 @@ export const MASTER_LEAVE_VALIDATION = {
             return true;
         }
     },
-    leaveCode: {
+    hrmL_LeaveCode: {
         required: VALIDATION_MESSAGES.REQUIRED('Leave Code'),
         maxLength: {
             value: 10,
@@ -733,7 +733,7 @@ export const MASTER_LEAVE_VALIDATION = {
             return true;
         }
     },
-    leaveDetails: {
+    hrmL_LeaveDetails: {
         required: VALIDATION_MESSAGES.REQUIRED('Leave Details'),
         maxLength: {
             value: 250,
@@ -751,7 +751,7 @@ export const MASTER_LEAVE_VALIDATION = {
             return true;
         }
     },
-    leaveType: {
+    hrmL_LeaveType: {
         required: VALIDATION_MESSAGES.REQUIRED('Leave Type'),
         validate: (value: string) => {
             const validTypes = ['On_Duty', 'Comp_Off', 'LWP', 'EL', 'SL'];
@@ -761,7 +761,7 @@ export const MASTER_LEAVE_VALIDATION = {
             return true;
         }
     },
-    leaveApplyCriteria: {
+    hrmL_LeaveApplyCriteria: {
         required: VALIDATION_MESSAGES.REQUIRED('Leave Apply Criteria'),
         validate: (value: string) => {
             const validCriteria = ['Before', 'After', 'Same Day', 'Month', 'Quarter'];
@@ -771,7 +771,7 @@ export const MASTER_LEAVE_VALIDATION = {
             return true;
         }
     },
-    daysForApplyCriteria: {
+    hrmL_DaysForApplyCriteria: {
         required: VALIDATION_MESSAGES.REQUIRED('Days for Apply Criteria'),
         min: {
             value: 1,
@@ -793,7 +793,7 @@ export const MASTER_LEAVE_VALIDATION = {
             return true;
         }
     },
-    maxDaysForApply: {
+    hrmL_MaxDaysForApply: {
         required: VALIDATION_MESSAGES.REQUIRED('Max Days For Apply'),
         min: {
             value: 1,
@@ -815,13 +815,13 @@ export const MASTER_LEAVE_VALIDATION = {
             return true;
         }
     },
-    leaveCredit: {
+    hrmL_LeaveCreditFlg: {
         // Optional checkbox - no validation needed
     },
-    lateDeduct: {
+    hrmL_LateDeductFlag: {
         // Optional checkbox - no validation needed
     },
-    probationNotApplicable: {
+    hrmL_ProbationNotApplicableFlg: {
         // Optional checkbox - no validation needed
     }
 };
@@ -953,7 +953,7 @@ export const MASTER_LEAVE_LIST_VALIDATION = {
 
 // Leave Authorization Validation
 export const LEAVE_AUTHORIZATION_VALIDATION = {
-    gradeName: {
+    hrmG_GradeName: {
         required: VALIDATION_MESSAGES.REQUIRED('Select Grade'),
         validate: (value: string) => {
             if (!value || value.trim() === '') {
@@ -962,7 +962,7 @@ export const LEAVE_AUTHORIZATION_VALIDATION = {
             return true;
         }
     },
-    groupTypeName: {
+    hrmgT_EmployeeGroupType: {
         required: VALIDATION_MESSAGES.REQUIRED('Group Type'),
         validate: (value: string) => {
             if (!value || value.trim() === '') {
@@ -971,7 +971,7 @@ export const LEAVE_AUTHORIZATION_VALIDATION = {
             return true;
         }
     },
-    departmentName: {
+    hrmD_DepartmentName: {
         required: VALIDATION_MESSAGES.REQUIRED('Department Type'),
         validate: (value: string) => {
             if (!value || value.trim() === '') {
@@ -980,7 +980,7 @@ export const LEAVE_AUTHORIZATION_VALIDATION = {
             return true;
         }
     },
-    designationName: {
+    hrmdeS_DesignationName: {
         required: VALIDATION_MESSAGES.REQUIRED('Designation Type'),
         validate: (value: string) => {
             if (!value || value.trim() === '') {
@@ -989,7 +989,7 @@ export const LEAVE_AUTHORIZATION_VALIDATION = {
             return true;
         }
     },
-    leaveType: {
+    hrmL_LeaveName: {
         required: VALIDATION_MESSAGES.REQUIRED('Leave Type'),
         validate: (value: string) => {
             if (!value || value.trim() === '') {
@@ -998,7 +998,7 @@ export const LEAVE_AUTHORIZATION_VALIDATION = {
             return true;
         }
     },
-    orderOfApproval: {
+    hrlaoN_SanctionLevelNo: {
         required: VALIDATION_MESSAGES.REQUIRED('Order of Approval'),
         min: {
             value: 1,
@@ -1021,7 +1021,7 @@ export const LEAVE_AUTHORIZATION_VALIDATION = {
             return true;
         }
     },
-    approvalPerson: {
+    hrmE_EmployeeFirstName: {
         required: VALIDATION_MESSAGES.REQUIRED('Approval Person'),
         validate: (value: string) => {
             if (!value || value.trim() === '') {

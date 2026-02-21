@@ -9,7 +9,7 @@ export default async function BifurcationConstraintsPage() {
         //console.error('Failed to load bifurcation constraints:', error);
         initialData = {
             success: false,
-            message: error?.message || 'Failed to load bifurcation constraints',
+            message: error?.message,
             detailslist: []
         };
     }

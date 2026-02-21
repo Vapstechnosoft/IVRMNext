@@ -333,6 +333,21 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             const dob = new Date(rowData.pasR_DOB);
             const allClasses = preadmissionClass.data;
 
+            // Validate the date of birth
+            if (!rowData.pasR_DOB || Number.isNaN(dob.getTime())) {
+                setFilteredClasses([]);
+                setIsClassDisabled(true);
+                return;
+            }
+
+            // Ensure DOB is not in the future
+            const today = new Date();
+            if (dob > today) {
+                setFilteredClasses([]);
+                setIsClassDisabled(true);
+                return;
+            }
+
             const validClasses: IPreadmissionClassDropdown[] = [];
 
             allClasses.forEach((classItem: IPreadmissionClassDropdown) => {
@@ -1058,6 +1073,22 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     const validateAgeForClass = (dob: Date, classData: IPreadmissionClassDropdown, config: any): { isValid: boolean; reason?: string } => {
         const cutOffDate = config.ispaC_ApplCutOffDateFlag === 1 ? new Date(config.asmaY_Cut_Of_Date) : new Date();
 
+        // Validate that DOB is not after cutoff date
+        if (dob > cutOffDate) {
+            return {
+                isValid: false,
+                reason: 'Date of birth cannot be after the application cutoff date'
+            };
+        }
+
+        // Additional validation to ensure DOB is valid and not in the future
+        if (!dob || Number.isNaN(dob.getTime())) {
+            return {
+                isValid: false,
+                reason: 'Invalid date of birth provided'
+            };
+        }
+
         const age = calculateAge(dob, cutOffDate);
 
         // Check minimum age if flag is enabled
@@ -1105,6 +1136,23 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
     const handleDOBChange = (date: Date | undefined) => {
         if (!date || !masterConfig?.data) {
+            setIsClassDisabled(true);
+            setFilteredClasses([]);
+            setValue('asmcL_Id', 0);
+            return;
+        }
+
+        // Validate the date
+        if (Number.isNaN(date.getTime())) {
+            setIsClassDisabled(true);
+            setFilteredClasses([]);
+            setValue('asmcL_Id', 0);
+            return;
+        }
+
+        // Ensure date is not in the future
+        const today = new Date();
+        if (date > today) {
             setIsClassDisabled(true);
             setFilteredClasses([]);
             setValue('asmcL_Id', 0);
