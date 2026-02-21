@@ -26,13 +26,16 @@ export default function Page() {
         } else if (role === ROLES.STUDENT) {
             router.push('/StudentPortal/StudentPortalDashboard');
         }
+        else if (session?.data?.role?.toUpperCase() === ROLES.CHAIRMAN) {
+            router.push('/chairman');
+        }
     }, [session?.data?.role, router]);
 
     return (
         <main className='container px-0 py-2'>
             {session?.data?.role !== undefined &&
                 session?.data?.role.toUpperCase() !== ROLES.ADMIN &&
-                session?.data?.role.toUpperCase() !== ROLES.STUDENT && <ParentsDashboard />}
+                session?.data?.role.toUpperCase() !== ROLES.STUDENT && session?.data?.role.toUpperCase() !== ROLES.CHAIRMAN && <ParentsDashboard />}
         </main>
     );
 }
