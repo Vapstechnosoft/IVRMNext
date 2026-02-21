@@ -19,15 +19,18 @@ export default function Page() {
     // Move router.push to useEffect
     useEffect(() => {
         if (session?.data?.role?.toUpperCase() === ROLES.ADMIN) {
-            router.push(
-                `${ROUTES.ADMISSION.ADMISSION}${ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION}${ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION_SUB_MENUS.TRANSACTIONS}${ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION_SUB_MENUS.TRANSACTIONS_SUB_MENUS.APPLICATION_FORM}`
-            );
+            router.push('/school-admin');
+        } else if (session?.data?.role?.toUpperCase() === ROLES.CHAIRMAN) {
+            router.push('/chairman');
         }
     }, [session?.data?.role, router]);
 
     return (
         <main className='container px-0 py-2'>
-            {session?.data?.role !== undefined && session?.data?.role.toUpperCase() !== ROLES.ADMIN && <ParentsDashboard />}
+            {session?.data?.role !== undefined &&
+                session?.data?.role.toUpperCase() !== ROLES.ADMIN &&
+                session?.data?.role.toUpperCase() !== ROLES.CHAIRMAN &&
+                <ParentsDashboard />}
         </main>
     );
 }
