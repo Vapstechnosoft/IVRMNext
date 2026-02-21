@@ -2851,6 +2851,44 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
+                 {
+                    id: 9001,
+                    name: 'Visual Insights',
+                    icon: 'bar-chart-3',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Visual Insights',
+                            icon: 'bar-chart-3',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Visual Insights Tools',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Custom Templates',
+                                            icon: 'FileText',
+                                            url: '/visual-insights/custom-templates',
+                                            title: 'Custom Templates',
+                                            description: 'Create and manage custom templates for visual insights'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Statistical Analysis',
+                                            icon: 'FileText',
+                                            url: '/visual-insights/statistics-graphs',
+                                            title: 'Statistical Analysis',
+                                            description: 'Analyze data and generate statistical insights'
+                                        }
+                                       
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
                 {
                     id: 12,
                     name: 'Alumni',
