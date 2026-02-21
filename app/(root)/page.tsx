@@ -20,14 +20,14 @@ export default function Page() {
     useEffect(() => {
         const role = session?.data?.role?.toUpperCase();
         if (role === ROLES.ADMIN) {
-            router.push('/school-admin');
+            router.push(
+                `${ROUTES.ADMISSION.ADMISSION}${ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION}${ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION_SUB_MENUS.TRANSACTIONS}${ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION_SUB_MENUS.TRANSACTIONS_SUB_MENUS.APPLICATION_FORM}`
+            );
+        } else if (role === ROLES.STUDENT) {
+            router.push('/StudentPortal/StudentPortalDashboard');
         } else if (role === ROLES.CHAIRMAN) {
             router.push('/chairman');
-        } else if (
-            role === ROLES.GENERAL_STAFF ||
-            role === ROLES.HR_ADMIN ||
-            role === ROLES.SUPER_ADMIN
-        ) {
+        } else if (role === ROLES.STAFF) {
             router.push('/StaffPortal/staff-dashboard');
         }
     }, [session?.data?.role, router]);
@@ -35,8 +35,9 @@ export default function Page() {
     return (
         <main className='container px-0 py-2'>
             {session?.data?.role !== undefined &&
-                session?.data?.role.toUpperCase() === ROLES.ONLINE_PREADMISSION_USER &&
-                <ParentsDashboard />}
+                session?.data?.role.toUpperCase() !== ROLES.ADMIN &&
+                session?.data?.role.toUpperCase() !== ROLES.STUDENT &&
+                session?.data?.role.toUpperCase() !== ROLES.CHAIRMAN && <ParentsDashboard />}
         </main>
     );
 }
