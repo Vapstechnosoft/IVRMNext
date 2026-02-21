@@ -1,5 +1,5 @@
 import { PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
-import { getPreAdmissionSetOrder, getPreAdmissionYear } from '@/server/admission/preadmission/configuration/academic_year_master';
+import { getInstitutionList, getPreAdmissionSetOrder, getPreAdmissionYear } from '@/server/admission/preadmission/configuration/academic_year_master';
 import { checkPreadmissionLive } from '@/server/admission/preadmission/configuration/configuration';
 import {
     getAcademicYearMasterConfiguration,
@@ -124,6 +124,29 @@ export const useAcademicYearMasterConfiguration = (asmayId: number) => {
             return queryClient.invalidateQueries({
                 queryKey: [PREADMISSION_QUERY_KEYS.ACADEMIC_YEAR_MASTER_CONFIGURATION]
             });
+        }
+    };
+};
+
+export const usePreAdmissionAcademicYearDetails = (asmayId: number, roleId: number) => {
+    return useQuery({
+        queryKey: [PREADMISSION_QUERY_KEYS.ACADEMIC_YEAR_MASTER, asmayId, roleId],
+        queryFn: async () => getPreAdmissionYear({ ASMAY_Id: asmayId }),
+        enabled: !!asmayId && !!roleId
+    });
+};
+
+export const useInstitutionList = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: ['INSTITUTION_LIST'],
+            queryFn: async () => getInstitutionList(),
+            staleTime: 60000
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({ queryKey: ['INSTITUTION_LIST'] });
         }
     };
 };

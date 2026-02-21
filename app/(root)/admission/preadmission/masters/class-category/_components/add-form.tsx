@@ -75,7 +75,7 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
     });
 
     const onSubmit = (values: MasterClassCategoryFormValues) => {
-        // Construct payload 
+        // Construct payload
         const payload = {
             asmcC_Id: 0,
             mI_Id: 0, // Restored as per user request/JSON
@@ -100,15 +100,19 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
         }
     }, [selectedYear, selectedCategory, form]);
 
-    const classOptions = unmappedClasses?.data?.map((item) => ({
-        label: item.asmcL_ClassName,
-        value: item.asmcL_Id.toString()
-    })) || [];
+    const classOptions = unmappedClasses?.data
+        ?.filter((item) => item.asmcL_Id && Number(item.asmcL_Id) > 0)
+        ?.map((item) => ({
+            label: item.asmcL_ClassName,
+            value: String(item.asmcL_Id)
+        })) || [];
 
-    const sectionOptions = sections?.data?.map((item) => ({
-        label: item.asmC_SectionName,
-        value: item.asmS_Id.toString()
-    })) || [];
+    const sectionOptions = sections?.data
+        ?.filter((item) => item.asmS_Id && Number(item.asmS_Id) > 0)
+        ?.map((item) => ({
+            label: item.asmC_SectionName,
+            value: String(item.asmS_Id)
+        })) || [];
 
     return (
         <Form {...form}>
@@ -123,7 +127,7 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                                 <FormLabel>Academic Year</FormLabel>
                                 <Select
                                     onValueChange={(value) => field.onChange(Number(value))}
-                                    value={field.value?.toString() || ''}
+                                    value={String(field.value ?? '')}
                                 >
                                     <FormControl>
                                         <SelectTrigger disabled={!academicYears}>
@@ -131,11 +135,13 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {academicYears?.data?.map((item) => (
-                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                {item.asmaY_Year}
-                                            </SelectItem>
-                                        ))}
+                                        {academicYears?.data
+                                            ?.filter((item) => item.asmaY_Id && Number(item.asmaY_Id) > 0)
+                                            ?.map((item) => (
+                                                <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
+                                                    {item.asmaY_Year}
+                                                </SelectItem>
+                                            ))}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -152,7 +158,7 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                                 <FormLabel>Category</FormLabel>
                                 <Select
                                     onValueChange={(value) => field.onChange(Number(value))}
-                                    value={field.value?.toString() || ''}
+                                    value={String(field.value ?? '')}
                                 >
                                     <FormControl>
                                         <SelectTrigger disabled={!categories}>
@@ -160,11 +166,13 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {categories?.data?.map((item) => (
-                                            <SelectItem key={item.amC_Id} value={item.amC_Id.toString()}>
-                                                {item.amC_Name}
-                                            </SelectItem>
-                                        ))}
+                                        {categories?.data
+                                            ?.filter((item) => item.amC_Id && Number(item.amC_Id) > 0)
+                                            ?.map((item) => (
+                                                <SelectItem key={item.amC_Id} value={String(item.amC_Id)}>
+                                                    {item.amC_Name}
+                                                </SelectItem>
+                                            ))}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
