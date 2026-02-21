@@ -1,5 +1,10 @@
 'use server';
 
+import fs from 'fs';
+import path from 'path';
+import { PDFDocument } from 'pdf-lib';
+import { randomUUID } from 'crypto';
+
 interface ChatgptDTO {
     message?: string;
     ChatCompletion?: string;
@@ -222,5 +227,73 @@ export async function languageTranslator(data: TranslatorDTO): Promise<Translato
     } catch (error) {
         console.error("Error in languageTranslator:", error);
         return { ...data, result: "Internal server error", translateddata: [] };
+    }
+}
+
+
+
+
+
+export async function compressPdf(formData: FormData) {
+    console.log('Starting PDF compression...');
+    const file = formData.get('file') as File;
+
+    if (!file) {
+        console.error('No file provided');
+        return { success: false, error: 'No file provided' };
+    }
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const originalSize = buffer.length;
+    console.log(`Received PDF: ${file.name}, size: ${originalSize}`);
+
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'compressed');
+
+    if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const uniqueId = randomUUID();
+    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const outputPath = path.join(uploadDir, `${uniqueId}_optimized_${safeName}`);
+
+    try {
+        const srcDoc = await PDFDocument.load(buffer);
+        const newDoc = await PDFDocument.create();
+
+        // Copy all pages to new document to strip history/unused objects
+        const copiedPages = await newDoc.copyPages(srcDoc, srcDoc.getPageIndices());
+        copiedPages.forEach((page: any) => newDoc.addPage(page));
+
+        // Strip metadata
+        newDoc.setTitle('');
+        newDoc.setAuthor('');
+        newDoc.setSubject('');
+        newDoc.setKeywords([]);
+        newDoc.setProducer('');
+        newDoc.setCreator('');
+
+        const compressedBytes = await newDoc.save();
+
+        fs.writeFileSync(outputPath, compressedBytes);
+        console.log(`PDF saved to ${outputPath}`);
+
+        const compressedSize = compressedBytes.length;
+        const savings = ((originalSize - compressedSize) / originalSize) * 100;
+
+        console.log(`PDF Optimization complete. Savings: ${savings.toFixed(2)}%`);
+
+        return {
+            success: true,
+            downloadUrl: `/uploads/compressed/${path.basename(outputPath)}`,
+            originalSize,
+            compressedSize,
+            savings,
+            filename: path.basename(outputPath)
+        };
+
+    } catch (error) {
+        console.error('PDF compression error:', error);
+        return { success: false, error: 'Compression failed: ' + String(error) };
     }
 }
