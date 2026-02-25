@@ -82,8 +82,19 @@ function MasterPeriodPageContent({
 }
 
 function FormSections({ onSuccess }: { onSuccess: () => void }) {
-    const { isToggleFormOpen, selectedRow, isAddFormOpen, isDetailsViewOpen, closeToggleForm, closeAddForm, closeDetailsView, addFormRef } =
-        useFormContext<PeriodDistributionColumn>();
+    const {
+        isToggleFormOpen,
+        selectedRow,
+        isAddFormOpen,
+        isEditFormOpen,
+        isDetailsViewOpen,
+        closeToggleForm,
+        closeAddForm,
+        closeEditForm,
+        closeDetailsView,
+        addFormRef,
+        editFormRef
+    } = useFormContext<PeriodDistributionColumn>();
 
     return (
         <>
@@ -110,6 +121,31 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                     </CollapsibleSection>
                 </div>
             )}
+
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Edit Period Distribution'
+                        description='Update the period distribution details'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <PeriodDistributionForm initialData={selectedRow} onSuccess={closeEditForm} />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+
             {isToggleFormOpen && selectedRow && (
                 <TogglePeriodDistributionForm
                     rowData={selectedRow}

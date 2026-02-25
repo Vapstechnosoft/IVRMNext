@@ -1,7 +1,8 @@
 import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
 import {
-    getAcademicYearDropDropDownMasterDayClasswise,
+    getAcademicYearDropDownMasterDayClasswise,
     getCategoryDropDownMasterDayClasswise,
+    getConsecutiveConstraintsDetails,
     getSectionDetails,
     getStaffDropDownMasterDayClasswise,
     getSubjectDropDownMasterDayClasswise,
@@ -10,6 +11,24 @@ import {
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
+export const useConsecutive = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.CONSECUTIVE_CONSTRAINTS, searchParams ?? {}],
+            queryFn: async () => getConsecutiveConstraintsDetails(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.CONSECUTIVE_CONSTRAINTS]
+            });
+        }
+    };
+};
+
 //academic Year
 export const useAcademicYearDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -17,7 +36,7 @@ export const useAcademicYearDropDownMasterDayClasswise = (searchParams?: ApiSear
     return {
         ...useQuery({
             queryKey: [TIMETABLE_QUERY_KEYS.ACADEMIC_YEAR_DROPDOWN_MASTERDAYCLASSWISE, searchParams ?? {}],
-            queryFn: async () => getAcademicYearDropDropDownMasterDayClasswise(),
+            queryFn: async () => getAcademicYearDropDownMasterDayClasswise(),
             staleTime: 0
         }),
 
@@ -30,7 +49,7 @@ export const useAcademicYearDropDownMasterDayClasswise = (searchParams?: ApiSear
 };
 
 //category
-export const useCategtoryDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
+export const useCategoryDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {

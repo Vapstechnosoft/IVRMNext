@@ -47,7 +47,7 @@ export async function deactivateConsecutiveConstraints(data: any) {
 //api calls
 
 //academic Year
-export async function getAcademicYearDropDropDownMasterDayClasswise() {
+export async function getAcademicYearDropDownMasterDayClasswise() {
     const url = '/TimeTableCommon/GetAcademicYearData';
     const response = await api.get<any[]>('timetable', url);
     return response.data;

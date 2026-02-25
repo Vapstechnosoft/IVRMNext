@@ -8,7 +8,7 @@ import type { IConsecutiveConstraintDetails } from '@/types/timetable/constraint
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
-export const Consecutivecolumns: ColumnDef<IConsecutiveConstraintDetails>[] = [
+export const columns: ColumnDef<IConsecutiveConstraintDetails>[] = [
     {
         id: 'slno',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,

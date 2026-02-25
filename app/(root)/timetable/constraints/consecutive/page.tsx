@@ -6,18 +6,18 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 
-import { useConsecutiveConstraints } from '@/hooks/timetable/useMasters';
+import { useConsecutive } from '@/hooks/timetable/constraints/consecutive';
 import type { IConsecutiveConstraintDetails } from '@/types/timetable/constraints/bifurcationconstraints';
-import { Consecutivecolumns } from './_components/columns';
-import ConsecutiveConstraintsForm from './_components/consecutive-constraints-add-form';
+import { columns as Consecutivecolumns } from './_components/columns';
+import ConsecutiveConstraintsForm from './_components/consecutive-constraints-form';
+import ToggleConsecutiveConstraintsForm from './_components/toggle-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function MasterBifurcationConstraintsPage(props: { searchParams: SearchParams }) {
+export default function MasterConsecutiveConstraintsPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useConsecutiveConstraints(searchParams);
+    const { data: response, isLoading, error, refetchAll } = useConsecutive(searchParams);
 
-    console.log('response', response);
 
     return (
         <FormProvider<IConsecutiveConstraintDetails>>
@@ -137,17 +137,16 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <BifurcationConstraintsForm selectedRow={selectedRow} onSuccess={closeEditForm} /> */}
+                            <ConsecutiveConstraintsForm editData={selectedRow} onSuccess={closeEditForm} onCancel={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
 
-            {/* {isToggleFormOpen && selectedRow && <ToggleBifurcationConstraints rowData={selectedRow} onClose={closeToggleForm} />}
+            {isToggleFormOpen && selectedRow && (
+                <ToggleConsecutiveConstraintsForm rowData={selectedRow} onClose={closeToggleForm} />
+            )}
 
-            {isDetailsViewOpen && selectedRow && <BifurcationViewModal rowData={selectedRow} onClose={closeDetailsView} />} */}
-
-            {/* View Details Modal */}
             {/* {isDetailsViewOpen && selectedRow && <BifurcationViewModal rowData={selectedRow} onClose={closeDetailsView} />} */}
         </>
     );
