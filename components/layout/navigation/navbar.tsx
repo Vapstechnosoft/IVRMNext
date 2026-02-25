@@ -1,11 +1,12 @@
 import { ROUTES } from '@/constants/routes';
 import { auth } from '@/lib/auth';
-import { IntelligentAppsMenu } from './intelligent-apps-menu';
-import UserNotificationPage from '../user-notification';
 import { UserNav } from '../user-nav';
+import UserNotificationPage from '../user-notification';
+import { AIAgentHeader } from './ai-agent-header';
+import { HeaderSearch } from './header-search';
+import { IntelligentAppsMenu } from './intelligent-apps-menu';
 import Logo from './logo';
 import { NavigationSystem } from './navigation-system';
-import { HeaderSearch } from './header-search';
 import { OperationTools } from './operation-tools';
 
 export default async function Navbar() {
@@ -21,6 +22,8 @@ export default async function Navbar() {
                         <HeaderSearch />
                         <OperationTools />
                         <IntelligentAppsMenu />
+                        <AIAgentHeader />
+
                         <UserNotificationPage />
                         <UserNav session={session} />
                     </div>
