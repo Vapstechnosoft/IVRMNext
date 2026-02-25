@@ -1,12 +1,17 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
+import type { IConsecutiveConstraintDetails } from '@/types/timetable/constraints/bifurcationconstraints';
 
-// Load initial data (Grid and Dropdowns)
-export async function getConsecutiveConstraintsDetails() {
-    const url = '/Consecutive/getdetails/0';
-    const response = await api.get<any>('timetable', url);
-    return response.data;
+export async function getConsecutiveConstraintsDetails(searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'asmAYYear,ttmCCategoryName,ttmDDayName,ttmPPeriodName,staffName,className,sectionName,subjectName,ttfConsecutive_Id,ttfConsecutive_ActiveFlag'
+    );
+    const url = `/TT_ConsecutiveFacade/ConsecutiveConstraintsGridData?${urlParams}`;
+    console.info('BifurcationFacade', url);
+    return await api.get<IConsecutiveConstraintDetails[]>('timetable', url);
 }
 
 // Save Consecutive Constraints

@@ -3,23 +3,12 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import type { IConsecutiveConstraintDetails } from '@/types/timetable/constraints/bifurcationconstraints';
 
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
-export interface IConsecutiveConstraintList {
-    ttC_Id: number;
-    asmayYear: string;
-    categoryName: string;
-    noOfPeriods: number;
-    className: string;
-    sectionName: string;
-    staffName: string;
-    subjectName: string;
-    ttC_ActiveFlag: boolean;
-}
-
-export const columns: ColumnDef<IConsecutiveConstraintList>[] = [
+export const Consecutivecolumns: ColumnDef<IConsecutiveConstraintDetails>[] = [
     {
         id: 'slno',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
@@ -65,18 +54,18 @@ export const columns: ColumnDef<IConsecutiveConstraintList>[] = [
     }
 ];
 
-function ActionButtonsCell({ rowData }: { rowData: IConsecutiveConstraintList }) {
-    const { openEditForm, openToggleForm } = useFormContext<IConsecutiveConstraintList>();
+function ActionButtonsCell({ rowData }: { rowData: IConsecutiveConstraintDetails }) {
+    const { openEditForm, openToggleForm } = useFormContext<IConsecutiveConstraintDetails>();
 
     const handleEdit = useCallback(
-        (data: IConsecutiveConstraintList) => {
+        (data: IConsecutiveConstraintDetails) => {
             openEditForm(data);
         },
         [openEditForm]
     );
 
     const handleToggle = useCallback(
-        (data: IConsecutiveConstraintList) => {
+        (data: IConsecutiveConstraintDetails) => {
             openToggleForm(data);
         },
         [openToggleForm]

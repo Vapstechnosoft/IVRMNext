@@ -7,22 +7,16 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
-import { type ConsecutiveConstraintsSchema, consecutiveConstraintsSchema } from '@/schemas/timetable/constraints/consecutive';
-import {
-    getCategoryDropDownMasterDayClasswise,
-    getConsecutiveConstraintsEditDetails,
-    getSectionDetails,
-    getStaffDropDownMasterDayClasswise,
-    getSubjectDropDownMasterDayClasswise,
-    getTransactionClassDropdown,
-    saveConsecutiveConstraintsDetail
-} from '@/server/timetable/constraints/consecutive';
+import { consecutiveConstraintsSchema } from '@/schemas/timetable/constraints/consecutive';
+import { saveConsecutiveConstraintsDetail } from '@/server/timetable/constraints/consecutive';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import type { z } from 'zod';
 
+type FormFields = z.infer<typeof consecutiveConstraintsSchema.save>;
 const extractList = (data: any, preferredKey?: string) => {
     if (!data) return [];
     if (Array.isArray(data)) return data;
@@ -57,14 +51,12 @@ const extractList = (data: any, preferredKey?: string) => {
 };
 
 interface ConsecutiveConstraintsFormProps {
-    initialData: any; // Contains lists: academiclist, catelist
-    editData?: any; // For editing mode
     onSuccess?: () => void;
     onCancel?: () => void;
 }
 
-export default function ConsecutiveConstraintsForm({ initialData, editData, onSuccess, onCancel }: ConsecutiveConstraintsFormProps) {
-    const [categoryList, setCategoryList] = useState<any[]>(extractList(initialData, 'catelist'));
+export default function ConsecutiveConstraintsForm({ onSuccess, onCancel }: ConsecutiveConstraintsFormProps) {
+    const [categoryList, setCategoryList] = useState<any[]>([]);
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [staffList, setStaffList] = useState<any[]>([]);
@@ -74,8 +66,8 @@ export default function ConsecutiveConstraintsForm({ initialData, editData, onSu
     // The legacy code referenced `maxvalue`. If it's not in initialData, we might assume a default or fetch it.
     // Assuming standard period count max around 10-15 if not provided.
 
-    const form = useForm<ConsecutiveConstraintsSchema>({
-        resolver: zodResolver(consecutiveConstraintsSchema),
+    const form = useForm<FormFields>({
+        resolver: zodResolver(consecutiveConstraintsSchema.save),
         mode: 'onChange',
         defaultValues: {
             TTC_Id: 0,
@@ -112,36 +104,36 @@ export default function ConsecutiveConstraintsForm({ initialData, editData, onSu
     const { data: academicData, isLoading: academicLoading } = usebifurcationAcademicYear();
     const academicList = extractList(academicData, 'academiclist');
 
-    useEffect(() => {
-        const loadInitialLists = async () => {
-            try {
-                if (categoryList.length === 0) {
-                    const res = await getCategoryDropDownMasterDayClasswise();
-                    setCategoryList(extractList(res, 'catelist'));
-                }
-                // Pre-load others if needed or for fallback
-                if (classList.length === 0) {
-                    const res = await getTransactionClassDropdown();
-                    if (res) setClassList(extractList(res, 'classlist'));
-                }
-                if (sectionList.length === 0) {
-                    const res = await getSectionDetails();
-                    if (res) setSectionList(extractList(res, 'sectionlist'));
-                }
-                if (staffList.length === 0) {
-                    const res = await getStaffDropDownMasterDayClasswise();
-                    if (res) setStaffList(extractList(res, 'stafflist'));
-                }
-                if (subjectList.length === 0) {
-                    const res = await getSubjectDropDownMasterDayClasswise();
-                    if (res) setSubjectList(extractList(res, 'subjectlist'));
-                }
-            } catch (error) {
-                console.error('Failed to load initial dropdowns:', error);
-            }
-        };
-        loadInitialLists();
-    }, [initialData]);
+    // useEffect(() => {
+    //     const loadInitialLists = async () => {
+    //         try {
+    //             if (categoryList.length === 0) {
+    //                 const res = await getCategoryDropDownMasterDayClasswise();
+    //                 setCategoryList(extractList(res, 'catelist'));
+    //             }
+    //             // Pre-load others if needed or for fallback
+    //             if (classList.length === 0) {
+    //                 const res = await getTransactionClassDropdown();
+    //                 if (res) setClassList(extractList(res, 'classlist'));
+    //             }
+    //             if (sectionList.length === 0) {
+    //                 const res = await getSectionDetails();
+    //                 if (res) setSectionList(extractList(res, 'sectionlist'));
+    //             }
+    //             if (staffList.length === 0) {
+    //                 const res = await getStaffDropDownMasterDayClasswise();
+    //                 if (res) setStaffList(extractList(res, 'stafflist'));
+    //             }
+    //             if (subjectList.length === 0) {
+    //                 const res = await getSubjectDropDownMasterDayClasswise();
+    //                 if (res) setSubjectList(extractList(res, 'subjectlist'));
+    //             }
+    //         } catch (error) {
+    //             console.error('Failed to load initial dropdowns:', error);
+    //         }
+    //     };
+    //     loadInitialLists();
+    // }, [initialData]);
 
     const handleAcademicYearChange = (yearId: number) => {
         setValue('ASMAY_Id', yearId);
@@ -189,48 +181,48 @@ export default function ConsecutiveConstraintsForm({ initialData, editData, onSu
         setValue('TTC_NoOfPeriods', days * periods);
     }, [watchedConDays, watchedConPeriods, setValue]);
 
-    // Edit Mode Data Fetching - Only for setting form values
-    useEffect(() => {
-        const fetchEditDetails = async () => {
-            const editId = editData?.ttC_Id || (Array.isArray(editData) && editData[0]?.ttC_Id);
-            if (editId) {
-                try {
-                    const apiResponse = await getConsecutiveConstraintsEditDetails(editId);
-                    const editRecord = extractList(apiResponse, 'consecutivelstedit')?.[0];
+    // // Edit Mode Data Fetching - Only for setting form values
+    // useEffect(() => {
+    //     const fetchEditDetails = async () => {
+    //         const editId = editData?.ttC_Id || (Array.isArray(editData) && editData[0]?.ttC_Id);
+    //         if (editId) {
+    //             try {
+    //                 const apiResponse = await getConsecutiveConstraintsEditDetails(editId);
+    //                 const editRecord = extractList(apiResponse, 'consecutivelstedit')?.[0];
 
-                    if (editRecord) {
-                        // 1. Set simple fields
-                        reset({
-                            TTC_Id: editRecord.ttC_Id,
-                            ASMAY_Id: editRecord.asmaY_Id,
-                            TTMC_Id: editRecord.ttmC_Id,
-                            ASMCL_Id: editRecord.asmcL_Id,
-                            ASMS_Id: editRecord.asmS_Id,
-                            HRME_Id: editRecord.hrmE_Id,
-                            ISMS_Id: editRecord.ismS_Id,
-                            TTC_NoOfConDays: editRecord.ttC_NoOfConDays,
-                            TTC_NoOfConPeriods: editRecord.ttC_NoOfConPeriods,
-                            TTC_NoOfPeriods: editRecord.ttC_NoOfConPeriods * editRecord.ttC_NoOfConDays, // Recalculate if not provided
-                            TTC_BefAftApplFlag: editRecord.ttC_BefAftApplFlag === 1,
-                            TTC_BefAftFalg: editRecord.ttC_BefAftFalg ? String(editRecord.ttC_BefAftFalg) : '', // Select expects string often
-                            TTC_BefAftPeriod: editRecord.ttC_BefAftPeriod
-                        });
+    //                 if (editRecord) {
+    //                     // 1. Set simple fields
+    //                     reset({
+    //                         TTC_Id: editRecord.ttC_Id,
+    //                         ASMAY_Id: editRecord.asmaY_Id,
+    //                         TTMC_Id: editRecord.ttmC_Id,
+    //                         ASMCL_Id: editRecord.asmcL_Id,
+    //                         ASMS_Id: editRecord.asmS_Id,
+    //                         HRME_Id: editRecord.hrmE_Id,
+    //                         ISMS_Id: editRecord.ismS_Id,
+    //                         TTC_NoOfConDays: editRecord.ttC_NoOfConDays,
+    //                         TTC_NoOfConPeriods: editRecord.ttC_NoOfConPeriods,
+    //                         TTC_NoOfPeriods: editRecord.ttC_NoOfConPeriods * editRecord.ttC_NoOfConDays, // Recalculate if not provided
+    //                         TTC_BefAftApplFlag: editRecord.ttC_BefAftApplFlag === 1,
+    //                         TTC_BefAftFalg: editRecord.ttC_BefAftFalg ? String(editRecord.ttC_BefAftFalg) : '', // Select expects string often
+    //                         TTC_BefAftPeriod: editRecord.ttC_BefAftPeriod
+    //                     });
 
-                        // Dropdowns are already pre-loaded or loaded from initialData
-                    }
-                } catch (err) {
-                    console.error('Failed to fetch edit details', err);
-                    toast.error('Failed to load record details');
-                }
-            }
-        };
+    //                     // Dropdowns are already pre-loaded or loaded from initialData
+    //                 }
+    //             } catch (err) {
+    //                 console.error('Failed to fetch edit details', err);
+    //                 toast.error('Failed to load record details');
+    //             }
+    //         }
+    //     };
 
-        if (editData) {
-            fetchEditDetails();
-        }
-    }, [editData, reset]);
+    //     if (editData) {
+    //         fetchEditDetails();
+    //     }
+    // }, [editData, reset]);
 
-    const onSubmit: SubmitHandler<ConsecutiveConstraintsSchema> = async (data) => {
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
                 ...data,
@@ -489,12 +481,34 @@ export default function ConsecutiveConstraintsForm({ initialData, editData, onSu
                 )}
             </div>
 
-            <div className='flex justify-center gap-4 pt-4'>
+            {/* <div className='flex justify-center gap-4 pt-4'>
                 <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting}>
                     <Save className='mr-2 h-4 w-4' /> {editData ? 'Update' : 'Save'}
                 </Button>
                 <Button type='button' variant='outline' onClick={onCancel}>
                     Cancel
+                </Button>
+            </div> */}
+
+            <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                <Button
+                    type='button'
+                    variant='outline'
+                    onClick={onCancel}
+                    disabled={isSubmitting}
+                    className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                    Reset
+                </Button>
+                <Button
+                    type='submit'
+                    disabled={isSubmitting}
+                    className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                    isLoading={isSubmitting}
+                    loadingText='Saving...'>
+                    <div className='flex items-center'>
+                        <Save className='mr-2 h-4 w-4' />
+                        Save
+                    </div>
                 </Button>
             </div>
         </form>

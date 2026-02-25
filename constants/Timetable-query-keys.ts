@@ -41,6 +41,7 @@ export const TIMETABLE_QUERY_KEYS = {
     MASTER_STAFF_DROPDOWN_BIFURCATION_CONSTRAINTS: 'master_staff_dropdown_bifurcation_constraints',
     MASTER_SUBJECT_DROPDOWN_BIFURCATION_CONSTRAINTS: 'master_subject_dropdown_bifurcation_constraints',
     MASTER_SECTION_DROPDOWN_BIFURCATION_CONSTRAINTS: 'master_section_dropdown_bifurcation_constraints',
+    MASTER_CONSECUTIVE_CONSTRAINTS: 'master_consecutive_constraints',
 
     STAFF_REPLACEMENT_MASTERS: 'staff_replacement_masters',
     STAFF_REPLACEMENT_SECTIONS: 'staff_replacement_sections',

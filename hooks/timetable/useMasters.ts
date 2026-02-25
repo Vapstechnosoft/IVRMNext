@@ -5,6 +5,7 @@ import {
     getStaffDropdownBifurcationConstraints,
     getSubjectDropdownBifurcationConstraints
 } from '@/server/timetable/constraints/bifurcationconstraints';
+import { getConsecutiveConstraintsDetails } from '@/server/timetable/constraints/consecutive';
 import { getBreakTimeSettingsDetails } from '@/server/timetable/masters/breaktimesettings';
 import {
     getCategoryClassMappingDetails,
@@ -744,6 +745,24 @@ export const useSubjectDropdownBifurcationConstraints = (searchParams?: ApiSearc
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [TIMETABLE_QUERY_KEYS.MASTER_SUBJECT_DROPDOWN_BIFURCATION_CONSTRAINTS]
+            });
+        }
+    };
+};
+
+export const useConsecutiveConstraints = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_CONSECUTIVE_CONSTRAINTS, searchParams ?? {}],
+            queryFn: async () => getConsecutiveConstraintsDetails(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_CONSECUTIVE_CONSTRAINTS]
             });
         }
     };
