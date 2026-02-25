@@ -5,11 +5,11 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { useConsecutive } from '@/hooks/timetable/constraints/consecutive';
 import { deactivateConsecutiveConstraints } from '@/server/timetable/constraints/consecutive';
+import type { IConsecutiveConstraintDetails } from '@/types/timetable/constraints/bifurcationconstraints';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import type { IConsecutiveConstraintList } from './columns';
 
 const toggleSchema = z.object({
     ttC_Id: z.number()
@@ -18,7 +18,7 @@ const toggleSchema = z.object({
 type FormFields = z.infer<typeof toggleSchema>;
 
 interface ToggleConsecutiveConstraintsFormProps {
-    rowData: IConsecutiveConstraintList;
+    rowData: IConsecutiveConstraintDetails;
     onClose: () => void;
 }
 
@@ -43,10 +43,7 @@ export default function ToggleConsecutiveConstraintsForm({ rowData, onClose }: T
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            // API expects the whole object or specific structure?
-            // Based on columns.tsx commented code: deactivateConsecutiveConstraints(row.original)
             const response = await deactivateConsecutiveConstraints(rowData);
-
             if (response.returnval === true) {
                 toast.success(isActive ? 'Deactivated Successfully' : 'Activated Successfully');
                 refetchAll();

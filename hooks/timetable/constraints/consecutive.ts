@@ -1,6 +1,6 @@
 import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
 import {
-    getAcademicYearDropDropDownMasterDayClasswise,
+    getAcademicYearDropDownMasterDayClasswise,
     getCategoryDropDownMasterDayClasswise,
     getConsecutiveConstraintsDetails,
     getSectionDetails,
@@ -36,7 +36,7 @@ export const useAcademicYearDropDownMasterDayClasswise = (searchParams?: ApiSear
     return {
         ...useQuery({
             queryKey: [TIMETABLE_QUERY_KEYS.ACADEMIC_YEAR_DROPDOWN_MASTERDAYCLASSWISE, searchParams ?? {}],
-            queryFn: async () => getAcademicYearDropDropDownMasterDayClasswise(),
+            queryFn: async () => getAcademicYearDropDownMasterDayClasswise(),
             staleTime: 0
         }),
 
@@ -49,7 +49,7 @@ export const useAcademicYearDropDownMasterDayClasswise = (searchParams?: ApiSear
 };
 
 //category
-export const useCategtoryDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
+export const useCategoryDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {

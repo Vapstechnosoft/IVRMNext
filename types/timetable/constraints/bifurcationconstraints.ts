@@ -74,12 +74,12 @@ export interface ClassDropdownDataTTBifurcation {
 
 export interface IConsecutiveConstraintDetails {
     ttC_Id: number;
-    asmAYYear: number;
+    asmayYear: string;
     categoryName: string;
-    noofPeriods: number;
+    noOfPeriods: number;
     className: string;
     sectionName: string;
     staffName: string;
-    SubjectName: string;
-    ttc_ActiveFlag: boolean;
+    subjectName: string;
+    ttC_ActiveFlag: boolean;
 }
