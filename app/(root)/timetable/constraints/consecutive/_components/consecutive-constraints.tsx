@@ -3,34 +3,44 @@
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import { Plus, X } from 'lucide-react';
 import { type IConsecutiveConstraintList, columns } from './columns';
 import ConsecutiveConstraintsForm from './consecutive-constraints-form';
+import ToggleConsecutiveConstraintsForm from './toggle-form';
 
 interface ConsecutiveConstraintsProps {
-    initialData: any;
+    response: any;
+    isLoading: boolean;
+    error: any;
+    refetchAll: () => Promise<any>;
 }
 
-export default function ConsecutiveConstraints({ initialData }: ConsecutiveConstraintsProps) {
-    return (
-        <FormProvider>
-            <ConsecutiveConstraintsContent initialData={initialData} />
-        </FormProvider>
-    );
+export default function ConsecutiveConstraints({ response, isLoading, error, refetchAll }: ConsecutiveConstraintsProps) {
+    return <ConsecutiveConstraintsContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />;
 }
 
-function ConsecutiveConstraintsContent({ initialData }: ConsecutiveConstraintsProps) {
-    const { isAddFormOpen, isEditFormOpen, selectedRow, openAddForm, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<IConsecutiveConstraintList>();
+function ConsecutiveConstraintsContent({ response, isLoading, error, refetchAll }: ConsecutiveConstraintsProps) {
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isToggleFormOpen,
+        selectedRow,
+        openAddForm,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IConsecutiveConstraintList>();
 
-    const dataList = initialData?.consecutivelst || [];
-    const tableProps = useDataTableProps(initialData);
+    const dataList = response?.consecutivelst || [];
+    const tableProps = useDataTableProps(response);
 
     const handleSuccess = () => {
         closeAddForm();
         closeEditForm();
-        window.location.reload();
+        refetchAll();
     };
 
     return (
@@ -54,10 +64,11 @@ function ConsecutiveConstraintsContent({ initialData }: ConsecutiveConstraintsPr
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IConsecutiveConstraintList>
-                        isLoading={false}
                         {...tableProps}
                         data={dataList}
                         columns={columns}
+                        isLoading={isLoading}
+                        error={error}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading constraints...'
                         noDataTitle='No Consecutive Constraints Found'
@@ -85,7 +96,7 @@ function ConsecutiveConstraintsContent({ initialData }: ConsecutiveConstraintsPr
                                     className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                     <X className='h-4 w-4 text-destructive' /> Close
                                 </Button>
-                                <ConsecutiveConstraintsForm initialData={initialData} onSuccess={handleSuccess} onCancel={closeAddForm} />
+                                <ConsecutiveConstraintsForm initialData={response} onSuccess={handleSuccess} onCancel={closeAddForm} />
                             </div>
                         </CollapsibleSection>
                     </div>
@@ -109,7 +120,7 @@ function ConsecutiveConstraintsContent({ initialData }: ConsecutiveConstraintsPr
                                     <X className='h-4 w-4 text-destructive' /> Close
                                 </Button>
                                 <ConsecutiveConstraintsForm
-                                    initialData={initialData}
+                                    initialData={response}
                                     editData={selectedRow}
                                     onSuccess={handleSuccess}
                                     onCancel={closeEditForm}
@@ -118,6 +129,8 @@ function ConsecutiveConstraintsContent({ initialData }: ConsecutiveConstraintsPr
                         </CollapsibleSection>
                     </div>
                 )}
+
+                {isToggleFormOpen && selectedRow && <ToggleConsecutiveConstraintsForm rowData={selectedRow} onClose={closeToggleForm} />}
             </div>
         </div>
     );

@@ -2,6 +2,7 @@ import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
 import {
     getAcademicYearDropDropDownMasterDayClasswise,
     getCategoryDropDownMasterDayClasswise,
+    getConsecutiveConstraintsDetails,
     getSectionDetails,
     getStaffDropDownMasterDayClasswise,
     getSubjectDropDownMasterDayClasswise,
@@ -9,6 +10,24 @@ import {
 } from '@/server/timetable/constraints/consecutive';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+
+export const useConsecutive = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.CONSECUTIVE_CONSTRAINTS, searchParams ?? {}],
+            queryFn: async () => getConsecutiveConstraintsDetails(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.CONSECUTIVE_CONSTRAINTS]
+            });
+        }
+    };
+};
 
 //academic Year
 export const useAcademicYearDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {

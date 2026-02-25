@@ -1,18 +1,20 @@
-import { getConsecutiveConstraintsDetails } from '@/server/timetable/constraints/consecutive';
+'use client';
+
+import { FormProvider } from '@/components/ui/form/form-provider';
+import { useConsecutive } from '@/hooks/timetable/constraints/consecutive';
+import { use } from 'react';
+import type { IConsecutiveConstraintList } from './_components/columns';
 import ConsecutiveConstraints from './_components/consecutive-constraints';
 
-export default async function ConsecutiveConstraintsPage() {
-    let initialData = null;
-    try {
-        initialData = await getConsecutiveConstraintsDetails();
-    } catch (error: any) {
-        console.error('Failed to load consecutive constraints:', error);
-        initialData = {
-            success: false,
-            message: error?.message || 'Failed to load consecutive constraints',
-            consecutivelst: []
-        };
-    }
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-    return <ConsecutiveConstraints initialData={initialData} />;
+export default function ConsecutiveConstraintsPage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const { data: response, isLoading, error, refetchAll } = useConsecutive(searchParams);
+
+    return (
+        <FormProvider<IConsecutiveConstraintList>>
+            <ConsecutiveConstraints response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+        </FormProvider>
+    );
 }

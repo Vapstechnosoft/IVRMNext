@@ -1,10 +1,12 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
 
 // Load initial data (Grid and Dropdowns)
-export async function getConsecutiveConstraintsDetails() {
-    const url = '/Consecutive/getdetails/0';
+export async function getConsecutiveConstraintsDetails(searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'categoryName,className,sectionName,staffName,subjectName');
+    const url = `/Consecutive/getdetails/0?${urlParams}`;
     const response = await api.get<any>('timetable', url);
     return response.data;
 }

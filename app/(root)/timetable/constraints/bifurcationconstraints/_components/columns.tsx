@@ -1,9 +1,12 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { ColumnDef } from '@tanstack/react-table';
+import { Eye } from 'lucide-react';
 import { useCallback } from 'react';
 
 export interface IBifurcationConstraintList {
@@ -69,18 +72,6 @@ export const columns: ColumnDef<IBifurcationConstraintList>[] = [
 function ActionButtonsCell({ rowData }: { rowData: IBifurcationConstraintList }) {
     const { openEditForm, openToggleForm, openDeleteForm, openDetailsView } = useFormContext<IBifurcationConstraintList>();
 
-    // Wrapper for View Records Popup (Mapped to Edit for now or custom logic?)
-    // The legacy code has a "View Record" eye icon. `ActionButtons` usually supports edit/toggle/delete.
-    // I might need to add a custom button for "View" or use Edit for it if it opens the modal.
-    // The legacy code has "Edit" (pencil) AND "View" (eye).
-    // I'll stick to Edit/Toggle/Delete for now. "View" in legacy shows combination details.
-    // If ActionButtons supports 'view', I'd use it. I'll check ActionButtons source if possible,
-    // but assuming standard set. I'll just use the standard set for now.
-    // Maybe I can pass a custom action or just assume Edit opens the form which shows details.
-    // Actually, legacy "Edit" populates the main form. "View" opens a popup table.
-    // I can implement the "Edit" to populate the main form, which is standard.
-    // For "View", I might leave it out for this iteration or assume "Edit" is sufficient to see details.
-
     const handleEdit = useCallback(
         (data: IBifurcationConstraintList) => {
             openEditForm(data);
@@ -95,12 +86,9 @@ function ActionButtonsCell({ rowData }: { rowData: IBifurcationConstraintList })
         [openToggleForm]
     );
 
-    const handleView = useCallback(
-        (data: IBifurcationConstraintList) => {
-            openDetailsView(data);
-        },
-        [openDetailsView]
-    );
+    const handleView = useCallback(() => {
+        openDetailsView(rowData);
+    }, [openDetailsView, rowData]);
 
     const handleDelete = useCallback(
         (data: IBifurcationConstraintList) => {
@@ -110,14 +98,34 @@ function ActionButtonsCell({ rowData }: { rowData: IBifurcationConstraintList })
     );
 
     return (
-        <ActionButtons
-            rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: true, view: true }}
-            onEdit={handleEdit}
-            // onView={handleView}
-            onToggle={handleToggle}
-            onDelete={handleDelete}
-            toggleConditionKey='ttB_ActiveFlag'
-        />
+        <TooltipProvider>
+            <div className='flex items-center gap-3'>
+                {/* Custom View Button */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant='ghost'
+                            size='sm'
+                            onClick={handleView}
+                            className='h-8 w-8 p-0 transition-all duration-200 hover:bg-purple-50 hover:text-purple-600'>
+                            <Eye className='h-4 w-4' />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>View Details</p>
+                    </TooltipContent>
+                </Tooltip>
+
+                {/* Standard Action Buttons */}
+                <ActionButtons
+                    rowData={rowData}
+                    buttons={{ edit: true, toggle: true, delete: true }}
+                    onEdit={handleEdit}
+                    onToggle={handleToggle}
+                    onDelete={handleDelete}
+                    toggleConditionKey='ttB_ActiveFlag'
+                />
+            </div>
+        </TooltipProvider>
     );
 }

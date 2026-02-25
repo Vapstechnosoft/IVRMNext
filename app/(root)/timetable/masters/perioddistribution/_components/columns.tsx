@@ -1,11 +1,14 @@
 'use client';
 import type { PeriodDistributionColumn } from '@/types/timetable/masters/masters';
 
+import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 import type { ColumnDef } from '@tanstack/react-table';
+import { Edit, Eye } from 'lucide-react';
 import { useCallback } from 'react';
 
 export const createPeriodDistributionColumns: ColumnDef<PeriodDistributionColumn>[] = [
@@ -52,7 +55,11 @@ export const createPeriodDistributionColumns: ColumnDef<PeriodDistributionColumn
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: PeriodDistributionColumn }) {
-    const { openToggleForm, openDetailsView } = useFormContext<PeriodDistributionColumn>();
+    const { openEditForm, openToggleForm, openDetailsView } = useFormContext<PeriodDistributionColumn>();
+
+    const handleEdit = useCallback(() => {
+        openEditForm(rowData);
+    }, [openEditForm, rowData]);
 
     const handleToggle = useCallback(
         (data: PeriodDistributionColumn) => {
@@ -61,21 +68,49 @@ function ActionButtonsCell({ rowData }: { rowData: PeriodDistributionColumn }) {
         [openToggleForm]
     );
 
-    const handleView = useCallback(
-        (data: PeriodDistributionColumn) => {
-            openDetailsView(data);
-        },
-        [openDetailsView]
-    );
+    const handleView = useCallback(() => {
+        openDetailsView(rowData);
+    }, [openDetailsView, rowData]);
 
     return (
-        <ActionButtons
-            rowData={rowData}
-            buttons={{ toggle: true, view: true }}
-            onToggle={handleToggle}
-            //onView={handleView}
-            toggleConditionKey='ttfpD_ActiveFlag'
-        />
+        <TooltipProvider>
+            <div className='flex items-center gap-3'>
+                {/* Custom View Button */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant='ghost'
+                            size='sm'
+                            onClick={handleView}
+                            className='h-8 w-8 p-0 transition-all duration-200 hover:bg-purple-50 hover:text-purple-600'>
+                            <Eye className='h-4 w-4' />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>View Details</p>
+                    </TooltipContent>
+                </Tooltip>
+
+                {/* Custom Edit Button */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant='ghost'
+                            size='sm'
+                            onClick={handleEdit}
+                            className='h-8 w-8 p-0 transition-all duration-200 hover:bg-blue-50 hover:text-blue-600'>
+                            <Edit className='h-4 w-4' />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Edit</p>
+                    </TooltipContent>
+                </Tooltip>
+
+                {/* Standard Toggle Button */}
+                <ActionButtons rowData={rowData} buttons={{ toggle: true }} onToggle={handleToggle} toggleConditionKey='ttfpD_ActiveFlag' />
+            </div>
+        </TooltipProvider>
     );
 }
 
