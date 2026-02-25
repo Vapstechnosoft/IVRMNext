@@ -50,6 +50,7 @@ export default function DeputationForm({ onFetch }: DeputationFormProps) {
             hrE_Id: ''
         }
     });
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const AcademicYear = watch('asmaY_Id');
     const watchDate = watch('ttmD_Date');
     const watchYear = watch('asmaY_Id');
@@ -68,6 +69,7 @@ export default function DeputationForm({ onFetch }: DeputationFormProps) {
         }
     }, [watchDate, setValue]);
 
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { data: ayData, isLoading: ayLoading } = useTimeTableAcademicYear();
     const { data: catData, isLoading: catLoading } = useTimeTableCategoryDropDownData();
     const { data: classData, isLoading: classLoading } = useTimeTableClassDropdownData();

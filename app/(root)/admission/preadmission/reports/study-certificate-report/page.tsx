@@ -1,8 +1,8 @@
 'use client';
 
 import { format } from 'date-fns';
-import { CalendarIcon, RotateCcw, Printer, FileSpreadsheet, QrCode, Check, ChevronsUpDown } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { CalendarIcon, RotateCcw, Printer, FileSpreadsheet, QrCode, Check, ChevronsUpDown, Loader2 } from 'lucide-react';
+import { useRef, useState, useEffect } from 'react';
 import { useReactToPrint } from 'react-to-print';
 
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,19 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { cn } from '@/lib/utils';
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useCharacterCertificateReport, useGenerateQRCodeCertificate, useadmissionStudentsDropdown, useStudyCertificateLoadData, useStudyCertificateStudentList, useStudyCertificateDetails, useStudyCertificateAcademicYearChange, useStudyCertificateConductDetails, useStudyCertificateSearchFilter, useStudyCertificateQR } from '@/hooks/admission/preadmission/useReports';
+import {
+    useCharacterCertificateReport,
+    useGenerateQRCodeCertificate,
+    useadmissionStudentsDropdown,
+    useStudyCertificateLoadData,
+    useStudyCertificateStudentList,
+    useStudyCertificateDetails,
+    useStudyCertificateAcademicYearChange,
+    useStudyCertificateConductDetails,
+    // useStudyCertificateSearchFilter, 
+    useStudyCertificateQR
+} from '@/hooks/admission/preadmission/useReports';
+import { useStudentSearchFilter } from '@/hooks/admission/preadmission/useStudentTc';
 import { getExcelStudyCertificateReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { toast } from 'sonner';
 import CharacterCertificate from './_components/character-certificate';
@@ -38,22 +50,20 @@ export default function CertificateReportPage() {
     const [classId, setClassId] = useState<number | null>(null);
     const [sectionId, setSectionId] = useState<number | null>(null);
     const [studentId, setStudentId] = useState<number | null>(null);
-    const [searchFilter, setSearchFilter] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [studentListFromSearch, setStudentListFromSearch] = useState<any[]>([]);
     const [studentOpen, setStudentOpen] = useState(false);
 
-    const { data: academicChangeData } = useStudyCertificateAcademicYearChange({
-        ASMAY_Id: academicYearId,
-        AMST_SOL: studentStatus
-    }, !!academicYearId);
+    const searchMutation = useStudentSearchFilter();
 
-    const { data: searchResults } = useStudyCertificateSearchFilter({
-        ASMAY_Id: academicYearId,
-        AMST_SOL: studentStatus,
-        ASMCL_Id: classId,
-        ASMC_Id: sectionId,
-        searchfilter: searchFilter,
-        allorindid: studentScope
-    }, !!academicYearId && searchFilter.length > 2);
+    // const { data: searchResults } = useStudyCertificateSearchFilter({
+    //     ASMAY_Id: academicYearId,
+    //     AMST_SOL: studentStatus,
+    //     ASMCL_Id: classId,
+    //     ASMC_Id: sectionId,
+    //     searchfilter: searchQuery,
+    //     allorindid: studentScope
+    // }, !!academicYearId && searchQuery.length > 2);
 
     const {
         data: studentList,
@@ -67,8 +77,41 @@ export default function CertificateReportPage() {
         AMST_SOL: studentStatus
     }, !!academicYearId);
 
-    const admissionStudents = searchFilter.length > 2 ? searchResults : studentList;
-    const rawStudents = (admissionStudents as any)?.data?.studentList || (admissionStudents as any)?.data?.fillstudlist || [];
+    // Debounced Search Effect
+    useEffect(() => {
+        if (!academicYearId || searchQuery.length < 3) {
+            setStudentListFromSearch([]);
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            const statusMap: Record<string, string> = {
+                studying: 'S',
+                left: 'L',
+                deactive: 'D'
+            };
+
+            searchMutation.mutate({
+                asmayId: Number(academicYearId),
+                amstSol: statusMap[studentStatus] || 'S',
+                searchfilter: searchQuery,
+                flag: 'N' // Default to search by Name for reports
+            }, {
+                onSuccess: (response: any) => {
+                    const list = response?.data || response?.studentList || response || [];
+                    setStudentListFromSearch(Array.isArray(list) ? list : []);
+                }
+            });
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery, academicYearId, studentStatus]);
+
+    const admissionStudents = searchQuery.length >= 3 ? studentListFromSearch : studentList;
+    const rawStudents = (admissionStudents as any)?.data?.studentList ||
+        (admissionStudents as any)?.data?.fillstudlist ||
+        (Array.isArray(admissionStudents) ? admissionStudents : []);
+
     const students = rawStudents.map((s: any) => ({
         ...s,
         studentName: s.studentName || s.amsT_FirstName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
@@ -103,6 +146,8 @@ export default function CertificateReportPage() {
     }, false);
 
     const { data: qrcodeload } = useadmissionStudentsDropdown();
+
+    const selectedAcademicYearData = (loadData as any)?.data?.allAcademicYear?.find((y: any) => y.asmaY_Id === academicYearId);
 
     /* -------------------- Actions -------------------- */
     const handleReport = async () => {
@@ -185,6 +230,8 @@ export default function CertificateReportPage() {
         setClassId(null);
         setSectionId(null);
         setStudentId(null);
+        setSearchQuery('');
+        setStudentListFromSearch([]);
         setQrCodeScanner('');
         setSelectedDate(new Date());
         setShowCertificate(false);
@@ -193,7 +240,8 @@ export default function CertificateReportPage() {
     };
 
     const handlePrint = useReactToPrint({
-        contentRef: printRef
+        contentRef: printRef,
+        documentTitle: certificateType === '0' ? 'Study_Certificate' : 'Character_Certificate'
     });
 
     const downloadExcel = async () => {
@@ -359,7 +407,7 @@ export default function CertificateReportPage() {
                                 </Select>
                             </div>
 
-                            <div className='grid grid-cols-[120px_1fr] items-center gap-4'>
+                            {/* <div className='grid grid-cols-[120px_1fr] items-center gap-4'>
                                 <Label className='text-sm font-bold'>QR Code Scanner :</Label>
                                 <input
                                     value={qrCodeScanner}
@@ -367,7 +415,7 @@ export default function CertificateReportPage() {
                                     className='flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
                                     placeholder='QR Code Scanner'
                                 />
-                            </div>
+                            </div> */}
                         </div>
 
                         {/* Right Column */}
@@ -397,32 +445,38 @@ export default function CertificateReportPage() {
                             <div className='grid grid-cols-[100px_1fr] items-center gap-4 relative'>
                                 <Label className='text-sm font-bold'>Student:</Label>
                                 <div className='space-y-1'>
-                                    <Popover open={studentOpen && students.length > 0} onOpenChange={setStudentOpen}>
+                                    <Popover open={studentOpen} onOpenChange={setStudentOpen}>
                                         <PopoverTrigger asChild>
                                             <div className='relative'>
                                                 <input
-                                                    value={studentId ? students.find((s: any) => s.amsT_Id === studentId)?.studentName || searchFilter : searchFilter}
+                                                    value={studentId ? students.find((s: any) => s.amsT_Id === studentId)?.studentName || searchQuery : searchQuery}
                                                     onChange={(e) => {
-                                                        setSearchFilter(e.target.value);
+                                                        setSearchQuery(e.target.value);
                                                         setStudentId(null);
                                                         setStudentOpen(true);
                                                     }}
                                                     onFocus={() => setStudentOpen(true)}
                                                     className='flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                                                    placeholder='Select or search Student'
+                                                    placeholder='Search Student... (min 3 chars)'
                                                 />
                                                 {studentId && (
                                                     <Button
                                                         variant='ghost'
                                                         size='sm'
                                                         className='absolute right-0 top-0 h-8 w-8 p-0'
-                                                        onClick={() => {
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
                                                             setStudentId(null);
-                                                            setSearchFilter('');
+                                                            setSearchQuery('');
                                                         }}
                                                     >
                                                         <RotateCcw className='h-3 w-3' />
                                                     </Button>
+                                                )}
+                                                {searchMutation.isPending && (
+                                                    <div className="absolute right-8 top-2">
+                                                        <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
+                                                    </div>
                                                 )}
                                             </div>
                                         </PopoverTrigger>
@@ -431,9 +485,17 @@ export default function CertificateReportPage() {
                                             align='start'
                                             onOpenAutoFocus={(e) => e.preventDefault()}
                                         >
-                                            <Command className='w-full'>
+                                            <Command shouldFilter={false} className='w-full'>
                                                 <CommandList>
-                                                    <CommandEmpty>No student found.</CommandEmpty>
+                                                    {searchMutation.isPending && (
+                                                        <div className="p-4 text-center text-sm text-muted-foreground">Searching students...</div>
+                                                    )}
+                                                    {!searchMutation.isPending && searchQuery.length > 0 && searchQuery.length < 3 && (
+                                                        <div className="p-4 text-center text-sm text-muted-foreground">Enter at least 3 characters</div>
+                                                    )}
+                                                    <CommandEmpty>
+                                                        {!searchMutation.isPending && searchQuery.length >= 3 ? "No students found." : ""}
+                                                    </CommandEmpty>
                                                     <CommandGroup>
                                                         {students.map((s: any, idx: number) => (
                                                             <CommandItem
@@ -441,7 +503,7 @@ export default function CertificateReportPage() {
                                                                 value={s.studentName}
                                                                 onSelect={() => {
                                                                     setStudentId(s.amsT_Id);
-                                                                    setSearchFilter(s.studentName);
+                                                                    setSearchQuery(s.studentName);
                                                                     setStudentOpen(false);
                                                                 }}
                                                             >
@@ -451,7 +513,12 @@ export default function CertificateReportPage() {
                                                                         studentId === s.amsT_Id ? 'opacity-100' : 'opacity-0'
                                                                     )}
                                                                 />
-                                                                {s.studentName}
+                                                                <div className="flex flex-col">
+                                                                    <span>{s.studentName}</span>
+                                                                    <span className="text-[10px] text-muted-foreground">
+                                                                        Adm: {s.amsT_AdmNo} | {s.asmcL_ClassName || 'N/A'}-{s.asmC_SectionName || 'N/A'}
+                                                                    </span>
+                                                                </div>
                                                             </CommandItem>
                                                         ))}
                                                     </CommandGroup>
@@ -477,6 +544,29 @@ export default function CertificateReportPage() {
                                     </div>
                                 </RadioGroup>
                             </div>
+
+                            {/* Parent Name Selection for Baldwin Boys (MI_Id = 6) */}
+                            {isMIId6 && (
+                                <div className='flex justify-center pt-4 border-t'>
+                                    <RadioGroup
+                                        value={parentType}
+                                        onValueChange={(v) => setParentType(v as any)}
+                                        className='flex space-x-6'>
+                                        <div className='flex items-center space-x-2'>
+                                            <RadioGroupItem value='0' id='parent-father' />
+                                            <Label htmlFor='parent-father' className='text-sm'>Father Name</Label>
+                                        </div>
+                                        <div className='flex items-center space-x-2'>
+                                            <RadioGroupItem value='1' id='parent-mother' />
+                                            <Label htmlFor='parent-mother' className='text-sm'>Mother Name</Label>
+                                        </div>
+                                        <div className='flex items-center space-x-2'>
+                                            <RadioGroupItem value='2' id='parent-both' />
+                                            <Label htmlFor='parent-both' className='text-sm'>Both</Label>
+                                        </div>
+                                    </RadioGroup>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -490,13 +580,13 @@ export default function CertificateReportPage() {
                             {isLoading ? <RotateCcw className='mr-1 h-3 w-3 animate-spin' /> : <Printer className='mr-1 h-3 w-3' />}
                             REPORT
                         </Button>
-                        <Button
+                        {/* <Button
                             size='sm'
                             onClick={handleGenerateQRCode}
                             className='min-w-[100px] bg-[#3f51b5] hover:bg-[#303f9f] text-white shadow-md'>
                             <QrCode className='mr-1 h-3 w-3' />
                             QRCODE
-                        </Button>
+                        </Button> */}
                         <Button
                             size='sm'
                             onClick={handleReset}
@@ -527,6 +617,7 @@ export default function CertificateReportPage() {
                             addressType={addressType}
                             parentType={parentType}
                             qrCode={generatedQrCode}
+                            academicYearData={selectedAcademicYearData}
                         />
                     ) : (
                         <CharacterCertificate
@@ -550,6 +641,7 @@ export default function CertificateReportPage() {
                                 addressType={addressType}
                                 parentType={parentType}
                                 qrCode={generatedQrCode}
+                                academicYearData={selectedAcademicYearData}
                             />
                         ) : (
                             <CharacterCertificate

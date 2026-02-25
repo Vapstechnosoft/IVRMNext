@@ -1,4 +1,5 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -7,6 +8,8 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save, X } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { useEffect } from 'react';
+
 export interface LeaveOpeningBalanceFormData {
     selectedTypes: number[];
     selectedDepartments: number[];
@@ -14,6 +17,7 @@ export interface LeaveOpeningBalanceFormData {
     selectedEmployeeId: number | null;
     leaveBalances: Record<string, number>; // leaveName -> balance
 }
+
 interface LeaveOpeningBalanceFormProps {
     types: Array<{ id: number; name: string }>;
     departments: Array<{ id: number; name: string }>;
@@ -27,7 +31,9 @@ interface LeaveOpeningBalanceFormProps {
     isLoadingDepartments?: boolean;
     isLoadingDesignations?: boolean;
     isLoadingEmployees?: boolean;
+    onFilterChange: (type: 'types' | 'departments' | 'designations', values: number[]) => void;
 }
+
 export function LeaveOpeningBalanceForm({
     types,
     departments,
@@ -40,12 +46,14 @@ export function LeaveOpeningBalanceForm({
     isLoadingTypes = false,
     isLoadingDepartments = false,
     isLoadingDesignations = false,
-    isLoadingEmployees = false
+    isLoadingEmployees = false,
+    onFilterChange
 }: LeaveOpeningBalanceFormProps) {
     const {
         control,
         handleSubmit,
         watch,
+        setValue,
         formState: { errors }
     } = useForm<LeaveOpeningBalanceFormData>({
         defaultValues: defaultValues || {
@@ -56,10 +64,11 @@ export function LeaveOpeningBalanceForm({
             leaveBalances: {}
         }
     });
-    const _selectedEmployeeId = watch('selectedEmployeeId');
+
     const onSubmitForm: SubmitHandler<LeaveOpeningBalanceFormData> = (data) => {
         onSubmit(data);
     };
+
     return (
         <form onSubmit={handleSubmit(onSubmitForm)} className='space-y-6'>
             {/* Filters Section - Type, Department, Designation */}
@@ -80,9 +89,17 @@ export function LeaveOpeningBalanceForm({
                             rules={{ required: 'Type is required' }}
                             render={({ field }) => (
                                 <MultiSelect
-                                    options={types.map((t) => ({ label: t.name, value: t.id.toString() }))}
-                                    onValueChange={(values) => field.onChange(values.map((v) => Number.parseInt(v)))}
-                                    defaultValue={field.value?.map((v) => v.toString()) || []}
+                                    options={types.map((t) => ({ label: t.name, value: String(t.id) }))}
+                                    onValueChange={(values) => {
+                                        const numValues = values.map((v) => Number.parseInt(v));
+                                        field.onChange(numValues);
+                                        onFilterChange('types', numValues);
+                                        // Clear dependent fields
+                                        setValue('selectedDepartments', []);
+                                        setValue('selectedDesignations', []);
+                                        setValue('selectedEmployeeId', null);
+                                    }}
+                                    defaultValue={field.value?.map((v) => String(v)) || []}
                                     placeholder='Select Types'
                                     maxHeight={200}
                                 />
@@ -91,6 +108,7 @@ export function LeaveOpeningBalanceForm({
                     )}
                     {errors.selectedTypes && <FormError>{errors.selectedTypes.message}</FormError>}
                 </div>
+
                 {/* Department */}
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>
@@ -107,9 +125,16 @@ export function LeaveOpeningBalanceForm({
                             rules={{ required: 'Department is required' }}
                             render={({ field }) => (
                                 <MultiSelect
-                                    options={departments.map((d) => ({ label: d.name, value: d.id.toString() }))}
-                                    onValueChange={(values) => field.onChange(values.map((v) => Number.parseInt(v)))}
-                                    defaultValue={field.value?.map((v) => v.toString()) || []}
+                                    options={departments.map((d) => ({ label: d.name, value: String(d.id) }))}
+                                    onValueChange={(values) => {
+                                        const numValues = values.map((v) => Number.parseInt(v));
+                                        field.onChange(numValues);
+                                        onFilterChange('departments', numValues);
+                                        // Clear dependent fields
+                                        setValue('selectedDesignations', []);
+                                        setValue('selectedEmployeeId', null);
+                                    }}
+                                    defaultValue={field.value?.map((v) => String(v)) || []}
                                     placeholder='Select Departments'
                                     maxHeight={200}
                                 />
@@ -118,6 +143,7 @@ export function LeaveOpeningBalanceForm({
                     )}
                     {errors.selectedDepartments && <FormError>{errors.selectedDepartments.message}</FormError>}
                 </div>
+
                 {/* Designation */}
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>
@@ -134,9 +160,14 @@ export function LeaveOpeningBalanceForm({
                             rules={{ required: 'Designation is required' }}
                             render={({ field }) => (
                                 <MultiSelect
-                                    options={designations.map((d) => ({ label: d.name, value: d.id.toString() }))}
-                                    onValueChange={(values) => field.onChange(values.map((v) => Number.parseInt(v)))}
-                                    defaultValue={field.value?.map((v) => v.toString()) || []}
+                                    options={designations.map((d) => ({ label: d.name, value: String(d.id) }))}
+                                    onValueChange={(values) => {
+                                        const numValues = values.map((v) => Number.parseInt(v));
+                                        field.onChange(numValues);
+                                        onFilterChange('designations', numValues);
+                                        setValue('selectedEmployeeId', null);
+                                    }}
+                                    defaultValue={field.value?.map((v) => String(v)) || []}
                                     placeholder='Select Designations'
                                     maxHeight={200}
                                 />
@@ -146,6 +177,7 @@ export function LeaveOpeningBalanceForm({
                     {errors.selectedDesignations && <FormError>{errors.selectedDesignations.message}</FormError>}
                 </div>
             </div>
+
             {/* Employee Selection */}
             <div className='space-y-2'>
                 <Label htmlFor='employee-select' className='font-medium text-sm'>
@@ -161,7 +193,10 @@ export function LeaveOpeningBalanceForm({
                         control={control}
                         rules={{ required: 'Employee is required' }}
                         render={({ field }) => (
-                            <Select value={field.value?.toString() || ''} onValueChange={(value) => field.onChange(Number.parseInt(value))}>
+                            <Select
+                                value={field.value ? field.value.toString() : ''}
+                                onValueChange={(value) => field.onChange(Number.parseInt(value))}
+                            >
                                 <SelectTrigger id='employee-select' className={errors.selectedEmployeeId ? 'border-red-500' : ''}>
                                     <SelectValue placeholder='Select Employee' />
                                 </SelectTrigger>
@@ -169,7 +204,7 @@ export function LeaveOpeningBalanceForm({
                                     {employees.length > 0 ? (
                                         employees.map((emp) => (
                                             <SelectItem key={emp.id} value={emp.id.toString()}>
-                                                {emp.employeeCode} - {emp.employeeName}
+                                                {emp.employeeCode} : {emp.employeeName}
                                             </SelectItem>
                                         ))
                                     ) : (
@@ -182,6 +217,7 @@ export function LeaveOpeningBalanceForm({
                 )}
                 {errors.selectedEmployeeId && <FormError>{errors.selectedEmployeeId.message}</FormError>}
             </div>
+
             {/* Leave Opening Balance Table */}
             <div className='space-y-3'>
                 <Label className='font-medium text-sm'>Leave Opening Balance</Label>
@@ -209,16 +245,16 @@ export function LeaveOpeningBalanceForm({
                                                         <InputText
                                                             type='number'
                                                             step='0.5'
-                                                            value={field.value && Number(field.value) !== 0 ? field.value : ''}
+                                                            value={field.value !== undefined && field.value !== null ? field.value : ''}
                                                             onChange={(e) => {
-                                                                const value = e.target.value.trim();
+                                                                const value = e.target.value;
                                                                 if (value === '') {
                                                                     field.onChange('');
                                                                     return;
                                                                 }
                                                                 // Allow only numbers and decimals
                                                                 if (/^\d*\.?\d*$/.test(value)) {
-                                                                    field.onChange(value === '' ? '' : Number(value));
+                                                                    field.onChange(value);
                                                                 }
                                                             }}
                                                             placeholder='0'
@@ -237,6 +273,7 @@ export function LeaveOpeningBalanceForm({
                     )}
                 </div>
             </div>
+
             {/* Action Buttons */}
             <div className='flex justify-center gap-2 border-t pt-4'>
                 <Button type='submit' variant='default' className='min-w-[120px]'>

@@ -4,7 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAcademicYearDropdown, useMasterCategoryDropdown, useMasterClassCategory, useMasterSectionDropdown, useMasterUnMappedClassDropdown } from '@/hooks/admission/preadmission/useMasters';
+import {
+    useAcademicYearDropdown,
+    useMasterCategoryDropdown,
+    useMasterClassCategory,
+    useMasterSectionDropdown,
+    useMasterUnMappedClassDropdown
+} from '@/hooks/admission/preadmission/useMasters';
 import { masterClassCategorySchema } from '@/schemas/admission/preadmission/masters';
 import { addMasterClassCategory } from '@/server/admission/preadmission/masters/class_category';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,7 +19,7 @@ import { Loader2 } from 'lucide-react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 type MasterClassCategoryFormValues = z.infer<typeof masterClassCategorySchema.add>;
 
@@ -45,26 +51,26 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
     const { mutate: addClassCategory, isPending } = useMutation({
         mutationFn: addMasterClassCategory,
         onSuccess: (data: any) => {
-            console.log("Add Master Class Category Response:", data);
+            console.log('Add Master Class Category Response:', data);
 
             // Permissive success logic:
             // 1. Explicit success flags
             // 2. OR Object with NO error flags (handles empty object, or object with just data)
-            if (data?.returnval === true ||
+            if (
+                data?.returnval === true ||
                 data?.message === 'Saved Successfully' ||
-                (data && typeof data === 'object' && !data.returnduplicatestatus && !data.errors)) {
-
+                (data && typeof data === 'object' && !data.returnduplicatestatus && !data.errors)
+            ) {
                 toast.success('Master Class Category saved successfully');
                 refetchAll();
                 onSuccess();
             } else if (data?.returnduplicatestatus === 'Duplicate' || data?.returnduplicatestatus === 'Record Already Exists') {
                 toast.warning('Record already exists.');
             } else {
-                const errorMsg = typeof data?.returnduplicatestatus === 'string'
-                    ? data.returnduplicatestatus
-                    : 'Failed to add Master Class Category';
+                const errorMsg =
+                    typeof data?.returnduplicatestatus === 'string' ? data.returnduplicatestatus : 'Failed to add Master Class Category';
 
-                console.error("Detailed server response:", data);
+                console.error('Detailed server response:', data);
                 toast.error(errorMsg);
             }
         },
@@ -75,7 +81,7 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
     });
 
     const onSubmit = (values: MasterClassCategoryFormValues) => {
-        // Construct payload 
+        // Construct payload
         const payload = {
             asmcC_Id: 0,
             mI_Id: 0, // Restored as per user request/JSON
@@ -89,7 +95,7 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
             })),
             is_Active: true
         };
-        console.log("Submitting payload:", payload);
+        console.log('Submitting payload:', payload);
         addClassCategory(payload);
     };
 
@@ -100,15 +106,21 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
         }
     }, [selectedYear, selectedCategory, form]);
 
-    const classOptions = unmappedClasses?.data?.map((item) => ({
-        label: item.asmcL_ClassName,
-        value: item.asmcL_Id.toString()
-    })) || [];
+    const classOptions =
+        unmappedClasses?.data
+            ?.filter((item) => item.asmcL_Id != null)
+            .map((item) => ({
+                label: item.asmcL_ClassName ?? '',
+                value: String(item.asmcL_Id)
+            })) || [];
 
-    const sectionOptions = sections?.data?.map((item) => ({
-        label: item.asmC_SectionName,
-        value: item.asmS_Id.toString()
-    })) || [];
+    const sectionOptions =
+        sections?.data
+            ?.filter((item) => item.asmS_Id != null)
+            .map((item) => ({
+                label: item.asmC_SectionName ?? '',
+                value: String(item.asmS_Id)
+            })) || [];
 
     return (
         <Form {...form}>
@@ -121,21 +133,20 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Academic Year</FormLabel>
-                                <Select
-                                    onValueChange={(value) => field.onChange(Number(value))}
-                                    value={field.value?.toString() || ''}
-                                >
+                                <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || ''}>
                                     <FormControl>
                                         <SelectTrigger disabled={!academicYears}>
                                             <SelectValue placeholder='Select Academic Year' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {academicYears?.data?.map((item) => (
-                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                {item.asmaY_Year}
-                                            </SelectItem>
-                                        ))}
+                                        {academicYears?.data
+                                            ?.filter((item) => item.asmaY_Id != null)
+                                            .map((item) => (
+                                                <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
+                                                    {item.asmaY_Year}
+                                                </SelectItem>
+                                            ))}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -150,21 +161,20 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Category</FormLabel>
-                                <Select
-                                    onValueChange={(value) => field.onChange(Number(value))}
-                                    value={field.value?.toString() || ''}
-                                >
+                                <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || ''}>
                                     <FormControl>
                                         <SelectTrigger disabled={!categories}>
                                             <SelectValue placeholder='Select Category' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {categories?.data?.map((item) => (
-                                            <SelectItem key={item.amC_Id} value={item.amC_Id.toString()}>
-                                                {item.amC_Name}
-                                            </SelectItem>
-                                        ))}
+                                        {categories?.data
+                                            ?.filter((item) => item.amC_Id != null)
+                                            .map((item) => (
+                                                <SelectItem key={item.amC_Id} value={String(item.amC_Id)}>
+                                                    {item.amC_Name}
+                                                </SelectItem>
+                                            ))}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -187,12 +197,12 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                                         onValueChange={field.onChange}
                                         defaultValue={field.value}
                                         placeholder={loadingClasses ? 'Loading classes...' : 'Select classes'}
-                                        variant="default"
+                                        variant='default'
                                         maxCount={3}
                                     />
                                 </FormControl>
                                 {unmappedClasses?.data?.length === 0 && !loadingClasses && (
-                                    <div className='text-xs text-muted-foreground mt-1'>
+                                    <div className='mt-1 text-muted-foreground text-xs'>
                                         No classes available for the selected criteria.
                                     </div>
                                 )}
@@ -214,14 +224,12 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                                         onValueChange={field.onChange}
                                         defaultValue={field.value}
                                         placeholder={!sections ? 'Loading sections...' : 'Select sections'}
-                                        variant="default"
+                                        variant='default'
                                         maxCount={3}
                                     />
                                 </FormControl>
                                 {sections?.data?.length === 0 && (
-                                    <div className='text-xs text-muted-foreground mt-1'>
-                                        No sections available.
-                                    </div>
+                                    <div className='mt-1 text-muted-foreground text-xs'>No sections available.</div>
                                 )}
                                 <FormMessage />
                             </FormItem>

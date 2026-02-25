@@ -7,6 +7,22 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
+/**
+ * Safely extracts an array from backend data that might be wrapped in $values
+ */
+export function ensureArray<T>(data: any): T[] {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    if (typeof data === 'object' && data.$values && Array.isArray(data.$values)) {
+        return data.$values;
+    }
+    // Handle cases where the array might be direct but wrapped by axios/apiService
+    if (typeof data === 'object' && data.data && Array.isArray(data.data)) {
+        return data.data;
+    }
+    return [];
+}
+
 export function delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }

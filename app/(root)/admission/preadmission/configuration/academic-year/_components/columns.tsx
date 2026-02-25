@@ -28,9 +28,9 @@ export const masterAcademicYearColumns: ColumnDef<IMasterAcademicYearMasterList>
         enableHiding: false
     },
     {
-        accessorKey: 'institution_name',
+        accessorKey: 'mI_Name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Institute Name' />,
-        cell: ({ row }) => <div>{row.getValue('institution_name')}</div>,
+        cell: ({ row }) => <div>{row.getValue('mI_Name') ?? '-'}</div>,
         enableSorting: true,
         enableHiding: true
     },

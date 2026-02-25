@@ -8,11 +8,7 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterLeaveDropdowns } from '@/hooks/hrms/leave-management/useMasters';
-import {
-    useLeaveTransactionDepartments,
-    useLeaveTransactionDesignation,
-    useLeaveTransactionEmployee
-} from '@/hooks/hrms/leave-management/useTransactions';
+import { useMasterDepartments, useReportDesignations, usePeriodLeaveReportEmployees } from '@/hooks/hrms/useReports';
 import { cn } from '@/lib/utils';
 import { differenceInDays } from 'date-fns';
 import { Save, X } from 'lucide-react';
@@ -29,19 +25,13 @@ interface LeaveCreditTransactionFormProps {
 export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: LeaveCreditTransactionFormProps) {
     const [selectedDepartments, setSelectedDepartments] = useState<number[]>([]);
     const [selectedDesignations, setSelectedDesignations] = useState<number[]>([]);
-    const [selectedEmpTypes, setSelectedEmpTypes] = useState<number[]>([]);
 
     const { data: leaveDropdowns } = useMasterLeaveDropdowns();
-    const { data: departmentsData } = useLeaveTransactionDepartments({ MI_Id: HRMS_MI_ID });
-    const { data: designationsData } = useLeaveTransactionDesignation({ MI_Id: HRMS_MI_ID });
 
-    // Fetch employees based on filters
-    const { data: employeesData } = useLeaveTransactionEmployee({
-        MI_Id: HRMS_MI_ID,
-        DepartmentIds: selectedDepartments,
-        DesignationIds: selectedDesignations,
-        EmpTypeIds: selectedEmpTypes
-    });
+    // Report hooks logic
+    const { data: departmentsData } = useMasterDepartments();
+    const { data: designationsData } = useReportDesignations('', selectedDepartments.join(','));
+    const { data: employeesData } = usePeriodLeaveReportEmployees(selectedDepartments, selectedDesignations);
 
     const {
         control,
@@ -111,6 +101,41 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
         }));
     }, [leaveDropdowns]);
 
+    // Mapped Data for Dropdowns
+    const departmentOptions = useMemo(() => {
+        const raw = departmentsData?.data || departmentsData || [];
+        return (Array.isArray(raw) ? raw : []).map((item: any) => ({
+            value: String(item.hrmD_Id || item.hrmd_id || item.key || item.id),
+            label: item.hrmD_DepartmentName || item.hrmd_departmentName || item.value || item.name || ''
+        })).filter((i: any) => i.value);
+    }, [departmentsData]);
+
+    const designationOptions = useMemo(() => {
+        return (designationsData?.data || []).map((item: any) => ({
+            value: String(item.hrmdeS_Id || item.hrmdes_id || item.key || item.id),
+            label: item.hrmdeS_DesignationName || item.hrmdes_designationName || item.value || item.name || ''
+        })).filter((i: any) => i.value);
+    }, [designationsData]);
+
+    const employeeOptions = useMemo(() => {
+        if (!employeesData || !Array.isArray(employeesData)) return [];
+
+        return employeesData.map((item: any) => {
+            const id = item.HRME_Id || item.hrmE_Id || item.id || item.key;
+            if (id == null) return null;
+
+            const firstName = item.HRME_EmployeeFirstName || item.hrmE_EmployeeFirstName || '';
+            const middleName = item.HRME_EmployeeMiddleName || item.hrmE_EmployeeMiddleName || '';
+            const lastName = item.HRME_EmployeeLastName || item.hrmE_EmployeeLastName || '';
+            const fullName = `${firstName} ${middleName} ${lastName}`.trim().replace(/\s+/g, ' ');
+
+            return {
+                value: Number(id),
+                label: `${fullName} (${item.HRME_EmployeeCode || item.hrmE_EmployeeCode || item.employeeCode || ''})`
+            };
+        }).filter((i: any) => i !== null);
+    }, [employeesData]);
+
     return (
         <form onSubmit={handleSubmit(onSubmitForm)} className='space-y-6'>
             {/* Filters Section */}
@@ -119,9 +144,12 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>Filter by Department:</Label>
                     <MultiSelect
-                        options={departmentsData?.data?.departmentOptions || []}
-                        onValueChange={(vals) => setSelectedDepartments(vals.map(Number))}
-                        defaultValue={[]}
+                        options={departmentOptions}
+                        onValueChange={(vals) => {
+                            setSelectedDepartments(vals.map(Number));
+                            setSelectedDesignations([]); // Reset designations when dept changes
+                        }}
+                        defaultValue={selectedDepartments.map(String)}
                         placeholder='Select Departments'
                         className='w-full'
                     />
@@ -130,9 +158,9 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>Filter by Designation:</Label>
                     <MultiSelect
-                        options={designationsData?.data?.designationOptions || []}
+                        options={designationOptions}
                         onValueChange={(vals) => setSelectedDesignations(vals.map(Number))}
-                        defaultValue={[]}
+                        defaultValue={selectedDesignations.map(String)}
                         placeholder='Select Designations'
                         className='w-full'
                     />
@@ -155,8 +183,8 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                                     <SelectValue placeholder='Select employee' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {employeesData?.data?.employeeOptions?.map((option: any) => (
-                                        <SelectItem key={option.value} value={option.value}>
+                                    {employeeOptions.map((option: any) => (
+                                        <SelectItem key={option.value} value={String(option.value)}>
                                             {option.label}
                                         </SelectItem>
                                     ))}
@@ -262,7 +290,7 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                     <Save className='mr-2 h-4 w-4' />
                     SAVE
                 </Button>
-                <Button type='button' variant='destructive' onClick={onCancel} className='min-w-[120px] bg-red-600 hover:bg-red-700'>
+                <Button type='button' variant='outline' onClick={onCancel}>
                     <X className='mr-2 h-4 w-4' />
                     CANCEL
                 </Button>

@@ -9,9 +9,15 @@ import { getLeaveCreditAddition, addOrUpdateLeaveCreditAddition, deleteLeaveCred
 import { getLeaveCarryForward, addOrUpdateLeaveCarryForward, deleteLeaveCarryForward } from '@/server/hrms/leave-management/transactions/leave-carryforward';
 import { getCompOffApproval, updateCompOffApprovalStatus } from '@/server/hrms/leave-management/transactions/comp-off-approval';
 import { getCompOffRequestData, submitCompOffRequest, cancelCompOffRequest } from '@/server/hrms/leave-management/transactions/comp-off-request';
-import { getLeaveTransferBasicData, getLeaveOB, getDepartments, getDesignation, saveLeaveTransferDetails, leaveCarryForward, deleteLeaveTransfer } from '@/server/hrms/leave-management/transactions/leave-transfer';
+import { getLeaveTransferBasicData, getLeaveOB, getDepartments, getDesignation, saveLeaveTransferDetails, leaveCarryForward, deleteLeaveTransfer, getLeaveCreditAndBalanceGrid, updateLeaveStatusTab, leaveAdditionStatusTab, leaveCarryForwardStatusTab, deleteLeaveStatusById } from '@/server/hrms/leave-management/transactions/leave-transfer';
 import { getLeaveOB as getLeaveOpeningBalanceOB, getLeaveOpeningBalanceDepartments, getLeaveOpeningBalanceDesignation, getOBDetails, getEmployeOB, saveLeaveOpeningBalance, deleteLeaveOpeningBalance, getLeaveOpeningBalancePageDetails } from '@/server/hrms/leave-management/transactions/leave-opening-balance';
 import type { LeaveCredit } from '@/app/(root)/hrms/leave-management/transaction/leave-transfer/_components/columns';
+import type {
+    UpdateLeaveStatusTabPayload,
+    LeaveAdditionStatusTabPayload,
+    LeaveCarryForwardStatusTabPayload,
+    DeleteLeaveStatusByIdRequest
+} from '@/types/hrms/leave-management/leave-transfer-new';
 import type { LeaveCreditTransaction } from '@/app/(root)/hrms/leave-management/transaction/leave-credit-transaction/_components/columns';
 import type { LeaveCreditDetail } from '@/app/(root)/hrms/leave-management/transaction/leave-credit-details/_components/columns';
 import type { LeaveCreditDeduction, LeaveCreditAddition, LeaveCarryForward } from '@/types/hrms/leave-management/leave-credit-types';
@@ -802,6 +808,80 @@ export const useLeaveCode = (leavecode: number, enabled: boolean = true) => {
         }
     };
 };
+
+// New Leave Transfer Hooks
+
+export const useLeaveCreditAndBalanceGrid = (params?: any) => {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: ['LEAVE_CREDIT_AND_BALANCE_GRID', params],
+            queryFn: async () => getLeaveCreditAndBalanceGrid(params),
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: ['LEAVE_CREDIT_AND_BALANCE_GRID']
+            });
+        }
+    };
+};
+
+export const useUpdateLeaveStatusTab = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (data: UpdateLeaveStatusTabPayload) => updateLeaveStatusTab(data),
+        onSuccess: (response) => {
+            toast.success(response.message);
+            queryClient.invalidateQueries({ queryKey: ['LEAVE_CREDIT_AND_BALANCE_GRID'] });
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to update leave status');
+        }
+    });
+};
+
+export const useLeaveAdditionStatusTab = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (data: LeaveAdditionStatusTabPayload) => leaveAdditionStatusTab(data),
+        onSuccess: (response) => {
+            toast.success(response.message);
+            queryClient.invalidateQueries({ queryKey: ['LEAVE_CREDIT_AND_BALANCE_GRID'] });
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to add leave status');
+        }
+    });
+};
+
+export const useLeaveCarryForwardStatusTab = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (data: LeaveCarryForwardStatusTabPayload) => leaveCarryForwardStatusTab(data),
+        onSuccess: (response) => {
+            toast.success(response.message);
+            queryClient.invalidateQueries({ queryKey: ['LEAVE_CREDIT_AND_BALANCE_GRID'] });
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to carry forward leave status');
+        }
+    });
+};
+
+export const useDeleteLeaveStatusById = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (data: DeleteLeaveStatusByIdRequest) => deleteLeaveStatusById(data),
+        onSuccess: (response) => {
+            toast.success(response.message);
+            queryClient.invalidateQueries({ queryKey: ['LEAVE_CREDIT_AND_BALANCE_GRID'] });
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to delete leave status');
+        }
+    });
+};
+
 /**
  * Hook to fetch departments for leave credit details based on selected employee types
  * This is typically called when employee types are selected to filter departments

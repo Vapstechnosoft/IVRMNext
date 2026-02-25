@@ -7,7 +7,7 @@ export interface AcademicYear {
 
 export interface Staff {
     hrmE_Id: number;
-    staffName: string;
+    staffNamelst?: string;
 }
 
 export interface Class {

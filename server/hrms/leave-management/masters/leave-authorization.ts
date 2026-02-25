@@ -1,4 +1,5 @@
 'use server';
+
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
@@ -7,6 +8,8 @@ import type {
     LeaveAuthorizationSaveRequest,
     LeaveAuthorizationDeleteRequest,
 } from '@/types/hrms/leave-management/leave-authorization';
+
+
 /**
  * Get institutions based on login
  * GET /api/LeaveAuthorization/get_institutions_by_loginbased
@@ -16,7 +19,7 @@ export async function getInstitutionsByLoginBased(): Promise<ApiResponse<any[]>>
     console.log('🔵 [SERVER] GET Request URL:', url);
     try {
         const response = await api.get<any>('hmslms', url);
-        console.log('🔵 [SERVER] GET Response:', JSON.stringify(response, null, 2));
+
 
         const res = response as any;
         const isSuccess = res.success === true || String(res.success) === 'true';
@@ -44,8 +47,11 @@ export async function getLeaveAuthorization(
     const miId = searchParams?.MI_Id || HRMS_MI_ID;
 
     // Build URL with pagination parameters
-    const baseUrl = `/api/LeaveAuthorization/get_authorization_grid_by_miid`;
-    const queryParams = getSearchParamsUrl(searchParams);
+    // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
+        const baseUrl = `/api/LeaveAuthorization/get_authorization_grid_by_miid`;
+    const searchableColumns = 'hrmG_GradeName,hrmgT_EmployeeGroupType,hrmD_DepartmentName,hrmdeS_DesignationName,hrmL_LeaveName,hrmE_EmployeeFirstName';
+    const columnsToSearch = (searchParams as any)?.search_column || (searchParams as any)?.search_columns || searchableColumns;
+    const queryParams = getSearchParamsUrl(searchParams, columnsToSearch);
     let url = queryParams ? `${baseUrl}?${queryParams}` : baseUrl;
 
     // Append mi_id to the URL
@@ -86,53 +92,79 @@ export async function getLeaveAuthorization(
  * @param data - Leave authorization data to save or update
  * @returns Save/Update response
  */
-export async function saveLeaveAuthorization(data: LeaveAuthorizationSaveRequest): Promise<ApiResponse<LeaveAuthorizationGetResponseData>> {
+// function restored and updated
+export async function saveLeaveAuthorization(
+    data: LeaveAuthorizationSaveRequest
+): Promise<ApiResponse<LeaveAuthorizationGetResponseData>> {
+
     const url = '/api/LeaveAuthorization/add_or_update_leave_authorisation';
 
-    // Check if it's an edit operation (HRLA_Id > 0)
-    // Note: The interface might need HRLA_Id added if not present, but usually data has it if it's "any" or loosely typed at runtime
-    // Casting data to any to access potentially unmapped HRLA_Id if the type def is incomplete
-    const inputData = data as any;
-    const isEdit = inputData.HRLA_Id && Number(inputData.HRLA_Id) > 0;
-    const hrlaId = isEdit ? Number(inputData.HRLA_Id) : 0;
+    const isEdit = !!(data.hrla_Id && Number(data.hrla_Id) > 0);
 
-    // Map to the structure expected by the NEW API
+    // Construct the payload exactly as requested
     const requestBody = {
-        hrlA_Id: hrlaId,
-        // mI_Id: data.MI_Id || HRMS_MI_ID, // Use token MI_Id
-        hrmG_Id: Number(data.HRMG_Id || 0),
-        hrmgT_Id: Number(data.HRMGT_Id || 0),
-        hrmD_Id: Number(data.HRMD_Id || 0),
-        hrmdeS_Id: Number(data.HRMDES_Id || 0),
-        hrmL_Id: Number(data.HRML_Id || 0),
-        userId: Number(data.UserId || 0),
-        approvalUser: (data.approvaluser_array || []).map((item) => ({
-            approval_HRME_Id: Number(item.Approval_HRME_Id),
-            approvalLevelNo: Number(item.ApprovalLevelNo),
-            approvalFinalFlag: !!item.ApprovalFinalFlag
-        }))
+        mI_Id: Number(data.MI_Id || HRMS_MI_ID),
+        MI_Id: Number(data.MI_Id || HRMS_MI_ID), // Send both to be safe
+        ...(data.hrla_Id && data.hrla_Id > 0 ? { hrla_Id: data.hrla_Id } : {}),
+
+        hrmG_Id: Number(data.hrmG_Id || 0),
+        hrmgT_Id: Number(data.hrmgT_Id || 0),
+        hrmD_Id: Number(data.hrmD_Id || 0),
+        hrmdeS_Id: Number(data.hrmdeS_Id || 0),
+        hrmL_Id: Number(data.hrmL_Id || 0),
+        userId: Number(data.userId || 0),
+
+        approvalUser: (data.approvalUser || []).map((item) => ({
+            approval_HRME_Id: Number(item.approval_HRME_Id || 0),
+            approvalLevelNo: Number(item.approvalLevelNo || 0),
+            approvalFinalFlag: !!item.approvalFinalFlag
+        })),
     };
 
-    console.log('🟠 [SERVER] POST Request URL:', url);
-    console.log('🟠 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
+    console.log('🔵 [SERVER] Final Request Body to API:', JSON.stringify(requestBody, null, 2));
 
     try {
         const response = await api.post<any>('hmslms', url, requestBody);
-        // console.log('🟢 [SERVER] Response:', JSON.stringify(response, null, 2));
 
-        const res = response as any;
-        const isSuccess = res.success === true || String(res.success) === 'true' || res.returnval === true;
+        let res = response as any;
+
+        if (typeof res === 'string') {
+            res = JSON.parse(res);
+        }
+
+        const isSuccess =
+            res.success === true ||
+            String(res.success) === 'true' ||
+            res.returnval === true;
+
+        if (isSuccess) {
+            return {
+                success: true,
+                message:
+                    res.message ||
+                    (isEdit ? 'Updated successfully' : 'Saved successfully'),
+                data: res.data || null,
+            };
+        }
 
         return {
-            success: isSuccess,
-            message: res.message || (isEdit ? 'Updated successfully' : 'Saved successfully'),
-            data: res.data || null
+            success: false,
+            message:
+                res.message ||
+                (isEdit ? 'Failed to update' : 'Failed to save'),
+            data: null,
         };
+
     } catch (error: any) {
-        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save leave authorization';
+        const errorMessage =
+            error?.response?.data?.message ||
+            error?.message ||
+            'Failed to save leave authorization';
+
         throw new Error(errorMessage);
     }
 }
+
 /**
  * Get leave authorization for editing
  * GET /api/LeaveAuthorization/leave_authorisation_by_id/{hrlaon_id}
@@ -217,7 +249,7 @@ export async function getLeaveAuthorizationDropdowns(request: { MI_Id?: number; 
     console.log('🔵 [SERVER] GET Dropdowns URL:', url);
     try {
         const response = await api.get<any>('hmslms', url);
-        console.log('🔵 [SERVER] Dropdowns Response:', JSON.stringify(response, null, 2));
+
 
         const res = response as any;
         const isSuccess = res.success === true || String(res.success) === 'true';
@@ -238,48 +270,48 @@ export async function getLeaveAuthorizationDropdowns(request: { MI_Id?: number; 
         // Map grades from API response structure
         const grades = (data.grades || [])
             .map((item: any) => ({
-                value: String(item.hrmG_Id || ''),
-                label: String(item.hrmG_GradeName || '')
+                value: String(item.hrmG_Id || item.HRMG_Id || ''),
+                label: String(item.hrmG_GradeName || item.HRMG_GradeName || '')
             }))
             .filter((item: { value: string; label: string }) => item.value && item.label);
 
         // Map leaves from API response structure
         const leaveTypes = (data.leaves || [])
             .map((item: any) => ({
-                value: String(item.hrmL_Id || ''),
-                label: String(item.hrmL_LeaveName || '')
+                value: String(item.hrmL_Id || item.HRML_Id || ''),
+                label: String(item.hrmL_LeaveName || item.HRML_LeaveName || item.hrmL_LeaveType || item.HRML_LeaveType || '')
             }))
             .filter((item: { value: string; label: string }) => item.value && item.label);
 
         // Map groupType from API response structure
         const groupTypes = (data.groupType || [])
             .map((item: any) => ({
-                value: String(item.hrmgT_Id || ''),
-                label: String(item.hrmgT_EmployeeGroupType || '')
+                value: String(item.hrmgT_Id || item.HRMGT_Id || ''),
+                label: String(item.hrmgT_EmployeeGroupType || item.HRMGT_EmployeeGroupType || item.hrmgT_GroupTypeName || item.HRMGT_GroupTypeName || '')
             }))
             .filter((item: { value: string; label: string }) => item.value && item.label);
 
         // Map department from API response structure
         const departments = (data.department || [])
             .map((item: any) => ({
-                value: String(item.hrmD_Id || ''),
-                label: String(item.hrmD_DepartmentName || '')
+                value: String(item.hrmD_Id || item.HRMD_Id || ''),
+                label: String(item.hrmD_DepartmentName || item.HRMD_DepartmentName || '')
             }))
             .filter((item: { value: string; label: string }) => item.value && item.label);
 
         // Map designation from API response structure
         const designations = (data.designation || [])
             .map((item: any) => ({
-                value: String(item.hrmdeS_Id || ''),
-                label: String(item.hrmdeS_DesignationName || '')
+                value: String(item.hrmdeS_Id || item.HRMDES_Id || ''),
+                label: String(item.hrmdeS_DesignationName || item.HRMDES_DesignationName || '')
             }))
             .filter((item: { value: string; label: string }) => item.value && item.label);
 
         // Map applicationUsers from API response structure
         const approvalPersons = (data.applicationUsers || [])
             .map((item: any) => ({
-                value: String(item.id || ''),
-                label: String(item.userName || '')
+                value: String(item.id || item.ID || item.Id || item.hrmE_Id || item.HRME_Id || ''),
+                label: String(item.userName || item.UserName || item.normalName || item.hrmE_EmployeeFirstName || '')
             }))
             .filter((item: { value: string; label: string }) => item.value && item.label);
 
