@@ -1,11 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { usePreAdmissionAcademicYear } from '@/hooks/admission/preadmission/useConfigurations';
-import type { IMasterAcademicYearMasterList } from '@/types/admission/preadmission/configaration';
+import type { IInstitutionItem, IMasterAcademicYearMasterList } from '@/types/admission/preadmission/configaration';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddAcademicYearMasterForm from './_components/add-form';
@@ -44,7 +44,12 @@ function MasterAcademicYearPageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<IMasterAcademicYearMasterList>();
-    const tableProps = useDataTableProps(response);
+
+    // The API returns: { success, data: { paginatedList, totalRecords, institutionList, ... } }
+    const nestedData = response?.data;
+    const tableData: IMasterAcademicYearMasterList[] = nestedData?.paginatedList ?? [];
+    const totalItems: number = nestedData?.totalRecords ?? 0;
+    const institutionList: IInstitutionItem[] = nestedData?.institutionList ?? [];
 
     return (
         <div className='min-h-screen'>
@@ -72,7 +77,10 @@ function MasterAcademicYearPageContent({
                     </div>
 
                     <GenericDataTable<IMasterAcademicYearMasterList>
-                        {...tableProps}
+                        data={tableData}
+                        totalItems={totalItems}
+                        success={response?.success}
+                        errorMessage={response?.message}
                         columns={masterAcademicYearColumns}
                         isLoading={isLoading}
                         error={error}
@@ -86,13 +94,13 @@ function MasterAcademicYearPageContent({
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections />
+                <FormSections institutionList={institutionList} />
             </div>
         </div>
     );
 }
 
-function FormSections() {
+function FormSections({ institutionList }: { institutionList: IInstitutionItem[] }) {
     const {
         isAddFormOpen,
         isToggleFormOpen,
@@ -126,7 +134,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddAcademicYearMasterForm onSuccess={closeAddForm} />
+                            <AddAcademicYearMasterForm onSuccess={closeAddForm} institutionList={institutionList} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -150,7 +158,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterAcademicYearForm selectedRow={selectedRow as any} onSuccess={closeEditForm} />
+                            <UpdateMasterAcademicYearForm selectedRow={selectedRow as any} onSuccess={closeEditForm} institutionList={institutionList} />
                         </div>
                     </CollapsibleSection>
                 </div>

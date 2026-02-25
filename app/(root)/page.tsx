@@ -1,7 +1,6 @@
 'use client';
 import ParentsDashboard from '@/components/ui/dashboard/parents-dashboard';
 import { ROLES } from '@/constants';
-import { ROUTES } from '@/constants/routes';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -20,13 +19,17 @@ export default function Page() {
     useEffect(() => {
         const role = session?.data?.role?.toUpperCase();
         if (role === ROLES.ADMIN) {
-            router.push(
-                `${ROUTES.ADMISSION.ADMISSION}${ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION}${ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION_SUB_MENUS.TRANSACTIONS}${ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION_SUB_MENUS.TRANSACTIONS_SUB_MENUS.APPLICATION_FORM}`
-            );
+            // router.push(
+            //     `${ROUTES.ADMISSION.ADMISSION}${ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION}${ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION_SUB_MENUS.TRANSACTIONS}${ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION_SUB_MENUS.TRANSACTIONS_SUB_MENUS.APPLICATION_FORM}`
+            // );
+            router.push('/school-admin');
         } else if (role === ROLES.STUDENT) {
             router.push('/StudentPortal/StudentPortalDashboard');
-        }
-        else if (session?.data?.role?.toUpperCase() === ROLES.CHAIRMAN) {
+        } else if (role === ROLES.CHAIRMAN) {
+            router.push('/chairman');
+        } else if (role === ROLES.STAFF) {
+            router.push('/StaffPortal/staff-dashboard');
+        } else if (session?.data?.role?.toUpperCase() === ROLES.CHAIRMAN) {
             router.push('/chairman');
         }
     }, [session?.data?.role, router]);
@@ -35,7 +38,8 @@ export default function Page() {
         <main className='container px-0 py-2'>
             {session?.data?.role !== undefined &&
                 session?.data?.role.toUpperCase() !== ROLES.ADMIN &&
-                session?.data?.role.toUpperCase() !== ROLES.STUDENT && session?.data?.role.toUpperCase() !== ROLES.CHAIRMAN && <ParentsDashboard />}
+                session?.data?.role.toUpperCase() !== ROLES.STUDENT &&
+                session?.data?.role.toUpperCase() !== ROLES.CHAIRMAN && <ParentsDashboard />}
         </main>
     );
 }
