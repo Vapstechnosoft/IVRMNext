@@ -48,7 +48,7 @@ export async function toggleMasterClassCategory(id: number) {
 
 export async function getClassCategorySection(id: number) {
     const url = `/master_class_category/category_class_section_details/${id}`;
-    return await api.get<IMasterClassCategorySectionList>('admission', url);
+    return await api.get<IMasterClassCategorySectionList | IMasterClassCategorySectionList[]>('admission', url);
 }
 export async function toggleMasterClassCategorySection(id: number) {
     const url = `/master_class_category/toggle_section/${id}`;

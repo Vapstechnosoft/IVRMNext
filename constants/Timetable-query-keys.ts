@@ -31,6 +31,17 @@ export const TIMETABLE_QUERY_KEYS = {
     STAFF_TRANSFER_MASTERS: 'staff_transfer_masters',
     STAFF_TRANSFER_SECTIONS: 'staff_transfer_sections',
     STAFF_PERIOD_DETAILS: 'staff_period_details',
+    MASTER_BUILDING_CLASSSECTION: 'master_building_classsection',
+    MASTER_BUILDING_DROP_DOWN: 'master_building_dropdown',
+    MASTER_CLASS_DROP_DOWN: 'master_class_dropdown',
+    MASTER_SECTION_DROP_DOWN: 'master_section_dropdown',
+    MASTER_PERIOD_DROPDOWN: 'master_period_dropdown',
+
+    MASTER_BIFURCATION_CONSTRAINTS: 'master_bifurcation_constraints',
+    MASTER_STAFF_DROPDOWN_BIFURCATION_CONSTRAINTS: 'master_staff_dropdown_bifurcation_constraints',
+    MASTER_SUBJECT_DROPDOWN_BIFURCATION_CONSTRAINTS: 'master_subject_dropdown_bifurcation_constraints',
+    MASTER_SECTION_DROPDOWN_BIFURCATION_CONSTRAINTS: 'master_section_dropdown_bifurcation_constraints',
+    MASTER_CONSECUTIVE_CONSTRAINTS: 'master_consecutive_constraints',
 
     STAFF_REPLACEMENT_MASTERS: 'staff_replacement_masters',
     STAFF_REPLACEMENT_SECTIONS: 'staff_replacement_sections',

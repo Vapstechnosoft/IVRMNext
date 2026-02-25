@@ -44,7 +44,7 @@ export default function ToggleMasterClassCategoryForm({ rowData, onClose }: Togg
 
             if (response.success) {
                 toast.success(response.message);
-                refetchAll();
+                await refetchAll();
                 closeDialog();
             } else {
                 toast.error(response.message);

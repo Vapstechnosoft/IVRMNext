@@ -1,13 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Groq from 'groq-sdk';
 
-// Initialize Groq client
-const groq = new Groq({
-    apiKey: process.env.note_Groq_api_key || ''
+// Initialize Groq clients for different portals
+const adminGroq = new Groq({
+    apiKey: process.env.chat_Groq_api_key || ''
 });
+
+const studentGroq = new Groq({
+    apiKey: process.env.student_chat_Groq_api_key || process.env.chat_Groq_api_key || ''
+});
+
 
 // Knowledge Base from user's Python code
 const KNOWLEDGE_BASE = {
+    // --- GENERAL & GREETINGS ---
+    greetings: {
+        keywords: ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'who are you', 'what can you do'],
+        response: `Hello! I am your **AI VRM Help Desk**. I'm here to help you navigate through the AI VRM system and answer questions about Exams, Fees, and Admission. 
+
+How can I assist you today? You can ask me things like "How do I check my marks?" or "Where can I pay fees?"`
+    },
     // --- EXAM PORTAL KNOWLEDGE BASE ---
     examPortal: {
         keywords: [
@@ -156,6 +168,27 @@ Exam Portal → Select Year → Select Exam Type → Click Search`
 **Where to see:**
 Exam Portal → Select Exam → Click Search → Scroll to Analytics section`
     },
+    aiPerformanceAnalysis: {
+        keywords: [
+            'ai performance analysis',
+            'ai analysis',
+            'analyze class',
+            'student analysis',
+            'academic insights',
+            'performance insights',
+            'analyze student'
+        ],
+        response: `The **AI Performance Analysis** tool provides deep insights into class and student performance using AI.
+
+**Location:** Exam → Exam Module → Reports → AI Performance Analysis
+
+**Key Features:**
+- **Class Overview**: Identify top and weak performers with AI feedback.
+- **Student Deep-Dive**: Get personalized study strategies for any student.
+- **Data Upload**: Simply upload an Excel/CSV cumulative report to start.
+
+It's perfect for teachers to quickly identify which students need extra support!`
+    },
     overallPercentage: {
         keywords: [
             'overall percentage',
@@ -198,14 +231,7 @@ Overall Percentage = (255/300) × 100 = 85%
             'pay online',
             'fee structure',
             'current charges',
-            'outstanding',
-            'pay my fees',
-            'admission',
-            'online admisssion',
-            'apply online',
-            'how to apply',
-            'deadline',
-            'admission date'
+            'pay my fees'
         ],
         response: `In the **Fee Online Payment** page, you can view and pay your fees:
 
@@ -232,6 +258,28 @@ Select the fee groups you want to pay:
 
 After payment, you'll see current paid fees and concession details.`
     },
+
+    // --- ADMISSION KNOWLEDGE BASE ---
+    admissionStatus: {
+        keywords: [
+            'admission status',
+            'check status',
+            'application status',
+            'transfer status',
+            'status of admission',
+            'is my admission confirmed',
+            'waiting list',
+            'selected'
+        ],
+        response: `**How to check Admission Process / Status:**
+
+1. Go to **Admission** > **Preadmission** > **Transactions**.
+2. Click on **Transfer Application Status**.
+3. View your current status (e.g., Submitted, In Review, Selected, Admitted).
+
+You can also check **Transfer Admission Status** in the same menu for final enrollment updates.`
+    },
+
     feeGroups: {
         keywords: [
             'fee groups',
@@ -619,7 +667,11 @@ Go to **Std Fee Details** page
             'admission steps',
             'enrollment process',
             'admission procedure',
-            'admission flow'
+            'admission flow',
+            'how to apply',
+            'apply online',
+            'admission date',
+            'application deadline'
         ],
         response: `**Complete Admission Process Flow:**
 
@@ -649,12 +701,37 @@ Go to **Std Fee Details** page
 
 **Step 9: Admission**
 - Confirmed students transfer to Admission module for final enrollment.`
+    },
+
+    // --- NEW TOPICS ---
+    preadmissionRegistration: {
+        keywords: ['preadmission registration', 'registration form', 'register for preadmission', 'enroll for preadmission'],
+        response: `To register for preadmission, navigate to **Admission** > **Preadmission** > **Transactions** and click on **Preadmission Registration**. Ensure you have all student details and previous academic records ready.`
+    },
+    interviewSchedule: {
+        keywords: ['interview schedule', 'interview date', 'oral test', 'written test', 'exam date'],
+        response: `The **Interview Schedule** can be found under **Admission** > **Preadmission** > **Transactions**. You can view the list of students with their assigned dates, timings, and venues for oral and written interviews.`
+    },
+    feeConcession: {
+        keywords: ['fee concession', 'scholarship', 'discount', 'fee waiver', 'concession category'],
+        response: `Apply for fee concessions in **Fees** > **Transactions** > **Fee Concession**. You can link students to specific concession categories based on their eligibility and policy.`
+    },
+    marksEntry: {
+        keywords: ['marks entry', 'enter marks', 'update marks', 'upload scores'],
+        response: `Enter student marks by navigating to **Exam** > **Exam Module** > **Marks Entry**. Select the academic year, exam, and subject to begin entering or updating student performance data.`
+    },
+    studentTC: {
+        keywords: ['transfer certificate', 'tc generation', 'tc details', 'leaving certificate'],
+        response: `Generate and manage student Transfer Certificates (TC) in **Admission** > **Preadmission** > **Student Transfer Certificate**. You can record the reason for leaving and generate the official TC document.`
     }
 };
 
 export async function POST(req: NextRequest) {
     try {
         const { messages, context } = await req.json();
+
+        // Select the appropriate Groq client based on context
+        const groq = context === 'StudentPortal' ? studentGroq : adminGroq;
 
         if (!messages || !Array.isArray(messages)) {
             return NextResponse.json({ error: 'Invalid messages format' }, { status: 400 });
@@ -671,23 +748,23 @@ export async function POST(req: NextRequest) {
                     messages: [
                         {
                             role: 'system',
-                            content: `You are the AI VRM Assistant. The user asked about a topic for which you have specific knowledge.
+                            content: `You are the **AI VRM Help Desk**, a helpful and friendly guide for the AI VRM system. 
                             
-                            KNOWLEDGE SNIPPET:
+                            **KNOWLEDGE CONTEXT:**
                             ${data.response}
 
-                            INSTRUCTIONS:
-                            - Use the information in the KNOWLEDGE SNIPPET to answer the user's question.
-                            - You can adapt the tone to be helpful and conversational.
-                            - Maintain the formatting (bolding, lists) where appropriate for clarity.
-                            - Do not make up information outside of this snippet for this specific query.
-                            - The user is ALREADY LOGGED IN. Do not tell them to login.`
+                            **INSTRUCTIONS:**
+                            - **BE EXTREMELY CONCISE**. Answer in **ONE SHORT SENTENCE** only.
+                            - Use the KNOWLEDGE CONTEXT to provide the exact navigation path.
+                            - If it's a greeting, just say "Hello! How can I help?".
+                            - **CONSTRAINTS**: No IVRM/HRMS. No AI jargon.
+                            - Do not exceed 15-20 words.`
                         },
                         ...messages
                     ],
                     model: 'llama-3.3-70b-versatile',
-                    temperature: 0.3, // Lower temperature for factual accuracy based on snippet
-                    max_tokens: 1024
+                    temperature: 0.2, // Even lower for absolute precision
+                    max_tokens: 100 // Further reduced
                 });
                 return NextResponse.json({ text: response.choices[0]?.message?.content });
             }
@@ -698,42 +775,20 @@ export async function POST(req: NextRequest) {
             messages: [
                 {
                     role: 'system',
-                    content: `You are the AI VRM Assistant, an elite expert in AI VRM. 
-                    You are currently assisting a user in the **${context || 'General'}** module (Admission, Fees, or Exam).
-
-                    **YOUR CORE KNOWLEDGE:**
-
-                    **ADMISSION MODULE:**
-                    - **Process**: Application -> Health Form -> Verification -> Interview -> Tests -> Marks -> Status -> Confirmation -> Admission.
-                    - **Status**: Check 'Preadmission Status' (Waiting/Rejected/Accepted).
-
-                    **FEES MODULE:**
-                    - **Payment**: Go to 'Fee Online Payment', select groups (School, Bus, Hostel), pay via Card/UPI/NetBanking.
-                    - **Receipts**: Download from 'Portal Fee Receipt'.
-                    - **History/Analysis**: Check 'Std Fee Details' for dashboard, payment history, and term-wise breakdown.
-                    - **Outstanding**: Check left side of 'Fee Online Payment'.
-
-                    **EXAM MODULE:**
-                    - **Exam Portal**: Check results, marks, and analytics here.
-                    - **Process**: Select Academic Year -> Select Exam Type -> Search.
-                    - **Details**: Shows subject marks, max marks, percentage, grade, and pass/fail.
-                    - **Analytics**: Bar charts, line graphs, and performance metrics available in Exam Portal.
-
-                    **GUIDELINES:**
-                    - **User Context**: The user is **ALREADY LOGGED IN**. **NEVER** tell them to "Log in" or "Go to the portal".
-                    - **Focus on Navigation**: Guide them to the specific module/menu item (e.g., "Click on 'Exam Portal' in the Exam menu").
-                    - **Context Aware**: Since the user is in the ${context || 'AI VRM'} section, prioritize answers related to this module.
-                    - **Professional & Academic**: Use a helpful, formal yet accessible tone. Use "AI VRM" instead of "IVRM".
-                    - **Step-by-Step**: Use markdown lists and bold text for procedures.
-                    - **Missing Info**: If asked about specific values (e.g., "What is my exact fee?"), guide them WHERE to check it.
-                    - **Off-topic**: If the query is unrelated to ERP/School (e.g., games, movies, food), politely redirect.
-                    `
+                    content: `You are the **AI VRM Help Desk**.
+                    
+                    **CORE RULES:**
+                    1. **ONE SENTENCE ONLY**. Maximum 15 words.
+                    2. If asked "hi", say "Hello! How can I help you?".
+                    3. Only provide navigation steps for AI VRM (Exam, Fees, Admission).
+                    4. No IVRM/HRMS mentions.
+                    5. Be direct. No filler words like "I understand" or "Certainly".`
                 },
                 ...messages
             ],
             model: 'llama-3.3-70b-versatile',
-            temperature: 0.5,
-            max_tokens: 1024
+            temperature: 0.3,
+            max_tokens: 100
         });
 
         const reply = response.choices[0]?.message?.content || "I'm sorry, I couldn't process that.";

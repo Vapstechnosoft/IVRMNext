@@ -19,7 +19,7 @@ export interface IBifurcationConstraintList {
     ttB_Id: number;
 }
 
-export const columns: ColumnDef<IBifurcationConstraintList>[] = [
+export const masterBifurcationConstraintsColumns: ColumnDef<IBifurcationConstraintList>[] = [
     {
         accessorKey: 'ttB_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
@@ -69,8 +69,51 @@ export const columns: ColumnDef<IBifurcationConstraintList>[] = [
     }
 ];
 
+// function ActionButtonsCell({ rowData }: { rowData: IBifurcationConstraintList }) {
+//     const { openEditForm, openToggleForm, openDeleteForm, openDetailsView } = useFormContext<IBifurcationConstraintList>();
+//     const handleEdit = useCallback(
+//         (data: IBifurcationConstraintList) => {
+//             openEditForm(data);
+//         },
+//         [openEditForm]
+//     );
+
+//     const handleToggle = useCallback(
+//         (data: IBifurcationConstraintList) => {
+//             openToggleForm(data);
+//         },
+//         [openToggleForm]
+//     );
+
+//     const handleView = useCallback(
+//         (data: IBifurcationConstraintList) => {
+//             openDetailsView(data);
+//         },
+//         [openDetailsView]
+//     );
+
+//     const handleDelete = useCallback(
+//         (data: IBifurcationConstraintList) => {
+//             if (openDeleteForm) openDeleteForm(data);
+//         },
+//         [openDeleteForm]
+//     );
+
+//     return (
+//         <ActionButtons
+//             rowData={rowData}
+//             buttons={{ edit: true, toggle: true, delete: true, view: true }}
+//             onEdit={handleEdit}
+//             // onView={handleView}
+//             onToggle={handleToggle}
+//             onDelete={handleDelete}
+//             toggleConditionKey='ttB_ActiveFlag'
+//         />
+//     );
+// }
+
 function ActionButtonsCell({ rowData }: { rowData: IBifurcationConstraintList }) {
-    const { openEditForm, openToggleForm, openDeleteForm, openDetailsView } = useFormContext<IBifurcationConstraintList>();
+    const { openEditForm, openToggleForm, openDetailsView } = useFormContext<IBifurcationConstraintList>();
 
     const handleEdit = useCallback(
         (data: IBifurcationConstraintList) => {
@@ -90,17 +133,9 @@ function ActionButtonsCell({ rowData }: { rowData: IBifurcationConstraintList })
         openDetailsView(rowData);
     }, [openDetailsView, rowData]);
 
-    const handleDelete = useCallback(
-        (data: IBifurcationConstraintList) => {
-            if (openDeleteForm) openDeleteForm(data);
-        },
-        [openDeleteForm]
-    );
-
     return (
-        <TooltipProvider>
-            <div className='flex items-center gap-3'>
-                {/* Custom View Button */}
+        <div className='flex items-center gap-3'>
+            <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button
@@ -112,20 +147,17 @@ function ActionButtonsCell({ rowData }: { rowData: IBifurcationConstraintList })
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                        <p>View Details</p>
+                        <p>View</p>
                     </TooltipContent>
                 </Tooltip>
-
-                {/* Standard Action Buttons */}
-                <ActionButtons
-                    rowData={rowData}
-                    buttons={{ edit: true, toggle: true, delete: true }}
-                    onEdit={handleEdit}
-                    onToggle={handleToggle}
-                    onDelete={handleDelete}
-                    toggleConditionKey='ttB_ActiveFlag'
-                />
-            </div>
-        </TooltipProvider>
+            </TooltipProvider>
+            <ActionButtons
+                rowData={rowData}
+                buttons={{ edit: true, toggle: true, delete: false }}
+                onEdit={handleEdit}
+                onToggle={handleToggle}
+                toggleConditionKey='ttB_ActiveFlag'
+            />
+        </div>
     );
 }

@@ -2,13 +2,16 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
+import type { IConsecutiveConstraintDetails } from '@/types/timetable/constraints/bifurcationconstraints';
 
-// Load initial data (Grid and Dropdowns)
 export async function getConsecutiveConstraintsDetails(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'categoryName,className,sectionName,staffName,subjectName');
-    const url = `/Consecutive/getdetails/0?${urlParams}`;
-    const response = await api.get<any>('timetable', url);
-    return response.data;
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'asmAYYear,ttmCCategoryName,ttmDDayName,ttmPPeriodName,staffName,className,sectionName,subjectName,ttfConsecutive_Id,ttfConsecutive_ActiveFlag'
+    );
+    const url = `/TT_ConsecutiveFacade/ConsecutiveConstraintsGridData?${urlParams}`;
+    console.info('BifurcationFacade', url);
+    return await api.get<IConsecutiveConstraintDetails[]>('timetable', url);
 }
 
 // Save Consecutive Constraints
@@ -44,7 +47,7 @@ export async function deactivateConsecutiveConstraints(data: any) {
 //api calls
 
 //academic Year
-export async function getAcademicYearDropDropDownMasterDayClasswise() {
+export async function getAcademicYearDropDownMasterDayClasswise() {
     const url = '/TimeTableCommon/GetAcademicYearData';
     const response = await api.get<any[]>('timetable', url);
     return response.data;

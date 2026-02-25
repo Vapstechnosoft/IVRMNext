@@ -44,7 +44,7 @@ export default function RegistrationPageprops(props: {
     const [academicYearId, setAcademicYearId] = useState(0);
     const [reportType, setReportType] = useState('year_wise');
     const [showTable, setShowTable] = useState(false);
-    const [selectedRows, setSelectedRows] = useState<IRigistrationReportList[]>([]);
+    // Removed selection state as per user request
     const [printData, setPrintData] = useState<IRigistrationReportList[]>([]);
 
     /** -----------------------------
@@ -86,7 +86,6 @@ export default function RegistrationPageprops(props: {
         setReportType('year_wise');
         setWatchedFromDate(null);
         setWatchedToDate(null);
-        setSelectedRows([]);
         setPrintData([]);
         tableRef.current?.resetSelection();
 
@@ -143,34 +142,30 @@ export default function RegistrationPageprops(props: {
         }
 
         try {
-            if (selectedRows.length > 0) {
-                setPrintData(selectedRows);
-                toast.info(`Preparing print for ${selectedRows.length} selected record(s)...`);
-            } else {
-                toast.loading('Fetching all records for print...', { id: 'print-fetch' });
+            // ALWAYS fetch all data for printing, regardless of selection (selection removed)
+            toast.loading('Fetching all records for print...', { id: 'print-fetch' });
 
-                // Fetch all data by passing a very large page size and resetting page to 1
-                const allDataResponse = await getPreAdmissionRegistrationReport(
-                    {
-                        academicYearId: academicIdParam,
-                        fromDate: fromDateParam,
-                        toDate: toDateParam
-                    },
-                    { ...searchParams, page_size: 1000000, page: 1 }
-                );
+            // Fetch all data by passing a very large page size and resetting page to 1
+            const allDataResponse = await getPreAdmissionRegistrationReport(
+                {
+                    academicYearId: academicIdParam,
+                    fromDate: fromDateParam,
+                    toDate: toDateParam
+                },
+                { ...searchParams, page_size: 1000000, page: 1 }
+            );
 
-                const allData = allDataResponse?.data?.searchstudentDetails || [];
+            const allData = allDataResponse?.data?.searchstudentDetails || [];
 
-                if (allData.length === 0) {
-                    toast.dismiss('print-fetch');
-                    toast.error('No data found to print');
-                    return;
-                }
-
-                setPrintData(allData);
+            if (allData.length === 0) {
                 toast.dismiss('print-fetch');
-                toast.success(`Ready to print ${allData.length} records`);
+                toast.error('No data found to print');
+                return;
             }
+
+            setPrintData(allData);
+            toast.dismiss('print-fetch');
+            toast.success(`Ready to print ${allData.length} records`);
 
             // Give React time to re-render the hidden component with new data
             setTimeout(() => {
@@ -340,7 +335,6 @@ export default function RegistrationPageprops(props: {
                             error={error}
                             showViewOptions={false}
                             isSearchRequired={true}
-                            onRowSelectionChange={setSelectedRows}
                             showSearchColumns={true}
                             loadingMessage='Loading Registration Reports...'
                             noDataTitle='No Data Found'
@@ -351,19 +345,23 @@ export default function RegistrationPageprops(props: {
                 </div>
             )}
 
+            {/* Print Component */}
             <div
-                ref={printRef}
-                className='registration-report-print-container'
                 style={{
                     position: 'fixed',
-                    top: '-10000px',
-                    left: '-10000px',
-                    width: '210mm',
-                    pointerEvents: 'none'
+                    top: 0,
+                    left: 0,
+                    width: 0,
+                    height: 0,
+                    overflow: 'visible',
+                    opacity: 0,
+                    pointerEvents: 'none',
+                    zIndex: -1
                 }}>
                 <RegistrationReportPrint
+                    ref={printRef}
                     data={printData}
-                    institutionName='VAPS TECHNOSOFT'
+                // institutionName prop removed to eliminate VAPS TECHNOSOFT branding
                 />
             </div>
         </div>

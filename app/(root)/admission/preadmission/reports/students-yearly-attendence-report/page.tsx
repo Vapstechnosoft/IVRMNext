@@ -601,7 +601,6 @@ export default function StudentsYearlyAttendenceReport(props: {
                             noDataTitle='No Data Found'
                             noDataDescription='No attendance records found. Please select filters to view data.'
                             errorTitle='Error Loading Attendance Report'
-                        //pageSizeOptions={[10, 20, 30, 40, 50, 100000]}
                         />
                     </CollapsibleSection>
                 )}

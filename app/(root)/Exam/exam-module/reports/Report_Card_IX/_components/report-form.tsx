@@ -14,6 +14,7 @@ import {
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { getReportDetails } from '@/server/exam/exam-module/reports/Report_Card_IX';
+import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -119,7 +120,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                     Number(watchSection)
                 );
                 const valid = Array.isArray(data)
-                    ? data.filter((s): s is { amsT_AdmNo: number; amsT_Id: number; studentName?: string, amsT_FirstName?: string, amsT_MiddleName?: string, amsT_LastName?: string } => !!s?.amsT_Id)
+                    ? (data as any[]).filter((s): s is { amsT_AdmNo: number; amsT_Id: number; studentName?: string, amsT_FirstName?: string, amsT_MiddleName?: string, amsT_LastName?: string } => !!s?.amsT_Id)
                     : [];
 
                 const mappedStudents = valid.map(s => ({
@@ -159,8 +160,12 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     };
 
     const onSubmit = async (data: ReportCardIXSchema) => {
+        console.log('Report Card IX payload:', data);
         try {
-            const result = await getReportDetails(data);
+            const [result, institutionRes] = await Promise.all([
+                getReportDetails(data),
+                getMasterInstitution()
+            ]);
             const enrichedParams = {
                 ...data,
                 ASMAY_Year: academicYears.find(
@@ -176,7 +181,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 )?.asmC_SectionName
             };
 
-            onReportGenerated(result, enrichedParams);
+            onReportGenerated({ ...result, institution: institutionRes?.data }, enrichedParams);
         } catch (error) {
             console.error('Error:', error);
             toast.error('Failed to generate report');

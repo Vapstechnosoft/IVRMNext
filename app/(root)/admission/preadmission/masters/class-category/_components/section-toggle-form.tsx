@@ -49,7 +49,7 @@ export default function ToggleMasterClassCategorySectionForm({
 
             if (response.success) {
                 toast.success(response.message);
-                refetchAll();
+                await refetchAll();
                 if (onSuccess) onSuccess();
                 closeDialog();
             } else {

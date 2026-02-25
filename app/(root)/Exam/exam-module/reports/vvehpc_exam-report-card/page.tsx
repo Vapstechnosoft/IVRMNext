@@ -1,13 +1,13 @@
 'use client';
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { getExamReportCard } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
-import type { IExamReportCard, ISubject } from '@/types/exam/exam-module/report';
+import { getExamReportCard, getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
+import type { IExamReportCard, IMasterInstitution, Institution, ISubject } from '@/types/exam/exam-module/report';
 import { Printer } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import ProgressCardReportForm from './_components/add-form';
-import ProgressCardPrintView from './_components/progress-card-printable';
+import ProgressCardReport from './_components/progress-card-report';
 
 export default function ProgressCardReportPage() {
     const [reportData, setReportData] = useState<IExamReportCard[]>([]);
@@ -17,17 +17,30 @@ export default function ProgressCardReportPage() {
     const [examCode] = useState<string>('FA1');
     const [year, setYear] = useState<string>('');
     const [isReportVisible, setIsReportVisible] = useState(false);
+    const [institution, setInstitution] = useState<IMasterInstitution | Institution | null>();
+    const printRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (isReportVisible && printRef.current) {
+            printRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    })
 
     const handleReportSuccess = async (payload: any) => {
         try {
+            console.log('Progress Card Report payload:', payload);
             const res = await getExamReportCard(payload);
             if (!res?.success || !Array.isArray(res?.data) || res.data.length === 0) {
-                toast.error('No records found');
+                //toast.error('No records found');
                 setIsReportVisible(false);
-                return;
+                //return;
             }
+            console.log('progress card report api response', res);
 
             const flatRows: any[] = res.data;
+
+            //const flatRows: any[] = generateStaticData();
+            console.log('progress card report response Data', flatRows);
 
             const studentMap = new Map<number, IExamReportCard>();
             const subjectMap = new Map<number, ISubject>();
@@ -113,6 +126,108 @@ export default function ProgressCardReportPage() {
         }
     };
 
+    // 🔥 STATIC MOCK DATA (100 Students × 5 Subjects)
+    const generateStaticData = () => {
+        const subjects = [
+            { id: 101, name: "Mathematics", order: 1 },
+            { id: 102, name: "Science", order: 2 },
+            { id: 103, name: "English", order: 3 },
+            { id: 104, name: "Social", order: 4 },
+            { id: 105, name: "Computer", order: 5 }
+        ];
+
+        const rows: any[] = [];
+
+        for (let i = 1; i <= 100; i++) {
+            const totalMax = subjects.length * 100;
+            let totalObt = 0;
+
+            subjects.forEach((sub) => {
+                const marks = Math.floor(Math.random() * 60) + 40; // 40–100
+                totalObt += marks;
+
+                rows.push({
+                    // Student Info
+                    amsT_Id: 15000 + i,
+                    amsT_FirstName: `Student ${i}`,
+                    amsT_FatherName: `Father ${i}`,
+                    amsT_DOB: "2016-01-01T00:00:00",
+                    amaY_RollNo: i,
+                    amsT_AdmNo: `ADM${i}`,
+                    amsT_RegistrationNo: `REG${i}`,
+
+                    // Class Info
+                    asmcL_ClassName: "ClassnRhd",
+                    asmC_SectionName: "AAAA",
+                    emE_ExamName: "Vaps Exam1(Raju)",
+                    asmaY_Year: "2025",
+
+                    // Subject Info
+                    ismS_Id: sub.id,
+                    ismS_SubjectName: sub.name,
+                    eyceS_AplResultFlg: true,
+                    eyceS_MarksDisplayFlg: true,
+                    eyceS_GradeDisplayFlg: false,
+                    eyceS_SubjectOrder: sub.order,
+
+                    // Marks
+                    estmpS_MaxMarks: 100,
+                    estmpS_ObtainedMarks: marks,
+                    estmpS_ObtainedGrade: "",
+                    estmpS_PassFailFlg: marks >= 35,
+
+                    // Totals
+                    estmP_TotalMaxMarks: totalMax,
+                    estmP_TotalObtMarks: 0, // temp
+                    estmP_Percentage: 0,
+                    estmP_TotalGrade: "",
+                    estmP_Result: "",
+                    estmP_ClassRank: i,
+                    estmP_SectionRank: i,
+                    asA_ClassHeld: 46,
+                    asA_Class_Attended: 44,
+                    emgD_Remarks: "Good"
+                });
+            });
+
+            // Update totals for this student
+            const percentage = Math.round((totalObt / totalMax) * 100);
+            const grade =
+                percentage >= 90 ? "A+" :
+                    percentage >= 75 ? "A" :
+                        percentage >= 60 ? "B" :
+                            percentage >= 50 ? "C" : "D";
+
+            rows
+                .filter(r => r.amsT_Id === 15000 + i)
+                .forEach(r => {
+                    r.estmP_TotalObtMarks = totalObt;
+                    r.estmP_Percentage = percentage;
+                    r.estmP_TotalGrade = grade;
+                    r.estmP_Result = percentage >= 35 ? "Pass" : "Fail";
+                });
+        }
+
+        return rows;
+    };
+
+    useEffect(() => {
+        const fetchInstitution = async () => {
+            try {
+                const institution_res = await getMasterInstitution();
+                const { data: institution_data } = institution_res;
+                setInstitution(institution_data);
+            } catch (error) {
+                console.error("Error fetching institution:", error);
+            }
+        };
+
+        fetchInstitution();
+    }, []);
+
+
+
+
     const handlePrint = () => window.print();
 
     return (
@@ -123,22 +238,15 @@ export default function ProgressCardReportPage() {
 
             {isReportVisible && (
                 <CollapsibleSection title='Progress Cards Report' defaultOpen>
-                    <div className='no Print my-4 flex justify-end'>
-                        {/* biome-ignore lint/a11y/useButtonType: <explanation> */}
-                        <button
-                            onClick={handlePrint}
-                            className='flex items-center gap-2 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700'>
-                            <Printer className='h-4 w-4' />
-                            Print All Cards
-                        </button>
-                    </div>
-                    <ProgressCardPrintView
+                    <ProgressCardReport
                         reportData={reportData}
+                        institution={institution}
                         subjects={subjects}
                         headerInfo={headerInfo}
                         examName={examName}
                         examCode={examCode}
                         year={year}
+                        onPrint={handlePrint}
                     />
                 </CollapsibleSection>
             )}

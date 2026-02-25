@@ -1565,6 +1565,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Report_Card_X',
                                             title: 'Report Card_X',
                                             description: 'Report Card_X'
+                                        },
+                                        {
+                                            id: 89,
+                                            name: 'AI Performance Analysis',
+                                            icon: 'Sparkles',
+                                            url: '/Exam/exam-module/ai-performance-analysis',
+                                            title: 'AI Performance Analysis',
+                                            description: 'AI-driven student performance analysis and insights'
                                         }
                                     ]
                                 }
@@ -1722,8 +1730,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/masters/religion-category-mapping',
                                             title: 'Religion-Category Mapping',
                                             description: 'Map Religion & Category'
-                                        },
-
+                                        }
                                     ]
                                 },
                                 {
@@ -2014,7 +2021,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
-                        }
+                        },
                         // ,
                         // {
                         //     id: 2,
@@ -2327,7 +2334,7 @@ export async function getUserAccessibleModules() {
                         //         }
                         //     ]
                         // },
-                        , {
+                        {
                             id: 4,
                             name: 'Leave Management',
                             icon: 'Calendar',
@@ -2582,11 +2589,10 @@ export async function getUserAccessibleModules() {
                         // }
                     ]
                 },
-
                 {
                     id: 5,
                     name: 'AI Edge',
-                    icon: 'Users',
+                    icon: 'Sparkles',
                     menu: [
                         {
                             id: 1,
@@ -3075,6 +3081,14 @@ export async function getUserAccessibleModules() {
                                             url: '/timetable/masters/masterbuilding',
                                             title: 'Master Building',
                                             description: 'Manage Master Building Details'
+                                        },
+                                        {
+                                            id: 11111111,
+                                            name: 'Master Building Class Section',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterbuildingclasssection',
+                                            title: 'Master Building Class Section',
+                                            description: 'Manage Master Building Class Section Details'
                                         },
                                         {
                                             id: 3,
@@ -4618,203 +4632,204 @@ export async function getUserAccessibleModules() {
                 //                 }
                 //             ]
                 //         }
-                // ,
-                // {
-                //     id: 111,
-                //     name: 'Transport',
-                //     icon: 'BookOpen',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Transport',
-                //             icon: 'BookOpen',
-                //             sub_menu: [
-                //                 {
-                //                     id: 3000,
-                //                     name: 'Masters',
-                //                     icon: 'Database',
-                //                     pages: [
-                //                         {
-                //                             id: 30001,
-                //                             name: 'Master Area',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-area',
-                //                             title: 'Master Area / Zone',
-                //                             description: 'Master Area / Zone Details'
-                //                         },
-                //                         {
-                //                             id: 30002,
-                //                             name: 'Master Driver',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-driver',
-                //                             title: 'Master Driver',
-                //                             description: 'Master Driver Details'
-                //                         },
-                //                         {
-                //                             id: 30003,
-                //                             name: 'Master Fuel Type',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-fuel-type',
-                //                             title: 'Master Fuel Type',
-                //                             description: 'Master Fuel Type Details'
-                //                         },
-                //                         {
-                //                             id: 30004,
-                //                             name: 'Master Location',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-location',
-                //                             title: 'Master Location',
-                //                             description: 'Master Location Details'
-                //                         },
-                //                         {
-                //                             id: 30005,
-                //                             name: 'Master Route',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-route',
-                //                             title: 'Master Route',
-                //                             description: 'Master Route Details'
-                //                         },
-                //                         {
-                //                             id: 30006,
-                //                             name: 'Route Area Mapping',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/route-area-mapping',
-                //                             title: 'Route Area Mapping',
-                //                             description: 'Route Area Mapping Details'
-                //                         },
-                //                         {
-                //                             id: 30007,
-                //                             name: 'Master Service Station',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-service-station',
-                //                             title: 'Master Service Station',
-                //                             description: 'Master Service Station Details'
-                //                         },
-                //                         {
-                //                             id: 30008,
-                //                             name: 'Master Session',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-session',
-                //                             title: 'Master Session',
-                //                             description: 'Master Session Details'
-                //                         },
-                //                         {
-                //                             id: 30009,
-                //                             name: 'Master Vehicle Type',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-vehicle-type',
-                //                             title: 'Master Vehicle Type',
-                //                             description: 'Master Vehicle Type Details'
-                //                         },
-                //                         {
-                //                             id: 30010,
-                //                             name: 'Master Route Schedule',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-route-schedule',
-                //                             title: 'Master Route Schedule',
-                //                             description: 'Master Route Schedule Details'
-                //                         },
-                //                         {
-                //                             id: 30011,
-                //                             name: 'Master Vehicle',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-vehicle',
-                //                             title: 'Master Vehicle',
-                //                             description: 'Master Vehicle Details'
-                //                         },
-                //                         {
-                //                             id: 30012,
-                //                             name: 'Expiry Settings',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/expiry-settings',
-                //                             title: 'Expiry Settings',
-                //                             description: 'Transport Expiry Settings'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 3001,
-                //                     name: 'Transactions',
-                //                     icon: 'BookOpen',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Route Location Mapping',
-                //                             icon: 'Settings',
-                //                             url: '/Transport/transport-module/transaction/route-location-mapping',
-                //                             title: 'Route Location Mapping',
-                //                             description: 'Manage Route Location Mapping'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Vehicle Driver Mapping',
-                //                             icon: 'Settings',
-                //                             url: '/Transport/transport-module/transaction/vehicle-driver-mapping',
-                //                             title: 'Vehicle Driver Mapping',
-                //                             description: 'Manage Vehicle Driver Mapping'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Vehicle Route Mapping',
-                //                             icon: 'Settings',
-                //                             url: '/Transport/transport-module/transaction/vehicle-route-mapping',
-                //                             title: 'Vehicle Route Mapping',
-                //                             description: 'Manage Vehicle Route Mapping'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Transport Approve',
-                //                             icon: 'Settings',
-                //                             url: '/Transport/transport-module/transaction/transport-approve',
-                //                             title: 'Transport Approve',
-                //                             description: 'Manage Transport Approve'
-                //                         }
-
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 3002,
-                //                     name: 'Reports',
-                //                     icon: 'BookOpen',
-                //                     pages: [
-                //                         {
-                //                             id: 30201,
-                //                             name: 'Month End Report',
-                //                             icon: 'FileText',
-                //                             url: '/Transport/transport-module/reports/month-end-report',
-                //                             title: 'Month End Report',
-                //                             description: 'Transport Month End Report'
-                //                         },
-                //                         {
-                //                             id: 30202,
-                //                             name: 'Transport Report',
-                //                             icon: 'FileText',
-                //                             url: '/Transport/transport-module/reports/transport-report',
-                //                             title: 'Transport Report',
-                //                             description: 'Transport Report'
-                //                         },
-                //                         {
-                //                             id: 30203,
-                //                             name: 'Fee Student Route Mapping Report',
-                //                             icon: 'FileText',
-                //                             url: '/Transport/transport-module/reports/fee-student-route-mapping-report',
-                //                             title: 'Fee Student Route Mapping Report',
-                //                             description: 'Fee Student Route Mapping Report'
-                //                         },
-                //                         {
-                //                             id: 30204,
-                //                             name: 'Student Route Mapping Report',
-                //                             icon: 'FileText',
-                //                             url: '/Transport/transport-module/reports/student-route-mapping-report',
-                //                             title: 'Student Route Mapping Report',
-                //                             description: 'Student Route Mapping Report'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
+                // 
+                ,
+               {
+                    id: 111,
+                    name: 'Transport',
+                    icon: 'BookOpen',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Transport',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 3000,
+                                    name: 'Masters',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 30001,
+                                            name: 'Master Area',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-area',
+                                            title: 'Master Area / Zone',
+                                            description: 'Master Area / Zone Details'
+                                        },
+                                        {
+                                            id: 30002,
+                                            name: 'Master Driver',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-driver',
+                                            title: 'Master Driver',
+                                            description: 'Master Driver Details'
+                                        },
+                                        {
+                                            id: 30003,
+                                            name: 'Master Fuel Type',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-fuel-type',
+                                            title: 'Master Fuel Type',
+                                            description: 'Master Fuel Type Details'
+                                        },
+                                        {
+                                            id: 30004,
+                                            name: 'Master Location',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-location',
+                                            title: 'Master Location',
+                                            description: 'Master Location Details'
+                                        },
+                                        {
+                                            id: 30005,
+                                            name: 'Master Route',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-route',
+                                            title: 'Master Route',
+                                            description: 'Master Route Details'
+                                        },
+                                        {
+                                            id: 30006,
+                                            name: 'Route Area Mapping',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/route-area-mapping',
+                                            title: 'Route Area Mapping',
+                                            description: 'Route Area Mapping Details'
+                                        },
+                                        {
+                                            id: 30007,
+                                            name: 'Master Service Station',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-service-station',
+                                            title: 'Master Service Station',
+                                            description: 'Master Service Station Details'
+                                        },
+                                        {
+                                            id: 30008,
+                                            name: 'Master Session',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-session',
+                                            title: 'Master Session',
+                                            description: 'Master Session Details'
+                                        },
+                                        {
+                                            id: 30009,
+                                            name: 'Master Vehicle Type',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-vehicle-type',
+                                            title: 'Master Vehicle Type',
+                                            description: 'Master Vehicle Type Details'
+                                        },
+                                        {
+                                            id: 30010,
+                                            name: 'Master Route Schedule',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-route-schedule',
+                                            title: 'Master Route Schedule',
+                                            description: 'Master Route Schedule Details'
+                                        },
+                                        {
+                                            id: 30011,
+                                            name: 'Master Vehicle',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-vehicle',
+                                            title: 'Master Vehicle',
+                                            description: 'Master Vehicle Details'
+                                        },
+                                        {
+                                            id: 30012,
+                                            name: 'Expiry Settings',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/expiry-settings',
+                                            title: 'Expiry Settings',
+                                            description: 'Transport Expiry Settings'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3001,
+                                    name: 'Transactions',
+                                    icon: 'BookOpen',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Route Location Mapping',
+                                            icon: 'Settings',
+                                            url: '/Transport/transport-module/transaction/route-location-mapping',
+                                            title: 'Route Location Mapping',
+                                            description: 'Manage Route Location Mapping'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Vehicle Driver Mapping',
+                                            icon: 'Settings',
+                                            url: '/Transport/transport-module/transaction/vehicle-driver-mapping',
+                                            title: 'Vehicle Driver Mapping',
+                                            description: 'Manage Vehicle Driver Mapping'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Vehicle Route Mapping',
+                                            icon: 'Settings',
+                                            url: '/Transport/transport-module/transaction/vehicle-route-mapping',
+                                            title: 'Vehicle Route Mapping',
+                                            description: 'Manage Vehicle Route Mapping'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Transport Approve',
+                                            icon: 'Settings',
+                                            url: '/Transport/transport-module/transaction/transport-approve',
+                                            title: 'Transport Approve',
+                                            description: 'Manage Transport Approve'
+                                        }
+ 
+                                    ]
+                                },
+                                {
+                                    id: 3002,
+                                    name: 'Reports',
+                                    icon: 'BookOpen',
+                                    pages: [
+                                        {
+                                            id: 30201,
+                                            name: 'Month End Report',
+                                            icon: 'FileText',
+                                            url: '/Transport/transport-module/reports/month-end-report',
+                                            title: 'Month End Report',
+                                            description: 'Transport Month End Report'
+                                        },
+                                        {
+                                            id: 30202,
+                                            name: 'Transport Report',
+                                            icon: 'FileText',
+                                            url: '/Transport/transport-module/reports/transport-report',
+                                            title: 'Transport Report',
+                                            description: 'Transport Report'
+                                        },
+                                        {
+                                            id: 30203,
+                                            name: 'Fee Student Route Mapping Report',
+                                            icon: 'FileText',
+                                            url: '/Transport/transport-module/reports/fee-student-route-mapping-report',
+                                            title: 'Fee Student Route Mapping Report',
+                                            description: 'Fee Student Route Mapping Report'
+                                        },
+                                        {
+                                            id: 30204,
+                                            name: 'Student Route Mapping Report',
+                                            icon: 'FileText',
+                                            url: '/Transport/transport-module/reports/student-route-mapping-report',
+                                            title: 'Student Route Mapping Report',
+                                            description: 'Student Route Mapping Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
                 //         //    ,
                 //         //        {
                 //         //         id: 8,
@@ -5172,8 +5187,7 @@ export async function getUserAccessibleModules() {
                 }
             ]
         };
-    }
-    else if (session?.role.toUpperCase() === 'STUDENT') {
+    } else if (session?.role.toUpperCase() === 'STUDENT') {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
@@ -5416,8 +5430,7 @@ export async function getUserAccessibleModules() {
                 }
             ]
         };
-    }
-    else if (session?.role.toUpperCase() === 'SUPER ADMIN') {
+    } else if (session?.role.toUpperCase() === 'SUPER ADMIN') {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
@@ -5640,12 +5653,10 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
-
+                }
             ]
         };
-    }
-    else {
+    } else {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
