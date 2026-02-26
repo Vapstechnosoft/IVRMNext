@@ -35,8 +35,8 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
         }
         return institutionsData.data
             .map((item: any) => ({
-                value: String(item.mI_Id || ''),
-                label: String(item.mI_Name || '')
+                value: String(item.mI_Id || item.MI_Id || item.miId || ''),
+                label: String(item.mI_Name || item.MI_Name || item.institution || '') //added
             }))
             .filter((item: { value: string; label: string }) => item.value && item.label);
     }, [institutionsData]);
@@ -136,7 +136,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                     <SelectContent>
                                         {institutionOptions.length > 0 ? (
                                             institutionOptions.map((option) => (
-                                                <SelectItem key={option.value} value={option.label}>
+                                                <SelectItem key={option.value} value={option.value}>
                                                     {option.label}
                                                 </SelectItem>
                                             ))

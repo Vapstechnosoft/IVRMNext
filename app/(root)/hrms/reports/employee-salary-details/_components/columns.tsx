@@ -1,6 +1,5 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
@@ -15,7 +14,7 @@ export const getMonthlySalaryDetailColumns = (
 ): ColumnDef<MonthlySalaryDetail>[] => [
         {
             accessorKey: 'id',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL. No.' />,
+            header: 'SL. No.',
             cell: ({ row, table }) => {
                 const pageIndex = table.getState().pagination.pageIndex;
                 const pageSize = table.getState().pagination.pageSize;
@@ -28,16 +27,16 @@ export const getMonthlySalaryDetailColumns = (
         },
         {
             accessorKey: 'month',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Month' />,
+            header: 'Month',
             cell: ({ row }) => <div className='font-medium'>{row.getValue('month')}</div>,
-            enableSorting: true,
+            enableSorting: false,
             enableHiding: true
         },
         {
             accessorKey: 'netSalary',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Net Salary' />,
+            header: 'Net Salary',
             cell: ({ row }) => <div className='font-semibold'>₹{(row.getValue('netSalary') as number).toLocaleString()}</div>,
-            enableSorting: true,
+            enableSorting: false,
             enableHiding: true
         },
         {
