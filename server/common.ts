@@ -1584,7 +1584,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 91,
-                                            name:  'Stella Marks Entry Report',
+                                            name: 'Stella Marks Entry Report',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/stella_marks_entry_report',
                                             title: 'Stella Marks Entry Report',
@@ -1616,7 +1616,7 @@ export async function getUserAccessibleModules() {
                                             description: "Manage Vidyaniketan I-VIII Card Report Details"
                                         },
                                         {
-                                            id:95,
+                                            id: 95,
                                             name: "Sophia IX-X Card Report",
                                             icon: "BookOpen",
                                             url: "/Exam/exam-module/reports/sophia-report-card-IX-X",
@@ -1624,12 +1624,20 @@ export async function getUserAccessibleModules() {
                                             description: "Manage Sophia IX-X Card Report Details"
                                         },
                                         {
-                                            id:96,
-                                            name:"Sophia Pre-II Card Report",
+                                            id: 96,
+                                            name: "Sophia Pre-II Card Report",
                                             icon: "BookOpen",
-                                            url:"/Exam/exam-module/reports/sophia-report-card-pre-II",
-                                            title:"Sophia Pre-II Card Report",  
-                                            description:"Manage Sophia Pre-II Card Report Details"
+                                            url: "/Exam/exam-module/reports/sophia-report-card-pre-II",
+                                            title: "Sophia Pre-II Card Report",
+                                            description: "Manage Sophia Pre-II Card Report Details"
+                                        },
+                                        {
+                                            id: 97,
+                                            name: "Sophia Topper List Report",
+                                            icon: "BookOpen",
+                                            url: "/Exam/exam-module/reports/sophia-topper-list-report",
+                                            title: "Sophia Topper List Report",
+                                            description: "Manage Sophia Topper List Report Details"
                                         }
 
                                     ]

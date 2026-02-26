@@ -634,3 +634,13 @@ export const sophiaProgressReportPreIISchema = z
     });
 
 export type SophiaProgressReportPreIISchema = z.infer<typeof sophiaProgressReportPreIISchema>;
+
+export const sophiaTopperListReportSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    emcA_Id: z.number({ required_error: 'Category is required' }).min(1, { message: 'Please select Category' }),
+    asmcL_Id: z.number({ required_error: 'Class Name is required' }).min(1, { message: 'Please select Class Name' }),
+    emE_Id: z.number({ required_error: 'Exam Name is required' }).min(1, { message: 'Please select Exam Name' }),
+    asmS_Id: z.number({ required_error: 'Section Name is required' }).min(1, { message: 'Please select Section Name' })
+});
+
+export type SophiaTopperListReportSchema = z.infer<typeof sophiaTopperListReportSchema>;
