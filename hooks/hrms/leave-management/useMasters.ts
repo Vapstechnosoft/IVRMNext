@@ -574,8 +574,8 @@ function mapApiDataToLeaveAuthorization(apiData: LeaveAuthorizationGetResponseDa
             data.id ||
             0,
         createdAt: data.createdDate || data.CreatedDate ? new Date(data.createdDate || data.CreatedDate) : new Date(),
-        institution: data.mI_Name || data.institutionName || data.InstitutionName || data.institution || '',
-        mI_Id: data.mI_Id || data.MI_Id,
+        institution: data.mI_Name || data.institutionName || data.InstitutionName || data.institution || 'Vidya Vikasa Vidya Samsthe (R)',
+        mI_Id: data.mI_Id || data.MI_Id || data.mi_id || data.MI_id || data.miId || 0, //added
         hrmG_GradeName: data.hrmG_GradeName || data.HRMG_GradeName || data.gradeName || '',
         hrmgT_EmployeeGroupType:
             data.hrmgT_EmployeeGroupType ||

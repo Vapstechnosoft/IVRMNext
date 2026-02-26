@@ -114,11 +114,14 @@ export default function UpdateLeaveAuthorizationForm({
         const dataToUse = editData.data;
         console.log('🔄 [UpdateForm] API Data received:', dataToUse);
 
+        const instId = (dataToUse as any).mI_Id || (dataToUse as any).MI_Id || (dataToUse as any).miId || (dataToUse as any).mi_id || (dataToUse as any).MI_id;
+        const fallbackInst = institutionOptions.find(opt => opt.label === 'Vidya Vikasa Vidya Samsthe (R)')?.value || '';
+
         // Map values to strings for form state
         const formValues = {
             id: dataToUse.id,
             _HRLA_Id: (dataToUse as any)._HRLA_Id,
-            institution: String((dataToUse as any).mI_Id || (dataToUse as any).MI_Id || (dataToUse as any).miId || ''),
+            institution: String(instId || fallbackInst),
             // Normalize all ID fields to strings
             hrmG_GradeName: String((dataToUse as any).hrmG_Id || (dataToUse as any).gradeId || (dataToUse as any).HRMG_Id || ''),
             hrmgT_EmployeeGroupType: String((dataToUse as any).hrmgT_Id || (dataToUse as any).groupTypeId || (dataToUse as any).HRMGT_Id || ''),
@@ -132,7 +135,7 @@ export default function UpdateLeaveAuthorizationForm({
 
         console.log('🚀 [UpdateForm] Resetting form with:', formValues);
         reset(formValues);
-    }, [editData, reset]);
+    }, [editData, reset, institutionOptions]);
     const onSubmit: SubmitHandler<LeaveAuthorization> = async (data) => {
         updateLeaveAuthorization(
             {

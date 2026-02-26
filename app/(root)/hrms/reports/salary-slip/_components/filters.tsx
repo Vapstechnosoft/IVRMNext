@@ -67,7 +67,6 @@ export function SalarySlipFilters({
     onSelectAll,
     onSelectEmployee,
     onGenerateSlip,
-    onCancel,
     onReset
 }: SalarySlipFiltersProps) {
     const handleReset = () => {
@@ -91,7 +90,7 @@ export function SalarySlipFilters({
             <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                 {/* Group Type Filter */}
                 <div className='space-y-2'>
-                    <Label>Group Type <span className='text-red-500'>*</span></Label>
+                    <Label className='font-medium'>Group Type <span className='ml-1 text-destructive'>*</span></Label>
                     <MultiSelect
                         options={groupTypes.map((gt) => ({
                             label: gt.value || gt.HRMGT_EmployeeGroupType,
@@ -109,7 +108,7 @@ export function SalarySlipFilters({
                 </div>
                 {/* Department Filter */}
                 <div className='space-y-2'>
-                    <Label>Department <span className='text-red-500'>*</span></Label>
+                    <Label className='font-medium'>Department <span className='ml-1 text-destructive'>*</span></Label>
                     <MultiSelect
                         options={departments.map((dept) => ({
                             label: dept.hrmD_DepartmentName || dept.HRMD_DepartmentName,
@@ -127,7 +126,7 @@ export function SalarySlipFilters({
                 </div>
                 {/* Designation Filter */}
                 <div className='space-y-2'>
-                    <Label>Designation <span className='text-red-500'>*</span></Label>
+                    <Label className='font-medium'>Designation <span className='ml-1 text-destructive'>*</span></Label>
                     <MultiSelect
                         options={designations.map((desg) => ({
                             label: desg.hrmdeS_DesignationName || desg.HRMDES_DesignationName,
@@ -148,9 +147,9 @@ export function SalarySlipFilters({
             <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                 {/* Month Filter */}
                 <div className='mt-3 mb-3 space-y-2'>
-                    <label htmlFor='month-select' className='font-medium text-foreground text-sm'>
-                        Month <span className='text-red-500'>*</span>
-                    </label>
+                    <Label className='font-medium' htmlFor='month-select'>
+                        Month
+                    </Label>
                     <Select value={filters.month} onValueChange={(value) => onFilterChange({ ...filters, month: value })}>
                         <SelectTrigger id='month-select'>
                             <SelectValue placeholder='Select month' />
@@ -195,9 +194,9 @@ export function SalarySlipFilters({
                 </div>
                 {/* Year Filter */}
                 <div className='mt-3 mb-3 space-y-2'>
-                    <label htmlFor='year-select' className='font-medium text-foreground text-sm'>
-                        Year <span className='text-red-500'>*</span>
-                    </label>
+                    <Label className='font-medium' htmlFor='year-select'>
+                        Year
+                    </Label>
                     <Select value={filters.year} onValueChange={(value) => onFilterChange({ ...filters, year: value })}>
                         <SelectTrigger id='year-select'>
                             <SelectValue placeholder='Select year' />
@@ -319,7 +318,14 @@ export function SalarySlipFilters({
                     <RotateCcw className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
-                <Button onClick={onGenerateSlip} disabled={selectedCount === 0}>
+                <Button
+                    onClick={onGenerateSlip}
+                    disabled={
+                        selectedCount === 0 ||
+                        filters.groupType.length === 0 ||
+                        filters.department.length === 0 ||
+                        filters.designation.length === 0
+                    }>
                     <FileText className='mr-2 h-4 w-4' />
                     Generate Slip
                 </Button>

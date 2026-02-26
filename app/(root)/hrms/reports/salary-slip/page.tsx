@@ -79,7 +79,11 @@ export default function SalarySlipPage() {
     const handleFilterChange = (newFilters: SalarySlipFiltersType) => {
         setFilters(newFilters);
 
-        if (newFilters.year && newFilters.month) {
+        if (
+            newFilters.groupType.length > 0 &&
+            newFilters.department.length > 0 &&
+            newFilters.designation.length > 0
+        ) {
             filterEmployees({
                 MI_Id: 30,
                 LogInUserId: 0,
@@ -108,6 +112,8 @@ export default function SalarySlipPage() {
                     }
                 }
             });
+        } else {
+            setEmployees([]);
         }
     };
 
@@ -147,6 +153,15 @@ export default function SalarySlipPage() {
     };
 
     const handleGenerateSlip = () => {
+        if (
+            filters.groupType.length === 0 ||
+            filters.department.length === 0 ||
+            filters.designation.length === 0
+        ) {
+            toast.error('Please select all required filters');
+            return;
+        }
+
         const selectedEmpIds = employees.filter(e => e.isSelected).map(e => e.HRME_Id);
         if (selectedEmpIds.length === 0) {
             toast.error('Please select at least one employee');
