@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 
 const toggleSchema = z.object({
-    ttC_Id: z.number()
+    ttC_Id: z.coerce.number()
 });
 
 type FormFields = z.infer<typeof toggleSchema>;
@@ -44,15 +44,19 @@ export default function ToggleConsecutiveConstraintsForm({ rowData, onClose }: T
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
             const response = await deactivateConsecutiveConstraints(rowData);
-            if (response.returnval === true) {
-                toast.success(isActive ? 'Deactivated Successfully' : 'Activated Successfully');
+            console.log('response', response);
+
+            if (response.success) {
+                toast.success(response.message);
+                reset();
                 refetchAll();
-                closeDialog();
+                onClose?.();
             } else {
-                toast.error('Failed to Update Status');
+                toast.error(response.message);
             }
-        } catch (error: any) {
-            toast.error(error.message || 'Something went wrong');
+        } catch (error) {
+            console.error(error);
+            toast.error('An error occured');
         }
     };
 

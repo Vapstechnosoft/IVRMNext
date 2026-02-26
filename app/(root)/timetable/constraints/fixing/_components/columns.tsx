@@ -7,7 +7,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
 // Interfaces for List Data
-import {
+import type {
     TTDayPeriodGridData,
     TTDayStaffGridData,
     TTDaySubjectGridData,
@@ -58,7 +58,7 @@ function ActionButtonsCell<T>({
             buttons={{
                 edit: true,
                 toggle: true,
-                delete: true
+                delete: false
                 //view: showView
             }}
             onEdit={handleEdit}
@@ -255,5 +255,3 @@ export const periodSubjectColumns: ColumnDef<TTPeriodSubjectGridData>[] = [
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} idKey='ttrpsU_Id' toggleKey='ttrpsU_ActiveFlag' showView={true} />
     }
 ];
-
-

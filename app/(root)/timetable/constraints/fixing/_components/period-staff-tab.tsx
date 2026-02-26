@@ -11,12 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
 import { usePeriodStaffGridData } from '@/hooks/timetable/constraints/fixingData';
 import { type FixingPeriodStaffSchema, fixingPeriodStaffSchema } from '@/schemas/timetable/constraints/fixing';
-import { getStaffDropDown } from '@/server/timetable/constraints/FixingForm';
 import {
-    getClassByCategory,
+    getFixingClassDropdown,
     getFixingPeriodStaffDetails,
     getSectionByClass,
-    getSubjectByStaff,
+    getSubjectByFixing,
+    getdetailsAllFixing,
     saveFixingPeriodStaff
 } from '@/server/timetable/constraints/fixing';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,16 +25,16 @@ import { Plus, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import TogglePeriodStaffForm from './PeriodStaffToggle';
 import { periodStaffColumns } from './columns';
 import { FixingViewModal } from './fixing-view-modal';
-import { TTPeriodStaffGridData } from '@/types/timetable/constraints/fixing';
-import TogglePeriodStaffForm from './PeriodStaffToggle';
 
 interface PeriodStaffTabProps {
     initialData: any;
+    searchParams?: any;
 }
 
-function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
+function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProps) {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -52,30 +52,69 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
     const { data: academicData } = usebifurcationAcademicYear();
     const academicList = (academicData as any)?.data || [];
 
-    const [periodList] = useState<any[]>(initialData?.periodlist || []);
-    const [staffList, setStaffList] = useState<any[]>([]);
+    const { data: gridResponse, isLoading: isGridLoading, refetchAll } = usePeriodStaffGridData(searchParams);
 
-    const { data: gridResponse, isLoading: isGridLoading } = usePeriodStaffGridData();
+    const getGridData = (res: any, fallback: any) => {
+        if (!res) return fallback || [];
+        if (Array.isArray(res)) return res;
+        if (res.data && Array.isArray(res.data)) return res.data;
+        if (res.fix_period_staff_list) return res.fix_period_staff_list;
 
-    let gridData: TTPeriodStaffGridData[] = [];
-    if (gridResponse) {
-        if (Array.isArray(gridResponse)) {
-            gridData = gridResponse;
-        } else if (Array.isArray((gridResponse as any)?.data)) {
-            gridData = (gridResponse as any).data;
-        } else if (Array.isArray((gridResponse as any)?.fix_period_staff_list)) {
-            gridData = (gridResponse as any).fix_period_staff_list;
-        }
-    }
+        // Find the first array property in the response if exact name doesn't match
+        const arrayProp = Object.values(res).find((val) => Array.isArray(val));
+        if (arrayProp) return arrayProp;
 
-    if (gridData.length === 0 && initialData?.fix_period_staff_list) {
-        gridData = initialData.fix_period_staff_list;
-    }
+        return fallback || [];
+    };
 
+    const gridData = getGridData(gridResponse, initialData?.fix_period_staff_list);
+
+    console.log('gridData4', gridData);
+    const totalItems = (gridResponse as any)?.total || (gridResponse as any)?.count || gridData.length;
+
+    // state declarations
+    const [dayList, setDayList] = useState<any[]>(initialData?.daylist || []);
+    const [periodList, setPeriodList] = useState<any[]>(initialData?.periodlist || []);
+    const [categoryList, setCategoryList] = useState<any[]>(initialData?.categorylist || []);
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subSubjectList, setSubSubjectList] = useState<any[]>([]);
-    const [categoryList] = useState<any[]>(initialData?.categorylist || []);
+    const [staffList, setStaffList] = useState<any[]>([]);
+    const [isClassLoading, setIsClassLoading] = useState(false);
+
+    const extractList = (data: any, preferredKey?: string) => {
+        if (!data) return [];
+        if (Array.isArray(data)) return data;
+        const target = data?.data !== undefined ? data.data : data;
+        if (Array.isArray(target)) return target;
+        if (!target) return [];
+
+        if (preferredKey) {
+            const foundKey = Object.keys(target).find((k) => k.toLowerCase() === preferredKey.toLowerCase());
+            if (foundKey && Array.isArray(target[foundKey])) return target[foundKey];
+        }
+
+        const keys = [
+            'academiclist',
+            'catelist',
+            'classlist',
+            'sectionlist',
+            'stafflist',
+            'subjectlist',
+            'staffbyall',
+            'subjectbystaff',
+            'sectionbyclass',
+            'classbycategory',
+            'categorylist'
+        ];
+        for (const key of keys) {
+            const foundKey = Object.keys(target).find((k) => k.toLowerCase() === key.toLowerCase());
+            if (foundKey && Array.isArray(target[foundKey])) return target[foundKey];
+        }
+
+        const firstArray = Object.values(target).find((v) => Array.isArray(v));
+        return Array.isArray(firstArray) ? firstArray : [];
+    };
 
     const [viewDetails, setViewDetails] = useState<any[]>([]);
     const [isLoadingView, setIsLoadingView] = useState(false);
@@ -83,19 +122,21 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
     const form = useForm<FixingPeriodStaffSchema>({
         resolver: zodResolver(fixingPeriodStaffSchema),
         defaultValues: {
-            TTFPS_Id: 0,
-            ASMAY_Id: undefined,
-            TTMP_Id: undefined,
-            HRME_Id: undefined,
-            TTFPS_SUbSelcFlag: false,
-            TempararyArrayList: []
+            ttfpS_Id: 0,
+            asmaY_Id: undefined,
+            ttmP_Id: undefined,
+            hrmE_Id: undefined,
+            ttfpS_SUbSelcFlag: false,
+            ttfpscC_Id: 0,
+            tempararyArrayList: []
         }
     });
 
-    const { reset, setValue, watch, handleSubmit, control } = form;
-    const ASMAY_Id = watch('ASMAY_Id');
-    const TTFPS_SUbSelcFlag = watch('TTFPS_SUbSelcFlag');
-    const HRME_Id = watch('HRME_Id');
+    const { reset, setValue, watch, control, handleSubmit } = form;
+    const asmaY_Id = watch('asmaY_Id');
+    const ttmP_Id = watch('ttmP_Id');
+    const hrmE_Id = watch('hrmE_Id');
+    const ttfpS_SUbSelcFlag = watch('ttfpS_SUbSelcFlag');
 
     const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
     const [selectedClass, setSelectedClass] = useState<number | undefined>();
@@ -105,14 +146,35 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
 
     const { fields, append, remove } = useFieldArray({
         control,
-        name: 'TempararyArrayList'
+        name: 'tempararyArrayList'
     });
+
+    const filterData = (list: any[], key: string) => {
+        return (list || []).filter((item: any) => {
+            if (!item) return false;
+            const val = item[key] ?? item[Object.keys(item).find((k) => k.toLowerCase() === key.toLowerCase()) || ''];
+            if (!val) return true;
+            if (typeof val !== 'string') return !!val;
+            const name = val.trim();
+            return name && name.toLowerCase() !== 'test';
+        });
+    };
 
     useEffect(() => {
         const loadDropdowns = async () => {
             try {
-                const [staff] = await Promise.all([getStaffDropDown()]);
-                setStaffList(staff || []);
+                setCategoryList(filterData(initialData?.categorylist || initialData?.data?.categorylist || [], 'ttmC_CategoryName'));
+                const fixingData = await getdetailsAllFixing();
+                if (fixingData?.data) {
+                    setDayList(filterData(fixingData.data.daylist || [], 'ttmD_DayName'));
+                    setPeriodList(filterData(fixingData.data.periodlist || [], 'ttmP_PeriodName'));
+                    setStaffList(filterData(fixingData.data.stafflist || [], 'staffName'));
+                }
+                const currentValues = form.getValues();
+                if (currentValues.asmaY_Id && selectedCategory) {
+                    await fetchClasses(currentValues.asmaY_Id, selectedCategory);
+                }
+                await refetchAll();
             } catch (error) {
                 console.error('Failed to load dropdowns:', error);
                 toast.error('Failed to load dropdown options');
@@ -125,13 +187,41 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         if (isEditFormOpen && selectedRow) {
             onEdit(selectedRow);
         }
-    }, [isEditFormOpen, selectedRow]);
-
+    }, [isEditFormOpen, selectedRow]); // Effect to handle View
     useEffect(() => {
         if (isDetailsViewOpen && viewRow) {
             onView(viewRow);
         }
     }, [isDetailsViewOpen, viewRow]);
+
+    const fetchClasses = async (yearId: number, categoryId: number) => {
+        if (!yearId || !categoryId) {
+            setClassList([]);
+            return;
+        }
+        setIsClassLoading(true);
+        try {
+            const data = await getFixingClassDropdown(yearId, categoryId);
+            const list = extractList(data, 'classbycategory');
+            setClassList(filterData(list || [], 'asmcL_ClassName'));
+        } catch (error) {
+            console.error('Error fetching classes:', error);
+            toast.error('Failed to load classes');
+        } finally {
+            setIsClassLoading(false);
+        }
+    };
+
+    const handleAcademicYearChange = (yearId: number) => {
+        setValue('asmaY_Id', yearId); // Changed casing to ASMAY_Id
+        setSelectedCategory(undefined);
+        setSelectedClass(undefined);
+        setSelectedSection(undefined);
+        setSelectedSubject(undefined);
+        setClassList([]);
+        setSectionList([]);
+        setSubSubjectList([]);
+    };
 
     const handleCategoryChange = async (categoryId: number) => {
         setSelectedCategory(categoryId);
@@ -141,14 +231,8 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         setClassList([]);
         setSectionList([]);
         setSubSubjectList([]);
-        if (ASMAY_Id && categoryId) {
-            try {
-                const res = await getClassByCategory({ ASMAY_Id, TTMC_Id: categoryId });
-                // biome-ignore lint/complexity/useOptionalChain: <explanation>
-                if (res && res.classbycategory) setClassList(res.classbycategory as any[]);
-            } catch (e) {
-                console.error(e);
-            }
+        if (asmaY_Id && categoryId) {
+            await fetchClasses(asmaY_Id, categoryId);
         }
     };
 
@@ -158,11 +242,11 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         setSelectedSubject(undefined);
         setSectionList([]);
         setSubSubjectList([]);
-        if (ASMAY_Id && selectedCategory && classId) {
+        if (asmaY_Id && selectedCategory && classId) {
             try {
-                const res = await getSectionByClass({ ASMAY_Id, ASMCL_Id: classId, TTMC_Id: selectedCategory });
-                // biome-ignore lint/complexity/useOptionalChain: <explanation>
-                if (res && res.sectionlist) setSectionList(res.sectionlist as any[]);
+                const response = await getSectionByClass({ ASMAY_Id: asmaY_Id, ASMCL_Id: classId, TTMC_Id: selectedCategory });
+                const sections = extractList(response, 'sectionlist');
+                setSectionList(filterData(sections || [], 'asmC_SectionName'));
             } catch (e) {
                 console.error(e);
             }
@@ -173,11 +257,19 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         setSelectedSection(sectionId);
         setSelectedSubject(undefined);
         setSubSubjectList([]);
-        if (ASMAY_Id && selectedClass && sectionId && HRME_Id) {
+
+        const currentHrmE_Id = form.getValues('hrmE_Id');
+        if (asmaY_Id && selectedClass && sectionId && currentHrmE_Id && selectedCategory) {
             try {
-                const res = await getSubjectByStaff({ ASMAY_Id, ASMCL_Id: selectedClass, ASMS_Id: sectionId, HRME_Id });
-                // biome-ignore lint/complexity/useOptionalChain: <explanation>
-                if (res && res.subjectbystaff) setSubSubjectList(res.subjectbystaff as any[]);
+                const res = await getSubjectByFixing({
+                    ASMAY_Id: asmaY_Id,
+                    TTMC_Id: selectedCategory,
+                    ASMCL_Id: selectedClass,
+                    ASMS_Id: sectionId,
+                    HRME_Id: currentHrmE_Id
+                });
+                const subjects = extractList(res, 'subjectlist');
+                setSubSubjectList(filterData(subjects || [], 'ismS_SubjectName'));
             } catch (e) {
                 console.error(e);
             }
@@ -195,7 +287,7 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         const subObj = subSubjectList.find((s) => s.ismS_Id === selectedSubject);
 
         const exists = fields.some(
-            (f: any) => f.ASMCL_Id === selectedClass && f.ASMS_Id === selectedSection && f.ISMS_Id === selectedSubject
+            (f: any) => f.asmcL_Id === selectedClass && f.asmS_Id === selectedSection && f.ismS_Id === selectedSubject
         );
         if (exists) {
             toast.warning('Already Exists');
@@ -203,10 +295,10 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         }
 
         append({
-            ASMCL_Id: selectedClass,
-            ASMS_Id: selectedSection,
-            ISMS_Id: selectedSubject,
-            NOD: Number(nod),
+            asmcL_Id: selectedClass,
+            asmS_Id: selectedSection,
+            ismS_Id: selectedSubject,
+            nod: Number(nod),
             clsDisplay: clsObj?.asmcL_ClassName,
             sectDisplay: secObj?.asmC_SectionName,
             subDisplay: subObj?.ismS_SubjectName
@@ -218,16 +310,16 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
             { accessorKey: 'clsDisplay', header: 'Class' },
             { accessorKey: 'sectDisplay', header: 'Section' },
             { accessorKey: 'subDisplay', header: 'Subject' },
-            { accessorKey: 'NOD', header: 'No Of Days' },
-            {
-                id: 'actions',
-                header: 'Actions',
-                cell: ({ row }) => (
-                    <Button type='button' variant='ghost' size='sm' onClick={() => remove(row.index)}>
-                        <span className='text-red-500'>Delete</span>
-                    </Button>
-                )
-            }
+            { accessorKey: 'nod', header: 'No Of Days' }
+            // {
+            //     id: 'actions',
+            //     header: 'Actions',
+            //     // cell: ({ row }) => (
+            //     //     <Button type='button' variant='ghost' size='sm' onClick={() => remove(row.index)}>
+            //     //         <span className='text-red-500'>Delete</span>
+            //     //     </Button>
+            //     // )
+            // }
         ],
         [remove]
     );
@@ -237,7 +329,7 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
             { accessorKey: 'clsDisplay', header: 'Class' },
             { accessorKey: 'sectDisplay', header: 'Section' },
             { accessorKey: 'subDisplay', header: 'Subject' },
-            { accessorKey: 'NOD', header: 'No Of Days' }
+            { accessorKey: 'nod', header: 'No Of Days' }
         ],
         []
     );
@@ -248,20 +340,21 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
             if (res?.fix_period_staff_edit && (res.fix_period_staff_edit as any[]).length > 0) {
                 const d = (res.fix_period_staff_edit as any[])[0];
                 reset({
-                    TTFPS_Id: d.ttfpS_Id,
-                    ASMAY_Id: d.asmaY_Id,
-                    TTMP_Id: d.ttmP_Id,
-                    HRME_Id: d.hrmE_Id,
-                    TTFPS_SUbSelcFlag: d.ttfpS_SUbSelcFlag,
-                    TempararyArrayList: []
+                    ttfpS_Id: d.ttfpS_Id,
+                    asmaY_Id: d.asmaY_Id,
+                    ttmP_Id: d.ttmP_Id,
+                    hrmE_Id: d.hrmE_Id,
+                    ttfpS_SUbSelcFlag: d.ttfpS_SUbSelcFlag,
+                    ttfpscC_Id: d.ttfpscC_Id || 0,
+                    tempararyArrayList: []
                 });
                 if (d.ttfpS_SUbSelcFlag && res.fix_period_staff__classecedit) {
                     (res.fix_period_staff__classecedit as any[]).forEach((sub: any) => {
                         append({
-                            ASMCL_Id: sub.asmcL_Id,
-                            ASMS_Id: sub.asmS_Id,
-                            ISMS_Id: sub.ismS_Id,
-                            NOD: sub.ttfpscC_Days,
+                            asmcL_Id: sub.asmcL_Id,
+                            asmS_Id: sub.asmS_Id,
+                            ismS_Id: sub.ismS_Id,
+                            nod: sub.ttfpscC_Days,
                             clsDisplay: sub.asmcL_ClassName,
                             sectDisplay: sub.asmC_SectionName,
                             subDisplay: sub.ismS_SubjectName
@@ -284,7 +377,7 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                     clsDisplay: sub.asmcL_ClassName,
                     sectDisplay: sub.asmC_SectionName,
                     subDisplay: sub.ismS_SubjectName,
-                    NOD: sub.ttfpscC_Days
+                    nod: sub.ttfpscC_Days
                 }));
                 setViewDetails(details);
             }
@@ -297,16 +390,19 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
 
     const onSubmit = async (data: FixingPeriodStaffSchema) => {
         try {
-            if (!data.TTFPS_SUbSelcFlag) {
-                data.TempararyArrayList = [];
-            } else if (!data.TempararyArrayList || data.TempararyArrayList.length === 0) {
+            if (!data.ttfpS_SUbSelcFlag) {
+                data.tempararyArrayList = [];
+            } else if (!data.tempararyArrayList || data.tempararyArrayList.length === 0) {
                 toast.warning('Please add at least one Class-Section details');
                 return;
             }
             const res = await saveFixingPeriodStaff(data);
-            if (res?.returnval === true) {
-                toast.success('Record Saved Successfully');
-                window.location.reload();
+            if (res?.returnval === true || res?.success === true) {
+                toast.success(res?.message || 'Record Saved Successfully');
+                refetchAll();
+                closeAddForm();
+                closeEditForm();
+                reset();
             } else {
                 toast.error(res?.message || 'Failed to save');
             }
@@ -333,12 +429,10 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                 variant='default'
                 size='lg'
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <GenericDataTable data={gridData} columns={periodStaffColumns} totalItems={gridData.length} isLoading={isGridLoading} />
+                <GenericDataTable data={gridData} columns={periodStaffColumns} totalItems={totalItems} isLoading={isGridLoading} />
             </CollapsibleSection>
 
-            {isToggleFormOpen && selectedRow && (
-                <TogglePeriodStaffForm rowData={selectedRow} onClose={closeToggleForm} />
-            )}
+            {isToggleFormOpen && selectedRow && <TogglePeriodStaffForm rowData={selectedRow} onClose={closeToggleForm} />}
 
             {(isAddFormOpen || isEditFormOpen) && (
                 <CollapsibleSection
@@ -362,11 +456,13 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                     <FormField
                                         control={form.control}
-                                        name='ASMAY_Id'
+                                        name='asmaY_Id'
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Academic Year</FormLabel>
-                                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                                <Select
+                                                    onValueChange={(v) => handleAcademicYearChange(Number(v))}
+                                                    value={field.value?.toString()}>
                                                     <FormControl>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select' />
@@ -389,7 +485,7 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
 
                                     <FormField
                                         control={form.control}
-                                        name='TTMP_Id'
+                                        name='ttmP_Id'
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Period</FormLabel>
@@ -414,7 +510,7 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
 
                                     <FormField
                                         control={form.control}
-                                        name='HRME_Id'
+                                        name='hrmE_Id'
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Staff</FormLabel>
@@ -442,7 +538,7 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                                 <div className='flex items-center space-x-2'>
                                     <FormField
                                         control={form.control}
-                                        name='TTFPS_SUbSelcFlag'
+                                        name='ttfpS_SUbSelcFlag'
                                         render={({ field }) => (
                                             <FormItem className='flex flex-row items-start space-x-3 space-y-0 p-4'>
                                                 <FormControl>
@@ -455,7 +551,7 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                                         )}
                                     />
                                 </div>
-                                {TTFPS_SUbSelcFlag && (
+                                {ttfpS_SUbSelcFlag && (
                                     <div className='space-y-4 rounded-md border bg-gray-50 p-4'>
                                         <h4 className='font-semibold'>Add Class Details</h4>
                                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-5'>
@@ -485,11 +581,15 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {classList.map((item: any) => (
-                                                            <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                                                {item.asmcL_ClassName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {isClassLoading ? (
+                                                            <SelectItem value='loading'>Loading...</SelectItem>
+                                                        ) : (
+                                                            classList.map((item: any) => (
+                                                                <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                                                    {item.asmcL_ClassName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -568,10 +668,10 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
     );
 }
 
-export default function PeriodStaffTab({ initialData }: PeriodStaffTabProps) {
+export default function PeriodStaffTab({ initialData, searchParams }: PeriodStaffTabProps) {
     return (
         <FormProvider>
-            <PeriodStaffTabContent initialData={initialData} />
+            <PeriodStaffTabContent initialData={initialData} searchParams={searchParams} />
         </FormProvider>
     );
 }

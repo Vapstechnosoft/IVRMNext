@@ -6,7 +6,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { usePeriodSubjectGridData } from '@/hooks/timetable/constraints/fixingData';
 import { masterDaySchema } from '@/schemas/timetable/masters';
 import { deactivateFixingPeriodSubject } from '@/server/timetable/constraints/fixing';
-import { TTPeriodSubjectGridData } from '@/types/timetable/constraints/fixing';
+import type { TTPeriodSubjectGridData } from '@/types/timetable/constraints/fixing';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -21,7 +21,8 @@ interface TogglePeriodSubjectProps {
 
 export default function TogglePeriodSubjectForm({ rowData, onClose }: TogglePeriodSubjectProps) {
     const { refetchAll } = usePeriodSubjectGridData();
-    const isActive = rowData.ttrpsU_ActiveFlag;
+    const isActive =
+        rowData.ttrpsU_ActiveFlag === true || (rowData.ttrpsU_ActiveFlag as any) === 1 || (rowData as any).ttrpsU_ActiveFlag === 'true';
 
     const {
         register,
@@ -40,9 +41,12 @@ export default function TogglePeriodSubjectForm({ rowData, onClose }: TogglePeri
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await deactivateFixingPeriodSubject(Number(rowData.ttrpsU_Id));
+            const response = await deactivateFixingPeriodSubject({
+                TTRPSU_Id: Number(rowData.ttrpsU_Id),
+                TTRPSU_ActiveFlag: !isActive
+            });
 
-            if (response.success || response.returnval === true) {
+            if (response.success || response.returnval === true || response.returnval === 'true' || (response as any).returnVal === true) {
                 toast.success(response.message || 'Status updated successfully');
                 refetchAll();
                 closeDialog();
@@ -60,8 +64,7 @@ export default function TogglePeriodSubjectForm({ rowData, onClose }: TogglePeri
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('ttmD_Id')} defaultValue={rowData.ttrpsU_Id} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
-                        <strong>{rowData.ismS_SubjectName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.ismS_SubjectName}</strong>?
                     </p>
                     <FormError>{errors.ttmD_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>

@@ -12,12 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
 import { useDaySubjectGridData } from '@/hooks/timetable/constraints/fixingData';
 import { type FixingDaySubjectSchema, fixingDaySubjectSchema } from '@/schemas/timetable/constraints/fixing';
-import { getSubjectDropDown } from '@/server/timetable/constraints/FixingForm';
 import {
-    getClassByCategory,
+    getFixingClassDropdown,
+    getFixingClassSectionStaffsBySubject,
     getFixingDaySubjectDetails,
-    getSectionByClass,
-    getStaffByClassSection,
+    getdetailsAllFixing,
     saveFixingDaySubject
 } from '@/server/timetable/constraints/fixing';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,16 +25,16 @@ import { Plus, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { daySubjectColumns } from './columns';
-import { TTDaySubjectGridData } from '@/types/timetable/constraints/fixing';
-import { FixingViewModal } from './fixing-view-modal';
 import ToggleDaySubjectForm from './DaysSubjectToggle';
+import { daySubjectColumns } from './columns';
+import { FixingViewModal } from './fixing-view-modal';
 
 interface DaySubjectTabProps {
     initialData: any;
+    searchParams?: any;
 }
 
-function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
+function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps) {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -53,28 +52,77 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
     const { data: academicData } = usebifurcationAcademicYear();
     const academicList = (academicData as any)?.data || [];
 
-    const [dayList] = useState<any[]>(initialData?.daylist || []);
+    const [dayList, setDayList] = useState<any[]>(initialData?.daylist || []);
     const [subjectList, setSubjectList] = useState<any[]>([]);
 
-    const { data: gridResponse } = useDaySubjectGridData();
-    let gridData: TTDaySubjectGridData[] = [];
-    if (gridResponse) {
-        if (Array.isArray(gridResponse)) {
-            gridData = gridResponse;
-        } else if (Array.isArray((gridResponse as any)?.data)) {
-            gridData = (gridResponse as any).data;
-        } else if (Array.isArray((gridResponse as any)?.fix_day_subject_list)) {
-            gridData = (gridResponse as any).fix_day_subject_list;
-        }
-    }
-    if (gridData.length === 0 && initialData?.fix_day_subject_list) {
-        gridData = initialData.fix_day_subject_list;
-    }
+    const { data: gridResponse, isLoading: isGridLoading, refetchAll } = useDaySubjectGridData(searchParams);
+
+    const getGridData = (res: any, fallback: any) => {
+        if (!res) return fallback || [];
+        if (Array.isArray(res)) return res;
+        if (res.data && Array.isArray(res.data)) return res.data;
+        if (res.fix_day_subject_list) return res.fix_day_subject_list;
+
+        // Find the first array property in the response if exact name doesn't match
+        const arrayProp = Object.values(res).find((val) => Array.isArray(val));
+        if (arrayProp) return arrayProp;
+
+        return fallback || [];
+    };
+
+    const gridData = getGridData(gridResponse, initialData?.fix_day_subject_list);
+
+    const totalItems = (gridResponse as any)?.total || (gridResponse as any)?.count || gridData.length;
 
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subStaffList, setSubStaffList] = useState<any[]>([]);
-    const [categoryList] = useState<any[]>(initialData?.categorylist || []);
+    const [categoryList, setCategoryList] = useState<any[]>(initialData?.categorylist || []);
+    const [isClassLoading, setIsClassLoading] = useState(false);
+
+    // Master lists for the selected subject
+    const [masterCategories, setMasterCategories] = useState<any[]>([]);
+    const [masterClasses, setMasterClasses] = useState<any[]>([]);
+    const [masterSections, setMasterSections] = useState<any[]>([]);
+    const [masterStaff, setMasterStaff] = useState<any[]>([]);
+
+    const extractList = (data: any, preferredKey?: string) => {
+        if (!data) return [];
+        if (Array.isArray(data)) return data;
+        const target = data?.data !== undefined ? data.data : data;
+        if (Array.isArray(target)) return target;
+        if (!target) return [];
+
+        // 1. Precise match (case-insensitive) for the requested key
+        if (preferredKey) {
+            const foundKey = Object.keys(target).find((k) => k.toLowerCase() === preferredKey.toLowerCase());
+            if (foundKey && Array.isArray(target[foundKey])) return target[foundKey];
+        }
+
+        // 2. Fallback to common key names
+        const keys = [
+            'academiclist',
+            'catelist',
+            'classlist',
+            'sectionlist',
+            'stafflist',
+            'subjectlist',
+            'categorylist',
+            'classbycategory',
+            'sectionbyclass',
+            'subjectbystaff',
+            'staffbyall'
+        ];
+
+        for (const key of keys) {
+            const foundKey = Object.keys(target).find((k) => k.toLowerCase() === key.toLowerCase());
+            if (foundKey && Array.isArray(target[foundKey])) return target[foundKey];
+        }
+
+        // 3. Last resort: first array property found
+        const firstArray = Object.values(target).find((v) => Array.isArray(v));
+        return Array.isArray(firstArray) ? firstArray : [];
+    };
 
     const [viewDetails, setViewDetails] = useState<any[]>([]);
     const [isLoadingView, setIsLoadingView] = useState(false);
@@ -82,18 +130,18 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
     const form = useForm<FixingDaySubjectSchema>({
         resolver: zodResolver(fixingDaySubjectSchema),
         defaultValues: {
-            TTFDSU_Id: 0,
-            ASMAY_Id: undefined,
-            TTMD_Id: undefined,
-            ISMS_Id: undefined,
-            TTFDSU_SUbSelcFlag: false,
-            TempararyArrayList: []
+            ttfdsU_Id: 0,
+            asmaY_Id: undefined,
+            ttmD_Id: undefined,
+            ismS_Id: undefined,
+            ttfdsU_SUbSelcFlag: false,
+            tempararyArrayList: []
         }
     });
 
     const { reset, setValue, watch, handleSubmit, control } = form;
-    const ASMAY_Id = watch('ASMAY_Id');
-    const TTFDSU_SUbSelcFlag = watch('TTFDSU_SUbSelcFlag');
+    const asmaY_Id = watch('asmaY_Id');
+    const ttfdsU_SUbSelcFlag = watch('ttfdsU_SUbSelcFlag');
 
     const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
     const [selectedClass, setSelectedClass] = useState<number | undefined>();
@@ -103,14 +151,33 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
 
     const { fields, append, remove } = useFieldArray({
         control,
-        name: 'TempararyArrayList'
+        name: 'tempararyArrayList'
     });
+
+    const filterData = (list: any[], key: string) => {
+        return (list || []).filter((item: any) => {
+            if (!item) return false;
+            const val = item[key] ?? item[Object.keys(item).find((k) => k.toLowerCase() === key.toLowerCase()) || ''];
+            if (!val) return true; // Keep items even if key is missing, unless explicitly "test"
+            if (typeof val !== 'string') return !!val;
+            const name = val.trim();
+            return name && name.toLowerCase() !== 'test';
+        });
+    };
 
     useEffect(() => {
         const loadDropdowns = async () => {
             try {
-                const [subject] = await Promise.all([getSubjectDropDown()]);
-                setSubjectList(subject || []);
+                setCategoryList(filterData(initialData?.categorylist || initialData?.data?.categorylist || [], 'ttmC_CategoryName'));
+                const fixingData = await getdetailsAllFixing();
+                if (fixingData?.data) {
+                    setDayList(filterData(fixingData.data.daylist || [], 'ttmD_DayName'));
+                    setSubjectList(filterData(fixingData.data.subjectlist || [], 'ismS_SubjectName'));
+                }
+                if (asmaY_Id && selectedCategory) {
+                    await fetchClasses(asmaY_Id, selectedCategory);
+                }
+                await refetchAll();
             } catch (error) {
                 console.error('Failed to load dropdowns:', error);
                 toast.error('Failed to load dropdown options');
@@ -124,62 +191,108 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
             onEdit(selectedRow);
         }
     }, [isEditFormOpen, selectedRow]);
-
+    // Effect to handle View
     useEffect(() => {
         if (isDetailsViewOpen && viewRow) {
             onView(viewRow);
         }
     }, [isDetailsViewOpen, viewRow]);
 
-    const handleCategoryChange = async (categoryId: number) => {
-        setSelectedCategory(categoryId);
+    const fetchClasses = async (yearId: number, categoryId: number) => {
+        if (!yearId || !categoryId) {
+            setClassList([]);
+            return;
+        }
+        setIsClassLoading(true);
+        try {
+            const data = await getFixingClassDropdown(yearId, categoryId);
+            const list = extractList(data, 'classbycategory');
+            setClassList(filterData(list || [], 'asmcL_ClassName'));
+        } catch (error) {
+            console.error('Error fetching classes:', error);
+            toast.error('Failed to load classes');
+        } finally {
+            setIsClassLoading(false);
+        }
+    };
+
+    const handleAcademicYearChange = (yearId: number) => {
+        setValue('asmaY_Id', yearId);
+        setSelectedCategory(undefined);
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedStaff(undefined);
         setClassList([]);
         setSectionList([]);
         setSubStaffList([]);
-        if (ASMAY_Id && categoryId) {
-            try {
-                const res = await getClassByCategory({ ASMAY_Id, TTMC_Id: categoryId });
-                if (res && res.classbycategory) setClassList(res.classbycategory as any[]);
-            } catch (e) {
-                console.error(e);
-            }
-        }
+    };
+
+    const handleCategoryChange = async (categoryId: number) => {
+        setSelectedCategory(categoryId);
+        setSelectedClass(undefined);
+        setSelectedSection(undefined);
+        setSelectedStaff(undefined);
+
+        // Filter classes from master list by category
+        const filtered = masterClasses.filter((c) => Number(c.ttmC_Id) === categoryId || Number(c.ttmc_id) === categoryId);
+        setClassList(filterData(filtered, 'asmcL_ClassName'));
+
+        setSectionList([]);
+        setSubStaffList([]);
     };
 
     const handleClassChange = async (classId: number) => {
         setSelectedClass(classId);
         setSelectedSection(undefined);
         setSelectedStaff(undefined);
-        setSectionList([]);
+
+        // Filter sections from master list by class
+        const filtered = masterSections.filter((s) => Number(s.asmcL_Id) === classId || Number(s.asmcl_id) === classId);
+        setSectionList(filterData(filtered, 'asmC_SectionName'));
+
         setSubStaffList([]);
-        if (ASMAY_Id && selectedCategory && classId) {
-            try {
-                const res = await getSectionByClass({ ASMAY_Id, ASMCL_Id: classId, TTMC_Id: selectedCategory });
-                if (res && res.sectionlist) setSectionList(res.sectionlist as any[]);
-            } catch (e) {
-                console.error(e);
-            }
-        }
     };
 
     const handleSectionChange = async (sectionId: number) => {
         setSelectedSection(sectionId);
         setSelectedStaff(undefined);
+
+        // Filter staff from master list by section
+        const filtered = masterStaff.filter((st) => Number(st.asmS_Id) === sectionId || Number(st.asms_id) === sectionId);
+        setSubStaffList(filterData(filtered, 'hrmE_EmployeeFirstName'));
+    };
+
+    const handleSubjectChange = async (subjectId: number) => {
+        setValue('ismS_Id', subjectId);
+        setSelectedCategory(undefined);
+        setSelectedClass(undefined);
+        setSelectedSection(undefined);
+        setSelectedStaff(undefined);
+        setClassList([]);
+        setSectionList([]);
         setSubStaffList([]);
-        if (ASMAY_Id && selectedClass && sectionId) {
+
+        if (asmaY_Id && subjectId) {
             try {
-                const res = await getStaffByClassSection({
-                    ASMAY_Id,
-                    TTMC_Id: selectedCategory,
-                    ASMCL_Id: selectedClass,
-                    ASMS_Id: sectionId
-                });
-                if (res && res.staffbyall) setSubStaffList(res.staffbyall as any[]);
+                const res = await getFixingClassSectionStaffsBySubject(asmaY_Id, subjectId);
+                console.log('DaySubject - get_cls_sec_staffsData response:', res);
+
+                const cats = extractList(res, 'categorylist');
+                const classes = extractList(res, 'classlist');
+                const sections = extractList(res, 'sectionlist');
+                const staff = extractList(res, 'stafflist');
+
+                setMasterCategories(cats);
+                setMasterClasses(classes);
+                setMasterSections(sections);
+                setMasterStaff(staff);
+
+                if (cats && cats.length > 0) {
+                    setCategoryList(filterData(cats, 'ttmC_CategoryName'));
+                }
             } catch (e) {
                 console.error(e);
+                toast.error('Failed to load details for selected subject');
             }
         }
     };
@@ -195,7 +308,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         const staffObj = subStaffList.find((s) => s.hrmE_Id === selectedStaff);
 
         const exists = fields.some(
-            (f: any) => f.ASMCL_Id === selectedClass && f.ASMS_Id === selectedSection && f.HRME_Id === selectedStaff
+            (f: any) => f.asmcL_Id === selectedClass && f.asmS_Id === selectedSection && f.hrmE_Id === selectedStaff
         );
         if (exists) {
             toast.warning('Already Exists');
@@ -203,10 +316,10 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         }
 
         append({
-            ASMCL_Id: selectedClass,
-            ASMS_Id: selectedSection,
-            HRME_Id: selectedStaff,
-            NOP: Number(nop),
+            asmcL_Id: selectedClass,
+            asmS_Id: selectedSection,
+            hrmE_Id: selectedStaff,
+            nop: Number(nop),
             clsDisplay: clsObj?.asmcL_ClassName,
             sectDisplay: secObj?.asmC_SectionName,
             staffDisplay: staffObj?.hrmE_EmployeeFirstName
@@ -218,16 +331,16 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
             { accessorKey: 'clsDisplay', header: 'Class' },
             { accessorKey: 'sectDisplay', header: 'Section' },
             { accessorKey: 'staffDisplay', header: 'Staff' },
-            { accessorKey: 'NOP', header: 'No Of Periods' },
-            {
-                id: 'actions',
-                header: 'Actions',
-                cell: ({ row }) => (
-                    <Button type='button' variant='ghost' size='sm' onClick={() => remove(row.index)}>
-                        <span className='text-red-500'>Delete</span>
-                    </Button>
-                )
-            }
+            { accessorKey: 'nop', header: 'No Of Periods' }
+            // {
+            //     id: 'actions',
+            //     header: 'Actions',
+            //     // cell: ({ row }) => (
+            //     //     <Button type='button' variant='ghost' size='sm' onClick={() => remove(row.index)}>
+            //     //         <span className='text-red-500'>Delete</span>
+            //     //     </Button>
+            //     // )
+            // }
         ],
         [remove]
     );
@@ -237,7 +350,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
             { accessorKey: 'clsDisplay', header: 'Class' },
             { accessorKey: 'sectDisplay', header: 'Section' },
             { accessorKey: 'staffDisplay', header: 'Staff' },
-            { accessorKey: 'NOP', header: 'No Of Periods' }
+            { accessorKey: 'nop', header: 'No Of Periods' }
         ],
         []
     );
@@ -248,20 +361,20 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
             if (res?.fix_day_subject_edit && (res.fix_day_subject_edit as any[]).length > 0) {
                 const d = (res.fix_day_subject_edit as any[])[0];
                 reset({
-                    TTFDSU_Id: d.ttfdsU_Id,
-                    ASMAY_Id: d.asmaY_Id,
-                    TTMD_Id: d.ttmD_Id,
-                    ISMS_Id: d.ismS_Id,
-                    TTFDSU_SUbSelcFlag: d.ttfdsU_SUbSelcFlag,
-                    TempararyArrayList: []
+                    ttfdsU_Id: d.ttfdsU_Id,
+                    asmaY_Id: d.asmaY_Id,
+                    ttmD_Id: d.ttmD_Id,
+                    ismS_Id: d.ismS_Id,
+                    ttfdsU_SUbSelcFlag: d.ttfdsU_SUbSelcFlag,
+                    tempararyArrayList: []
                 });
                 if (d.ttfdsU_SUbSelcFlag && res.fix_day_subject__classecedit) {
                     (res.fix_day_subject__classecedit as any[]).forEach((sub: any) => {
                         append({
-                            ASMCL_Id: sub.asmcL_Id,
-                            ASMS_Id: sub.asmS_Id,
-                            HRME_Id: sub.hrmE_Id,
-                            NOP: sub.ttfdsucC_Periods || sub.ttscC_Periods,
+                            asmcL_Id: sub.asmcL_Id,
+                            asmS_Id: sub.asmS_Id,
+                            hrmE_Id: sub.hrmE_Id,
+                            nop: sub.ttfdsucC_Periods || sub.ttscC_Periods,
                             clsDisplay: sub.asmcL_ClassName,
                             sectDisplay: sub.asmC_SectionName,
                             staffDisplay: sub.staffName
@@ -284,7 +397,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                     clsDisplay: sub.asmcL_ClassName,
                     sectDisplay: sub.asmC_SectionName,
                     staffDisplay: sub.staffName,
-                    NOP: sub.ttfdsucC_Periods || sub.ttscC_Periods
+                    nop: sub.ttfdsucC_Periods || sub.ttscC_Periods
                 }));
                 setViewDetails(details);
             }
@@ -297,18 +410,22 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
 
     const onSubmit = async (data: FixingDaySubjectSchema) => {
         try {
-            if (!data.TTFDSU_SUbSelcFlag) {
-                data.TempararyArrayList = [];
+            console.log('save payload', data);
+            if (!data.ttfdsU_SUbSelcFlag) {
+                data.tempararyArrayList = [];
             } else {
-                if (!data.TempararyArrayList || data.TempararyArrayList.length === 0) {
+                if (!data.tempararyArrayList || data.tempararyArrayList.length === 0) {
                     toast.warning('Please add at least one Class-Section details');
                     return;
                 }
             }
             const res = await saveFixingDaySubject(data);
-            if (res?.returnval === true) {
-                toast.success('Record Saved Successfully');
-                window.location.reload();
+            if (res?.returnval === true || res?.success === true) {
+                toast.success(res?.message || 'Record Saved Successfully');
+                refetchAll();
+                closeAddForm();
+                closeEditForm();
+                reset();
             } else {
                 toast.error(res?.message || 'Failed to save');
             }
@@ -335,12 +452,10 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                 variant='default'
                 size='lg'
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <GenericDataTable data={gridData} columns={daySubjectColumns} totalItems={gridData.length} isLoading={false} />
+                <GenericDataTable data={gridData} columns={daySubjectColumns} totalItems={totalItems} isLoading={isGridLoading} />
             </CollapsibleSection>
 
-            {isToggleFormOpen && selectedRow && (
-                <ToggleDaySubjectForm rowData={selectedRow} onClose={closeToggleForm} />
-            )}
+            {isToggleFormOpen && selectedRow && <ToggleDaySubjectForm rowData={selectedRow} onClose={closeToggleForm} />}
 
             {(isAddFormOpen || isEditFormOpen) && (
                 <CollapsibleSection
@@ -364,11 +479,13 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                     <FormField
                                         control={form.control}
-                                        name='ASMAY_Id'
+                                        name='asmaY_Id'
                                         render={({ field }: { field: any }) => (
                                             <FormItem>
                                                 <FormLabel>Academic Year</FormLabel>
-                                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                                <Select
+                                                    onValueChange={(v) => handleAcademicYearChange(Number(v))}
+                                                    value={field.value?.toString()}>
                                                     <FormControl>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select' />
@@ -391,7 +508,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
 
                                     <FormField
                                         control={form.control}
-                                        name='TTMD_Id'
+                                        name='ttmD_Id'
                                         render={({ field }: { field: any }) => (
                                             <FormItem>
                                                 <FormLabel>Day</FormLabel>
@@ -416,11 +533,13 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
 
                                     <FormField
                                         control={form.control}
-                                        name='ISMS_Id'
+                                        name='ismS_Id'
                                         render={({ field }: { field: any }) => (
                                             <FormItem>
                                                 <FormLabel>Subject</FormLabel>
-                                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                                <Select
+                                                    onValueChange={(v) => handleSubjectChange(Number(v))}
+                                                    value={field.value?.toString()}>
                                                     <FormControl>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select' />
@@ -445,7 +564,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                                 <div className='flex items-center space-x-2'>
                                     <FormField
                                         control={form.control}
-                                        name='TTFDSU_SUbSelcFlag'
+                                        name='ttfdsU_SUbSelcFlag'
                                         render={({ field }: { field: any }) => (
                                             <FormItem className='flex flex-row items-start space-x-3 space-y-0 p-4'>
                                                 <FormControl>
@@ -459,7 +578,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                                     />
                                 </div>
 
-                                {TTFDSU_SUbSelcFlag && (
+                                {ttfdsU_SUbSelcFlag && (
                                     <div className='space-y-4 rounded-md border bg-gray-50 p-4'>
                                         <h4 className='font-semibold'>Add Class Details</h4>
                                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-5'>
@@ -489,11 +608,15 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {classList.map((item: any) => (
-                                                            <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                                                {item.asmcL_ClassName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {isClassLoading ? (
+                                                            <SelectItem value='loading'>Loading...</SelectItem>
+                                                        ) : (
+                                                            classList.map((item: any) => (
+                                                                <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                                                    {item.asmcL_ClassName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -525,7 +648,11 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                                                     <SelectContent>
                                                         {subStaffList.map((item: any) => (
                                                             <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
-                                                                {item.hrmE_EmployeeCode}-{item.hrmE_EmployeeFirstName}
+                                                                {item.hrmE_EmployeeCode || item.staffCode || ''}-
+                                                                {item.hrmE_EmployeeFirstName ||
+                                                                    item.staffName ||
+                                                                    item.hrme_employeeFirstName ||
+                                                                    ''}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -567,10 +694,10 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
     );
 }
 
-export default function DaySubjectTab({ initialData }: DaySubjectTabProps) {
+export default function DaySubjectTab({ initialData, searchParams }: DaySubjectTabProps) {
     return (
         <FormProvider>
-            <DaySubjectTabContent initialData={initialData} />
+            <DaySubjectTabContent initialData={initialData} searchParams={searchParams} />
         </FormProvider>
     );
 }

@@ -84,5 +84,6 @@ export const TIMETABLE_QUERY_KEYS = {
     MASTER_PERIOD_DISTRUBUTION_STAFF: 'master_period_distrubution_staff',
     MASTER_PERIOD_DISTRUBUTION_SUBJECT: 'master_period_distrubution_subject',
 
-    CONSECUTIVE_CONSTRAINTS: 'consecutive_constraints'
+    CONSECUTIVE_CONSTRAINTS: 'consecutive_constraints',
+    STAFF_DROPDOWN_MASTERDAYCLASSWISE: 'staff_dropdown_masterdayclasswise'
 };

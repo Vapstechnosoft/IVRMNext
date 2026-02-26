@@ -55,7 +55,7 @@ interface ConsecutiveConstraintsFormProps {
     onCancel?: () => void;
 }
 
-export default function ConsecutiveConstraintsForm({ onSuccess, onCancel }: ConsecutiveConstraintsFormProps) {
+export default function ConsecutiveConstraintsFormnew({ onSuccess, onCancel }: ConsecutiveConstraintsFormProps) {
     const [categoryList, setCategoryList] = useState<any[]>([]);
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
@@ -231,19 +231,23 @@ export default function ConsecutiveConstraintsForm({ onSuccess, onCancel }: Cons
                 TTC_RemPeriods: data.TTC_NoOfPeriods,
                 TTC_AllotedFlag: 'N'
             };
+            const response = await saveConsecutiveConstraintsDetail(payload);
+            console.log('response', response);
 
-            const res = await saveConsecutiveConstraintsDetail(payload);
-            if (res.returnval === true) {
-                toast.success('Saved Successfully');
+            if (response.success) {
+                toast.success(response.message);
+                reset();
+                refetchAll();
                 onSuccess?.();
-            } else if (res.returnduplicatestatus === 'Duplicate') {
-                toast.warning('Record Already Exists');
             } else {
-                toast.error('Failed to Save');
+                toast.error(response.message);
             }
         } catch (error) {
             console.error(error);
-            toast.error('An error occurred');
+            toast.error('An error occured');
+            // } catch (error) {
+            //     console.error(error);
+            //     toast.error('An error occurred');
         }
     };
 
@@ -513,4 +517,7 @@ export default function ConsecutiveConstraintsForm({ onSuccess, onCancel }: Cons
             </div>
         </form>
     );
+}
+function refetchAll() {
+    throw new Error('Function not implemented.');
 }

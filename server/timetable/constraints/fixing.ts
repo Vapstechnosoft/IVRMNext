@@ -10,19 +10,13 @@ import type {
 } from '@/schemas/timetable/constraints/fixing';
 import type { ApiSearchparams } from '@/types';
 import type { ITTFixingLoadData } from '@/types/timetable/constraints';
-import {
+import type {
     TTDayPeriodGridData,
     TTDayStaffGridData,
     TTDaySubjectGridData,
     TTPeriodStaffGridData,
     TTPeriodSubjectGridData
 } from '@/types/timetable/constraints/fixing';
-
-// Load Initial Data
-// export async function getFixingLoadData() {
-//     const url = '';
-//     return await api.get<any>('timetable', url);
-// }
 
 export async function getFixingLoadData(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ttmC_CategoryName');
@@ -35,18 +29,31 @@ export async function getFixingLoadData(searchParams?: ApiSearchparams) {
 // -------------------------------------------------------------------------
 
 export async function saveFixingDayPeriod(data: FixingDayPeriodSchema) {
-    const url = '/FixingFacade/DayPeriodGridData';
+    const url = '/FixingFacade/FixingPeriodDaySave';
     return await api.post<any>('timetable', url, data);
 }
 
-export async function getFixingDayPeriodDetails(id: number) {
-    const url = `/FixingFacade/DayPeriodGridData/${id}`;
+export async function getFixingDayPeriodDetails(id: number, searchParams?: any) {
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'asmaY_Year,ttmC_CategoryName,asmcL_ClassName,asmC_SectionName,staffName,ismS_SubjectName,ttmD_DayName,ttmP_PeriodName,ttfdP_Id,ttfdP_ActiveFlag'
+    );
+    const url = `/FixingFacade/DayPeriodGridData/${id}?${urlParams}`;
     return await api.get<any>('timetable', url);
 }
 
-export async function deactivateFixingDayPeriod(TTFDP_Id: number) {
-    const url = `/FixingFacade/FixingdayPeriodActivateDeactivate/${TTFDP_Id}`;
-    return await api.put<any>('timetable', url);
+export async function getFixingDayPeriodGridData(searchParams?: any) {
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'asmaY_Year,ttmC_CategoryName,asmcL_ClassName,asmC_SectionName,staffName,ismS_SubjectName,ttmD_DayName,ttmP_PeriodName,ttfdP_Id,ttfdP_ActiveFlag'
+    );
+    const url = `/FixingFacade/DayPeriodGridData?${urlParams}`;
+    return await api.get<TTDayPeriodGridData[]>('timetable', url);
+}
+
+export async function deactivateFixingDayPeriod(data: { TTFDP_Id: number; TTFDP_ActiveFlag: boolean }) {
+    const url = `/FixingFacade/FixingdayPeriodActivateDeactivate/${data.TTFDP_Id}`;
+    return await api.put<any>('timetable', url, data);
 }
 
 // export async function ToggleMasterDay(ttmd_id: number) {
@@ -59,18 +66,22 @@ export async function deactivateFixingDayPeriod(TTFDP_Id: number) {
 // -------------------------------------------------------------------------
 
 export async function saveFixingDayStaff(data: FixingDayStaffSchema) {
-    const url = '/FixingFacade/DayStaffGridData';
+    const url = '/FixingFacade/FixingDayStaffSave';
     return await api.post<any>('timetable', url, data);
 }
 
-export async function getFixingDayStaffDetails(id: number) {
-    const url = `/FixingFacade/DayStaffGridData/${id}`;
+export async function getFixingDayStaffDetails(id: number, searchParams?: any) {
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'asmaY_Year,ttmC_CategoryName,asmcL_ClassName,asmC_SectionName,staffName,ismS_SubjectName,ttmD_DayName,ttmP_PeriodName,ttfdP_Id,ttfdP_ActiveFlag'
+    );
+    const url = `/FixingFacade/DayStaffGridData/${id}?${urlParams}`;
     return await api.get<any>('timetable', url);
 }
 
-export async function deactivateFixingDayStaff(TTFDS_Id: number) {
-    const url = `/FixingFacade/FixingDayStaffActivateDeactivate/${TTFDS_Id}`;
-    return await api.put<any>('timetable', url);
+export async function deactivateFixingDayStaff(data: { TTFDS_Id: number; TTFDS_ActiveFlag: boolean }) {
+    const url = `/FixingFacade/FixingDayStaffActivateDeactivate/${data.TTFDS_Id}`;
+    return await api.put<any>('timetable', url, data);
 }
 
 // -------------------------------------------------------------------------
@@ -78,12 +89,16 @@ export async function deactivateFixingDayStaff(TTFDS_Id: number) {
 // -------------------------------------------------------------------------
 
 export async function saveFixingDaySubject(data: FixingDaySubjectSchema) {
-    const url = '/FixingFacade/DaySubjectGridData';
+    const url = '/FixingFacade/FixingDaySubjectSave';
     return await api.post<any>('timetable', url, data);
 }
 
-export async function getFixingDaySubjectDetails(id: number) {
-    const url = `/FixingFacade/DaySubjectGridData/${id}`;
+export async function getFixingDaySubjectDetails(id: number, searchParams?: any) {
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'asmaY_Year,ttmC_CategoryName,asmcL_ClassName,asmC_SectionName,staffName,ismS_SubjectName,ttmD_DayName,ttmP_PeriodName,ttfdP_Id,ttfdP_ActiveFlag'
+    );
+    const url = `/FixingFacade/DaySubjectGridData/${id}?${urlParams}`;
     return await api.get<any>('timetable', url);
 }
 
@@ -97,18 +112,22 @@ export async function deactivateFixingDaySubject(data: { TTFDSU_Id: number; TTFD
 // -------------------------------------------------------------------------
 
 export async function saveFixingPeriodStaff(data: FixingPeriodStaffSchema) {
-    const url = '/FixingFacade/PeriodStaffGridData';
+    const url = '/FixingFacade/FixingDayPeriodStaffSave';
     return await api.post<any>('timetable', url, data);
 }
 
-export async function getFixingPeriodStaffDetails(id: number) {
-    const url = `/FixingFacade/PeriodStaffGridData/${id}`;
+export async function getFixingPeriodStaffDetails(id: number, searchParams?: any) {
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'asmaY_Year,ttmC_CategoryName,asmcL_ClassName,asmC_SectionName,staffName,ismS_SubjectName,ttmD_DayName,ttmP_PeriodName,ttfpS_Id,ttfpS_ActiveFlag'
+    );
+    const url = `/FixingFacade/PeriodStaffGridData/${id}?${urlParams}`;
     return await api.get<any>('timetable', url);
 }
 
-export async function deactivateFixingPeriodStaff(TTFPS_Id: number) {
-    const url = `/FixingFacade/FixingDayPeriodStaffActivateDeactivate/${TTFPS_Id}`;
-    return await api.put<any>('timetable', url);
+export async function deactivateFixingPeriodStaff(data: { TTFPS_Id: number; TTFPS_ActiveFlag: boolean }) {
+    const url = `/FixingFacade/FixingDayPeriodStaffActivateDeactivate/${data.TTFPS_Id}`;
+    return await api.put<any>('timetable', url, data);
 }
 
 // -------------------------------------------------------------------------
@@ -116,18 +135,23 @@ export async function deactivateFixingPeriodStaff(TTFPS_Id: number) {
 // -------------------------------------------------------------------------
 
 export async function saveFixingPeriodSubject(data: FixingPeriodSubjectSchema) {
-    const url = '/FixingFacade/PeriodSubjectGridData';
+    const url = '/FixingFacade/FixingDayPeriodSubjectSave';
     return await api.post<any>('timetable', url, data);
 }
 
-export async function getFixingPeriodSubjectDetails(id: number) {
-    const url = `/FixingFacade/PeriodSubjectGridData/${id}`;
+export async function getFixingPeriodSubjectDetails(id: number, searchParams?: any) {
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'asmaY_Year,ttmC_CategoryName,asmcL_ClassName,asmC_SectionName,staffName,ismS_SubjectName,ttmD_DayName,ttmP_PeriodName,ttfdP_Id,ttfdP_ActiveFlag'
+    );
+    const url = `/FixingFacade/PeriodSubjectGridData/${id}?${urlParams}`;
+    // GET api/FixingFacade/PeriodSubjectGridData
     return await api.get<any>('timetable', url);
 }
 
-export async function deactivateFixingPeriodSubject(TTFPSU_Id: number) {
-    const url = `/FixingFacade/FixingDayPeriodSubjectActivateDeactivate/${TTFPSU_Id}`;
-    return await api.put<any>('timetable', url);
+export async function deactivateFixingPeriodSubject(data: { TTRPSU_Id: number; TTRPSU_ActiveFlag: boolean }) {
+    const url = `/FixingFacade/FixingDayPeriodSubjectActivateDeactivate/${data.TTRPSU_Id}`;
+    return await api.put<any>('timetable', url, data);
 }
 
 // -------------------------------------------------------------------------
@@ -139,15 +163,35 @@ export async function getClassByCategory(data: { ASMAY_Id: number; TTMC_Id: numb
     return await api.post<any>('timetable', url, data);
 }
 
-export async function getStaffByClassSection(data: { ASMAY_Id: number; TTMC_Id?: number; ASMCL_Id?: number; ASMS_Id?: number }) {
-    const url = '/Fixing/getstaff_section';
+export async function getStaffByFixing(data: { ASMAY_Id: number; TTMC_Id: number; ASMCL_Id: number; ASMS_Id: number }) {
+    const url = '/FixingFacade/getstaffandmaxvaluedata';
     return await api.post<any>('timetable', url, data);
 }
 
-export async function getSubjectByStaff(data: { ASMAY_Id: number; ASMCL_Id?: number; ASMS_Id?: number; HRME_Id?: number }) {
-    const url = '/Fixing/getsubject_staff';
+export async function getSubjectByStaff(data: {
+    ASMAY_Id: number;
+    TTMC_Id: number;
+    ASMCL_Id: number;
+    ASMS_Id: number;
+    HRME_Id: number;
+}) {
+    const url = '/FixingFacade/subject_by_staff';
     return await api.post<any>('timetable', url, data);
 }
+
+//day subject forms form
+export async function getFixingClassSectionStaffsBySubject(asmay_id: number, isms_id: number) {
+    const url = `/FixingFacade/get_cls_sec_staffsData/${asmay_id}/${isms_id}`;
+    return await api.get<any>('timetable', url);
+}
+
+//day staff forms form
+export async function getFixingClassSectionSubjectByStaff(asmay_id: number, hrme_id: number) {
+    const url = `/FixingFacade/get_cls_sec_subsData/${asmay_id}/${hrme_id}`;
+    return await api.get<any>('timetable', url);
+}
+
+export { getSubjectByStaff as getSubjectByFixing };
 
 // Check backend for this one, usually implied by standard 'getalldetails' often returning periods/days/categories
 // But for dependent logic:
@@ -168,30 +212,48 @@ export async function getSectionByClass(data: { ASMAY_Id: number; ASMCL_Id: numb
     return await api.post<any>('timetable', url, data);
 }
 
-export async function getFixingDayPeriodGridData(searchParams?: any) {
-    const url = '/FixingFacade/DayPeriodGridData';
-    return await api.get<TTDayPeriodGridData[]>('timetable', url);
-}
-
-
-export async function getFixingDaySubjectGridData() {
-    const url = '/FixingFacade/DaySubjectGridData';
+export async function getFixingDaySubjectGridData(searchParams?: any) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmaY_Year,ismS_SubjectName,ttmD_DayName,ttfdsU_Id,ttfdsU_ActiveFlag');
+    const url = `/FixingFacade/DaySubjectGridData?${urlParams}`;
     return await api.get<TTDaySubjectGridData[]>('timetable', url);
 }
 
-export async function getFixingDayStaffGridData() {
-    const url = '/FixingFacade/DayStaffGridData';
+export async function getFixingDayStaffGridData(searchParams?: any) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmaY_Year,staffName,ttmD_DayName,ttfdS_Id,ttfdS_ActiveFlag');
+    const url = `/FixingFacade/DayStaffGridData?${urlParams}`;
     return await api.get<TTDayStaffGridData[]>('timetable', url);
 }
 
-export async function getFixingPeriodSubjectGridData() {
-    const url = '/FixingFacade/PeriodSubjectGridData';
+export async function getFixingPeriodSubjectGridData(searchParams?: any) {
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'asmaY_Year,ismS_SubjectName,ttmP_PeriodName,ttrpsU_Id,ttrpsU_ActiveFlag,ttrpsU_SUbSelcFlag'
+    );
+    const url = `/FixingFacade/PeriodSubjectGridData?${urlParams}`;
     return await api.get<TTPeriodSubjectGridData[]>('timetable', url);
 }
 
-export async function getFixingPeriodStaffGridData() {
-    const url = '/FixingFacade/PeriodStaffGridData';
+export async function getFixingPeriodStaffGridData(searchParams?: any) {
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'asmaY_Year,staffName,ttmP_PeriodName,ttfpS_Id,ttfpS_ActiveFlag,ttfpS_SUbSelcFlag'
+    );
+    const url = `/FixingFacade/PeriodStaffGridData?${urlParams}`;
     return await api.get<TTPeriodStaffGridData[]>('timetable', url);
 }
 
+export async function getFixingClassDropdown(asmay_id: number, ttmc_id: number) {
+    const url = `/MasterDayFacade/ClassDataByAcademicyrandCategory/${asmay_id}/${ttmc_id}`;
+    return await api.get<any[]>('timetable', url);
+}
 
+export async function getdetailsAllFixing() {
+    // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
+    const url = `/FixingFacade/getdetailsAllFixing`;
+    return await api.get<any>('timetable', url);
+}
+
+export async function getSectionDropdownByClassCategory(asmay_id: number, asmcl_id: number, ttmc_id: number) {
+    const url = `/FixingFacade/GetPeriodsAndClass/${asmay_id}/${asmcl_id}/${ttmc_id}`;
+    return await api.get<any>('timetable', url);
+}

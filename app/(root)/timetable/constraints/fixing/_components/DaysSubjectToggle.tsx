@@ -6,7 +6,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { useDaySubjectGridData } from '@/hooks/timetable/constraints/fixingData';
 import { masterDaySchema } from '@/schemas/timetable/masters';
 import { deactivateFixingDaySubject } from '@/server/timetable/constraints/fixing';
-import { TTDaySubjectGridData } from '@/types/timetable/constraints/fixing';
+import type { TTDaySubjectGridData } from '@/types/timetable/constraints/fixing';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -21,7 +21,8 @@ interface ToggleDaySubjectProps {
 
 export default function ToggleDaySubjectForm({ rowData, onClose }: ToggleDaySubjectProps) {
     const { refetchAll } = useDaySubjectGridData();
-    const isActive = rowData.ttfdsU_ActiveFlag;
+    const isActive =
+        rowData.ttfdsU_ActiveFlag === true || (rowData.ttfdsU_ActiveFlag as any) === 1 || (rowData as any).ttfdsU_ActiveFlag === 'true';
 
     const {
         register,
@@ -45,7 +46,7 @@ export default function ToggleDaySubjectForm({ rowData, onClose }: ToggleDaySubj
                 TTFDSU_ActiveFlag: !isActive
             });
 
-            if (response.success || response.returnval === true) {
+            if (response.success || response.returnval === true || response.returnval === 'true' || (response as any).returnVal === true) {
                 toast.success(response.message || 'Status updated successfully');
                 refetchAll();
                 closeDialog();
@@ -63,8 +64,7 @@ export default function ToggleDaySubjectForm({ rowData, onClose }: ToggleDaySubj
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('ttmD_Id')} defaultValue={rowData.ttfdsU_Id} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
-                        <strong>{rowData.ismS_SubjectName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.ismS_SubjectName}</strong>?
                     </p>
                     <FormError>{errors.ttmD_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>

@@ -2,38 +2,39 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
+import { usePeriodSubjectGridData } from '@/hooks/timetable/constraints/fixingData';
 import { type FixingPeriodSubjectSchema, fixingPeriodSubjectSchema } from '@/schemas/timetable/constraints/fixing';
-import { getSubjectDropDown } from '@/server/timetable/constraints/FixingForm';
 import {
-    getClassByCategory,
+    getFixingClassDropdown,
     getFixingPeriodSubjectDetails,
     getSectionByClass,
-    getStaffByClassSection,
+    getStaffByFixing,
+    getdetailsAllFixing,
     saveFixingPeriodSubject
 } from '@/server/timetable/constraints/fixing';
+import type { TTPeriodSubjectGridData } from '@/types/timetable/constraints/fixing';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Plus, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import TogglePeriodSubjectForm from './PeriodSubjectToggle';
 import { periodSubjectColumns } from './columns';
 import { FixingViewModal } from './fixing-view-modal';
-import { TTPeriodSubjectGridData } from '@/types/timetable/constraints/fixing';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
-import { usePeriodSubjectGridData } from '@/hooks/timetable/constraints/fixingData';
-import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
-import TogglePeriodSubjectForm from './PeriodSubjectToggle';
 
 interface PeriodSubjectTabProps {
     initialData: any;
+    searchParams?: any;
 }
 
 export const TTGeneration: ColumnDef<TTPeriodSubjectGridData>[] = [
@@ -82,7 +83,7 @@ function ActionButtonsCell({ rowData }: { rowData: TTPeriodSubjectGridData }) {
     );
 }
 
-function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
+function PeriodSubjectTabContent({ initialData, searchParams }: PeriodSubjectTabProps) {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -100,30 +101,59 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
     const { data: academicData } = usebifurcationAcademicYear();
     const academicList = (academicData as any)?.data || [];
 
-    const [periodList] = useState<any[]>(initialData?.periodlist || []);
+    const [dayList, setDayList] = useState<any[]>(initialData?.daylist || []);
+    const [periodList, setPeriodList] = useState<any[]>(initialData?.periodlist || []);
     const [subjectList, setSubjectList] = useState<any[]>([]);
-
-    const { data: gridResponse, isLoading: isGridLoading } = usePeriodSubjectGridData();
-
-    let gridData: TTPeriodSubjectGridData[] = [];
-    if (gridResponse) {
-        if (Array.isArray(gridResponse)) {
-            gridData = gridResponse;
-        } else if (Array.isArray((gridResponse as any)?.data)) {
-            gridData = (gridResponse as any).data;
-        } else if (Array.isArray((gridResponse as any)?.fix_period_subject_list)) {
-            gridData = (gridResponse as any).fix_period_subject_list;
-        }
-    }
-
-    if (gridData.length === 0 && initialData?.fix_period_subject_list) {
-        gridData = initialData.fix_period_subject_list;
-    }
-
+    const [categoryList, setCategoryList] = useState<any[]>(initialData?.categorylist || []);
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subStaffList, setSubStaffList] = useState<any[]>([]);
-    const [categoryList] = useState<any[]>(initialData?.categorylist || []);
+    const [isClassLoading, setIsClassLoading] = useState(false);
+
+    const { data: gridResponse, isLoading: isGridLoading, refetchAll } = usePeriodSubjectGridData(searchParams);
+
+    const gridData = gridResponse
+        ? (gridResponse as any)?.data || (gridResponse as any)?.fix_period_subject_list || (Array.isArray(gridResponse) ? gridResponse : [])
+        : initialData?.fix_period_subject_list || [];
+
+    const totalItems =
+        (gridResponse as any)?.total ||
+        (gridResponse as any)?.count ||
+        (Array.isArray(gridResponse) ? gridResponse.length : initialData?.total || gridData.length);
+
+    const extractList = (data: any, preferredKey?: string) => {
+        if (!data) return [];
+        if (Array.isArray(data)) return data;
+        const target = data?.data !== undefined ? data.data : data;
+        if (Array.isArray(target)) return target;
+        if (!target) return [];
+
+        if (preferredKey) {
+            const foundKey = Object.keys(target).find((k) => k.toLowerCase() === preferredKey.toLowerCase());
+            if (foundKey && Array.isArray(target[foundKey])) return target[foundKey];
+        }
+
+        const keys = [
+            'academiclist',
+            'catelist',
+            'classlist',
+            'sectionlist',
+            'stafflist',
+            'subjectlist',
+            'staffbyall',
+            'subjectbystaff',
+            'sectionbyclass',
+            'classbycategory',
+            'categorylist'
+        ];
+        for (const key of keys) {
+            const foundKey = Object.keys(target).find((k) => k.toLowerCase() === key.toLowerCase());
+            if (foundKey && Array.isArray(target[foundKey])) return target[foundKey];
+        }
+
+        const firstArray = Object.values(target).find((v) => Array.isArray(v));
+        return Array.isArray(firstArray) ? firstArray : [];
+    };
 
     const [viewDetails, setViewDetails] = useState<any[]>([]);
     const [isLoadingView, setIsLoadingView] = useState(false);
@@ -131,19 +161,20 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
     const form = useForm<FixingPeriodSubjectSchema>({
         resolver: zodResolver(fixingPeriodSubjectSchema),
         defaultValues: {
-            TTFPSU_Id: 0,
-            ASMAY_Id: undefined,
-            TTMP_Id: undefined,
-            ISMS_Id: undefined,
-            TTFPSU_SUbSelcFlag: false,
-            TempararyArrayList: []
+            ttrpsU_Id: 0,
+            asmaY_Id: undefined,
+            ttmP_Id: undefined,
+            ismS_Id: undefined,
+            ttrpsU_SUbSelcFlag: false,
+            tempararyArrayList: []
         }
     });
 
-    const { reset, setValue, watch, handleSubmit, control } = form;
-    const ASMAY_Id = watch('ASMAY_Id');
-    const TTFPSU_SUbSelcFlag = watch('TTFPSU_SUbSelcFlag');
-
+    const { reset, setValue, watch, control, handleSubmit } = form;
+    const asmaY_Id = watch('asmaY_Id');
+    const ttmP_Id = watch('ttmP_Id');
+    const ismS_Id = watch('ismS_Id');
+    const ttrpsU_SUbSelcFlag = watch('ttrpsU_SUbSelcFlag');
     const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
     const [selectedClass, setSelectedClass] = useState<number | undefined>();
     const [selectedSection, setSelectedSection] = useState<number | undefined>();
@@ -152,14 +183,34 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
 
     const { fields, append, remove } = useFieldArray({
         control,
-        name: 'TempararyArrayList'
+        name: 'tempararyArrayList'
     });
+
+    const filterData = (list: any[], key: string) => {
+        return (list || []).filter((item: any) => {
+            if (!item) return false;
+            const val = item[key] ?? item[Object.keys(item).find((k) => k.toLowerCase() === key.toLowerCase()) || ''];
+            if (!val) return true;
+            if (typeof val !== 'string') return !!val;
+            const name = val.trim();
+            return name && name.toLowerCase() !== 'test';
+        });
+    };
 
     useEffect(() => {
         const loadDropdowns = async () => {
             try {
-                const [subject] = await Promise.all([getSubjectDropDown()]);
-                setSubjectList(subject || []);
+                setCategoryList(filterData(initialData?.categorylist || initialData?.data?.categorylist || [], 'ttmC_CategoryName'));
+                const fixingData = await getdetailsAllFixing();
+                if (fixingData?.data) {
+                    setDayList(filterData(fixingData.data.daylist || [], 'ttmD_DayName'));
+                    setPeriodList(filterData(fixingData.data.periodlist || [], 'ttmP_PeriodName'));
+                    setSubjectList(filterData(fixingData.data.subjectlist || [], 'ismS_SubjectName'));
+                }
+                if (asmaY_Id && selectedCategory) {
+                    await fetchClasses(asmaY_Id, selectedCategory);
+                }
+                await refetchAll();
             } catch (error) {
                 console.error('Failed to load dropdowns:', error);
                 toast.error('Failed to load dropdown options');
@@ -174,11 +225,41 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
         }
     }, [isEditFormOpen, selectedRow]);
 
+    // Effect to handle View
     useEffect(() => {
         if (isDetailsViewOpen && viewRow) {
             onView(viewRow);
         }
     }, [isDetailsViewOpen, viewRow]);
+
+    const fetchClasses = async (yearId: number, categoryId: number) => {
+        if (!yearId || !categoryId) {
+            setClassList([]);
+            return;
+        }
+        setIsClassLoading(true);
+        try {
+            const data = await getFixingClassDropdown(yearId, categoryId);
+            const list = extractList(data, 'classbycategory');
+            setClassList(filterData(list || [], 'asmcL_ClassName'));
+        } catch (error) {
+            console.error('Error fetching classes:', error);
+            toast.error('Failed to load classes');
+        } finally {
+            setIsClassLoading(false);
+        }
+    };
+
+    const handleAcademicYearChange = (yearId: number) => {
+        setValue('asmaY_Id', yearId);
+        setSelectedCategory(undefined);
+        setSelectedClass(undefined);
+        setSelectedSection(undefined);
+        setSelectedStaff(undefined);
+        setClassList([]);
+        setSectionList([]);
+        setSubStaffList([]);
+    };
 
     const handleCategoryChange = async (categoryId: number) => {
         setSelectedCategory(categoryId);
@@ -188,14 +269,8 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
         setClassList([]);
         setSectionList([]);
         setSubStaffList([]);
-        if (ASMAY_Id && categoryId) {
-            try {
-                const res = await getClassByCategory({ ASMAY_Id, TTMC_Id: categoryId });
-                // biome-ignore lint/complexity/useOptionalChain: <explanation>
-                if (res && res.classbycategory) setClassList(res.classbycategory as any[]);
-            } catch (e) {
-                console.error(e);
-            }
+        if (asmaY_Id && categoryId) {
+            await fetchClasses(asmaY_Id, categoryId);
         }
     };
 
@@ -205,11 +280,11 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
         setSelectedStaff(undefined);
         setSectionList([]);
         setSubStaffList([]);
-        if (ASMAY_Id && selectedCategory && classId) {
+        if (asmaY_Id && selectedCategory && classId) {
             try {
-                const res = await getSectionByClass({ ASMAY_Id, ASMCL_Id: classId, TTMC_Id: selectedCategory });
-                // biome-ignore lint/complexity/useOptionalChain: <explanation>
-                if (res && res.sectionlist) setSectionList(res.sectionlist as any[]);
+                const res = await getSectionByClass({ ASMAY_Id: asmaY_Id, ASMCL_Id: classId, TTMC_Id: selectedCategory });
+                const sections = extractList(res, 'sectionlist');
+                setSectionList(filterData(sections || [], 'asmC_SectionName'));
             } catch (e) {
                 console.error(e);
             }
@@ -220,16 +295,16 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
         setSelectedSection(sectionId);
         setSelectedStaff(undefined);
         setSubStaffList([]);
-        if (ASMAY_Id && selectedCategory && selectedClass && sectionId) {
+        if (asmaY_Id && selectedCategory && selectedClass && sectionId) {
             try {
-                const res = await getStaffByClassSection({
-                    ASMAY_Id,
+                const res = await getStaffByFixing({
+                    ASMAY_Id: asmaY_Id,
                     TTMC_Id: selectedCategory,
                     ASMCL_Id: selectedClass!,
                     ASMS_Id: sectionId
                 });
-                // biome-ignore lint/complexity/useOptionalChain: <explanation>
-                if (res && res.staffbyall) setSubStaffList(res.staffbyall as any[]);
+                const staff = extractList(res, 'stafflist');
+                setSubStaffList(filterData(staff || [], 'staffName'));
             } catch (e) {
                 console.error(e);
             }
@@ -247,7 +322,7 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
         const staffObj = subStaffList.find((s) => s.hrmE_Id === selectedStaff);
 
         const exists = fields.some(
-            (f: any) => f.ASMCL_Id === selectedClass && f.ASMS_Id === selectedSection && f.HRME_Id === selectedStaff
+            (f: any) => f.asmcL_Id === selectedClass && f.asmS_Id === selectedSection && f.hrmE_Id === selectedStaff
         );
         if (exists) {
             toast.warning('Already Exists');
@@ -255,10 +330,10 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
         }
 
         append({
-            ASMCL_Id: selectedClass,
-            ASMS_Id: selectedSection,
-            HRME_Id: selectedStaff,
-            NOD: Number(nod),
+            asmcL_Id: selectedClass,
+            asmS_Id: selectedSection,
+            hrmE_Id: selectedStaff,
+            nod: Number(nod),
             clsDisplay: clsObj?.asmcL_ClassName,
             sectDisplay: secObj?.asmC_SectionName,
             staffDisplay: staffObj?.hrmE_EmployeeFirstName
@@ -270,16 +345,16 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
             { accessorKey: 'clsDisplay', header: 'Class' },
             { accessorKey: 'sectDisplay', header: 'Section' },
             { accessorKey: 'staffDisplay', header: 'Staff' },
-            { accessorKey: 'NOD', header: 'No Of Days' },
-            {
-                id: 'actions',
-                header: 'Actions',
-                cell: ({ row }) => (
-                    <Button type='button' variant='ghost' size='sm' onClick={() => remove(row.index)}>
-                        <span className='text-red-500'>Delete</span>
-                    </Button>
-                )
-            }
+            { accessorKey: 'nod', header: 'No Of Days' }
+            // {
+            //     id: 'actions',
+            //     header: 'Actions',
+            //     // cell: ({ row }) => (
+            //     //     <Button type='button' variant='ghost' size='sm' onClick={() => remove(row.index)}>
+            //     //         <span className='text-red-500'>Delete</span>
+            //     //     </Button>
+            //     // )
+            // }
         ],
         [remove]
     );
@@ -289,7 +364,7 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
             { accessorKey: 'clsDisplay', header: 'Class' },
             { accessorKey: 'sectDisplay', header: 'Section' },
             { accessorKey: 'staffDisplay', header: 'Staff' },
-            { accessorKey: 'NOD', header: 'No Of Days' }
+            { accessorKey: 'nod', header: 'No Of Days' }
         ],
         []
     );
@@ -300,20 +375,20 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
             if (res?.fix_period_subject_edit && (res.fix_period_subject_edit as any[]).length > 0) {
                 const d = (res.fix_period_subject_edit as any[])[0];
                 reset({
-                    TTFPSU_Id: d.ttrpsU_Id,
-                    ASMAY_Id: d.asmaY_Id,
-                    TTMP_Id: d.ttmP_Id,
-                    ISMS_Id: d.ismS_Id,
-                    TTFPSU_SUbSelcFlag: d.ttrpsU_SUbSelcFlag,
-                    TempararyArrayList: []
+                    ttrpsU_Id: d.ttrpsU_Id,
+                    asmaY_Id: d.asmaY_Id,
+                    ttmP_Id: d.ttmP_Id,
+                    ismS_Id: d.ismS_Id,
+                    ttrpsU_SUbSelcFlag: d.ttrpsU_SUbSelcFlag,
+                    tempararyArrayList: []
                 });
                 if (d.ttrpsU_SUbSelcFlag && res.fix_period_subject__classecedit) {
                     (res.fix_period_subject__classecedit as any[]).forEach((sub: any) => {
                         append({
-                            ASMCL_Id: sub.asmcL_Id,
-                            ASMS_Id: sub.asmS_Id,
-                            HRME_Id: sub.hrmE_Id,
-                            NOD: sub.ttfpsucC_Days,
+                            asmcL_Id: sub.asmcL_Id,
+                            asmS_Id: sub.asmS_Id,
+                            hrmE_Id: sub.hrmE_Id,
+                            nod: sub.ttfpsucC_Days,
                             clsDisplay: sub.asmcL_ClassName,
                             sectDisplay: sub.asmC_SectionName,
                             staffDisplay: sub.staffName
@@ -336,7 +411,7 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                     clsDisplay: sub.asmcL_ClassName,
                     sectDisplay: sub.asmC_SectionName,
                     staffDisplay: sub.staffName,
-                    NOD: sub.ttfpsucC_Days
+                    nod: sub.ttfpsucC_Days
                 }));
                 setViewDetails(details);
             }
@@ -349,16 +424,19 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
 
     const onSubmit = async (data: FixingPeriodSubjectSchema) => {
         try {
-            if (!data.TTFPSU_SUbSelcFlag) {
-                data.TempararyArrayList = [];
-            } else if (!data.TempararyArrayList || data.TempararyArrayList.length === 0) {
+            if (!data.ttrpsU_SUbSelcFlag) {
+                data.tempararyArrayList = [];
+            } else if (!data.tempararyArrayList || data.tempararyArrayList.length === 0) {
                 toast.warning('Please add at least one Class-Section details');
                 return;
             }
             const res = await saveFixingPeriodSubject(data);
-            if (res?.returnval === true) {
-                toast.success('Record Saved Successfully');
-                window.location.reload();
+            if (res?.returnval === true || res?.success === true) {
+                toast.success(res?.message || 'Record Saved Successfully');
+                refetchAll();
+                closeAddForm();
+                closeEditForm();
+                reset();
             } else {
                 toast.error(res?.message || 'Failed to save');
             }
@@ -385,12 +463,10 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                 variant='default'
                 size='lg'
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <GenericDataTable data={gridData} columns={periodSubjectColumns} totalItems={gridData.length} isLoading={isGridLoading} />
+                <GenericDataTable data={gridData} columns={periodSubjectColumns} totalItems={totalItems} isLoading={isGridLoading} />
             </CollapsibleSection>
 
-            {isToggleFormOpen && selectedRow && (
-                <TogglePeriodSubjectForm rowData={selectedRow} onClose={closeToggleForm} />
-            )}
+            {isToggleFormOpen && selectedRow && <TogglePeriodSubjectForm rowData={selectedRow} onClose={closeToggleForm} />}
 
             {(isAddFormOpen || isEditFormOpen) && (
                 <CollapsibleSection
@@ -414,22 +490,26 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                     <FormField
                                         control={form.control}
-                                        name='ASMAY_Id'
+                                        name='asmaY_Id'
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Academic Year</FormLabel>
-                                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                                <Select
+                                                    onValueChange={(v) => handleAcademicYearChange(Number(v))}
+                                                    value={field.value?.toString()}>
                                                     <FormControl>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select' />
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {academicList.filter((item: any) => item.asmaY_Id).map((item: any) => (
-                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                                {item.asmaY_Year}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {academicList
+                                                            .filter((item: any) => item.asmaY_Id)
+                                                            .map((item: any) => (
+                                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                    {item.asmaY_Year}
+                                                                </SelectItem>
+                                                            ))}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -439,7 +519,7 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
 
                                     <FormField
                                         control={form.control}
-                                        name='TTMP_Id'
+                                        name='ttmP_Id'
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Period</FormLabel>
@@ -464,7 +544,7 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
 
                                     <FormField
                                         control={form.control}
-                                        name='ISMS_Id'
+                                        name='ismS_Id'
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Subject</FormLabel>
@@ -475,11 +555,13 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {subjectList.filter((item: any) => item.ismS_Id).map((item: any) => (
-                                                            <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
-                                                                {item.ismS_SubjectName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {subjectList
+                                                            .filter((item: any) => item.ismS_Id)
+                                                            .map((item: any) => (
+                                                                <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
+                                                                    {item.ismS_SubjectName}
+                                                                </SelectItem>
+                                                            ))}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -491,7 +573,7 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                                 <div className='flex items-center space-x-2'>
                                     <FormField
                                         control={form.control}
-                                        name='TTFPSU_SUbSelcFlag'
+                                        name='ttrpsU_SUbSelcFlag'
                                         render={({ field }) => (
                                             <FormItem className='flex flex-row items-start space-x-3 space-y-0 p-4'>
                                                 <FormControl>
@@ -505,7 +587,7 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                                     />
                                 </div>
 
-                                {TTFPSU_SUbSelcFlag && (
+                                {ttrpsU_SUbSelcFlag && (
                                     <div className='space-y-4 rounded-md border bg-gray-50 p-4'>
                                         <h4 className='font-semibold'>Add Class Details</h4>
                                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-5'>
@@ -535,11 +617,15 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {classList.map((item: any) => (
-                                                            <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                                                {item.asmcL_ClassName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {isClassLoading ? (
+                                                            <SelectItem value='loading'>Loading...</SelectItem>
+                                                        ) : (
+                                                            classList.map((item: any) => (
+                                                                <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                                                    {item.asmcL_ClassName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -620,10 +706,10 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
     );
 }
 
-export default function PeriodSubjectTab({ initialData }: PeriodSubjectTabProps) {
+export default function PeriodSubjectTab({ initialData, searchParams }: PeriodSubjectTabProps) {
     return (
         <FormProvider>
-            <PeriodSubjectTabContent initialData={initialData} />
+            <PeriodSubjectTabContent initialData={initialData} searchParams={searchParams} />
         </FormProvider>
     );
 }
