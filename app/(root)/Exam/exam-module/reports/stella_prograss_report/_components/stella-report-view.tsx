@@ -106,15 +106,13 @@ export const StellaReportView = ({
       <div className="flex justify-end space-x-2 no-print mb-4">
         <Button
           onClick={handleExport}
-          variant="outline"
-          className="flex h-8 items-center gap-2 border-green-600 bg-white text-green-700 hover:bg-gray-50 w-fit"
+          className="hover:bg-orange-800 text-white w-fit"
         >
           <FileSpreadsheet className="h-4 w-4" /> Excel
         </Button>
         <Button
           onClick={handlePrint}
-          variant="outline"
-          className="flex h-8 items-center gap-2 border-blue-600 bg-white text-blue-700 hover:bg-gray-50 w-fit"
+          className="hover:bg-orange-800 text-white w-fit"
         >
           <Printer className="h-4 w-4" /> Print
         </Button>

@@ -1,9 +1,8 @@
 'use client';
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { getExamReportCard, getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
-import type { IExamReportCard, IMasterInstitution, Institution, ISubject } from '@/types/exam/exam-module/report';
-import { Printer } from 'lucide-react';
+import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
+import type {IMasterInstitution, Institution} from '@/types/exam/exam-module/report';
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import StellaProgressReportForm from './_components/add-form';
@@ -20,7 +19,7 @@ export default function StellaProgressReportPage() {
         if (isReportVisible && printRef.current) {
             printRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-    })
+    },[isReportVisible]);
 
     const handleReportSuccess = async (payload: any) => {
         try {
@@ -62,11 +61,9 @@ export default function StellaProgressReportPage() {
         fetchInstitution();
     }, []);
 
-    const handlePrint = () => window.print();
-
     return (
         <div className='container mx-auto space-y-6 p-4'>
-            <CollapsibleSection title='Stella Progress Card Report' defaultOpen>
+            <CollapsibleSection title='Progress Card Report' defaultOpen>
                 <StellaProgressReportForm onSuccess={handleReportSuccess} />
             </CollapsibleSection>
 

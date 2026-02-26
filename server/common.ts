@@ -1598,7 +1598,48 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/vidyaniketan-performance-analysis-report',
                                             title: "Vidyaniketan Performance Ananlysis Report",
                                             description: "Manage Vidyaniketan Performance Ananlysis Report Details"
+                                        },
+                                        {
+                                            id: 93,
+                                            name: "Vidyaniketan Progress Card Report",
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/vidyaniketan-progress-card-report',
+                                            title: "Vidyaniketan Progress Card Report",
+                                            description: "Manage Vidyaniketan Progress Card Report Details"
+                                        },
+                                        {
+                                            id: 94,
+                                            name: "Vidyaniketan I-VIII Card Report",
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/vidyaniketan-report-card-I-VIII',
+                                            title: "Vidyaniketan I-VIII Card Report",
+                                            description: "Manage Vidyaniketan I-VIII Card Report Details"
+                                        },
+                                        {
+                                            id: 95,
+                                            name: "Sophia IX-X Card Report",
+                                            icon: "BookOpen",
+                                            url: "/Exam/exam-module/reports/sophia-report-card-IX-X",
+                                            title: "Sophia IX-X Card Report",
+                                            description: "Manage Sophia IX-X Card Report Details"
+                                        },
+                                        {
+                                            id: 96,
+                                            name: "Sophia Pre-II Card Report",
+                                            icon: "BookOpen",
+                                            url: "/Exam/exam-module/reports/sophia-report-card-pre-II",
+                                            title: "Sophia Pre-II Card Report",
+                                            description: "Manage Sophia Pre-II Card Report Details"
+                                        },
+                                        {
+                                            id: 97,
+                                            name: "Sophia Topper List Report",
+                                            icon: "BookOpen",
+                                            url: "/Exam/exam-module/reports/sophia-topper-list-report",
+                                            title: "Sophia Topper List Report",
+                                            description: "Manage Sophia Topper List Report Details"
                                         }
+
                                     ]
                                 }
                             ]
