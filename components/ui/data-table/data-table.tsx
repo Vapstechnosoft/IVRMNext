@@ -208,7 +208,7 @@ function DataTableInner<TData, TValue>(
                         <Table>
                             <TableHeader className='grid-header-row'>
                                 {table.getHeaderGroups().map((headerGroup) => (
-                                    <TableRow key={headerGroup.id} className="border-none hover:bg-transparent">
+                                    <TableRow key={headerGroup.id} className=" hover:bg-transparent">
                                         {headerGroup.headers.map((header) => (
                                             <TableHead
                                                 key={header.id}
