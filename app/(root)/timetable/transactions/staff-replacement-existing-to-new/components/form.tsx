@@ -1,5 +1,5 @@
 'use client';
-
+//staffReplacementExistingToNew
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RotateCcw, Search } from 'lucide-react';
 import { useState } from 'react';
@@ -21,6 +21,9 @@ import {
     useStaffReplacementExistingToNewMasters
 } from '@/hooks/timetable/transaction/useStaff-replacement-existing-to-new';
 import { getStaffReplacementExistingToNewMasters } from '@/server/timetable/transactions/staff-replacement-existing-to-new';
+
+
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 interface StaffReplacementFormProps {
     onFetch: (data: StaffReplacementExistingToNewValues | null) => void;
@@ -101,7 +104,10 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
     );
 
     return (
-        <CollapsibleSection title='Staff Replacement Existing To New' defaultOpen className='font-bold text-purple-900 text-xl'>
+        <CollapsibleSection 
+            title='Staff Replacement Existing To New' 
+            className='font-bold text-purple-900 text-xl'
+            defaultOpen >
             <div className='bg-white p-6'>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                     {/* Form Grid - 3 columns */}
@@ -176,8 +182,7 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
                     {/* ACTIONS */}
                     <div className='flex gap-3 border-t pt-4'>
                         <Button type='submit' className='h-9 bg-orange-500 px-6 font-semibold text-xs hover:bg-orange-600'>
-                            <Search className='mr-2 h-4 w-4' />
-                            Report
+                            Update
                         </Button>
 
                         <Button type='button' variant='outline' onClick={handleReset} className='h-9'>

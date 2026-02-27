@@ -6,7 +6,7 @@ const navigationContext: {
     setActiveNavigation: (nav: ActiveNavigation | null) => void;
 } = {
     activeNavigation: null,
-    setActiveNavigation: () => {}
+    setActiveNavigation: () => { }
 };
 
 // Hook for NavigationSystem to update the state
@@ -17,4 +17,23 @@ export function setNavigationContext(nav: ActiveNavigation | null) {
 // API for PageNavigation (and anywhere else) to read it
 export function getNavigationContext() {
     return navigationContext;
+}
+
+// External triggers for updating navigation state via events
+/**
+ * Triggers the navigation drawer to open for a specific module
+ */
+export function setRequestedModule(moduleName: string) {
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('module-request', { detail: moduleName }));
+    }
+}
+
+/**
+ * Sets a filter for the navigation modules
+ */
+export function setModuleFilter(filterName: string | null) {
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('module-filter', { detail: filterName }));
+    }
 }

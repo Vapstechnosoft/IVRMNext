@@ -60,6 +60,7 @@ export async function getReportDetails(data: any) {
     const url = '/JSHSExamReportsFacade/promotion_report_card';
     try {
         const response = await api.post<any>('exam', url, data);
+        console.log('response', response);
         return response.data;
     } catch (error) {
         console.error('getReportDetails API Error:', error);
@@ -86,4 +87,3 @@ export async function getReportDetails(data: any) {
         };
     }
 }
-

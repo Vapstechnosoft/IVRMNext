@@ -14,13 +14,13 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, Trash2, FileText, Search } from 'lucide-react';
-import { IOnlineLeaveHistoryData, ILeaveHistory } from '@/types/staff-portal/online-leave';
+import { ILeaveHistory } from '@/types/staff-portal/online-leave';
 import { format } from 'date-fns';
 import { useOnlineLeave } from '@/hooks/staff-portal/useOnlineLeave';
 import { Input } from '@/components/ui/input';
 
 interface Props {
-    historyData: IOnlineLeaveHistoryData | null | undefined;
+    historyData: any | null | undefined;
 }
 
 const LeaveHistoryTable = ({ historyData }: Props) => {
@@ -28,8 +28,8 @@ const LeaveHistoryTable = ({ historyData }: Props) => {
     const [searchTerm, setSearchTerm] = React.useState('');
 
     const filteredHistory = React.useMemo(() => {
-        if (!historyData?.leave_name) return [];
-        return historyData.leave_name.filter(item =>
+        const list = (historyData as any)?.employeeLeaveDetails || [];
+        return list.filter((item: ILeaveHistory) =>
             item.hrmL_LeaveName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             item.hrelaP_LeaveReason.toLowerCase().includes(searchTerm.toLowerCase())
         );
@@ -47,7 +47,7 @@ const LeaveHistoryTable = ({ historyData }: Props) => {
 
     return (
         <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+            <CardHeader className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                 <CardTitle className="text-lg font-semibold">Employee Leave Details</CardTitle>
                 <div className="relative w-64">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -78,7 +78,7 @@ const LeaveHistoryTable = ({ historyData }: Props) => {
                         </TableHeader>
                         <TableBody>
                             {filteredHistory.length > 0 ? (
-                                filteredHistory.map((row, index) => (
+                                filteredHistory.map((row: ILeaveHistory, index: number) => (
                                     <TableRow key={row.hrelaP_Id}>
                                         <TableCell className="text-center">{index + 1}</TableCell>
                                         <TableCell className="font-medium">{row.hrmL_LeaveName}</TableCell>

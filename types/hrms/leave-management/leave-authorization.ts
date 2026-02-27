@@ -38,9 +38,9 @@ export interface LeaveAuthorizationGetResponse {
  * Approval user item in approvaluser_array
  */
 export interface ApprovalUserItem {
-    Approval_HRME_Id: number;
-    ApprovalLevelNo: number;
-    ApprovalFinalFlag: boolean;
+    approval_HRME_Id: number;
+    approvalLevelNo: number;
+    approvalFinalFlag: boolean;
 }
 
 /**
@@ -48,14 +48,17 @@ export interface ApprovalUserItem {
  * POST /api/LeaveAuthorizationFacade/SaveAuthData
  */
 export interface LeaveAuthorizationSaveRequest {
-    MI_Id: number;
-    HRMG_Id: number;
-    HRMGT_Id: number;
-    HRMD_Id: number;
-    HRMDES_Id: number;
-    HRML_Id: number;
-    UserId: number;
-    approvaluser_array: ApprovalUserItem[];
+    hrla_Id?: number;
+    hrmG_Id: number;
+    hrmgT_Id: number;
+    hrmD_Id: number;
+    hrmdeS_Id: number;
+    hrmL_Id: number;
+    userId: number;
+    approvalUser: ApprovalUserItem[];
+    // Keeping MI_Id optional as it might be needed for other purposes or legacy checks, 
+    // but the target payload doesn't strictly show it. Current server implementation ignores it for the body.
+    MI_Id?: number;
 }
 
 /**

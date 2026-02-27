@@ -1,4 +1,5 @@
 'use client';
+import { TimeSpinnerField } from './add-form';
 
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
@@ -26,9 +27,10 @@ interface UpdateMasterAcademicYearFormProps {
     onSuccess?: () => void;
     className?: string;
     selectedRow: IMasterAcademicYearMasterList;
+    institutionList?: { mI_Id: number; mI_Name: string }[];
 }
 
-export default function UpdateMasterAcademicYearForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterAcademicYearFormProps) {
+export default function UpdateMasterAcademicYearForm({ onSuccess, className = '', selectedRow: row, institutionList = [] }: UpdateMasterAcademicYearFormProps) {
     const { refetchAll } = usePreAdmissionAcademicYear();
     const [openPopover, setOpenPopover] = useState<string | null>(null);
     const {
@@ -58,6 +60,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
 
             reset({
                 asmaY_Id: Number(row.asmaY_Id),
+                mI_Id: Number(row.mI_Id) || 0,
                 academicFromYear: fromYear,
                 academicToYear: toYear,
                 asmaY_Year: row.asmaY_Year,
@@ -65,6 +68,8 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                 asmaY_To_Date: row.asmaY_To_Date,
                 asmaY_PreAdm_F_Date: row.asmaY_PreAdm_F_Date,
                 asmaY_PreAdm_T_Date: row.asmaY_PreAdm_T_Date,
+                asmaY_PreAdm_F_Time: row.asmaY_PreAdm_F_Time ?? '',
+                asmaY_PreAdm_T_Time: row.asmaY_PreAdm_T_Time ?? '',
                 asmaY_Order: Number(row.asmaY_Order),
                 asmaY_ActiveFlag: Number(row.asmaY_ActiveFlag),
                 asmaY_Cut_Of_Date: row.asmaY_Cut_Of_Date,
@@ -88,11 +93,14 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
         try {
             const payload = {
                 ASMAY_Id: Number(row.asmaY_Id),
+                MI_Id: Number(data.mI_Id),
                 ASMAY_Year: data.asmaY_Year,
                 ASMAY_From_Date: data.asmaY_From_Date,
                 ASMAY_To_Date: data.asmaY_To_Date,
                 ASMAY_PreAdm_F_Date: data.asmaY_PreAdm_F_Date,
                 ASMAY_PreAdm_T_Date: data.asmaY_PreAdm_T_Date,
+                ASMAY_PreAdm_F_Time: data.asmaY_PreAdm_F_Time || null,
+                ASMAY_PreAdm_T_Time: data.asmaY_PreAdm_T_Time || null,
                 ASMAY_Order: Number(data.asmaY_Order),
                 ASMAY_ActiveFlag: Number(data.asmaY_ActiveFlag),
                 ASMAY_Cut_Of_Date: data.asmaY_Cut_Of_Date,
@@ -170,6 +178,38 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                 )}
                             />
                             {errors.asmaY_Order && <FormError>{errors.asmaY_Order.message}</FormError>}
+                        </div>
+                    </div>
+
+                    {/* Institution */}
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        <div className='flex flex-col gap-1.5'>
+                            <Label>
+                                Institution <span className='text-red-600'>*</span>
+                            </Label>
+                            <Controller
+                                name='mI_Id'
+                                control={control}
+                                render={({ field }) => (
+                                    <select
+                                        id='mI_Id'
+                                        value={field.value || ''}
+                                        onChange={(e) => field.onChange(Number(e.target.value))}
+                                        className={cn(
+                                            'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors',
+                                            'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+                                            errors.mI_Id && 'border-red-500'
+                                        )}>
+                                        <option value=''>--Select Institution--</option>
+                                        {institutionList.map((inst) => (
+                                            <option key={inst.mI_Id} value={inst.mI_Id}>
+                                                {inst.mI_Name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                )}
+                            />
+                            {errors.mI_Id && <p className='text-red-500 text-sm'>{errors.mI_Id.message}</p>}
                         </div>
                     </div>
 
@@ -337,6 +377,36 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                             </PopoverContent>
                                         </Popover>
                                     </div>
+                                )}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Pre-Admission Times */}
+                    <div className='space-y-4'>
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                            <Controller
+                                name='asmaY_PreAdm_F_Time'
+                                control={control}
+                                render={({ field }) => (
+                                    <TimeSpinnerField
+                                        label='Pre Admission Start Time'
+                                        value={field.value ?? ''}
+                                        onChange={field.onChange}
+                                        error={errors.asmaY_PreAdm_F_Time?.message}
+                                    />
+                                )}
+                            />
+                            <Controller
+                                name='asmaY_PreAdm_T_Time'
+                                control={control}
+                                render={({ field }) => (
+                                    <TimeSpinnerField
+                                        label='Pre Admission End Time'
+                                        value={field.value ?? ''}
+                                        onChange={field.onChange}
+                                        error={errors.asmaY_PreAdm_T_Time?.message}
+                                    />
                                 )}
                             />
                         </div>

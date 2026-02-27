@@ -15,9 +15,10 @@ import { TotalStrengthSchema } from '@/schemas/admission/preadmission/reports';
 import { getExcelTotalStrengthReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, FileSpreadsheet, FileText, Printer, RotateCcw, Square } from 'lucide-react';
-import { Fragment, useState } from 'react';
+import { useRef, useState, Fragment } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { useReactToPrint } from 'react-to-print';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof TotalStrengthSchema>;
@@ -28,6 +29,7 @@ interface ElectiveItem {
 }
 
 export default function TotalStrengthPage() {
+    const printRef = useRef<HTMLDivElement>(null);
     const { data: academicYear, isLoading: ayLoading } = useAcademicYearDropdown();
     const [showReport, setShowReport] = useState(false);
     const [selectAll, setSelectAll] = useState(false);
@@ -187,8 +189,8 @@ export default function TotalStrengthPage() {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -212,37 +214,23 @@ export default function TotalStrengthPage() {
         }
     };
 
-    const handlePrint = () => {
-        if (!response?.data || !Array.isArray((response.data as any).studentlist)) {
-            toast.error('No data available to print');
-            return;
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: 'Total_Strength_Report',
+        pageStyle: `
+        @page { size: A4; margin: 20mm; }
+        @media print {
+            body { -webkit-print-color-adjust: exact; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
         }
-        window.print();
-    };
+      `
+    });
 
     return (
         <div className='min-h-screen'>
-            <style>
-                {`
-          @media print {
-            body * {
-              visibility: hidden;
-            }
-            #printable-report, #printable-report * {
-              visibility: visible;
-            }
-            #printable-report {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100%;
-            }
-            .no-print {
-              display: none !important;
-            }
-          }
-        `}
-            </style>
+
             <div className='container space-y-4 p-1'>
                 <div className='space-y-4'>
                     <CollapsibleSection
@@ -525,7 +513,7 @@ export default function TotalStrengthPage() {
                     </CollapsibleSection>
 
                     {showReport && (
-                        <div id='printable-report'>
+                        <div ref={printRef}>
                             <CollapsibleSection
                                 defaultOpen={true}
                                 variant='default'
@@ -549,8 +537,8 @@ export default function TotalStrengthPage() {
                                                         <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Sl.No</th>
                                                         <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Class</th>
                                                         <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Section</th>
-                                                          <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Boys</th>
-                                                            <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Girls</th>
+                                                        <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Boys</th>
+                                                        <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Girls</th>
 
                                                         <th className='border border-gray-300 px-4 py-2 text-right font-semibold'>Total</th>
                                                         {/* <th className='border border-gray-300 px-4 py-2 text-right font-semibold'>
@@ -589,10 +577,10 @@ export default function TotalStrengthPage() {
                                                                 ))}
                                                                 <tr key={`total-${rowNumber}`} className='bg-white font-semibold'>
                                                                     <td colSpan={3} className='border border-gray-300 px-4 py-2 text-right'>
-                                                                      Total  {/* Total {sections[0]?.classname} */}
+                                                                        Total  {/* Total {sections[0]?.classname} */}
                                                                     </td>
-                                                                 <td className='border border-gray-300 px-4 py-2 text-right'> </td>
-                                                                  <td className='border border-gray-300 px-4 py-2 text-right'>  </td>
+                                                                    <td className='border border-gray-300 px-4 py-2 text-right'> </td>
+                                                                    <td className='border border-gray-300 px-4 py-2 text-right'>  </td>
                                                                     <td className='border border-gray-300 px-4 py-2 text-right'>
                                                                         {calculateClassTotal(Number(rowNumber))}
                                                                     </td>
@@ -605,7 +593,7 @@ export default function TotalStrengthPage() {
                                                             Grand Total
                                                         </td>
                                                         <td> </td>
-                                                      
+
                                                         <td className='border border-gray-300 px-4 py-2 text-right'>{calculateGrandTotal()}</td>
                                                         <td className='border border-gray-300 px-4 py-2 text-right' />
                                                     </tr>

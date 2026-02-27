@@ -4,9 +4,16 @@ import { Button } from '@/components/ui/button';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { usePeriodDistributionDetails } from '@/hooks/timetable/useMasters';
+import {
+    useAcademicYearPeriodDistrubution,
+    useCategtoryPeriodDistrubution,
+    useClassPeriodDistrubution,
+    usePeriodDistributionDetails,
+    useSectionPeriodDistrubution,
+    useStaffPeriodDistrubution,
+    useSubjectPeriodDistrubution
+} from '@/hooks/timetable/useMasters';
 import { periodDistributionSchema } from '@/schemas/timetable/masters';
-import { getClassByCategory } from '@/server/timetable/masters/perioddistribution';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowRight, Save, Trash2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -23,15 +30,22 @@ interface PeriodDistributionFormProps {
 
 export default function PeriodDistributionForm({ onSuccess, initialData }: PeriodDistributionFormProps) {
     const { data: response } = usePeriodDistributionDetails();
+    const { data: academicData } = useAcademicYearPeriodDistrubution();
+    const { data: categoryData } = useCategtoryPeriodDistrubution();
+    const { data: staffData } = useStaffPeriodDistrubution();
+    const { data: sectionData } = useSectionPeriodDistrubution();
+    const { data: subjectData } = useSubjectPeriodDistrubution();
+    const { data: classData } = useClassPeriodDistrubution();
+
     const [tempList, setTempList] = useState<any[]>([]);
-    const [classList, setClassList] = useState<any[]>([]);
     const [availablePeriods, setAvailablePeriods] = useState<number>(1);
 
-    const academicList = (response as any)?.academiclist || [];
-    const categoryList = (response as any)?.catelist || [];
-    const staffList = (response as any)?.stafflist || [];
-    const sectionList = (response as any)?.sectionlist || [];
-    const subjectList = (response as any)?.subjectlist || [];
+    const academicList = (academicData as any) || [];
+    const categoryList = (categoryData as any) || [];
+    const staffList = (staffData as any) || [];
+    const sectionList = (sectionData as any) || [];
+    const subjectList = (subjectData as any) || [];
+    const classList = (classData as any) || [];
 
     const {
         register,
@@ -64,33 +78,12 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
         setAvailablePeriods(avail);
     }, [watchedTotalWeeklyPeriods, tempList]);
 
-    // Fetch Classes based on Category
+    // Reset lower fields on change
     useEffect(() => {
-        const fetchClasses = async () => {
-            setValue('asmcL_Id', undefined as any);
-            setValue('asmS_Id', undefined as any);
-            setValue('ismS_Id', undefined as any);
-            setValue('nop2', 0);
-            if (watchedAcademicYear && watchedCategory) {
-                try {
-                    const res = await getClassByCategory({
-                        ASMAY_Id: watchedAcademicYear,
-                        TTMC_Id: watchedCategory
-                    });
-                    if (res && (res as any).classbycategory) {
-                        setClassList((res as any).classbycategory);
-                    } else {
-                        setClassList([]);
-                    }
-                } catch (err) {
-                    console.error('Error fetching classes', err);
-                    setClassList([]);
-                }
-            } else {
-                setClassList([]);
-            }
-        };
-        fetchClasses();
+        setValue('asmcL_Id', undefined as any);
+        setValue('asmS_Id', undefined as any);
+        setValue('ismS_Id', undefined as any);
+        setValue('nop2', 0);
     }, [watchedAcademicYear, watchedCategory, setValue]);
 
     const addToTempList = () => {
@@ -276,21 +269,24 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
                             <Label>
                                 Staff Name <span className='text-red-500'>*</span>
                             </Label>
-                            {/* <Controller
+                            <Controller
                                 control={control}
-                                name="hrmE_Id"
+                                name='hrmE_Id'
                                 render={({ field }) => (
-                                    <Combobox
-                                        value={field.value?.toString()}
-                                        onChange={(val: string) => field.onChange(Number(val))}
-                                        options={staffList.map((s: any) => ({
-                                            value: s.hrmE_Id.toString(),
-                                            label: s.staffName
-                                        }))}
-                                        placeholder="Select or search Staff..."
-                                    />
+                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='--Select Staff--' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {staffList.map((item: any) => (
+                                                <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
+                                                    {item.staffName}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 )}
-                            /> */}
+                            />
                             {errors.hrmE_Id && <span className='text-red-500 text-sm'>{errors.hrmE_Id.message}</span>}
                         </div>
 
@@ -351,7 +347,7 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
                                                 </SelectItem>
                                             ))
                                         ) : (
-                                            <div className='p-2 text-muted-foreground text-sm'>Select Category First</div>
+                                            <div className='p-2 text-muted-foreground text-sm'>No Classes Available</div>
                                         )}
                                     </SelectContent>
                                 </Select>

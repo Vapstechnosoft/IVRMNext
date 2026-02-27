@@ -245,30 +245,18 @@ export type PeriodDistributionColumn = {
     ttfpD_TotWeekPeriods: number;
     ttfpD_ActiveFlag: boolean;
     ttfpD_Id: number;
-
-    // returnval: boolean;
-    // ttfpD_Id: number;
-    // mI_Id: number;
-    // asmaY_Id: number;
-    // hrmE_Id: number;
-    // ttfpD_TotWeekPeriods: number;
-    // ttfpD_ActiveFlag: boolean;
-    // ttfpdD_Id: number;
-    // ttfpD_StaffConsecutive: number;
-    // ttmC_Id: number;
-    // asmcL_Id: number;
-    // asmS_Id: number;
-    // ismS_Id: number;
-    // ttfpD_TotalPeriods: number;
-    // ttfpD_AllotedPeriods: number;
-    // ttfpD_AvailablePeriods: number;
-    // ttfpdD_ActiveFlag: boolean;
-    // createdDate: string; // ISO date string
-    // updatedDate: string; // ISO date string
-    // nop: number;
-    // asmaY_Year: string;
-    // edit_count: number;
 };
+
+export interface PeriodDistributionViewRecord {
+    ttfpdD_Id: number;
+    asmaY_Year: string;
+    ttmC_CategoryName: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    ismS_SubjectName: string;
+    ttfpD_TotalPeriods: number;
+    ttfpdD_ActiveFlag: boolean;
+}
 
 export interface IBreakTimeSettingsList {
     ttmB_Id: number;
@@ -447,4 +435,35 @@ export interface ICategoryDropDownDataMasterPeriod {
     amC_FilePath: string;
     createdDate: string;
     updatedDate: string;
+}
+
+export interface PeriodDistruction {
+    ttfG_Id: number; //AcademicYear
+    asmaY_Year: string; //AcademicYear
+
+    ttmC_Id: number; //category
+    ttmC_CategoryName: string; //category
+
+    asmcL_Id: number; //class
+    asmcL_ClassName: string; //class
+
+    asms_Id: number; //section
+    asms_SectionName: string; //section
+
+    hrmE_Id: number; //staff
+    staffName: string; //staff
+
+    ismS_Id: number; //subject
+    ismS_SubjectName: string; //subject
+}
+
+export interface IMasterBuildClassSectionGrid {
+    ttmbcS_Id: number;
+    ttmB_Id: number;
+    asmcL_ID: number;
+    ttmB_BuildingName: string;
+    asmcL_ClassName: string;
+    asmS_ID: number;
+    ttmbcS_ActiveFlag: boolean;
+    asmC_SectionName: string;
 }

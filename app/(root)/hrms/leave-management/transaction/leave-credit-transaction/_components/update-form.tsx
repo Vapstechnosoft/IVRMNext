@@ -441,7 +441,7 @@ export default function UpdateLeaveCreditTransactionForm({
                         <Save className='mr-2 h-4 w-4' />
                         {isPending || isSubmitting ? 'Updating...' : 'UPDATE'}
                     </Button>
-                    <Button type='button' variant='destructive' onClick={handleReset} disabled={isPending || isSubmitting} className='bg-red-600 hover:bg-red-700'>
+                    <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
                         <X className='mr-2 h-4 w-4' />
                         CANCEL
                     </Button>
