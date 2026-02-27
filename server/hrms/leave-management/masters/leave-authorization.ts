@@ -48,7 +48,7 @@ export async function getLeaveAuthorization(
 
     // Build URL with pagination parameters
     // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
-        const baseUrl = `/api/LeaveAuthorization/get_authorization_grid_by_miid`;
+    const baseUrl = `/api/LeaveAuthorization/get_authorization_grid_by_miid`;
     const searchableColumns = 'hrmG_GradeName,hrmgT_EmployeeGroupType,hrmD_DepartmentName,hrmdeS_DesignationName,hrmL_LeaveName,hrmE_EmployeeFirstName';
     const columnsToSearch = (searchParams as any)?.search_column || (searchParams as any)?.search_columns || searchableColumns;
     const queryParams = getSearchParamsUrl(searchParams, columnsToSearch);
@@ -105,7 +105,9 @@ export async function saveLeaveAuthorization(
     const requestBody = {
         mI_Id: Number(data.MI_Id || HRMS_MI_ID),
         MI_Id: Number(data.MI_Id || HRMS_MI_ID), // Send both to be safe
-        ...(data.hrla_Id && data.hrla_Id > 0 ? { hrla_Id: data.hrla_Id } : {}),
+        ...(isEdit ? { hrlA_Id: Number(data.hrla_Id) } : {}),
+        ...(isEdit ? { HRLA_Id: Number(data.hrla_Id) } : {}),
+        ...(isEdit ? { hrla_Id: Number(data.hrla_Id) } : {}),
 
         hrmG_Id: Number(data.hrmG_Id || 0),
         hrmgT_Id: Number(data.hrmgT_Id || 0),
@@ -120,6 +122,7 @@ export async function saveLeaveAuthorization(
             approvalFinalFlag: !!item.approvalFinalFlag
         })),
     };
+
 
     console.log('🔵 [SERVER] Final Request Body to API:', JSON.stringify(requestBody, null, 2));
 

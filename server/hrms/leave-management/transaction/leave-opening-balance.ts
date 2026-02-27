@@ -1,5 +1,5 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { api, type ApiResponse, getSearchParamsUrl } from '@/lib/apiService';
 import type {
     LeaveOpeningBalanceEntry,
     SaveLeaveOpeningBalancePayload,
@@ -14,18 +14,8 @@ export async function getEmployeeLeaveOpeningBalanceGrid(
     searchParams?: LeaveOpeningBalanceSearch
 ): Promise<ApiResponse<LeaveOpeningBalanceEntry[]>> {
     const baseUrl = '/api/LeaveOpeningBalance/get_employee_leave_opening_balance_grid';
-    // Construct query string manually if needed, or apiService might handle object params depending on implementation.
-    // Assuming simple query params for now if any.
-    let url = baseUrl;
-    if (searchParams) {
-        const params = new URLSearchParams();
-        if (searchParams.hrmE_Id) params.append('hrmE_Id', searchParams.hrmE_Id.toString());
-        if (searchParams.hrmL_Id) params.append('hrmL_Id', searchParams.hrmL_Id.toString());
-        const queryString = params.toString();
-        if (queryString) {
-            url += `?${queryString}`;
-        }
-    }
+    const queryParams = getSearchParamsUrl(searchParams);
+    const url = queryParams ? `${baseUrl}?${queryParams}` : baseUrl;
 
     console.log('🔵 [SERVER] LeaveOpeningBalance - Requesting:', url);
     try {

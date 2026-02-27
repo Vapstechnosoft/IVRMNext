@@ -5,7 +5,7 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterCourseList, IMasterCourseSetOrderList } from '@/types/hrms/hrms-config/master';
 
 export async function getMasterCourse(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'hrmC_QulaificationName,hrmC_QualificationDesc');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'hrmC_QulaificationName,hrmC_QualificationDesc,hrmC_Order,hrmC_DefaultQualFag,hrmC_SpecialisationFlag');
     const url = `/api/MasterCourse?${urlParams}`;
     try {
         const response = await api.get<IMasterCourseList[]>('hrms', url);

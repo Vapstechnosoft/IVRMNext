@@ -16,6 +16,7 @@ export interface LeaveAuthorization extends BaseEntity {
     finalFlag: boolean;
     // Optional IDs for editing
     _HRLA_Id?: number;
+    mI_Id?: number;
     hrmG_Id?: number;
     hrmgT_Id?: number;
     hrmD_Id?: number;

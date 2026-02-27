@@ -243,8 +243,8 @@ const baseEmployeeRegisterSchema = z.object({
         .optional()
         .refine((val) => !val || validateEmail(val), 'Spouse Email must be in valid format'),
     spouseAddress: z.string().max(255, 'Spouse Address must not exceed 255 characters').optional(),
-    dateOfBirth: z.string().min(1, 'Date of Birth Required'),
-    dateOfJoining: z.string().min(1, 'Date of Joining Required'),
+    dateOfBirth: z.string().optional(),
+    dateOfJoining: z.string().optional(),
     dateOfConfirmation: z.string().optional(),
     dateOfRetirement: z.string().optional(),
     gender: z.string().min(1, 'Gender Required'),
