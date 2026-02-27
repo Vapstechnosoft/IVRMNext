@@ -7,7 +7,6 @@ import { toast } from 'sonner';
 import BaldwinElectivesReportForm from './_components/add-form';
 import ElectiveReportGridView from './_components/columns';
 import ElectiveReportPrintView from './_components/elective-print-view';
-import ElectiveReportExcel from './_components/elective-report-excel';
 
 import type { ElectiveGroup, StudentRow } from '@/types/exam/exam-module/report';
 
@@ -137,7 +136,8 @@ export default function ExamElectivesReportPage() {
                         <ElectiveReportPrintView students={students} groupList={groupList} showMobile={showMobile} showEmail={showEmail} />
 
                         {/* Screen View */}
-                        <div className='print:hidden'>
+                        <div className='print:hidden '>
+
                             <ElectiveReportGridView
                                 students={students}
                                 groupList={groupList}
@@ -145,15 +145,6 @@ export default function ExamElectivesReportPage() {
                                 showEmail={showEmail}
                                 onPrint={handlePrint}
                             />
-
-                            <div className='mt-6 flex justify-end'>
-                                <ElectiveReportExcel
-                                    students={students}
-                                    groupList={groupList}
-                                    showMobile={showMobile}
-                                    showEmail={showEmail}
-                                />
-                            </div>
                         </div>
                     </div>
                 </CollapsibleSection>

@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import type { ElectiveGroup, StudentRow } from '@/types/exam/exam-module/report';
 import { Printer } from 'lucide-react';
 
+import ElectiveReportExcel from './elective-report-excel';
+
 interface ElectiveReportGridViewProps {
     students: StudentRow[];
     groupList: ElectiveGroup[];
@@ -22,39 +24,45 @@ export default function ElectiveReportGridView({
     return (
         <div className="mt-8 print:hidden">
             {/* Controls */}
-            <div className="no-print flex flex-wrap items-center justify-between gap-4 py-2 mb-4">
-                <div>
-                    <Button onClick={onPrint}  className="bg-blue-600 hover:bg-blue-800 text-white flex">
+            <div className="no-print  items-center justify-between gap-4 py-2 mb-4">
+                <div className='flex justify-end gap-2'>
+                    <Button onClick={onPrint} className="hover:bg-orange-800 text-white w-fit ">
                         <Printer className="h-4 w-4" />
                         <span>PRINT</span>
                     </Button>
+                    <ElectiveReportExcel
+                        students={students}
+                        groupList={groupList}
+                        showMobile={showMobile}
+                        showEmail={showEmail}
+                    />
                 </div>
             </div>
 
             {/* Table with ORANGE headers */}
-            <div className="overflow-x-auto rounded-lg border-2 shadow-sm">
+            <div className=" rounded-lg border-2 shadow-sm ">
                 <table className="w-full border-collapse text-sm ">
                     <thead>
-                        <tr className=" bg-blue-900  text-white font-bold">
-                            <th className="border border-blue-700  px-4 py-3 text-center">SL.No</th>
-                            <th className="border border-blue-700  px-6 py-3 text-left">Student Name</th>
-                            {showMobile && <th className="border border-blue-700  px-4 py-3">Mobile No</th>}
-                            {showEmail && <th className="border border-blue-700  px-4 py-3">Email-Id</th>}
-                            <th className="border border-blue-700  px-4 py-3">Class</th>
-                            <th className="border border-blue-700  px-4 py-3">Section</th>
+                        <tr className=" bg-gray-200  text-black font-bold">
+                            <th className="border border-gray-400  px-4 py-3 text-center">SL.No</th>
+                            <th className="border border-gray-400  px-6 py-3 text-left">Student Name</th>
+                            {showMobile && <th className="border border-gray-400  px-4 py-3">Mobile No</th>}
+                            {showEmail && <th className="border border-gray-400  px-4 py-3">Email-Id</th>}
+                            <th className="border border-gray-400  px-4 py-3">Class</th>
+                            <th className="border border-gray-400  px-4 py-3">Section</th>
 
                             {/* Elective Groups - Orange Headers */}
                             {groupList && groupList.length > 0 ? (
                                 groupList.map((grp) => (
                                     <th
                                         key={grp.emG_Id}
-                                        className="border border-blue-700 px-5 py-3 min-w-40 font-semibold whitespace-normal bg-blue-900"
+                                        className="border border-gray-400 px-5 py-3 min-w-40 font-semibold whitespace-normal bg-gray-200"
                                     >
                                         {grp.emG_GroupName || 'No Name'}
                                     </th>
                                 ))
                             ) : (
-                                <th className="border border-blue-700 px-4 py-3 bg-blue-600 text-yellow-100">
+                                <th className="border border-gray-400 px-4 py-3 bg-gray-600 text-yellow-100">
                                     No Groups Available
                                 </th>
                             )}

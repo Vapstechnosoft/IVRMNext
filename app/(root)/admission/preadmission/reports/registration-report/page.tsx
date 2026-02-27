@@ -46,6 +46,9 @@ export default function RegistrationPageprops(props: {
     const [showTable, setShowTable] = useState(false);
     // Removed selection state as per user request
     const [printData, setPrintData] = useState<IRigistrationReportList[]>([]);
+    const [isPrinting, setIsPrinting] = useState(false);
+
+
 
     /** -----------------------------
      *  Date Filters
@@ -135,6 +138,22 @@ export default function RegistrationPageprops(props: {
         documentTitle: 'Registration_Report'
     });
 
+    /** -----------------------------
+     *  Effects
+     * ----------------------------- */
+    React.useEffect(() => {
+        if (isPrinting && printData.length > 0 && printRef.current && handlePrintContent) {
+            handlePrintContent();
+            setIsPrinting(false);
+        }
+    }, [isPrinting, printData, handlePrintContent]);
+
+    React.useEffect(() => {
+        if (academicYearOptions?.data && academicYearOptions.data.length > 0 && academicYearId === 0) {
+            setAcademicYearId(Number(academicYearOptions.data[0].asmaY_Id));
+        }
+    }, [academicYearOptions, academicYearId]);
+
     const triggerPrint = async () => {
         if (!response?.data?.searchstudentDetails?.length) {
             toast.error('No data available to print');
@@ -164,13 +183,15 @@ export default function RegistrationPageprops(props: {
             }
 
             setPrintData(allData);
+            setIsPrinting(true);
             toast.dismiss('print-fetch');
             toast.success(`Ready to print ${allData.length} records`);
 
             // Give React time to re-render the hidden component with new data
             setTimeout(() => {
-                if (handlePrintContent) {
+                if (printRef.current) {
                     handlePrintContent();
+                    setIsPrinting(false);
                 } else {
                     toast.error('Print functionality is not ready. Please try again.');
                 }
@@ -179,6 +200,7 @@ export default function RegistrationPageprops(props: {
             console.error('Print error:', error);
             toast.dismiss('print-fetch');
             toast.error('Failed to prepare print');
+            setIsPrinting(false);
         }
     };
 
@@ -219,7 +241,7 @@ export default function RegistrationPageprops(props: {
                                 onValueChange={(value) => setAcademicYearId(Number(value))}
                                 value={academicYearId ? String(academicYearId) : undefined}>
                                 <SelectTrigger className='w-48'>
-                                    <SelectValue placeholder='Select Academic Year' />
+                                    <SelectValue placeholder='--Select Year--' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {academicYearLoading ? (
@@ -353,7 +375,7 @@ export default function RegistrationPageprops(props: {
                     left: 0,
                     width: 0,
                     height: 0,
-                    overflow: 'visible',
+                    overflow: 'hidden', // Changed to hidden to prevent scrollbars
                     opacity: 0,
                     pointerEvents: 'none',
                     zIndex: -1
@@ -361,7 +383,6 @@ export default function RegistrationPageprops(props: {
                 <RegistrationReportPrint
                     ref={printRef}
                     data={printData}
-                // institutionName prop removed to eliminate VAPS TECHNOSOFT branding
                 />
             </div>
         </div>

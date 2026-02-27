@@ -1,4 +1,5 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -8,13 +9,16 @@ import { X } from 'lucide-react';
 import { useMemo } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { MasterLeave } from './columns';
+
 interface LeaveFormProps {
     editingLeave: MasterLeave | null;
     onSubmit: (data: MasterLeave) => void;
     onCancel: () => void;
 }
+
 export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) {
     const { data: dropdownData, isLoading: isLoadingDropdowns } = useMasterLeaveDropdowns();
+
     // Extract leave type options from API
     const leaveTypeOptions = useMemo(() => {
         if (!dropdownData?.data?.leaveTypes || !Array.isArray(dropdownData.data.leaveTypes)) {
@@ -22,6 +26,7 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
         }
         return dropdownData.data.leaveTypes;
     }, [dropdownData]);
+
     const {
         register,
         handleSubmit,
@@ -30,19 +35,28 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
         formState: { errors }
     } = useForm<MasterLeave>({
         defaultValues: editingLeave || {
-            leaveName: '',
-            leaveCode: '',
-            leaveType: '',
-            leaveDetails: '',
-            leaveCredit: false,
-            lateDeduct: false,
-            leaveOrder: 0,
+            hrmL_LeaveName: '',
+            hrmL_LeaveCode: '',
+            hrmL_LeaveType: '',
+            hrmL_LeaveDetails: '',
+            hrmL_LeaveCreditFlg: false,
+            hrmL_LateDeductFlag: false,
+            hrmL_LateDeductOrder: 0,
+            hrmL_LeaveApplyCriteria: '',
+            hrmL_DaysForApplyCriteria: '',
+            hrmL_MaxDaysForApply: '',
             isActive: true
         }
     });
+
     const handleFormSubmit: SubmitHandler<MasterLeave> = (data) => {
+        // Convert string numbers if necessary, though react-hook-form valueAsNumber usually handles it.
+        // But the interface says string for some reason? Let's check columns.tsx again.
+        // If interfaces are string, we should respect that or change interface.
+        // Assuming we keep interface as is.
         onSubmit(data);
     };
+
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className='space-y-4'>
             <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
@@ -52,11 +66,13 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                     </label>
                     <InputText
                         id='leave-name-input'
-                        {...register('leaveName', { required: 'Leave name is required' })}
+                        {...register('hrmL_LeaveName', { required: 'Leave name is required' })}
                         placeholder='Enter leave name'
-                        className={errors.leaveName ? 'border-red-500' : ''}
+                        className={errors.hrmL_LeaveName ? 'border-red-500' : ''}
                     />
-                    {errors.leaveName && <p className='mt-1 text-red-500 text-xs'>{errors.leaveName.message}</p>}
+                    {errors.hrmL_LeaveName && (
+                        <p className='mt-1 text-red-500 text-xs'>{errors.hrmL_LeaveName.message}</p>
+                    )}
                 </div>
                 <div>
                     <label htmlFor='leave-code-input' className='font-medium text-sm'>
@@ -64,21 +80,25 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                     </label>
                     <InputText
                         id='leave-code-input'
-                        {...register('leaveCode', { required: 'Leave code is required' })}
+                        {...register('hrmL_LeaveCode', { required: 'Leave code is required' })}
                         placeholder='Enter leave code'
-                        className={errors.leaveCode ? 'border-red-500' : ''}
+                        className={errors.hrmL_LeaveCode ? 'border-red-500' : ''}
                     />
-                    {errors.leaveCode && <p className='mt-1 text-red-500 text-xs'>{errors.leaveCode.message}</p>}
+                    {errors.hrmL_LeaveCode && (
+                        <p className='mt-1 text-red-500 text-xs'>{errors.hrmL_LeaveCode.message}</p>
+                    )}
                 </div>
                 <div>
                     <label htmlFor='leave-type-select' className='font-medium text-sm'>
                         Leave Type *
                     </label>
                     <Select
-                        value={watch('leaveType')}
-                        onValueChange={(value) => setValue('leaveType', value)}
+                        value={watch('hrmL_LeaveType')}
+                        onValueChange={(value) => setValue('hrmL_LeaveType', value, { shouldValidate: true })}
                         disabled={isLoadingDropdowns}>
-                        <SelectTrigger id='leave-type-select' className={errors.leaveType ? 'border-red-500' : ''}>
+                        <SelectTrigger
+                            id='leave-type-select'
+                            className={errors.hrmL_LeaveType ? 'border-red-500' : ''}>
                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : 'Select Leave Type'} />
                         </SelectTrigger>
                         <SelectContent>
@@ -95,7 +115,9 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                             )}
                         </SelectContent>
                     </Select>
-                    {errors.leaveType && <p className='mt-1 text-red-500 text-xs'>{errors.leaveType.message}</p>}
+                    {errors.hrmL_LeaveType && (
+                        <p className='mt-1 text-red-500 text-xs'>{errors.hrmL_LeaveType.message}</p>
+                    )}
                 </div>
                 <div className='md:col-span-3'>
                     <label htmlFor='leave-details-textarea' className='font-medium text-sm'>
@@ -103,7 +125,7 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                     </label>
                     <textarea
                         id='leave-details-textarea'
-                        {...register('leaveDetails')}
+                        {...register('hrmL_LeaveDetails')}
                         placeholder='Enter leave details'
                         className='w-full rounded-md border border-gray-300 p-2 focus:border-transparent focus:ring-2 focus:ring-blue-500'
                         rows={3}
@@ -114,8 +136,8 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                 <div className='flex items-center space-x-2'>
                     <Checkbox
                         id='leaveCredit'
-                        checked={watch('leaveCredit')}
-                        onCheckedChange={(checked) => setValue('leaveCredit', checked as boolean)}
+                        checked={watch('hrmL_LeaveCreditFlg')}
+                        onCheckedChange={(checked) => setValue('hrmL_LeaveCreditFlg', checked as boolean)}
                     />
                     <label htmlFor='leaveCredit' className='font-medium text-sm'>
                         Leave Credit
@@ -124,8 +146,8 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                 <div className='flex items-center space-x-2'>
                     <Checkbox
                         id='lateDeduct'
-                        checked={watch('lateDeduct')}
-                        onCheckedChange={(checked) => setValue('lateDeduct', checked as boolean)}
+                        checked={watch('hrmL_LateDeductFlag')}
+                        onCheckedChange={(checked) => setValue('hrmL_LateDeductFlag', checked as boolean)}
                     />
                     <label htmlFor='lateDeduct' className='font-medium text-sm'>
                         Late Deduct
@@ -137,7 +159,7 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                     </label>
                     <InputText
                         id='leave-order-input'
-                        {...register('leaveOrder', { valueAsNumber: true })}
+                        {...register('hrmL_LateDeductOrder', { valueAsNumber: true })}
                         placeholder='Enter order'
                         type='number'
                     />
@@ -148,7 +170,9 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                     <label htmlFor='leave-apply-criteria-select' className='font-medium text-sm'>
                         Apply Criteria
                     </label>
-                    <Select value={watch('leaveApplyCriteria')} onValueChange={(value) => setValue('leaveApplyCriteria', value)}>
+                    <Select
+                        value={watch('hrmL_LeaveApplyCriteria')}
+                        onValueChange={(value) => setValue('hrmL_LeaveApplyCriteria', value)}>
                         <SelectTrigger id='leave-apply-criteria-select'>
                             <SelectValue placeholder='Select Criteria' />
                         </SelectTrigger>
@@ -165,13 +189,23 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                     <label htmlFor='days-for-criteria-input' className='font-medium text-sm'>
                         Days for Criteria
                     </label>
-                    <InputText id='days-for-criteria-input' {...register('daysForApplyCriteria')} placeholder='Enter days' type='number' />
+                    <InputText
+                        id='days-for-criteria-input'
+                        {...register('hrmL_DaysForApplyCriteria')}
+                        placeholder='Enter days'
+                        type='number'
+                    />
                 </div>
                 <div>
                     <label htmlFor='max-days-input' className='font-medium text-sm'>
                         Max Days for Apply
                     </label>
-                    <InputText id='max-days-input' {...register('maxDaysForApply')} placeholder='Enter max days' type='number' />
+                    <InputText
+                        id='max-days-input'
+                        {...register('hrmL_MaxDaysForApply')}
+                        placeholder='Enter max days'
+                        type='number'
+                    />
                 </div>
             </div>
             <div className='flex gap-2'>

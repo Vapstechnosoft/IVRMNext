@@ -48,19 +48,20 @@ export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className =
 
     useEffect(() => {
         if (freshData) {
+            console.log('🔄 [UpdateForm] Fresh Data:', freshData);
             reset({
-                leaveName: freshData.leaveName,
-                leaveCode: freshData.leaveCode,
-                leaveType: freshData.leaveType,
-                leaveDetails: freshData.leaveDetails,
-                leaveCredit: freshData.leaveCredit,
-                lateDeduct: freshData.lateDeduct,
-                probationNotApplicable: freshData.probationNotApplicable,
-                leaveApplyCriteria: freshData.leaveApplyCriteria,
-                daysForApplyCriteria: freshData.daysForApplyCriteria,
-                maxDaysForApply: freshData.maxDaysForApply,
-                leaveOrder: freshData.leaveOrder,
-                isActive: freshData.isActive
+                hrmL_LeaveName: freshData.hrmL_LeaveName || '',
+                hrmL_LeaveCode: freshData.hrmL_LeaveCode || '',
+                hrmL_LeaveType: String(freshData.hrmL_LeaveType || ''),
+                hrmL_LeaveDetails: freshData.hrmL_LeaveDetails || '',
+                hrmL_LeaveCreditFlg: !!freshData.hrmL_LeaveCreditFlg,
+                hrmL_LateDeductFlag: !!freshData.hrmL_LateDeductFlag,
+                hrmL_ProbationNotApplicableFlg: !!freshData.hrmL_ProbationNotApplicableFlg,
+                hrmL_LeaveApplyCriteria: String(freshData.hrmL_LeaveApplyCriteria || ''),
+                hrmL_DaysForApplyCriteria: String(freshData.hrmL_DaysForApplyCriteria || ''),
+                hrmL_MaxDaysForApply: String(freshData.hrmL_MaxDaysForApply || ''),
+                hrmL_LateDeductOrder: Number(freshData.hrmL_LateDeductOrder || 0),
+                isActive: !!freshData.isActive
             });
         }
     }, [freshData, reset]);
@@ -78,7 +79,7 @@ export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className =
             {
                 ...data,
                 id: row.id,
-                leaveOrder: data.leaveOrder || 0
+                hrmL_LateDeductOrder: data.hrmL_LateDeductOrder || 0
             },
             {
                 onSuccess: () => {
@@ -100,30 +101,34 @@ export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className =
                         <InputText
                             label='Leave Name'
                             required
-                            id='leaveName'
-                            {...register('leaveName', MASTER_LEAVE_VALIDATION.leaveName)}
-                            error={errors.leaveName?.message}
+                            id='hrmL_LeaveName'
+                            {...register('hrmL_LeaveName', MASTER_LEAVE_VALIDATION.hrmL_LeaveName)}
+                            error={errors.hrmL_LeaveName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <InputText
                             label='Leave Code'
                             required
-                            id='leaveCode'
-                            {...register('leaveCode', MASTER_LEAVE_VALIDATION.leaveCode)}
-                            error={errors.leaveCode?.message}
+                            id='hrmL_LeaveCode'
+                            {...register('hrmL_LeaveCode', MASTER_LEAVE_VALIDATION.hrmL_LeaveCode)}
+                            error={errors.hrmL_LeaveCode?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <Controller
-                            name='leaveType'
+                            name='hrmL_LeaveType'
                             control={control}
-                            rules={MASTER_LEAVE_VALIDATION.leaveType}
+                            rules={MASTER_LEAVE_VALIDATION.hrmL_LeaveType}
                             render={({ field }) => (
                                 <div>
-                                    <label htmlFor='leaveType' className='mb-2 block font-medium text-sm'>
+                                    <label htmlFor='hrmL_LeaveType' className='mb-2 block font-medium text-sm'>
                                         Leave Type <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger id='leaveType' className={errors.leaveType ? 'border-red-500' : ''}>
+                                    <Select
+                                        value={field.value}
+                                        onValueChange={field.onChange}
+                                        key={`type-${row.id}-${field.value}`}
+                                    >
+                                        <SelectTrigger id='hrmL_LeaveType' className={errors.hrmL_LeaveType ? 'border-red-500' : ''}>
                                             <SelectValue placeholder='Select Leave Type' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -138,7 +143,7 @@ export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className =
                                             )}
                                         </SelectContent>
                                     </Select>
-                                    {errors.leaveType && <FormError>{errors.leaveType.message}</FormError>}
+                                    {errors.hrmL_LeaveType && <FormError>{errors.hrmL_LeaveType.message}</FormError>}
                                 </div>
                             )}
                         />
@@ -147,9 +152,9 @@ export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className =
                         <InputTextarea
                             label='Leave Details'
                             required
-                            id='leaveDetails'
-                            {...register('leaveDetails', MASTER_LEAVE_VALIDATION.leaveDetails)}
-                            error={errors.leaveDetails?.message}
+                            id='hrmL_LeaveDetails'
+                            {...register('hrmL_LeaveDetails', MASTER_LEAVE_VALIDATION.hrmL_LeaveDetails)}
+                            error={errors.hrmL_LeaveDetails?.message}
                             rows={3}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
@@ -157,47 +162,51 @@ export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className =
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                         <div className='flex items-center space-x-2'>
                             <Controller
-                                name='leaveCredit'
+                                name='hrmL_LeaveCreditFlg'
                                 control={control}
-                                render={({ field }) => <Checkbox id='leaveCredit' checked={field.value} onCheckedChange={field.onChange} />}
+                                render={({ field }) => <Checkbox id='hrmL_LeaveCreditFlg' checked={field.value} onCheckedChange={field.onChange} />}
                             />
-                            <label htmlFor='leaveCredit' className='font-medium text-sm'>
+                            <label htmlFor='hrmL_LeaveCreditFlg' className='font-medium text-sm'>
                                 Leave Credit
                             </label>
                         </div>
                         <div className='flex items-center space-x-2'>
                             <Controller
-                                name='lateDeduct'
+                                name='hrmL_LateDeductFlag'
                                 control={control}
-                                render={({ field }) => <Checkbox id='lateDeduct' checked={field.value} onCheckedChange={field.onChange} />}
+                                render={({ field }) => <Checkbox id='hrmL_LateDeductFlag' checked={field.value} onCheckedChange={field.onChange} />}
                             />
-                            <label htmlFor='lateDeduct' className='font-medium text-sm'>
+                            <label htmlFor='hrmL_LateDeductFlag' className='font-medium text-sm'>
                                 Late Deduct
                             </label>
                         </div>
                         <InputText
                             label='Leave Order'
-                            id='leaveOrder'
+                            id='hrmL_LateDeductOrder'
                             type='number'
-                            {...register('leaveOrder', { valueAsNumber: true })}
-                            error={errors.leaveOrder?.message}
+                            {...register('hrmL_LateDeductOrder', { valueAsNumber: true })}
+                            error={errors.hrmL_LateDeductOrder?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
                     <div className='grid grid-cols-1 gap-4 border-t pt-4 md:grid-cols-3'>
                         <Controller
-                            name='leaveApplyCriteria'
+                            name='hrmL_LeaveApplyCriteria'
                             control={control}
-                            rules={MASTER_LEAVE_VALIDATION.leaveApplyCriteria}
+                            rules={MASTER_LEAVE_VALIDATION.hrmL_LeaveApplyCriteria}
                             render={({ field }) => (
                                 <div>
-                                    <label htmlFor='leaveApplyCriteria' className='mb-2 block font-medium text-sm'>
+                                    <label htmlFor='hrmL_LeaveApplyCriteria' className='mb-2 block font-medium text-sm'>
                                         Apply Criteria <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange}>
+                                    <Select
+                                        value={field.value}
+                                        onValueChange={field.onChange}
+                                        key={`criteria-${row.id}-${field.value}`}
+                                    >
                                         <SelectTrigger
-                                            id='leaveApplyCriteria'
-                                            className={errors.leaveApplyCriteria ? 'border-red-500' : ''}>
+                                            id='hrmL_LeaveApplyCriteria'
+                                            className={errors.hrmL_LeaveApplyCriteria ? 'border-red-500' : ''}>
                                             <SelectValue placeholder='Select Criteria' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -208,23 +217,23 @@ export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className =
                                             <SelectItem value='Quarter'>Quarter</SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    {errors.leaveApplyCriteria && <FormError>{errors.leaveApplyCriteria.message}</FormError>}
+                                    {errors.hrmL_LeaveApplyCriteria && <FormError>{errors.hrmL_LeaveApplyCriteria.message}</FormError>}
                                 </div>
                             )}
                         />
                         <InputText
                             label='Days for Criteria'
-                            id='daysForApplyCriteria'
-                            {...register('daysForApplyCriteria', MASTER_LEAVE_VALIDATION.daysForApplyCriteria)}
-                            error={errors.daysForApplyCriteria?.message}
+                            id='hrmL_DaysForApplyCriteria'
+                            {...register('hrmL_DaysForApplyCriteria', MASTER_LEAVE_VALIDATION.hrmL_DaysForApplyCriteria)}
+                            error={errors.hrmL_DaysForApplyCriteria?.message}
                             placeholder='Enter days'
                             type='number'
                         />
                         <InputText
                             label='Max Days for Apply'
-                            id='maxDaysForApply'
-                            {...register('maxDaysForApply', MASTER_LEAVE_VALIDATION.maxDaysForApply)}
-                            error={errors.maxDaysForApply?.message}
+                            id='hrmL_MaxDaysForApply'
+                            {...register('hrmL_MaxDaysForApply', MASTER_LEAVE_VALIDATION.hrmL_MaxDaysForApply)}
+                            error={errors.hrmL_MaxDaysForApply?.message}
                             placeholder='Enter max days'
                             type='number'
                         />

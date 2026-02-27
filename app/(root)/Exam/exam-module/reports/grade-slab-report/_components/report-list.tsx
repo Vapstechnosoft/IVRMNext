@@ -191,14 +191,12 @@ export const ReportList: React.FC<ReportListProps> = ({ data, institution }) => 
                 <div className='flex space-x-2'>
                     <Button
                         onClick={handleExport}
-                        variant='outline'
-                        className='flex h-8 items-center gap-2 border-green-600 bg-white text-green-700 hover:bg-gray-50'>
+                        className='flex h-8 items-center gap-2 hover:bg-orange-700'>
                         <FileSpreadsheet className='h-4 w-4' /> Excel
                     </Button>
                     <Button
                         onClick={handlePrint}
-                        variant='outline'
-                        className='flex h-8 items-center gap-2 border-blue-600 bg-white text-blue-700 hover:bg-gray-50'>
+                        className='flex h-8 items-center gap-2 hover:bg-orange-700'>
                         <Printer className='h-4 w-4' /> Print
                     </Button>
                 </div>

@@ -230,8 +230,21 @@ const baseEmployeeRegisterSchema = z.object({
     grade: z.string().min(1, 'Grade Required'),
     fatherName: createStringOnlySchema("Father's Name", 1, 50),
     motherName: createStringOnlySchema("Mother's Name", 1, 50),
-    dateOfBirth: z.string().min(1, 'Date of Birth Required'),
-    dateOfJoining: z.string().min(1, 'Date of Joining Required'),
+    spouseName: z.string().max(50, 'Spouse Name must not exceed 50 characters').optional(),
+    spouseOccupation: z.string().max(50, 'Spouse Occupation must not exceed 50 characters').optional(),
+    spouseMobileNo: z
+        .string()
+        .max(10, 'Spouse Mobile No must not exceed 10 characters')
+        .optional()
+        .refine((val) => !val || validateMobileNumber(val), 'Spouse Mobile No must be a valid 10-digit number'),
+    spouseEmailId: z
+        .string()
+        .max(100, 'Spouse Email must not exceed 100 characters')
+        .optional()
+        .refine((val) => !val || validateEmail(val), 'Spouse Email must be in valid format'),
+    spouseAddress: z.string().max(255, 'Spouse Address must not exceed 255 characters').optional(),
+    dateOfBirth: z.string().optional(),
+    dateOfJoining: z.string().optional(),
     dateOfConfirmation: z.string().optional(),
     dateOfRetirement: z.string().optional(),
     gender: z.string().min(1, 'Gender Required'),

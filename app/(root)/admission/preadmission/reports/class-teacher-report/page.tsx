@@ -61,7 +61,7 @@ export default function ClassTeacherReportPage(props: {
 
     useEffect(() => {
         if ((academicYearId ?? 0) === 0 && academicYearOptions?.data && academicYearOptions.data.length > 0) {
-            setAcademicYearId(Number(academicYearOptions.asmaY_Id));
+            setAcademicYearId(Number(academicYearOptions.data[0].asmaY_Id));
         }
     }, [academicYearOptions, academicYearId]);
 
@@ -215,7 +215,7 @@ export default function ClassTeacherReportPage(props: {
                                 onValueChange={(value) => handleFilterChange('academic_year', Number(value))}
                                 value={academicYearId !== 0 ? academicYearId?.toString() : undefined}>
                                 <SelectTrigger id='academic-year' className='w-full'>
-                                    <SelectValue placeholder='Select Academic Year' />
+                                    <SelectValue placeholder='--Select Year--' />
                                 </SelectTrigger>
 
                                 <SelectContent>

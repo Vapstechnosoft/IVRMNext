@@ -96,7 +96,7 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
             }
             if (classId > 0) {
                 console.log("Setting classId:", classId);
-                form.setValue('category_classes', [classId.toString()]);
+                form.setValue('category_classes', [String(classId)]);
             }
         }
     }, [rowData.asmaY_Year, rowData.amC_Name, rowData.asmcL_ClassName, academicYears, categories, classes, form]);
@@ -120,7 +120,7 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
                     if (!item) return;
                     if (typeof item !== 'object') return;
 
-                    if (item.asmS_Id && Number(item.asmS_Id) > 0) ids.add(item.asmS_Id.toString());
+                    if (item.asmS_Id && Number(item.asmS_Id) > 0) ids.add(String(item.asmS_Id));
 
                     if (Array.isArray(item)) {
                         item.forEach(traverse);
@@ -149,7 +149,7 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
                     mI_Id: 0,
                     asmaY_Id: details.asmaY_Id || 0,
                     amC_Id: details.amC_Id || 0,
-                    category_classes: details.asmcL_Id ? [details.asmcL_Id.toString()] : [],
+                    category_classes: details.asmcL_Id ? [String(details.asmcL_Id)] : [],
                     category_class_sections: sectionIds.length > 0 ? sectionIds : []
                 };
 
@@ -238,18 +238,22 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
     };
 
     // Disable all options for readonly display
-    const sectionOptions = sections?.data?.map((item) => ({
-        label: item.asmC_SectionName,
-        value: item.asmS_Id.toString(),
-        disabled: true // Disable interaction
-    })) || [];
+    const sectionOptions = sections?.data
+        ?.filter((item) => item.asmS_Id && Number(item.asmS_Id) > 0)
+        ?.map((item) => ({
+            label: item.asmC_SectionName,
+            value: String(item.asmS_Id),
+            disabled: true // Disable interaction
+        })) || [];
 
     // Disable all classes
-    const classOptions = classes?.data?.map((item) => ({
-        label: item.asmcL_ClassName,
-        value: item.asmcL_Id.toString(),
-        disabled: true // Disable interaction
-    })) || [];
+    const classOptions = classes?.data
+        ?.filter((item) => item.asmcL_Id && Number(item.asmcL_Id) > 0)
+        ?.map((item) => ({
+            label: item.asmcL_ClassName,
+            value: String(item.asmcL_Id),
+            disabled: true // Disable interaction
+        })) || [];
 
     return (
         <Form {...form}>
@@ -273,7 +277,7 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
                                 <FormLabel>Category</FormLabel>
                                 <Select
                                     onValueChange={(value) => field.onChange(Number(value))}
-                                    value={field.value?.toString() || ''}
+                                    value={String(field.value ?? '')}
                                 >
                                     <FormControl>
                                         <SelectTrigger disabled={!categories}>
@@ -281,11 +285,13 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {categories?.data?.map((item) => (
-                                            <SelectItem key={item.amC_Id} value={item.amC_Id.toString()}>
-                                                {item.amC_Name}
-                                            </SelectItem>
-                                        ))}
+                                        {categories?.data
+                                            ?.filter((item) => item.amC_Id && Number(item.amC_Id) > 0)
+                                            ?.map((item) => (
+                                                <SelectItem key={item.amC_Id} value={String(item.amC_Id)}>
+                                                    {item.amC_Name}
+                                                </SelectItem>
+                                            ))}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -364,3 +370,4 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
         </Form>
     );
 }
+

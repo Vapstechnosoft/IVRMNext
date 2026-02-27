@@ -243,7 +243,7 @@ export default function UpdateMasterConfiguration({ initialData, onSuccess, clas
                                             ) : (
                                                 <>
                                                     {academicYear?.data?.map((y) => (
-                                                        <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
+                                                        <SelectItem key={y.asmaY_Id} value={y.asmaY_Id?.toString() || ''}>
                                                             {y.asmaY_Year}
                                                         </SelectItem>
                                                     ))}
@@ -252,7 +252,7 @@ export default function UpdateMasterConfiguration({ initialData, onSuccess, clas
                                                         initialData?.asmaY_Id !== null &&
                                                         !academicYear?.data?.some((yy) => yy.asmaY_Id === Number(initialData.asmaY_Id)) && (
                                                             <SelectItem
-                                                                value={initialData.asmaY_Id.toString()}
+                                                                value={initialData.asmaY_Id?.toString() || ''}
                                                                 key={`fallback-${initialData.asmaY_Id}`}>
                                                                 {(initialData as any).academic_year ?? `Year ${initialData.asmaY_Id}`}
                                                             </SelectItem>
@@ -289,7 +289,7 @@ export default function UpdateMasterConfiguration({ initialData, onSuccess, clas
                                                 </SelectItem>
                                             ) : (
                                                 masterCategory?.data?.map((cat) => (
-                                                    <SelectItem key={cat.amC_Id} value={cat.amC_Id.toString()}>
+                                                    <SelectItem key={cat.amC_Id} value={cat.amC_Id?.toString() || ''}>
                                                         {cat.amC_Name}
                                                     </SelectItem>
                                                 ))
