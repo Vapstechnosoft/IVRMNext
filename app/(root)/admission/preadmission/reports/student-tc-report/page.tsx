@@ -17,15 +17,19 @@ import { cn } from '@/lib/utils';
 import { useStudentTcReport } from '@/hooks/admission/preadmission/useReports';
 import { StudentTcDetailsSchema } from '@/schemas/admission/preadmission/reports';
 import { getExcelStudentTcReport } from '@/server/admission/preadmission/reports/month_end_report';
+import { getStudentTcReport } from '@/server/admission/preadmission/reports/report';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { saveAs } from 'file-saver';
 import { CheckSquare, FileText, Printer, RotateCcw, Search, Square } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 import type { z } from 'zod';
-import { getMasterAdmissionReportColumns } from './_components/columns';
+import { FIELD_CONFIG, getMasterAdmissionReportColumns } from './_components/columns';
 import { ColumnValue } from './_components/columnvalue';
 import { StudentTcReportPrint } from './_components/student-tc-report-print';
 
@@ -95,6 +99,8 @@ export default function StudentTcReportPage(props: {
     const [sectionId, setSectionId] = useState<number>(0);
     const [showTable, setShowTable] = useState(false);
     const [fieldSearch, setFieldSearch] = useState('');
+    const [allReportData, setAllReportData] = useState<any[]>([]);
+    const [isPrinting, setIsPrinting] = useState(false);
 
     const [viewMode, setViewMode] = useState<1 | 2>(1); // 1 = All, 2 = Individual
     const [tcType, setTcType] = useState<1 | 2>(2); // 1 = Temporary TC, 2 = Permanent TC
@@ -143,18 +149,14 @@ export default function StudentTcReportPage(props: {
 
     const tablePayload = buildApiPayload();
 
-    const { data: reportData, isLoading, error, refetch } = useStudentTcReport(tablePayload, searchParams, false);
+    const { data: reportData, isLoading, error, refetch } = useStudentTcReport(tablePayload, searchParams, showTable);
 
     const columns = useMemo(() => {
         const ids = selectedFields.map((f: any) => f.columnID);
         return getMasterAdmissionReportColumns(ids);
     }, [selectedFields]);
 
-    const tableProps = useDataTableProps({
-        data: reportData?.data || [],
-        searchParams,
-        totalRecords: reportData?.totalRecords || 0
-    });
+    const tableProps = useDataTableProps(reportData);
 
     const handleSelectAllFields = () => {
         if (selectedFields.length === filteredFields.length) {
@@ -232,35 +234,121 @@ export default function StudentTcReportPage(props: {
 
     const downloadExcel = async () => {
         try {
-            const requestData = buildApiPayload();
-            const response = await getExcelStudentTcReport(requestData);
+            if (!showTable || !reportData || reportData.data.length === 0) {
+                toast.error('Please generate a report first');
+                return;
+            }
 
-            const blob = new Blob([new Uint8Array(response)], {
-                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            toast.loading('Preparing Excel...', { id: 'excel-download' });
+
+            let dataToExport = allReportData;
+
+            if (dataToExport.length === 0) {
+                const totalRecords = reportData.total || 131;
+                const payload = {
+                    ...tablePayload,
+                    page: 1,
+                    page_size: totalRecords
+                };
+                const response = await getStudentTcReport(payload, {
+                    ...searchParams,
+                    page: 1,
+                    page_size: totalRecords
+                });
+                if (response && response.data && response.data.length > 0) {
+                    dataToExport = response.data;
+                    setAllReportData(response.data);
+                }
+            }
+
+            if (!dataToExport || dataToExport.length === 0) {
+                toast.error('No data found to export', { id: 'excel-download' });
+                return;
+            }
+
+            const formatDate = (date: unknown): string => {
+                if (typeof date !== 'string' || !date) return 'N/A';
+                try {
+                    return format(new Date(date), 'dd-MM-yyyy');
+                } catch {
+                    return 'N/A';
+                }
+            };
+
+            const worksheetData = dataToExport.map((row, index) => {
+                const mappedRow: any = { 'Sl.No': index + 1 };
+                selectedFields.forEach((item: any) => {
+                    const fieldId = item.columnID;
+                    const config = FIELD_CONFIG[fieldId];
+                    let value = row[fieldId];
+                    if (config?.isDate && value) {
+                        value = formatDate(value);
+                    }
+                    mappedRow[config?.label || fieldId] = value ?? 'N/A';
+                });
+                return mappedRow;
             });
 
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'StudentTcReport.xlsx';
-            document.body.appendChild(link);
-            link.click();
+            const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Student TC Report');
 
-            setTimeout(() => {
-                link.remove();
-                window.URL.revokeObjectURL(url);
-            }, 100);
+            const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+            const data = new Blob([excelBuffer], { type: 'application/octet-stream' });
+            saveAs(data, `StudentTcReport_${format(new Date(), 'ddMMyyyy_HHmmss')}.xlsx`);
 
-            toast.success('Excel downloaded successfully');
+            toast.success('Excel downloaded successfully', { id: 'excel-download' });
         } catch (error) {
             console.error('Download error:', error);
-            toast.error('Failed to download Excel');
+            toast.error('Failed to download Excel', { id: 'excel-download' });
         }
     };
 
     const handlePrint = useReactToPrint({
         contentRef: componentRef
     });
+
+    const handlePrintAll = async () => {
+        try {
+            if (!showTable || !reportData || reportData.data.length === 0) {
+                toast.error('Please generate a report first');
+                return;
+            }
+
+            setIsPrinting(true);
+            toast.loading('Preparing all records for print...', { id: 'print-all' });
+
+            const totalRecords = reportData.total || 131;
+            const payload = {
+                ...tablePayload,
+                page: 1,
+                page_size: totalRecords
+            };
+            // Fetch with a large page size to get all records based on reportData.total
+            const response = await getStudentTcReport(payload, {
+                ...searchParams,
+                page: 1,
+                page_size: totalRecords
+            });
+
+            if (response && response.data && response.data.length > 0) {
+                setAllReportData(response.data);
+                toast.success('Ready to print', { id: 'print-all' });
+                // Short delay to ensure state update and re-render of the hidden print component
+                setTimeout(() => {
+                    handlePrint();
+                    setIsPrinting(false);
+                }, 500);
+            } else {
+                toast.error('No data found to print', { id: 'print-all' });
+                setIsPrinting(false);
+            }
+        } catch (error) {
+            console.error('Print Error:', error);
+            toast.error('Failed to prepare print view', { id: 'print-all' });
+            setIsPrinting(false);
+        }
+    };
 
     return (
         <div className='min-h-screen'>
@@ -315,7 +403,7 @@ export default function StudentTcReportPage(props: {
                     </div>
 
                     {/* Category Filter */}
-                    <div className='flex w-full flex-col gap-2 sm:w-56'>
+                    {/* <div className='flex w-full flex-col gap-2 sm:w-56'>
                         <Label htmlFor='category' className='mb-1 font-semibold'>
                             Category
                         </Label>
@@ -343,14 +431,9 @@ export default function StudentTcReportPage(props: {
                                 )}
                             </SelectContent>
                         </Select>
-                    </div>
+                    </div> */}
 
-                    {/* Class & Section */}
-                    {/* Keep Class/Section visible even for 'All' if filtering by class/section is desired, 
-                        BUT requirement usually implies 'Individual' needs them for student selection. 
-                        Let's show them based on valid use cases or if 'All' allows class filtering too. 
-                        Assuming 'All' allows filtering by Class/Section as well for broader reports. 
-                    */}
+
                     <div className='flex w-full flex-col gap-2 sm:w-56'>
                         <Label htmlFor='class' className='mb-1 font-semibold'>
                             Class
@@ -520,12 +603,12 @@ export default function StudentTcReportPage(props: {
                         <RotateCcw className='mr-2 h-4 w-4' />
                         Cancel
                     </Button>
-                    {/* <Button onClick={downloadExcel} className='w-full sm:w-fit'>
+                    <Button onClick={downloadExcel} className='w-full sm:w-fit'>
                         Export to Excel
-                    </Button> */}
-                    <Button onClick={handlePrint} className='w-full sm:w-fit'>
+                    </Button>
+                    <Button onClick={handlePrintAll} disabled={isPrinting} className='w-full sm:w-fit'>
                         <Printer className='mr-2 h-4 w-4' />
-                        Print
+                        {isPrinting ? 'Preparing...' : 'Print'}
                     </Button>
                 </div>
             </div>
@@ -558,7 +641,7 @@ export default function StudentTcReportPage(props: {
             <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '297mm' }}>
                 <StudentTcReportPrint
                     ref={componentRef}
-                    data={reportData?.data || []}
+                    data={allReportData.length > 0 ? allReportData : (reportData?.data || [])}
                     selectedFields={selectedFields.map((f: any) => f.columnID)}
                 />
             </div>
