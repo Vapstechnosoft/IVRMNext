@@ -61,6 +61,7 @@ export const getLeaveOpeningBalanceColumns = ({ onEdit, onDelete }: LeaveOpening
                     </Button>
                 </div>
             );
-        }
+        },
+        enableSorting: false
     }
 ];
