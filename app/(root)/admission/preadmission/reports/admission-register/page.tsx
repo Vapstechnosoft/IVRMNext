@@ -22,6 +22,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+import * as XLSX from 'xlsx';
 import { getMasterAdmissionReportColumns } from './_components/columns';
 
 type FormFields = z.infer<typeof admissionReportSchema>;
@@ -194,35 +195,49 @@ export default function AdmissionReportPage(props: {
 
     const downloadExcel = async () => {
         try {
-            const response = await getExcelAdmissionRegistrationReport(academicYearValue, statusValue, requestPayload);
+            toast.loading('Preparing Excel export...', { id: 'excel-download' });
 
-            // Ensure we have a Blob
-            const blob =
-                response instanceof Blob
-                    ? response
-                    : new Blob([new Uint8Array(response)], {
-                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    });
+            const printSearchParams = {
+                page_size: 100000,
+                page: 1
+            };
 
-            // Create download link
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'Admission Register_Report.xlsx';
-            document.body.appendChild(link);
-            link.click();
+            const response: any = await getAdmissionRegister(academicYearValue, statusValue, requestPayload, printSearchParams);
 
-            // Cleanup
-            setTimeout(() => {
-                link.remove();
-                window.URL.revokeObjectURL(url);
-            }, 100);
+            const allData =
+                response?.data && 'searchstudentDetails' in response.data
+                    ? response.data.searchstudentDetails
+                    : Array.isArray(response?.data)
+                        ? response.data
+                        : [];
 
-            setShowReport(false);
+            if (!allData || allData.length === 0) {
+                toast.dismiss('excel-download');
+                toast.error('No data available to export');
+                return;
+            }
 
+            const activeFields = FIELD_OPTIONS.filter((f) => selectedFields.includes(f.id));
+
+            const dataToExport = allData.map((row: any, index: number) => {
+                const mappedRow: any = { 'Sl.No': index + 1 };
+                for (const field of activeFields) {
+                    mappedRow[field.label] = row[field.accessor] || 'N/A';
+                }
+                return mappedRow;
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Admission Register Report');
+
+            XLSX.writeFile(workbook, 'Admission_Register_Report.xlsx');
+
+            toast.dismiss('excel-download');
             toast.success('Excel downloaded successfully');
         } catch (error) {
             console.error('Download error:', error);
+            toast.dismiss('excel-download');
             toast.error('Failed to download Excel');
         }
     };

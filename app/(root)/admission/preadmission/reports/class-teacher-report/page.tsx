@@ -112,8 +112,6 @@ export default function ClassTeacherReportPage(props: {
                 window.URL.revokeObjectURL(url);
             }, 100);
 
-            setShowReport(false);
-
             toast.success('Excel downloaded successfully');
         } catch (error) {
             console.error('Download error:', error);
