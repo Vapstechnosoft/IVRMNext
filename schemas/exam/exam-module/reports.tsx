@@ -644,3 +644,26 @@ export const sophiaTopperListReportSchema = z.object({
 });
 
 export type SophiaTopperListReportSchema = z.infer<typeof sophiaTopperListReportSchema>;
+
+export const stJamesConsolidateReportSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    asmcL_Id: z.number({ required_error: 'Class Name is required' }).min(1, { message: 'Please select Class Name' }),
+    asmS_Id: z.number({ required_error: 'Section Name is required' }).min(1, { message: 'Please select Section Name' })
+})
+
+export type StJamesConsolidateReportSchema = z.infer<typeof stJamesConsolidateReportSchema>;
+
+export const stJamesIX_XReportSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    asmcL_Id: z.number({ required_error: 'Class Name is required' }).min(1, { message: 'Please select Class Name' }),
+    asmS_Id: z.number({ required_error: 'Section Name is required' }).min(1, { message: 'Please select Section Name' }),
+    emE_Id: z
+        .array(
+            z.object({
+                emE_Id: z.number({ required_error: 'Exam is required' }).min(1, { message: 'Please select Exam' })
+            })
+        )
+        .min(1, { message: 'At least one Exam must be selected' })
+})
+
+export type StJamesIX_XReportSchema = z.infer<typeof stJamesIX_XReportSchema>;
