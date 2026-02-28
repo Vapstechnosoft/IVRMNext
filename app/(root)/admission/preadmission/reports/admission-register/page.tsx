@@ -20,10 +20,12 @@ import { CheckSquare, FileSpreadsheet, FileText, Printer, RotateCcw, Search, Squ
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import * as XLSX from 'xlsx';
 import { getMasterAdmissionReportColumns } from './_components/columns';
+import { AdmissionRegisterPrint } from './_components/admission-register-print';
 
 type FormFields = z.infer<typeof admissionReportSchema>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -105,6 +107,7 @@ export default function AdmissionReportPage(props: {
     const router = useRouter();
     const currentSearchParams = useSearchParams();
     const tableRef = useRef<DataTableRef>(null);
+    const componentRef = useRef<HTMLDivElement>(null);
 
     const { data: academicYear, isLoading: ayLoading } = useAcademicYearDropdown();
     const [classSearch, setClassSearch] = useState('');
@@ -337,12 +340,16 @@ export default function AdmissionReportPage(props: {
         toast.info('Report cancelled');
     };
 
+    const handlePrintRequest = useReactToPrint({
+        contentRef: componentRef
+    });
+
     const handlePrint = async () => {
         try {
             setIsPrinting(true);
             toast.info('Preparing print view (fetching all records)...');
 
-            // Fetch all data for printing
+            // Fetch all data for printing (if not already fetched or if we want to ensure full set)
             const printSearchParams = {
                 page_size: 100000,
                 page: 1
@@ -365,21 +372,15 @@ export default function AdmissionReportPage(props: {
 
             setPrintData(allData);
 
-            // Wait for state update and render
+            // Short delay to ensure state update and re-render of the hidden print component
             setTimeout(() => {
-                window.print();
-                // Optional: Reset after print dialog closes (approximate)
-                // In many browsers, window.print() is blocking, so this runs after.
-                // But for safety/UX, we might keep it or reset it.
-                // Let's reset it to restore pagination.
+                handlePrintRequest();
                 setIsPrinting(false);
-                setPrintData([]); // Clear print data after printing
-            }, 1000);
+            }, 500);
         } catch (error) {
             console.error('Print preparation error:', error);
             toast.error('Failed to prepare print view');
             setIsPrinting(false);
-            setPrintData([]); // Clear print data on error
         }
     };
 
@@ -719,6 +720,15 @@ export default function AdmissionReportPage(props: {
                             )}
                         </div>
                     )}
+                </div>
+
+                {/* Hidden Print Component */}
+                <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '297mm' }}>
+                    <AdmissionRegisterPrint
+                        ref={componentRef}
+                        data={printData}
+                        selectedFields={selectedFields}
+                    />
                 </div>
             </div>
         </div>
