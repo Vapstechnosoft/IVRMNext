@@ -6,8 +6,7 @@ import type { IExamReportCard, IMasterInstitution, Institution, ISubject } from 
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import StJamesIX_XReportForm from './_components/report-form';
-// import VidyaniketanProgressReportView from './_components/report-list';
-
+import StJamesIxXReportList from './_components/report-list';
 
 export default function StellaProgressReportPage() {
     const [reportData, setReportData] = useState<any[]>([]);
@@ -44,17 +43,17 @@ export default function StellaProgressReportPage() {
 
     return (
         <div className='container mx-auto space-y-6 p-4'>
-            <CollapsibleSection title='Vidyaniketan Progress Card Report' defaultOpen>
+            <CollapsibleSection title='St.James Progress Card Report' defaultOpen>
                 <StJamesIX_XReportForm onSuccess={handleReportSuccess} />
             </CollapsibleSection>
 
-            {/* {isReportVisible && institution && (
+            {isReportVisible && institution && (
                 <CollapsibleSection title='Progress Cards Report' defaultOpen>
                     <div ref={printRef}>
-                        <VidyaniketanProgressReportView data={reportData} institution={institution} />
+                        <StJamesIxXReportList data={reportData} institution={institution} />
                     </div>
                 </CollapsibleSection>
-            )} */}
+            )}
         </div>
     );
 }

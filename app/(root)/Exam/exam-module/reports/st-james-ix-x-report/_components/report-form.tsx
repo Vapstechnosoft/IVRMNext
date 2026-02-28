@@ -20,6 +20,7 @@ import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 export default function StJamesIX_XReportForm({
     onSuccess
@@ -33,8 +34,8 @@ export default function StJamesIX_XReportForm({
             asmaY_Id: 0,
             asmcL_Id: 0,
             asmS_Id: 0,
-            color: 'Green',
-            emE_Id: []
+            type: 'indi',
+            displayAttendance: true,
         } as any
     });
 
@@ -138,17 +139,18 @@ export default function StJamesIX_XReportForm({
 
     // on submit
     const onSubmit = async (data: StJamesIX_XReportSchema) => {
-        
+
         const payload: any = {
             asmaY_Id: data.asmaY_Id,
             asmcL_Id: data.asmcL_Id,
             asmS_Id: data.asmS_Id,
             emE_Ids: data.emE_Id.map((e) => e.emE_Id).join(','),
-            
+            type: data.type,
+            displayAttendance: data.displayAttendance,
         };
         if (onSuccess) {
             await onSuccess(payload);
-            
+
         }
     };
 
@@ -157,6 +159,35 @@ export default function StJamesIX_XReportForm({
             <CollapsibleContent className='p-6'>
                 <FormProvider {...methods}>
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-6' noValidate>
+                        <div>
+                            <Controller
+                                control={control}
+                                name='type'
+                                render={({ field, fieldState }) => (
+                                    <div className='flex-1 flex justify-center gap-2 sm:flex-row sm:items-center h-8 bg-gray-100 rounded-md '>
+                                        <RadioGroup
+                                            onValueChange={field.onChange}
+                                            value={field.value}
+                                            className='flex flex-row space-x-4'>
+                                            <div className='flex items-center space-x-2'>
+                                                <RadioGroupItem value='indi' id='r1' />
+                                                <Label htmlFor='r1' className='font-normal'>
+                                                    Individual
+                                                </Label>
+                                            </div>
+                                            <div className='flex items-center space-x-2'>
+                                                <RadioGroupItem value='prom' id='r2' />
+                                                <Label htmlFor='r2' className='font-normal'>
+                                                    Promotion
+                                                </Label>
+                                            </div>
+                                        </RadioGroup>
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
+
+                                )}
+                            />
+                        </div>
                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                             <div className='space-y-6'>
                                 <Controller
@@ -278,6 +309,20 @@ export default function StJamesIX_XReportForm({
                                         </div>
                                     )}
                                 />
+                                <div className='flex gap-2 items-center'>
+                                    <Controller
+                                        control={control}
+                                        name='displayAttendance'
+                                        render={({ field }) => (
+                                            <Checkbox
+                                                id="displayAttendance"
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        )}
+                                    />
+                                    <Label htmlFor="displayAttendance">Display Attendance</Label>
+                                </div>
                             </div>
 
                             <div className='space-y-6'>
@@ -350,7 +395,7 @@ export default function StJamesIX_XReportForm({
                         <div className='flex justify-center gap-3'>
                             <Button type='submit' isLoading={isSubmitting} disabled={isSubmitting || selectedExams?.length === 0} className='min-w-[140px]'>
                                 {isSubmitting ? 'Generating...' : 'Report'}
-                                
+
                             </Button>
                             <Button
                                 type='button'
