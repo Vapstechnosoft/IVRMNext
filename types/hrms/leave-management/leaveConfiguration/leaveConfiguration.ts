@@ -50,31 +50,31 @@ export interface LeaveConfigurationGetResponse {
  * API Request for POST/Save Leave Configuration
  */
 export interface LeaveConfigurationSaveRequest {
-    HRLPC_Id: number;
-    MI_Id: number;
-    HRLPC_SpOrGenFlg: string;
-    HRLPC_PunchGAPTime: string;
-    HRLPC_AbsentFlag: string;
-    HRLPC_LateInEarlyOutFlag: string;
-    HRLPC_LateInRelaxFlag: boolean;
-    HRLPC_LateInEarlyOut: string;
-    HRLPC_LateInTime: string;
-    HRLPC_EarlyOutRelaxFlag: boolean;
-    HRLPC_EarlyOutTime: string;
-    HRLPC_CummulativeTimeFlag: boolean;
-    HRLPC_CummulativeTime: number;
-    HRLPC_AfterCummulativeTime: string;
-    HRLPC_NoOfLatesFlag: boolean;
-    HRLPC_NoofMonthlyLateInExempted: number;
-    HRLPC_NoOfLates: number;
-    HRLPC_NoOfLatesCFFlag: boolean;
-    HRLPC_LeavePrefixSuffixFlag: boolean;
-    HRLPC_IncludeHolidayFlag: boolean;
-    HRLPC_ActiveFlag: boolean;
-    HRLPC_CreeatedDate?: string | null;
-    HRLPC_UpdatedDate?: string | null;
-    HRLPC_CreatedBy: number;
-    HRLPC_UpdatedBy: number;
+    hrlpC_Id: number;
+    mI_Id: number;
+    hrlpC_SpOrGenFlg: string;
+    hrlpC_PunchGAPTime: string;
+    hrlpC_AbsentFlag: string;
+    hrlpC_LateInEarlyOutFlag: string;
+    hrlpC_LateInRelaxFlag: boolean;
+    hrlpC_LateInEarlyOut: string;
+    hrlpC_LateInTime: string;
+    hrlpC_EarlyOutRelaxFlag: boolean;
+    hrlpC_EarlyOutTime: string;
+    hrlpC_CummulativeTimeFlag: boolean;
+    hrlpC_CummulativeTime: number;
+    hrlpC_AfterCummulativeTime: string;
+    hrlpC_NoOfLatesFlag: boolean;
+    hrlpC_NoofMonthlyLateInExempted: number;
+    hrlpC_NoOfLates: number;
+    hrlpC_NoOfLatesCFFlag: boolean;
+    hrlpC_LeavePrefixSuffixFlag: boolean;
+    hrlpC_IncludeHolidayFlag: boolean;
+    hrlpC_ActiveFlag: boolean;
+    hrlpC_CreeatedDate?: string | null;
+    hrlpC_UpdatedDate?: string | null;
+    hrlpC_CreatedBy: number;
+    hrlpC_UpdatedBy: number;
 }
 
 /**

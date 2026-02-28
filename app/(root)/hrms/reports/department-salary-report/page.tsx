@@ -213,7 +213,8 @@ export default function DepartmentSalaryReportPage() {
                         </div>
                         {/* Designation */}
                         <div className='space-y-2'>
-                            <Label>Designation</Label>
+                            {/* <Label>Designation</Label> */}
+                            <Label>Designation <span className='text-red-500'>*</span></Label>
                             <Controller name='designation' control={control} render={({ field }) => (
                                 <MultiSelect
                                     options={[{ label: 'All', value: 'All' }, ...(designationsData?.data || []).map((d: any) => ({ label: d.HRMDES_DesignationName || d.hrmdeS_DesignationName, value: d.HRMDES_Id?.toString() || d.hrmdeS_Id?.toString() || '' }))]}

@@ -46,6 +46,7 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { AdminOnDutyApply } from '@/types/hrms/leave-management/admin-on-duty-apply';
 
 const formSchema = z.object({
     hrmE_Id: z.coerce.number().min(1, 'Employee ID is required'),
@@ -65,23 +66,62 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface ApplyLeaveFormProps {
     onSuccess?: () => void;
+    onCancel?: () => void;
+    editingRow?: AdminOnDutyApply | null;
 }
 
-export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
+export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: ApplyLeaveFormProps) {
     const { mutate: saveLeave, isPending } = useSaveOnDutyLeaveRequest();
     const { data: employeeList, isLoading: isLoadingList } = useAdminOnDutyEmployeeDropdown();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            hrmE_Id: 0,
+            hrmE_Id: editingRow?.employeeId || 0,
             leaveType: 'OD',
-            totalDays: 1,
-            leaveReason: '',
-            inTime: '10:00',
-            outTime: '18:00'
+            fromDate: editingRow?.fromDate || undefined,
+            toDate: editingRow?.toDate || undefined,
+            totalDays: editingRow?.totalDays || 1,
+            leaveReason: editingRow?.leaveReason || '',
+            inTime: editingRow?.inTime || '10:00',
+            outTime: editingRow?.outTime || '18:00'
         }
     });
+
+    // Reset form when editingRow changes
+    useEffect(() => {
+        if (editingRow) {
+            // Ensure time format is HH:mm for the time input
+            const formatTime = (time: string) => {
+                if (!time) return '';
+                const parts = time.split(':');
+                if (parts.length >= 2) {
+                    return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+                }
+                return time;
+            };
+
+            form.reset({
+                hrmE_Id: editingRow.employeeId,
+                leaveType: 'OD',
+                fromDate: editingRow.fromDate ? new Date(editingRow.fromDate) : undefined,
+                toDate: editingRow.toDate ? new Date(editingRow.toDate) : undefined,
+                totalDays: editingRow.totalDays,
+                leaveReason: editingRow.leaveReason || '',
+                inTime: formatTime(editingRow.inTime),
+                outTime: formatTime(editingRow.outTime)
+            });
+        } else {
+            form.reset({
+                hrmE_Id: 0,
+                leaveType: 'OD',
+                totalDays: 1,
+                leaveReason: '',
+                inTime: '10:00',
+                outTime: '18:00'
+            });
+        }
+    }, [editingRow, form]);
 
     const hrmE_Id = form.watch('hrmE_Id');
     const fromDate = form.watch('fromDate');
@@ -89,19 +129,20 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
 
     // Auto-calculate total days
     useEffect(() => {
-        if (fromDate && toDate) {
+        if (fromDate && toDate && !editingRow) {
             const days = differenceInDays(toDate, fromDate) + 1;
             if (days > 0) {
                 form.setValue('totalDays', days);
             }
         }
-    }, [fromDate, toDate, form]);
+    }, [fromDate, toDate, form, editingRow]);
 
     const { data: employeeData, isLoading: isLoadingEmp } = useEmployeeOnDutyDetails(hrmE_Id > 0 ? hrmE_Id : null);
 
     function onSubmit(values: FormValues) {
         saveLeave(
             {
+                hrelaP_Id: editingRow?.id || 0,
                 hrmE_Id: values.hrmE_Id,
                 hrmL_LeaveType: values.leaveType,
                 hrelaP_FromDate: values.fromDate.toISOString(),
@@ -457,12 +498,16 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
                                         type='button'
                                         variant='outline'
                                         onClick={() => {
-                                            form.reset();
+                                            if (editingRow) {
+                                                onCancel?.();
+                                            } else {
+                                                form.reset();
+                                            }
                                         }}
                                         disabled={isPending}
                                         className='px-6 border-muted-foreground/20'
                                     >
-                                        Reset
+                                        {editingRow ? 'Cancel' : 'Reset'}
                                     </Button>
                                     <Button
                                         type='submit'
@@ -472,11 +517,11 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
                                         {isPending ? (
                                             <>
                                                 <Clock className='mr-2 h-4 w-4 animate-spin' />
-                                                Submitting...
+                                                {editingRow ? 'Updating...' : 'Submitting...'}
                                             </>
                                         ) : (
                                             <>
-                                                Submit Request
+                                                {editingRow ? 'Update Request' : 'Submit Request'}
                                                 <ArrowRight className='ml-2 h-4 w-4' />
                                             </>
                                         )}

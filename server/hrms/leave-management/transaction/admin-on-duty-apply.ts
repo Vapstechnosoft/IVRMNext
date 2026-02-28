@@ -53,7 +53,7 @@ export async function getEmployeeOnDutyLeaveApply(
                     extractedData = val;
                     console.log(`📍 [SERVER] Found data in property: ${prop}`);
                     break;
-                // biome-ignore lint/complexity/useOptionalChain: <explanation>
+                    // biome-ignore lint/complexity/useOptionalChain: <explanation>
                 } else if (val && val.$values && Array.isArray(val.$values)) {
                     extractedData = val.$values;
                     console.log(`📍 [SERVER] Found data in property: ${prop}.$values`);

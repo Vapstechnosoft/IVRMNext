@@ -12,14 +12,36 @@ import { use, useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { type LeaveOpeningBalance, getLeaveOpeningBalanceColumns } from './_components/columns';
 import { LeaveOpeningBalanceForm, type LeaveOpeningBalanceFormData } from './_components/leave-opening-balance-form';
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function LeaveOpeningBalancePage(props: { searchParams: SearchParams }) {
     const _searchParams = use(props.searchParams);
 
+    // Use nuqs hooks for reactive table parameters
+    const [params, setParams] = useQueryStates({
+        page: parseAsInteger.withDefault(1),
+        page_size: parseAsInteger.withDefault(10),
+        search_query: parseAsString.withDefault(''),
+        sort_column: parseAsString.withDefault(''),
+        sort_direction: parseAsString.withDefault('asc'),
+        search_columns: parseAsString.withDefault(''),
+        search_column: parseAsString.withDefault('')
+    });
+
+    // Normalize params for useLeaveOpeningBalanceGrid
+    const normalizedParams = useMemo(() => ({
+        page: params.page,
+        page_size: params.page_size,
+        search_query: params.search_query || '',
+        sort_column: params.sort_column || '',
+        sort_direction: (params.sort_direction as 'asc' | 'desc') || 'asc',
+        search_columns: params.search_columns || params.search_column || ''
+    }), [params]);
+
     // Fetch Grid Data
-    const { data: gridResponse, isLoading: isLoadingGrid, refetch: refetchGrid } = useLeaveOpeningBalanceGrid();
+    const { data: gridResponse, isLoading: isLoadingGrid, refetch: refetchGrid } = useLeaveOpeningBalanceGrid(normalizedParams);
     const rows = (gridResponse?.data || []) as LeaveOpeningBalance[];
 
     return (
@@ -28,6 +50,9 @@ export default function LeaveOpeningBalancePage(props: { searchParams: SearchPar
                 rows={rows}
                 isLoadingGrid={isLoadingGrid}
                 refetchGrid={refetchGrid}
+                totalItems={gridResponse?.total || rows.length}
+                params={params}
+                setParams={setParams}
             />
         </FormProvider>
     );
@@ -36,11 +61,17 @@ export default function LeaveOpeningBalancePage(props: { searchParams: SearchPar
 function LeaveOpeningBalancePageContent({
     rows,
     isLoadingGrid,
-    refetchGrid
+    refetchGrid,
+    totalItems,
+    params,
+    setParams
 }: {
     rows: LeaveOpeningBalance[];
     isLoadingGrid: boolean;
     refetchGrid: () => void;
+    totalItems: number;
+    params: any;
+    setParams: any;
 }) {
     const { openAddForm, openEditForm, isAddFormOpen, closeAddForm, closeEditForm } = useFormContext<LeaveOpeningBalance>();
     const saveMutation = useSaveLeaveOpeningBalance();
@@ -108,10 +139,19 @@ function LeaveOpeningBalancePageContent({
     }, [employeesData]);
 
     // Extract leave types from the GetLeaveOB response
-    const leaveTypes: { id: number; name: string }[] = (leaveOBResponse?.data || []).map((item: any) => ({
-        id: Number(item.key),
-        name: item.value
-    }));
+    const leaveTypes: { id: number; name: string }[] = useMemo(() => {
+        const unique = new Map();
+        (leaveOBResponse?.data || []).forEach((item: any) => {
+            const id = Number(item.key);
+            if (id && !unique.has(id)) {
+                unique.set(id, {
+                    id: id,
+                    name: item.value
+                });
+            }
+        });
+        return Array.from(unique.values());
+    }, [leaveOBResponse]);
 
 
     const handleFormSubmit = async (formData: LeaveOpeningBalanceFormData) => {
@@ -186,9 +226,9 @@ function LeaveOpeningBalancePageContent({
     const tableProps = useDataTableProps({
         data: rows,
         columns: columns,
-        totalItems: rows.length,
-        searchParams: {},
-        onSearchParamsChange: () => { }
+        totalItems: totalItems,
+        searchParams: params,
+        onSearchParamsChange: setParams
     });
 
     return (
@@ -224,6 +264,7 @@ function LeaveOpeningBalancePageContent({
                         columns={columns}
                         isLoading={isLoadingGrid}
                         showViewOptions={false}
+                        showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading leave opening balance...'
                         noDataTitle='No Leave Opening Balance Found'

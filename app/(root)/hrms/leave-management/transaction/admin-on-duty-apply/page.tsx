@@ -13,9 +13,10 @@ import ApplyLeaveForm from './_components/apply-leave-form';
 import { getAdminOnDutyApplyColumns } from './_components/columns';
 import { ViewLeaveDetailsDialog } from './_components/view-dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FileText, ClipboardList, PlusCircle } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
+import { AdminOnDutyApply } from '@/types/hrms/leave-management/admin-on-duty-apply';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Plus, X } from 'lucide-react';
 
 export default function AdminOnDutyApplyPage() {
     const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withDefault(1));
@@ -41,9 +42,9 @@ export default function AdminOnDutyApplyPage() {
     const [viewLeaveId, setViewLeaveId] = useState<number | null>(null);
     const [isViewOpen, setIsViewOpen] = useState(false);
     const [showForm, setShowForm] = useState(false);
+    const [editingRow, setEditingRow] = useState<AdminOnDutyApply | null>(null);
 
     const { mutate: deleteLeave } = useDeleteLeaveById();
-    const { mutate: toggleStatus } = useToggleOnDutyStatus();
 
     const tableProps = useDataTableProps(adminOnDutyList);
 
@@ -57,93 +58,100 @@ export default function AdminOnDutyApplyPage() {
                 deleteLeave(id);
             }
         },
-        onToggle: (id) => {
-            toggleStatus(id);
+        onEdit: (row) => {
+            setEditingRow(row);
+            setShowForm(true);
+            // Scroll to form
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     });
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1
-            }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 }
-    };
-
     return (
         <div className='min-h-screen'>
-            <motion.div
-                initial="hidden"
-                animate="visible"
-                variants={containerVariants}
-                className='container space-y-4 p-1'
-            >
-                <div className='flex flex-col gap-8'>
-                    {/* List Section */}
-                    <motion.div variants={itemVariants} className='w-full'>
-                        <div className='flex flex-col gap-4'>
-                            <div className='flex items-center justify-between px-1'>
-                                <div className='flex items-center gap-2'>
-                                </div>
-                                <div className='flex items-center gap-4'>
-                                    {adminOnDutyList?.total !== undefined && (
-                                        <span className='text-xs font-bold text-muted-foreground bg-muted px-2 py-1 rounded-full uppercase'>
-                                            {adminOnDutyList.total} RECORDS
-                                        </span>
-                                    )}
-                                    <Button
-                                        variant={showForm ? 'outline' : 'default'}
-                                        size='sm'
-                                        onClick={() => setShowForm(!showForm)}
-                                        className='flex items-center gap-2 shadow-md hover:shadow-lg transition-all'
-                                    >
-                                        <PlusCircle className={`h-4 w-4 transition-transform ${showForm ? 'rotate-45' : ''}`} />
-                                        {showForm ? 'Close Form' : 'Add New Application'}
-                                    </Button>
-                                </div>
-                            </div>
+            <div className='container space-y-4 p-1'>
+                <div className='flex flex-col gap-6'>
+                    {/* Header with Add Button */}
+                    <div className='flex justify-end'>
+                        <Button
+                            type='button'
+                            onClick={() => {
+                                if (showForm) {
+                                    setEditingRow(null);
+                                }
+                                setShowForm(!showForm);
+                            }}
+                            className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'
+                        >
+                            {showForm ? <X className='h-4 w-4' /> : <Plus className='h-4 w-4' />}
+                            {showForm ? 'Close Form' : 'Add Admin On Duty'}
+                        </Button>
+                    </div>
 
-                            <div className='rounded-xl border border-muted-foreground/10 bg-background shadow-sm overflow-hidden'>
-                                <GenericDataTable
-                                    columns={columns}
-                                    isLoading={isLoading}
-                                    data={adminOnDutyList?.data || []}
-                                    totalItems={adminOnDutyList?.total || 0}
-                                    success={adminOnDutyList?.success}
-                                    errorMessage={adminOnDutyList?.message}
-                                    loadingMessage='Loading leave applications...'
-                                    noDataTitle='No leave applications found'
-                                    noDataDescription='New applications will appear here once submitted.'
-                                    error={error}
-                                />
-                            </div>
-                        </div>
-                    </motion.div>
+                    {/* Data Table Section */}
+                    <CollapsibleSection
+                        title="Admin On Duty Details"
+                        defaultOpen={true}
+                        variant='default'
+                        size='lg'
+                        className='shadow-lg'
+                    >
+                        <GenericDataTable
+                            columns={columns}
+                            isLoading={isLoading}
+                            data={adminOnDutyList?.data || []}
+                            totalItems={adminOnDutyList?.total || 0}
+                            success={adminOnDutyList?.success}
+                            errorMessage={adminOnDutyList?.message}
+                            loadingMessage='Loading leave applications...'
+                            noDataTitle='No leave applications found'
+                            noDataDescription='New applications will appear here once submitted.'
+                            error={error}
+                        />
+                    </CollapsibleSection>
 
                     {/* Form Section */}
                     <AnimatePresence>
                         {showForm && (
                             <motion.div
-                                initial={{ opacity: 0, y: 20 }}
+                                initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 20 }}
+                                exit={{ opacity: 0, y: 10 }}
                                 className='w-full'
                             >
-                                <div className='flex flex-col gap-4 border-t pt-8'>
-                                    <ApplyLeaveForm
-                                        onSuccess={() => {
-                                            refetchAll();
-                                            setShowForm(false);
-                                        }}
-                                    />
-                                </div>
+                                <CollapsibleSection
+                                    title={editingRow ? 'Edit On Duty Application' : 'Add New On Duty Application'}
+                                    defaultOpen={true}
+                                    variant='outline'
+                                    size='md'
+                                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'
+                                >
+                                    <div className='relative'>
+                                        <Button
+                                            type='button'
+                                            onClick={() => {
+                                                setShowForm(false);
+                                                setEditingRow(null);
+                                            }}
+                                            variant='ghost'
+                                            size='sm'
+                                            className='-top-[3.5rem] absolute right-4 w-fit border p-2 shadow-md hover:bg-destructive/10'
+                                        >
+                                            <X className='h-4 w-4 text-destructive' /> Close
+                                        </Button>
+                                        <ApplyLeaveForm
+                                            editingRow={editingRow}
+                                            onSuccess={() => {
+                                                refetchAll();
+                                                setShowForm(false);
+                                                setEditingRow(null);
+                                            }}
+                                            onCancel={() => {
+                                                setShowForm(false);
+                                                setEditingRow(null);
+                                            }}
+                                        />
+                                    </div>
+                                </CollapsibleSection>
                             </motion.div>
                         )}
                     </AnimatePresence>
@@ -154,7 +162,7 @@ export default function AdminOnDutyApplyPage() {
                     open={isViewOpen}
                     onOpenChange={setIsViewOpen}
                 />
-            </motion.div>
+            </div>
         </div>
     );
 }
