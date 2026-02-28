@@ -548,6 +548,61 @@ td button[disabled] {
     animation: blink 1s step-end infinite;
 }
 
+
+/* Global Input Standardization */
+input[type="checkbox"],
+.form-checkbox {
+    @apply h-4 w-4 shrink-0 rounded-[2px] border border-primary shadow transition-all;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+input[type="checkbox"]:checked,
+.form-checkbox:checked {
+    @apply bg-primary;
+}
+
+input[type="checkbox"]:checked::after,
+.form-checkbox:checked::after {
+    content: '';
+    @apply absolute border-primary-foreground;
+    width: 4px;
+    height: 8px;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    top: 1px;
+}
+
+input[type="radio"],
+.form-radio {
+    @apply h-4 w-4 shrink-0 rounded-full border border-primary shadow transition-all;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+input[type="radio"]:checked,
+.form-radio:checked {
+    @apply border-primary;
+}
+
+input[type="radio"]:checked::after,
+.form-radio:checked::after {
+    content: '';
+    @apply absolute rounded-full bg-primary;
+    width: 7px;
+    height: 7px;
+}
+
 @media print {
     body * {
         visibility: hidden;

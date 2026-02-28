@@ -25,8 +25,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronDown, Sparkles } from 'lucide-react';
+import { ChevronDown, Sparkles, Volume2, Play, Square } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import Script from 'next/script';
 import { chatGPT, whatsAppCall, languageTranslator } from '@/server/intelligent-apps';
 
 export function IntelligentAppsMenu() {
@@ -52,7 +53,9 @@ export function IntelligentAppsMenu() {
                     <DropdownMenuItem onSelect={() => setOpenDialog('whatsapp')}>Whatsapp</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => setOpenDialog('chatgpt')}>ChatGPT</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => setOpenDialog('translator')}>Language Translator</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => setOpenDialog('speech')}>Text-to-Speech</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => setOpenDialog('pdf')}>PDF Converter</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => setOpenDialog('compressor')}>Media Compressor</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => setOpenDialog('tour')}>360 Degree Tour</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
@@ -60,7 +63,9 @@ export function IntelligentAppsMenu() {
             <WhatsAppDialog open={openDialog === 'whatsapp'} onOpenChange={(open) => !open && setOpenDialog(null)} />
             <ChatGPTDialog open={openDialog === 'chatgpt'} onOpenChange={(open) => !open && setOpenDialog(null)} />
             <LanguageTranslatorDialog open={openDialog === 'translator'} onOpenChange={(open) => !open && setOpenDialog(null)} />
+            <TextToSpeechDialog open={openDialog === 'speech'} onOpenChange={(open) => !open && setOpenDialog(null)} />
             <PdfConverterDialog open={openDialog === 'pdf'} onOpenChange={(open) => !open && setOpenDialog(null)} />
+            <MediaCompressorDialog open={openDialog === 'compressor'} onOpenChange={(open) => !open && setOpenDialog(null)} />
             <TourDialog open={openDialog === 'tour'} onOpenChange={(open) => !open && setOpenDialog(null)} />
         </>
     );
@@ -587,6 +592,376 @@ function PdfConverterDialog({ open, onOpenChange }: { open: boolean; onOpenChang
                                 )}
                             </Button>
                         </div>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function MediaCompressorDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+    const [file, setFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [result, setResult] = useState<any>(null);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const selectedFile = e.target.files[0];
+            setFile(selectedFile);
+            setPreviewUrl(URL.createObjectURL(selectedFile));
+            setResult(null);
+            setError(null);
+        }
+    };
+
+    const compressImage = async (file: File, quality: number): Promise<Blob> => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.src = URL.createObjectURL(file);
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                // Max dimension check (e.g., 1920)
+                const maxDim = 1920;
+                if (width > maxDim || height > maxDim) {
+                    if (width > height) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    } else {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    reject(new Error('Canvas context not available'));
+                    return;
+                }
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob(
+                    (blob) => {
+                        if (blob) resolve(blob);
+                        else reject(new Error('Compression failed'));
+                    },
+                    'image/jpeg', // Force JPEG for effective compression
+                    0.75 // Default 75% quality
+                );
+            };
+            img.onerror = (err) => reject(err);
+        });
+    };
+
+    const compressPdfClient = async (file: File): Promise<Blob> => {
+        const self = window as any;
+        if (!self.pdfjsLib || !self.jspdf) {
+            throw new Error('PDF libraries are loading (0%). Please wait a moment.');
+        }
+
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await self.pdfjsLib.getDocument(arrayBuffer).promise;
+        const { jsPDF } = self.jspdf;
+        // Use 'pt' to match PDF coordinates easily
+        const doc = new jsPDF({ orientation: 'p', unit: 'pt' });
+
+        // Remove the default first page as we'll add our own with correct dimensions
+        doc.deletePage(1);
+
+        const totalPages = pdf.numPages;
+
+        for (let i = 1; i <= totalPages; i++) {
+            const page = await pdf.getPage(i);
+            const viewport = page.getViewport({ scale: 1.0 });
+
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+            // Compress as JPEG 60% quality
+            const imgData = canvas.toDataURL('image/jpeg', 0.6);
+
+            doc.addPage([viewport.width, viewport.height]);
+            doc.addImage(imgData, 'JPEG', 0, 0, viewport.width, viewport.height);
+        }
+
+        return doc.output('blob');
+    };
+
+    const handleCompress = async () => {
+        if (!file) return;
+
+        setLoading(true);
+        setError(null);
+        setResult(null);
+
+        try {
+            if (file.type.startsWith('image/')) {
+                // Client-side Image Compression (Existing)
+                const start = performance.now();
+                const compressedBlob = await compressImage(file, 75);
+                const end = performance.now();
+
+                const originalSize = file.size;
+                const compressedSize = compressedBlob.size;
+                const savings = ((originalSize - compressedSize) / originalSize) * 100;
+
+                setResult({
+                    original_size_mb: (originalSize / (1024 * 1024)).toFixed(2),
+                    compressed_size_mb: (compressedSize / (1024 * 1024)).toFixed(2),
+                    savings_percent: savings.toFixed(1),
+                    downloadUrl: URL.createObjectURL(compressedBlob),
+                    filename: `compressed_${file.name.substring(0, file.name.lastIndexOf('.'))}.jpg`,
+                    isClientSide: true
+                });
+
+            } else if (file.type === 'application/pdf') {
+                // Client-side PDF Compression (New)
+                const start = performance.now();
+                const compressedBlob = await compressPdfClient(file);
+                const end = performance.now();
+
+                const originalSize = file.size;
+                const compressedSize = compressedBlob.size;
+                const savings = ((originalSize - compressedSize) / originalSize) * 100;
+
+                setResult({
+                    original_size_mb: (originalSize / (1024 * 1024)).toFixed(2),
+                    compressed_size_mb: (compressedSize / (1024 * 1024)).toFixed(2),
+                    savings_percent: savings.toFixed(1),
+                    downloadUrl: URL.createObjectURL(compressedBlob),
+                    filename: `compressed_${file.name}`,
+                    isClientSide: true
+                });
+
+            } else {
+                setError('Unsupported file type');
+            }
+        } catch (err: any) {
+            console.error('Compression error:', err);
+            setError(err.message || 'Compression failed');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDownload = () => {
+        if (result && result.downloadUrl) {
+            const link = document.createElement('a');
+            link.href = result.downloadUrl;
+            link.download = result.filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    };
+
+    const handleCancel = () => {
+        setFile(null);
+        setPreviewUrl(null);
+        setResult(null);
+        setError(null);
+    };
+
+    useEffect(() => {
+        if (!open) handleCancel();
+    }, [open]);
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-[600px]">
+                <Script
+                    src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
+                    strategy="lazyOnload"
+                    onLoad={() => {
+                        if ((window as any).pdfjsLib) {
+                            (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                        }
+                    }}
+                />
+                <Script
+                    src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+                    strategy="lazyOnload"
+                />
+                <DialogHeader>
+                    <DialogTitle>Media Compressor</DialogTitle>
+                    <DialogDescription>Compress Images (Instant) and PDF Files (Server-side).</DialogDescription>
+                </DialogHeader>
+
+                <div className="grid gap-6 py-4">
+                    {!result ? (
+                        <>
+                            <div className="relative flex min-h-[200px] w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors hover:bg-slate-50">
+                                <input
+                                    type="file"
+                                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                                    onChange={handleFileChange}
+                                    accept="image/*,.pdf"
+                                />
+                                {file ? (
+                                    <div className="w-full text-center">
+                                        {file.type.startsWith('image/') && previewUrl ? (
+                                            <img src={previewUrl} alt="Preview" className="mx-auto mb-2 h-40 rounded object-contain shadow-sm" />
+                                        ) : file.type === 'application/pdf' ? (
+                                            <div className="mb-2 flex h-20 w-20 items-center justify-center rounded-full bg-red-100 mx-auto text-red-600">
+                                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                    <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                    <path d="M12 18V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                    <path d="M9 15H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                </svg>
+                                            </div>
+                                        ) : (
+                                            <div className="mb-2 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 mx-auto">
+                                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M15 10L20 6V18L15 14V10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                    <path d="M4 8H11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                    <path d="M4 12H11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                </svg>
+                                            </div>
+                                        )}
+                                        <p className="mt-2 text-sm font-medium">{file.name}</p>
+                                        <p className="text-xs text-muted-foreground">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                                    </div>
+                                ) : (
+                                    <div className="text-center">
+                                        <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 mx-auto text-blue-500">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                <path d="M17 8L12 3L7 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                <path d="M12 3V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            </svg>
+                                        </div>
+                                        <p className="font-medium">Click to upload media</p>
+                                        <p className="mt-1 text-xs text-muted-foreground">Images (JPG, PNG) or Files (PDF)</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Controls removed */}
+
+                            {error && (
+                                <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+                                    {error}
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center space-y-4 py-6">
+                            <div className="flex h-16 w-16 animate-in zoom-in items-center justify-center rounded-full bg-green-100 text-green-600 duration-300">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                            </div>
+                            <h3 className="text-xl font-bold text-green-700">Compression Successful!</h3>
+
+                            <div className="mt-4 grid w-full grid-cols-3 gap-4 text-center">
+                                <div className="rounded-lg border bg-slate-50 p-3">
+                                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Original</p>
+                                    <p className="text-lg font-bold">{result.original_size_mb} MB</p>
+                                </div>
+                                <div className="rounded-lg border bg-slate-50 p-3">
+                                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Compressed</p>
+                                    <p className="text-lg font-bold text-green-600">{result.compressed_size_mb} MB</p>
+                                </div>
+                                <div className="rounded-lg border bg-card p-4 text-center shadow-sm">
+                                    <p className="text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider">Savings</p>
+                                    <p className={`text-xl font-bold ${parseFloat(result.savings_percent) > 0 ? 'text-green-600' : 'text-blue-600'}`}>
+                                        {parseFloat(result.savings_percent) <= 0 ? 'Optimized' : `${result.savings_percent}%`}
+                                    </p>
+                                    {parseFloat(result.savings_percent) <= 0 && (
+                                        <p className="text-[10px] text-muted-foreground mt-1">(Structure is minimal)</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <DialogFooter className="sm:justify-between">
+                    {result ? (
+                        <>
+                            <Button variant="outline" onClick={handleCancel}>Compress Another</Button>
+                            <Button onClick={handleDownload} className="bg-green-600 hover:bg-green-700">
+                                Download Result
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            <Button variant="outline" onClick={handleCancel}>Cancel</Button>
+                            <Button onClick={handleCompress} disabled={loading || !file} className="bg-blue-600 hover:bg-blue-700">
+                                {loading ? 'Compressing...' : 'Compress Media'}
+                            </Button>
+                        </>
+                    )}
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function TextToSpeechDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+    const [text, setText] = useState('');
+
+    const handleSpeak = () => {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.pitch = 1.0;
+            utterance.rate = 1.0;
+            utterance.volume = 1.0;
+            window.speechSynthesis.speak(utterance);
+        } else {
+            alert("Sorry, your browser does not support Text-To-Speech.");
+        }
+    };
+
+    const handleStop = () => {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+    };
+
+    useEffect(() => {
+        if (!open) {
+            handleStop();
+            setText('');
+        }
+    }, [open]);
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                        Text To Speech <Volume2 size={20} className="text-blue-500" />
+                    </DialogTitle>
+                    <DialogDescription>Convert your text into natural sounding speech.</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <Textarea
+                        id="textInput"
+                        placeholder="Enter text or news here...!!"
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
+                        className="min-h-[150px] resize-none border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                    <div className="flex gap-3">
+                        <Button onClick={handleSpeak} className="flex-1 bg-blue-600 hover:bg-blue-700 h-11">
+                            <Play className="mr-2 h-4 w-4 fill-current" /> Listen
+                        </Button>
+                        <Button variant="outline" onClick={handleStop} className="flex-1 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 h-11">
+                            <Square className="mr-2 h-4 w-4 fill-current" /> Stop
+                        </Button>
                     </div>
                 </div>
             </DialogContent>

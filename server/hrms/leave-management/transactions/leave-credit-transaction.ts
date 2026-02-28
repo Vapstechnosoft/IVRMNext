@@ -83,10 +83,10 @@ export async function getLeavetransm(request: LeaveTransactionManualRequest): Pr
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch leave transactions';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to fetch leave transactions';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -124,10 +124,10 @@ export async function getLeaveTransactionDepartments(request: LeaveTransactionMa
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch departments';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to fetch departments';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -165,10 +165,10 @@ export async function getLeaveTransactionDesignation(request: LeaveTransactionMa
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch designations';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to fetch designations';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -206,10 +206,10 @@ export async function getLeaveTransactionEmployee(request: LeaveTransactionManua
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch employees';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to fetch employees';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -247,10 +247,10 @@ export async function getLeaveTransactionEmpLop(request: LeaveTransactionManualR
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch employee LOP';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to fetch employee LOP';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -285,12 +285,12 @@ export async function saveLeaveTransaction(data: SaveLeaveTransactionRequest): P
         } else {
             responseData = response as unknown as SaveLeaveTransactionResponseData;
         }
-        const successMessage = responseData?.retrunMsg || 
-                              responseData?.message || 
-                              (response as any)?.message || 
-                              (responseData?.returnval_add ? 'Leave transaction created successfully' : 
-                               responseData?.returnval_Update ? 'Leave transaction updated successfully' : 
-                               'Leave transaction saved successfully');
+        const successMessage = responseData?.retrunMsg ||
+            responseData?.message ||
+            (response as any)?.message ||
+            (responseData?.returnval_add ? 'Leave transaction created successfully' :
+                responseData?.returnval_Update ? 'Leave transaction updated successfully' :
+                    'Leave transaction saved successfully');
         if (responseData?.dupr || responseData?.returnduplicatestatus) {
             const duplicateMessage = responseData?.returnduplicatestatus || 'Duplicate record found';
             return {
@@ -299,16 +299,31 @@ export async function saveLeaveTransaction(data: SaveLeaveTransactionRequest): P
                 data: responseData
             };
         }
+        let isSuccess = responseData?.returnval ?? (response as any)?.success ?? true;
+        let finalMessage = successMessage;
+
+        // Catch specific error messages that might accompany a 200 OK
+        if (finalMessage === 'LWPNotSet' || finalMessage === 'InvalidLeaveYear' || (response as any)?.message === 'InvalidLeaveYear') {
+            isSuccess = false;
+        }
+
+        // Provide user-friendly explanation for common backend errors
+        if (finalMessage === 'LWPNotSet') {
+            finalMessage = 'Leave Without Pay (LWP) type is not configured in Master Leave settings.';
+        } else if (finalMessage === 'InvalidLeaveYear' || (response as any)?.message === 'InvalidLeaveYear') {
+            finalMessage = 'The selected date does not fall within any configured Leave Year.';
+        }
+
         return {
-            success: responseData?.returnval ?? (response as any)?.success ?? true,
-            message: successMessage,
+            success: isSuccess,
+            message: finalMessage,
             data: responseData
         };
     } catch (error: any) {
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to save leave transaction';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to save leave transaction';
         throw new Error(errorMessage);
     }
 }
@@ -342,10 +357,10 @@ export async function deleteLeaveTransactionDetails(request: DeleteLeaveTransact
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to delete leave transaction details';
+        const errorMessage = error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to delete leave transaction details';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }

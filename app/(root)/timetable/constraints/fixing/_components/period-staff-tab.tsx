@@ -8,9 +8,11 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
+import { usePeriodStaffGridData } from '@/hooks/timetable/constraints/fixingData';
 import { type FixingPeriodStaffSchema, fixingPeriodStaffSchema } from '@/schemas/timetable/constraints/fixing';
+import { getStaffDropDown } from '@/server/timetable/constraints/FixingForm';
 import {
-    deactivateFixingPeriodStaff,
     getClassByCategory,
     getFixingPeriodStaffDetails,
     getSectionByClass,
@@ -23,8 +25,10 @@ import { Plus, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { type IFixingPeriodStaffList, periodStaffColumns } from './columns';
+import { periodStaffColumns } from './columns';
 import { FixingViewModal } from './fixing-view-modal';
+import { TTPeriodStaffGridData } from '@/types/timetable/constraints/fixing';
+import TogglePeriodStaffForm from './PeriodStaffToggle';
 
 interface PeriodStaffTabProps {
     initialData: any;
@@ -45,17 +49,34 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         closeDetailsView
     } = useFormContext();
 
-    const [academicList] = useState<any[]>(initialData?.yearlist || []);
+    const { data: academicData } = usebifurcationAcademicYear();
+    const academicList = (academicData as any)?.data || [];
+
     const [periodList] = useState<any[]>(initialData?.periodlist || []);
-    const [staffList, setStaffList] = useState<any[]>(initialData?.stafflist || []);
-    const [gridData, setGridData] = useState<IFixingPeriodStaffList[]>(initialData?.fix_period_staff_list || []);
+    const [staffList, setStaffList] = useState<any[]>([]);
+
+    const { data: gridResponse, isLoading: isGridLoading } = usePeriodStaffGridData();
+
+    let gridData: TTPeriodStaffGridData[] = [];
+    if (gridResponse) {
+        if (Array.isArray(gridResponse)) {
+            gridData = gridResponse;
+        } else if (Array.isArray((gridResponse as any)?.data)) {
+            gridData = (gridResponse as any).data;
+        } else if (Array.isArray((gridResponse as any)?.fix_period_staff_list)) {
+            gridData = (gridResponse as any).fix_period_staff_list;
+        }
+    }
+
+    if (gridData.length === 0 && initialData?.fix_period_staff_list) {
+        gridData = initialData.fix_period_staff_list;
+    }
 
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subSubjectList, setSubSubjectList] = useState<any[]>([]);
     const [categoryList] = useState<any[]>(initialData?.categorylist || []);
 
-    // View Modal State
     const [viewDetails, setViewDetails] = useState<any[]>([]);
     const [isLoadingView, setIsLoadingView] = useState(false);
 
@@ -87,22 +108,25 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         name: 'TempararyArrayList'
     });
 
-    // Effect to populate form on Edit
+    useEffect(() => {
+        const loadDropdowns = async () => {
+            try {
+                const [staff] = await Promise.all([getStaffDropDown()]);
+                setStaffList(staff || []);
+            } catch (error) {
+                console.error('Failed to load dropdowns:', error);
+                toast.error('Failed to load dropdown options');
+            }
+        };
+        loadDropdowns();
+    }, []);
+
     useEffect(() => {
         if (isEditFormOpen && selectedRow) {
             onEdit(selectedRow);
         }
     }, [isEditFormOpen, selectedRow]);
 
-    // Effect to handle Toggle
-    useEffect(() => {
-        if (isToggleFormOpen && selectedRow) {
-            onToggle(selectedRow);
-            closeToggleForm();
-        }
-    }, [isToggleFormOpen, selectedRow]);
-
-    // Effect to handle View
     useEffect(() => {
         if (isDetailsViewOpen && viewRow) {
             onView(viewRow);
@@ -120,7 +144,8 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         if (ASMAY_Id && categoryId) {
             try {
                 const res = await getClassByCategory({ ASMAY_Id, TTMC_Id: categoryId });
-                if (Array.isArray(res) && res && res.classbycategory) setClassList(res.classbycategory as any[]);
+                // biome-ignore lint/complexity/useOptionalChain: <explanation>
+                if (res && res.classbycategory) setClassList(res.classbycategory as any[]);
             } catch (e) {
                 console.error(e);
             }
@@ -136,7 +161,8 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         if (ASMAY_Id && selectedCategory && classId) {
             try {
                 const res = await getSectionByClass({ ASMAY_Id, ASMCL_Id: classId, TTMC_Id: selectedCategory });
-                if (Array.isArray(res) && res && res.sectionlist) setSectionList(res.sectionlist as any[]);
+                // biome-ignore lint/complexity/useOptionalChain: <explanation>
+                if (res && res.sectionlist) setSectionList(res.sectionlist as any[]);
             } catch (e) {
                 console.error(e);
             }
@@ -150,7 +176,8 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         if (ASMAY_Id && selectedClass && sectionId && HRME_Id) {
             try {
                 const res = await getSubjectByStaff({ ASMAY_Id, ASMCL_Id: selectedClass, ASMS_Id: sectionId, HRME_Id });
-                if (Array.isArray(res) && res && res.subjectbystaff) setSubSubjectList(res.subjectbystaff as any[]);
+                // biome-ignore lint/complexity/useOptionalChain: <explanation>
+                if (res && res.subjectbystaff) setSubSubjectList(res.subjectbystaff as any[]);
             } catch (e) {
                 console.error(e);
             }
@@ -167,7 +194,6 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         const secObj = sectionList.find((s) => s.asmS_Id === selectedSection);
         const subObj = subSubjectList.find((s) => s.ismS_Id === selectedSubject);
 
-        // Duplicate Check
         const exists = fields.some(
             (f: any) => f.ASMCL_Id === selectedClass && f.ASMS_Id === selectedSection && f.ISMS_Id === selectedSubject
         );
@@ -192,7 +218,7 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
             { accessorKey: 'clsDisplay', header: 'Class' },
             { accessorKey: 'sectDisplay', header: 'Section' },
             { accessorKey: 'subDisplay', header: 'Subject' },
-            { accessorKey: 'NOD', header: 'No Of Days' }, // Label NOD
+            { accessorKey: 'NOD', header: 'No Of Days' },
             {
                 id: 'actions',
                 header: 'Actions',
@@ -206,7 +232,6 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         [remove]
     );
 
-    // View Columns
     const viewColumns: ColumnDef<any>[] = useMemo(
         () => [
             { accessorKey: 'clsDisplay', header: 'Class' },
@@ -270,21 +295,6 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         }
     };
 
-    const onToggle = async (item: any) => {
-        try {
-            const payload = { TTFPS_Id: item.ttfpS_Id, TTFPS_ActiveFlag: !item.ttfpS_ActiveFlag };
-            const res = await deactivateFixingPeriodStaff(payload);
-            if (res?.returnval === true) {
-                toast.success('Status Updated');
-                window.location.reload();
-            } else {
-                toast.error('Failed to update status');
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    };
-
     const onSubmit = async (data: FixingPeriodStaffSchema) => {
         try {
             if (!data.TTFPS_SUbSelcFlag) {
@@ -293,7 +303,6 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                 toast.warning('Please add at least one Class-Section details');
                 return;
             }
-
             const res = await saveFixingPeriodStaff(data);
             if (res?.returnval === true) {
                 toast.success('Record Saved Successfully');
@@ -324,8 +333,12 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                 variant='default'
                 size='lg'
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <GenericDataTable data={gridData} columns={periodStaffColumns} totalItems={gridData.length} isLoading={false} />
+                <GenericDataTable data={gridData} columns={periodStaffColumns} totalItems={gridData.length} isLoading={isGridLoading} />
             </CollapsibleSection>
+
+            {isToggleFormOpen && selectedRow && (
+                <TogglePeriodStaffForm rowData={selectedRow} onClose={closeToggleForm} />
+            )}
 
             {(isAddFormOpen || isEditFormOpen) && (
                 <CollapsibleSection
@@ -360,11 +373,13 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {academicList.map((item: any) => (
-                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                                {item.asmaY_Year}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {academicList
+                                                            .filter((item: any) => item.asmaY_Id)
+                                                            .map((item: any) => (
+                                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                    {item.asmaY_Year}
+                                                                </SelectItem>
+                                                            ))}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -410,11 +425,13 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {staffList.map((item: any) => (
-                                                            <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
-                                                                {item.hrmE_EmployeeCode} - {item.hrmE_EmployeeFirstName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {staffList
+                                                            .filter((item: any) => item.hrmE_Id)
+                                                            .map((item: any) => (
+                                                                <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
+                                                                    {item.staffName}
+                                                                </SelectItem>
+                                                            ))}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -422,7 +439,6 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                                         )}
                                     />
                                 </div>
-
                                 <div className='flex items-center space-x-2'>
                                     <FormField
                                         control={form.control}
@@ -439,7 +455,6 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                                         )}
                                     />
                                 </div>
-
                                 {TTFPS_SUbSelcFlag && (
                                     <div className='space-y-4 rounded-md border bg-gray-50 p-4'>
                                         <h4 className='font-semibold'>Add Class Details</h4>
@@ -530,7 +545,6 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                                         )}
                                     </div>
                                 )}
-
                                 <div className='flex justify-end gap-2'>
                                     <Button type='button' variant='outline' onClick={() => reset()}>
                                         Cancel
@@ -542,7 +556,6 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                     </div>
                 </CollapsibleSection>
             )}
-
             <FixingViewModal
                 isOpen={!!isDetailsViewOpen}
                 onClose={closeDetailsView}

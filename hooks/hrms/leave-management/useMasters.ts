@@ -21,6 +21,7 @@ import {
     toggleMasterLeave as toggleMasterLeaveAPI,
     updateMasterLeaveOrder as updateMasterLeaveOrderAPI
 } from '@/server/hrms/leave-management/masters/master-leave';
+import { getMasterLeaveYear } from '@/server/hrms/hrmsConfig/master/leave-year';
 import { getTimetableData } from '@/server/timetable/transactions/staff-replacement-in-unallocated-period';
 import type { ApiSearchparams } from '@/types';
 import type { LeaveAuthorizationGetResponseData } from '@/types/hrms/leave-management/leave-authorization';
@@ -57,25 +58,25 @@ function mapApiDataToMasterLeave(apiData: MasterLeaveGetResponseData | MasterLea
     return {
         id: id,
         createdAt: data.createdDate || data.CreatedDate ? new Date(data.createdDate || data.CreatedDate) : new Date(),
-        leaveName: data.hrmL_LeaveName || data.HRML_LeaveName || data.leaveName || '',
-        leaveCode: data.hrmL_LeaveCode || data.HRML_LeaveCode || data.leaveCode || '',
-        leaveType: data.hrmL_LeaveType || data.HRML_LeaveType || data.leaveType || '',
-        leaveApplyCriteria: data.hrmL_WhenToApplyFlg || data.HRML_LeaveApplyCriteria || data.leaveApplyCriteria || '',
-        daysForApplyCriteria: String(
+        hrmL_LeaveName: data.hrmL_LeaveName || data.HRML_LeaveName || data.leaveName || '',
+        hrmL_LeaveCode: data.hrmL_LeaveCode || data.HRML_LeaveCode || data.leaveCode || '',
+        hrmL_LeaveType: data.hrmL_LeaveType || data.HRML_LeaveType || data.leaveType || '',
+        hrmL_LeaveApplyCriteria: data.hrmL_WhenToApplyFlg || data.HRML_LeaveApplyCriteria || data.leaveApplyCriteria || '',
+        hrmL_DaysForApplyCriteria: String(
             data.hrmL_NoOfDays !== undefined && data.hrmL_NoOfDays !== null
                 ? data.hrmL_NoOfDays
                 : data.HRML_DaysForApplyCriteria !== undefined
                     ? data.HRML_DaysForApplyCriteria
                     : data.daysForApplyCriteria || ''
         ),
-        maxDaysForApply: String(data.hrmL_MaxDaysForApply || data.HRML_MaxDaysForApply || data.maxDaysForApply || ''),
-        leaveDetails: data.hrmL_LeaveDetails || data.HRML_LeaveDetails || data.leaveDetails || '',
-        leaveCredit: data.hrmL_LeaveCreditFlg ?? data.HRML_LeaveCreditFlg ?? data.leaveCredit ?? false,
-        lateDeduct: data.hrmL_LateDeductFlag ?? data.HRML_LateDeductFlag ?? data.lateDeduct ?? false,
-        probationNotApplicable:
+        hrmL_MaxDaysForApply: String(data.hrmL_MaxDaysForApply || data.HRML_MaxDaysForApply || data.maxDaysForApply || ''),
+        hrmL_LeaveDetails: data.hrmL_LeaveDetails || data.HRML_LeaveDetails || data.leaveDetails || '',
+        hrmL_LeaveCreditFlg: data.hrmL_LeaveCreditFlg ?? data.HRML_LeaveCreditFlg ?? data.leaveCredit ?? false,
+        hrmL_LateDeductFlag: data.hrmL_LateDeductFlag ?? data.HRML_LateDeductFlag ?? data.lateDeduct ?? false,
+        hrmL_ProbationNotApplicableFlg:
             data.hrmL_ProbationNotApplicableFlg ?? data.HRML_ProbationNotApplicableFlg ?? data.probationNotApplicable ?? false,
-        leaveOrder: data.hrmL_LateDeductOrder || data.HRML_LateDeductOrder || data.leaveOrder || 0,
-        // Map isActive to hrmL_LeaveCreditFlg as per user request for toggle functionality
+        hrmL_LateDeductOrder: data.hrmL_LateDeductOrder || data.HRML_LateDeductOrder || data.leaveOrder || 0,
+        // Keep isActive for internal UI state (toggling status)
         isActive: data.hrmL_LeaveCreditFlg ?? data.HRML_LeaveCreditFlg ?? false
     };
 }
@@ -86,19 +87,19 @@ function mapMasterLeaveToApiData(data: MasterLeave | Omit<MasterLeave, 'id' | 'c
     return {
         MI_Id: HRMS_MI_ID,
         HRML_Id: 'id' in data ? Number(data.id) || 0 : 0,
-        HRML_LeaveName: data.leaveName,
-        HRML_LeaveCode: data.leaveCode,
-        HRML_LeaveDetails: data.leaveDetails || '',
-        HRML_LeaveCreditFlg: !!data.leaveCredit,
-        HRML_LeaveType: data.leaveType,
-        HRML_LateDeductFlag: !!data.lateDeduct,
-        HRML_LateDeductOrder: Number(data.leaveOrder || 0),
+        HRML_LeaveName: data.hrmL_LeaveName,
+        HRML_LeaveCode: data.hrmL_LeaveCode,
+        HRML_LeaveDetails: data.hrmL_LeaveDetails || '',
+        HRML_LeaveCreditFlg: !!data.hrmL_LeaveCreditFlg,
+        HRML_LeaveType: data.hrmL_LeaveType,
+        HRML_LateDeductFlag: !!data.hrmL_LateDeductFlag,
+        HRML_LateDeductOrder: Number(data.hrmL_LateDeductOrder || 0),
         HRML_ActiveFlag: data.isActive,
-        HRML_ProbationNotApplicableFlg: !!data.probationNotApplicable,
-        HRML_LeaveApplyCriteria: data.leaveApplyCriteria || '',
-        HRML_DaysForApplyCriteria: data.daysForApplyCriteria ? Number(data.daysForApplyCriteria) : 0,
-        HRML_MaxDaysForApply: data.maxDaysForApply ? Number(data.maxDaysForApply) : 0,
-        CreatedDate: 'createdAt' in data && data.createdAt ? data.createdAt.toISOString() : new Date().toISOString()
+        HRML_ProbationNotApplicableFlg: !!data.hrmL_ProbationNotApplicableFlg,
+        HRML_LeaveApplyCriteria: data.hrmL_LeaveApplyCriteria || '',
+        HRML_DaysForApplyCriteria: data.hrmL_DaysForApplyCriteria ? Number(data.hrmL_DaysForApplyCriteria) : 0,
+        HRML_MaxDaysForApply: data.hrmL_MaxDaysForApply ? Number(data.hrmL_MaxDaysForApply) : 0,
+        CreatedDate: 'createdAt' in data && data.createdAt instanceof Date ? data.createdAt.toISOString() : new Date().toISOString()
     };
 }
 /**
@@ -450,14 +451,35 @@ export function useMasterLeaveYear() {
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR],
+            // queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR],
             queryFn: async () => {
-                return {
-                    success: true,
-                    data: db.list(),
-                    message: 'Master leave year fetched successfully'
-                };
+                try {
+                    const response = await getMasterLeaveYear();
+                    const res = response as any;
+
+                    // Handle wrapped response
+                    if (res.success !== undefined && !res.success) {
+                        throw new Error(res.message || 'Failed to fetch master leave year');
+                    }
+
+                    const data = res.data || res || [];
+
+                    return {
+                        success: true,
+                        data: Array.isArray(data) ? data : [],
+                        message: 'Master leave year fetched successfully'
+                    };
+                } catch (error: any) {
+                    console.error('Error fetching master leave year:', error);
+                    // Fallback to empty array to avoid breaking UI
+                    return {
+                        success: false,
+                        data: [],
+                        message: error?.message || 'Failed to fetch master leave year'
+                    };
+                }
             },
-            staleTime: 0
+            staleTime: 5 * 60 * 1000 // Cache for 5 mins
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -531,19 +553,69 @@ function mapApiDataToLeaveAuthorization(apiData: LeaveAuthorizationGetResponseDa
         return null;
     }
     const data = apiData as any;
-    // Normalize mapping for both camelCase and PascalCase
-    const mappedData: LeaveAuthorization & { _HRLA_Id?: number } = {
-        id: data.hrlaoN_Id || data.HRLAON_Id || data.hrmlA_Id || data.HRMLA_Id || data.id || 0,
+    const mappedData: LeaveAuthorization & {
+        _HRLA_Id?: number;
+        mI_Id?: number;
+        hrmG_Id?: number;
+        hrmgT_Id?: number;
+        hrmD_Id?: number;
+        hrmdeS_Id?: number;
+        hrmL_Id?: number;
+        approvalPersonId?: number;
+        hrlaoN_SanctionLevelNo_Num?: number;
+    } = {
+        id:
+            data.hrlaoN_Id ||
+            data.HRLAON_Id ||
+            data.hrlA_Id ||
+            data.HRLA_Id ||
+            data.hrmlA_Id ||
+            data.HRMLA_Id ||
+            data.id ||
+            0,
         createdAt: data.createdDate || data.CreatedDate ? new Date(data.createdDate || data.CreatedDate) : new Date(),
-        institution: data.mI_Name || data.institutionName || data.InstitutionName || data.institution || '',
-        gradeName: data.hrmG_GradeName || data.HRMG_GradeName || data.gradeName || '',
-        groupTypeName: data.hrmgT_EmployeeGroupType || data.hrmgT_GroupTypeName || data.HRMGT_GroupTypeName || data.groupTypeName || '',
-        departmentName: data.hrmD_DepartmentName || data.HRMD_DepartmentName || data.departmentName || '',
-        designationName: data.hrmdeS_DesignationName || data.HRMDES_DesignationName || data.designationName || '',
-        leaveType: data.hrmL_LeaveType || data.hrmL_LeaveName || data.HRML_LeaveName || data.leaveType || '',
-        orderOfApproval: String(data.hrlaoN_SanctionLevelNo || data.hrmlA_OrderOfApproval || data.HRMLA_OrderOfApproval || data.orderOfApproval || ''),
-        approvalPerson: data.hrmE_EmployeeFirstName || data.hrmlA_ApprovalPerson || data.HRMLA_ApprovalPerson || data.approvalPerson || '',
-        finalFlag: data.hrlaoN_FinalFlg ?? data.hrmlA_FinalFlag ?? data.HRMLA_FinalFlag ?? data.finalFlag ?? false
+        institution: data.mI_Name || data.institutionName || data.InstitutionName || data.institution || 'Vidya Vikasa Vidya Samsthe (R)',
+        mI_Id: data.mI_Id || data.MI_Id || data.mi_id || data.MI_id || data.miId || 0, //added
+        hrmG_GradeName: data.hrmG_GradeName || data.HRMG_GradeName || data.gradeName || '',
+        hrmgT_EmployeeGroupType:
+            data.hrmgT_EmployeeGroupType ||
+            data.hrmgT_GroupTypeName ||
+            data.HRMGT_GroupTypeName ||
+            data.groupTypeName ||
+            '',
+        hrmD_DepartmentName: data.hrmD_DepartmentName || data.HRMD_DepartmentName || data.departmentName || '',
+        hrmdeS_DesignationName: data.hrmdeS_DesignationName || data.HRMDES_DesignationName || data.designationName || '',
+        hrmL_LeaveName: data.hrmL_LeaveType || data.hrmL_LeaveName || data.HRML_LeaveName || data.leaveType || '',
+        hrlaoN_SanctionLevelNo: String(
+            data.hrlaoN_SanctionLevelNo ||
+            data.hrmlA_OrderOfApproval ||
+            data.HRMLA_OrderOfApproval ||
+            data.orderOfApproval ||
+            ''
+        ),
+        hrmE_EmployeeFirstName:
+            data.hrmE_EmployeeFirstName ||
+            data.hrmlA_ApprovalPerson ||
+            data.HRMLA_ApprovalPerson ||
+            data.approvalPerson ||
+            '',
+        finalFlag: data.hrlaoN_FinalFlg ?? data.hrmlA_FinalFlag ?? data.HRMLA_FinalFlag ?? data.finalFlag ?? false,
+
+        // Map Raw IDs for Update Form - Aggressive Casing Check
+        hrmG_Id: data.hrmG_Id || data.HRMG_Id || data.hrmG_id || data.gradeId || data.GradeId,
+        hrmgT_Id: data.hrmgT_Id || data.HRMGT_Id || data.hrmgT_id || data.groupTypeId || data.GroupTypeId,
+        hrmD_Id: data.hrmD_Id || data.HRMD_Id || data.hrmD_id || data.departmentId || data.DepartmentId,
+        hrmdeS_Id: data.hrmdeS_Id || data.HRMDES_Id || data.hrmdeS_id || data.designationId || data.DesignationId,
+        hrmL_Id: data.hrmL_Id || data.HRML_Id || data.hrmL_id || data.leaveTypeId || data.LeaveTypeId,
+        approvalPersonId:
+            data.hrmE_Id ||
+            data.ivrmuL_Id ||
+            data.HRME_Id ||
+            data.approvalPersonId ||
+            data.ApprovalPersonId ||
+            data.hrmE_id,
+        hrlaoN_SanctionLevelNo_Num:
+            data.hrlaoN_SanctionLevelNo || data.HRMLAON_SanctionLevelNo || data.sanctionLevelNo || data.SanctionLevelNo
     };
 
     // Store HRLA_Id if available (needed for delete operation)
@@ -551,7 +623,7 @@ function mapApiDataToLeaveAuthorization(apiData: LeaveAuthorizationGetResponseDa
     const hrlA_Id = data.hrlA_Id || data.HRLA_Id || data.hrla_id || data.hrmlA_Id || data.HRMLA_Id;
     console.log(`🔍 Mapping Auth - id: ${mappedData.id}, hrlA_Id found: ${hrlA_Id}`);
     if (hrlA_Id !== undefined && hrlA_Id !== null) {
-        (mappedData as any)._HRLA_Id = hrlA_Id;
+        mappedData._HRLA_Id = hrlA_Id;
     }
     return mappedData;
 }
@@ -694,7 +766,10 @@ export function useLeaveAuthorizationForEdit(HRLAON_Id: number | null) {
                     throw new Error(response.message || 'Failed to fetch leave authorization data');
                 }
                 // Map API response to frontend format
-                const mappedData = mapApiDataToLeaveAuthorization(response.data);
+                // Check if data is array and take first element
+                const apiData = Array.isArray(response.data) ? response.data[0] : response.data;
+                const mappedData = mapApiDataToLeaveAuthorization(apiData);
+
                 if (!mappedData) {
                     throw new Error('Failed to parse leave authorization data');
                 }
@@ -716,45 +791,59 @@ export function useLeaveAuthorizationForEdit(HRLAON_Id: number | null) {
  */
 function mapLeaveAuthorizationToApiData(
     data: LeaveAuthorization | Omit<LeaveAuthorization, 'id' | 'createdAt'>,
-    dropdownData: any
+    dropdownData: any,
+    institutionsData?: any[]
 ): {
-    HRLA_Id: number;
+    hrla_Id: number;
     MI_Id: number;
-    HRMG_Id: number;
-    HRMGT_Id: number;
-    HRMD_Id: number;
-    HRMDES_Id: number;
-    HRML_Id: number;
-    UserId: number;
-    approvaluser_array: Array<{
-        Approval_HRME_Id: number;
-        ApprovalLevelNo: number;
-        ApprovalFinalFlag: boolean;
+    hrmG_Id: number;
+    hrmgT_Id: number;
+    hrmD_Id: number;
+    hrmdeS_Id: number;
+    hrmL_Id: number;
+    userId: number;
+    approvalUser: Array<{
+        approval_HRME_Id: number;
+        approvalLevelNo: number;
+        approvalFinalFlag: boolean;
     }>;
 } {
     // Find IDs from dropdown options based on names or values
     // form data might contain IDs (values) if coming from add/edit form, or Names (labels) if coming from table row
-    const gradeId = dropdownData?.grades?.find((g: any) => g.value == data.gradeName || g.label === data.gradeName)?.value || 0;
-    const groupTypeId = dropdownData?.groupTypes?.find((g: any) => g.value == data.groupTypeName || g.label === data.groupTypeName)?.value || 0;
-    const departmentId = dropdownData?.departments?.find((d: any) => d.value == data.departmentName || d.label === data.departmentName)?.value || 0;
-    const designationId = dropdownData?.designations?.find((d: any) => d.value == data.designationName || d.label === data.designationName)?.value || 0;
-    const leaveTypeId = dropdownData?.leaveTypes?.find((l: any) => l.value == data.leaveType || l.label === data.leaveType)?.value || 0;
-    const approvalPersonId = dropdownData?.approvalPersons?.find((a: any) => a.value == data.approvalPerson || a.label === data.approvalPerson)?.value || 0;
+    // Resolve IDs from dropdown options based on names or values from the reactive form/table
+    const gradeId = dropdownData?.grades?.find((g: any) => g.value == data.hrmG_GradeName || g.label === data.hrmG_GradeName)?.value || 0;
+    const groupTypeId = dropdownData?.groupTypes?.find((g: any) => g.value == data.hrmgT_EmployeeGroupType || g.label === data.hrmgT_EmployeeGroupType)?.value || 0;
+    const departmentId = dropdownData?.departments?.find((d: any) => d.value == data.hrmD_DepartmentName || d.label === data.hrmD_DepartmentName)?.value || 0;
+    const designationId = dropdownData?.designations?.find((d: any) => d.value == data.hrmdeS_DesignationName || d.label === data.hrmdeS_DesignationName)?.value || 0;
+    const leaveTypeId = dropdownData?.leaveTypes?.find((l: any) => l.value == data.hrmL_LeaveName || l.label === data.hrmL_LeaveName)?.value || 0;
+    const approvalPersonId = dropdownData?.approvalPersons?.find((a: any) => a.value == data.hrmE_EmployeeFirstName || a.label === data.hrmE_EmployeeFirstName)?.value || 0;
+
+    // Resolve Institution ID
+    let miId = HRMS_MI_ID;
+    if (data.institution && institutionsData) {
+        const selectedInst = institutionsData.find((i: any) =>
+            (i.mI_Name === data.institution || i.MI_Name === data.institution) ||
+            (String(i.mI_Id) === data.institution || String(i.MI_Id) === data.institution)
+        );
+        if (selectedInst) {
+            miId = selectedInst.mI_Id || selectedInst.MI_Id;
+        }
+    }
 
     return {
-        HRLA_Id: (data as any)._HRLA_Id || 0,
-        MI_Id: HRMS_MI_ID,
-        HRMG_Id: Number(gradeId),
-        HRMGT_Id: Number(groupTypeId),
-        HRMD_Id: Number(departmentId),
-        HRMDES_Id: Number(designationId),
-        HRML_Id: Number(leaveTypeId),
-        UserId: 0,
-        approvaluser_array: [
+        hrla_Id: (data as any)._HRLA_Id || 0,
+        MI_Id: miId,
+        hrmG_Id: Number(gradeId),
+        hrmgT_Id: Number(groupTypeId),
+        hrmD_Id: Number(departmentId),
+        hrmdeS_Id: Number(designationId),
+        hrmL_Id: Number(leaveTypeId),
+        userId: 0,
+        approvalUser: [
             {
-                Approval_HRME_Id: Number(approvalPersonId),
-                ApprovalLevelNo: Number(data.orderOfApproval) || 0,
-                ApprovalFinalFlag: !!data.finalFlag
+                approval_HRME_Id: Number(approvalPersonId),
+                approvalLevelNo: Number(data.hrlaoN_SanctionLevelNo) || 0,
+                approvalFinalFlag: !!data.finalFlag
             }
         ]
     };
@@ -762,6 +851,8 @@ function mapLeaveAuthorizationToApiData(
 export function useSaveLeaveAuthorization() {
     const queryClient = useQueryClient();
     const { data: dropdownData } = useLeaveAuthorizationDropdowns();
+    const { data: institutionsData } = useInstitutionsByLoginBased();
+
     return useMutation<
         { success: boolean; data: LeaveAuthorization; message: string },
         Error,
@@ -771,7 +862,8 @@ export function useSaveLeaveAuthorization() {
             if (!dropdownData?.data) {
                 throw new Error('Dropdown data not loaded. Please wait...');
             }
-            const apiData = mapLeaveAuthorizationToApiData(data, dropdownData.data);
+            const apiData = mapLeaveAuthorizationToApiData(data, dropdownData.data, institutionsData?.data || []);
+            console.log('🔵 [SERVER] Request Body:', JSON.stringify(apiData, null, 2));
             const response = await saveLeaveAuthorizationAPI(apiData);
             if (!response.success) {
                 throw new Error(response.message || 'Failed to save leave authorization');
@@ -805,6 +897,8 @@ export function useSaveLeaveAuthorization() {
         onSuccess: (response) => {
             if (response.success) {
                 toast.success(response.message);
+                // Invalidate all queries starting with LEAVE_AUTHORIZATION key
+                // This will include queries with specific MI_Id params
                 queryClient.invalidateQueries({
                     queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATION]
                 });
@@ -835,7 +929,18 @@ export function useUpdateLeaveAuthorization() {
                 throw new Error(response.message || 'Failed to update leave authorization');
             }
             // Map response back to frontend format
-            const mappedData = mapApiDataToLeaveAuthorization(response.data);
+            let mappedData: LeaveAuthorization | null = null;
+            if (response.data) {
+                mappedData = mapApiDataToLeaveAuthorization(response.data);
+            }
+
+            // If API returns success but no data, prevent error
+            if (!mappedData && response.success) {
+                mappedData = {
+                    ...data
+                } as LeaveAuthorization;
+            }
+
             if (!mappedData) {
                 throw new Error('Failed to parse updated authorization data');
             }
@@ -895,6 +1000,151 @@ export function useDeleteLeaveAuthorization() {
             console.error('Delete Authorization Failed:', error);
             // Error message from API is already in error.message
             toast.error(error.message || 'Failed to delete leave authorization');
+        }
+    });
+}
+
+// Leave Configuration hooks
+import {
+    getLeaveConfiguration,
+    saveLeaveConfiguration as saveLeaveConfigurationAPI
+} from '@/server/hrms/leave-management/leaveConfiguration/LeaveConfiguration';
+import type {
+    LeaveConfigurationData,
+    LeaveConfigurationFormData,
+    LeaveConfigurationSaveRequest
+} from '@/types/hrms/leave-management/leaveConfiguration/leaveConfiguration';
+
+/**
+ * Map API response data to frontend LeaveConfigurationFormData format
+ */
+function mapApiDataToLeaveConfiguration(apiData: LeaveConfigurationData | null): LeaveConfigurationFormData | null {
+    if (!apiData) {
+        return null;
+    }
+
+    return {
+        id: apiData.hrlpC_Id || 0,
+        spOrGenFlg: apiData.hrlpC_SpOrGenFlg || 'G',
+        punchGapTime: apiData.hrlpC_PunchGAPTime || '00:15',
+        absentFlag: apiData.hrlpC_AbsentFlag || 'Y',
+        lateInEarlyOutFlag: apiData.hrlpC_LateInEarlyOutFlag || 'Y',
+        lateInRelaxFlag: apiData.hrlpC_LateInRelaxFlag ?? false,
+        lateInEarlyOut: apiData.hrlpC_LateInEarlyOut || 'LateIn',
+        lateInTime: apiData.hrlpC_LateInTime || '00:10',
+        earlyOutRelaxFlag: apiData.hrlpC_EarlyOutRelaxFlag ?? false,
+        earlyOutTime: apiData.hrlpC_EarlyOutTime || '00:20',
+        cummulativeTimeFlag: apiData.hrlpC_CummulativeTimeFlag ?? false,
+        cummulativeTime: apiData.hrlpC_CummulativeTime || 60,
+        afterCummulativeTime: apiData.hrlpC_AfterCummulativeTime || 'HalfDay',
+        noOfLatesFlag: apiData.hrlpC_NoOfLatesFlag ?? false,
+        noofMonthlyLateInExempted: apiData.hrlpC_NoofMonthlyLateInExempted || 0,
+        noOfLates: apiData.hrlpC_NoOfLates || 0,
+        noOfLatesCFFlag: apiData.hrlpC_NoOfLatesCFFlag ?? false,
+        leavePrefixSuffixFlag: apiData.hrlpC_LeavePrefixSuffixFlag ?? false,
+        includeHolidayFlag: apiData.hrlpC_IncludeHolidayFlag ?? false,
+        activeFlag: apiData.hrlpC_ActiveFlag ?? true
+    };
+}
+
+/**
+ * Map frontend LeaveConfigurationFormData to API request format
+ */
+function mapLeaveConfigurationToApiData(data: LeaveConfigurationFormData): LeaveConfigurationSaveRequest {
+    return {
+        hrlpC_Id: data.id || 0,
+        mI_Id: HRMS_MI_ID,
+        hrlpC_SpOrGenFlg: data.spOrGenFlg,
+        hrlpC_PunchGAPTime: data.punchGapTime || '00:15',
+        hrlpC_AbsentFlag: data.absentFlag,
+        hrlpC_LateInEarlyOutFlag: data.lateInEarlyOutFlag,
+        hrlpC_LateInRelaxFlag: data.lateInRelaxFlag,
+        hrlpC_LateInEarlyOut: data.lateInEarlyOut || 'LateIn',
+        hrlpC_LateInTime: data.lateInTime,
+        hrlpC_EarlyOutRelaxFlag: data.earlyOutRelaxFlag,
+        hrlpC_EarlyOutTime: data.earlyOutTime,
+        hrlpC_CummulativeTimeFlag: data.cummulativeTimeFlag,
+        hrlpC_CummulativeTime: Number(data.cummulativeTime),
+        hrlpC_AfterCummulativeTime: data.afterCummulativeTime,
+        hrlpC_NoOfLatesFlag: data.noOfLatesFlag,
+        hrlpC_NoofMonthlyLateInExempted: Number(data.noofMonthlyLateInExempted),
+        hrlpC_NoOfLates: Number(data.noOfLates),
+        hrlpC_NoOfLatesCFFlag: data.noOfLatesCFFlag,
+        hrlpC_LeavePrefixSuffixFlag: data.leavePrefixSuffixFlag,
+        hrlpC_IncludeHolidayFlag: data.includeHolidayFlag,
+        hrlpC_ActiveFlag: data.activeFlag,
+        hrlpC_CreatedBy: 0,
+        hrlpC_UpdatedBy: 0
+    };
+}
+
+/**
+ * Hook to fetch leave configuration
+ */
+export function useLeaveConfiguration() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_CONFIGURATION],
+            queryFn: async () => {
+                try {
+                    const response = await getLeaveConfiguration();
+                    if (!response.success) {
+                        throw new Error(response.message || 'Failed to fetch leave configuration');
+                    }
+
+                    const mappedData = mapApiDataToLeaveConfiguration(response.data);
+
+                    return {
+                        success: true,
+                        data: mappedData,
+                        message: response.message || 'Leave configuration fetched successfully'
+                    };
+                } catch (error: any) {
+                    throw new Error(error?.message || 'Failed to fetch leave configuration');
+                }
+            },
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.LEAVE_CONFIGURATION]
+            });
+        }
+    };
+}
+
+/**
+ * Hook to save leave configuration
+ */
+export function useSaveLeaveConfiguration() {
+    const queryClient = useQueryClient();
+    return useMutation<{ success: boolean; data: any; message: string }, Error, LeaveConfigurationFormData>({
+        mutationFn: async (data: LeaveConfigurationFormData) => {
+            const apiData = mapLeaveConfigurationToApiData(data);
+            const response = await saveLeaveConfigurationAPI(apiData);
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to save leave configuration');
+            }
+
+            return {
+                success: true,
+                data: response.data,
+                message: response.message || 'Leave configuration saved successfully'
+            };
+        },
+        onSuccess: (response) => {
+            if (response.success) {
+                toast.success(response.message);
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.LEAVE_CONFIGURATION]
+                });
+            } else {
+                toast.error(response.message);
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to save leave configuration');
         }
     });
 }

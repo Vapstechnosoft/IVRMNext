@@ -89,23 +89,23 @@ export default function StudentDashboardPage() {
     const student =
         studentInfoDetails?.data && Array.isArray(studentInfoDetails.data) && studentInfoDetails.data.length > 0
             ? {
-                  name: `${studentInfoDetails.data[0].amsT_FirstName} ${studentInfoDetails.data[0].amsT_LastName}`,
-                  class: studentInfoDetails.data[0].classname || 'N/A',
-                  section: studentInfoDetails.data[0].sectionname || 'N/A',
-                  admNo: studentInfoDetails.data[0].amsT_AdmNo || 'N/A',
-                  dob: studentInfoDetails.data[0].amsT_DOB || 'N/A',
-                  email: studentInfoDetails.data[0].amst_email_id || 'N/A',
-                  mobile: studentInfoDetails.data[0].amst_mobile?.toString() || 'N/A'
-              }
+                name: `${studentInfoDetails.data[0].amsT_FirstName} ${studentInfoDetails.data[0].amsT_LastName}`,
+                class: studentInfoDetails.data[0].classname || 'N/A',
+                section: studentInfoDetails.data[0].sectionname || 'N/A',
+                admNo: studentInfoDetails.data[0].amsT_AdmNo || 'N/A',
+                dob: studentInfoDetails.data[0].amsT_DOB || 'N/A',
+                email: studentInfoDetails.data[0].amst_email_id || 'N/A',
+                mobile: studentInfoDetails.data[0].amst_mobile?.toString() || 'N/A'
+            }
             : {
-                  name: '',
-                  class: '',
-                  section: '',
-                  admNo: '',
-                  dob: '',
-                  email: '',
-                  mobile: ''
-              };
+                name: 'Abhiram H B',
+                class: 'X',
+                section: 'A',
+                admNo: '2024001',
+                dob: '2008-05-15',
+                email: 'abhiram@example.com',
+                mobile: '9876543210'
+            };
 
     const fees = {
         total: 50000,
@@ -136,15 +136,13 @@ export default function StudentDashboardPage() {
                     icon={<User className='h-6 w-6' />}
                     colorClass='bg-green-500'
                     footerText='STUDENT PROFILE'
-                    onViewClick={() => {}}>
+                    onViewClick={() => { }}>
                     <div className='mt-2 text-slate-700 dark:text-slate-300'>
                         {isLoading ? (
                             <div className='space-y-2'>
                                 <div className='h-4 animate-pulse rounded bg-gray-200'></div>
                                 <div className='h-3 w-3/4 animate-pulse rounded bg-gray-200'></div>
                             </div>
-                        ) : error ? (
-                            <div className='text-red-500 text-sm'>Error loading student data</div>
                         ) : (
                             <>
                                 <h4 className='truncate font-semibold text-lg'>{student.name}</h4>
@@ -209,7 +207,7 @@ export default function StudentDashboardPage() {
                     icon={<Calendar className='h-6 w-6' />}
                     colorClass='bg-pink-500'
                     footerText='VIEW CALENDAR OF EVENTS'
-                    onViewClick={() => {}}>
+                    onViewClick={() => { }}>
                     <div className='mt-4 flex justify-center'>
                         <p className='text-muted-foreground text-sm italic'>Check upcoming events & holidays</p>
                     </div>
@@ -248,7 +246,7 @@ export default function StudentDashboardPage() {
                     icon={<BookOpen className='h-6 w-6' />}
                     colorClass='bg-emerald-500'
                     footerText='VIEW CLASSWORK'
-                    onViewClick={() => {}}>
+                    onViewClick={() => { }}>
                     <div className='mt-2 space-y-2'>
                         <div className='text-center text-sm'>
                             <span className='text-muted-foreground'>Class Resources</span>
@@ -263,7 +261,7 @@ export default function StudentDashboardPage() {
                     icon={<Clock className='h-6 w-6' />}
                     colorClass='bg-pink-500'
                     footerText='VIEW TT'
-                    onViewClick={() => {}}>
+                    onViewClick={() => { }}>
                     <div className='mt-4 flex justify-center'>
                         <p className='text-muted-foreground text-sm italic'>Weekly Schedule</p>
                     </div>
@@ -274,7 +272,7 @@ export default function StudentDashboardPage() {
                     icon={<FileText className='h-6 w-6' />}
                     colorClass='bg-green-500'
                     footerText='VIEW SYLLABUS'
-                    onViewClick={() => {}}>
+                    onViewClick={() => { }}>
                     <div className='mt-4 flex justify-center'>
                         <p className='text-muted-foreground text-sm italic'>Course Curriculum</p>
                     </div>
@@ -286,7 +284,7 @@ export default function StudentDashboardPage() {
                     icon={<Library className='h-6 w-6' />}
                     colorClass='bg-orange-500'
                     footerText='VIEW LIBRARY'
-                    onViewClick={() => {}}>
+                    onViewClick={() => { }}>
                     <div className='mt-4 flex justify-center'>
                         <p className='text-muted-foreground text-sm italic'>Books & Returns</p>
                     </div>
@@ -310,7 +308,7 @@ export default function StudentDashboardPage() {
                     icon={<ShoppingCart className='h-6 w-6' />}
                     colorClass='bg-pink-500'
                     footerText='VIEW INVENTORY'
-                    onViewClick={() => {}}>
+                    onViewClick={() => { }}>
                     <div className='mt-4 flex justify-center'>
                         <p className='text-muted-foreground text-sm italic'>Purchase Items</p>
                     </div>
@@ -322,7 +320,7 @@ export default function StudentDashboardPage() {
                     icon={<Briefcase className='h-6 w-6' />}
                     colorClass='bg-yellow-500'
                     footerText='VIEW PDA'
-                    onViewClick={() => {}}>
+                    onViewClick={() => { }}>
                     <div className='mt-4 flex justify-center'>
                         <p className='text-muted-foreground text-sm italic'>Personal Deposit Account</p>
                     </div>
@@ -333,7 +331,7 @@ export default function StudentDashboardPage() {
                     title='PROMOTION'
                     icon={<GraduationCap className='h-6 w-6' />}
                     colorClass='bg-yellow-500'
-                    // footerText="View Details"
+                // footerText="View Details"
                 >
                     <div className='mt-2 text-sm'>
                         <p>
@@ -348,7 +346,7 @@ export default function StudentDashboardPage() {
                     icon={<ImageIcon className='h-6 w-6' />}
                     colorClass='bg-emerald-400'
                     footerText='VIEW GALLERY'
-                    onViewClick={() => {}}>
+                    onViewClick={() => { }}>
                     <div className='mt-4 flex justify-center'>
                         <p className='text-muted-foreground text-sm italic'>School Photos</p>
                     </div>
@@ -360,7 +358,7 @@ export default function StudentDashboardPage() {
                     icon={<Book className='h-6 w-6' />}
                     colorClass='bg-blue-500'
                     footerText='VIEW BOOK LIST'
-                    onViewClick={() => {}}>
+                    onViewClick={() => { }}>
                     <div className='mt-2 text-sm'>
                         <p>
                             Total Books: <span className='font-semibold'>0</span>
@@ -373,7 +371,7 @@ export default function StudentDashboardPage() {
                     title='ACHIEVEMENTS'
                     icon={<Trophy className='h-6 w-6' />}
                     colorClass='bg-green-500'
-                    // Custom footer handling for two links
+                // Custom footer handling for two links
                 >
                     <div className='mt-2 space-y-3'>
                         <button

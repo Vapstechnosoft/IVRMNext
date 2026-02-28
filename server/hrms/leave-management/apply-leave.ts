@@ -80,6 +80,7 @@ export async function saveOnlineLeave(data: SaveOnlineLeaveRequest): Promise<Api
             '';
         // Check for duplicate
         const isDuplicate = retrunMsg === 'Duplicate' ||
+            // biome-ignore lint/complexity/useOptionalChain: <explanation>
             (retrunMsg && retrunMsg.toLowerCase().includes('duplicate'));
         if (isDuplicate) {
             return {

@@ -10,6 +10,11 @@ type CertificateProps = {
     addressType?: 'address_per' | 'address_con';
     parentType?: '0' | '1' | '2';
     qrCode?: string;
+    academicYearData?: any;
+};
+
+const getMonthName = (date: Date) => {
+    return format(date, 'MMMM').toUpperCase();
 };
 
 const classToWords = (className: string) => {
@@ -43,7 +48,7 @@ const getOrdinalSuffix = (i: number) => {
 };
 
 const StudyCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
-    ({ data, selectedDate, addressType = 'address_per', parentType = '0', qrCode }, ref) => {
+    ({ data, selectedDate, addressType = 'address_per', parentType = '0', qrCode, academicYearData }, ref) => {
         if (!data || !data.studentList || data.studentList.length === 0) {
             return (
                 <div ref={ref} className="p-10 text-center text-gray-400 bg-white">
@@ -93,8 +98,8 @@ const StudyCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
                         }
 
                         .study-a4-container {
-                            width: 210mm;
-                            height: 297mm;
+                            width: 100%;
+                            min-height: 297mm;
                             padding: 15mm;
                             margin: 0 auto;
                             position: relative;
@@ -150,10 +155,26 @@ const StudyCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
                         const dobYear = dobObj ? dobObj.getFullYear() : '';
                         const dobSuffix = dobObj ? getOrdinalSuffix(dobObj.getDate()) : '';
 
+                        // Academic Year Logic for Baldwin
+                        let fromMonth = '';
+                        let fromYear = '';
+                        let toMonth = '';
+                        let toYear = '';
+
+                        if (academicYearData) {
+                            const fromDate = new Date(academicYearData.asmaY_From_Date);
+                            const toDate = new Date(academicYearData.asmaY_To_Date);
+                            fromMonth = getMonthName(fromDate);
+                            fromYear = fromDate.getFullYear().toString();
+                            toMonth = getMonthName(toDate);
+                            toYear = toDate.getFullYear().toString();
+                        }
+                        const baldwinAcademicYear = `${fromMonth}-${fromYear} to ${toMonth}-${toYear}`;
+
                         // Baldwin Co-Education (MI_Id = 5)
                         if (mI_Id === 5) {
                             return (
-                                <div key={`${student.AMST_Id || 's'}-${index}`} className='study-a4-page shadow-2xl print:shadow-none bg-white'>
+                                <div key={`${student.AMST_Id || 's'}-${index}`} className='study-a4-page print:shadow-none bg-white'>
                                     <div className='study-a4-container'>
                                         <div className='study-content-wrapper mt-[160px] mx-[40px]'>
                                             <div className='text-center mb-12'>
@@ -174,7 +195,7 @@ const StudyCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
                                                 <p>This is to certify that <span className='font-bold uppercase'>{student.studentnam}</span></p>
                                                 <p>son / daughter of <span className='font-bold uppercase'>MR. {fatherName} and MRS. {motherName}</span></p>
                                                 <p>is bonafide student of this school studying in <span className='font-bold uppercase'>{student.class} {student.section}</span></p>
-                                                <p>of the school year being <span className='font-bold'>{student.acadamicyear}</span></p>
+                                                <p>of the school year being <span className='font-bold'>{baldwinAcademicYear}</span></p>
                                                 <p>residing at <span className='font-bold uppercase'>{countryName || fullAddress}</span></p>
                                                 <p>His / Her date of birth, as per our records is (in figures) <span className='font-bold underline'>{student.dob ? format(new Date(student.dob), 'dd/MM/yyyy') : ''}</span></p>
                                                 <p>(in words) <span className='font-bold uppercase underline'>{student.dobwords}</span></p>
@@ -193,7 +214,7 @@ const StudyCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
                         // Baldwin Girls (MI_Id = 4)
                         if (mI_Id === 4) {
                             return (
-                                <div key={`${student.AMST_Id || 's'}-${index}`} className='study-a4-page shadow-2xl print:shadow-none bg-white'>
+                                <div key={`${student.AMST_Id || 's'}-${index}`} className='study-a4-page print:shadow-none bg-white'>
                                     <div className='study-a4-container'>
                                         <div className='study-content-wrapper mt-[200px] mx-[20px]'>
                                             <div className='text-center mb-8'>
@@ -243,7 +264,7 @@ const StudyCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
                         // Baldwin Boys (MI_Id = 6)
                         if (mI_Id === 6) {
                             return (
-                                <div key={`${student.AMST_Id || 's'}-${index}`} className='study-a4-page shadow-2xl print:shadow-none bg-white'>
+                                <div key={`${student.AMST_Id || 's'}-${index}`} className='study-a4-page print:shadow-none bg-white'>
                                     <div className='study-a4-container'>
                                         <div className='study-content-wrapper mt-[180px] mx-[20px]'>
                                             <div className='flex justify-end mb-12'>
@@ -258,7 +279,7 @@ const StudyCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
                                                 <p className='indent-20'>
                                                     This is to certify that Master <span className='font-bold uppercase underline'>{student.studentnam}</span>, son of
                                                     <span className='font-bold'> {parentDisplay}</span> is a bonafide student of this institution and
-                                                    is studying in <span className='font-bold uppercase'>{student.class} {student.section}</span> for the academic year <span className='font-bold underline'>{student.acadamicyear}</span>. His
+                                                    is studying in <span className='font-bold uppercase'>{student.class} {student.section}</span> for the academic year <span className='font-bold underline'>{baldwinAcademicYear}</span>. His
                                                     admission no. is <span className='font-bold underline'>{student.admno}</span> and date of birth is <span className='font-bold underline'>{dobDay}<sup>{dobSuffix}</sup> {dobMonth} {dobYear}</span>
                                                     as per the school records. He resides at the address mentioned below.
                                                 </p>
@@ -283,72 +304,85 @@ const StudyCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
 
                         // Common Layout
                         return (
-                            <div key={`${student.AMST_Id || 's'}-${index}`} className='study-a4-page shadow-2xl print:shadow-none bg-white'>
+                            <div key={`${student.AMST_Id || 's'}-${index}`} className='study-a4-page print:shadow-none bg-white'>
                                 <div className='study-a4-container'>
-                                    <div className='study-content-wrapper p-8 border-4 border-black border-double h-full'>
-                                        <div className='mb-8'>
-                                            {logoBase64 ? <img src={logoBase64} className='max-h-[120px] mx-auto object-contain' alt="Logo" /> : <div className='text-center font-bold text-2xl h-[120px] flex items-center justify-center border-2 border-dashed border-gray-200'>INSTITUTION LOGO</div>}
-                                        </div>
-
-                                        <div className='text-center mb-12 border-y-2 border-black py-4'>
-                                            <h3 className='text-[32px] font-black uppercase tracking-[0.1em]'>STUDY CERTIFICATE</h3>
-                                        </div>
-
-                                        <div className='flex justify-between items-start mt-8 relative'>
-                                            <div className='space-y-8 flex-1 text-[22px] leading-[3rem]'>
-                                                <div className='flex items-center gap-4'>
-                                                    <span className='font-bold whitespace-nowrap'>This is to certify that</span>
-                                                    <div className='flex-1 border-b-2 border-dotted border-black px-4 font-bold uppercase text-center'>{student.studentnam}</div>
-                                                </div>
-                                                <div className='flex items-center gap-4'>
-                                                    <span className='font-bold whitespace-nowrap'>Address</span>
-                                                    <div className='flex-1 border-b-2 border-dotted border-black px-4 uppercase text-center'>{fullAddress}</div>
-                                                </div>
-                                                <div className='flex items-center gap-4 flex-wrap'>
-                                                    <span className='font-bold whitespace-nowrap'>Is studying in</span>
-                                                    <div className='min-w-[150px] border-b-2 border-dotted border-black px-4 font-bold text-center'>{student.class}</div>
-                                                    <span className='font-bold'>Std. during the year</span>
-                                                    <div className='flex-1 border-b-2 border-dotted border-black px-4 font-bold text-center'>{student.acadamicyear}</div>
-                                                </div>
-                                                <div className='flex items-center gap-4'>
-                                                    <span className='font-bold whitespace-nowrap'>His/her Date of birth is</span>
-                                                    <div className='flex-1 border-b-2 border-dotted border-black px-4 font-bold uppercase text-center'>
-                                                        {student.dob ? format(new Date(student.dob), 'dd MMMM, yyyy') : ''}
-                                                    </div>
-                                                </div>
-                                                <div className='flex items-center gap-4'>
-                                                    <span className='font-bold whitespace-nowrap'>In words:</span>
-                                                    <div className='flex-1 border-b-2 border-dotted border-black px-4 font-bold uppercase text-center text-[18px]'>{student.dobwords}</div>
-                                                </div>
-                                                <div className='flex items-center gap-4'>
-                                                    <span className='font-bold whitespace-nowrap'>Caste :</span>
-                                                    <div className='flex-1 border-b-2 border-dotted border-black px-4 uppercase text-center'>{student.caste_name}</div>
-                                                    <span className='font-bold whitespace-nowrap'>Adm No. :</span>
-                                                    <div className='min-w-[200px] border-b-2 border-dotted border-black px-4 font-bold uppercase text-center'>{student.admno}</div>
-                                                </div>
-                                            </div>
-
-                                            {qrCode && (
-                                                <div className='absolute right-0 top-0 w-[140px] h-[140px] border-2 border-gray-100 p-2 bg-white shadow-sm'>
-                                                    <img src={qrCode} className='w-full h-full object-contain' alt="QR Code" />
+                                    <div className='study-content-wrapper p-8 h-full'>
+                                        <div className='mb-4 text-center'>
+                                            {logoBase64 ? (
+                                                <img src={logoBase64} className='max-h-[120px] mx-auto object-contain' alt="Logo" />
+                                            ) : (
+                                                <div className='text-center'>
+                                                    <h2 className='text-[28px] font-bold uppercase'>{data.masterCompany?.[0]?.companyName || 'INSTITUTION NAME'}</h2>
+                                                    <p className='text-md'>{data.masterCompany?.[0]?.companyAddress}</p>
                                                 </div>
                                             )}
                                         </div>
 
-                                        <div className='mt-12 text-[20px] italic font-medium text-center px-12 leading-relaxed'>
-                                            "I do hereby declare that the above particulars are correct as mentioned in the relevant school records."
+                                        <div className='text-center mb-12 py-4'>
+                                            <h3 className='text-[28px] font-bold uppercase tracking-widest'>STUDY CERTIFICATE</h3>
                                         </div>
 
-                                        <div className='mt-auto pt-16 grid grid-cols-2 gap-20 items-end px-4'>
-                                            <div className='space-y-4 font-bold text-[20px]'>
+                                        <div className='relative mt-4'>
+                                            <div className='w-full'>
+                                                <table className='w-full text-[18px] leading-[3rem] border-separate border-spacing-y-2'>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td className='w-[200px] font-bold whitespace-nowrap align-bottom'>This is to certify that</td>
+                                                            <td className='border-b border-gray-400 px-4 font-bold uppercase text-left align-bottom'>{student.studentnam}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className='font-bold whitespace-nowrap align-bottom'>Address</td>
+                                                            <td className='border-b border-gray-400 px-4 uppercase text-left align-bottom'>{fullAddress}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+
+                                                <table className='w-full text-[18px] leading-[3rem] border-separate border-spacing-y-2 mt-2'>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td className='w-[150px] font-bold whitespace-nowrap align-bottom'>Is studying in</td>
+                                                            <td className='border-b border-gray-400 px-4 font-bold text-center align-bottom'>{student.class}</td>
+                                                            <td className='w-[240px] font-bold whitespace-nowrap px-4 align-bottom text-right'>Standard during the year</td>
+                                                            <td className='border-b border-gray-400 px-4 font-bold text-center align-bottom'>{student.acadamicyear}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+
+                                                <table className='w-full text-[18px] leading-[3rem] border-separate border-spacing-y-2 mt-2'>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td className='w-[240px] font-bold whitespace-nowrap align-bottom'>His/her Date of birth is</td>
+                                                            <td className='border-b border-gray-400 px-4 font-bold uppercase text-left align-bottom'>
+                                                                {student.dob ? format(new Date(student.dob), 'dd MMMM, yyyy') : ''}
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className='font-bold whitespace-nowrap align-bottom'>In words:</td>
+                                                            <td className='border-b border-gray-400 px-4 font-bold uppercase text-left align-bottom text-[16px]'>{student.dobwords}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className='font-bold whitespace-nowrap align-bottom'>Caste :</td>
+                                                            <td className='border-b border-gray-400 px-4 uppercase text-left align-bottom'>{student.caste_name}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className='font-bold whitespace-nowrap align-bottom'>And her/his Admission No. is</td>
+                                                            <td className='border-b border-gray-400 px-4 font-bold uppercase text-left align-bottom'>{student.admno}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <div className='mt-auto pt-24 pb-8 grid grid-cols-2 gap-20 items-end px-4'>
+                                            <div className='space-y-2 font-bold text-[18px]'>
                                                 <div className='flex gap-2'><span>Place:</span><span className='uppercase'>{student.IVRMMCT_Name || 'BANGALORE'}</span></div>
                                                 <div className='flex gap-2'><span>Date:</span><span>{formattedDateLong}</span></div>
                                             </div>
                                             <div className='text-center'>
-                                                {principalSign && <img src={principalSign} className='h-24 mx-auto mb-2 mix-blend-multiply' alt="Principal Sign" />}
-                                                <div className='border-t-2 border-black pt-2'>
-                                                    <p className='font-bold text-[22px] uppercase'>Principal Signature</p>
-                                                    <p className='text-sm'>(With School Seal)</p>
+                                                {principalSign && <img src={principalSign} className='h-20 mx-auto mb-2 mix-blend-multiply' alt="Principal Sign" />}
+                                                <div className='border-t border-black pt-2 w-[200px] mx-auto'>
+                                                    <p className='font-bold text-[18px] uppercase'>Principal</p>
+                                                    <p className='text-xs'>(With School Seal)</p>
                                                 </div>
                                             </div>
                                         </div>

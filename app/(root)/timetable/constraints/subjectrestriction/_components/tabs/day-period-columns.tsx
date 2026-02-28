@@ -7,20 +7,9 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
 // Define Interface based on schema/data structure
-// Assuming standard fields based on form:
-// ASMAY_Id (Year), TTMC_Id (Category), ASMCL_Id (Class), ASMS_Id (Section), HRME_Id (Staff), ISMS_Id (Subject), TTMD_Id (Day), TTMP_Id (Period)
-// Plus potential joined names for display: asmaY_Year, ttmC_CategoryName, asmcL_ClassName, asmC_SectionName, staffName, ismS_SubjectName, ttmD_DayName, ttmP_PeriodName
-export interface IDayPeriodList {
-    ttrdP_Id: number;
-    asmaY_Year: string;
-    ttmC_CategoryName: string;
-    asmcL_ClassName: string;
-    asmC_SectionName: string;
-    staffName: string;
-    ismS_SubjectName: string; // or subjectName
-    ttmD_DayName: string;
-    ttmP_PeriodName: string;
-}
+import type { SubjectRestrictionDayPeriodGridData } from '@/types/timetable/constraints/subjectRestrictions';
+
+export type IDayPeriodList = SubjectRestrictionDayPeriodGridData;
 
 export const columns: ColumnDef<IDayPeriodList>[] = [
     {
@@ -61,9 +50,9 @@ export const columns: ColumnDef<IDayPeriodList>[] = [
         cell: ({ row }) => <div>{row.getValue('staffName')}</div>
     },
     {
-        accessorKey: 'ismS_SubjectName', // Adjust if key is different (e.g. subjectName)
+        accessorKey: 'ismS_SubjectName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Subject' />,
-        cell: ({ row }) => <div>{row.getValue('ismS_SubjectName') || row.original.ismS_SubjectName || '-'}</div>
+        cell: ({ row }) => <div>{row.getValue('ismS_SubjectName')}</div>
     },
     {
         accessorKey: 'ttmD_DayName',
@@ -76,6 +65,19 @@ export const columns: ColumnDef<IDayPeriodList>[] = [
         cell: ({ row }) => <div>{row.getValue('ttmP_PeriodName')}</div>
     },
     {
+        accessorKey: 'ttrdP_ActiveFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Active' />,
+        cell: ({ row }) => (
+            <div>
+                {row.original.ttrdP_ActiveFlag ? (
+                    <span className='rounded bg-green-100 px-2 py-1 text-green-800 text-xs font-semibold'>Active</span>
+                ) : (
+                    <span className='rounded bg-red-100 px-2 py-1 text-red-800 text-xs font-semibold'>Inactive</span>
+                )}
+            </div>
+        )
+    },
+    {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
         accessorFn: (row) => row,
@@ -85,7 +87,7 @@ export const columns: ColumnDef<IDayPeriodList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IDayPeriodList }) {
-    const { openEditForm, openDeleteForm } = useFormContext<IDayPeriodList>();
+    const { openEditForm, openToggleForm } = useFormContext<IDayPeriodList>();
 
     const handleEdit = useCallback(
         (data: IDayPeriodList) => {
@@ -94,19 +96,20 @@ function ActionButtonsCell({ rowData }: { rowData: IDayPeriodList }) {
         [openEditForm]
     );
 
-    const handleDelete = useCallback(
+    const handleToggle = useCallback(
         (data: IDayPeriodList) => {
-            if (openDeleteForm) openDeleteForm(data);
+            if (openToggleForm) openToggleForm(data);
         },
-        [openDeleteForm]
+        [openToggleForm]
     );
 
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, delete: true }} // No toggle needed?
+            buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
-            onDelete={handleDelete}
+            onToggle={handleToggle}
+            toggleConditionKey='ttrdP_ActiveFlag'
         />
     );
 }

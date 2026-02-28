@@ -122,7 +122,7 @@ export default function StaffPeriodTransferForm({ onFetch }: StaffPeriodTransfer
                                         <SelectContent>
                                             {masters?.staff?.map((s) => (
                                                 <SelectItem key={s.hrmE_Id} value={s.hrmE_Id.toString()}>
-                                                    {s.staffName}
+                                                    {s.staffNamelst}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
