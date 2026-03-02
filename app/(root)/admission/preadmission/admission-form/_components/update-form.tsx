@@ -5057,7 +5057,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                 inputProps={{
                                                                     id: 'amsT_MobileNo',
                                                                     name: 'amsT_MobileNo',
-                                                                    maxLength: 25,
+                                                                    maxLength: 15,
                                                                     required: false,
                                                                     style: {
                                                                         width: '87%',
