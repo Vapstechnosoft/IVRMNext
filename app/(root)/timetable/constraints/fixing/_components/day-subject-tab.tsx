@@ -74,10 +74,16 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
 
     const totalItems = (gridResponse as any)?.total || (gridResponse as any)?.count || gridData.length;
 
+    // const [classList, setClassList] = useState<any[]>([]);
+    // const [sectionList, setSectionList] = useState<any[]>([]);
+    // const [subStaffList, setSubStaffList] = useState<any[]>([]);
+    // const [categoryList, setCategoryList] = useState<any[]>(initialData?.categorylist || []);
+    // const [isClassLoading, setIsClassLoading] = useState(false);
+
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subStaffList, setSubStaffList] = useState<any[]>([]);
-    const [categoryList, setCategoryList] = useState<any[]>(initialData?.categorylist || []);
+    const [categoryList, setCategoryList] = useState<any[]>([]);
     const [isClassLoading, setIsClassLoading] = useState(false);
 
     // Master lists for the selected subject
@@ -89,39 +95,66 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
     const extractList = (data: any, preferredKey?: string) => {
         if (!data) return [];
         if (Array.isArray(data)) return data;
-        const target = data?.data !== undefined ? data.data : data;
+
+        // Handle ApiResponse wrapper or double-nested data
+        let target = data?.data !== undefined ? data.data : data;
+        if (target && !Array.isArray(target) && typeof target === 'object' && target.data !== undefined) {
+            target = target.data;
+        }
+
         if (Array.isArray(target)) return target;
-        if (!target) return [];
+        if (!target || typeof target !== 'object') return [];
 
         // 1. Precise match (case-insensitive) for the requested key
         if (preferredKey) {
             const foundKey = Object.keys(target).find((k) => k.toLowerCase() === preferredKey.toLowerCase());
-            if (foundKey && Array.isArray(target[foundKey])) return target[foundKey];
+            const result = foundKey ? target[foundKey] : undefined;
+            if (Array.isArray(result)) return result;
         }
 
         // 2. Fallback to common key names
         const keys = [
             'academiclist',
             'catelist',
-            'classlist',
-            'sectionlist',
-            'stafflist',
-            'subjectlist',
             'categorylist',
+            'classlist',
+            'clsbysubject',
+            'clssbysub',
+            'sectionlist',
+            'sectbysubject',
+            'secsbysub',
+            'stafflist',
+            'staffbysubject',
+            'staffbysub',
+            'staffbyall',
+            'subjectlist',
             'classbycategory',
             'sectionbyclass',
-            'subjectbystaff',
-            'staffbyall'
+            'subjectbystaff'
         ];
 
         for (const key of keys) {
             const foundKey = Object.keys(target).find((k) => k.toLowerCase() === key.toLowerCase());
-            if (foundKey && Array.isArray(target[foundKey])) return target[foundKey];
+            const result = foundKey ? target[foundKey] : undefined;
+            if (Array.isArray(result)) return result;
         }
 
         // 3. Last resort: first array property found
         const firstArray = Object.values(target).find((v) => Array.isArray(v));
-        return Array.isArray(firstArray) ? firstArray : [];
+        return Array.isArray(firstArray) ? (firstArray as any[]) : [];
+    };
+
+    const uniqueById = (list: any[], idKey: string) => {
+        const seen = new Set();
+        return (list || []).filter((item: any) => {
+            if (!item) return false;
+            const actualKey = Object.keys(item).find((k) => k.toLowerCase() === idKey.toLowerCase());
+            const id = actualKey ? item[actualKey] : undefined;
+            if (id === undefined || id === null) return false;
+            if (seen.has(id)) return false;
+            seen.add(id);
+            return true;
+        });
     };
 
     const [viewDetails, setViewDetails] = useState<any[]>([]);
@@ -165,14 +198,21 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
         });
     };
 
+    // Removal of handleStaffChange as it belongs to DayStaff tab and contains errors here.
+
     useEffect(() => {
         const loadDropdowns = async () => {
             try {
-                setCategoryList(filterData(initialData?.categorylist || initialData?.data?.categorylist || [], 'ttmC_CategoryName'));
+                setCategoryList(
+                    uniqueById(
+                        filterData(initialData?.categorylist || initialData?.data?.categorylist || [], 'ttmC_CategoryName'),
+                        'ttmC_Id'
+                    )
+                );
                 const fixingData = await getdetailsAllFixing();
                 if (fixingData?.data) {
-                    setDayList(filterData(fixingData.data.daylist || [], 'ttmD_DayName'));
-                    setSubjectList(filterData(fixingData.data.subjectlist || [], 'ismS_SubjectName'));
+                    setDayList(uniqueById(filterData(fixingData.data.daylist || [], 'ttmD_DayName'), 'ttmD_Id'));
+                    setSubjectList(uniqueById(filterData(fixingData.data.subjectlist || [], 'ismS_SubjectName'), 'ismS_Id'));
                 }
                 if (asmaY_Id && selectedCategory) {
                     await fetchClasses(asmaY_Id, selectedCategory);
@@ -231,69 +271,155 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
         setSelectedCategory(categoryId);
         setSelectedClass(undefined);
         setSelectedSection(undefined);
-        setSelectedStaff(undefined);
+        //  setSelectedStaff(undefined);
 
         // Filter classes from master list by category
-        const filtered = masterClasses.filter((c) => Number(c.ttmC_Id) === categoryId || Number(c.ttmc_id) === categoryId);
-        setClassList(filterData(filtered, 'asmcL_ClassName'));
+        const filtered = masterClasses.filter(
+            (c) =>
+                (c.ttmC_Id !== undefined && Number(c.ttmC_Id) === categoryId) ||
+                (c.ttmc_id !== undefined && Number(c.ttmc_id) === categoryId) ||
+                (c.TTMC_Id !== undefined && Number(c.TTMC_Id) === categoryId)
+        );
 
-        setSectionList([]);
-        setSubStaffList([]);
+        if (filtered.length > 0) {
+            setClassList(uniqueById(filterData(filtered, 'asmcL_ClassName'), 'asmcL_Id'));
+        } else {
+            // If filtering fails (no link), show all classes for this subject to keep data visible
+            setClassList(uniqueById(filterData(masterClasses, 'asmcL_ClassName'), 'asmcL_Id'));
+
+            // Or fetch from server as fallback
+            if (asmaY_Id) {
+                try {
+                    const data = await getFixingClassDropdown(asmaY_Id, categoryId);
+                    const list = extractList(data, 'classlist');
+                    if (list && list.length > 0) {
+                        setClassList(uniqueById(filterData(list, 'asmcL_ClassName'), 'asmcL_Id'));
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        }
+
+        // setSectionList([]);
+        //  setSubStaffList([]);
+
+        console.log(masterStaff, 'masterStaffdata after category change');
     };
 
-    const handleClassChange = async (classId: number) => {
+    // console.log(masterClasses, 'masterClasses');
+    // const handleClassChange = async (classId: number) => {
+    //     setSelectedClass(classId);
+    //     setSelectedSection(undefined);
+    //     setSelectedStaff(undefined);
+
+    //     // Filter sections from master list by class
+    //     const filtered = masterSections.filter(
+    //         (s) =>
+    //             (s.asmcL_Id !== undefined && Number(s.asmcL_Id) === classId) ||
+    //             (s.asmcl_id !== undefined && Number(s.asmcl_id) === classId) ||
+    //             (s.ASMCL_Id !== undefined && Number(s.ASMCL_Id) === classId)
+    //     );
+
+    //     const listToUse = filtered.length > 0 ? filtered : masterSections;
+    //     setSectionList(uniqueById(filterData(listToUse, 'asmC_SectionName'), 'asmS_Id'));
+
+    //     setSubStaffList([]);
+    // };
+
+    const handleClassChange = (classId: number) => {
         setSelectedClass(classId);
-        setSelectedSection(undefined);
-        setSelectedStaff(undefined);
-
-        // Filter sections from master list by class
-        const filtered = masterSections.filter((s) => Number(s.asmcL_Id) === classId || Number(s.asmcl_id) === classId);
-        setSectionList(filterData(filtered, 'asmC_SectionName'));
-
-        setSubStaffList([]);
     };
+    console.log(masterSections, 'mastersections');
+    // const handleSectionChange = async (sectionId: number) => {
+    //     setSelectedSection(sectionId);
+    //     setSelectedStaff(undefined);
 
-    const handleSectionChange = async (sectionId: number) => {
+    //     // Filter staff from master list by section
+    //     const filtered = masterStaff.filter(
+    //         (st) =>
+    //             (st.asmS_Id !== undefined && Number(st.asmS_Id) === sectionId) ||
+    //             (st.asms_id !== undefined && Number(st.asms_id) === sectionId) ||
+    //             (st.asmS_id !== undefined && Number(st.asmS_id) === sectionId) ||
+    //             (st.ASMS_Id !== undefined && Number(st.ASMS_Id) === sectionId)
+    //     );
+
+    //     const listToUse = filtered.length > 0 ? filtered : masterStaff;
+    //     setSubStaffList(uniqueById(filterData(listToUse, 'staffName'), 'hrmE_Id'));
+    // };
+    const handleSectionChange = (sectionId: number) => {
         setSelectedSection(sectionId);
-        setSelectedStaff(undefined);
-
-        // Filter staff from master list by section
-        const filtered = masterStaff.filter((st) => Number(st.asmS_Id) === sectionId || Number(st.asms_id) === sectionId);
-        setSubStaffList(filterData(filtered, 'hrmE_EmployeeFirstName'));
     };
+
+    console.log(subStaffList, 'subStaffList');
+    // const handleSubjectChange = async (subjectId: number) => {
+    //     setValue('ismS_Id', subjectId);
+    //     setSelectedCategory(undefined);
+    //     setSelectedClass(undefined);
+    //     setSelectedSection(undefined);
+    //     setSelectedStaff(undefined);
+    //     setClassList([]);
+    //     setSectionList([]);
+    //     setSubStaffList([]);
+
+    //     if (asmaY_Id && subjectId) {
+    //         try {
+    //             const res = await getFixingClassSectionStaffsBySubject(asmaY_Id, subjectId);
+    //             console.log('DaySubject - get_cls_sec_staffsData response:', res);
+
+    //             if (res) {
+    //                 const cats = extractList(res, 'categorylist').length > 0 ? extractList(res, 'categorylist') : extractList(res, 'catelist');
+
+    //                 const classes = extractList(res, 'classlist').length > 0
+    //                     ? extractList(res, 'classlist')
+    //                     : (extractList(res, 'clsbysubject').length > 0 ? extractList(res, 'clsbysubject') : (extractList(res, 'clssbysub').length > 0 ? extractList(res, 'clssbysub') : extractList(res, 'clssbysubject')));
+
+    //                 const sections = extractList(res, 'sectionlist').length > 0
+    //                     ? extractList(res, 'sectionlist')
+    //                     : (extractList(res, 'sectbysubject').length > 0 ? extractList(res, 'sectbysubject') : (extractList(res, 'secsbysub').length > 0 ? extractList(res, 'secsbysub') : extractList(res, 'sectionsbysubject')));
+
+    //                 const staff = extractList(res, 'stafflist').length > 0
+    //                     ? extractList(res, 'stafflist')
+    //                     : (extractList(res, 'staffbysubject').length > 0 ? extractList(res, 'staffbysubject') : (extractList(res, 'staffbysub').length > 0 ? extractList(res, 'staffbysub') : extractList(res, 'staffbyall')));
+
+    //                 setMasterCategories(cats);
+    //                 setMasterClasses(classes);
+    //                 setMasterSections(sections);
+    //                 setMasterStaff(staff);
+
+    //                 if (cats && cats.length > 0) {
+    //                     setCategoryList(uniqueById(filterData(cats, 'ttmC_CategoryName'), 'ttmC_Id'));
+    //                 }
+    //                 if (classes && classes.length > 0) {
+    //                     setClassList(uniqueById(filterData(classes, 'asmcL_ClassName'), 'asmcL_Id'));
+    //                 }
+    //                 if (sections && sections.length > 0) {
+    //                     setSectionList(uniqueById(filterData(sections, 'asmC_SectionName'), 'asmS_Id'));
+    //                 }
+    //                 if (staff && staff.length > 0) {
+    //                     setSubStaffList(uniqueById(filterData(staff, 'staffName'), 'hrmE_Id'));
+    //                 }
+    //             }
+    //         } catch (e) {
+    //             console.error(e);
+    //             toast.error('Failed to load details for selected subject');
+    //         }
+    //     }
+    // };
 
     const handleSubjectChange = async (subjectId: number) => {
         setValue('ismS_Id', subjectId);
-        setSelectedCategory(undefined);
-        setSelectedClass(undefined);
-        setSelectedSection(undefined);
-        setSelectedStaff(undefined);
-        setClassList([]);
-        setSectionList([]);
-        setSubStaffList([]);
 
         if (asmaY_Id && subjectId) {
-            try {
-                const res = await getFixingClassSectionStaffsBySubject(asmaY_Id, subjectId);
-                console.log('DaySubject - get_cls_sec_staffsData response:', res);
+            const res = await getFixingClassSectionStaffsBySubject(asmaY_Id, subjectId);
 
-                const cats = extractList(res, 'categorylist');
-                const classes = extractList(res, 'classlist');
-                const sections = extractList(res, 'sectionlist');
-                const staff = extractList(res, 'stafflist');
+            const classes = res?.data?.clssbysub || [];
+            const sections = res?.data?.secsbysub || [];
+            const staff = res?.data?.staffbysub || [];
 
-                setMasterCategories(cats);
-                setMasterClasses(classes);
-                setMasterSections(sections);
-                setMasterStaff(staff);
-
-                if (cats && cats.length > 0) {
-                    setCategoryList(filterData(cats, 'ttmC_CategoryName'));
-                }
-            } catch (e) {
-                console.error(e);
-                toast.error('Failed to load details for selected subject');
-            }
+            setClassList(classes);
+            setSectionList(sections);
+            setSubStaffList(staff);
         }
     };
 
@@ -308,7 +434,7 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
         const staffObj = subStaffList.find((s) => s.hrmE_Id === selectedStaff);
 
         const exists = fields.some(
-            (f: any) => f.asmcL_Id === selectedClass && f.asmS_Id === selectedSection && f.hrmE_Id === selectedStaff
+            (f: any) => f.asmcL_Id === Number(selectedClass) && f.asmS_Id === Number(selectedSection) && f.hrmE_Id === Number(selectedStaff)
         );
         if (exists) {
             toast.warning('Already Exists');
@@ -320,9 +446,9 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
             asmS_Id: selectedSection,
             hrmE_Id: selectedStaff,
             nop: Number(nop),
-            clsDisplay: clsObj?.asmcL_ClassName,
-            sectDisplay: secObj?.asmC_SectionName,
-            staffDisplay: staffObj?.hrmE_EmployeeFirstName
+            clsDisplay: clsObj?.asmcL_ClassName || clsObj?.asmcL_Classname,
+            sectDisplay: secObj?.asmC_SectionName || secObj?.asmC_Sectionname || secObj?.asmS_SectionName,
+            staffDisplay: staffObj?.staffName
         });
     };
 
@@ -492,13 +618,11 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {academicList
-                                                            .filter((item: any) => item.asmaY_Id)
-                                                            .map((item: any) => (
-                                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                                    {item.asmaY_Year}
-                                                                </SelectItem>
-                                                            ))}
+                                                        {academicList?.map((item: any) => (
+                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id?.toString()}>
+                                                                {item.asmaY_Year}
+                                                            </SelectItem>
+                                                        ))}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -519,11 +643,14 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {dayList.map((item: any) => (
-                                                            <SelectItem key={item.ttmD_Id} value={item.ttmD_Id.toString()}>
-                                                                {item.ttmD_DayName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {dayList.map((item: any) => {
+                                                            const id = item.ttmD_Id ?? item.ttmd_id ?? item.TTMD_Id;
+                                                            return (
+                                                                <SelectItem key={id} value={id?.toString()}>
+                                                                    {item.ttmD_DayName || item.ttmD_Dayname || item.ttmd_dayname}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -547,12 +674,15 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
                                                     </FormControl>
                                                     <SelectContent>
                                                         {subjectList
-                                                            .filter((item: any) => item.ismS_Id)
-                                                            .map((item: any) => (
-                                                                <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
-                                                                    {item.ismS_SubjectName}
-                                                                </SelectItem>
-                                                            ))}
+                                                            .filter((item: any) => item.ismS_Id || item.isms_id || item.ISMS_Id)
+                                                            .map((item: any) => {
+                                                                const id = item.ismS_Id ?? item.isms_id ?? item.ISMS_Id;
+                                                                return (
+                                                                    <SelectItem key={id} value={id?.toString()}>
+                                                                        {item.ismS_SubjectName || item.isms_subjectname || item.subjectName}
+                                                                    </SelectItem>
+                                                                );
+                                                            })}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -591,11 +721,14 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {categoryList.map((item: any) => (
-                                                            <SelectItem key={item.ttmC_Id} value={item.ttmC_Id.toString()}>
-                                                                {item.ttmC_CategoryName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {categoryList.map((item: any) => {
+                                                            const id = item.ttmC_Id ?? item.ttmc_id ?? item.TTMC_Id;
+                                                            return (
+                                                                <SelectItem key={id} value={id?.toString()}>
+                                                                    {item.ttmC_CategoryName || item.ttmc_categoryname || item.categoryName}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -611,11 +744,14 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
                                                         {isClassLoading ? (
                                                             <SelectItem value='loading'>Loading...</SelectItem>
                                                         ) : (
-                                                            classList.map((item: any) => (
-                                                                <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                                                    {item.asmcL_ClassName}
-                                                                </SelectItem>
-                                                            ))
+                                                            classList.map((item: any) => {
+                                                                const id = item.asmcL_Id ?? item.asmcl_id ?? item.ASMCL_Id;
+                                                                return (
+                                                                    <SelectItem key={id} value={id?.toString()}>
+                                                                        {item.asmcL_ClassName}
+                                                                    </SelectItem>
+                                                                );
+                                                            })
                                                         )}
                                                     </SelectContent>
                                                 </Select>
@@ -629,11 +765,14 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {sectionList.map((item: any) => (
-                                                            <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
-                                                                {item.asmS_SectionName || item.asmC_SectionName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {sectionList.map((item: any) => {
+                                                            const id = item.asmS_Id ?? item.asms_id ?? item.ASMS_Id;
+                                                            return (
+                                                                <SelectItem key={id} value={id?.toString()}>
+                                                                    {item.asmC_SectionName}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -646,15 +785,14 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {subStaffList.map((item: any) => (
-                                                            <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
-                                                                {item.hrmE_EmployeeCode || item.staffCode || ''}-
-                                                                {item.hrmE_EmployeeFirstName ||
-                                                                    item.staffName ||
-                                                                    item.hrme_employeeFirstName ||
-                                                                    ''}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {subStaffList.map((item: any) => {
+                                                            const id = item.hrmE_Id ?? item.hrme_id ?? item.HRME_Id;
+                                                            return (
+                                                                <SelectItem key={id} value={id?.toString()}>
+                                                                    {item.staffName?.replace(/\n/g, ' ').trim()}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             </div>

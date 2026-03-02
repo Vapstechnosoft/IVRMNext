@@ -6,7 +6,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { useSubjectRestrictionDayStaffGridData } from '@/hooks/timetable/constraints/subjectrestriction';
 import { masterDaySchema } from '@/schemas/timetable/masters';
 import { ToggleSubjectDayStaff } from '@/server/timetable/constraints/subjectrestriction';
-import { SubjectRestrictionDayStaffGridData } from '@/types/timetable/constraints/subjectRestrictions';
+import type { SubjectRestrictionDayStaffGridData } from '@/types/timetable/constraints/subjectRestrictions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -21,7 +21,7 @@ interface ToggleSubjectDayStaffProps {
 
 export default function ToggleDayStaffForm({ rowData, onClose }: ToggleSubjectDayStaffProps) {
     const { refetchAll } = useSubjectRestrictionDayStaffGridData({ ASMAY_Id: 0, TTMC_Id: 0 });
-    const isActive = rowData.ttrdsU_ActiveFlag;
+    const isActive = rowData.ttrdS_ActiveFlag;
 
     const {
         register,
@@ -40,7 +40,7 @@ export default function ToggleDayStaffForm({ rowData, onClose }: ToggleSubjectDa
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await ToggleSubjectDayStaff(Number(rowData.ttrdsU_Id));
+            const response = await ToggleSubjectDayStaff(Number(rowData.ttrdS_Id));
 
             if (response.success || response.returnval === true) {
                 toast.success(response.message || 'Status updated successfully');
@@ -58,12 +58,13 @@ export default function ToggleDayStaffForm({ rowData, onClose }: ToggleSubjectDa
         <AdaptiveDialog title='Toggle Day Staff Constraint' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('ttmD_Id')} defaultValue={rowData.ttrdsU_Id} />
+                    <input type='hidden' {...register('ttmD_Id')} defaultValue={(rowData as any).ttrdS_Id} />
                     <p>
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
                         <strong>
                             {rowData.staffName} ({rowData.ttmD_DayName})
-                        </strong>?
+                        </strong>
+                        ?
                     </p>
                     <FormError>{errors.ttmD_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>

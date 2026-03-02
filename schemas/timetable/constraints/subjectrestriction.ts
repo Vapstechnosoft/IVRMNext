@@ -1,16 +1,16 @@
 import { z } from 'zod';
 
 export const dayPeriodSchema = z.object({
-    TTRDP_Id: z.number().optional(),
-    ASMAY_Id: z.number().min(1, 'Academic Year is required'),
-    TTMC_Id: z.number().min(1, 'Category is required'),
-    ASMCL_Id: z.number().optional(),
-    ASMS_Id: z.number().optional(),
-    HRME_Id: z.number().optional(),
-    ISMS_Id: z.number().optional(),
-    TTMD_Id: z.number().optional(),
-    TTMP_Id: z.number().optional(),
-    TTRDP_SUbSelcFlag: z.boolean().optional(),
+    ttrdP_Id: z.number().optional(),
+    asmaY_Id: z.number().min(1, 'Academic Year is required'),
+    ttmC_Id: z.number().min(1, 'Category is required'),
+    asmcL_Id: z.number().optional(),
+    asmS_Id: z.number().optional(),
+    hrmE_Id: z.number().optional(),
+    ismS_Id: z.number().optional(),
+    ttmD_Id: z.number().optional(),
+    ttmP_Id: z.number().optional(),
+    ttrdP_SUbSelcFlag: z.boolean().optional(),
     combinationlist: z
         .array(
             z.object({
@@ -25,37 +25,44 @@ export const dayPeriodSchema = z.object({
 });
 
 export const dayStaffSchema = z.object({
-    TTRDS_Id: z.number().optional(),
-    ASMAY_Id: z.number().min(1, 'Academic Year is required'),
-    TTMD_Id: z.number().optional(),
-    HRME_Id: z.number().min(1, 'Staff is required'),
-    TTRDS_SUbSelcFlag: z.boolean().optional(),
-    combinationlist: z
+    ttrdS_Id: z.number().optional(),
+    asmaY_Id: z.number().min(1, 'Academic Year is required'),
+    ttmD_Id: z.number().optional(),
+    hrmE_Id: z.number().min(1, 'Staff is required'),
+    ttrdS_SUbSelcFlag: z.boolean().optional(),
+    ttrdscC_Id: z.number().optional(),
+    tempararyArrayList: z
         .array(
             z.object({
-                ASMCL_Id: z.number(),
-                ASMS_Id: z.number(),
-                ISMS_Id: z.number(),
-                TTRDSCC_Periods: z.number().min(1, 'Period count is required') // Mapped from NOP
+                asmcL_Id: z.number(),
+                asmS_Id: z.number(),
+                ismS_Id: z.number(),
+                nop: z.number().min(1, 'Period count is required'),
+                clsDisplay: z.string().optional(),
+                sectDisplay: z.string().optional(),
+                subDisplay: z.string().optional()
             })
         )
         .optional()
 });
 
 export const daySubjectSchema = z.object({
-    TTRDSU_Id: z.number().optional(),
-    ASMAY_Id: z.number().min(1, 'Academic Year is required'),
-    TTMC_Id: z.number().min(1, 'Category is required'),
-    TTMD_Id: z.number().min(1, 'Day is required'),
-    ISMS_Id: z.number().min(1, 'Subject is required'),
-    TTRDSU_SUbSelcFlag: z.boolean().optional(),
-    combinationlist: z
+    ttrdsU_Id: z.number().optional(),
+    asmaY_Id: z.number(),
+    ttmD_Id: z.number(),
+    ismS_Id: z.number(),
+    ttrdsU_SUbSelcFlag: z.boolean().optional(),
+    ttrdsucC_Id: z.number().optional(),
+    tempararyArrayList: z
         .array(
             z.object({
-                ASMCL_Id: z.number(),
-                ASMS_Id: z.number(),
-                HRME_Id: z.number(),
-                TTRDSUCC_Periods: z.number().min(1, 'Period count is required') // Mapped from NOP
+                asmcL_Id: z.number(),
+                asmS_Id: z.number(),
+                hrmE_Id: z.number(),
+                nop: z.number(),
+                clsDisplay: z.string().optional(),
+                sectDisplay: z.string().optional(),
+                staffDisplay: z.string().optional()
             })
         )
         .optional()

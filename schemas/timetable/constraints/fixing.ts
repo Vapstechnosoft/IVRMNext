@@ -102,10 +102,12 @@ export type FixingPeriodStaffSchema = z.infer<typeof fixingPeriodStaffSchema>;
 // 5. Period Subject Schema
 export const fixingPeriodSubjectSchema = z.object({
     ttrpsU_Id: z.number().optional(),
+    ttfpsU_Id: z.number().optional(),
     asmaY_Id: z.number().min(1, 'Academic Year is required'),
     ttmP_Id: z.number().min(1, 'Period is required'),
     ismS_Id: z.number().min(1, 'Subject is required'),
     ttrpsU_SUbSelcFlag: z.boolean().default(false),
+    ttfpsU_SUbSelcFlag: z.boolean().default(false),
     tempararyArrayList: z.array(fixingPeriodSubjectListSchema).optional()
 });
 export type FixingPeriodSubjectSchema = z.infer<typeof fixingPeriodSubjectSchema>;

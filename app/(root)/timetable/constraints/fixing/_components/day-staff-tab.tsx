@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
 import { useDayStaffGridData } from '@/hooks/timetable/constraints/fixingData';
 import { type FixingDayStaffSchema, fixingDayStaffSchema } from '@/schemas/timetable/constraints/fixing';
+import { getCategoryDropDown } from '@/server/timetable/constraints/FixingForm';
 import {
     getFixingClassDropdown,
     getFixingClassSectionSubjectByStaff,
@@ -51,7 +52,7 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
     } = useFormContext();
 
     const { data: academicData } = usebifurcationAcademicYear();
-    const academicList = (academicData as any)?.data || [];
+    const academicList = Array.isArray(academicData) ? academicData : (academicData as any)?.data || [];
 
     const [dayList, setDayList] = useState<any[]>(initialData?.daylist || initialData?.data?.daylist || []);
     const [staffList, setStaffList] = useState<any[]>(initialData?.stafflist || initialData?.data?.stafflist || []);
@@ -70,7 +71,7 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subSubjectList, setSubSubjectList] = useState<any[]>([]);
-    const [categoryList, setCategoryList] = useState<any[]>(initialData?.categorylist || initialData?.data?.categorylist || []);
+    const [categoryList, setCategoryList] = useState<any[]>([]);
     const [isClassLoading, setIsClassLoading] = useState(false);
 
     // Master lists for the selected staff member
@@ -82,35 +83,54 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
     const extractList = (data: any, preferredKey?: string) => {
         if (!data) return [];
         if (Array.isArray(data)) return data;
-        const target = data?.data !== undefined ? data.data : data;
+
+        // Handle ApiResponse wrapper or double-nested data
+        let target = data?.data !== undefined ? data.data : data;
+
+        if (target && !Array.isArray(target) && typeof target === 'object' && target.data !== undefined) {
+            target = target.data;
+        }
+
         if (Array.isArray(target)) return target;
-        if (!target) return [];
+        if (!target || typeof target !== 'object') return [];
 
         if (preferredKey) {
             const foundKey = Object.keys(target).find((k) => k.toLowerCase() === preferredKey.toLowerCase());
-            if (foundKey && Array.isArray(target[foundKey])) return target[foundKey];
+            const result = foundKey ? target[foundKey] : undefined;
+            if (Array.isArray(result)) return result;
+            // If preferred key fails, don't fall through to generic loop as it can pick the wrong list (e.g. class for section)
+            return [];
         }
 
         const keys = [
             'academiclist',
+            'categorylist',
             'catelist',
+            'categorylistbystaff',
             'classlist',
+            'clssbystaff',
+            'clsbystaff',
             'sectionlist',
-            'stafflist',
+            'secsbystaff',
+            'sectionlistbystaff',
             'subjectlist',
+            'subsbystaff',
+            'subjectlistbystaff',
+            'subsbyall',
+            'stafflist',
             'staffbyall',
             'subjectbystaff',
             'sectionbyclass',
-            'classbycategory',
-            'categorylist'
+            'classbycategory'
         ];
         for (const key of keys) {
             const foundKey = Object.keys(target).find((k) => k.toLowerCase() === key.toLowerCase());
-            if (foundKey && Array.isArray(target[foundKey])) return target[foundKey];
+            const result = foundKey ? target[foundKey] : undefined;
+            if (Array.isArray(result)) return result;
         }
 
         const firstArray = Object.values(target).find((v) => Array.isArray(v));
-        return Array.isArray(firstArray) ? firstArray : [];
+        return Array.isArray(firstArray) ? (firstArray as any[]) : [];
     };
 
     // View Modal State
@@ -146,7 +166,11 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
 
     const filterData = (list: any[], key: string) => {
         return (list || []).filter((item: any) => {
-            const val = item[key];
+            if (!item) return false;
+            // Case-insensitive key lookup
+            const actualKey = Object.keys(item).find((k) => k.toLowerCase() === key.toLowerCase());
+            const val = actualKey ? item[actualKey] : undefined;
+            if (val === undefined || val === null) return false;
             if (typeof val !== 'string') return !!val;
             const name = val.trim();
             return name && name.toLowerCase() !== 'test';
@@ -156,7 +180,9 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
     useEffect(() => {
         const loadDropdowns = async () => {
             try {
-                setCategoryList(filterData(initialData?.categorylist || initialData?.data?.categorylist || [], 'ttmC_CategoryName'));
+                const categoryData = await getCategoryDropDown();
+                setCategoryList(filterData(categoryData || [], 'ttmC_CategoryName'));
+
                 const [fixingData, gridRes] = await Promise.all([getdetailsAllFixing(), getFixingDayStaffGridData(searchParams)]);
 
                 if (fixingData?.data) {
@@ -222,6 +248,14 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
         setClassList([]);
         setSectionList([]);
         setSubSubjectList([]);
+
+        const currentStaffId = form.getValues('hrmE_Id');
+        if (yearId && currentStaffId) {
+            handleStaffChange(currentStaffId, yearId);
+        }
+
+        // Fetch categories when year changes is already handled by main effect or can be removed if strictly only once
+        // Removing local override as per user request to keep list "clear" and only from one source
     };
 
     const handleCategoryChange = async (categoryId: number) => {
@@ -231,8 +265,31 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
         setSelectedSubject(undefined);
 
         // Filter classes from master list by category
-        const filtered = masterClasses.filter((c) => Number(c.ttmC_Id) === categoryId);
-        setClassList(filterData(filtered, 'asmcL_ClassName'));
+        const filtered = masterClasses.filter(
+            (c) =>
+                (c.ttmC_Id !== undefined && Number(c.ttmC_Id) === categoryId) ||
+                (c.ttmc_id !== undefined && Number(c.ttmc_id) === categoryId) ||
+                (c.TTMC_Id !== undefined && Number(c.TTMC_Id) === categoryId)
+        );
+
+        // If masterClasses don't have category link, or filter yields nothing,
+        // fallback to server fetch for this category or keep current list
+        if (filtered.length > 0) {
+            setClassList(filterData(filtered, 'asmcL_ClassName'));
+        } else {
+            // Check if we should fetch from server as fallback
+            if (asmaY_Id) {
+                try {
+                    const servClasses = await getFixingClassDropdown(asmaY_Id, categoryId);
+                    const list = extractList(servClasses, 'classlist');
+                    if (list.length > 0) {
+                        setClassList(filterData(list, 'asmcL_ClassName'));
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        }
 
         setSectionList([]);
         setSubSubjectList([]);
@@ -244,9 +301,14 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
         setSelectedSubject(undefined);
 
         // Filter sections from master list by class
-        const filtered = masterSections.filter((s) => Number(s.asmcL_Id) === classId);
-        setSectionList(filterData(filtered, 'asmC_SectionName'));
+        const filtered = masterSections.filter(
+            (s) =>
+                (s.asmcL_Id !== undefined && Number(s.asmcL_Id) === classId) ||
+                (s.asmcl_id !== undefined && Number(s.asmcl_id) === classId) ||
+                (s.ASMCL_Id !== undefined && Number(s.ASMCL_Id) === classId)
+        );
 
+        setSectionList(filterData(filtered.length > 0 ? filtered : masterSections, 'asmC_SectionName'));
         setSubSubjectList([]);
     };
 
@@ -255,11 +317,22 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
         setSelectedSubject(undefined);
 
         // Filter subjects from master list by section
-        const filtered = masterSubjects.filter((sub) => Number(sub.asmS_Id) === sectionId);
-        setSubSubjectList(filterData(filtered, 'ismS_SubjectName'));
+        const filtered = masterSubjects.filter(
+            (sub) =>
+                (sub.asmS_Id !== undefined && Number(sub.asmS_Id) === sectionId) ||
+                (sub.asms_id !== undefined && Number(sub.asms_id) === sectionId) ||
+                (sub.ASMS_Id !== undefined && Number(sub.ASMS_Id) === sectionId)
+        );
+
+        if (filtered.length > 0) {
+            setSubSubjectList(filterData(filtered, 'ismS_SubjectName'));
+        } else {
+            // If local filter is missing link, show staff's full subject list as it's specifically for them
+            setSubSubjectList(filterData(masterSubjects, 'ismS_SubjectName'));
+        }
     };
 
-    const handleStaffChange = async (staffId: number) => {
+    const handleStaffChange = async (staffId: number, yearId?: number) => {
         setValue('hrmE_Id', staffId);
         setSelectedCategory(undefined);
         setSelectedClass(undefined);
@@ -269,29 +342,65 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
         setSectionList([]);
         setSubSubjectList([]);
 
-        if (asmaY_Id && staffId) {
+        const effectiveYearId = yearId ?? form.getValues('asmaY_Id');
+
+        if (effectiveYearId && staffId) {
             try {
-                const res = await getFixingClassSectionSubjectByStaff(asmaY_Id, staffId);
+                console.log(`Fetching assignments for Year: ${effectiveYearId}, Staff: ${staffId}`);
+                const res = await getFixingClassSectionSubjectByStaff(effectiveYearId, staffId);
                 console.log('DayStaff - get_cls_sec_subsData response:', res);
 
-                const cats = extractList(res, 'categorylist');
-                const classes = extractList(res, 'classlist');
-                const sections = extractList(res, 'sectionlist');
-                const subjects = extractList(res, 'subjectlist');
+                if (res && (res.success || res.success === undefined)) {
+                    const classes =
+                        extractList(res, 'classlist').length > 0
+                            ? extractList(res, 'classlist')
+                            : extractList(res, 'clssbystaff').length > 0
+                              ? extractList(res, 'clssbystaff')
+                              : extractList(res, 'clsbystaff');
 
-                setMasterCategories(cats);
-                setMasterClasses(classes);
-                setMasterSections(sections);
-                setMasterSubjects(subjects);
+                    const sections =
+                        extractList(res, 'sectionlist').length > 0
+                            ? extractList(res, 'sectionlist')
+                            : extractList(res, 'secsbystaff').length > 0
+                              ? extractList(res, 'secsbystaff')
+                              : extractList(res, 'sectionlistbystaff');
 
-                // Update category dropdown if API returned categories for this staff
-                if (cats && cats.length > 0) {
-                    setCategoryList(filterData(cats, 'ttmC_CategoryName'));
+                    const subjects =
+                        extractList(res, 'subjectlist').length > 0
+                            ? extractList(res, 'subjectlist')
+                            : extractList(res, 'subsbystaff').length > 0
+                              ? extractList(res, 'subsbystaff')
+                              : extractList(res, 'subjectlistbystaff');
+
+                    const cats =
+                        extractList(res, 'categorylist').length > 0 ? extractList(res, 'categorylist') : extractList(res, 'catelist');
+
+                    setMasterCategories(cats);
+                    setMasterClasses(classes);
+                    setMasterSections(sections);
+                    setMasterSubjects(subjects);
+
+                    // Populate lists directly for Day Staff as per user request (dropdowns should come on staff change)
+                    if (classes && classes.length > 0) {
+                        setClassList(filterData(classes, 'asmcL_ClassName'));
+                    }
+                    if (sections && sections.length > 0) {
+                        setSectionList(filterData(sections, 'asmC_SectionName'));
+                    }
+                    if (subjects && subjects.length > 0) {
+                        setSubSubjectList(filterData(subjects, 'ismS_SubjectName'));
+                    }
+
+                    // Category list updates removed as per user request to keep it "clear" from getCategoryDropDown only
+                } else {
+                    console.warn('API returned unsuccessful status:', res);
                 }
             } catch (e) {
-                console.error(e);
+                console.error('Error fetching assignments:', e);
                 toast.error('Failed to load details for selected staff');
             }
+        } else {
+            console.warn('Missing yearId or staffId for assignment fetch:', { effectiveYearId, staffId });
         }
     };
 
@@ -431,20 +540,19 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
                 data.tempararyArrayList = [];
             } else {
                 if (!data.tempararyArrayList || data.tempararyArrayList.length === 0) {
-                    toast.warning('Please add at least one Class-Section details');
                     return;
                 }
             }
 
             const res = await saveFixingDayStaff(data);
             if (res?.returnval === true || res?.success === true) {
-                toast.success(res?.message || 'Record Saved Successfully');
+                toast.success(res?.message);
                 refetchAll();
                 closeAddForm();
                 closeEditForm();
                 reset();
             } else {
-                toast.error(res?.message || 'Failed to save');
+                toast.error(res?.message);
             }
         } catch (e) {
             console.error(e);
@@ -511,8 +619,10 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
                                                     <SelectContent>
                                                         {academicList
                                                             .filter((item: any) => item.asmaY_Id)
-                                                            .map((item: any) => (
-                                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                            .map((item: any, idx: number) => (
+                                                                <SelectItem
+                                                                    key={item.asmaY_Id || `acad-${idx}`}
+                                                                    value={item.asmaY_Id.toString()}>
                                                                     {item.asmaY_Year}
                                                                 </SelectItem>
                                                             ))}
@@ -536,8 +646,8 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {dayList.map((item: any) => (
-                                                            <SelectItem key={item.ttmD_Id} value={item.ttmD_Id.toString()}>
+                                                        {dayList.map((item: any, idx: number) => (
+                                                            <SelectItem key={item.ttmD_Id || `day-${idx}`} value={item.ttmD_Id.toString()}>
                                                                 {item.ttmD_DayName}
                                                             </SelectItem>
                                                         ))}
@@ -563,9 +673,11 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
                                                     <SelectContent>
                                                         {staffList
                                                             .filter((item: any) => item.hrmE_Id)
-                                                            .map((item: any) => (
-                                                                <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
-                                                                    {item.staffName}
+                                                            .map((item: any, idx: number) => (
+                                                                <SelectItem
+                                                                    key={item.hrmE_Id || `staff-${idx}`}
+                                                                    value={item.hrmE_Id.toString()}>
+                                                                    {item.staffName?.trim()}
                                                                 </SelectItem>
                                                             ))}
                                                     </SelectContent>
@@ -606,11 +718,28 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {categoryList.map((item: any) => (
-                                                            <SelectItem key={item.ttmC_Id} value={item.ttmC_Id.toString()}>
-                                                                {item.ttmC_CategoryName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {categoryList.map((item: any, idx: number) => {
+                                                            const id =
+                                                                item.ttmC_Id ??
+                                                                item.ttmc_id ??
+                                                                item.TTMC_Id ??
+                                                                item.ttmC_CategoryName ??
+                                                                item.ttmc_categoryname;
+                                                            const name =
+                                                                item.ttmC_CategoryName ??
+                                                                item.ttmC_Categoryname ??
+                                                                item.ttmc_categoryname ??
+                                                                item.TTMC_CategoryName ??
+                                                                item.categoryName ??
+                                                                item.ttmc_CategoryName ??
+                                                                item.ttmc_Categoryname ??
+                                                                '';
+                                                            return (
+                                                                <SelectItem key={id || `cat-${idx}`} value={id?.toString()}>
+                                                                    {name}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -626,11 +755,21 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
                                                         {isClassLoading ? (
                                                             <SelectItem value='loading'>Loading...</SelectItem>
                                                         ) : (
-                                                            classList.map((item: any) => (
-                                                                <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                                                    {item.asmcL_ClassName}
-                                                                </SelectItem>
-                                                            ))
+                                                            classList.map((item: any, idx: number) => {
+                                                                const id = item.asmcL_Id ?? item.asmcl_id ?? item.ASMCL_Id;
+                                                                const name =
+                                                                    item.asmcL_ClassName ??
+                                                                    item.asmcl_classname ??
+                                                                    item.ASMCL_ClassName ??
+                                                                    item.className ??
+                                                                    item.asmcL_Classname ??
+                                                                    '';
+                                                                return (
+                                                                    <SelectItem key={id || `cls-${idx}`} value={id?.toString()}>
+                                                                        {name}
+                                                                    </SelectItem>
+                                                                );
+                                                            })
                                                         )}
                                                     </SelectContent>
                                                 </Select>
@@ -644,11 +783,22 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {sectionList.map((item: any) => (
-                                                            <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
-                                                                {item.asmS_SectionName || item.asmC_SectionName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {sectionList.map((item: any, idx: number) => {
+                                                            const id = item.asmS_Id ?? item.asms_id ?? item.ASMS_Id;
+                                                            const name =
+                                                                item.asmC_SectionName ??
+                                                                item.asmc_sectionname ??
+                                                                item.asmS_SectionName ??
+                                                                item.asms_sectionname ??
+                                                                item.asmC_Sectionname ??
+                                                                item.sectionName ??
+                                                                '';
+                                                            return (
+                                                                <SelectItem key={id || `sec-${idx}`} value={id?.toString()}>
+                                                                    {name}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -661,11 +811,20 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {subSubjectList.map((item: any) => (
-                                                            <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
-                                                                {item.ismS_SubjectName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {subSubjectList.map((item: any, idx: number) => {
+                                                            const id = item.ismS_Id ?? item.isms_id ?? item.ISMS_Id;
+                                                            const name =
+                                                                item.ismS_SubjectName ??
+                                                                item.isms_subjectname ??
+                                                                item.ISMS_SubjectName ??
+                                                                item.subjectName ??
+                                                                '';
+                                                            return (
+                                                                <SelectItem key={id || `sub-${idx}`} value={id?.toString()}>
+                                                                    {name}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             </div>

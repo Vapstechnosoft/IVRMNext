@@ -1,10 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -21,12 +19,10 @@ import {
     getdetailsAllFixing,
     saveFixingDayPeriod
 } from '@/server/timetable/constraints/fixing';
-import type { TTDayPeriodGridData } from '@/types/timetable/constraints/fixing';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { ColumnDef } from '@tanstack/react-table';
-import { Plus, X } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Plus, Save, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import ToggleDayPeriodForm from './DayPeriodToggle';
 import { dayPeriodColumns } from './columns';
@@ -36,112 +32,72 @@ interface DayPeriodTabProps {
     searchParams?: any;
 }
 
-export const TTGeneration: ColumnDef<TTDayPeriodGridData>[] = [
-    {
-        id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
-        accessorFn: (row: any) => row,
-        enableSorting: false,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
-    }
-];
+const extractList = (data: any, preferredKey?: string) => {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    const target = data?.data !== undefined ? data.data : data;
+    if (Array.isArray(target)) return target;
+    if (!target) return [];
 
-function ActionButtonsCell({ rowData }: { rowData: TTDayPeriodGridData }) {
-    // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
-    let formContext;
-    try {
-        formContext = useFormContext<TTDayPeriodGridData>();
-    } catch {
-        return null;
+    if (preferredKey) {
+        const foundKey = Object.keys(target).find((k) => k.toLowerCase() === preferredKey.toLowerCase());
+        if (foundKey && Array.isArray(target[foundKey])) return target[foundKey];
     }
 
-    const { openEditForm, openToggleForm } = formContext;
+    const keys = [
+        'academiclist',
+        'catelist',
+        'classlist',
+        'sectionlist',
+        'stafflist',
+        'subjectlist',
+        'staffbyall',
+        'subjectbystaff',
+        'sectionbyclass',
+        'classbycategory',
+        'categorylist',
+        'daylist',
+        'periodlist'
+    ];
+    for (const key of keys) {
+        const foundKey = Object.keys(target).find((k) => k.toLowerCase() === key.toLowerCase());
+        if (foundKey && Array.isArray(target[foundKey])) return target[foundKey];
+    }
+    return [];
+};
 
-    const handleEdit = useCallback(
-        (data: TTDayPeriodGridData) => {
-            openEditForm(data);
-        },
-        [openEditForm]
-    );
-
-    const handleToggle = useCallback(
-        (data: TTDayPeriodGridData) => {
-            openToggleForm(data);
-        },
-        [openToggleForm]
-    );
-
+export default function DayPeriodTab({ initialData, searchParams }: DayPeriodTabProps) {
     return (
-        <ActionButtons
-            rowData={rowData}
-            buttons={{ edit: true, toggle: true }}
-            onEdit={handleEdit}
-            onToggle={handleToggle}
-            toggleConditionKey='ttfdP_ActiveFlag'
-        />
+        <FormProvider>
+            <DayPeriodTabContent initialData={initialData} searchParams={searchParams} />
+        </FormProvider>
     );
 }
 
 function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
-    const { isAddFormOpen, isEditFormOpen, openAddForm, closeAddForm, closeEditForm, selectedRow, closeToggleForm, isToggleFormOpen } =
-        useFormContext();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        openAddForm,
+        closeAddForm,
+        closeEditForm,
+        closeAllForms,
+        isToggleFormOpen,
+        closeToggleForm,
+        selectedRow
+    } = useFormContext();
 
     const { data: academicData } = usebifurcationAcademicYear();
     const academicList = (academicData as any)?.data || [];
 
     const [categoryList, setCategoryList] = useState<any[]>([]);
-    const [dayList, setDayList] = useState<any[]>(initialData?.daylist || []);
-    const [periodList, setPeriodList] = useState<any[]>(initialData?.periodlist || []);
-
+    const [dayList, setDayList] = useState<any[]>([]);
+    const [periodList, setPeriodList] = useState<any[]>([]);
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [staffList, setStaffList] = useState<any[]>([]);
     const [subjectList, setSubjectList] = useState<any[]>([]);
     const [isClassLoading, setIsClassLoading] = useState(false);
-
-    const extractList = (data: any, preferredKey?: string) => {
-        if (!data) return [];
-        if (Array.isArray(data)) return data;
-        const target = data?.data !== undefined ? data.data : data;
-        if (Array.isArray(target)) return target;
-        if (!target) return [];
-
-        if (preferredKey) {
-            const foundKey = Object.keys(target).find((k) => k.toLowerCase() === preferredKey.toLowerCase());
-            if (foundKey && Array.isArray(target[foundKey])) return target[foundKey];
-        }
-
-        const keys = [
-            'academiclist',
-            'catelist',
-            'classlist',
-            'sectionlist',
-            'stafflist',
-            'subjectlist',
-            'staffbyall',
-            'subjectbystaff',
-            'sectionbyclass',
-            'classbycategory',
-            'categorylist'
-        ];
-        for (const key of keys) {
-            const foundKey = Object.keys(target).find((k) => k.toLowerCase() === key.toLowerCase());
-            if (foundKey && Array.isArray(target[foundKey])) return target[foundKey];
-        }
-        return [];
-    };
-
-    const { data: gridResponse, isLoading: isGridLoading, refetchAll } = useFixingDayPeriodGridData(searchParams);
-
-    // Prioritize search results/grid response and avoid fallback to initial data if gridResponse exists
-    const gridData = gridResponse
-        ? (gridResponse as any)?.data || (gridResponse as any)?.fix_day_period_list || (Array.isArray(gridResponse) ? gridResponse : [])
-        : initialData?.fix_day_period_list || [];
-
-    const totalItems =
-        (gridResponse as any)?.total ||
-        (gridResponse as any)?.count ||
-        (Array.isArray(gridResponse) ? gridResponse.length : initialData?.total || gridData.length);
 
     const form = useForm<FixingDayPeriodSchema>({
         resolver: zodResolver(fixingDayPeriodSchema),
@@ -158,16 +114,25 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
         }
     });
 
-    const { reset, setValue, watch, handleSubmit } = form;
-    const asmaY_Id = watch('asmaY_Id');
-    const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
-    const [selectedClass, setSelectedClass] = useState<number | undefined>();
+    const {
+        reset,
+        setValue,
+        watch,
+        handleSubmit,
+        formState: { isSubmitting }
+    } = form;
+    const watchedYear = watch('asmaY_Id');
+    const watchedCategory = watch('ttmC_Id');
+    const watchedClass = watch('asmcL_Id');
+    const watchedSection = watch('asmS_Id');
+    const watchedStaff = watch('hrmE_Id');
 
     const filterData = (list: any[], key: string) => {
         return (list || []).filter((item: any) => {
             if (!item) return false;
-            const val = item[key] ?? item[Object.keys(item).find((k) => k.toLowerCase() === key.toLowerCase()) || ''];
-            if (!val) return true;
+            const actualKey = Object.keys(item).find((k) => k.toLowerCase() === key.toLowerCase());
+            const val = actualKey ? item[actualKey] : undefined;
+            if (val === undefined || val === null) return true;
             if (typeof val !== 'string') return !!val;
             const name = val.trim();
             return name && name.toLowerCase() !== 'test';
@@ -178,26 +143,17 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
         const loadDropdowns = async () => {
             try {
                 const [category, fixingData] = await Promise.all([getCategoryDropDown(), getdetailsAllFixing()]);
-
                 setCategoryList(filterData(category || [], 'ttmC_CategoryName'));
-
                 if (fixingData?.data) {
                     setDayList(filterData(fixingData.data.daylist || [], 'ttmD_DayName'));
                     setPeriodList(filterData(fixingData.data.periodlist || [], 'ttmP_PeriodName'));
                 }
             } catch (error) {
-                console.error('Failed to load dropdowns:', error);
-                toast.error('Failed to load dropdown options');
+                console.error('Failed to load initial dropdowns:', error);
             }
         };
         loadDropdowns();
     }, []);
-
-    useEffect(() => {
-        if (isEditFormOpen && selectedRow) {
-            onEdit(selectedRow);
-        }
-    }, [isEditFormOpen, selectedRow]);
 
     const fetchClasses = async (yearId: number, categoryId: number) => {
         if (!yearId || !categoryId) {
@@ -211,7 +167,6 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
             setClassList(filterData(list || [], 'asmcL_ClassName'));
         } catch (error) {
             console.error('Error fetching classes:', error);
-            toast.error('Failed to load classes');
         } finally {
             setIsClassLoading(false);
         }
@@ -224,7 +179,6 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
             setStaffList(filterData(list || [], 'staffName'));
         } catch (error) {
             console.error(error);
-            toast.error('Failed to load staff');
         }
     };
 
@@ -241,19 +195,16 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
             setSubjectList(filterData(list || [], 'ismS_SubjectName'));
         } catch (error) {
             console.error(error);
-            toast.error('Failed to load subjects');
         }
     };
 
-    const handleAcademicYearChange = async (yearId: number) => {
+    const handleAcademicYearChange = (yearId: number) => {
         setValue('asmaY_Id', yearId);
         setValue('ttmC_Id', 0);
         setValue('asmcL_Id', 0);
         setValue('asmS_Id', 0);
         setValue('hrmE_Id', 0);
         setValue('ismS_Id', 0);
-        setSelectedCategory(undefined);
-        setSelectedClass(undefined);
         setClassList([]);
         setSectionList([]);
         setStaffList([]);
@@ -266,15 +217,12 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
         setValue('asmS_Id', 0);
         setValue('hrmE_Id', 0);
         setValue('ismS_Id', 0);
-        setSelectedCategory(categoryId);
-        setSelectedClass(undefined);
         setClassList([]);
         setSectionList([]);
         setStaffList([]);
         setSubjectList([]);
-        const yearId = form.getValues('asmaY_Id');
-        if (yearId && categoryId) {
-            await fetchClasses(yearId, categoryId);
+        if (watchedYear && categoryId) {
+            await fetchClasses(watchedYear, categoryId);
         }
     };
 
@@ -283,22 +231,16 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
         setValue('asmS_Id', 0);
         setValue('hrmE_Id', 0);
         setValue('ismS_Id', 0);
-        setSelectedClass(classId);
         setSectionList([]);
         setStaffList([]);
         setSubjectList([]);
-
-        const yearId = form.getValues('asmaY_Id');
-        const categoryId = form.getValues('ttmC_Id');
-
-        if (yearId && categoryId && classId) {
+        if (watchedYear && watchedCategory && classId) {
             try {
-                const response = await getSectionDropdownByClassCategory(yearId, classId, categoryId);
+                const response = await getSectionDropdownByClassCategory(watchedYear, classId, watchedCategory);
                 const sections = extractList(response, 'get_period_section1');
                 setSectionList(sections || []);
             } catch (error) {
-                console.error('Failed to fetch sections:', error);
-                toast.error('Failed to load sections');
+                console.error(error);
             }
         }
     };
@@ -309,9 +251,8 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
         setValue('ismS_Id', 0);
         setStaffList([]);
         setSubjectList([]);
-        const { asmaY_Id, ttmC_Id, asmcL_Id } = form.getValues();
-        if (asmaY_Id && ttmC_Id && asmcL_Id && sectionId) {
-            await fetchStaff(asmaY_Id, ttmC_Id, asmcL_Id, sectionId);
+        if (watchedYear && watchedCategory && watchedClass && sectionId) {
+            await fetchStaff(watchedYear, watchedCategory, watchedClass, sectionId);
         }
     };
 
@@ -319,64 +260,69 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
         setValue('hrmE_Id', staffId);
         setValue('ismS_Id', 0);
         setSubjectList([]);
-        const { asmaY_Id, ttmC_Id, asmcL_Id, asmS_Id } = form.getValues();
-        if (asmaY_Id && ttmC_Id && asmcL_Id && asmS_Id && staffId) {
-            await fetchSubjects(asmaY_Id, ttmC_Id, asmcL_Id, asmS_Id, staffId);
+        if (watchedYear && watchedCategory && watchedClass && watchedSection && staffId) {
+            await fetchSubjects(watchedYear, watchedCategory, watchedClass, watchedSection, staffId);
         }
     };
 
-    const onEdit = async (item: any) => {
-        try {
-            const res = await getFixingDayPeriodDetails(item.ttfdP_Id);
-            if (res?.fix_day_period_edit && (res.fix_day_period_edit as any[]).length > 0) {
-                const d = (res.fix_day_period_edit as any[])[0];
-                reset({
-                    ttfdP_Id: d.ttfdP_Id,
-                    asmaY_Id: d.asmaY_Id,
-                    ttmC_Id: d.ttmC_Id,
-                    asmcL_Id: d.asmcL_Id,
-                    asmS_Id: d.asmS_Id,
-                    hrmE_Id: d.hrmE_Id,
-                    ismS_Id: d.ismS_Id,
-                    ttmD_Id: d.ttmD_Id,
-                    ttmP_Id: d.ttmP_Id
-                });
+    const { data: gridResponse, isLoading: gridLoading, refetchAll } = useFixingDayPeriodGridData(searchParams);
+    const gridData = gridResponse
+        ? (gridResponse as any)?.data || (gridResponse as any)?.fix_day_period_list || []
+        : initialData?.fix_day_period_list || [];
 
-                if (d.asmaY_Id && d.ttmC_Id) {
-                    setSelectedCategory(d.ttmC_Id);
-                    setSelectedClass(d.asmcL_Id);
-                    await fetchClasses(d.asmaY_Id, d.ttmC_Id);
+    useEffect(() => {
+        if (isEditFormOpen && selectedRow) {
+            const onEdit = async (item: any) => {
+                try {
+                    const res = await getFixingDayPeriodDetails(item.ttfdP_Id);
+                    if (res?.fix_day_period_edit && (res.fix_day_period_edit as any[]).length > 0) {
+                        const d = (res.fix_day_period_edit as any[])[0];
 
-                    if (d.asmcL_Id) {
-                        const secRes = await getSectionDropdownByClassCategory(d.asmaY_Id, d.asmcL_Id, d.ttmC_Id);
-                        const sections = extractList(secRes, 'get_period_section1');
-                        setSectionList(filterData(sections || [], 'asmC_SectionName'));
-
-                        if (d.asmS_Id) {
-                            await fetchStaff(d.asmaY_Id, d.ttmC_Id, d.asmcL_Id, d.asmS_Id);
-                            if (d.hrmE_Id) {
-                                await fetchSubjects(d.asmaY_Id, d.ttmC_Id, d.asmcL_Id, d.asmS_Id, d.hrmE_Id);
+                        if (d.asmaY_Id && d.ttmC_Id) {
+                            await fetchClasses(d.asmaY_Id, d.ttmC_Id);
+                            if (d.asmcL_Id) {
+                                const secRes = await getSectionDropdownByClassCategory(d.asmaY_Id, d.asmcL_Id, d.ttmC_Id);
+                                const sections = extractList(secRes, 'get_period_section1');
+                                setSectionList(sections || []);
+                                if (d.asmS_Id) {
+                                    await fetchStaff(d.asmaY_Id, d.ttmC_Id, d.asmcL_Id, d.asmS_Id);
+                                    if (d.hrmE_Id) {
+                                        await fetchSubjects(d.asmaY_Id, d.ttmC_Id, d.asmcL_Id, d.asmS_Id, d.hrmE_Id);
+                                    }
+                                }
                             }
                         }
-                    }
-                }
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    };
 
-    const onSubmit = async (data: FixingDayPeriodSchema) => {
+                        reset({
+                            ttfdP_Id: d.ttfdP_Id,
+                            asmaY_Id: d.asmaY_Id,
+                            ttmC_Id: d.ttmC_Id,
+                            asmcL_Id: d.asmcL_Id,
+                            asmS_Id: d.asmS_Id,
+                            hrmE_Id: d.hrmE_Id,
+                            ismS_Id: d.ismS_Id,
+                            ttmD_Id: d.ttmD_Id,
+                            ttmP_Id: d.ttmP_Id
+                        });
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            };
+            onEdit(selectedRow);
+        }
+    }, [isEditFormOpen, selectedRow, reset]);
+
+    const onSubmit: SubmitHandler<FixingDayPeriodSchema> = async (data) => {
         try {
             const res = await saveFixingDayPeriod(data);
             if (res?.returnval === true || res?.success === true) {
-                toast.success(res?.message || 'Record Saved Successfully');
+                toast.success('Record Saved Successfully');
                 refetchAll();
-                closeAddForm();
-                closeEditForm();
+                closeAllForms();
                 reset();
             } else if (res?.returnfixstatus === 'Fixed') {
-                toast.warning('Selected Staff and Subject is already Fixed for this selection!');
+                toast.warning('Selected Staff and Subject is already Fixed!');
             } else if (res?.returnduplicatestatus === 'Duplicate') {
                 toast.warning('Record Already Exists!');
             } else {
@@ -400,13 +346,8 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
                 </Button>
             </div>
 
-            <CollapsibleSection
-                title='Day Period Constraints List'
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <GenericDataTable data={gridData} columns={dayPeriodColumns} totalItems={totalItems} isLoading={isGridLoading} />
+            <CollapsibleSection title='Day Period Constraints List' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
+                <GenericDataTable data={gridData} columns={dayPeriodColumns} isLoading={gridLoading} />
             </CollapsibleSection>
 
             {isToggleFormOpen && selectedRow && <ToggleDayPeriodForm rowData={selectedRow} onClose={closeToggleForm} />}
@@ -417,7 +358,7 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
                     defaultOpen={true}
                     variant='outline'
                     size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                    className='slide-in-from-top-4 animate-in shadow-lg'>
                     <div className='relative'>
                         <Button
                             type='button'
@@ -436,7 +377,9 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
                                         name='asmaY_Id'
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Academic Year</FormLabel>
+                                                <FormLabel>
+                                                    Academic Year <span className='text-red-500'>*</span>
+                                                </FormLabel>
                                                 <Select
                                                     onValueChange={(v) => handleAcademicYearChange(Number(v))}
                                                     value={field.value?.toString()}>
@@ -446,13 +389,11 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {academicList
-                                                            .filter((item: any) => item.asmaY_Id)
-                                                            .map((item: any) => (
-                                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                                    {item.asmaY_Year}
-                                                                </SelectItem>
-                                                            ))}
+                                                        {academicList.map((item: any) => (
+                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                {item.asmaY_Year}
+                                                            </SelectItem>
+                                                        ))}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -465,7 +406,9 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
                                         name='ttmC_Id'
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Category</FormLabel>
+                                                <FormLabel>
+                                                    Category <span className='text-red-500'>*</span>
+                                                </FormLabel>
                                                 <Select
                                                     onValueChange={(v) => handleCategoryChange(Number(v))}
                                                     value={field.value?.toString()}>
@@ -475,13 +418,11 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {categoryList
-                                                            .filter((item: any) => item.ttmC_Id)
-                                                            .map((item: any) => (
-                                                                <SelectItem key={item.ttmC_Id} value={item.ttmC_Id.toString()}>
-                                                                    {item.ttmC_CategoryName}
-                                                                </SelectItem>
-                                                            ))}
+                                                        {categoryList.map((item: any) => (
+                                                            <SelectItem key={item.ttmC_Id} value={item.ttmC_Id.toString()}>
+                                                                {item.ttmC_CategoryName}
+                                                            </SelectItem>
+                                                        ))}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -495,26 +436,18 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Class</FormLabel>
-                                                <Select
-                                                    onValueChange={(v) => handleClassChange(Number(v))}
-                                                    value={selectedClass?.toString()}>
+                                                <Select onValueChange={(v) => handleClassChange(Number(v))} value={field.value?.toString()}>
                                                     <FormControl>
                                                         <SelectTrigger>
-                                                            <SelectValue placeholder='Select' />
+                                                            <SelectValue placeholder={isClassLoading ? 'Loading...' : 'Select'} />
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {isClassLoading ? (
-                                                            <SelectItem value='loading'>Loading...</SelectItem>
-                                                        ) : (
-                                                            classList
-                                                                .filter((item: any) => item.asmcL_Id)
-                                                                .map((item: any) => (
-                                                                    <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                                                        {item.asmcL_ClassName}
-                                                                    </SelectItem>
-                                                                ))
-                                                        )}
+                                                        {classList.map((item: any) => (
+                                                            <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                                                {item.asmcL_ClassName}
+                                                            </SelectItem>
+                                                        ))}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -537,13 +470,13 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {sectionList
-                                                            .filter((item: any) => item.asmS_Id)
-                                                            .map((item: any) => (
-                                                                <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
-                                                                    {item.asmS_SectionName || item.asmC_SectionName}
-                                                                </SelectItem>
-                                                            ))}
+                                                        {sectionList.map((item: any) => (
+                                                            <SelectItem
+                                                                key={item.asmS_Id || item.asmC_Id}
+                                                                value={(item.asmS_Id || item.asmC_Id).toString()}>
+                                                                {item.asmS_SectionName || item.asmC_SectionName}
+                                                            </SelectItem>
+                                                        ))}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -564,13 +497,11 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {staffList
-                                                            .filter((item: any) => item.hrmE_Id)
-                                                            .map((item: any) => (
-                                                                <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
-                                                                    {item.staffName}
-                                                                </SelectItem>
-                                                            ))}
+                                                        {staffList.map((item: any) => (
+                                                            <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
+                                                                {item.staffName}
+                                                            </SelectItem>
+                                                        ))}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -591,13 +522,11 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {subjectList
-                                                            .filter((item: any) => item.ismS_Id)
-                                                            .map((item: any) => (
-                                                                <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
-                                                                    {item.ismS_SubjectName}
-                                                                </SelectItem>
-                                                            ))}
+                                                        {subjectList.map((item: any) => (
+                                                            <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
+                                                                {item.ismS_SubjectName}
+                                                            </SelectItem>
+                                                        ))}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -656,9 +585,17 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
                                     />
                                 </div>
 
-                                <div className='flex justify-end gap-2'>
-                                    <Button type='submit'>Save</Button>
-                                    <Button type='button' variant='outline' onClick={() => reset()}>
+                                <div className='flex justify-center gap-4 pt-4'>
+                                    <Button type='submit' disabled={isSubmitting}>
+                                        <Save className='mr-2 h-4 w-4' /> {isEditFormOpen ? 'Update' : 'Save'}
+                                    </Button>
+                                    <Button
+                                        type='button'
+                                        variant='outline'
+                                        onClick={() => {
+                                            reset();
+                                            closeAllForms();
+                                        }}>
                                         Cancel
                                     </Button>
                                 </div>
@@ -668,13 +605,5 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
                 </CollapsibleSection>
             )}
         </div>
-    );
-}
-
-export default function DayPeriodTab({ initialData, searchParams }: DayPeriodTabProps) {
-    return (
-        <FormProvider>
-            <DayPeriodTabContent initialData={initialData} searchParams={searchParams} />
-        </FormProvider>
     );
 }

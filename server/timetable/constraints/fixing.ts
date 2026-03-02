@@ -142,7 +142,7 @@ export async function saveFixingPeriodSubject(data: FixingPeriodSubjectSchema) {
 export async function getFixingPeriodSubjectDetails(id: number, searchParams?: any) {
     const urlParams = getSearchParamsUrl(
         searchParams ?? {},
-        'asmaY_Year,ttmC_CategoryName,asmcL_ClassName,asmC_SectionName,staffName,ismS_SubjectName,ttmD_DayName,ttmP_PeriodName,ttfdP_Id,ttfdP_ActiveFlag'
+        'asmaY_Year,ttmC_CategoryName,asmcL_ClassName,asmC_SectionName,staffName,ismS_SubjectName,ttmD_DayName,ttmP_PeriodName,ttfdP_Id,ttfdP_ActiveFlag,ttfpsU_Id,ttfpsU_ActiveFlag'
     );
     const url = `/FixingFacade/PeriodSubjectGridData/${id}?${urlParams}`;
     // GET api/FixingFacade/PeriodSubjectGridData
@@ -182,6 +182,8 @@ export async function getSubjectByStaff(data: {
 //day subject forms form
 export async function getFixingClassSectionStaffsBySubject(asmay_id: number, isms_id: number) {
     const url = `/FixingFacade/get_cls_sec_staffsData/${asmay_id}/${isms_id}`;
+
+    console.info('FixingFacade/get_cls_sec_staffsData', url);
     return await api.get<any>('timetable', url);
 }
 
@@ -227,7 +229,7 @@ export async function getFixingDayStaffGridData(searchParams?: any) {
 export async function getFixingPeriodSubjectGridData(searchParams?: any) {
     const urlParams = getSearchParamsUrl(
         searchParams ?? {},
-        'asmaY_Year,ismS_SubjectName,ttmP_PeriodName,ttrpsU_Id,ttrpsU_ActiveFlag,ttrpsU_SUbSelcFlag'
+        'asmaY_Year,ismS_SubjectName,ttmP_PeriodName,ttfpsU_Id,ttfpsU_ActiveFlag,ttfpsU_SUbSelcFlag'
     );
     const url = `/FixingFacade/PeriodSubjectGridData?${urlParams}`;
     return await api.get<TTPeriodSubjectGridData[]>('timetable', url);

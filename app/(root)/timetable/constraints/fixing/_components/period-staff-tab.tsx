@@ -13,9 +13,8 @@ import { usePeriodStaffGridData } from '@/hooks/timetable/constraints/fixingData
 import { type FixingPeriodStaffSchema, fixingPeriodStaffSchema } from '@/schemas/timetable/constraints/fixing';
 import {
     getFixingClassDropdown,
+    getFixingClassSectionSubjectByStaff,
     getFixingPeriodStaffDetails,
-    getSectionByClass,
-    getSubjectByFixing,
     getdetailsAllFixing,
     saveFixingPeriodStaff
 } from '@/server/timetable/constraints/fixing';
@@ -69,51 +68,91 @@ function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProp
 
     const gridData = getGridData(gridResponse, initialData?.fix_period_staff_list);
 
-    console.log('gridData4', gridData);
-    const totalItems = (gridResponse as any)?.total || (gridResponse as any)?.count || gridData.length;
+    const totalItems =
+        (gridResponse as any)?.total ||
+        (gridResponse as any)?.count ||
+        (Array.isArray(gridResponse) ? gridResponse.length : initialData?.total || gridData.length);
 
-    // state declarations
     const [dayList, setDayList] = useState<any[]>(initialData?.daylist || []);
     const [periodList, setPeriodList] = useState<any[]>(initialData?.periodlist || []);
-    const [categoryList, setCategoryList] = useState<any[]>(initialData?.categorylist || []);
+    const [staffList, setStaffList] = useState<any[]>(initialData?.stafflist || []);
+    const [categoryList, setCategoryList] = useState<any[]>([]);
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subSubjectList, setSubSubjectList] = useState<any[]>([]);
-    const [staffList, setStaffList] = useState<any[]>([]);
     const [isClassLoading, setIsClassLoading] = useState(false);
+
+    // Master lists for the selected staff member
+    const [masterCategories, setMasterCategories] = useState<any[]>([]);
+    const [masterClasses, setMasterClasses] = useState<any[]>([]);
+    const [masterSections, setMasterSections] = useState<any[]>([]);
+    const [masterSubjects, setMasterSubjects] = useState<any[]>([]);
 
     const extractList = (data: any, preferredKey?: string) => {
         if (!data) return [];
         if (Array.isArray(data)) return data;
-        const target = data?.data !== undefined ? data.data : data;
-        if (Array.isArray(target)) return target;
-        if (!target) return [];
 
-        if (preferredKey) {
-            const foundKey = Object.keys(target).find((k) => k.toLowerCase() === preferredKey.toLowerCase());
-            if (foundKey && Array.isArray(target[foundKey])) return target[foundKey];
+        // Handle ApiResponse wrapper or double-nested data
+        let target = data?.data !== undefined ? data.data : data;
+        if (target && !Array.isArray(target) && typeof target === 'object' && target.data !== undefined) {
+            target = target.data;
         }
 
+        if (Array.isArray(target)) return target;
+        if (!target || typeof target !== 'object') return [];
+
+        // 1. Precise match (case-insensitive) for the requested key
+        if (preferredKey) {
+            const foundKey = Object.keys(target).find((k) => k.toLowerCase() === preferredKey.toLowerCase());
+            const result = foundKey ? target[foundKey] : undefined;
+            if (Array.isArray(result)) return result;
+        }
+
+        // 2. Fallback to common key names
         const keys = [
             'academiclist',
             'catelist',
+            'categorylist',
+            'categorylistbystaff',
             'classlist',
+            'clssbystaff',
+            'clsbystaff',
             'sectionlist',
-            'stafflist',
+            'secsbystaff',
+            'sectionlistbystaff',
             'subjectlist',
+            'subsbystaff',
+            'subjectlistbystaff',
+            'subsbyall',
+            'stafflist',
             'staffbyall',
             'subjectbystaff',
             'sectionbyclass',
-            'classbycategory',
-            'categorylist'
+            'classbycategory'
         ];
+
         for (const key of keys) {
             const foundKey = Object.keys(target).find((k) => k.toLowerCase() === key.toLowerCase());
-            if (foundKey && Array.isArray(target[foundKey])) return target[foundKey];
+            const result = foundKey ? target[foundKey] : undefined;
+            if (Array.isArray(result)) return result;
         }
 
+        // 3. Last resort: first array property found
         const firstArray = Object.values(target).find((v) => Array.isArray(v));
-        return Array.isArray(firstArray) ? firstArray : [];
+        return Array.isArray(firstArray) ? (firstArray as any[]) : [];
+    };
+
+    const uniqueById = (list: any[], idKey: string) => {
+        const seen = new Set();
+        return (list || []).filter((item: any) => {
+            if (!item) return false;
+            const actualKey = Object.keys(item).find((k) => k.toLowerCase() === idKey.toLowerCase());
+            const id = actualKey ? item[actualKey] : undefined;
+            if (id === undefined || id === null) return false;
+            if (seen.has(id)) return false;
+            seen.add(id);
+            return true;
+        });
     };
 
     const [viewDetails, setViewDetails] = useState<any[]>([]);
@@ -152,8 +191,10 @@ function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProp
     const filterData = (list: any[], key: string) => {
         return (list || []).filter((item: any) => {
             if (!item) return false;
-            const val = item[key] ?? item[Object.keys(item).find((k) => k.toLowerCase() === key.toLowerCase()) || ''];
-            if (!val) return true;
+            // Case-insensitive key lookup
+            const actualKey = Object.keys(item).find((k) => k.toLowerCase() === key.toLowerCase());
+            const val = actualKey ? item[actualKey] : undefined;
+            if (val === undefined || val === null) return false;
             if (typeof val !== 'string') return !!val;
             const name = val.trim();
             return name && name.toLowerCase() !== 'test';
@@ -163,12 +204,17 @@ function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProp
     useEffect(() => {
         const loadDropdowns = async () => {
             try {
-                setCategoryList(filterData(initialData?.categorylist || initialData?.data?.categorylist || [], 'ttmC_CategoryName'));
+                setCategoryList(
+                    uniqueById(
+                        filterData(initialData?.categorylist || initialData?.data?.categorylist || [], 'ttmC_CategoryName'),
+                        'ttmC_Id'
+                    )
+                );
                 const fixingData = await getdetailsAllFixing();
                 if (fixingData?.data) {
-                    setDayList(filterData(fixingData.data.daylist || [], 'ttmD_DayName'));
-                    setPeriodList(filterData(fixingData.data.periodlist || [], 'ttmP_PeriodName'));
-                    setStaffList(filterData(fixingData.data.stafflist || [], 'staffName'));
+                    setDayList(uniqueById(filterData(fixingData.data.daylist || [], 'ttmD_DayName'), 'ttmD_Id'));
+                    setPeriodList(uniqueById(filterData(fixingData.data.periodlist || [], 'ttmP_PeriodName'), 'ttmP_Id'));
+                    setStaffList(uniqueById(filterData(fixingData.data.stafflist || [], 'staffName'), 'hrmE_Id'));
                 }
                 const currentValues = form.getValues();
                 if (currentValues.asmaY_Id && selectedCategory) {
@@ -196,14 +242,14 @@ function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProp
 
     const fetchClasses = async (yearId: number, categoryId: number) => {
         if (!yearId || !categoryId) {
-            setClassList([]);
+            // setClassList([]);
             return;
         }
         setIsClassLoading(true);
         try {
             const data = await getFixingClassDropdown(yearId, categoryId);
             const list = extractList(data, 'classbycategory');
-            setClassList(filterData(list || [], 'asmcL_ClassName'));
+            setClassList(filterData(list, 'asmcL_ClassName'));
         } catch (error) {
             console.error('Error fetching classes:', error);
             toast.error('Failed to load classes');
@@ -213,65 +259,90 @@ function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProp
     };
 
     const handleAcademicYearChange = (yearId: number) => {
-        setValue('asmaY_Id', yearId); // Changed casing to ASMAY_Id
+        setValue('asmaY_Id', yearId);
         setSelectedCategory(undefined);
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
-        setClassList([]);
-        setSectionList([]);
-        setSubSubjectList([]);
-    };
+        // setClassList([]);
+        // setSectionList([]);
+        // setSubSubjectList([]);
 
+        const currentStaffId = form.getValues('hrmE_Id');
+        if (yearId && currentStaffId) {
+            handleStaffChange(currentStaffId, yearId);
+        }
+    };
     const handleCategoryChange = async (categoryId: number) => {
         setSelectedCategory(categoryId);
+
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
-        setClassList([]);
-        setSectionList([]);
-        setSubSubjectList([]);
-        if (asmaY_Id && categoryId) {
-            await fetchClasses(asmaY_Id, categoryId);
+
+        // setSectionList([]);
+        // setSubSubjectList([]);
+
+        const yearId = form.getValues('asmaY_Id');
+
+        if (yearId && categoryId) {
+            await fetchClasses(yearId, categoryId);
         }
     };
-
     const handleClassChange = async (classId: number) => {
         setSelectedClass(classId);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
-        setSectionList([]);
-        setSubSubjectList([]);
-        if (asmaY_Id && selectedCategory && classId) {
-            try {
-                const response = await getSectionByClass({ ASMAY_Id: asmaY_Id, ASMCL_Id: classId, TTMC_Id: selectedCategory });
-                const sections = extractList(response, 'sectionlist');
-                setSectionList(filterData(sections || [], 'asmC_SectionName'));
-            } catch (e) {
-                console.error(e);
-            }
-        }
-    };
 
-    const handleSectionChange = async (sectionId: number) => {
+        const filtered = masterSections.filter((s) => Number(s.asmcL_Id ?? s.asmcl_id ?? s.ASMCL_Id) === classId);
+
+        // setSubSubjectList([]);
+    };
+    const handleSectionChange = (sectionId: number) => {
         setSelectedSection(sectionId);
         setSelectedSubject(undefined);
-        setSubSubjectList([]);
 
-        const currentHrmE_Id = form.getValues('hrmE_Id');
-        if (asmaY_Id && selectedClass && sectionId && currentHrmE_Id && selectedCategory) {
+        const filtered = masterSubjects.filter((sub) => Number(sub.asmS_Id ?? sub.asms_id ?? sub.ASMS_Id) === sectionId);
+    };
+
+    const handleStaffChange = async (staffId: number, yearId?: number) => {
+        setValue('hrmE_Id', staffId);
+        setSelectedCategory(undefined);
+        setSelectedClass(undefined);
+        setSelectedSection(undefined);
+        setSelectedSubject(undefined);
+        // setClassList([]);
+        // setSectionList([]);
+        // setSubSubjectList([]);
+
+        const effectiveYearId = yearId ?? form.getValues('asmaY_Id');
+
+        if (effectiveYearId && staffId) {
             try {
-                const res = await getSubjectByFixing({
-                    ASMAY_Id: asmaY_Id,
-                    TTMC_Id: selectedCategory,
-                    ASMCL_Id: selectedClass,
-                    ASMS_Id: sectionId,
-                    HRME_Id: currentHrmE_Id
-                });
-                const subjects = extractList(res, 'subjectlist');
-                setSubSubjectList(filterData(subjects || [], 'ismS_SubjectName'));
+                const res = await getFixingClassSectionSubjectByStaff(effectiveYearId, staffId);
+
+                console.log('response details', res);
+                if (res && (res.success || res.success === undefined)) {
+                    const classes =
+                        extractList(res, 'clsbystaff').length > 0 ? extractList(res, 'clsbystaff') : extractList(res, 'classlist');
+
+                    const sections =
+                        extractList(res, 'secsbystaff').length > 0 ? extractList(res, 'secsbystaff') : extractList(res, 'sectionlist');
+
+                    const subjects =
+                        extractList(res, 'subsbystaff').length > 0 ? extractList(res, 'subsbystaff') : extractList(res, 'subjectlist');
+
+                    setMasterClasses(classes);
+                    setMasterSections(sections);
+                    setMasterSubjects(subjects);
+
+                    setClassList(uniqueById(classes, 'asmcL_Id'));
+                    setSectionList(uniqueById(sections, 'asmS_Id'));
+                    setSubSubjectList(uniqueById(subjects, 'ismS_Id'));
+                }
             } catch (e) {
                 console.error(e);
+                toast.error('Failed to load details for selected staff');
             }
         }
     };
@@ -469,13 +540,11 @@ function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProp
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {academicList
-                                                            .filter((item: any) => item.asmaY_Id)
-                                                            .map((item: any) => (
-                                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                                    {item.asmaY_Year}
-                                                                </SelectItem>
-                                                            ))}
+                                                        {academicList?.map((item: any) => (
+                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id?.toString()}>
+                                                                {item.asmaY_Year}
+                                                            </SelectItem>
+                                                        ))}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -496,11 +565,14 @@ function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProp
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {periodList.map((item: any) => (
-                                                            <SelectItem key={item.ttmP_Id} value={item.ttmP_Id.toString()}>
-                                                                {item.ttmP_PeriodName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {periodList.map((item: any) => {
+                                                            const id = item.ttmP_Id ?? item.ttmp_id ?? item.TTMP_Id;
+                                                            return (
+                                                                <SelectItem key={id} value={id?.toString()}>
+                                                                    {item.ttmP_PeriodName || item.ttmp_periodname || item.periodName}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -514,20 +586,21 @@ function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProp
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Staff</FormLabel>
-                                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                                <Select onValueChange={(v) => handleStaffChange(Number(v))} value={field.value?.toString()}>
                                                     <FormControl>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select' />
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {staffList
-                                                            .filter((item: any) => item.hrmE_Id)
-                                                            .map((item: any) => (
-                                                                <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
-                                                                    {item.staffName}
+                                                        {staffList?.map((item: any) => {
+                                                            const id = item.hrmE_Id ?? item.hrme_id ?? item.HRME_Id;
+                                                            return (
+                                                                <SelectItem key={id} value={id?.toString()}>
+                                                                    {item.staffName || item.hrmE_EmployeeFirstName || item.employeeName}
                                                                 </SelectItem>
-                                                            ))}
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -564,11 +637,14 @@ function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProp
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {categoryList.map((item: any) => (
-                                                            <SelectItem key={item.ttmC_Id} value={item.ttmC_Id.toString()}>
-                                                                {item.ttmC_CategoryName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {categoryList.map((item: any) => {
+                                                            const id = item.ttmC_Id ?? item.ttmc_id ?? item.TTMC_Id;
+                                                            return (
+                                                                <SelectItem key={id} value={id?.toString()}>
+                                                                    {item.ttmC_CategoryName || item.ttmc_categoryname || item.categoryName}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -584,11 +660,14 @@ function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProp
                                                         {isClassLoading ? (
                                                             <SelectItem value='loading'>Loading...</SelectItem>
                                                         ) : (
-                                                            classList.map((item: any) => (
-                                                                <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                                                    {item.asmcL_ClassName}
-                                                                </SelectItem>
-                                                            ))
+                                                            classList.map((item: any) => {
+                                                                const id = item.asmcL_Id ?? item.asmcl_id ?? item.ASMCL_Id;
+                                                                return (
+                                                                    <SelectItem key={id} value={id?.toString()}>
+                                                                        {item.asmcL_ClassName}
+                                                                    </SelectItem>
+                                                                );
+                                                            })
                                                         )}
                                                     </SelectContent>
                                                 </Select>
@@ -602,11 +681,14 @@ function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProp
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {sectionList.map((item: any) => (
-                                                            <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
-                                                                {item.asmS_SectionName || item.asmC_SectionName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {sectionList.map((item: any) => {
+                                                            const id = item.asmS_Id ?? item.asms_id ?? item.ASMS_Id;
+                                                            return (
+                                                                <SelectItem key={id} value={id?.toString()}>
+                                                                    {item.asmC_SectionName}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -619,11 +701,14 @@ function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProp
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {subSubjectList.map((item: any) => (
-                                                            <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
-                                                                {item.ismS_SubjectName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {subSubjectList.map((item: any) => {
+                                                            const id = item.ismS_Id ?? item.isms_id ?? item.ISMS_Id;
+                                                            return (
+                                                                <SelectItem key={id} value={id?.toString()}>
+                                                                    {item.ismS_SubjectName}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             </div>

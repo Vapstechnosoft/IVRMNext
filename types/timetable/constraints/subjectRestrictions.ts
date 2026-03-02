@@ -9,26 +9,29 @@ export interface SubjectRestrictionDayPeriodGridData {
     ttmP_PeriodName: string;
     ttmD_DayName: string;
     ttrdP_ActiveFlag: boolean;
+    asmaY_Id: number;
 }
 
 export interface SubjectRestrictionDaySubjectGridData {
-    ttrdsU_Id: number; //id 
+    ttrdsU_Id: number; //id
     asmaY_Year: string; //academic year
     ismS_SubjectName: string; //subject
     ttmD_Id: number; //day
     ttmD_DayName: string; //day
     ttrdsU_SUbSelcFlag: boolean; //action
     ttrdsU_ActiveFlag: boolean; //action
+    asmaY_Id: number;
 }
 
 export interface SubjectRestrictionDayStaffGridData {
-    ttrdsU_Id: number; //id
+    ttrdS_Id: number; //id
     asmaY_Year: string; //academic year
     staffName: string; //staff
     ttmD_Id: number; //day
     ttmD_DayName: string; //day
-    ttrdsU_SUbSelcFlag: boolean; //action
-    ttrdsU_ActiveFlag: boolean; //action
+    ttrdS_SUbSelcFlag: boolean; //action
+    ttrdS_ActiveFlag: boolean; //action
+    asmaY_Id: number;
 }
 
 export interface SubjectRestrictionPeriodStaffGridData {
@@ -39,6 +42,7 @@ export interface SubjectRestrictionPeriodStaffGridData {
     ttmP_PeriodName: string; //period
     ttrpS_SUbSelcFlag: boolean; //action
     ttrpS_ActiveFlag: boolean; //action
+    asmaY_Id: number;
 }
 
 export interface SubjectRestrictionPeriodSubjectGridData {
@@ -49,6 +53,7 @@ export interface SubjectRestrictionPeriodSubjectGridData {
     ttmP_PeriodName: string; //period
     ttrpsU_SUbSelcFlag: boolean; //action
     ttrpsU_ActiveFlag: boolean; //action
+    asmaY_Id: number;
 }
 
 export interface subjectRestriction_types {
