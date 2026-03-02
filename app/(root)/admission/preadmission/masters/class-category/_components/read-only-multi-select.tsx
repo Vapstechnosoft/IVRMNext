@@ -1,5 +1,5 @@
 import { type VariantProps, cva } from 'class-variance-authority';
-import { CheckIcon, ChevronDown, WandSparkles, XCircle, XIcon } from 'lucide-react';
+import { CheckIcon, ChevronDown, XCircle, XIcon } from 'lucide-react';
 import * as React from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -195,24 +195,6 @@ export const ReadOnlyMultiSelect = React.forwardRef<HTMLButtonElement, ReadOnlyM
                         <CommandList className='max-h-60 overflow-y-auto' onWheel={handleWheel}>
                             <CommandEmpty>No data found.</CommandEmpty>
                             <CommandGroup>
-                                <CommandItem
-                                    key='all'
-                                    onSelect={(e) => {
-                                        // Disabled - do nothing
-                                    }}
-                                    className='cursor-not-allowed opacity-50'
-                                >
-                                    <div
-                                        className={cn(
-                                            'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
-                                            selectedValues.length === options.length
-                                                ? 'bg-primary text-primary-foreground'
-                                                : 'opacity-50 [&_svg]:invisible'
-                                        )}>
-                                        <CheckIcon className='h-4 w-4' />
-                                    </div>
-                                    <span>(Select All)</span>
-                                </CommandItem>
                                 {options.map((option) => {
                                     const isSelected = selectedValues.includes(option.value);
                                     return (

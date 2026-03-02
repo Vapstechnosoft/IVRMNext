@@ -35,12 +35,14 @@ export const StudentTcReportPrint = React.forwardRef<HTMLDivElement, StudentTcRe
                     {`
                         @media print {
                             @page {
-                                margin: 10mm;
+                                margin: 0;
                                 size: A4 landscape;
                             }
                             body {
                                 visibility: hidden;
                                 background: white;
+                                margin: 0;
+                                padding: 0;
                             }
                             .print-preview-container {
                                 visibility: visible !important;
@@ -51,6 +53,7 @@ export const StudentTcReportPrint = React.forwardRef<HTMLDivElement, StudentTcRe
                                 background: white;
                                 z-index: 9999;
                                 color: black;
+                                padding: 15mm;
                             }
                             .print-preview-container * {
                                 visibility: visible !important;

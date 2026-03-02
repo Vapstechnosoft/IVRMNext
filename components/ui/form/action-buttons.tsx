@@ -91,7 +91,7 @@ export function ActionButtons({
 
                 {/* Status Label and Toggle Switch */}
                 {buttons.toggle && (
-                    <div className='flex items-center gap-2'>
+                    <div className='flex items-center gap-2 w-28'>
                         <span className={`font-medium text-sm ${isActive ? 'text-green-700' : 'text-red-600'}`}>
                             {isActive ? 'Active' : 'Inactive'}
                         </span>

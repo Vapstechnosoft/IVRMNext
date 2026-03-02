@@ -20,59 +20,62 @@ export const TCCancelPrint = React.forwardRef<HTMLDivElement, TCCancelPrintProps
                 <style dangerouslySetInnerHTML={{
                     __html: `
                     @media print {
-                        @page { size: portrait; margin: 10mm; }
-                        body { -webkit-print-color-adjust: exact; }
+                        @page { size: portrait; margin: 0; }
+                        body { -webkit-print-color-adjust: exact; margin: 0; padding: 0; }
                         .no-print { display: none !important; }
+                        .print-container { padding: 15mm; }
                     }
                 `}} />
 
                 {/* Header */}
-                <div className="flex flex-col items-center mb-6 border-b-2 border-black pb-4">
-                    <div className="flex w-full items-center justify-center gap-4">
-                        {logoUrl && <img src={logoUrl} alt="School Logo" className="w-20 h-20 object-contain" />}
-                        <div className="text-center">
-                            <h1 className="text-2xl font-bold uppercase tracking-wide">{schoolName}</h1>
-                            <p className="text-sm font-medium">{schoolAddress}</p>
-                            <p className="text-sm font-medium">Ph: {schoolPhone}</p>
+                <div className="print-container">
+                    <div className="flex flex-col items-center mb-6 border-b-2 border-black pb-4">
+                        <div className="flex w-full items-center justify-center gap-4">
+                            {logoUrl && <img src={logoUrl} alt="School Logo" className="w-20 h-20 object-contain" />}
+                            <div className="text-center">
+                                <h1 className="text-2xl font-bold uppercase tracking-wide">{schoolName}</h1>
+                                <p className="text-sm font-medium">{schoolAddress}</p>
+                                <p className="text-sm font-medium">Ph: {schoolPhone}</p>
+                            </div>
+                        </div>
+                        <div className="mt-4 w-full text-center">
+                            <h2 className="text-lg font-bold border-y border-black inline-block px-4 py-1">
+                                Student TC Deleted Details -
+                            </h2>
                         </div>
                     </div>
-                    <div className="mt-4 w-full text-center">
-                        <h2 className="text-lg font-bold border-y border-black inline-block px-4 py-1">
-                            Student TC Deleted Details -
-                        </h2>
-                    </div>
-                </div>
 
-                {/* Table */}
-                <table className="w-full border-collapse border border-black text-[12px]">
-                    <thead>
-                        <tr className="bg-gray-100">
-                            <th className="border border-black p-2 text-center w-12">Sl.No.</th>
-                            <th className="border border-black p-2 text-left">Student Details</th>
-                            <th className="border border-black p-2 text-left w-28">TC.No.</th>
-                            <th className="border border-black p-2 text-center w-28">TC Date</th>
-                            <th className="border border-black p-2 text-left">Reason For Deletion</th>
-                            <th className="border border-black p-2 text-center w-36">Deleted Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {data.map((row, index) => (
-                            <tr key={index}>
-                                <td className="border border-black p-2 text-center align-top">{row.slNo}</td>
-                                <td className="border border-black p-2 align-top font-bold uppercase">{row.studentDetails}</td>
-                                <td className="border border-black p-2 align-top">{row.tcNo}</td>
-                                <td className="border border-black p-2 text-center align-top">{row.tcDate}</td>
-                                <td className="border border-black p-2 align-top italic">{row.reason}</td>
-                                <td className="border border-black p-2 text-center align-top">{row.deletedDate}</td>
+                    {/* Table */}
+                    <table className="w-full border-collapse border border-black text-[12px]">
+                        <thead>
+                            <tr className="bg-gray-100">
+                                <th className="border border-black p-2 text-center w-12">Sl.No.</th>
+                                <th className="border border-black p-2 text-left">Student Details</th>
+                                <th className="border border-black p-2 text-left w-28">TC.No.</th>
+                                <th className="border border-black p-2 text-center w-28">TC Date</th>
+                                <th className="border border-black p-2 text-left">Reason For Deletion</th>
+                                <th className="border border-black p-2 text-center w-36">Deleted Date</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {data.map((row, index) => (
+                                <tr key={index}>
+                                    <td className="border border-black p-2 text-center align-top">{row.slNo}</td>
+                                    <td className="border border-black p-2 align-top font-bold uppercase">{row.studentDetails}</td>
+                                    <td className="border border-black p-2 align-top">{row.tcNo}</td>
+                                    <td className="border border-black p-2 text-center align-top">{row.tcDate}</td>
+                                    <td className="border border-black p-2 align-top italic">{row.reason}</td>
+                                    <td className="border border-black p-2 text-center align-top">{row.deletedDate}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
 
-                {/* Footer */}
-                <div className="mt-8 flex justify-between items-end text-[10px] opacity-60 italic">
-                    <div>Date: {currentDate}</div>
-                    <div>Generated by Vaps Technosoft Pvt. Ltd.</div>
+                    {/* Footer */}
+                    <div className="mt-8 flex justify-between items-end text-[10px] opacity-60 italic">
+                        <div>Date: {currentDate}</div>
+                        <div>Generated by Vaps Technosoft Pvt. Ltd.</div>
+                    </div>
                 </div>
             </div>
         );
