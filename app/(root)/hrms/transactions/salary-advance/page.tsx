@@ -92,13 +92,10 @@ function SalaryAdvancePageContent({
                 enableHiding: true
             },
             {
-                accessorKey: 'hrmE_Id',
+                accessorFn: (row) => getEmployeeNameById(row.hrmE_Id),
                 id: 'employeeName',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-                cell: ({ row }) => {
-                    const employeeId = row.original.hrmE_Id;
-                    return <div>{getEmployeeNameById(employeeId)}</div>;
-                },
+                cell: ({ row }) => <div>{row.getValue('employeeName')}</div>,
                 enableSorting: true,
                 enableHiding: true
             },
@@ -157,7 +154,14 @@ function SalaryAdvancePageContent({
         ];
         return (
             <div className='overflow-hidden rounded-lg bg-card'>
-                <DataTable<SalaryAdvanceGridItem, any> columns={columns} data={advances} totalItems={advances.length} isLoading={isLoading} />
+                <DataTable<SalaryAdvanceGridItem, any>
+                    columns={columns}
+                    data={advances}
+                    totalItems={advances.length}
+                    isLoading={isLoading}
+                    manualPagination={false}
+                    showSearchColumns={true}
+                />
             </div>
         );
     };

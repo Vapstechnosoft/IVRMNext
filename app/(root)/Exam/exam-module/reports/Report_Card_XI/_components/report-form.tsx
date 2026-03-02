@@ -160,10 +160,21 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     };
 
     const onSubmit = async (data: ReportCardXiSchema) => {
-        console.log('Report Card XI payload:', data);
+        const payload = {
+            asmaY_Id: Number(data.ASMAY_Id),
+            asmcL_Id: Number(data.ASMCL_Id),
+            asmS_Id: Number(data.ASMS_Id),
+            temp_AmstIds: data.selectedStudents.map(id => ({
+                amsT_Id: Number(id)
+            })),
+            exmname: data.exmname,
+            brngroup: data.brngroup
+        };
+
+        console.log('Report Card XI payload:', payload);
         try {
             const [result, institutionRes] = await Promise.all([
-                getReportDetails(data),
+                getReportDetails(payload),
                 getMasterInstitution()
             ]);
             const enrichedParams = {

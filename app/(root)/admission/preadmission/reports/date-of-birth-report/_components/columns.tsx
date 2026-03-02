@@ -22,16 +22,21 @@ export const birthCertificateColumns: ColumnDef<any>[] = [
         size: 24
     },
     {
-        accessorKey: 'stufn',
+        accessorKey: 'stuFN',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
-        cell: ({ row }) => <div>{row.getValue('stufn') ?? row.original.studentName ?? 'N/A'}</div>,
+        cell: ({ row }) => {
+            const first = row.original.stuFN || row.original.stufn || '';
+            const middle = row.original.stuMN || row.original.stumn || '';
+            const last = row.original.stuLN || row.original.stuln || '';
+            return <div>{`${first} ${middle} ${last}`.trim() || 'N/A'}</div>;
+        },
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'amst_admno',
+        accessorKey: 'admNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Admission No.' />,
-        cell: ({ row }) => <div>{row.getValue('amst_admno') ?? row.original.admNo ?? 'N/A'}</div>,
+        cell: ({ row }) => <div>{row.original.admNo || row.original.admno || 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
@@ -58,23 +63,23 @@ export const birthCertificateColumns: ColumnDef<any>[] = [
         enableHiding: true
     },
     {
-        accessorKey: 'dobword',
+        accessorKey: 'dobWord',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Date of Birth (Words)' />,
-        cell: ({ row }) => <div>{row.getValue('dobword') ?? 'N/A'}</div>,
+        cell: ({ row }) => <div>{row.original.dobWord || row.original.dobword || 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'fathername',
+        accessorKey: 'fatherName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Father Name' />,
-        cell: ({ row }) => <div>{row.getValue('fathername') ?? row.original.fatherName ?? 'N/A'}</div>,
+        cell: ({ row }) => <div>{row.original.fatherName || row.original.fathername || 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'stumn',
+        accessorKey: 'motherName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Mother Name' />,
-        cell: ({ row }) => <div>{row.getValue('stumn') ?? row.original.motherName ?? 'N/A'}</div>,
+        cell: ({ row }) => <div>{row.original.motherName || row.original.mothername || 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     },

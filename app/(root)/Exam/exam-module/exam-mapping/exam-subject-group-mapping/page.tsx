@@ -63,7 +63,7 @@ function ExamSubjectGroupMappingPageContent({
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl '>
                     <GenericDataTable<IExamSubjectGroupMapping>
                         {...tableProps}
                         columns={ExamSubjectGroupMappingColumns}

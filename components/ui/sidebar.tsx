@@ -472,7 +472,7 @@ const SidebarMenuAction = React.forwardRef<
                 'peer-data-[size=lg]/menu-button:top-2.5',
                 'group-data-[collapsible=icon]:hidden',
                 showOnHover &&
-                    'group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 data-[state=open]:opacity-100 peer-data-[active=true]/menu-button:text-sidebar-accent-foreground md:opacity-0',
+                'group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 data-[state=open]:opacity-100 peer-data-[active=true]/menu-button:text-sidebar-accent-foreground md:opacity-0',
                 className
             )}
             {...props}
@@ -505,10 +505,16 @@ const SidebarMenuSkeleton = React.forwardRef<
         showIcon?: boolean;
     }
 >(({ className, showIcon = false, ...props }, ref) => {
+    const [mounted, setMounted] = React.useState(false);
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
+
     // Random width between 50 to 90%.
     const width = React.useMemo(() => {
+        if (!mounted) return '70%'; // Fixed width for SSR/First pass
         return `${Math.floor(Math.random() * 40) + 50}%`;
-    }, []);
+    }, [mounted]);
 
     return (
         <div ref={ref} data-sidebar='menu-skeleton' className={cn('flex h-8 items-center gap-2 rounded-md px-2', className)} {...props}>

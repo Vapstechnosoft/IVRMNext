@@ -1,18 +1,28 @@
 'use client';
 
+import './signin-form.css';
 import PreadmissionRegistration from '@/app/(root)/admission/preadmission/transactions/preadmission-registration/page';
-import Logo from '@/components/layout/navigation/logo';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { InputPassword } from '@/components/ui/extension/input-password';
-import { InputText } from '@/components/ui/extension/input-text';
-import { Label } from '@/components/ui/label';
 import { useCheckPreadmissionLive } from '@/hooks/admission/preadmission/useConfigurations';
 import { loginSchema } from '@/schemas/admission/preadmission/masters';
 import { login } from '@/server/user';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { GraduationCap, LogIn, Mail, Phone, TriangleAlert } from 'lucide-react';
-import Image from 'next/image';
+import {
+    ArrowRight,
+    Cloud,
+    Code,
+    Eye,
+    EyeOff,
+    GraduationCap,
+    Laptop,
+    Lock,
+    Monitor,
+    Phone,
+    Server,
+    Smartphone,
+    Terminal,
+    TriangleAlert,
+    User
+} from 'lucide-react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
@@ -29,26 +39,15 @@ export default function SigninForm() {
     const callbackUrl = searchParams.get('callbackUrl') || '/';
     const [error, setError] = useState<string | undefined>('');
     const [isPending, startTransition] = useTransition();
-
-    const [isDarkMode, setIsDarkMode] = useState(false);
     const [mounted, setMounted] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
         setMounted(true);
-
-        if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
-            setIsDarkMode(true);
-        }
+        // Force light mode
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
     }, []);
-
-    useEffect(() => {
-        if (mounted) {
-            if (isDarkMode) {
-                document.documentElement.classList.remove('dark');
-                document.documentElement.classList.add('light');
-            }
-        }
-    }, [isDarkMode, mounted]);
 
     const {
         reset,
@@ -67,7 +66,6 @@ export default function SigninForm() {
 
     const onSubmit: SubmitHandler<FormFields> = (values) => {
         setError('');
-
         startTransition(() => {
             login({ values, callbackUrl }).then(async (data) => {
                 if (data?.error) {
@@ -78,133 +76,238 @@ export default function SigninForm() {
         });
     };
 
+    if (!mounted) return null;
+
     return (
-        <div className='flex min-h-screen'>
-            {/* Left Side - Background Image */}
-            <div className='relative hidden overflow-hidden lg:flex lg:w-1/2'>
-                <div className='absolute inset-0 z-10 bg-gradient-to-br from-blue-600/20 to-purple-700/20' />
-                <Image src='/assets/Login_BG.png' alt='VAPS Campus' fill className='object-fill' priority />
-                <div className='absolute inset-0 z-10 flex flex-col justify-center p-[150px]'>
-                    <div className='space-y-4 text-white'>
-                        <div className='mb-6 flex items-center gap-3'>
-                            <GraduationCap className='h-8 w-8' />
-                            <span className='font-bold text-2xl'>VAPS</span>
+        <div className='exact-container'>
+            {/* 1. Immersive Animated Background Layers */}
+            <div className='bg-main-gradient' />
+            <div className='bg-grid-premium' />
+            <div className='bg-grain-texture' />
+
+            {/* 2. Layered Flowing Waves */}
+            <div className='bg-waves-container'>
+                <div className='wave-1 bg-wave' />
+                <div className='wave-2 bg-wave' />
+                <div className='wave-3 bg-wave' />
+            </div>
+
+            {/* 3. Luxurious Blurred Gradient Blobs */}
+            <div className='bg-blobs'>
+                <div className='blob blob-lavender' />
+                <div className='blob blob-peach' />
+                <div className='blob blob-pink' />
+            </div>
+
+            {/* 4. Floating Computer Tech Icons (Ultra-Low Opacity) */}
+            <div className='bg-icons-immersive'>
+                <GraduationCap className='bg-icon' style={{ top: '10%', left: '5%', '--d': '12s' } as React.CSSProperties} size={140} />
+                <Terminal
+                    className='bg-icon'
+                    style={{ top: '65%', left: '8%', '--d': '15s', animationDelay: '-2s' } as React.CSSProperties}
+                    size={110}
+                />
+                <Code
+                    className='bg-icon'
+                    style={{ top: '15%', right: '7%', '--d': '18s', animationDelay: '-4s' } as React.CSSProperties}
+                    size={90}
+                />
+                <Server
+                    className='bg-icon'
+                    style={{ bottom: '20%', right: '10%', '--d': '14s', animationDelay: '-6s' } as React.CSSProperties}
+                    size={120}
+                />
+                <Laptop
+                    className='bg-icon'
+                    style={{ bottom: '10%', left: '40%', '--d': '16s', animationDelay: '-8s' } as React.CSSProperties}
+                    size={100}
+                />
+                <Cloud
+                    className='bg-icon'
+                    style={{ top: '40%', right: '15%', '--d': '20s', animationDelay: '-10s' } as React.CSSProperties}
+                    size={130}
+                />
+            </div>
+
+            {/* 5. Floating Translucent Glass Shapes & Particles */}
+            <div className='glass-shapes'>
+                <div className='glass-shape g-1' />
+                <div className='glass-shape g-2' />
+            </div>
+            <div className='particles-immersive'>
+                {[...Array(25)].map((_, i) => (
+                    <div
+                        key={i}
+                        className='particle-dot'
+                        style={
+                            {
+                                '--i': i,
+                                '--x': `${Math.random() * 100}%`,
+                                '--s': `${Math.random() * 4 + 2}px`,
+                                '--d': `${Math.random() * 10 + 10}s`
+                            } as React.CSSProperties
+                        }
+                    />
+                ))}
+            </div>
+
+            {/* 6. Lighting Aura behind panels */}
+            <div className='bg-aura-glow' />
+
+            <div className='exact-wrapper animate-entry'>
+                {/* --- LEFT PANEL: Emotional Welcome --- */}
+                <div className='exact-tray welcome-panel'>
+                    <div className='exact-card glass-premium'>
+                        <div className='welcome-content'>
+                            <div className='exact-shield-premium'>
+                                <img
+                                    src='https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/52b647fd-940b-48f0-b28c-8547e52a7109.png'
+                                    alt='Logo'
+                                    className='h-full w-full object-contain'
+                                />
+                            </div>
+
+                            <h1 className='welcome-heading'>
+                                Welcome to your <br />
+                                <span>Smart Campus</span>
+                            </h1>
+                            <p className='welcome-tagline'>Where education meets innovation, seamlessly.</p>
+
+                            <div className='welcome-illustration'>
+                                <div className='illus-container'>
+                                    <div className='illus-glow' />
+                                    <div className='main-illus'>
+                                        <GraduationCap size={160} className='main-cap text-lavender-purple' />
+                                        <div className='floating-elements'>
+                                            <div className='float-item item-1' title='Digital Campus'>
+                                                <Monitor size={24} />
+                                            </div>
+                                            <div className='float-item item-2' title='Infrastructure'>
+                                                <Server size={22} />
+                                            </div>
+                                            <div className='float-item item-3' title='Mobile Access'>
+                                                <Smartphone size={20} />
+                                            </div>
+                                            <div className='float-item item-4' title='Cloud Base'>
+                                                <Cloud size={18} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className='illus-base' />
+                                </div>
+                            </div>
+
+                            <div className='welcome-footer'>
+                                <div className='contact-pill'>
+                                    <Phone size={12} />
+                                    <span>24/7 Digital Support Active</span>
+                                </div>
+                            </div>
                         </div>
-                        <h1 className='font-bold text-4xl leading-tight'>
-                            Track progress
-                            <br />
-                            anytime, anywhere.
-                        </h1>
-                        <p className='max-w-md text-lg text-white/90'>
-                            Empowering education through technology. Join our community of learners and educators.
-                        </p>
+                        <div className='card-inner-glow' />
+                    </div>
+                </div>
+
+                {/* --- RIGHT PANEL: Premium Login --- */}
+                <div className='exact-tray login-panel'>
+                    <div className='exact-card glass-premium'>
+                        <div className='login-header'>
+                            <div className='brand-badge'>AIVRM SCHOOL ERP</div>
+                            <h2 className='login-title'>Sign In</h2>
+                            <p className='login-subtitle'>Enter your credentials to access your dashboard</p>
+                        </div>
+
+                        <form onSubmit={handleSubmit(onSubmit)} className='exact-form-premium'>
+                            {/* Username with Floating Label */}
+                            <div className='floating-field'>
+                                <div className='input-wrapper'>
+                                    <input
+                                        {...register('email')}
+                                        type='text'
+                                        className={`floating-input ${watch('email') ? 'has-value' : ''}`}
+                                        placeholder=' '
+                                        id='email-input'
+                                    />
+                                    <label htmlFor='email-input' className='floating-label'>
+                                        Username
+                                    </label>
+                                    <div className='input-focus-glow' />
+                                    <User className='input-icon' size={18} />
+                                </div>
+                                {errors.email && <p className='field-error'>{errors.email?.message}</p>}
+                            </div>
+
+                            {/* Password with Floating Label */}
+                            <div className='floating-field'>
+                                <div className='input-wrapper'>
+                                    <input
+                                        {...register('password')}
+                                        type={showPassword ? 'text' : 'password'}
+                                        className={`floating-input ${watch('password') ? 'has-value' : ''}`}
+                                        placeholder=' '
+                                        id='password-input'
+                                    />
+                                    <label htmlFor='password-input' className='floating-label'>
+                                        Password
+                                    </label>
+                                    <div className='input-focus-glow' />
+                                    <Lock className='input-icon' size={18} />
+                                    <button type='button' onClick={() => setShowPassword(!showPassword)} className='password-toggle-btn'>
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                                {errors.password && <p className='field-error'>{errors.password?.message}</p>}
+                            </div>
+
+                            {error && (
+                                <div className='login-error-toast'>
+                                    <TriangleAlert size={16} />
+                                    <span>{error}</span>
+                                </div>
+                            )}
+
+                            <button
+                                type='submit'
+                                className={`btn-premium-primary ${isPending ? 'is-authenticating' : ''}`}
+                                disabled={isPending}>
+                                {isPending ? (
+                                    <div className='loading-spinner'>
+                                        <div className='dot' />
+                                        <div className='dot' />
+                                        <div className='dot' />
+                                    </div>
+                                ) : (
+                                    <>
+                                        <span>Sign In to Dashboard</span>
+                                        <ArrowRight size={18} className='btn-arrow' />
+                                    </>
+                                )}
+                            </button>
+                        </form>
+
+                        <div className='premium-divider'>
+                            <span>OR</span>
+                        </div>
+
+                        <button className='btn-premium-secondary' type='button'>
+                            <Lock size={16} />
+                            <span>Pre-Admission Portal</span>
+                        </button>
+
+                        <div className='login-card-footer'>
+                            <p className='secure-badge'>
+                                <span className='green-dot' />
+                                End-to-end Secure Session
+                            </p>
+                        </div>
+                        <div className='card-inner-glow' />
                     </div>
                 </div>
             </div>
 
-            {/* Right Side - Sign In Form */}
-            <div className='flex w-full flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-white lg:w-1/2'>
-                <div className='w-full max-w-md'>
-                    {/* Mobile Logo */}
-                    <div className='flex justify-center lg:hidden'>
-                        <Logo size='full' />
-                    </div>
-
-                    <Card className='border-0 bg-white/80 shadow-xl backdrop-blur-sm'>
-                        <CardHeader className='flex items-center gap-2'>
-                            <div className='hidden justify-center lg:flex'>
-                                <Logo size='full' />
-                            </div>
-                            <div className='text-center'>
-                                <CardTitle className='font-bold text-2xl text-black'>Sign In</CardTitle>
-                                <CardDescription className='text-gray-600'>Sign in to access your dashboard</CardDescription>
-                            </div>
-                            {preadmissionLive?.data === true && (
-                                <CardTitle className='select-none'>
-                                    <div className='inline-flex items-center rounded-full border border-green-400 bg-green-50 px-4 py-2 text-lg'>
-                                        <span className='mr-2 h-3 w-3 rounded-full bg-green-500' />
-                                        <span className='font-medium text-green-700'>
-                                            Preadmission is <span className='font-bold text-green-600 text-xl'>LIVE !</span>
-                                        </span>
-                                    </div>
-                                </CardTitle>
-                            )}
-                        </CardHeader>
-
-                        <CardContent>
-                            <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-                                <div className='space-y-2'>
-                                    <InputText label='Username' placeholder='Enter your username' {...register('email')} />
-
-                                    <div className='space-y-2'>
-                                        <Label htmlFor='password' className='font-medium text-sm'>
-                                            Password
-                                        </Label>
-                                        <InputPassword
-                                            id='password'
-                                            type='password'
-                                            placeholder='Enter your password'
-                                            {...register('password')}
-                                            value={watch('password')}
-                                        />
-                                    </div>
-                                </div>
-                                {(errors.email?.message || errors.password?.message || error) && (
-                                    <div className='flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-4'>
-                                        <TriangleAlert className='h-5 w-5 flex-shrink-0 text-red-600' />
-                                        <p className='font-medium text-red-700 text-sm'>
-                                            {errors.email?.message || errors.password?.message || error}
-                                        </p>
-                                    </div>
-                                )}
-                                {/* Forgot Password */}
-                                {/* <div className='flex items-center justify-end'>
-                                    <Link
-                                        href='/forgot-password'
-                                        className='font-medium text-primary text-sm transition-colors hover:underline'>
-                                        Forgot password?
-                                    </Link>
-                                </div> */}
-                                {/* Action Buttons */}
-                                <div className='space-y-1'>
-                                    <Button
-                                        type='submit'
-                                        isLoading={isPending}
-                                        loadingText='Signing in...'
-                                        className='h-12 w-full rounded-lg bg-gradient-blue-purple-indigo font-semibold text-white'
-                                        disabled={isPending}
-                                        suffix={<LogIn className='size-4 transition-all ease-linear group-hover:translate-x-2' />}>
-                                        Sign In
-                                    </Button>
-
-                                    <div className='relative'>
-                                        <div className='absolute inset-0 flex items-center'>
-                                            <div className='w-full border-gray-300 border-t' />
-                                        </div>
-                                        <div className='relative flex justify-center text-sm'>
-                                            <span className='bg-white px-4 text-gray-500'>or</span>
-                                        </div>
-                                    </div>
-
-                                    <PreadmissionRegistration />
-                                </div>
-                            </form>
-                        </CardContent>
-                    </Card>
-                </div>
-                {/* Footer */}
-                <div className='fixed bottom-0 hidden h-7 w-[50%] items-center justify-between border border-1 bg-secondary px-2 lg:flex'>
-                    {/* Center section */}
-                    <div className='flex flex-1 items-center justify-center gap-2'>
-                        <Phone className='h-3 w-3 text-white' />
-                        <p className='text-white text-xs'>+91 33 2641 2138, +91 33 2641 3590</p>
-                        <Mail className='h-3 w-3 text-white' />
-                        <p className='text-white text-xs'>stcsh1860@gmail.com</p>
-                    </div>
-
-                    {/* Version aligned to end */}
-                    <p className='ml-auto pr-2 text-white text-xs'>v1.3</p>
-                </div>
+            {/* Hidden functional components for state management */}
+            <div className='hidden'>
+                <PreadmissionRegistration />
             </div>
         </div>
     );

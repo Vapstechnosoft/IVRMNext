@@ -51,7 +51,7 @@ export async function getPreAdmissionRegistrationReport(data: any, searchParams?
         url += `&To_Date=${data.toDate}`;
     }
 
-    return await api.post<any>('admission', url);
+    return await api.post<any>('admission', url, {});
 }
 export async function getPreAdmissionExcelRegistrationReport(data: any, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'Name');
@@ -71,7 +71,7 @@ export async function getPreAdmissionExcelRegistrationReport(data: any, searchPa
         url += `&To_Date=${data.toDate}`;
     }
 
-    return await api.post<any>('admission', url);
+    return await api.post<any>('admission', url, {});
 }
 export async function getPreAdmissionEmailSmsReport(data: any, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'Name');
@@ -95,6 +95,14 @@ export async function getPreAdmissionEmailSmsReport(data: any, searchParams?: Ap
 }
 export async function getStudyCertficateReport(data: any) {
     const url = `/StudyCertificateReport/GetStudyCertificateReport?&ASMAY_Id=${data.ASMAY_Id}&AllOrInd=${data.AllOrInd}&ASMCL_Id=${data.ASMCL_Id}&ASMC_Id=${data.ASMC_Id}&AMST_Id=${data.AMST_Id}`;
+    return await api.post<any>('admission', url, data);
+}
+export async function getCharacterCertficateReport(data: any) {
+    const url = `/StudyCertificateReport/GetStudyCertificatestuddetails?&ASMAY_Id=${data.ASMAY_Id}&AllOrInd=${data.AllOrInd}&ASMCL_Id=${data.ASMCL_Id}&ASMC_Id=${data.ASMC_Id}&AMST_Id=${data.AMST_Id}`;
+    return await api.post<any>('admission', url, data);
+}
+export async function generateQRCodeCertificate(data: any) {
+    const url = '/QRcodeStudentCertificate/QRCODECertificates';
     return await api.post<any>('admission', url, data);
 }
 export async function getConcessionDropdown() {

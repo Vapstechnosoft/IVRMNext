@@ -53,6 +53,7 @@ import { getGroupTypeSetOrder, getMasterGroupType, getMasterGroupTypeById } from
 // ... (skipping to line 433 where useMasterGroupType is defined)
 
 import { getLeaveYearDropdown, getLeaveYearSetOrder, getMasterLeaveYear } from '@/server/hrms/hrmsConfig/master/leave-year';
+import { getLeaveDropdown } from '@/server/hrms/hrmsConfig/master/leave-dropdown';
 import { getMasterLoan, getMasterLoanById } from '@/server/hrms/hrmsConfig/master/loan';
 import { getMasterMaritalStatus, getMasterMaritalStatusById } from '@/server/hrms/hrmsConfig/master/marital-status';
 import {
@@ -802,6 +803,24 @@ export function useMasterCasteCategoryDropdown() {
             });
         }
     };
+}
+
+export function useLeaveDropdown() {
+    const queryClient = useQueryClient();
+    const query = useQuery({
+        queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR, 'dropdown', 'leave'], // Reusing or new key? Should probably be master-leave
+        queryFn: async () => getLeaveDropdown(),
+        staleTime: 1000 * 60 * 5
+    });
+
+    return useMemo(() => ({
+        ...query,
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR, 'dropdown', 'leave']
+            });
+        }
+    }), [query, queryClient]);
 }
 // ============================================================================
 // GROUP DEPT DESSG MAPPING

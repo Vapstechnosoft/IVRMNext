@@ -112,7 +112,7 @@ const Marks_reportData = {
 }
 
 interface ReportFormProps {
-    onReportGenerated: (data: any) => void;
+    onReportGenerated: (data: any, year: string, exam: string) => void;
     onReset: () => void;
 }
 
@@ -244,6 +244,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     }, [watchYear, watchClass, watchSection, setValue]);
 
     const onSubmit = async (data: MarksEntryReportSchema) => {
+        console.log('data', data);
         try {
             const payload = {
                 ASMAY_Id: Number(data.ASMAY_Id),
@@ -254,17 +255,20 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
 
             console.log('marks entry report payload', payload);
 
+            const selected_Year = years.find((y: any) => y.asmaY_Id === Number(data.ASMAY_Id))?.asmaY_Year || '';
+            const selected_Exam = exams.find((e: any) => e.emE_Id === Number(data.EME_Id))?.emE_ExamName || '';
+            console.log('selected_Year', selected_Year);
             const result = await getReportDetails(payload);
 
             console.log('marks entry report data', result.data);
 
             const resultData = Array.isArray(result.data) ? result.data[0] : [];
-
+            console.log('marks entry report result data', resultData);
             // TODO: Use dummy data if result is empty - REMOVE IN PRODUCTION
-            if (!resultData || (Array.isArray(resultData) && resultData.length === 0) || !result.data || result.data.length === 0) {
-                onReportGenerated(Marks_reportData.data);
+            if ((Array.isArray(resultData) && resultData.length === 0) || !result.data || result.data.length === 0) {
+                onReportGenerated(Marks_reportData.data, selected_Year, selected_Exam);
             } else {
-                onReportGenerated(resultData);
+                onReportGenerated(result.data, selected_Year, selected_Exam);
             }
 
         } catch (error) {
@@ -453,11 +457,11 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                         </div>
 
                         <div className='mt-8 flex justify-center gap-4'>
-                            <Button type='submit' disabled={isSubmitting}>
-                                {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null} Report
+                            <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting}>
+                                Report
                             </Button>
                             <Button type='button' variant='outline' onClick={handleClear} disabled={isSubmitting}>
-                                Cancel
+                                Clear
                             </Button>
                         </div>
                     </div>

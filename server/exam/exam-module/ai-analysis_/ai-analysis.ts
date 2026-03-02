@@ -250,6 +250,6 @@ Ensure all scores are numbers. If a score is missing or invalid, skip that subje
 
     } catch (error: any) {
         console.error('PDF Extraction failed:', error);
-        throw new Error(`Failed to parse PDF: \${error.message}`);
+        throw new Error(`Failed to parse PDF: ${error.message}`);
     }
 }

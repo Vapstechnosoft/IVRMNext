@@ -50,7 +50,7 @@ export const Chatbot = () => {
         }
     ]);
 
-    type MenuState = 'ROOT' | 'ACADEMIC' | 'ANALYSIS' | 'STUDENT' | 'OFFICE' | 'ENABLE_CHAT';
+    type MenuState = 'ROOT' | 'ACADEMIC' | 'ANALYSIS' | 'STUDENT' | 'FEES' | 'OFFICE' | 'ENABLE_CHAT';
     const [menuState, setMenuState] = useState<MenuState>('ROOT');
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -115,6 +115,7 @@ export const Chatbot = () => {
         ROOT: [
             { label: 'Academic Operations', id: 'ACADEMIC' },
             { label: 'Performance Analysis', id: 'ANALYSIS' },
+            { label: 'Fees & Payments', id: 'FEES' },
             { label: 'Student Records', id: 'STUDENT' },
             { label: 'Staff ESS (Self Service)', id: 'OFFICE' },
             { label: 'Detailed Query', id: 'ENABLE_CHAT' }
@@ -130,6 +131,12 @@ export const Chatbot = () => {
             { label: 'Progress Card Report', response: 'View student progress cards in Exam > Reports > Progress Card Report.', pageName: 'Progress Card Report', link: '/Exam/exam-module/reports/vvehpc_exam-report-card' },
             { label: 'Toppers List', response: 'View exam toppers in Exam > Reports > Toppers List Report.', pageName: 'Toppers List Report', link: '/Exam/exam-module/reports/toppers-list-report' },
             { label: 'Grade Slab Report', response: 'View grade distribution in Exam > Reports > Grade Slab Report.', pageName: 'Grade Slab Report', link: '/Exam/exam-module/reports/grade-slab-report' },
+        ],
+        FEES: [
+            { label: 'Fee Collection', response: 'Record fee transactions in Fees > Transactions > Fee Transaction.', pageName: 'Fee Transaction', link: '/fees/transactions/feetransaction' },
+            { label: 'Fee Concession', response: 'Manage student concessions in Fees > Transactions > Fee Concession.', pageName: 'Fee Concession', link: '/fees/transactions/feeconcession' },
+            { label: 'Daily Collection', response: 'View daily collection summary in Fees > Reports > Daily Fee Collection.', pageName: 'Daily Fee Collection', link: '/fees/feereports/dailyfeecollectionreport' },
+            { label: 'Defaulters List', response: 'View fee defaulters in Fees > Reports > Fee Defaulter Report.', pageName: 'Fee Defaulter Report', link: '/fees/feereports/feedefaulterreport' },
         ],
         STUDENT: [
             { label: 'Mark Attendance', response: 'Record daily attendance in Admission > Attendance Entry > Student Attendance.', pageName: 'Student Attendance', link: '/admission/preadmission/attendance-entry/student-attendance' },
@@ -167,7 +174,7 @@ export const Chatbot = () => {
         }
 
         // Category transition
-        if (['ACADEMIC', 'ANALYSIS', 'STUDENT', 'OFFICE'].includes(option.id)) {
+        if (['ACADEMIC', 'ANALYSIS', 'STUDENT', 'FEES', 'OFFICE'].includes(option.id)) {
             setMenuState(option.id as MenuState);
             const userMsg: Message = {
                 id: `${Date.now()}-user`,
