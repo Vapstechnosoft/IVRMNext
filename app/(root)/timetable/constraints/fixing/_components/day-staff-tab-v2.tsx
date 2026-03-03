@@ -17,7 +17,9 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { type IFixingDayStaffList, dayStaffColumns } from './columns';
+
+import { TTDayStaffGridData } from '@/types/timetable/constraints/fixing';
+import { dayStaffColumns } from './columns';
 
 interface DayStaffTabProps {
     initialData: any;
@@ -29,8 +31,8 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
     const [academicList] = useState<any[]>(initialData?.yearlist || []);
     const [dayList] = useState<any[]>(initialData?.daylist || []);
     const [staffList, setStaffList] = useState<any[]>(initialData?.stafflist || []);
-    const [gridData, setGridData] = useState<IFixingDayStaffList[]>(initialData?.fix_day_staff_list || []);
-
+    const [gridData, setGridData] = useState<TTDayStaffGridData[]>(initialData?.fix_day_staff_list || []);
+  //const [gridData, setGridData] = useState<[]>(initialData?.fix_day_staff_list || []);
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subSubjectList, setSubSubjectList] = useState<any[]>([]);
@@ -254,7 +256,7 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
                 TTFDS_Id: item.ttfdS_Id,
                 TTFDS_ActiveFlag: !item.ttfdS_ActiveFlag
             };
-            const res = await deactivateFixingDayStaff(payload);
+            const res = await deactivateFixingDayStaff(item.ttfdS_Id);
             if (res?.returnval === true) {
                 toast.success('Status Updated');
                 window.location.reload();

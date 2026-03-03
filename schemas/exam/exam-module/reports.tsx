@@ -502,3 +502,145 @@ export const reportCardXXiiSchema = z.object({
 });
 
 export type ReportCardXXiiSchema = z.infer<typeof reportCardXXiiSchema>;
+
+export const stellaProgressReportSchema = z
+    .object({
+        mI_Id: z.number().optional(),
+        asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+        asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
+        asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
+        reopenDate: z.date({ required_error: 'Reopen Date is required' }),
+        studentList: z
+            .array(
+                z.object({
+                    amsT_Id: z.number({ required_error: 'Student is required' }).min(1, { message: 'Please select a Students' })
+                })
+            )
+            .min(1, { message: 'At least one Student must be selected' }),
+        applicableFlag: z.boolean().default(true).optional(),
+        nonApplicableFlag: z.boolean().default(true).optional(),
+        page_size: z.number().optional()
+    })
+    .superRefine((data, ctx) => {
+        const studentIds = data.studentList?.map((s) => s.amsT_Id) || [];
+        if (new Set(studentIds).size !== studentIds.length) {
+            ctx.addIssue({
+                path: ['studentList'],
+                code: z.ZodIssueCode.custom,
+                message: 'Duplicate Students are not allowed'
+            });
+        }
+    });
+
+export type StellaProgressReportSchema = z.infer<typeof stellaProgressReportSchema>;
+
+export const vidyaniketanProgressReportSchema = z.object({
+    mI_Id: z.number().optional(),
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
+    asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
+    reopenDate: z.date({ required_error: 'Reopen Date is required' }),
+    color: z.enum(['Green', 'Brown'], { required_error: 'Color is required' }),
+    emE_Id: z
+        .array(
+            z.object({
+                emE_Id: z.number({ required_error: 'Exam is required' }).min(1, { message: 'Please select Exam' })
+            })
+        )
+        .min(1, { message: 'At least one Exam must be selected' })
+});
+
+export type VidyaniketanProgressReportSchema = z.infer<typeof vidyaniketanProgressReportSchema>;
+
+export const vidyaniketanProgressReportItoVIIISchema = z
+    .object({
+        mI_Id: z.number().optional(),
+        asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+        asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
+        asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
+        studentList: z
+            .array(
+                z.object({
+                    amsT_Id: z.number({ required_error: 'Student is required' }).min(1, { message: 'Please select a Students' })
+                })
+            )
+            .min(1, { message: 'At least one Student must be selected' })
+    })
+    .superRefine((data, ctx) => {
+        const studentIds = data.studentList?.map((s) => s.amsT_Id) || [];
+        if (new Set(studentIds).size !== studentIds.length) {
+            ctx.addIssue({
+                path: ['studentList'],
+                code: z.ZodIssueCode.custom,
+                message: 'Duplicate Students are not allowed'
+            });
+        }
+    });
+
+export type VidyaniketanProgressReportItoVIIISchema = z.infer<typeof vidyaniketanProgressReportItoVIIISchema>;
+
+export const sophiaProgressReportIXtoXSchema = z
+    .object({
+        mI_Id: z.number().optional(),
+        asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+        asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
+        asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
+        emE_Id: z.number({ required_error: 'Exam Name is required' }).min(1, { message: 'Please select a Exam Name' }),
+        studentList: z
+            .array(
+                z.object({
+                    amsT_Id: z.number({ required_error: 'Student is required' }).min(1, { message: 'Please select a Students' })
+                })
+            )
+            .min(1, { message: 'At least one Student must be selected' })
+    })
+    .superRefine((data, ctx) => {
+        const studentIds = data.studentList?.map((s) => s.amsT_Id) || [];
+        if (new Set(studentIds).size !== studentIds.length) {
+            ctx.addIssue({
+                path: ['studentList'],
+                code: z.ZodIssueCode.custom,
+                message: 'Duplicate Students are not allowed'
+            });
+        }
+    });
+
+export type SophiaProgressReportIXtoXSchema = z.infer<typeof sophiaProgressReportIXtoXSchema>;
+
+export const sophiaProgressReportPreIISchema = z
+    .object({
+        mI_Id: z.number().optional(),
+        asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+        asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
+        asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
+        emE_Id: z.number({ required_error: 'Exam Name is required' }).min(1, { message: 'Please select a Exam Name' }),
+        studentList: z
+            .array(
+                z.object({
+                    amsT_Id: z.number({ required_error: 'Student is required' }).min(1, { message: 'Please select a Students' })
+                })
+            )
+            .min(1, { message: 'At least one Student must be selected' })
+    })
+    .superRefine((data, ctx) => {
+        const studentIds = data.studentList?.map((s) => s.amsT_Id) || [];
+        if (new Set(studentIds).size !== studentIds.length) {
+            ctx.addIssue({
+                path: ['studentList'],
+                code: z.ZodIssueCode.custom,
+                message: 'Duplicate Students are not allowed'
+            });
+        }
+    });
+
+export type SophiaProgressReportPreIISchema = z.infer<typeof sophiaProgressReportPreIISchema>;
+
+export const sophiaTopperListReportSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    emcA_Id: z.number({ required_error: 'Category is required' }).min(1, { message: 'Please select Category' }),
+    asmcL_Id: z.number({ required_error: 'Class Name is required' }).min(1, { message: 'Please select Class Name' }),
+    emE_Id: z.number({ required_error: 'Exam Name is required' }).min(1, { message: 'Please select Exam Name' }),
+    asmS_Id: z.number({ required_error: 'Section Name is required' }).min(1, { message: 'Please select Section Name' })
+});
+
+export type SophiaTopperListReportSchema = z.infer<typeof sophiaTopperListReportSchema>;

@@ -14,7 +14,7 @@ const formatDate = (date: unknown): string => {
     }
 };
 
-const FIELD_CONFIG: Record<string, { label: string; isDate?: boolean }> = {
+export const FIELD_CONFIG: Record<string, { label: string; isDate?: boolean }> = {
     AMST_AdmNo: { label: 'Adm No' },
     AMST_FirstName: { label: 'First Name' },
     AMST_MiddleName: { label: 'Middle Name' },

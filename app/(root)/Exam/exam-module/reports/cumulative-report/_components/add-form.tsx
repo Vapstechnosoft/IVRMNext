@@ -35,6 +35,11 @@ type FormFields = z.infer<typeof cumulativereportSchema.addOrUpdate> & {
     classrank: boolean;
     sectionrank: boolean;
     attendancedispaly: boolean;
+    Percentage_Flag: boolean;
+    Grade_Flag: boolean;
+    Marks_Flag: boolean;
+    OverallGrade_Flag: boolean;
+    Status_Flag: boolean;
     page_size: number;
 };
 
@@ -62,6 +67,11 @@ export default function CumulativeReportForm({
             classrank: false,
             sectionrank: false,
             attendancedispaly: false,
+            Percentage_Flag: false,
+            Grade_Flag: false,
+            Marks_Flag: false,
+            OverallGrade_Flag: false,
+            Status_Flag: false,
             page_size: 10,
         },
     });
@@ -237,6 +247,11 @@ export default function CumulativeReportForm({
             classrank: data.classrank,
             sectionrank: data.sectionrank,
             attendancedispaly: data.attendancedispaly,
+            Percentage_Flag: data.Percentage_Flag,
+            Grade_Flag: data.Grade_Flag,
+            Marks_Flag: data.Marks_Flag,
+            OverallGrade_Flag: data.OverallGrade_Flag,
+            Status_Flag: data.Status_Flag,
             //page_size: data.page_size
         };
         console.log("cumulative_report_payload", payload);
@@ -609,6 +624,68 @@ export default function CumulativeReportForm({
                                         )}
                                     />
                                     <span>Not Display Attendance</span>
+                                </Label>
+                                <Label className="flex cursor-pointer items-center gap-2">
+                                    <Controller
+                                        control={control}
+                                        name="Percentage_Flag"
+                                        render={({ field }) => (
+                                            <Checkbox
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        )}
+                                    />
+                                    <span>Display Percentage</span>
+                                </Label>
+                                <Label className="flex cursor-pointer items-center gap-2">
+                                    <Controller
+                                        control={control}
+                                        name="Grade_Flag"
+                                        render={({ field }) => (
+                                            <Checkbox
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        )}
+                                    />
+                                    <span>Display Grade</span>
+                                </Label><Label className="flex cursor-pointer items-center gap-2">
+                                    <Controller
+                                        control={control}
+                                        name="Marks_Flag"
+                                        render={({ field }) => (
+                                            <Checkbox
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        )}
+                                    />
+                                    <span>Display Marks</span>
+                                </Label><Label className="flex cursor-pointer items-center gap-2">
+                                    <Controller
+                                        control={control}
+                                        name="OverallGrade_Flag"
+                                        render={({ field }) => (
+                                            <Checkbox
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        )}
+                                    />
+                                    <span>Display Overall Grade</span>
+                                </Label><Label className="flex cursor-pointer items-center gap-2">
+                                    <Controller
+                                        control={control}
+                                        name="Status_Flag"
+                                        render={({ field }) => (
+                                            <Checkbox
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        )}
+                                    />
+                                    <span>Status</span>
                                 </Label>
                             </div>
                         </div>

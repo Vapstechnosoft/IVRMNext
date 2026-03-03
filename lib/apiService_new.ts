@@ -43,7 +43,7 @@ class ApiServiceNew {
 
             const instance = axios.create({
                 baseURL,
-                timeout: 60000,
+                timeout: 180000,
                 headers: {
                     'Content-Type': 'application/json',
                     Accept: '*/*'

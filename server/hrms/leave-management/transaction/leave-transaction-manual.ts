@@ -67,11 +67,32 @@ export async function saveLeaveTransactionManual(
         console.log('🟢 [SERVER] Response:', JSON.stringify(response, null, 2));
 
         const res = response as any;
-        const isSuccess = res.success === true || String(res.success) === 'true' || res.returnval === true;
+
+        // Prioritize explicit success flag, then returnval
+        let isSuccess = false;
+        if (typeof res.success === 'boolean' || res.success === 'true' || res.success === 'false') {
+            isSuccess = String(res.success) === 'true';
+        } else if (res.returnval !== undefined && res.returnval !== null) {
+            isSuccess = String(res.returnval) === 'true';
+        }
+
+        // Catch specific error messages that might accompany a 200 OK
+        if (res.message === 'InvalidLeaveYear' || res.data === 'InvalidLeaveYear' || res.message === 'LWPNotSet') {
+            isSuccess = false;
+        }
+
+        let finalMessage = res.message || (isSuccess ? 'Leave transaction saved successfully' : 'Failed to save leave transaction');
+
+        // Provide user-friendly explanation for common backend errors
+        if (res.message === 'LWPNotSet') {
+            finalMessage = 'Leave Without Pay (LWP) type is not configured in Master Leave settings.';
+        } else if (res.message === 'InvalidLeaveYear') {
+            finalMessage = 'The selected date does not fall within any configured Leave Year.';
+        }
 
         return {
             success: isSuccess,
-            message: res.message || 'Leave transaction saved successfully',
+            message: finalMessage,
             data: res.data || null
         };
     } catch (error: any) {

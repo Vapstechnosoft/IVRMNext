@@ -10,10 +10,15 @@ import { useStudentSearch } from '@/hooks/admission/preadmission/useReports';
 import { studentSearchSchema } from '@/schemas/admission/preadmission/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FileSpreadsheet, Plus, Printer, RotateCcw, Search, Trash2 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
+import * as XLSX from 'xlsx';
+import { useReactToPrint } from 'react-to-print';
+import { toast } from 'sonner';
+import { getStudentSearch } from '@/server/admission/preadmission/reports/student_yearly_attendance';
 import { type StudentData, studentSearchColumns } from './_components/columns';
+import { StudentSearchPrint } from './_components/student-search-print';
 
 type FormFields = z.infer<typeof studentSearchSchema>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -47,6 +52,8 @@ export default function StudentSearchPage(props: {
 }) {
     const searchParams = (React as any).use(props.searchParams);
     const [showReport, setShowReport] = useState(false);
+    const [allPrintData, setAllPrintData] = useState<any[]>([]);
+    const [isPrinting, setIsPrinting] = useState(false);
     const [searchQuery, setSearchQuery] = useState<{
         stuStatus: string;
         field: string;
@@ -135,6 +142,100 @@ export default function StudentSearchPage(props: {
         });
         setShowReport(false);
         setSearchQuery(null);
+    };
+
+    const printRef = useRef<HTMLDivElement>(null);
+    const triggerPrint = useReactToPrint({
+        contentRef: printRef
+    });
+
+    const handlePrint = async () => {
+        if (!searchQuery) return;
+
+        setIsPrinting(true);
+        const toastId = toast.loading('Preparing all records for print...');
+        try {
+            const fullResponse = await getStudentSearch(
+                searchQuery.stuStatus,
+                searchQuery.field,
+                searchQuery.operator,
+                searchQuery.value,
+                searchQuery.condition,
+                { page_size: 1000000 }
+            );
+
+            const allData = (fullResponse?.data as any)?.searchResult || [];
+
+            if (allData.length === 0) {
+                toast.dismiss(toastId);
+                toast.error('No data found to print');
+                setIsPrinting(false);
+                return;
+            }
+
+            setAllPrintData(allData);
+            toast.dismiss(toastId);
+            toast.success('Ready to print');
+
+            setTimeout(() => {
+                triggerPrint();
+                setIsPrinting(false);
+            }, 1000);
+        } catch (error) {
+            console.error('Print error:', error);
+            toast.dismiss(toastId);
+            toast.error('Failed to prepare print view');
+            setIsPrinting(false);
+        }
+    };
+
+    const handleExportToExcel = async () => {
+        if (!searchQuery) return;
+
+        const toastId = toast.loading('Fetching all records for export...');
+        try {
+            const fullResponse = await getStudentSearch(
+                searchQuery.stuStatus,
+                searchQuery.field,
+                searchQuery.operator,
+                searchQuery.value,
+                searchQuery.condition,
+                { page_size: 1000000 }
+            );
+
+            const allData = (fullResponse?.data as any)?.searchResult || [];
+
+            if (allData.length === 0) {
+                toast.dismiss(toastId);
+                toast.error('No data found to export');
+                return;
+            }
+
+            const excelData = allData.map((row: any, index: number) => ({
+                'Sl. No': index + 1,
+                'Reg. No': row.amsT_RegistrationNo,
+                'Student Name': row.amsT_FirstName,
+                Class: row.asmcL_ClassName,
+                Section: row.asmC_SectionName,
+                Gender: row.amsT_Sex,
+                DOB: row.amsT_DOB,
+                'Father Name': row.amsT_FatherName,
+                Mobile: row.amsT_MobileNo,
+                'Admission No': row.amsT_AdmNo
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
+            XLSX.writeFile(workbook, 'StudentSearchReport_AllRecords.xlsx');
+
+            toast.dismiss(toastId);
+            toast.success('Excel exported successfully with all records');
+        } catch (error) {
+            console.error('Export error:', error);
+            toast.dismiss(toastId);
+            toast.error('Failed to export all records');
+        }
     };
 
     return (
@@ -335,6 +436,7 @@ export default function StudentSearchPage(props: {
                             <Button
                                 type='button'
                                 variant='outline'
+                                onClick={handleExportToExcel}
                                 disabled={
                                     !showReport ||
                                     !(response?.data as any)?.searchResult ||
@@ -347,18 +449,27 @@ export default function StudentSearchPage(props: {
                             <Button
                                 type='button'
                                 variant='outline'
+                                onClick={handlePrint}
                                 disabled={
                                     !showReport ||
                                     !(response?.data as any)?.searchResult ||
-                                    (response?.data as any)?.searchResult.length === 0
+                                    (response?.data as any)?.searchResult.length === 0 ||
+                                    isPrinting
                                 }
                                 className='w-full sm:w-fit'>
                                 <Printer className='mr-2 h-4 w-4' />
-                                Print
+                                {isPrinting ? 'Preparing...' : 'Print'}
                             </Button>
                         </div>
                     </CollapsibleSection>
                 </form>
+
+                <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '297mm' }}>
+                    <StudentSearchPrint
+                        ref={printRef}
+                        data={allPrintData.length > 0 ? allPrintData : ((response?.data as any)?.searchResult || [])}
+                    />
+                </div>
 
                 {showReport && (response?.data as any)?.searchResult && (response?.data as any)?.searchResult.length > 0 && (
                     <CollapsibleSection

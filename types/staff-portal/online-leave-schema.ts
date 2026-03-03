@@ -2,6 +2,14 @@
 import { z } from 'zod';
 
 export const onlineLeaveSchema = z.object({
+    leaveType: z.string().optional(),
+    fromDate: z.date({
+        required_error: 'Select From Date',
+    }),
+    toDate: z.date({
+        required_error: 'Select To Date',
+    }),
+    isHalfDay: z.boolean().default(false),
     reason: z.string().min(1, 'Enter Reason for Leave').max(120),
     contact: z.string()
         .min(10, 'Enter Minimum 10 characters')

@@ -49,6 +49,7 @@ const CharacterCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
                         @media print {
                             @page {
                                 size: A4 portrait;
+                                margin: 0;
                             }
                             * {
                                 -webkit-print-color-adjust: exact !important;
@@ -77,8 +78,8 @@ const CharacterCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
                         }
 
                         .char-a4-container {
-                            width: 210mm;
-                            height: 297mm;
+                            width: 100%;
+                            min-height: 297mm;
                             padding: 20mm;
                             margin: 0 auto;
                             position: relative;
@@ -125,7 +126,7 @@ const CharacterCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
 
                         if (isStAnnas) {
                             return (
-                                <div key={`${student.AMST_Id || 's'}-${index}`} className='char-a4-page shadow-2xl print:shadow-none bg-white'>
+                                <div key={`${student.AMST_Id || 's'}-${index}`} className='char-a4-page print:shadow-none bg-white'>
                                     <div className='char-a4-container char-bg-watermark'>
                                         <div className='char-content-wrapper pt-[120px]'>
                                             <div className='text-center mb-20'>
@@ -171,7 +172,7 @@ const CharacterCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
 
                         // Default Character Certificate (BCHARCERT style)
                         return (
-                            <div key={`${student.AMST_Id || 's'}-${index}`} className='char-a4-page shadow-2xl print:shadow-none bg-white'>
+                            <div key={`${student.AMST_Id || 's'}-${index}`} className='char-a4-page print:shadow-none bg-white'>
                                 <div className='char-a4-container char-bg-watermark'>
                                     <div className='char-content-wrapper pt-[200px]'>
                                         <div className='text-center space-y-6'>

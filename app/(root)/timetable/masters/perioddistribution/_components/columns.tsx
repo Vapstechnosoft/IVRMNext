@@ -52,7 +52,7 @@ export const createPeriodDistributionColumns: ColumnDef<PeriodDistributionColumn
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: PeriodDistributionColumn }) {
-    const { openToggleForm } = useFormContext<PeriodDistributionColumn>();
+    const { openToggleForm, openDetailsView } = useFormContext<PeriodDistributionColumn>();
 
     const handleToggle = useCallback(
         (data: PeriodDistributionColumn) => {
@@ -61,7 +61,22 @@ function ActionButtonsCell({ rowData }: { rowData: PeriodDistributionColumn }) {
         [openToggleForm]
     );
 
-    return <ActionButtons rowData={rowData} buttons={{ toggle: true }} onToggle={handleToggle} toggleConditionKey='ttfpD_ActiveFlag' />;
+    const handleView = useCallback(
+        (data: PeriodDistributionColumn) => {
+            openDetailsView(data);
+        },
+        [openDetailsView]
+    );
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ toggle: true, view: true }}
+            onToggle={handleToggle}
+            //onView={handleView}
+            toggleConditionKey='ttfpD_ActiveFlag'
+        />
+    );
 }
 
 // 'use client';

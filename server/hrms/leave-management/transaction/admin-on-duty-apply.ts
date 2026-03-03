@@ -53,6 +53,7 @@ export async function getEmployeeOnDutyLeaveApply(
                     extractedData = val;
                     console.log(`📍 [SERVER] Found data in property: ${prop}`);
                     break;
+                    // biome-ignore lint/complexity/useOptionalChain: <explanation>
                 } else if (val && val.$values && Array.isArray(val.$values)) {
                     extractedData = val.$values;
                     console.log(`📍 [SERVER] Found data in property: ${prop}.$values`);
@@ -122,6 +123,7 @@ export async function getEmployeeOnDutyLeaveApply(
             ] as any;
         }
 
+        // biome-ignore lint/style/useConst: <explanation>
         let totalVal = getVal(res, 'total') || getVal(res, 'totalItems') || getVal(res, 'count');
         const finalTotal = totalVal !== undefined && totalVal !== null ? Number(totalVal) : extractedData.length;
         const isSuccess = getVal(res, 'success') === true || String(getVal(res, 'success')) === 'true' || extractedData.length > 0;
@@ -275,5 +277,55 @@ export async function toggleActiveStatusOnDuty(hrelapId: number): Promise<ApiRes
     } catch (error: any) {
         console.error('🔴 [SERVER] AdminOnDutyApply Toggle Error:', error.message);
         throw new Error(error?.message || 'Failed to toggle status');
+    }
+}
+/**
+ * Get employee dropdown for Admin On Duty Apply
+ * GET /api/AdminOnDutyApply/get_employee_on_duty_leave_apply
+ * Note: Many VAPS controllers return dropdowns in the initial GET call
+ */
+export async function getAdminOnDutyEmployeeDropdown(): Promise<ApiResponse<any[]>> {
+    const url = '/api/AdminOnDutyApply/get_employee_on_duty_leave_apply';
+    console.log('🔵 [SERVER] AdminOnDutyApply - Requesting Dropdown:', url);
+    try {
+        const response = await api.get<any>('hmslms', url);
+        const res = response as any;
+
+        const getVal = (obj: any, key: string) => {
+            if (!obj || typeof obj !== 'object') return undefined;
+            if (key in obj) return obj[key];
+            const lowKey = key.toLowerCase();
+            for (const k in obj) {
+                if (k.toLowerCase() === lowKey) return obj[k];
+            }
+            return undefined;
+        };
+
+        // VAPS usually returns this in 'employeedropdown' or 'employeeDropdown'
+        let dropdownData = getVal(res, 'employeedropdown') || getVal(res, 'employeeDropdown');
+
+        if (!dropdownData) {
+            // Fallback: If not found, check if we can get it from hrms microservice generic dropdown
+            const genericUrl = '/api/TransHREmpSalaryAdvance/get_salary_advance_employee_dropdown';
+            console.log('⚠️ [SERVER] AdminOnDutyApply - employeedropdown not found in hmslms. Trying generic hrms dropdown:', genericUrl);
+            const genericRes = await api.get<any>('hrms', genericUrl);
+            dropdownData = getVal(genericRes, 'data') || genericRes;
+        }
+
+        const isSuccess = Array.isArray(dropdownData) || !!dropdownData;
+
+        return {
+            success: isSuccess,
+            message: getVal(res, 'message') || 'Success',
+            data: dropdownData || []
+        };
+    } catch (error: any) {
+        console.error('🔴 [SERVER] AdminOnDutyApply - Dropdown ERROR:', error.message);
+        // Return empty array instead of throwing to avoid breaking the form
+        return {
+            success: false,
+            message: error?.message || 'Failed to fetch employee list',
+            data: []
+        };
     }
 }

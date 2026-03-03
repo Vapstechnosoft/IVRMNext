@@ -60,3 +60,8 @@ export async function ClassDropDownDataOnchnGeYrAndCategory(asmay_id: number, TT
     const url = `/PeriodAllocationFacade/getclassesOnCategoryAcademicYrBase/${asmay_id}/${TTMC_Id}`;
     return await api.get<ClassDropDownDataTT[]>('timetable', url);
 }
+
+export async function addOrUpdateMasterDayClasswise(data: any) {
+    const url = '/MasterDayFacade/AddClasswiseDaydetail';
+    return await api.post<any>('timetable', url, data);
+}
