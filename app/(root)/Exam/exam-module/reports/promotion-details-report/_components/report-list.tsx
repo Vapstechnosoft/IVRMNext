@@ -22,7 +22,7 @@ export const ReportList = ({ data, isSuperAverage, institution }: ReportListProp
 
     const { YearName, stream, section, empG_GroupName } = data;
 
-    
+
 
     const handlePrint = () => {
         const printContent = tableRef.current?.outerHTML;
@@ -150,12 +150,12 @@ export const ReportList = ({ data, isSuperAverage, institution }: ReportListProp
             </div>
 
             <div className='flex justify-end space-x-2 p-2'>
-                <Button onClick={handlePrint}  className=" hover:bg-orange-800 text-white flex w-fit">
-                        <Printer className="h-4 w-4" />
-                        <span>PRINT</span>
-                    </Button>
+                <Button onClick={handlePrint} className=" hover:bg-orange-800 text-white flex w-fit">
+                    <Printer className="h-4 w-4" />
+                    <span>PRINT</span>
+                </Button>
 
-                <Button  onClick={handleExport} className=' hover:bg-orange-800 text-white w-fit'>
+                <Button onClick={handleExport} className=' hover:bg-orange-800 text-white w-fit'>
                     <FileSpreadsheet className='h-4 w-4' />
                     Export to Excel
                 </Button>

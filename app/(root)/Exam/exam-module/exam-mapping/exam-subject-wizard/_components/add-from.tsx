@@ -923,7 +923,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                     />
 
                                     <div>
-                                        <Label>Category *</Label>
+                                        <Label>Category <span className='text-red-500'>*</span></Label>
                                         <Select
                                             value={watchCategory?.toString() ?? ''}
                                             onValueChange={(val) => {
@@ -959,8 +959,9 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                     </div>
 
                                     <div>
+                                        <Label>Exams <span className='text-red-500'>*</span></Label>
                                         <CustomMultiSelectBox
-                                            label='Exam *'
+                                            
                                             options={exams.map((ex) => ({
                                                 label: ex.EME_ExamName,
                                                 value: ex.EME_Id.toString()
