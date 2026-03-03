@@ -2734,6 +2734,14 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/leave-management/reports/leave-report',
                                             title: 'Leave Report',
                                             description: 'Leave Summary Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Leave Status Report',
+                                            icon: 'FileSearch',
+                                            url: '/hrms/leave-management/reports/leave-status-report',
+                                            title: 'Leave Status Report',
+                                            description: 'Leave Status Report'
                                         }
                                         // {
                                         //     id: 2,
