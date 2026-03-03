@@ -48,17 +48,17 @@ export const StudentSearchPrint = React.forwardRef<HTMLDivElement, StudentSearch
         }
 
         return (
-            <div ref={ref} className='print-preview-container p-5 bg-white text-black min-h-full w-full'>
+            <div ref={ref} className='print-preview-container bg-white text-black min-h-full w-full'>
                 <style>
                     {`
                         @media print {
                             @page {
-                                margin: 0;
+                                margin: 10mm;
                                 size: A4 landscape;
                             }
                             body {
                                 visibility: hidden;
-                                background: white;
+                                background: white !important;
                                 margin: 0;
                                 padding: 0;
                             }
@@ -68,27 +68,31 @@ export const StudentSearchPrint = React.forwardRef<HTMLDivElement, StudentSearch
                                 left: 0;
                                 top: 0;
                                 width: 100%;
-                                background: white;
+                                background: white !important;
                                 z-index: 9999;
-                                color: black;
-                                padding: 15mm;
+                                color: black !important;
                             }
                             .print-preview-container * {
                                 visibility: visible !important;
                             }
-                            table {
+                            .main-table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                border: none !important;
+                            }
+                            .data-table {
                                 width: 100%;
                                 border-collapse: collapse;
                                 border: 1px solid #000;
                             }
-                            th, td {
+                            .data-table th, .data-table td {
                                 border: 1px solid #000;
-                                padding: 4px;
+                                padding: 6px 4px;
                                 text-align: center;
                                 font-size: 10px;
                             }
-                            th {
-                                background-color: #f3f4f6;
+                            .data-table th {
+                                background-color: #f3f4f6 !important;
                                 font-weight: bold;
                                 -webkit-print-color-adjust: exact;
                             }
@@ -97,71 +101,95 @@ export const StudentSearchPrint = React.forwardRef<HTMLDivElement, StudentSearch
                             }
                             .header-section {
                                 text-align: center;
-                                margin-bottom: 20px;
+                                padding-bottom: 20px;
                             }
-                            .no-print {
-                                display: none !important;
+                            .footer-section {
+                                padding-top: 30px;
+                                display: flex;
+                                justify-content: space-between;
+                                padding: 10px 0;
+                            }
+                            .no-border {
+                                border: none !important;
                             }
                         }
                     `}
                 </style>
 
-                {/* Header */}
-                <div className="header-section mb-6 border-b border-black pb-4">
-                    <div className="flex items-center justify-center gap-4">
-                        {logoUrl && <img src={logoUrl} alt="Logo" className="w-16 h-16 object-contain" />}
-                        <div className="text-center">
-                            <h1 className="text-xl font-bold uppercase">{schoolName || 'Institution Name'}</h1>
-                            <p className="text-xs">{schoolAddress || 'Institution Address'}</p>
-                            <p className="text-xs">Ph: {schoolPhone || 'N/A'}</p>
-                        </div>
-                    </div>
-                    <div className="mt-4">
-                        <h2 className="text-md font-bold border-y border-black inline-block px-4 py-1 uppercase">
-                            Student Search Report
-                        </h2>
-                    </div>
-                </div>
-
-                {/* Table */}
-                <table className="w-full">
+                <table className='main-table no-border'>
                     <thead>
-                        <tr className="bg-gray-100">
-                            <th className="w-10">SL. NO</th>
-                            <th className="text-left w-24">REG. NO</th>
-                            <th className="text-left">STUDENT NAME</th>
-                            <th className="text-left w-24">CLASS</th>
-                            <th className="text-left w-24">SECTION</th>
-                            <th className="w-20">GENDER</th>
-                            <th className="w-20">DOB</th>
-                            <th className="text-left">FATHER NAME</th>
-                            <th className="text-left w-24">MOBILE</th>
-                            <th className="text-left w-24">ADM NO</th>
+                        <tr>
+                            <td className='no-border'>
+                                {/* Header */}
+                                <div className='header-section mb-6 border-b border-black pb-4'>
+                                    <div className='flex items-center justify-center gap-4'>
+                                        {logoUrl && <img src={logoUrl} alt='Logo' className='h-16 w-16 object-contain' />}
+                                        <div className='text-center'>
+                                            <h1 className='text-xl font-bold uppercase'>{schoolName || 'Institution Name'}</h1>
+                                            <p className='text-xs'>{schoolAddress || 'Institution Address'}</p>
+                                            <p className='text-xs'>Ph: {schoolPhone || 'N/A'}</p>
+                                        </div>
+                                    </div>
+                                    <div className='mt-4'>
+                                        <h2 className='text-md inline-block border-y border-black px-4 py-1 font-bold uppercase'>
+                                            Student Search Report
+                                        </h2>
+                                    </div>
+                                </div>
+                            </td>
                         </tr>
                     </thead>
                     <tbody>
-                        {data.map((row, index) => (
-                            <tr key={index}>
-                                <td>{index + 1}</td>
-                                <td className="text-left">{row.amsT_RegistrationNo}</td>
-                                <td className="text-left font-bold uppercase">{row.amsT_FirstName}</td>
-                                <td className="text-left">{row.asmcL_ClassName}</td>
-                                <td className="text-left">{row.asmC_SectionName}</td>
-                                <td>{row.amsT_Sex}</td>
-                                <td>{row.amsT_DOB}</td>
-                                <td className="text-left">{row.amsT_FatherName}</td>
-                                <td className="text-left">{row.amsT_MobileNo}</td>
-                                <td className="text-left">{row.amsT_AdmNo}</td>
-                            </tr>
-                        ))}
+                        <tr>
+                            <td className='no-border'>
+                                {/* Table */}
+                                <table className='data-table w-full'>
+                                    <thead>
+                                        <tr className='bg-gray-100'>
+                                            <th className='w-10'>SL. NO</th>
+                                            <th className='w-24 text-left'>REG. NO</th>
+                                            <th className='text-left'>STUDENT NAME</th>
+                                            <th className='w-24 text-left'>CLASS</th>
+                                            <th className='w-24 text-left'>SECTION</th>
+                                            <th className='w-20'>GENDER</th>
+                                            <th className='w-20'>DOB</th>
+                                            <th className='text-left'>FATHER NAME</th>
+                                            <th className='w-24 text-left'>MOBILE</th>
+                                            <th className='w-24 text-left'>ADM NO</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {data.map((row, index) => (
+                                            <tr key={index}>
+                                                <td>{index + 1}</td>
+                                                <td className='text-left'>{row.amsT_RegistrationNo}</td>
+                                                <td className='text-left font-bold uppercase'>{row.amsT_FirstName}</td>
+                                                <td className='text-left'>{row.asmcL_ClassName}</td>
+                                                <td className='text-left'>{row.asmC_SectionName}</td>
+                                                <td>{row.amsT_Sex}</td>
+                                                <td>{row.amsT_DOB}</td>
+                                                <td className='text-left'>{row.amsT_FatherName}</td>
+                                                <td className='text-left'>{row.amsT_MobileNo}</td>
+                                                <td className='text-left'>{row.amsT_AdmNo}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <td className='no-border'>
+                                {/* Footer */}
+                                <div className='footer-section mt-8 items-end italic opacity-60 text-[10px]'>
+                                    <div>Date: {currentDate}</div>
+                                    <div>Generated by Vaps Technosoft Pvt. Ltd.</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tfoot>
                 </table>
-
-                {/* Footer */}
-                <div className="mt-8 flex justify-between items-end text-[10px] opacity-60 italic">
-                    <div>Date: {currentDate}</div>
-                    <div>Generated by Vaps Technosoft Pvt. Ltd.</div>
-                </div>
             </div>
         );
     }

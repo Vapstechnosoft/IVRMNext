@@ -290,6 +290,9 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                 console.log('term details payload', JSON.stringify(payload));
                 console.log('term details payload', JSON.stringify(payload));
                 const termArray = await getStudentDetails(payload);
+
+                console.log('response', JSON.stringify(termArray));
+
                 const termList = JSON.parse(JSON.stringify(termArray.masterGroupDetails || []));
                 const disableTerms = JSON.parse(JSON.stringify(termArray.termDetails || []));
                 const studentDetails = JSON.parse(JSON.stringify(termArray.fillstudents || []));

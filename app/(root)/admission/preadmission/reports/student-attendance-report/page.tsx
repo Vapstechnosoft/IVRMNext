@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Save } from 'lucide-react';
+import { CalendarIcon, FileSpreadsheet, Printer, Save } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -22,8 +22,11 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useAcademicYearDropdown, useMasterClassDropdown, useMasterSectionDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useStudentAttendanceReport, useadmissionStudentsDropdown } from '@/hooks/admission/preadmission/useReports';
 import { getExcelStudentAttendanceReport } from '@/server/admission/preadmission/reports/month_end_report';
+import { getStudentAttendanceReport } from '@/server/admission/preadmission/reports/report';
 import type { IStudentAttendanceReportList } from '@/types/admission/preadmission/reports';
+import { useReactToPrint } from 'react-to-print';
 import { attendanceColumns } from './_components/columns';
+import { StudentAttendancePrint } from './_components/student-attendance-print';
 
 /* ---------------- Schema ---------------- */
 
@@ -102,9 +105,67 @@ export default function StudyCertificateReportPage() {
         selectionMode,
         studentStatus
     );
+
+    const [allReportData, setAllReportData] = useState<any>(null);
+    const [isPrinting, setIsPrinting] = useState(false);
+
     const tableProps = useDataTableProps({
-        data: (studentsAttendance as any)?.data?.studentAttendanceList ?? []
+        ...studentsAttendance,
+        data: (studentsAttendance as any)?.data?.studentAttendanceList ?? [],
+        totalItems: (studentsAttendance as any)?.total ?? 0
     });
+
+    const printRef = useRef<HTMLDivElement>(null);
+
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: 'StudentAttendanceReport'
+    });
+
+    const handlePrintAll = async () => {
+        try {
+            if (!academicYearId || !classId || !sectionId) {
+                toast.error('Please fill all required fields!');
+                return;
+            }
+
+            setIsPrinting(true);
+            toast.loading('Preparing all records for print...', { id: 'print-all' });
+
+            const totalRecords = (studentsAttendance as any)?.total || 0;
+            const allData = await getStudentAttendanceReport(
+                academicYearId,
+                classId,
+                sectionId,
+                selectionMode === 2 ? studentId : 0,
+                month,
+                monthDateWise,
+                fromDate,
+                toDate,
+                dailyDate,
+                selectionMode,
+                studentStatus,
+                { page: 1, page_size: totalRecords || 1000 }
+            );
+
+            if (allData) {
+                setAllReportData(allData);
+                toast.success('Ready to print', { id: 'print-all' });
+                // Small delay to ensure state update and re-render
+                setTimeout(() => {
+                    handlePrint();
+                    setIsPrinting(false);
+                }, 500);
+            } else {
+                toast.error('No data found to print', { id: 'print-all' });
+                setIsPrinting(false);
+            }
+        } catch (error) {
+            console.error('Print Error:', error);
+            toast.error('Failed to prepare print view', { id: 'print-all' });
+            setIsPrinting(false);
+        }
+    };
 
     /* ---------------- Effects ---------------- */
 
@@ -355,7 +416,16 @@ export default function StudyCertificateReportPage() {
                             Report
                         </Button>
                         <Button onClick={downloadExcel} className='w-fit'>
+                            <FileSpreadsheet className='mr-2 h-4 w-4' />
                             Export to Excel
+                        </Button>
+                        <Button
+                            onClick={handlePrintAll}
+                            variant='outline'
+                            className='w-fit'
+                            disabled={isPrinting || !((studentsAttendance as any)?.data?.studentAttendanceList?.length > 0)}>
+                            <Printer className='mr-2 h-4 w-4' />
+                            {isPrinting ? 'Preparing...' : 'Print'}
                         </Button>
                     </div>
                 </div>
@@ -409,6 +479,9 @@ export default function StudyCertificateReportPage() {
                                         )}
                                         {month && <span>Month: {monthList.find((m) => m.id === month)?.name}</span>}
                                     </div>
+                                    <div className='mt-2 text-sm font-bold text-red-600'>
+                                        Total Records: {(studentsAttendance as any)?.total ?? 0}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -426,6 +499,17 @@ export default function StudyCertificateReportPage() {
                         noDataDescription='No Student Attendance Reports found.'
                         errorTitle='Error Loading Student Attendance Reports'
                     />
+
+                    <div className='hidden'>
+                        <StudentAttendancePrint
+                            ref={printRef}
+                            data={allReportData || studentsAttendance}
+                            academicYear={academicYears?.data?.find((y: any) => y.asmaY_Id === academicYearId)?.asmaY_Year || ''}
+                            className={classes?.data?.find((c: any) => c.asmcL_Id === classId)?.asmcL_ClassName || ''}
+                            sectionName={sections?.data?.find((s: any) => s.asmS_Id === sectionId)?.asmC_SectionName || ''}
+                            monthName={monthList.find((m) => m.id === month)?.name}
+                        />
+                    </div>
                 </CollapsibleSection>
             </div>
         </div>

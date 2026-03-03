@@ -27,7 +27,7 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                     {`
                         @media print {
                             @page {
-                                margin: 0;
+                                margin: 10mm;
                                 size: A4 portrait;
                             }
                             body {
@@ -45,23 +45,27 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                                 background: white;
                                 z-index: 9999;
                                 color: black;
-                                padding: 15mm;
                             }
                             .print-preview-container * {
                                 visibility: visible !important;
                             }
-                            table {
+                            .main-table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                border: none !important;
+                            }
+                            .data-table {
                                 width: 100%;
                                 border-collapse: collapse;
                                 border: 1px solid #000;
                             }
-                            th, td {
+                            .data-table th, .data-table td {
                                 border: 1px solid #000;
                                 padding: 6px;
                                 text-align: center;
                                 font-size: 11px;
                             }
-                            th {
+                            .data-table th {
                                 background-color: #f3f4f6;
                                 font-weight: bold;
                                 -webkit-print-color-adjust: exact;
@@ -70,85 +74,105 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                             .text-right { text-align: right !important; }
                             .header-section {
                                 text-align: center;
-                                margin-bottom: 20px;
+                                padding-bottom: 10px;
                             }
                             .footer-section {
-                                margin-top: 30px;
+                                padding-top: 10px;
                                 display: flex;
                                 justify-content: space-between;
-                                padding: 10px 0;
                                 font-size: 10px;
                                 opacity: 0.7;
+                            }
+                            .no-border {
+                                border: none !important;
                             }
                         }
                     `}
                 </style>
 
-                {/* Header */}
-                <div className='header-section mb-6'>
-                    <div className='flex items-center justify-center gap-4 mb-4'>
-                        {logoUrl && <img src={logoUrl} alt="Logo" className="w-16 h-16 object-contain" />}
-                        <div className="text-center">
-                            <h1 className="text-xl font-bold uppercase">{schoolName || 'Institution Name'}</h1>
-                            <p className="text-xs">{schoolAddress || 'Institution Address'}</p>
-                            <p className="text-xs">Ph: {schoolPhone || 'N/A'}</p>
-                        </div>
-                    </div>
-                    <h2 className='text-md font-bold border-y border-black inline-block px-4 py-1 uppercase'>
-                        Total Strength Report
-                    </h2>
-                    <p className='text-xs mt-2'>Date: {currentDate}</p>
-                </div>
-
-                {/* Table */}
-                <table className='w-full'>
+                <table className='main-table no-border'>
                     <thead>
-                        <tr className='bg-gray-100 uppercase'>
-                            <th className='w-12'>Sl.No</th>
-                            <th className='text-left'>Class</th>
-                            <th className='text-left'>Section</th>
-                            <th>Boys</th>
-                            <th>Girls</th>
-                            <th className='text-right w-24'>Total</th>
+                        <tr>
+                            <td className='no-border'>
+                                {/* Header */}
+                                <div className='header-section'>
+                                    <div className='flex items-center justify-center gap-4 mb-4'>
+                                        {logoUrl && <img src={logoUrl} alt="Logo" className="w-16 h-16 object-contain" />}
+                                        <div className="text-center">
+                                            <h1 className="text-xl font-bold uppercase">{schoolName || 'Institution Name'}</h1>
+                                            <p className="text-xs">{schoolAddress || 'Institution Address'}</p>
+                                            <p className="text-xs">Ph: {schoolPhone || 'N/A'}</p>
+                                        </div>
+                                    </div>
+                                    <h2 className='text-md font-bold border-y border-black inline-block px-4 py-1 uppercase'>
+                                        Total Strength Report
+                                    </h2>
+                                    <p className='text-xs mt-2'>Date: {currentDate}</p>
+                                </div>
+                            </td>
                         </tr>
                     </thead>
                     <tbody>
-                        {Object.entries(groupedData)
-                            .sort(([a], [b]) => Number(a) - Number(b))
-                            .map(([rowNumber, sections], index) => (
-                                <Fragment key={rowNumber}>
-                                    {sections.map((item: any, sectionIndex) => (
-                                        <tr key={`${rowNumber}-${item.sectionname}-${sectionIndex}`}>
-                                            <td>{sectionIndex === 0 ? index + 1 : ''}</td>
-                                            <td className='text-left'>{sectionIndex === 0 ? item.classname : ''}</td>
-                                            <td className='text-left'>{item.sectionname}</td>
-                                            <td>{item.boys}</td>
-                                            <td>{item.girls}</td>
-                                            <td className='text-right'>{item.totalstudents}</td>
+                        <tr>
+                            <td className='no-border'>
+                                {/* Table */}
+                                <table className='data-table w-full'>
+                                    <thead>
+                                        <tr className='bg-gray-100 uppercase'>
+                                            <th className='w-12'>Sl.No</th>
+                                            <th className='text-left'>Class</th>
+                                            <th className='text-left'>Section</th>
+                                            <th>Boys</th>
+                                            <th>Girls</th>
+                                            <th className='text-right w-24'>Total</th>
                                         </tr>
-                                    ))}
-                                    <tr className='bg-gray-50 font-bold'>
-                                        <td colSpan={3} className='text-right'>
-                                            Total for {sections[0]?.classname || ''}
-                                        </td>
-                                        <td colSpan={2}></td>
-                                        <td className='text-right'>{calculateClassTotal(Number(rowNumber))}</td>
-                                    </tr>
-                                </Fragment>
-                            ))}
-                        <tr className='bg-gray-200 font-bold uppercase'>
-                            <td colSpan={3} className='text-right'>Grand Total</td>
-                            <td colSpan={2}></td>
-                            <td className='text-right'>{totalGrand}</td>
+                                    </thead>
+                                    <tbody>
+                                        {Object.entries(groupedData)
+                                            .sort(([a], [b]) => Number(a) - Number(b))
+                                            .map(([rowNumber, sections], index) => (
+                                                <Fragment key={rowNumber}>
+                                                    {sections.map((item: any, sectionIndex) => (
+                                                        <tr key={`${rowNumber}-${item.sectionname}-${sectionIndex}`}>
+                                                            <td>{sectionIndex === 0 ? index + 1 : ''}</td>
+                                                            <td className='text-left'>{sectionIndex === 0 ? item.classname : ''}</td>
+                                                            <td className='text-left'>{item.sectionname}</td>
+                                                            <td>{item.boys}</td>
+                                                            <td>{item.girls}</td>
+                                                            <td className='text-right'>{item.totalstudents}</td>
+                                                        </tr>
+                                                    ))}
+                                                    <tr className='bg-gray-50 font-bold'>
+                                                        <td colSpan={3} className='text-right'>
+                                                            Total for {sections[0]?.classname || ''}
+                                                        </td>
+                                                        <td colSpan={2}></td>
+                                                        <td className='text-right'>{calculateClassTotal(Number(rowNumber))}</td>
+                                                    </tr>
+                                                </Fragment>
+                                            ))}
+                                        <tr className='bg-gray-200 font-bold uppercase'>
+                                            <td colSpan={3} className='text-right'>Grand Total</td>
+                                            <td colSpan={2}></td>
+                                            <td className='text-right'>{totalGrand}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
                         </tr>
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <td className='no-border'>
+                                {/* Footer */}
+                                <div className='footer-section'>
+                                    <div>Printed on: {currentDate}</div>
+                                    <div>Generated by Vaps Technosoft Pvt. Ltd.</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tfoot>
                 </table>
-
-                {/* Footer */}
-                <div className='footer-section'>
-                    <div>Printed on: {currentDate}</div>
-                    <div>Generated by Vaps Technosoft Pvt. Ltd.</div>
-                </div>
             </div>
         );
     }
