@@ -2851,7 +2851,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-                 {
+                {
                     id: 9001,
                     name: 'Visual Insights',
                     icon: 'bar-chart-3',
@@ -2882,7 +2882,7 @@ export async function getUserAccessibleModules() {
                                             title: 'Statistical Analysis',
                                             description: 'Analyze data and generate statistical insights'
                                         }
-                                       
+
                                     ]
                                 }
                             ]
@@ -5683,6 +5683,43 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/transactions/student-password-creation',
                                             title: 'Student Password Creation',
                                             description: 'Student Credentials Management'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 5,
+                    name: 'AI Edge',
+                    icon: 'Sparkles',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'AI Edge',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'AI Tools',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 40101,
+                                            name: 'AI Notemaker',
+                                            icon: 'FileText',
+                                            url: '/StudentPortal/ai-notemaker',
+                                            title: 'AI Notemaker',
+                                            description: 'Summarize and create structured notes from textbooks using AI'
+                                        },
+                                        {
+                                            id: 40102,
+                                            name: 'AI Performance Analysis',
+                                            icon: 'BarChart',
+                                            url: '/StudentPortal/ai-performance-analysis',
+                                            title: 'AI Performance Analysis',
+                                            description: 'Analyze performance metrics and AI-driven insights'
                                         }
                                     ]
                                 }
