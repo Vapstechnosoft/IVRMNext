@@ -2477,163 +2477,6 @@ export async function getUserAccessibleModules() {
                         //         }
                         //     ]
                         // },
-
-                        // , {
-                        //     id: 4,
-                        //     name: 'Leave Management',
-                        //     icon: 'Calendar',
-                        //     sub_menu: [
-                        //         {
-                        //             id: 1,
-                        //             name: 'Masters',
-                        //             icon: 'Database',
-                        //             pages: [
-                        //                 {
-                        //                     id: 1,
-                        //                     name: 'Master Leave',
-                        //                     icon: 'Calendar',
-                        //                     url: '/hrms/leave-management/masters/master-leave',
-                        //                     title: 'Master Leave',
-                        //                     description: 'Manage Leave Types'
-                        //                 },
-                        //                 {
-                        //                     id: 2,
-                        //                     name: 'Leave Authorization',
-                        //                     icon: 'Shield',
-                        //                     url: '/hrms/leave-management/masters/leave-authorization',
-                        //                     title: 'Leave Authorization',
-                        //                     description: 'Configure Leave Approvers'
-                        //                 }
-                        //                 // {
-                        //                 //     id: 3,
-                        //                 //     name: 'Master Leave Year',
-                        //                 //     icon: 'CalendarRange',
-                        //                 //     url: '/hrms/leave-management/masters/master-leaveYear',
-                        //                 //     title: 'Master Leave Year',
-                        //                 //     description: 'Manage Leave Year'
-                        //                 // }
-                        //             ]
-                        //         },
-                        //         {
-                        //             id: 2,
-                        //             name: 'Apply Leave',
-                        //             icon: 'FileText',
-                        //             pages: [
-                        //                 {
-                        //                     id: 1,
-                        //                     name: 'Apply Leave',
-                        //                     icon: 'FilePlus',
-                        //                     url: '/hrms/leave-management/apply-leave',
-                        //                     title: 'Apply Leave',
-                        //                     description: 'Submit Leave Application'
-                        //                 },
-                        //                 {
-                        //                     id: 2,
-                        //                     name: 'Leave Approval',
-                        //                     icon: 'CheckCircle',
-                        //                     url: '/hrms/leave-management/leave-approval',
-                        //                     title: 'Leave Approval',
-                        //                     description: 'Approve or Reject Leave Requests'
-                        //                 }
-                        //             ]
-                        //         },
-                        //         {
-                        //             id: 3,
-                        //             name: 'Transaction',
-                        //             icon: 'FileText',
-                        //             pages: [
-                        //                 {
-                        //                     id: 1,
-                        //                     name: 'Leave Transfer',
-                        //                     icon: 'Plus',
-                        //                     url: '/hrms/leave-management/transaction/leave-transfer',
-                        //                     title: 'Leave Transfer',
-                        //                     description: 'Transfer Leave'
-                        //                 },
-                        //                 // {
-                        //                 //     id: 2,
-                        //                 //     name: 'Comp Off Approval',
-                        //                 //     icon: 'CheckSquare',
-                        //                 //     url: '/hrms/leave-management/transaction/comp-off-approval',
-                        //                 //     title: 'Comp Off Approval',
-                        //                 //     description: 'Approve Compensatory Off'
-                        //                 // },
-                        //                 // {
-                        //                 //     id: 3,
-                        //                 //     name: 'Comp Off Request',
-                        //                 //     icon: 'FileText',
-                        //                 //     url: '/hrms/leave-management/transaction/comp-off-request',
-                        //                 //     title: 'Comp Off Request',
-                        //                 //     description: 'Request Compensatory Off'
-                        //                 // },
-                        //                 {
-                        //                     id: 4,
-                        //                     name: 'Leave Credit Details',
-                        //                     icon: 'Info',
-                        //                     url: '/hrms/leave-management/transaction/leave-credit-details',
-                        //                     title: 'Leave  Details',
-                        //                     description: 'View Leave Credit Details'
-                        //                 },
-                        //                 {
-                        //                     id: 5,
-                        //                     name: 'Leave Transaction',
-                        //                     icon: 'List',
-                        //                     url: '/hrms/leave-management/transaction/leave-credit-transaction',
-                        //                     title: 'Leave Transaction',
-                        //                     description: 'Leave Transaction'
-                        //                 },
-                        //                 {
-                        //                     id: 6,
-                        //                     name: 'Leave Opening Balance',
-                        //                     icon: 'Database',
-                        //                     url: '/hrms/leave-management/transaction/leave-opening-balance',
-                        //                     title: 'Leave Opening Balance',
-                        //                     description: 'Manage Leave Opening Balance'
-                        //                 },
-                        //                 {
-                        //                     id: 7,
-                        //                     name: 'Admin On Duty Apply',
-                        //                     icon: 'Briefcase',
-                        //                     url: '/hrms/leave-management/transaction/admin-on-duty-apply',
-                        //                     title: 'Admin On Duty Apply',
-                        //                     description: 'Apply for On Duty Leave'
-                        //                 }
-                        //             ]
-                        //         },
-                        //         {
-                        //             id: 4,
-                        //             name: 'Report',
-                        //             icon: 'FileText',
-                        //             pages: [
-                        //                 {
-                        //                     id: 1,
-                        //                     name: 'Leave Report',
-                        //                     icon: 'FileSearch',
-                        //                     url: '/hrms/leave-management/reports/leave-report',
-                        //                     title: 'Leave Report',
-                        //                     description: 'Leave Summary Report'
-                        //                 }
-                        //                 // {
-                        //                 //     id: 2,
-                        //                 //     name: 'Overall Report',
-                        //                 //     icon: 'BarChart3',
-                        //                 //     url: '/hrms/leave-management/reports/overAll-report',
-                        //                 //     title: 'Overall Report',
-                        //                 //     description: 'Overall Leave Analysis'
-                        //                 // },
-                        //                 // {
-                        //                 //     id: 3,
-                        //                 //     name: 'Unauthorized Leave Report',
-                        //                 //     icon: 'AlertTriangle',
-                        //                 //     url: '/hrms/leave-management/reports/unauthorizedLeaveCount-report',
-                        //                 //     title: 'Unauthorized Leave Report',
-                        //                 //     description: 'Unauthorized Leave Count'
-                        //                 // }
-                        //             ]
-                        //         }
-                        //     ]
-                        // }
-
                         {
                             id: 4,
                             name: 'Leave Management',
@@ -4605,300 +4448,6 @@ export async function getUserAccessibleModules() {
                 //     ]
                 // },
                 {
-                    id: 111,
-                    name: 'Transport',
-                    icon: 'BookOpen',
-                    menu: [
-                        {
-                            id: 1,
-                            name: 'Transport',
-                            icon: 'BookOpen',
-                            sub_menu: [
-                                {
-                                    id: 3000,
-                                    name: 'Masters',
-                                    icon: 'Database',
-                                    pages: [
-                                        {
-                                            id: 30001,
-                                            name: 'Master Area',
-                                            icon: 'BookOpen',
-                                            url: '/Transport/transport-module/masters/master-area',
-                                            title: 'Master Area / Zone',
-                                            description: 'Master Area / Zone Details'
-                                        },
-                                        {
-                                            id: 30002,
-                                            name: 'Master Driver',
-                                            icon: 'BookOpen',
-                                            url: '/Transport/transport-module/masters/master-driver',
-                                            title: 'Master Driver',
-                                            description: 'Master Driver Details'
-                                        },
-                                        {
-                                            id: 30003,
-                                            name: 'Master Fuel Type',
-                                            icon: 'BookOpen',
-                                            url: '/Transport/transport-module/masters/master-fuel-type',
-                                            title: 'Master Fuel Type',
-                                            description: 'Master Fuel Type Details'
-                                        },
-                                        {
-                                            id: 30004,
-                                            name: 'Master Location',
-                                            icon: 'BookOpen',
-                                            url: '/Transport/transport-module/masters/master-location',
-                                            title: 'Master Location',
-                                            description: 'Master Location Details'
-                                        },
-                                        {
-                                            id: 30005,
-                                            name: 'Master Route',
-                                            icon: 'BookOpen',
-                                            url: '/Transport/transport-module/masters/master-route',
-                                            title: 'Master Route',
-                                            description: 'Master Route Details'
-                                        },
-                                        {
-                                            id: 30006,
-                                            name: 'Route Area Mapping',
-                                            icon: 'BookOpen',
-                                            url: '/Transport/transport-module/masters/route-area-mapping',
-                                            title: 'Route Area Mapping',
-                                            description: 'Route Area Mapping Details'
-                                        },
-                                        {
-                                            id: 30007,
-                                            name: 'Master Service Station',
-                                            icon: 'BookOpen',
-                                            url: '/Transport/transport-module/masters/master-service-station',
-                                            title: 'Master Service Station',
-                                            description: 'Master Service Station Details'
-                                        },
-                                        {
-                                            id: 30008,
-                                            name: 'Master Session',
-                                            icon: 'BookOpen',
-                                            url: '/Transport/transport-module/masters/master-session',
-                                            title: 'Master Session',
-                                            description: 'Master Session Details'
-                                        },
-                                        {
-                                            id: 30009,
-                                            name: 'Master Vehicle Type',
-                                            icon: 'BookOpen',
-                                            url: '/Transport/transport-module/masters/master-vehicle-type',
-                                            title: 'Master Vehicle Type',
-                                            description: 'Master Vehicle Type Details'
-                                        },
-                                        {
-                                            id: 30010,
-                                            name: 'Master Route Schedule',
-                                            icon: 'BookOpen',
-                                            url: '/Transport/transport-module/masters/master-route-schedule',
-                                            title: 'Master Route Schedule',
-                                            description: 'Master Route Schedule Details'
-                                        },
-                                        {
-                                            id: 30011,
-                                            name: 'Master Vehicle',
-                                            icon: 'BookOpen',
-                                            url: '/Transport/transport-module/masters/master-vehicle',
-                                            title: 'Master Vehicle',
-                                            description: 'Master Vehicle Details'
-                                        },
-                                        {
-                                            id: 30012,
-                                            name: 'Expiry Settings',
-                                            icon: 'BookOpen',
-                                            url: '/Transport/transport-module/masters/expiry-settings',
-                                            title: 'Expiry Settings',
-                                            description: 'Transport Expiry Settings'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 3001,
-                                    name: 'Transactions',
-                                    icon: 'BookOpen',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Route Location Mapping',
-                                            icon: 'Settings',
-                                            url: '/Transport/transport-module/transaction/route-location-mapping',
-                                            title: 'Route Location Mapping',
-                                            description: 'Manage Route Location Mapping'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Vehicle Driver Mapping',
-                                            icon: 'Settings',
-                                            url: '/Transport/transport-module/transaction/vehicle-driver-mapping',
-                                            title: 'Vehicle Driver Mapping',
-                                            description: 'Manage Vehicle Driver Mapping'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Vehicle Route Mapping',
-                                            icon: 'Settings',
-                                            url: '/Transport/transport-module/transaction/vehicle-route-mapping',
-                                            title: 'Vehicle Route Mapping',
-                                            description: 'Manage Vehicle Route Mapping'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Transport Approve',
-                                            icon: 'Settings',
-                                            url: '/Transport/transport-module/transaction/transport-approve',
-                                            title: 'Transport Approve',
-                                            description: 'Manage Transport Approve'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 3002,
-                                    name: 'Reports',
-                                    icon: 'BookOpen',
-                                    pages: [
-                                        {
-                                            id: 30201,
-                                            name: 'Month End Report',
-                                            icon: 'FileText',
-                                            url: '/Transport/transport-module/reports/month-end-report',
-                                            title: 'Month End Report',
-                                            description: 'Transport Month End Report'
-                                        },
-                                        {
-                                            id: 30202,
-                                            name: 'Transport Report',
-                                            icon: 'FileText',
-                                            url: '/Transport/transport-module/reports/transport-report',
-                                            title: 'Transport Report',
-                                            description: 'Transport Report'
-                                        },
-                                        {
-                                            id: 30203,
-                                            name: 'Fee Student Route Mapping Report',
-                                            icon: 'FileText',
-                                            url: '/Transport/transport-module/reports/fee-student-route-mapping-report',
-                                            title: 'Fee Student Route Mapping Report',
-                                            description: 'Fee Student Route Mapping Report'
-                                        },
-                                        {
-                                            id: 30204,
-                                            name: 'Student Route Mapping Report',
-                                            icon: 'FileText',
-                                            url: '/Transport/transport-module/reports/student-route-mapping-report',
-                                            title: 'Student Route Mapping Report',
-                                            description: 'Student Route Mapping Report'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    id: 14,
-                    name: 'Lesson Planner',
-                    icon: 'GraduationCap',
-                    menu: [
-                        {
-                            id: 1,
-                            name: 'Lesson Planner Module',
-                            icon: 'FileStack',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Master',
-                                    icon: 'Database',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Master School Topic',
-                                            icon: 'BookOpenText',
-                                            url: '/lesson-planner/lesson-planner-module/master/master-school-topic',
-                                            title: 'Master School Topic',
-                                            description: 'Manage Master School Topic'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Master School Unit',
-                                            icon: 'BookOpenText',
-                                            url: '/lesson-planner/lesson-planner-module/master/master-school-unit',
-                                            title: 'Master School Unit',
-                                            description: 'Manage Master School Unit'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Transactions',
-                                    icon: 'Database',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'School Staff Period Mapping',
-                                            icon: 'BookOpenText',
-                                            url: '/lesson-planner/lesson-planner-module/transactions/school-staff-period-mapping',
-                                            title: 'School Staff Period Mapping',
-                                            description: 'School Staff Period Mapping'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'School Master Unit Topic Mapping',
-                                            icon: 'BookOpenText',
-                                            url: '/lesson-planner/lesson-planner-module/transactions/school-master-unit-topic-mapping',
-                                            title: 'School Master Unit Topic Mapping',
-                                            description: 'School Master Unit Topic Mapping'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'School Subject Master Topic Mapping',
-                                            icon: 'BookOpenText',
-                                            url: '/lesson-planner/lesson-planner-module/transactions/school-subject-master-topic-mapping',
-                                            title: 'School Subject Master Topic Mapping',
-                                            description: 'School Subject Master Topic Mapping'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'School Staff Period Transaction',
-                                            icon: 'BookOpenText',
-                                            url: '/lesson-planner/lesson-planner-module/transactions/school-staff-period-transaction',
-                                            title: 'School Staff Period Transaction',
-                                            description: 'School Staff Period Transaction'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 3,
-                                    name: 'Reports',
-                                    icon: 'Database',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'School Staff Period Transaction Deviation Report',
-                                            icon: 'BookOpenText',
-                                            url: '/lesson-planner/lesson-planner-module/reports/school-staff-period-transaction-deviation-report',
-                                            title: 'School Staff Period Transaction Deviation Report',
-                                            description: 'School Staff Period Transaction Deviation Report'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'School Staff Period Transaction Report',
-                                            icon: 'BookOpenText',
-                                            url: '/lesson-planner/lesson-planner-module/reports/school-staff-period-transaction-report',
-                                            title: 'School Staff Period Transaction Report',
-                                            description: 'School Staff Period Transaction Report'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
                     id: 11,
                     name: 'Sports Management',
                     icon: 'Trophy',
@@ -5214,10 +4763,108 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
+                // {
+                //     id: 14,
+                //     name: 'Lesson Planner',
+                //     icon: 'GraduationCap',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'Lesson Planner Module',
+                //             icon: 'FileStack',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Master',
+                //                     icon: 'Database',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'Master School Topic',
+                //                             icon: 'BookOpenText',
+                //                             url: '/lesson-planner/lesson-planner-module/master/master-school-topic',
+                //                             title: 'Master School Topic',
+                //                             description: 'Manage Master School Topic'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'Master School Unit',
+                //                             icon: 'BookOpenText',
+                //                             url: '/lesson-planner/lesson-planner-module/master/master-school-unit',
+                //                             title: 'Master School Unit',
+                //                             description: 'Manage Master School Unit'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Transactions',
+                //                     icon: 'Database',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'School Staff Period Mapping',
+                //                             icon: 'BookOpenText',
+                //                             url: '/lesson-planner/lesson-planner-module/transactions/school-staff-period-mapping',
+                //                             title: 'School Staff Period Mapping',
+                //                             description: 'School Staff Period Mapping'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'School Master Unit Topic Mapping',
+                //                             icon: 'BookOpenText',
+                //                             url: '/lesson-planner/lesson-planner-module/transactions/school-master-unit-topic-mapping',
+                //                             title: 'School Master Unit Topic Mapping',
+                //                             description: 'School Master Unit Topic Mapping'
+                //                         },
+                //                         {
+                //                             id: 3,
+                //                             name: 'School Subject Master Topic Mapping',
+                //                             icon: 'BookOpenText',
+                //                             url: '/lesson-planner/lesson-planner-module/transactions/school-subject-master-topic-mapping',
+                //                             title: 'School Subject Master Topic Mapping',
+                //                             description: 'School Subject Master Topic Mapping'
+                //                         },
+                //                         {
+                //                             id: 4,
+                //                             name: 'School Staff Period Transaction',
+                //                             icon: 'BookOpenText',
+                //                             url: '/lesson-planner/lesson-planner-module/transactions/school-staff-period-transaction',
+                //                             title: 'School Staff Period Transaction',
+                //                             description: 'School Staff Period Transaction'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 3,
+                //                     name: 'Reports',
+                //                     icon: 'Database',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'School Staff Period Transaction Deviation Report',
+                //                             icon: 'BookOpenText',
+                //                             url: '/lesson-planner/lesson-planner-module/reports/school-staff-period-transaction-deviation-report',
+                //                             title: 'School Staff Period Transaction Deviation Report',
+                //                             description: 'School Staff Period Transaction Deviation Report'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'School Staff Period Transaction Report',
+                //                             icon: 'BookOpenText',
+                //                             url: '/lesson-planner/lesson-planner-module/reports/school-staff-period-transaction-report',
+                //                             title: 'School Staff Period Transaction Report',
+                //                             description: 'School Staff Period Transaction Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //
                 {
-                    id: 8,
-                    name: 'Hostel Management',
-                    icon: 'Home',
+                    id: 111,
+                    name: 'Transport',
+                    icon: 'BookOpen',
                     menu: [
                         {
                             id: 1,
@@ -5514,7 +5161,6 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 }
-
                 //         //    ,
                 //         //        {
                 //         //         id: 8,
