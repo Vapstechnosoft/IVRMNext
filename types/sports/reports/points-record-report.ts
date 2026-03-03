@@ -69,37 +69,47 @@ export interface IPointsRecordReportData {
 
 export interface IPointsRecordReportLoadData {
     academicYear: IYear[];
-    yearlist: IYear[]; // keep for compatibility if needed
+    yearlist: IYear[];
     venueList: any[];
     eventList: IEvent[];
     sportslist: ISports[];
     categoryList: ICategory[];
     houseList: IHouse[];
-    events: any[]; // Program Master (SPCCP_Id/Name etc)
+    events: any[];
     divisionList: any[];
+    classList?: IClass[]; // Added
+    sectionList?: ISection[]; // Added
 }
 
 export interface IPointsRecordReportRequest {
-    type: 'House' | 'CS' | 'CC';
+    type: string;
     asmaY_Id: number;
     asmcL_Id?: number;
+    asmS_Id?: number;
+    spccmH_Id?: number;
+    spccmD_Id?: number;
+    spccmE_Id?: number;
+    spccE_Id?: number;
+    // Multi-select lists for PointsRecordReport
+    selectedhouselist?: { spccmH_Id: number }[];
+    selectedeventlist?: { spccmE_Id: number }[];
+    selectedsportslist?: { spccmscC_Id: number }[];
+    selectedSectionlist?: { asmS_Id: number }[];
+    placListData?: { spccestR_Rank: string }[];
     spccmcC_Id?: number;
-    selectedhouselist: { spccmH_Id: number }[];
-    selectedSectionlist: { asmS_Id: number }[];
-    selectedeventlist: { spccmE_Id: number }[];
-    selectedsportslist: { spccmscC_Id: number }[];
-    placListData: { spccestR_Rank: string }[];
 }
 
 import { z } from 'zod';
 
 export const SportPointsAndRecordReportSchema = z.object({
     qualification_type: z.enum(['eca', 'cca', 'ih', 'others']),
-    ASMAY_Id: z.number().min(1, 'Academic Year is required'),
-    SPCCMH_Id: z.number().min(1, 'House Name is required'),
-    SPCCE_Id: z.number().min(1, 'Program Master is required'),
-    SPCCME_Id: z.number().min(1, 'Event Name is required'),
-    SPCCMD_Id: z.number().min(1, 'Division Name is required'),
+    asmaY_Id: z.number().min(1, 'Academic Year is required'),
+    asmcL_Id: z.number().optional(),
+    asmS_Id: z.number().optional(),
+    spccmH_Id: z.number().min(1, 'House Name is required'),
+    spccE_Id: z.number().min(1, 'Program Master is required'),
+    spccmE_Id: z.number().min(1, 'Event Name is required'),
+    spccmD_Id: z.number().min(1, 'Division Name is required'),
 });
 
 export type SportPointsAndRecordReportFormSchema = z.infer<typeof SportPointsAndRecordReportSchema>;

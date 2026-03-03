@@ -51,13 +51,11 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
     // Initial Data Logic
     useEffect(() => {
         if (loadData.data) {
-            // Initial lists might be available here if the API provides them initially
-            // But logic suggests cascading is primary for Class/House/Event
-            // However, sports/category/rank are likely static or year-independent? 
-            // Actually, category list usually depends on year or just master.
-            // Let's assume Category/Sports come from LoadData
             if (loadData.data.categoryList) setCategoryList(loadData.data.categoryList);
-            // Sports list is available in loadData.data.sportslist
+            if (loadData.data.houseList) setHouseList(loadData.data.houseList);
+            if (loadData.data.eventList) setEventList(loadData.data.eventList);
+            // Sports list if available
+            // Note: classList/sectionList usually fetched cascadingly
         }
     }, [loadData.data]);
 
@@ -109,30 +107,29 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
     function onSubmit(data: PointsRecordReportFormSchema) {
         setFormData(data); // Store form data for grid headers/logic
 
+        // Building payload according to user examples and SP requirements
         const payload: any = {
             type: data.Type,
-            asmaY_Id: data.ASMAY_Id,
+            asmaY_Id: Number(data.ASMAY_Id),
             selectedhouselist: data.selectedhouselist || [],
             selectedeventlist: data.selectedEventlist || [],
             selectedsportslist: data.selectedSportslist || [],
         };
 
         if (data.Type === 'CS') {
-            payload.asmcL_Id = data.ASMCL_Id;
+            payload.asmcL_Id = data.ASMCL_Id || 0;
             payload.selectedSectionlist = data.selectedSectionlist || [];
         } else if (data.Type === 'CC') {
-            payload.spccmcC_Id = data.SPCCMCC_Id;
+            payload.spccmcC_Id = data.SPCCMCC_Id || 0;
             payload.placListData = data.placListData || [];
+        } else {
+            // House type example shows ASMCL_Id: 0
+            payload.asmcL_Id = 0;
         }
-
-        // House type needs no extra IDs, just the common lists.
 
         generateReport.mutate(payload, {
             onSuccess: (responseData) => {
                 setReportData(responseData);
-                if (!responseData || responseData.length === 0) {
-                    // Toast handled in hook, but we can also set data to empty array
-                }
             }
         });
     }
