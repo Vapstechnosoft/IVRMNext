@@ -1730,12 +1730,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/masters/religion-category-mapping',
                                             title: 'Religion-Category Mapping',
                                             description: 'Map Religion & Category'
-<<<<<<< HEAD
-                                        },
-                                        
-=======
                                         }
->>>>>>> 40627841 (merge issue resolved)
                                     ]
                                 },
                                 {
@@ -2026,7 +2021,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
-                        }
+                        },
                         // ,
                         // {
                         //     id: 2,
@@ -2339,7 +2334,7 @@ export async function getUserAccessibleModules() {
                         //         }
                         //     ]
                         // },
-                        , {
+                        {
                             id: 4,
                             name: 'Leave Management',
                             icon: 'Calendar',
@@ -4068,8 +4063,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                }
-
+                },
                 //         {
                 //             id: 3,
                 //             name: 'Interaction',
@@ -4229,7 +4223,6 @@ export async function getUserAccessibleModules() {
                 //         }
                 //     ]
                 // },
-,
                 {
                     id: 11,
                     name: 'Sports Management',
@@ -4547,8 +4540,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                }
-
+                },
                 // {
                 //     id: 14,
                 //     name: 'Lesson Planner',
@@ -4646,9 +4638,8 @@ export async function getUserAccessibleModules() {
                 //                 }
                 //             ]
                 //         }
-                // 
-                ,
-               {
+                //
+                {
                     id: 111,
                     name: 'Transport',
                     icon: 'BookOpen',
@@ -4798,7 +4789,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Transport Approve',
                                             description: 'Manage Transport Approve'
                                         }
- 
                                     ]
                                 },
                                 {
@@ -4843,7 +4833,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
+                }
                 //         //    ,
                 //         //        {
                 //         //         id: 8,
@@ -5201,8 +5191,7 @@ export async function getUserAccessibleModules() {
                 }
             ]
         };
-    }
-    else if (session?.role.toUpperCase() === 'STUDENT') {
+    } else if (session?.role.toUpperCase() === 'STUDENT') {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
@@ -5445,8 +5434,7 @@ export async function getUserAccessibleModules() {
                 }
             ]
         };
-    }
-    else if (session?.role.toUpperCase() === 'SUPER ADMIN') {
+    } else if (session?.role.toUpperCase() === 'SUPER ADMIN') {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
@@ -5669,12 +5657,10 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
-
+                }
             ]
         };
-    }
-    else {
+    } else {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
