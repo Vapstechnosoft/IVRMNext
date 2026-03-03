@@ -83,11 +83,9 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subStaffList, setSubStaffList] = useState<any[]>([]);
-    const [categoryList, setCategoryList] = useState<any[]>([]);
     const [isClassLoading, setIsClassLoading] = useState(false);
 
     // Master lists for the selected subject
-    const [masterCategories, setMasterCategories] = useState<any[]>([]);
     const [masterClasses, setMasterClasses] = useState<any[]>([]);
     const [masterSections, setMasterSections] = useState<any[]>([]);
     const [masterStaff, setMasterStaff] = useState<any[]>([]);
@@ -176,7 +174,6 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
     const asmaY_Id = watch('asmaY_Id');
     const ttfdsU_SUbSelcFlag = watch('ttfdsU_SUbSelcFlag');
 
-    const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
     const [selectedClass, setSelectedClass] = useState<number | undefined>();
     const [selectedSection, setSelectedSection] = useState<number | undefined>();
     const [selectedStaff, setSelectedStaff] = useState<number | undefined>();
@@ -203,19 +200,10 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
     useEffect(() => {
         const loadDropdowns = async () => {
             try {
-                setCategoryList(
-                    uniqueById(
-                        filterData(initialData?.categorylist || initialData?.data?.categorylist || [], 'ttmC_CategoryName'),
-                        'ttmC_Id'
-                    )
-                );
                 const fixingData = await getdetailsAllFixing();
                 if (fixingData?.data) {
                     setDayList(uniqueById(filterData(fixingData.data.daylist || [], 'ttmD_DayName'), 'ttmD_Id'));
                     setSubjectList(uniqueById(filterData(fixingData.data.subjectlist || [], 'ismS_SubjectName'), 'ismS_Id'));
-                }
-                if (asmaY_Id && selectedCategory) {
-                    await fetchClasses(asmaY_Id, selectedCategory);
                 }
                 await refetchAll();
             } catch (error) {
@@ -238,27 +226,10 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
         }
     }, [isDetailsViewOpen, viewRow]);
 
-    const fetchClasses = async (yearId: number, categoryId: number) => {
-        if (!yearId || !categoryId) {
-            setClassList([]);
-            return;
-        }
-        setIsClassLoading(true);
-        try {
-            const data = await getFixingClassDropdown(yearId, categoryId);
-            const list = extractList(data, 'classbycategory');
-            setClassList(filterData(list || [], 'asmcL_ClassName'));
-        } catch (error) {
-            console.error('Error fetching classes:', error);
-            toast.error('Failed to load classes');
-        } finally {
-            setIsClassLoading(false);
-        }
-    };
+
 
     const handleAcademicYearChange = (yearId: number) => {
         setValue('asmaY_Id', yearId);
-        setSelectedCategory(undefined);
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedStaff(undefined);
@@ -267,45 +238,7 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
         setSubStaffList([]);
     };
 
-    const handleCategoryChange = async (categoryId: number) => {
-        setSelectedCategory(categoryId);
-        setSelectedClass(undefined);
-        setSelectedSection(undefined);
-        //  setSelectedStaff(undefined);
 
-        // Filter classes from master list by category
-        const filtered = masterClasses.filter(
-            (c) =>
-                (c.ttmC_Id !== undefined && Number(c.ttmC_Id) === categoryId) ||
-                (c.ttmc_id !== undefined && Number(c.ttmc_id) === categoryId) ||
-                (c.TTMC_Id !== undefined && Number(c.TTMC_Id) === categoryId)
-        );
-
-        if (filtered.length > 0) {
-            setClassList(uniqueById(filterData(filtered, 'asmcL_ClassName'), 'asmcL_Id'));
-        } else {
-            // If filtering fails (no link), show all classes for this subject to keep data visible
-            setClassList(uniqueById(filterData(masterClasses, 'asmcL_ClassName'), 'asmcL_Id'));
-
-            // Or fetch from server as fallback
-            if (asmaY_Id) {
-                try {
-                    const data = await getFixingClassDropdown(asmaY_Id, categoryId);
-                    const list = extractList(data, 'classlist');
-                    if (list && list.length > 0) {
-                        setClassList(uniqueById(filterData(list, 'asmcL_ClassName'), 'asmcL_Id'));
-                    }
-                } catch (e) {
-                    console.error(e);
-                }
-            }
-        }
-
-        // setSectionList([]);
-        //  setSubStaffList([]);
-
-        console.log(masterStaff, 'masterStaffdata after category change');
-    };
 
     // console.log(masterClasses, 'masterClasses');
     // const handleClassChange = async (classId: number) => {
@@ -712,26 +645,7 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
                                     <div className='space-y-4 rounded-md border bg-gray-50 p-4'>
                                         <h4 className='font-semibold'>Add Class Details</h4>
                                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-5'>
-                                            <div className='space-y-2'>
-                                                <FormLabel>Category</FormLabel>
-                                                <Select
-                                                    onValueChange={(v) => handleCategoryChange(Number(v))}
-                                                    value={selectedCategory?.toString()}>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder='Select' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {categoryList.map((item: any) => {
-                                                            const id = item.ttmC_Id ?? item.ttmc_id ?? item.TTMC_Id;
-                                                            return (
-                                                                <SelectItem key={id} value={id?.toString()}>
-                                                                    {item.ttmC_CategoryName || item.ttmc_categoryname || item.categoryName}
-                                                                </SelectItem>
-                                                            );
-                                                        })}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
+
                                             <div className='space-y-2'>
                                                 <FormLabel>Class</FormLabel>
                                                 <Select

@@ -45,7 +45,7 @@ export default function ClassWiseReportGrid({ reportData, onPrint, initialSize =
             // Header Row
             const headerRow = ['Day / Period'];
             tableData.periodList.forEach((p: any) => {
-                headerRow.push(p.is_break ? 'Break' : `Period ${p.ped_name}`);
+                headerRow.push(`Period ${p.ped_name}`);
             });
             worksheetData.push(headerRow);
 
@@ -114,7 +114,7 @@ export default function ClassWiseReportGrid({ reportData, onPrint, initialSize =
                                     <th className='border border-purple-700 px-2 py-3'>Day / Period</th>
                                     {table.periodList.map((p: any, pIdx: number) => (
                                         <th key={pIdx} className='border border-purple-700 px-2 py-3'>
-                                            {p.is_break ? 'Break' : `Period ${p.ped_name}`}
+                                            Period {p.ped_name}
                                         </th>
                                     ))}
                                 </tr>

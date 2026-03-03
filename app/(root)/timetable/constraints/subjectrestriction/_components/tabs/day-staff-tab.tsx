@@ -73,9 +73,6 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
     useEffect(() => {
         const loadDropdowns = async () => {
             try {
-                const categoryData = await getCategoryDropDown();
-                setCategoryList(filterData(extractList(categoryData, 'categorylist'), 'ttmC_CategoryName'));
-
                 const [fixingData, gridRes] = await Promise.all([
                     getSubjectRestrictionDetailsRestrictions(),
                     getSubjectRestrictionDayStaffGridData(searchParams)
@@ -127,11 +124,9 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subSubjectList, setSubSubjectList] = useState<any[]>([]);
-    const [categoryList, setCategoryList] = useState<any[]>([]);
     const [isClassLoading, setIsClassLoading] = useState(false);
 
     // Master lists for the selected staff member
-    const [masterCategories, setMasterCategories] = useState<any[]>([]);
     const [masterClasses, setMasterClasses] = useState<any[]>([]);
     const [masterSections, setMasterSections] = useState<any[]>([]);
     const [masterSubjects, setMasterSubjects] = useState<any[]>([]);
@@ -177,7 +172,7 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
         return [];
     };
 
-    const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
+
     const [selectedClass, setSelectedClass] = useState<number | undefined>();
     const [selectedSection, setSelectedSection] = useState<number | undefined>();
     const [selectedSubject, setSelectedSubject] = useState<number | undefined>();
@@ -201,8 +196,7 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
     useEffect(() => {
         const loadInitialData = async () => {
             try {
-                const [cats, settings] = await Promise.all([getCategoryDropDown(), getSubjectRestrictionDetailsRestrictions()]);
-                setCategoryList(filterData(extractList(cats, 'categorylist'), 'ttmC_CategoryName'));
+                const settings = await getSubjectRestrictionDetailsRestrictions();
                 const sData = settings?.data || settings;
                 setDayList(extractList(sData, 'daylist'));
                 setStaffList(extractList(sData, 'stafflist'));
@@ -220,7 +214,6 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
     }, [isEditFormOpen, selectedRow]);
     const handleAcademicYearChange = (yearId: number) => {
         setValue('asmaY_Id', yearId);
-        setSelectedCategory(undefined);
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
@@ -239,7 +232,6 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
 
     const handleStaffChange = async (staffId: number, yearId?: number) => {
         setValue('hrmE_Id', staffId);
-        setSelectedCategory(undefined);
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
@@ -260,27 +252,23 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
                         extractList(res, 'classlist').length > 0
                             ? extractList(res, 'classlist')
                             : extractList(res, 'clssbystaff').length > 0
-                              ? extractList(res, 'clssbystaff')
-                              : extractList(res, 'clsbystaff');
+                                ? extractList(res, 'clssbystaff')
+                                : extractList(res, 'clsbystaff');
 
                     const sections =
                         extractList(res, 'sectionlist').length > 0
                             ? extractList(res, 'sectionlist')
                             : extractList(res, 'secsbystaff').length > 0
-                              ? extractList(res, 'secsbystaff')
-                              : extractList(res, 'sectionlistbystaff');
+                                ? extractList(res, 'secsbystaff')
+                                : extractList(res, 'sectionlistbystaff');
 
                     const subjects =
                         extractList(res, 'subjectlist').length > 0
                             ? extractList(res, 'subjectlist')
                             : extractList(res, 'subsbystaff').length > 0
-                              ? extractList(res, 'subsbystaff')
-                              : extractList(res, 'subjectlistbystaff');
+                                ? extractList(res, 'subsbystaff')
+                                : extractList(res, 'subjectlistbystaff');
 
-                    const cats =
-                        extractList(res, 'categorylist').length > 0 ? extractList(res, 'categorylist') : extractList(res, 'catelist');
-
-                    setMasterCategories(cats);
                     setMasterClasses(classes);
                     setMasterSections(sections);
                     setMasterSubjects(subjects);
@@ -309,22 +297,7 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
         }
     };
 
-    // const handleCategoryChange = (categoryId: number) => {
-    //     setSelectedCategory(categoryId);
-    //     setSelectedClass(undefined);
-    //     const filtered = masterClasses.filter(c =>
-    //         (c.ttmC_Id !== undefined && Number(c.ttmC_Id) === categoryId)
-    //     );
-    //     setClassList(filterData(filtered, 'asmcL_ClassName'));
-    // };
 
-    const handleCategoryChange = (categoryId: number) => {
-        setSelectedCategory(categoryId);
-        setSelectedClass(undefined);
-
-        // Just show all staff classes
-        setClassList(filterData(masterClasses, 'asmcL_ClassName'));
-    };
 
     const handleClassChange = (classId: number) => {
         setSelectedClass(classId);
@@ -591,23 +564,6 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
                                 {ttrdS_SUbSelcFlag && (
                                     <div className='space-y-4 rounded-md border bg-gray-50 p-4'>
                                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-5'>
-                                            <div className='space-y-2'>
-                                                <FormLabel>Category</FormLabel>
-                                                <Select
-                                                    onValueChange={(v) => handleCategoryChange(Number(v))}
-                                                    value={selectedCategory?.toString()}>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder='Select' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {categoryList.map((item: any) => (
-                                                            <SelectItem key={item.ttmC_Id} value={item.ttmC_Id.toString()}>
-                                                                {item.ttmC_CategoryName}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
                                             <div className='space-y-2'>
                                                 <FormLabel>Class</FormLabel>
                                                 <Select

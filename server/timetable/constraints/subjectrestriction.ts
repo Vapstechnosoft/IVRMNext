@@ -100,7 +100,7 @@ export async function ToggleSubjectDaySubject(ttrdsU_Id: number) {
 }
 // --- Tab 4: Period Staff ---
 export async function savePeriodStaffDetail(data: any) {
-    const url = '/Restriction/savedetail4';
+    const url = '/RestrictionFacade/TTRestrictionDayPeriodStaffSave';
     return await api.post<any>('timetable', url, data);
 }
 export async function getPeriodStaffEditDetails(id: number) {
@@ -115,7 +115,7 @@ export async function ToggleSubjectPeriodStaff(ttrpS_Id: number) {
 
 // --- Tab 5: Period Subject ---
 export async function savePeriodSubjectDetail(data: any) {
-    const url = '/Restriction/savedetail5';
+    const url = '/RestrictionFacade/TTRestrictionDayPeriodSubjectSave';
     return await api.post<any>('timetable', url, data);
 }
 export async function getPeriodSubjectEditDetails(id: number) {

@@ -103,14 +103,12 @@ function PeriodSubjectTabContent({ initialData, searchParams }: PeriodSubjectTab
     const [dayList, setDayList] = useState<any[]>(initialData?.daylist || []);
     const [periodList, setPeriodList] = useState<any[]>(initialData?.periodlist || []);
     const [subjectList, setSubjectList] = useState<any[]>([]);
-    const [categoryList, setCategoryList] = useState<any[]>(initialData?.categorylist || []);
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subStaffList, setSubStaffList] = useState<any[]>([]);
     const [isClassLoading, setIsClassLoading] = useState(false);
 
     // Master lists for the selected subject
-    const [masterCategories, setMasterCategories] = useState<any[]>([]);
     const [masterClasses, setMasterClasses] = useState<any[]>([]);
     const [masterSections, setMasterSections] = useState<any[]>([]);
     const [masterStaff, setMasterStaff] = useState<any[]>([]);
@@ -200,7 +198,6 @@ function PeriodSubjectTabContent({ initialData, searchParams }: PeriodSubjectTab
     const ttmP_Id = watch('ttmP_Id');
     const ismS_Id = watch('ismS_Id');
     const ttfpsU_SUbSelcFlag = watch('ttfpsU_SUbSelcFlag');
-    const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
     const [selectedClass, setSelectedClass] = useState<number | undefined>();
     const [selectedSection, setSelectedSection] = useState<number | undefined>();
     const [selectedStaff, setSelectedStaff] = useState<number | undefined>();
@@ -227,15 +224,11 @@ function PeriodSubjectTabContent({ initialData, searchParams }: PeriodSubjectTab
     useEffect(() => {
         const loadDropdowns = async () => {
             try {
-                setCategoryList(filterData(initialData?.categorylist || initialData?.data?.categorylist || [], 'ttmC_CategoryName'));
                 const fixingData = await getdetailsAllFixing();
                 if (fixingData?.data) {
                     setDayList(filterData(fixingData.data.daylist || [], 'ttmD_DayName'));
                     setPeriodList(filterData(fixingData.data.periodlist || [], 'ttmP_PeriodName'));
                     setSubjectList(filterData(fixingData.data.subjectlist || [], 'ismS_SubjectName'));
-                }
-                if (asmaY_Id && selectedCategory) {
-                    await fetchClasses(asmaY_Id, selectedCategory);
                 }
                 await refetchAll();
             } catch (error) {
@@ -259,60 +252,23 @@ function PeriodSubjectTabContent({ initialData, searchParams }: PeriodSubjectTab
         }
     }, [isDetailsViewOpen, viewRow]);
 
-    const fetchClasses = async (yearId: number, categoryId: number) => {
-        if (!yearId || !categoryId) {
-            setClassList([]);
-            return;
-        }
-        setIsClassLoading(true);
-        try {
-            const data = await getFixingClassDropdown(yearId, categoryId);
-            const list = extractList(data, 'classbycategory');
-            setClassList(filterData(list || [], 'asmcL_ClassName'));
-        } catch (error) {
-            console.error('Error fetching classes:', error);
-            toast.error('Failed to load classes');
-        } finally {
-            setIsClassLoading(false);
-        }
-    };
+
 
     const handleAcademicYearChange = (yearId: number) => {
         setValue('asmaY_Id', yearId);
         setValue('ismS_Id', 0);
-        setSelectedCategory(undefined);
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedStaff(undefined);
         setClassList([]);
         setSectionList([]);
         setSubStaffList([]);
-        setMasterCategories([]);
         setMasterClasses([]);
         setMasterSections([]);
         setMasterStaff([]);
     };
 
-    const handleCategoryChange = (categoryId: number) => {
-        setSelectedCategory(categoryId);
-        setSelectedClass(undefined);
-        setSelectedSection(undefined);
-        //setSelectedStaff(undefined);
 
-        // Filter class only
-        const filtered = masterClasses.filter((c) => Number(c.ttmC_Id ?? c.ttmc_id ?? c.TTMC_Id) === categoryId);
-
-        setClassList(uniqueById(filterData(filtered.length > 0 ? filtered : masterClasses, 'asmcL_ClassName'), 'asmcL_Id'));
-
-        // ❗ DO NOT clear staff
-        setSectionList(masterSections);
-        // setSubStaffList(masterStaff);
-
-        // // 🔥 Protect staff list
-        // if (masterStaff && masterStaff.length > 0) {
-        //     setSubStaffList([...masterStaff]);
-        // }
-    };
 
     // const handleCategoryChange = async (categoryId: number) => {
     //     setSelectedCategory(categoryId);
@@ -452,7 +408,7 @@ function PeriodSubjectTabContent({ initialData, searchParams }: PeriodSubjectTab
     const handleSubjectChange = async (subjectId: number) => {
         setValue('ismS_Id', subjectId);
 
-        setSelectedCategory(undefined);
+
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedStaff(undefined);
@@ -787,26 +743,7 @@ function PeriodSubjectTabContent({ initialData, searchParams }: PeriodSubjectTab
                                     <div className='space-y-4 rounded-md border bg-gray-50 p-4'>
                                         <h4 className='font-semibold'>Add Class Details</h4>
                                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-5'>
-                                            <div className='space-y-2'>
-                                                <FormLabel>Category</FormLabel>
-                                                <Select
-                                                    onValueChange={(v) => handleCategoryChange(Number(v))}
-                                                    value={selectedCategory?.toString()}>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder='Select' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {categoryList.map((item: any) => {
-                                                            const id = item.ttmC_Id ?? item.ttmc_id ?? item.TTMC_Id;
-                                                            return (
-                                                                <SelectItem key={id} value={id?.toString()}>
-                                                                    {item.ttmC_CategoryName || item.ttmc_categoryname || item.categoryName}
-                                                                </SelectItem>
-                                                            );
-                                                        })}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
+
                                             <div className='space-y-2'>
                                                 <FormLabel>Class</FormLabel>
                                                 <Select
@@ -897,10 +834,11 @@ function PeriodSubjectTabContent({ initialData, searchParams }: PeriodSubjectTab
                                     <Button type='submit'>Save</Button>
                                 </div>
                             </form>
-                        </Form>
-                    </div>
-                </CollapsibleSection>
-            )}
+                        </Form >
+                    </div >
+                </CollapsibleSection >
+            )
+            }
 
             <FixingViewModal
                 isOpen={!!isDetailsViewOpen}
@@ -910,7 +848,7 @@ function PeriodSubjectTabContent({ initialData, searchParams }: PeriodSubjectTab
                 columns={viewColumns}
                 isLoading={isLoadingView}
             />
-        </div>
+        </div >
     );
 }
 
