@@ -316,8 +316,8 @@ export default function AdmissionReportPage(props: {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -348,7 +348,7 @@ export default function AdmissionReportPage(props: {
 
     return (
         <div className='container min-h-screen space-y-4 p-2'>
-            <CollapsibleSection title='Admission Register' defaultOpen>
+            <CollapsibleSection title='Class Wise Student Details' defaultOpen>
                 <div className='grid grid-cols-1 gap-4 p-4 md:grid-cols-2'>
                     {/* Academic Year */}
                     <div>

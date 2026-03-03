@@ -232,7 +232,7 @@ export default function AddMasterConfiguration({ onSuccess, className = '' }: Ad
                                                 </SelectItem>
                                             ) : (
                                                 academicYear?.data?.map((y) => (
-                                                    <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
+                                                    <SelectItem key={y.asmaY_Id} value={y.asmaY_Id?.toString() || ''}>
                                                         {y.asmaY_Year}
                                                     </SelectItem>
                                                 ))
@@ -267,7 +267,7 @@ export default function AddMasterConfiguration({ onSuccess, className = '' }: Ad
                                                 </SelectItem>
                                             ) : (
                                                 masterCategory?.data?.map((cat) => (
-                                                    <SelectItem key={cat.amC_Id} value={cat.amC_Id.toString()}>
+                                                    <SelectItem key={cat.amC_Id} value={cat.amC_Id?.toString() || ''}>
                                                         {cat.amC_Name}
                                                     </SelectItem>
                                                 ))

@@ -28,6 +28,12 @@ export const PreAdmissionAcademicYearSchema = {
         // Optional internal id for updates
         asmaY_Id: z.number().int().optional(),
 
+        // Institution
+        mI_Id: z
+            .union([z.number(), z.string()])
+            .transform((val) => (typeof val === 'string' ? Number.parseInt(val, 10) : val))
+            .refine((val) => !Number.isNaN(val) && val > 0, { message: 'Institution is required' }),
+
         // Form inputs for year parts (the UI collects From/To and we compute asmaY_Year)
         academicFromYear: z
             .string()
@@ -98,7 +104,11 @@ export const PreAdmissionAcademicYearSchema = {
             .union([z.boolean(), z.number()])
             .transform((val) => Boolean(val))
             .default(false)
-            .optional()
+            .optional(),
+
+        // Pre-Admission time fields (stored as "HH:mm" strings)
+        asmaY_PreAdm_F_Time: z.string().optional().nullable(),
+        asmaY_PreAdm_T_Time: z.string().optional().nullable()
     }),
 
     delete: z.object({

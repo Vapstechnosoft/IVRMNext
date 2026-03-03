@@ -30,7 +30,7 @@ export const StudentTcReportPrint = React.forwardRef<HTMLDivElement, StudentTcRe
         };
 
         return (
-            <div ref={ref} className='print-preview-container p-5 bg-white text-black min-h-full w-full'>
+            <div ref={ref} className='print-preview-container bg-white text-black min-h-full w-full'>
                 <style>
                     {`
                         @media print {
@@ -41,6 +41,8 @@ export const StudentTcReportPrint = React.forwardRef<HTMLDivElement, StudentTcRe
                             body {
                                 visibility: hidden;
                                 background: white;
+                                margin: 0;
+                                padding: 0;
                             }
                             .print-preview-container {
                                 visibility: visible !important;
@@ -55,18 +57,23 @@ export const StudentTcReportPrint = React.forwardRef<HTMLDivElement, StudentTcRe
                             .print-preview-container * {
                                 visibility: visible !important;
                             }
-                            table {
+                            .main-table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                border: none !important;
+                            }
+                            .data-table {
                                 width: 100%;
                                 border-collapse: collapse;
                                 border: 1px solid #000;
                             }
-                            th, td {
+                            .data-table th, .data-table td {
                                 border: 1px solid #000;
                                 padding: 4px;
                                 text-align: center;
                                 font-size: 10px;
                             }
-                            th {
+                            .data-table th {
                                 background-color: #f3f4f6;
                                 font-weight: bold;
                                 -webkit-print-color-adjust: exact;
@@ -76,56 +83,75 @@ export const StudentTcReportPrint = React.forwardRef<HTMLDivElement, StudentTcRe
                             }
                             .header-section {
                                 text-align: center;
-                                margin-bottom: 20px;
+                                padding-bottom: 20px;
                             }
                             .footer-section {
-                                margin-top: 20px;
+                                padding-top: 20px;
                                 display: flex;
                                 justify-content: space-between;
-                                padding: 10px 0;
-                                border-top: 1px solid #ccc;
-                                page-break-after: always;
+                                font-size: 10px;
+                            }
+                            .no-border {
+                                border: none !important;
                             }
                         }
                     `}
                 </style>
 
-                {/* Header */}
-                <div className='header-section mb-6 text-center'>
-                    <h2 className='text-lg font-bold uppercase'>Student TC Report</h2>
-                    <p className='text-sm text-gray-600'>Date: {currentDate}</p>
-                </div>
-
-                {/* Table */}
-                <table className='w-full'>
+                <table className='main-table no-border'>
                     <thead>
-                        <tr className='bg-gray-100'>
-                            <th className='w-12'>Sl.No</th>
-                            {selectedFields.map((fieldId) => (
-                                <th key={fieldId}>{FIELD_CONFIG[fieldId]?.label || fieldId}</th>
-                            ))}
+                        <tr>
+                            <td className='no-border'>
+                                {/* Header */}
+                                <div className='header-section text-center'>
+                                    <h2 className='text-lg font-bold uppercase'>Student TC Report</h2>
+                                    <p className='text-sm text-gray-600'>Date: {currentDate}</p>
+                                </div>
+                            </td>
                         </tr>
                     </thead>
                     <tbody>
-                        {data.map((student, index) => (
-                            <tr key={index}>
-                                <td>{index + 1}</td>
-                                {selectedFields.map((fieldId) => {
-                                    const value = student[fieldId];
-                                    const config = FIELD_CONFIG[fieldId];
-                                    const displayValue = config?.isDate ? formatDate(value) : value ?? 'N/A';
-                                    return <td key={`${index}-${fieldId}`}>{displayValue}</td>;
-                                })}
-                            </tr>
-                        ))}
+                        <tr>
+                            <td className='no-border'>
+                                {/* Table */}
+                                <table className='data-table w-full'>
+                                    <thead>
+                                        <tr className='bg-gray-100'>
+                                            <th className='w-12'>Sl.No</th>
+                                            {selectedFields.map((fieldId) => (
+                                                <th key={fieldId}>{FIELD_CONFIG[fieldId]?.label || fieldId}</th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {data.map((student, index) => (
+                                            <tr key={index}>
+                                                <td>{index + 1}</td>
+                                                {selectedFields.map((fieldId) => {
+                                                    const value = student[fieldId];
+                                                    const config = FIELD_CONFIG[fieldId];
+                                                    const displayValue = config?.isDate ? formatDate(value) : value ?? 'N/A';
+                                                    return <td key={`${index}-${fieldId}`}>{displayValue}</td>;
+                                                })}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <td className='no-border'>
+                                {/* Footer */}
+                                <div className='footer-section'>
+                                    <div>Printed Date: {currentDate}</div>
+                                    <div>Signature</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tfoot>
                 </table>
-
-                {/* Footer */}
-                <div className='footer-section'>
-                    <div>Printed Date: {currentDate}</div>
-                    <div>Signature</div>
-                </div>
             </div>
         );
     }

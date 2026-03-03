@@ -1567,6 +1567,14 @@ export async function getUserAccessibleModules() {
                                             description: 'Report Card_X'
                                         },
                                         {
+                                            id: 89,
+                                            name: 'AI Performance Analysis',
+                                            icon: 'Sparkles',
+                                            url: '/Exam/exam-module/ai-performance-analysis',
+                                            title: 'AI Performance Analysis',
+                                            description: 'AI-driven student performance analysis and insights'
+                                        },
+                                        {
                                             id: 90,
                                             name: 'Stella Progress Report',
                                             icon: 'BookOpen',
@@ -1575,13 +1583,63 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Stella Progress Card Report Details'
                                         },
                                         {
-                                            id: 89,
-                                            name: 'AI Performance Analysis',
-                                            icon: 'Sparkles',
-                                            url: '/Exam/exam-module/ai-performance-analysis',
-                                            title: 'AI Performance Analysis',
-                                            description: 'AI-driven student performance analysis and insights'
+                                            id: 91,
+                                            name: 'Stella Marks Entry Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/stella_marks_entry_report',
+                                            title: 'Stella Marks Entry Report',
+                                            description: 'Manage Stella Marks Entry Report Details'
+
+                                        },
+                                        {
+                                            id: 92,
+                                            name: "Vidyaniketan Performance Ananlysis Report",
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/vidyaniketan-performance-analysis-report',
+                                            title: "Vidyaniketan Performance Ananlysis Report",
+                                            description: "Manage Vidyaniketan Performance Ananlysis Report Details"
+                                        },
+                                        {
+                                            id: 93,
+                                            name: "Vidyaniketan Progress Card Report",
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/vidyaniketan-progress-card-report',
+                                            title: "Vidyaniketan Progress Card Report",
+                                            description: "Manage Vidyaniketan Progress Card Report Details"
+                                        },
+                                        {
+                                            id: 94,
+                                            name: "Vidyaniketan I-VIII Card Report",
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/vidyaniketan-report-card-I-VIII',
+                                            title: "Vidyaniketan I-VIII Card Report",
+                                            description: "Manage Vidyaniketan I-VIII Card Report Details"
+                                        },
+                                        {
+                                            id: 95,
+                                            name: "Sophia IX-X Card Report",
+                                            icon: "BookOpen",
+                                            url: "/Exam/exam-module/reports/sophia-report-card-IX-X",
+                                            title: "Sophia IX-X Card Report",
+                                            description: "Manage Sophia IX-X Card Report Details"
+                                        },
+                                        {
+                                            id: 96,
+                                            name: "Sophia Pre-II Card Report",
+                                            icon: "BookOpen",
+                                            url: "/Exam/exam-module/reports/sophia-report-card-pre-II",
+                                            title: "Sophia Pre-II Card Report",
+                                            description: "Manage Sophia Pre-II Card Report Details"
+                                        },
+                                        {
+                                            id: 97,
+                                            name: "Sophia Topper List Report",
+                                            icon: "BookOpen",
+                                            url: "/Exam/exam-module/reports/sophia-topper-list-report",
+                                            title: "Sophia Topper List Report",
+                                            description: "Manage Sophia Topper List Report Details"
                                         }
+
                                     ]
                                 }
                             ]
@@ -3007,6 +3065,44 @@ export async function getUserAccessibleModules() {
                                             title: 'AI Performance Analysis',
                                             description: 'Analyze performance metrics and AI-driven insights'
                                         }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                 {
+                    id: 9001,
+                    name: 'Visual Insights',
+                    icon: 'bar-chart-3',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Visual Insights',
+                            icon: 'bar-chart-3',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Visual Insights Tools',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Custom Templates',
+                                            icon: 'FileText',
+                                            url: '/visual-insights/custom-templates',
+                                            title: 'Custom Templates',
+                                            description: 'Create and manage custom templates for visual insights'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Statistical Analysis',
+                                            icon: 'FileText',
+                                            url: '/visual-insights/statistics-graphs',
+                                            title: 'Statistical Analysis',
+                                            description: 'Analyze data and generate statistical insights'
+                                        }
+                                       
                                     ]
                                 }
                             ]
@@ -5579,12 +5675,12 @@ export async function getUserAccessibleModules() {
             message: 'Data fetched successfully!!',
             data: [
                 {
-                    id: 9,
+                    id: 40000,
                     name: 'Student Portal',
                     icon: 'Users',
                     menu: [
                         {
-                            id: 1,
+                            id: 40000,
                             name: 'Home',
                             icon: 'BookOpen',
                             sub_menu: [
@@ -5593,11 +5689,20 @@ export async function getUserAccessibleModules() {
                                     name: 'Home',
                                     icon: 'Database',
                                     pages: [
+                                        // {
+                                        //     id: 40000,
+                                        //     name: 'Dashboard',
+                                        //     icon: 'LayoutDashboard',
+                                        //     url: '/StudentPortal/student-dashboard',
+                                        //     title: 'StudentDashboard',
+                                        //     description: 'Main Dashboard'
+                                        // },
+
                                         {
-                                            id: 40000,
-                                            name: 'Dashboard',
+                                            id: 402000,
+                                            name: 'Dashboard Demo',
                                             icon: 'LayoutDashboard',
-                                            url: '/StudentPortal/student-dashboard',
+                                            url: '/StudentPortal/StudentPortalDashboard',
                                             title: 'StudentDashboard',
                                             description: 'Main Dashboard'
                                         }

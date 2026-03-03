@@ -63,12 +63,23 @@ export const ExamTermAndExamMappingColumns: ColumnDef<IExamTermAndExamMapping>[]
             return <div>{value?.split('T')[0] || '-'}</div>;
         }
     },
+    // Min Marks
+    {
+        accessorKey: 'ecT_MinMarks',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Min Marks' />,
+        cell: ({ row }) => <div>{row.getValue('ecT_MinMarks')}</div>
+    },
 
     // Total Marks
     {
         accessorKey: 'ecT_Marks',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Total Marks' />,
         cell: ({ row }) => <div>{row.getValue('ecT_Marks')}</div>
+    },
+    {
+        accessorKey: 'emgR_GradeName',
+        header: ({ column }) => <DataTableColumnHeader column={column}  title='Grade' />,
+        cell: ({ row }) => <div>{row.getValue('emgR_GradeName')}</div>
     },
 
     // Actions (Edit + Delete)

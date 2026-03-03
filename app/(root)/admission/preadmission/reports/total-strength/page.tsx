@@ -20,6 +20,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useReactToPrint } from 'react-to-print';
 import type { z } from 'zod';
+import { TotalStrengthPrint } from './_components/total-strength-print';
 
 type FormFields = z.infer<typeof TotalStrengthSchema>;
 
@@ -206,7 +207,6 @@ export default function TotalStrengthPage() {
                 window.URL.revokeObjectURL(url);
             }, 100);
 
-            setShowReport(false);
             toast.success('Excel downloaded successfully');
         } catch (error) {
             console.error('Download error:', error);
@@ -214,19 +214,21 @@ export default function TotalStrengthPage() {
         }
     };
 
-    const handlePrint = useReactToPrint({
+    const [isPrinting, setIsPrinting] = useState(false);
+    const triggerPrint = useReactToPrint({
         contentRef: printRef,
-        documentTitle: 'Total_Strength_Report',
-        pageStyle: `
-        @page { size: A4; margin: 20mm; }
-        @media print {
-            body { -webkit-print-color-adjust: exact; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            th { background-color: #f2f2f2; }
-        }
-      `
+        documentTitle: 'Total_Strength_Report'
     });
+
+    const handlePrint = () => {
+        setIsPrinting(true);
+        const toastId = toast.loading('Preparing all records for print...');
+        setTimeout(() => {
+            triggerPrint();
+            setIsPrinting(false);
+            toast.dismiss(toastId);
+        }, 1000);
+    };
 
     return (
         <div className='min-h-screen'>
@@ -503,9 +505,9 @@ export default function TotalStrengthPage() {
                                         <FileSpreadsheet className='mr-2 h-4 w-4' />
                                         Export to Excel
                                     </Button>
-                                    <Button variant='outline' className='w-fit' onClick={handlePrint}>
+                                    <Button variant='outline' className='w-fit' onClick={handlePrint} disabled={isPrinting}>
                                         <Printer className='mr-2 h-4 w-4' />
-                                        Print
+                                        {isPrinting ? 'Preparing...' : 'Print'}
                                     </Button>
                                 </div>
                             </div>
@@ -513,7 +515,7 @@ export default function TotalStrengthPage() {
                     </CollapsibleSection>
 
                     {showReport && (
-                        <div ref={printRef}>
+                        <div>
                             <CollapsibleSection
                                 defaultOpen={true}
                                 variant='default'
@@ -605,6 +607,14 @@ export default function TotalStrengthPage() {
                             </CollapsibleSection>
                         </div>
                     )}
+
+                    <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '210mm' }}>
+                        <TotalStrengthPrint
+                            ref={printRef}
+                            groupedData={groupedData()}
+                            totalGrand={calculateGrandTotal()}
+                        />
+                    </div>
                 </div>
             </div>
         </div>
