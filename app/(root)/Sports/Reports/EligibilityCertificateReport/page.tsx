@@ -47,13 +47,15 @@ export default function EligibilityCertificateReportPage() {
     };
 
     const handlePrint = () => {
-        // Placeholder for print functionality
-        //console.log('Print', reportResponse?.data);
+        if (reportData.length > 0) {
+            toast.info('Print functionality will be implemented here');
+        }
     };
 
     const handleExcel = () => {
-        // Placeholder for excel functionality
-        //console.log('Excel', reportResponse?.data);
+        if (reportData.length > 0) {
+            toast.info('Excel export functionality will be implemented here');
+        }
     };
 
     const tableProps = useDataTableProps(reportData);

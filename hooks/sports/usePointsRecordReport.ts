@@ -13,7 +13,7 @@ export const usePointsRecordReport = () => {
     const loadData = useQuery({
         queryKey: ['pointsRecordReportInitial'],
         queryFn: () => getPointsRecordReportInitialData(),
-        staleTime: Number.POSITIVE_INFINITY,
+        //staleTime: Infinity,
     });
 
     // Cascading: Fetch Classes, Houses, Events
