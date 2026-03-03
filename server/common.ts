@@ -1730,8 +1730,12 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/masters/religion-category-mapping',
                                             title: 'Religion-Category Mapping',
                                             description: 'Map Religion & Category'
+<<<<<<< HEAD
                                         },
                                         
+=======
+                                        }
+>>>>>>> 40627841 (merge issue resolved)
                                     ]
                                 },
                                 {

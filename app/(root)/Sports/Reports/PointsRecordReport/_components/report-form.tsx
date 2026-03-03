@@ -78,7 +78,7 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
     useEffect(() => {
         if (watchedYear) {
             classHouseEventMutation.mutate({ asmaY_Id: watchedYear }, {
-                onSuccess: (data) => {
+                onSuccess: (data: { classList: any; houseList: any; eventList: any; }) => {
                     setClassList(data.classList || []);
                     setHouseList(data.houseList || []);
                     setEventList(data.eventList || []);
@@ -95,7 +95,7 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
     useEffect(() => {
         if (watchedYear && watchedClass && watchedType === 'CS') {
             sectionMutation.mutate({ asmaY_Id: watchedYear, asmcL_Id: watchedClass }, {
-                onSuccess: (data) => {
+                onSuccess: (data: { sectionList: any; }) => {
                     setSectionList(data.sectionList || []);
                 }
             });
