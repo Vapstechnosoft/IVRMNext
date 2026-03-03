@@ -85,6 +85,7 @@ export default function FeeHeadWiseReportForm() {
     }, [academicData, academicError, refreshAY]);
 
     const onYearChange = async (yearId: number) => {
+        setValue('classcategoryid', 0);
         try {
             setClassCategoryLoading(true);
             const res = await feeHeadwiseReportClassCategoryGropDown(yearId);

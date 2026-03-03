@@ -414,6 +414,7 @@ export default function FeeYearlyCollectionReport() {
                 FMT_Ids:
                     filters.breakdown === 'FGW' ||
                     filters.breakdown === 'FHW' ||
+                    filters.breakdown === 'FCW' ||
                     filters.breakdown === 'FSW' ||
                     filters.breakdown === 'TRMW' ||
                     filters.breakdown === 'STRMW' ||

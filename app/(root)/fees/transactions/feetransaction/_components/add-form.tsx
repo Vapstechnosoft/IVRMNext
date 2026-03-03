@@ -131,7 +131,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
         [key: number]: string;
     }>({});
     const [filterType, setFilterType] = useState('regular');
-    const [searchByLet, setSearchByLetters] = useState('2');
+    const [searchByLet, setSearchByLetters] = useState('');
     const [payType, setPayType] = useState<string>('');
     const [modeType, setModeType] = useState<string>('Single');
     const [checkPayType, setCheckPayType] = useState<string[]>([]);
@@ -1126,7 +1126,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                     {studentSearch.trim() !== '' && !selectedStudent && (
                                         <>
                                             {/* For regular filter type - check minimum letters */}
-                                            {filterType === 'regular' ? (
+                                            {filterType === 'regular' && searchByLet !== '' ? (
                                                 studentSearch.trim().length >= Number.parseInt(searchByLet) && (
                                                     <ul className='absolute top-full left-0 z-10 mt-1 max-h-40 w-full overflow-y-auto rounded border bg-white shadow-md'>
                                                         {loadingStudents ? (

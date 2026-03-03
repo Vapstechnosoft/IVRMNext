@@ -1164,6 +1164,8 @@ export default function FeeDefaulterReport() {
                     ...(studentClassArray || [])
                 ];
                 setReportData(combinedData);
+                console.log('combinedData', combinedData);
+                console.log('setReportData', reportData);
                 setShowReport(true);
             } else {
                 setReportData([]);
