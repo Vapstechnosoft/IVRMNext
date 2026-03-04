@@ -6,14 +6,16 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { useLeaveYearDropdown, useMonthDropdown } from '@/hooks/hrms/useMasters';
 import { useSaveSalaryAdvance } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
-import type { SalaryAdvanceItem, SalaryAdvanceOnloadResponse } from '@/types/hrms/salary-advance';
+import type { SalaryAdvanceEmployeeDropdownItem, SalaryAdvanceGridItem } from '@/types/hrms/salary-advance';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+
 interface SalaryAdvanceForm {
     employeeId: string;
     entryDate: string;
@@ -22,21 +24,76 @@ interface SalaryAdvanceForm {
     appliedAmount: number;
     remarks: string;
     modeOfPayment: string;
-    referenceNo: number;
+    referenceNo: string;
 }
+
 interface UpdateFormProps {
-    selectedRow: SalaryAdvanceItem | null;
-    onloadData: SalaryAdvanceOnloadResponse | undefined;
+    selectedRow: SalaryAdvanceGridItem | null;
+    employeeDropdown: SalaryAdvanceEmployeeDropdownItem[] | undefined;
     onSuccess: () => void;
     className?: string;
 }
-export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuccess, className = '' }: UpdateFormProps) {
+
+export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown, onSuccess, className = '' }: UpdateFormProps) {
     const { mutate: saveAdvance, isPending } = useSaveSalaryAdvance();
-    // Memoize arrays to prevent unnecessary re-renders
-    const employees = useMemo(() => onloadData?.employeedropdown || [], [onloadData?.employeedropdown]);
-    const leaveYears = useMemo(() => onloadData?.leaveyeardropdown || [], [onloadData?.leaveyeardropdown]);
-    const months = useMemo(() => onloadData?.monthdropdown || [], [onloadData?.monthdropdown]);
-    const modeOfPayments = useMemo(() => onloadData?.modeOfPaymentdropdown || [], [onloadData?.modeOfPaymentdropdown]);
+
+    // Fetch other dropdowns from masters
+    const { data: leaveYearsData } = useLeaveYearDropdown();
+    const { data: monthsData } = useMonthDropdown();
+
+    // Hardcoded mode of payments as they are standard and might not have a specific hook yet
+    const modeOfPayments = useMemo(() => [
+        { id: 'Cash', name: 'Cash' },
+        { id: 'Bank Transfer', name: 'Bank Transfer' },
+        { id: 'Cheque', name: 'Cheque' }
+    ], []);
+
+    const employees = useMemo(() => employeeDropdown || [], [employeeDropdown]);
+    const leaveYears = useMemo(() => (leaveYearsData as any)?.data || [], [leaveYearsData]);
+    const months = useMemo(() => (monthsData as any)?.data || [], [monthsData]);
+
+    const lastBoundIdRef = useRef<number | null>(null);
+
+    // Generate initial values for immediate binding on mount
+    const initialValues = useMemo(() => {
+        if (!selectedRow) return {
+            employeeId: '',
+            entryDate: '',
+            advanceYear: '',
+            advanceMonth: '',
+            appliedAmount: 0,
+            remarks: '',
+            modeOfPayment: '',
+            referenceNo: ''
+        };
+
+        // Try to find matching year if possible (though we prefer immediate binding)
+        let yearValue = selectedRow.hresA_AdvYear.toString();
+        const matchingYear = (leaveYears as any[]).find(
+            (y: any) =>
+                String(y.hrmlY_LeaveYear) === yearValue ||
+                String(y.HRMLY_LeaveYear) === yearValue
+        );
+        if (matchingYear) {
+            yearValue = (matchingYear.hrmlY_LeaveYear || matchingYear.HRMLY_LeaveYear).toString();
+        }
+
+        const paymentMode = selectedRow.hresA_ModeOfPayment || '';
+        const matchingMode = modeOfPayments.find(m => m.id.toLowerCase() === paymentMode.toLowerCase());
+        const normalizedPaymentMode = matchingMode ? matchingMode.id : paymentMode;
+
+        return {
+            employeeId: selectedRow.hrmE_Id.toString(),
+            entryDate: selectedRow.hresA_EntryDate ? format(new Date(selectedRow.hresA_EntryDate), 'yyyy-MM-dd') : '',
+            advanceYear: yearValue,
+            advanceMonth: String(selectedRow.hresA_AdvMonth || ''),
+            appliedAmount: selectedRow.hresA_AppliedAmount,
+            remarks: selectedRow.hresA_Remarks || '',
+            modeOfPayment: normalizedPaymentMode,
+            referenceNo: String(selectedRow.hresA_ReferenceNo || '')
+        };
+    }, [selectedRow, leaveYears, modeOfPayments]);
+
     const {
         register,
         handleSubmit,
@@ -47,104 +104,68 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
         formState: { errors, isSubmitting }
     } = useForm<SalaryAdvanceForm>({
         mode: 'onChange',
-        defaultValues: {
-            employeeId: '',
-            entryDate: '',
-            advanceYear: '',
-            advanceMonth: '',
-            appliedAmount: 0,
-            remarks: '',
-            modeOfPayment: '',
-            referenceNo: 0
-        }
+        defaultValues: initialValues
     });
+
     const watchedEntryDate = watch('entryDate');
+
+    // Sync form when selectedRow changes (handles cases where form stays mounted)
     useEffect(() => {
-        if (selectedRow) {
-            reset({
-                employeeId: selectedRow.HRME_Id.toString(),
-                entryDate: selectedRow.HRESA_EntryDate ? format(new Date(selectedRow.HRESA_EntryDate), 'yyyy-MM-dd') : '',
-                advanceYear: selectedRow.HRESA_AdvYear.toString(),
-                advanceMonth: selectedRow.HRESA_AdvMonth,
-                appliedAmount: selectedRow.HRESA_AppliedAmount,
-                remarks: selectedRow.HRESA_Remarks || '',
-                modeOfPayment: selectedRow.HRESA_ModeOfPayment || '',
-                referenceNo: selectedRow.HRESA_ReferenceNo || 0
-            });
+        if (selectedRow && lastBoundIdRef.current !== selectedRow.hresA_Id) {
+            reset(initialValues);
+            lastBoundIdRef.current = selectedRow.hresA_Id;
         }
-    }, [selectedRow, reset]);
-    // Auto-select year and month based on entry date
+    }, [selectedRow, initialValues, reset]);
+
+    // Auto-select year and month based on entry date ONLY for new entries or if changed manually
+    // We'll skip this if we're just loading an existing record
     useEffect(() => {
-        if (watchedEntryDate) {
+        if (watchedEntryDate && !selectedRow) {
             try {
                 const entryDate = new Date(watchedEntryDate);
                 if (!Number.isNaN(entryDate.getTime())) {
                     const year = entryDate.getFullYear();
-                    const month = entryDate.getMonth() + 1; // getMonth() returns 0-11, so add 1
-                    // Find matching year from leaveYears dropdown
-                    const matchingYear = leaveYears.find(
-                        (y) => y.HRMLY_LeaveYear === year.toString() || y.HRMLY_LeaveYear === String(year)
+                    const month = entryDate.getMonth() + 1;
+
+                    const matchingYear = (leaveYears as any[]).find(
+                        (y: any) => String(y.hrmlY_LeaveYear) === String(year) || String(y.HRMLY_LeaveYear) === String(year)
                     );
                     if (matchingYear) {
-                        setValue('advanceYear', matchingYear.HRMLY_Id.toString());
+                        setValue('advanceYear', (matchingYear.hrmlY_LeaveYear || matchingYear.HRMLY_LeaveYear).toString());
                     }
-                    // Find matching month from months dropdown
-                    // Try to match by month number (1-12) or by month name
-                    const monthNames = [
-                        'January',
-                        'February',
-                        'March',
-                        'April',
-                        'May',
-                        'June',
-                        'July',
-                        'August',
-                        'September',
-                        'October',
-                        'November',
-                        'December'
-                    ];
-                    const monthName = monthNames[month - 1];
-                    const matchingMonth = months.find((m) => {
-                        // Try matching by month name (case insensitive)
-                        const monthNameMatch =
-                            m.IVRM_Month_Name?.toLowerCase() === monthName.toLowerCase() ||
-                            m.IVRM_Month_Name?.toLowerCase().includes(monthName.toLowerCase().substring(0, 3));
-                        // Try matching by month number if IVRM_Month_Id matches the month number
-                        const monthIdMatch = m.IVRM_Month_Id === month;
-                        return monthNameMatch || monthIdMatch;
-                    });
+
+                    const matchingMonth = (months as any[]).find((m: any) => m.IVRM_Month_Id === month || m.key === month || m.value?.toLowerCase() === format(entryDate, 'MMMM').toLowerCase());
                     if (matchingMonth) {
-                        setValue('advanceMonth', matchingMonth.IVRM_Month_Id.toString());
+                        setValue('advanceMonth', matchingMonth.IVRM_Month_Name || matchingMonth.value);
                     }
                 }
             } catch (_error) {
                 // Silently handle date parsing errors
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [watchedEntryDate, leaveYears, months]);
+    }, [watchedEntryDate, leaveYears, months, setValue, selectedRow]);
+
     const onSubmit: SubmitHandler<SalaryAdvanceForm> = async (data: SalaryAdvanceForm) => {
         if (!selectedRow) {
             toast.error('No row selected for update');
             return;
         }
+
         const payload = {
-            HRESA_Id: selectedRow.HRESA_Id,
-            MI_Id: HRMS_MI_ID,
+            HRESA_Id: selectedRow.hresA_Id,
             HRME_Id: Number(data.employeeId),
-            HRESA_EntryDate: data.entryDate,
+            HRESA_EntryDate: `${data.entryDate}T00:00:00`,
             HRESA_AdvYear: Number(data.advanceYear),
             HRESA_AdvMonth: data.advanceMonth,
             HRESA_AppliedAmount: data.appliedAmount,
             HRESA_Remarks: data.remarks,
-            HRESA_ActiveFlag: selectedRow.HRESA_ActiveFlag,
-            HRESA_AdvStatus: selectedRow.HRESA_AdvStatus,
-            HRESA_SanctinedAmount: selectedRow.HRESA_SanctinedAmount,
+            HRESA_ActiveFlag: true,
+            HRESA_AdvStatus: selectedRow.hresA_AdvStatus || '',
+            HRESA_SanctinedAmount: null,
             HRESA_ModeOfPayment: data.modeOfPayment,
-            HRESA_ReferenceNo: data.referenceNo,
-            roleId: 2
+            HRESA_ReferenceNo: Number(data.referenceNo) || 0
         };
+
         saveAdvance(payload, {
             onSuccess: () => {
                 toast.success('Salary advance updated successfully!');
@@ -155,9 +176,7 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
             }
         });
     };
-    const getEmployeeName = (employee: any) => {
-        return `${employee.HRME_EmployeeFirstName} ${employee.HRME_EmployeeMiddleName || ''} ${employee.HRME_EmployeeLastName || ''}`.trim();
-    };
+
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -175,8 +194,8 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
                                     </SelectTrigger>
                                     <SelectContent>
                                         {employees.map((emp) => (
-                                            <SelectItem key={emp.HRME_Id} value={emp.HRME_Id.toString()}>
-                                                {emp.HRME_EmployeeCode} - {getEmployeeName(emp)}
+                                            <SelectItem key={emp.hrmE_Id} value={emp.hrmE_Id.toString()}>
+                                                {emp.employeeName}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -229,9 +248,9 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
                                         <SelectValue placeholder='Select Year' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {leaveYears.map((year) => (
-                                            <SelectItem key={year.HRMLY_Id} value={year.HRMLY_Id.toString()}>
-                                                {year.HRMLY_LeaveYear}
+                                        {(leaveYears as any[]).map((year: any) => (
+                                            <SelectItem key={year.hrmlY_Id || year.HRMLY_Id} value={(year.hrmlY_LeaveYear || year.HRMLY_LeaveYear).toString()}>
+                                                {year.hrmlY_LeaveYear || year.HRMLY_LeaveYear}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -252,9 +271,9 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
                                         <SelectValue placeholder='Select Month' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {months.map((month) => (
-                                            <SelectItem key={month.IVRM_Month_Id} value={month.IVRM_Month_Id.toString()}>
-                                                {month.IVRM_Month_Name}
+                                        {(months as any[]).map((month: any) => (
+                                            <SelectItem key={month.IVRM_Month_Id || month.key} value={month.IVRM_Month_Name || month.value}>
+                                                {month.IVRM_Month_Name || month.value}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -272,7 +291,7 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
                             {...register('appliedAmount', {
                                 required: 'Please enter applied amount',
                                 min: {
-                                    value: 1,
+                                    value: 0.01,
                                     message: 'Amount must be greater than 0'
                                 }
                             })}
@@ -292,8 +311,8 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
                                     </SelectTrigger>
                                     <SelectContent>
                                         {modeOfPayments.map((mode) => (
-                                            <SelectItem key={mode.IVRMMOD_Id} value={mode.IVRMMOD_Id.toString()}>
-                                                {mode.IVRMMOD_ModeOfPayment}
+                                            <SelectItem key={mode.id} value={mode.id}>
+                                                {mode.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -305,9 +324,8 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
                     <div className='space-y-2'>
                         <Label>Reference No</Label>
                         <InputText
-                            type='number'
                             placeholder='Enter reference number'
-                            {...register('referenceNo', { valueAsNumber: true })}
+                            {...register('referenceNo')}
                             error={errors.referenceNo?.message}
                         />
                     </div>
@@ -341,3 +359,4 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
         </div>
     );
 }
+

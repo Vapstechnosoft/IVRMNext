@@ -12,6 +12,8 @@ import { periodTimeSettingColumns } from './_components/columns';
 import PeriodTimeSettingForm from './_components/period-time-setting-form';
 import TogglePeriodTimeSettingForm from './_components/toggle-form';
 
+import UpdatePeriodTimeSettingForm from './_components/update-form';
+
 import { Plus, X } from 'lucide-react';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -104,8 +106,17 @@ function PeriodTimeSettingPageContent({
 }
 
 function FormSections({ onSuccess }: { onSuccess: () => void }) {
-    const { isToggleFormOpen, isAddFormOpen, selectedRow, closeAddForm, addFormRef, closeToggleForm } =
-        useFormContext<IPeriodTimeSettingData>();
+    const {
+        isToggleFormOpen,
+        isAddFormOpen,
+        isEditFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        addFormRef,
+        editFormRef,
+        closeToggleForm
+    } = useFormContext<IPeriodTimeSettingData>();
 
     return (
         <>
@@ -128,6 +139,28 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <PeriodTimeSettingForm onSuccess={closeAddForm} />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Edit Period Time Setting'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <UpdatePeriodTimeSettingForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

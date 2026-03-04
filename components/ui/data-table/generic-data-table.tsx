@@ -51,6 +51,7 @@ interface GenericDataTableProps<T> {
     scrollable?: boolean;
     maxHeight?: string;
     //manualPagination?: boolean;
+    // Bento-Glass Props
 }
 
 export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<any>>(function GenericDataTable<T>(
@@ -80,7 +81,6 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         // manualPagination = true
         scrollable = false,
         maxHeight = '600px'
-        //manualPagination = false
     }: GenericDataTableProps<T>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -132,7 +132,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
             <div className='overflow-hidden rounded-lg bg-card'>
                 <DataTable
                     ref={ref}
-                    isLoading={false}
+                    isLoading={isLoading}
                     columns={columns}
                     data={[]} // Empty array
                     totalItems={0}
@@ -158,7 +158,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         <div className='overflow-hidden rounded-lg bg-card'>
             <DataTable
                 ref={ref}
-                isLoading={false}
+                isLoading={isLoading}
                 columns={columns}
                 data={data}
                 totalItems={totalItems}

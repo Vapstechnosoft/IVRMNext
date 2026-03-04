@@ -4,11 +4,19 @@ import { Button } from '@/components/ui/button';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { usePeriodDistributionDetails } from '@/hooks/timetable/useMasters';
+import {
+    useAcademicYearPeriodDistrubution,
+    useCategtoryPeriodDistrubution,
+    useClassPeriodDistrubution,
+    usePeriodDistributionDetails,
+    useSectionPeriodDistrubution,
+    useStaffPeriodDistrubution,
+    useSubjectPeriodDistrubution
+} from '@/hooks/timetable/useMasters';
 import { periodDistributionSchema } from '@/schemas/timetable/masters';
-import { getClassByCategory } from '@/server/timetable/masters/perioddistribution';
+import { saveperioddistribution } from '@/server/timetable/masters/perioddistribution';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowRight, Save, Trash2, X } from 'lucide-react';
+import { ArrowRight, Save, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -17,21 +25,28 @@ import type { z } from 'zod';
 type FormFields = z.infer<typeof periodDistributionSchema.save>;
 
 interface PeriodDistributionFormProps {
-    onSuccess?: (data: any) => void;
-    initialData?: any; // For edit mode
+    onSuccess?: () => void;
+    initialData?: any;
 }
 
 export default function PeriodDistributionForm({ onSuccess, initialData }: PeriodDistributionFormProps) {
-    const { data: response } = usePeriodDistributionDetails();
+    const { data: response, refetchAll } = usePeriodDistributionDetails();
+    const { data: academicData } = useAcademicYearPeriodDistrubution();
+    const { data: categoryData } = useCategtoryPeriodDistrubution();
+    const { data: staffData } = useStaffPeriodDistrubution();
+    const { data: sectionData } = useSectionPeriodDistrubution();
+    const { data: subjectData } = useSubjectPeriodDistrubution();
+    const { data: classData } = useClassPeriodDistrubution();
+
     const [tempList, setTempList] = useState<any[]>([]);
-    const [classList, setClassList] = useState<any[]>([]);
     const [availablePeriods, setAvailablePeriods] = useState<number>(1);
 
-    const academicList = (response as any)?.academiclist || [];
-    const categoryList = (response as any)?.catelist || [];
-    const staffList = (response as any)?.stafflist || [];
-    const sectionList = (response as any)?.sectionlist || [];
-    const subjectList = (response as any)?.subjectlist || [];
+    const academicList = (academicData as any) || [];
+    const categoryList = (categoryData as any) || [];
+    const staffList = (staffData as any) || [];
+    const sectionList = (sectionData as any) || [];
+    const subjectList = (subjectData as any) || [];
+    const classList = (classData as any) || [];
 
     const {
         register,
@@ -64,33 +79,12 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
         setAvailablePeriods(avail);
     }, [watchedTotalWeeklyPeriods, tempList]);
 
-    // Fetch Classes based on Category
+    // Reset lower fields on change
     useEffect(() => {
-        const fetchClasses = async () => {
-            setValue('asmcL_Id', undefined as any);
-            setValue('asmS_Id', undefined as any);
-            setValue('ismS_Id', undefined as any);
-            setValue('nop2', 0);
-            if (watchedAcademicYear && watchedCategory) {
-                try {
-                    const res = await getClassByCategory({
-                        ASMAY_Id: watchedAcademicYear,
-                        TTMC_Id: watchedCategory
-                    });
-                    if (res && (res as any).classbycategory) {
-                        setClassList((res as any).classbycategory);
-                    } else {
-                        setClassList([]);
-                    }
-                } catch (err) {
-                    console.error('Error fetching classes', err);
-                    setClassList([]);
-                }
-            } else {
-                setClassList([]);
-            }
-        };
-        fetchClasses();
+        setValue('asmcL_Id', undefined as any);
+        setValue('asmS_Id', undefined as any);
+        setValue('ismS_Id', undefined as any);
+        setValue('nop2', 0);
     }, [watchedAcademicYear, watchedCategory, setValue]);
 
     const addToTempList = () => {
@@ -195,24 +189,41 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
         }
 
         const payload = {
-            TTFPD_Id: 0, // 0 for new
-            TTFPDD_Id: 0,
-            ASMAY_Id: data.asmaY_Id,
-            HRME_Id: data.hrmE_Id,
-            TTFPD_TotWeekPeriods: data.nop1,
-            TTFPD_StaffConsecutive: data.ttfpD_StaffConsecutive,
-            TempararyArrayList: tempList.map((item) => ({
-                ASMCL_Id: item.asmcL_Id,
-                ASMS_Id: item.asmS_Id,
-                ISMS_Id: item.ismS_Id,
-                NOP: item.pedDisplay,
-                TTMC_Id: item.ttmC_Id
+            ttfpD_Id: 0,
+            mI_Id: 0,
+            asmaY_Id: data.asmaY_Id,
+            hrmE_Id: data.hrmE_Id,
+            ttfpD_TotWeekPeriods: data.nop1,
+            ttfpD_ActiveFlag: true,
+            ttfpD_StaffConsecutive: data.ttfpD_StaffConsecutive,
+            createdDate: new Date().toISOString(),
+            updatedDate: new Date().toISOString(),
+            periodDistributionDetails: tempList.map((item) => ({
+                ttfpdD_Id: 0,
+                ttfpD_Id: 0,
+                ttmC_Id: item.ttmC_Id,
+                asmcL_Id: item.asmcL_Id,
+                asmS_Id: item.asmS_Id,
+                ismS_Id: item.ismS_Id,
+                ttfpD_TotalPeriods: item.pedDisplay,
+                ttfpD_AllotedPeriods: 0,
+                ttfpD_AvailablePeriods: 0,
+                ttfpdD_ActiveFlag: true,
+                nop: item.pedDisplay
             }))
         };
 
-        // Pass to parent
-        onSuccess?.(payload);
-        handleClear();
+        console.log('payload', JSON.stringify(payload));
+
+        const response = await saveperioddistribution(payload);
+        if (response.success) {
+            toast.success(response.message);
+            reset();
+            refetchAll();
+            onSuccess?.();
+        } else {
+            toast.error(response.message);
+        }
     };
 
     return (
@@ -276,21 +287,24 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
                             <Label>
                                 Staff Name <span className='text-red-500'>*</span>
                             </Label>
-                            {/* <Controller
+                            <Controller
                                 control={control}
-                                name="hrmE_Id"
+                                name='hrmE_Id'
                                 render={({ field }) => (
-                                    <Combobox
-                                        value={field.value?.toString()}
-                                        onChange={(val: string) => field.onChange(Number(val))}
-                                        options={staffList.map((s: any) => ({
-                                            value: s.hrmE_Id.toString(),
-                                            label: s.staffName
-                                        }))}
-                                        placeholder="Select or search Staff..."
-                                    />
+                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='--Select Staff--' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {staffList.map((item: any) => (
+                                                <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
+                                                    {item.staffName}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 )}
-                            /> */}
+                            />
                             {errors.hrmE_Id && <span className='text-red-500 text-sm'>{errors.hrmE_Id.message}</span>}
                         </div>
 
@@ -351,7 +365,7 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
                                                 </SelectItem>
                                             ))
                                         ) : (
-                                            <div className='p-2 text-muted-foreground text-sm'>Select Category First</div>
+                                            <div className='p-2 text-muted-foreground text-sm'>No Classes Available</div>
                                         )}
                                     </SelectContent>
                                 </Select>
@@ -465,7 +479,29 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
                 </div>
             </div>
 
-            <div className='flex justify-center gap-3'>
+            <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                <Button
+                    type='button'
+                    variant='outline'
+                    onClick={handleClear}
+                    disabled={isSubmitting}
+                    className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                    Reset
+                </Button>
+                <Button
+                    type='submit'
+                    disabled={isSubmitting}
+                    className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                    isLoading={isSubmitting}
+                    loadingText='Saving...'>
+                    <div className='flex items-center'>
+                        <Save className='mr-2 h-4 w-4' />
+                        Save
+                    </div>
+                </Button>
+            </div>
+
+            {/* <div className='flex justify-center gap-3'>
                 <Button type='submit' disabled={isSubmitting}>
                     <Save className='mr-2 h-4 w-4' />
                     Save
@@ -474,15 +510,8 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
-                {/* <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleClear}
-                        disabled={isSubmitting}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
-                    </Button> */}
-            </div>
+               
+            </div> */}
         </form>
     );
 }

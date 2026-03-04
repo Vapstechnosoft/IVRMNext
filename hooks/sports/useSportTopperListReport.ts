@@ -1,45 +1,56 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { getInitialData, getDetails, getSections, getReportData } from '@/server/sports/reports/sport-topper-list-report';
+import {
+    getClassesHousesEvents,
+    getSections,
+    getTopperListLoadData,
+    getTopperListReport
+} from '@/server/sports/reports/sport-topper-list-report';
 import { toast } from 'sonner';
 
 export const useSportTopperListReport = () => {
+
+    // Initial Data (Year & Sports)
     const initialData = useQuery({
         queryKey: ['sportTopperListReportInitial'],
-        queryFn: getInitialData
+        queryFn: () => getTopperListLoadData(),
+        staleTime: Infinity,
     });
 
-    const detailsData = useMutation({
-        mutationFn: getDetails,
+    // Fetch Classes, Houses, Events
+    const classHouseEventMutation = useMutation({
+        mutationFn: ({ asmaY_Id }: { asmaY_Id: number }) => getClassesHousesEvents(asmaY_Id),
         onError: (error) => {
-            toast.error(error.message);
-        }
+            toast.error(error.message || 'Failed to fetch classes, houses and events');
+        },
     });
 
-    const sectionsData = useMutation({
-        mutationFn: getSections,
+    // Fetch Sections
+    const sectionMutation = useMutation({
+        mutationFn: ({ asmaY_Id, asmcL_Id }: { asmaY_Id: number; asmcL_Id: number }) => getSections(asmaY_Id, asmcL_Id),
         onError: (error) => {
-            toast.error(error.message);
-        }
+            toast.error(error.message || 'Failed to fetch sections');
+        },
     });
 
-    const reportData = useMutation({
-        mutationFn: getReportData,
+    // Generate Report
+    const reportMutation = useMutation({
+        mutationFn: getTopperListReport,
         onSuccess: (data) => {
-            if (data.success) {
-                toast.success(data.message);
+            if (data && data.length > 0) {
+                toast.success('Report generated successfully');
             } else {
-                toast.error(data.message);
+                toast.info('No records found');
             }
         },
         onError: (error) => {
-            toast.error(error.message);
-        }
+            toast.error(error.message || 'Failed to generate report');
+        },
     });
 
     return {
         initialData,
-        detailsData,
-        sectionsData,
-        reportData
+        classHouseEventMutation,
+        sectionMutation,
+        reportMutation,
     };
 };

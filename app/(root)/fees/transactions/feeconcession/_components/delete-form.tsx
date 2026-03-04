@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { deleteFeeConcession } from '@/server/fees/trasactions/FeeConcession';
+import { deleteFeeConcessionnew } from '@/server/fees/trasactions/FeeConcession';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -38,18 +38,19 @@ export default function DeleteFeeConcessionForm({ rowData, onClose, onSuccess }:
 
     const onSubmit = async () => {
         try {
+            console.log('rowData', rowData);
             const fsC_Id = rowData.fsC_Id;
-            const response = await deleteFeeConcession(fsC_Id);
-
+            //const response = await deleteFeeConcession(fsC_Id);
+            const response = await deleteFeeConcessionnew(fsC_Id, rowData.asmaY_Id, rowData.fscI_ID, rowData.fsC_ConcessionAmount);
             if (response.success) {
-                toast.success(response.message || 'Concession deleted successfully');
+                toast.success(response.message);
                 onSuccess();
                 closeDialog();
             } else {
-                toast.error(response.message || 'Failed to delete');
+                toast.error(response.message);
             }
         } catch (error: any) {
-            toast.error(error.message || 'Something went wrong');
+            toast.error(error.message);
         }
     };
 

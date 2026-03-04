@@ -8,7 +8,7 @@ import { useOnlineLeave } from '@/hooks/staff-portal/useOnlineLeave';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function OnlineLeavePage() {
-    const { initialData, historyData, isLoading } = useOnlineLeave();
+    const { initialData, masterLeaveData, historyData, isLoading } = useOnlineLeave();
 
     if (isLoading) {
         return (
@@ -26,7 +26,10 @@ export default function OnlineLeavePage() {
                 <h1 className="text-2xl font-bold text-primary tracking-tight">Online Leave Application</h1>
             </div>
 
-            <LeaveApplicationForm initialData={initialData} />
+            <LeaveApplicationForm
+                initialData={initialData}
+                masterLeaveData={masterLeaveData}
+            />
 
             <LeaveHistoryTable historyData={historyData} />
         </div>

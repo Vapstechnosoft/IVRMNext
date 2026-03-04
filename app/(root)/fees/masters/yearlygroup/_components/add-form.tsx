@@ -310,10 +310,17 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
                                                 errors.feeGroupIds ? 'border-red-500' : 'border-gray-300',
                                                 '!focus:border-gray-300 !hover:border-gray-300 !hover:bg-white !focus:ring-0 active:scale-100'
                                             )}>
-                                            <span className='truncate text-gray-700'>
-                                                {/* {field.value?.length ? `${field.value.length} selected` : 'Select Fee Groups'} */}
+                                            {/* {field.value?.length ? `${field.value.length} selected` : 'Select Fee Groups'} */}
+                                            {/* <span className='truncate text-gray-700'>
+                                             
                                                 Select Fee Groups
+                                            </span> */}
+                                            <span className='truncate text-gray-700'>
+                                                {selectedGroupIds.length > 0
+                                                    ? `${selectedGroupIds.length} Group Selected`
+                                                    : 'Select Fee Groups'}
                                             </span>
+
                                             <ChevronsUpDown className='ml-2 h-4 w-4 opacity-50' />
                                         </Button>
                                     </PopoverTrigger>

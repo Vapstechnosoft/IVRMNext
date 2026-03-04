@@ -60,7 +60,7 @@ export function DaySelectionCheckbox({
                         type='button'
                         aria-checked={isChecked}
                         data-state={isChecked ? 'checked' : 'unchecked'}
-                        className='peer inline-flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded-xs border border-primary shadow focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground'
+                        className='peer inline-flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded-[2px] border border-primary shadow focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground'
                         aria-label='Select days'>
                         {isChecked && (
                             <svg

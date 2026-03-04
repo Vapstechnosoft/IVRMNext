@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { use, useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { Heading } from '@/components/layout/heading';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
@@ -10,71 +10,78 @@ import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
 import ReportForm from './_components/report-form';
 import { getColumns } from './_components/columns';
-import { IInvRSalesReportData } from '@/types/inventory/reports/inv-r-sales';
 import { Badge } from '@/components/ui/badge';
-import { useQueryState, parseAsInteger } from 'nuqs';
+import { useQueryState, parseAsInteger, parseAsString } from 'nuqs';
 import { InvRSalesSchema } from '@/schemas/inventory/reports/inv-r-sales';
-import { getInvRSalesReport } from '@/server/inventory/reports/inv-r-sales';
+import { tableSearchVariables } from '@/lib/data-table.config';
+import { useInvRSalesReportQuery } from '@/hooks/inventory/reports/use-inv-r-sales';
 
-import { toast } from 'sonner';
+interface ReportTotals {
+    amount: number;
+    tax: number;
+    discount: number;
+}
 
-export default function InvRSalesPage() {
-    const [currentPage, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
-    const [pageSize, setPageSize] = useQueryState('pageSize', parseAsInteger.withDefault(10));
-    const [reportData, setReportData] = useState<IInvRSalesReportData[]>([]);
-    const [totalRecords, setTotalRecords] = useState(0);
+const calculateReportTotals = (data: any[]): ReportTotals => {
+    return data.reduce((acc: ReportTotals, curr: any) => {
+        const amount = curr.total_Amount ?? curr.invtsL_Amount ?? curr.saleAmount ?? curr.invtsl_Amount ?? 0;
+        const tax = curr.tax_Amt ?? curr.invtsL_TaxAmt ?? curr.saleTax ?? curr.invtsl_TaxAmt ?? 0;
+        const discount = curr.discount_Amt ?? curr.invtsL_DiscountAmt ?? curr.saleDiscount ?? curr.invtsl_DiscountAmt ?? 0;
+
+        return {
+            amount: acc.amount + Number(amount),
+            tax: acc.tax + Number(tax),
+            discount: acc.discount + Number(discount)
+        };
+    }, { amount: 0, tax: 0, discount: 0 } as ReportTotals);
+};
+
+export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
+    const searchParams = use(props.searchParams);
+    const [currentPage, setPage] = useQueryState(
+        tableSearchVariables.page,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
+    );
+    const [pageSize, setPageSize] = useQueryState(
+        tableSearchVariables.page_size,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
+    );
+    const [searchQuery, setSearchQuery] = useQueryState(
+        tableSearchVariables.search,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+
     const [currentPayload, setCurrentPayload] = useState<InvRSalesSchema | null>(null);
-    const [showReport, setShowReport] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+
+    const payloadForHook = currentPayload ? {
+        ...currentPayload,
+        startdate: currentPayload.startdate instanceof Date ? currentPayload.startdate.toISOString() : currentPayload.startdate,
+        enddate: currentPayload.enddate instanceof Date ? currentPayload.enddate.toISOString() : currentPayload.enddate,
+    } : null;
+
+    const { data: reportResult, isFetching } = useInvRSalesReportQuery(payloadForHook as any, {
+        ...searchParams,
+        page: currentPage,
+        page_size: pageSize,
+        search_query: searchQuery
+    });
+
+    const reportData = reportResult?.data?.get_SalesReport || [];
+    const totalRecords = reportResult?.total || 0;
 
     const handleReportSubmit = (payload: InvRSalesSchema | null) => {
         // Handle reset or empty
         if (!payload || Object.keys(payload).length === 0) {
             setCurrentPayload(null);
-            setReportData([]);
-            setTotalRecords(0);
-            setShowReport(false);
+            setPage(1);
+            setSearchQuery(null);
             return;
         }
 
         setCurrentPayload(payload);
-        if (currentPage !== 1) {
-            setPage(1);
-        }
-        setShowReport(true);
+        setPage(1);
+        setSearchQuery(null);
     };
-
-    const fetchPageData = useCallback(async () => {
-        if (!currentPayload) return;
-
-        setIsLoading(true);
-        try {
-            const response = await getInvRSalesReport(currentPayload as any, {
-                page: currentPage,
-                page_size: pageSize
-            });
-
-            if (response.success) {
-                setReportData(response.data.get_SalesReport || []);
-                setTotalRecords(response.total ?? response.data.get_SalesReport?.length ?? 0);
-            } else {
-                toast.error(response.message || 'Failed to generate report');
-                setReportData([]);
-                setTotalRecords(0);
-            }
-        } catch (error: any) {
-            console.error(error);
-            toast.error(error.message || 'An error occurred');
-        } finally {
-            setIsLoading(false);
-        }
-    }, [currentPage, pageSize, currentPayload]);
-
-    useEffect(() => {
-        if (currentPayload) {
-            fetchPageData();
-        }
-    }, [currentPage, pageSize, fetchPageData]);
 
     const columns = getColumns(
         currentPayload?.typeflag || 'All',
@@ -85,21 +92,11 @@ export default function InvRSalesPage() {
         pageSize
     );
 
-    const totals = reportData.reduce((acc, curr) => {
-        const amount = curr.total_Amount ?? curr.invtsL_Amount ?? curr.saleAmount ?? curr.invtsl_Amount ?? 0;
-        const tax = curr.tax_Amt ?? curr.invtsL_TaxAmt ?? curr.saleTax ?? curr.invtsl_TaxAmt ?? 0;
-        const discount = curr.discount_Amt ?? curr.invtsL_DiscountAmt ?? curr.saleDiscount ?? curr.invtsl_DiscountAmt ?? 0;
-
-        return {
-            amount: acc.amount + Number(amount),
-            tax: acc.tax + Number(tax),
-            discount: acc.discount + Number(discount)
-        };
-    }, { amount: 0, tax: 0, discount: 0 });
+    const totals = calculateReportTotals(reportData);
 
     const componentRef = useRef<HTMLDivElement>(null);
     const handlePrint = useReactToPrint({
-        contentRef: componentRef, // Using contentRef as requested by runtime error
+        contentRef: componentRef,
         documentTitle: `Sales Report - ${new Date().toISOString().split('T')[0]}`,
         pageStyle: `
             @page { size: auto; margin: 10mm; }
@@ -115,7 +112,8 @@ export default function InvRSalesPage() {
     const tableProps = useDataTableProps({
         enablePagination: true,
         enableSorting: false,
-        enableSearching: false,
+        enableSearching: true, // Grid Search enabled
+        isSearchRequired: true,
     });
 
     return (
@@ -125,9 +123,9 @@ export default function InvRSalesPage() {
                 description="Generate Sales Reports"
             />
 
-            <ReportForm onSubmit={handleReportSubmit} isLoading={isLoading} />
+            <ReportForm onSubmit={handleReportSubmit} isLoading={isFetching} />
 
-            {showReport && (
+            {reportData.length > 0 && (
                 <CollapsibleSection title="Report Result" defaultOpen={true}>
                     <div className="p-4 space-y-4">
                         <div className="flex justify-between items-center bg-muted/20 p-2 rounded border">
@@ -152,7 +150,8 @@ export default function InvRSalesPage() {
                                 data={reportData}
                                 columns={columns}
                                 totalItems={totalRecords}
-                                isLoading={isLoading}
+                                isLoading={isFetching}
+                                isSearchRequired={true}
                             />
 
                             {reportData.length > 0 && (

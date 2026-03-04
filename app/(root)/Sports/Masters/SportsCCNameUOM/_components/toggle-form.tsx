@@ -25,21 +25,21 @@ export default function ToggleMasterSportsCCNameUOMForm({
     onClose,
     onSuccess
 }: ToggleMasterSportsCCNameUOMFormProps) {
-    const isActive = rowData.SPCCMSCCUOM_ActiveFlag;
+    const isActive = rowData.spccmsccuoM_ActiveFlag;
 
     const handleConfirm = async () => {
         try {
             const payload = {
-                SPCCMSCCUOM_Id: rowData.SPCCMSCCUOM_Id,
-                SPCCMSCCUOM_ActiveFlag: rowData.SPCCMSCCUOM_ActiveFlag
+                ...rowData,
+                spccmsccuoM_ActiveFlag: !isActive
             }
             const response = await deactivateMasterSportsCCNameUOM(payload);
 
-            if (response?.retval === true) {
-                toast.success(`Record ${isActive ? 'deactivated' : 'activated'} successfully`);
+            if (response?.success || response?.returnVal || response?.retval === true) {
+                toast.success(response.message || `Record ${isActive ? 'deactivated' : 'activated'} successfully`);
                 onSuccess();
             } else {
-                toast.error(`Failed to ${isActive ? 'deactivate' : 'activate'} record`);
+                toast.error(response?.message || `Failed to ${isActive ? 'deactivate' : 'activate'} record`);
             }
             onClose();
         } catch (error) {

@@ -1,7 +1,20 @@
 'use client';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import { getApprovalStatus, getStatusAsync, rejectStatusAsync, getApprovedLeave, viewLeaveBalanceHistory, getRequestStatus, getApproveStatusAsync, getPeriodApprovalStatus, periodLeaveStatus } from '@/server/hrms/leave-management/leave-approval';
+import {
+    getApprovalStatus,
+    getStatusAsync,
+    rejectStatusAsync,
+    getApprovedLeave,
+    viewLeaveBalanceHistory,
+    getRequestStatus,
+    getApproveStatusAsync,
+    getPeriodApprovalStatus,
+    periodLeaveStatus,
+    getLeaveAppliedOrApprovalGrid,
+    approveOrRejectLeaveStatus,
+    viewLeaveBalanceHistoryByEmpId
+} from '@/server/hrms/leave-management/leave-approval';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { LeaveApprovalRow } from '@/app/(root)/hrms/leave-management/leave-approval/_components/columns';
@@ -13,18 +26,19 @@ function mapApiDataToLeaveApproval(apiData: any): LeaveApprovalRow | null {
         return null;
     }
     return {
-        id: apiData.HRELAP_Id || apiData.id || apiData.HRELS_Id || 0,
-        employeeCode: apiData.HRME_EmployeeCode || apiData.employeeCode || apiData.EmployeeCode || '',
-        employeeName: apiData.HRME_EmployeeFirstName || 
-                     apiData.employeeName || 
-                     apiData.EmployeeName || 
-                     `${apiData.HRME_EmployeeFirstName || ''} ${apiData.HRME_EmployeeLastName || ''}`.trim() || '',
-        leaveName: apiData.HRML_LeaveName || apiData.leaveName || apiData.LeaveName || '',
-        fromDate: apiData.HRELAP_FromDate || apiData.fromDate || apiData.FromDate || '',
-        toDate: apiData.HRELAP_ToDate || apiData.toDate || apiData.ToDate || '',
-        totalDays: apiData.HRELAP_TotalDays || apiData.totalDays || apiData.TotalDays || 0,
-        leaveStatus: (apiData.HRELAP_ApplicationStatus || apiData.leaveStatus || apiData.LeaveStatus || 'Applied') as 'Applied' | 'Approved' | 'Rejected' | 'Pending',
-        remark: apiData.HRELAP_LeaveReason || apiData.remark || apiData.Remark || ''
+        id: apiData.HRELAP_Id || apiData.hrelaP_Id || apiData.id || 0,
+        hrmE_Id: apiData.HRME_Id || apiData.hrmE_Id || 0,
+        hrelaP_Id: apiData.HRELAP_Id || apiData.hrelaP_Id || 0,
+        employeeCode: apiData.HRME_EmployeeCode || apiData.hrmE_EmployeeCode || '',
+        employeeName: apiData.HRME_EmployeeFirstName ||
+            apiData.hrmE_FullName ||
+            `${apiData.HRME_EmployeeFirstName || ''} ${apiData.HRME_EmployeeLastName || ''}`.trim() || '',
+        leaveName: apiData.HRML_LeaveName || apiData.hrmL_LeaveName || '',
+        fromDate: apiData.HRELAP_FromDate || apiData.hrelaP_FromDate || apiData.hreltD_FromDate || '',
+        toDate: apiData.HRELAP_ToDate || apiData.hrelaP_ToDate || apiData.hreltD_ToDate || '',
+        totalDays: apiData.HRELAP_TotalDays || apiData.hrelapD_TotalDays || apiData.hreltD_TotDays || 0,
+        leaveStatus: (apiData.HRELAP_ApplicationStatus || apiData.hrelT_Status || 'Applied') as 'Applied' | 'Approved' | 'Rejected' | 'Pending',
+        remark: apiData.HRELAP_LeaveReason || apiData.hrelapA_Remarks || ''
     };
 }
 /**
@@ -536,5 +550,68 @@ export function usePeriodLeaveStatus() {
             // Error message from API is already in error.message
             toast.error(error.message || 'Failed to process period leave status');
         }
+    });
+}
+
+/**
+ * Hook to fetch leave applied or approval grid
+ */
+export function useLeaveAppliedOrApprovalGrid() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_APPROVAL, 'grid'],
+            queryFn: async () => {
+                const response = await getLeaveAppliedOrApprovalGrid();
+                if (!response.success) {
+                    throw new Error(response.message);
+                }
+                return response;
+            },
+            staleTime: 0
+        }),
+        refetchAll: () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.LEAVE_APPROVAL] })
+    };
+}
+
+/**
+ * Hook to approve or reject leave status
+ */
+export function useApproveOrRejectLeaveStatus() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (data: any) => {
+            const response = await approveOrRejectLeaveStatus(data);
+            if (!response.success) {
+                throw new Error(response.message);
+            }
+            return response;
+        },
+        onSuccess: (data) => {
+            toast.success(data.message);
+            queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.LEAVE_APPROVAL] });
+        },
+        onError: (error: Error) => {
+            toast.error(error.message);
+        }
+    });
+}
+
+/**
+ * Hook to view leave balance history by employee ID
+ */
+export function useViewLeaveBalanceHistory(hrmeId: number | null) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.LEAVE_APPROVAL, 'balance-history', hrmeId],
+        queryFn: async () => {
+            if (!hrmeId) return null;
+            const response = await viewLeaveBalanceHistoryByEmpId(hrmeId);
+            if (!response.success) {
+                throw new Error(response.message);
+            }
+            return response;
+        },
+        enabled: !!hrmeId,
+        staleTime: 0
     });
 }

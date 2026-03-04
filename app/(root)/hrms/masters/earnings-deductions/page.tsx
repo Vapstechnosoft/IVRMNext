@@ -87,7 +87,7 @@ function MasterEarningsDeductionsPageContent({
                             <option value='all'>All Items</option>
                             <option value='Earning'>Earnings</option>
                             <option value='Deduction'>Deductions</option>
-                            <option value='Arrear'>Arrears</option>
+                            <option value='Arear'>Arear</option>
                             <option value='Gross'>Gross</option>
                         </select>
                     </div>

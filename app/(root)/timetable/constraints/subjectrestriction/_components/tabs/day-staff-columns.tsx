@@ -11,6 +11,7 @@ export interface IDayStaffList {
     asmaY_Year: string;
     ttmD_DayName: string;
     staffName: string;
+    ttrdS_ActiveFlag: boolean;
     // Add other fields if returned by API
 }
 
@@ -43,6 +44,19 @@ export const columns: ColumnDef<IDayStaffList>[] = [
         cell: ({ row }) => <div>{row.getValue('staffName')}</div>
     },
     {
+        accessorKey: 'ttrdS_ActiveFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Active' />,
+        cell: ({ row }) => (
+            <div>
+                {row.original.ttrdS_ActiveFlag ? (
+                    <span className='rounded bg-green-100 px-2 py-1 font-semibold text-green-800 text-xs'>Active</span>
+                ) : (
+                    <span className='rounded bg-red-100 px-2 py-1 font-semibold text-red-800 text-xs'>Inactive</span>
+                )}
+            </div>
+        )
+    },
+    {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
         accessorFn: (row) => row,
@@ -52,7 +66,7 @@ export const columns: ColumnDef<IDayStaffList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IDayStaffList }) {
-    const { openEditForm, openDeleteForm } = useFormContext<IDayStaffList>();
+    const { openEditForm, openToggleForm } = useFormContext<IDayStaffList>();
 
     const handleEdit = useCallback(
         (data: IDayStaffList) => {
@@ -61,12 +75,20 @@ function ActionButtonsCell({ rowData }: { rowData: IDayStaffList }) {
         [openEditForm]
     );
 
-    const handleDelete = useCallback(
+    const handleToggle = useCallback(
         (data: IDayStaffList) => {
-            if (openDeleteForm) openDeleteForm(data);
+            if (openToggleForm) openToggleForm(data);
         },
-        [openDeleteForm]
+        [openToggleForm]
     );
 
-    return <ActionButtons rowData={rowData} buttons={{ edit: true, delete: true }} onEdit={handleEdit} onDelete={handleDelete} />;
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: true, delete: false }}
+            onEdit={handleEdit}
+            onToggle={handleToggle}
+            toggleConditionKey='ttrdS_ActiveFlag'
+        />
+    );
 }

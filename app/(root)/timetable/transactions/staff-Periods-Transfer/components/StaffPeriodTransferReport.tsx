@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { type StaffPeriodTransferValues, staffPeriodTransferSchema } from '@/schemas/timetable/transactions/staffPeriodTransfer';
 import { saveStaffPeriodTransfer } from '@/server/timetable/transactions/staffPeriodTransfer';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CheckSquare, Loader2, Send, Trash2 } from 'lucide-react';
+import { CheckSquare, List, Loader2, Send, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -205,10 +205,16 @@ export default function StaffPeriodTransferReport({ data }: StaffPeriodTransferR
             </div>
 
             {/*Select All button */}
-            <div className='flex items-start justify-end rounded-xl border border-purple-100 bg-slate-50/30 p-2'>
-                <Button size='sm' onClick={handleSelectAll} className='h-8 bg-orange-500 px-2 text-white text-xs hover:bg-orange-600'>
-                    <CheckSquare className='mr-1 h-4 w-4' />
-                    Select All
+            <div className='flex items-center justify-end'>
+                <Button
+                    type='button'
+                    variant='secondary'
+                    onClick={handleSelectAll}
+                    className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-3'>
+                    <div className='flex items-center'>
+                        <List className='mr-2 h-4 w-4' />
+                         Select All
+                    </div>
                 </Button>
             </div>
 
@@ -318,7 +324,7 @@ export default function StaffPeriodTransferReport({ data }: StaffPeriodTransferR
                                             ?.filter((s) => s.hrmE_Id.toString() !== data.hrmE_Id)
                                             .map((s) => (
                                                 <SelectItem key={`staff-${s.hrmE_Id}`} value={String(s.hrmE_Id)}>
-                                                    {s.staffName}
+                                                    {s.staffNamelst}
                                                 </SelectItem>
                                             ))}
                                     </SelectContent>

@@ -2,25 +2,28 @@
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { useToggleSalaryAdvanceStatus } from '@/hooks/hrms/useTransactions';
-import type { SalaryAdvanceItem } from '@/types/hrms/salary-advance';
+import type { SalaryAdvanceGridItem } from '@/types/hrms/salary-advance';
 import { toast } from 'sonner';
+
 interface ActionsCellProps {
-    rowData: SalaryAdvanceItem;
+    rowData: SalaryAdvanceGridItem;
 }
+
 export function ActionsCell({ rowData }: ActionsCellProps) {
-    const { openEditForm } = useFormContext<SalaryAdvanceItem>();
+    const { openEditForm } = useFormContext<SalaryAdvanceGridItem>();
     const toggleMutation = useToggleSalaryAdvanceStatus();
+
     return (
         <ActionButtons
             rowData={rowData}
             buttons={{ edit: true, toggle: true, delete: false }}
-            onEdit={(data: SalaryAdvanceItem) => {
+            onEdit={(data: SalaryAdvanceGridItem) => {
                 openEditForm(data);
             }}
-            onToggle={(data: SalaryAdvanceItem, newState: boolean) => {
+            onToggle={(data: SalaryAdvanceGridItem, newState: boolean) => {
                 toggleMutation.mutate(
                     {
-                        hresaId: data.HRESA_Id,
+                        hresaId: data.hresA_Id,
                         activeFlag: newState
                     },
                     {
@@ -30,7 +33,7 @@ export function ActionsCell({ rowData }: ActionsCellProps) {
                     }
                 );
             }}
-            toggleConditionKey='HRESA_ActiveFlag'
+            toggleConditionKey='hresA_ActiveFlag'
         />
     );
 }

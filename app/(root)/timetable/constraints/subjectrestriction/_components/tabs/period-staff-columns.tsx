@@ -11,6 +11,8 @@ export interface IPeriodStaffList {
     asmaY_Year: string;
     ttmP_PeriodName: string;
     staffName: string;
+    ttrpS_ActiveFlag: boolean;
+    ttrpS_SUbSelcFlag: boolean;
 }
 
 export const columns: ColumnDef<IPeriodStaffList>[] = [
@@ -42,6 +44,28 @@ export const columns: ColumnDef<IPeriodStaffList>[] = [
         cell: ({ row }) => <div>{row.getValue('staffName')}</div>
     },
     {
+        accessorKey: 'ttrpS_SUbSelcFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Restriction Level' />,
+        cell: ({ row }) => (
+            <div className={`font-medium ${row.original.ttrpS_SUbSelcFlag ? 'text-blue-600' : 'text-green-600'}`}>
+                {row.original.ttrpS_SUbSelcFlag ? 'Class-Section Wise' : 'General'}
+            </div>
+        )
+    },
+    {
+        accessorKey: 'ttrpS_ActiveFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+        cell: ({ row }) => (
+            <div>
+                {row.original.ttrpS_ActiveFlag ? (
+                    <span className='rounded bg-green-100 px-2 py-1 font-semibold text-green-800 text-xs'>Active</span>
+                ) : (
+                    <span className='rounded bg-red-100 px-2 py-1 font-semibold text-red-800 text-xs'>Inactive</span>
+                )}
+            </div>
+        )
+    },
+    {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
         accessorFn: (row) => row,
@@ -51,7 +75,7 @@ export const columns: ColumnDef<IPeriodStaffList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IPeriodStaffList }) {
-    const { openEditForm, openDeleteForm } = useFormContext<IPeriodStaffList>();
+    const { openEditForm, openToggleForm } = useFormContext<IPeriodStaffList>();
 
     const handleEdit = useCallback(
         (data: IPeriodStaffList) => {
@@ -60,12 +84,20 @@ function ActionButtonsCell({ rowData }: { rowData: IPeriodStaffList }) {
         [openEditForm]
     );
 
-    const handleDelete = useCallback(
+    const handleToggle = useCallback(
         (data: IPeriodStaffList) => {
-            if (openDeleteForm) openDeleteForm(data);
+            if (openToggleForm) openToggleForm(data);
         },
-        [openDeleteForm]
+        [openToggleForm]
     );
 
-    return <ActionButtons rowData={rowData} buttons={{ edit: true, delete: true }} onEdit={handleEdit} onDelete={handleDelete} />;
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: true, delete: false }}
+            onEdit={handleEdit}
+            onToggle={handleToggle}
+            toggleConditionKey='ttrpS_ActiveFlag'
+        />
+    );
 }

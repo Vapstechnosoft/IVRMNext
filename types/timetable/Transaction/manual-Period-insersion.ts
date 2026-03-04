@@ -35,3 +35,10 @@ export interface ManualPeriodInsertionMasters {
     staff: Staff[];
     subjects: Subject[];
 }
+
+export interface ClassDropdownDatamanualPeriodInsertion {
+    asmcL_Id: number;
+    ttmC_Id: number;
+    ttmC_CategoryName: string;
+    asmcL_ClassName: string;
+}

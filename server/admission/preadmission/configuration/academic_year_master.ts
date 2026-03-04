@@ -14,17 +14,22 @@ export async function getPreAdmissionYear(searchParams?: ApiSearchparams) {
 }
 
 export async function getPreAdmissionSetOrder() {
-    const url = '/configuration/academic_year/set_order_list';
+    const url = '/configuration/academic_year_set_order_list';
     return await api.get<IMasterSetOrderList[]>('preadmission', url);
 }
 
 export async function addOrUpdatePreAdmissionYear(data: any) {
-    const url = '/configuration/academic_year';
+    const url = '/configuration/AddOrUpdateAcademicYear';
     return await api.post<any>('preadmission', url, data);
 }
 export async function togglePreAdmissionAcademicYear(id: number) {
     const url = `/configuration/academic_year/toggle/${id}`;
     return await api.put('preadmission', url);
+}
+
+export async function getInstitutionList() {
+    const url = '/configuration/institution_list';
+    return await api.get<{ mI_Id: number; mI_Name: string }[]>('preadmission', url);
 }
 
 export async function updateAcademicYearSetorder(data: any) {

@@ -19,7 +19,6 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function CategoryClassMappingPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useYearlyCategorySubjectMapping(searchParams);
-
     return (
         <FormProvider<IYearlyCategorySubjectMapping>>
             <CategoryClassMappingPageContent categorydata={response} isLoading={isLoading} error={error} />

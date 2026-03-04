@@ -3,7 +3,7 @@
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useEligibilityCertificateReport } from '@/hooks/sports/useEligibilityCertificateReport';
-import { IEligibilityCertificateReportDetail } from '@/types/sports/reports/eligibility-certificate-report';
+import type { IEligibilityCertificateReportDetail } from '@/types/sports/reports/eligibility-certificate-report';
 import { useEffect, useState } from 'react';
 import { columns } from './_components/columns';
 import ReportForm from './_components/report-form';

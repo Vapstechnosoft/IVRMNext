@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -33,12 +33,16 @@ export function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
         const fetchData = async () => {
             setLoading(true);
             try {
+                console.log('selectedRow', selectedRow);
                 const groups = await getStudentFeeSummaryById(
                     selectedRow.academicYearId,
                     // 16035
                     selectedRow.studentId
                 );
+
+                console.log('groups', groups);
                 setFeeGroups(groups);
+                originalFeeGroupsRef.current = JSON.parse(JSON.stringify(groups));
             } catch (err) {
                 console.error(err);
                 setFeeGroups([]);
@@ -49,21 +53,48 @@ export function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
 
         fetchData();
     }, [isEditFormOpen, selectedRow]);
-
+    const originalFeeGroupsRef = useRef<StudentFeeGroupSummaryById[]>([]);
     const submit = async () => {
         setSubmitting(true);
         const buildPayload = () => {
             const mappings: any[] = [];
-
+            const originalGroups = originalFeeGroupsRef.current;
             feeGroups.forEach((group) => {
+                if (!group.checked) return;
                 group.heads.forEach((head) => {
+                    if (!head.checked) return;
                     head.installments.forEach((inst) => {
+                        if (!inst.checked) return;
                         mappings.push({
                             fmG_Id: group.fmG_Id,
                             fmH_Id: head.fmH_Id,
                             ftI_Id: inst.ftI_Id,
                             isSelected: inst.checked === true
                         });
+                    });
+                });
+            });
+            feeGroups.forEach((group) => {
+                const originalGroup = originalGroups.find((g: any) => g.fmG_Id === group.fmG_Id);
+                if (!originalGroup) return;
+
+                group.heads.forEach((head) => {
+                    const originalHead = originalGroup.heads.find((h: any) => h.fmH_Id === head.fmH_Id);
+                    if (!originalHead) return;
+
+                    head.installments.forEach((inst) => {
+                        const originalInst = originalHead.installments.find((i: any) => i.ftI_Id === inst.ftI_Id);
+                        if (!originalInst) return;
+
+                        // ✅ ONLY if checked value changed
+                        if (inst.checked !== originalInst.checked) {
+                            mappings.push({
+                                fmG_Id: group.fmG_Id,
+                                fmH_Id: head.fmH_Id,
+                                ftI_Id: inst.ftI_Id,
+                                isSelected: inst.checked
+                            });
+                        }
                     });
                 });
             });
@@ -76,23 +107,43 @@ export function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
                 mappings
             };
         };
-
+        console.log('Payload to update:', JSON.stringify(buildPayload()));
         const payload = buildPayload();
         try {
             const response = await updtaeStudentFeeGroupMapping(payload);
             if (response?.success) {
-                toast.success(response.message || 'Updated successfully');
-                // handleReset();
+                console.log('response', response);
+                toast.success(response.message);
+                // // handleReset();
                 await refetchAll();
                 onSuccess?.();
+
+                // setTimeout(() => {
+                //     //toast.success(response.message);
+                //     toast.success('Successfully Updated');
+                //     refetchAll();
+                //     onSuccess?.();
+                //     // You can also do other things here after the delay
+                //     // await refetchAll();
+                //     // onSuccess?.();
+                // }, 60000);
             } else {
-                toast.error(response?.message || 'Update failed');
+                // toast.success('Successfully Updated');
+                toast.error(response?.message);
+
+                // setTimeout(() => {
+                //     // toast.error(response?.message);
+                //     toast.success('Successfully Updated');
+                //     refetchAll();
+                //     onSuccess?.();
+                // }, 120000);
             }
         } catch (err: any) {
             console.error('API Error:', err);
-            toast.error(err?.message || 'Something went wrong');
+            //toast.error(err?.message);
         }
-        setSubmitting(false);
+        setSubmitting(true);
+        //setSubmitting(false);
     };
 
     const toggleGroup = (id: number) => setCollapsedGroups((prev) => ({ ...prev, [id]: !prev[id] }));

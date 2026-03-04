@@ -543,14 +543,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Date Of Birth Report',
                                             description: 'Date Of Birth Report'
                                         },
-                                        {
-                                            id: 12,
-                                            name: 'Overall Daily Attendance Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/overall-daily-attendance-report',
-                                            title: 'Overall Daily Attendance Report',
-                                            description: 'Overall Daily Attendance Report'
-                                        },
+                                        // {
+                                        //     id: 12,
+                                        //     name: 'Overall Daily Attendance Report',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/reports/overall-daily-attendance-report',
+                                        //     title: 'Overall Daily Attendance Report',
+                                        //     description: 'Overall Daily Attendance Report'
+                                        // },
                                         {
                                             id: 13,
                                             name: 'Student Attendance Report',
@@ -1565,21 +1565,78 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Report_Card_X',
                                             title: 'Report Card_X',
                                             description: 'Report Card_X'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 1,
-                                    name: 'AI Performance Analysis',
-                                    icon: 'BarChart',
-                                    pages: [
+                                        },
                                         {
-                                            id: 1,
+                                            id: 89,
                                             name: 'AI Performance Analysis',
-                                            icon: 'BarChart',
+                                            icon: 'Sparkles',
                                             url: '/Exam/exam-module/ai-performance-analysis',
                                             title: 'AI Performance Analysis',
-                                            description: 'Analyze performance metrics and AI-driven insights'
+                                            description: 'AI-driven student performance analysis and insights'
+                                        },
+                                        {
+                                            id: 90,
+                                            name: 'Stella Progress Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/stella_prograss_report',
+                                            title: 'Stella Progress Report',
+                                            description: 'Manage Stella Progress Card Report Details'
+                                        },
+                                        {
+                                            id: 91,
+                                            name: 'Stella Marks Entry Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/stella_marks_entry_report',
+                                            title: 'Stella Marks Entry Report',
+                                            description: 'Manage Stella Marks Entry Report Details'
+                                        },
+                                        {
+                                            id: 92,
+                                            name: 'Vidyaniketan Performance Ananlysis Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/vidyaniketan-performance-analysis-report',
+                                            title: 'Vidyaniketan Performance Ananlysis Report',
+                                            description: 'Manage Vidyaniketan Performance Ananlysis Report Details'
+                                        },
+                                        {
+                                            id: 93,
+                                            name: 'Vidyaniketan Progress Card Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/vidyaniketan-progress-card-report',
+                                            title: 'Vidyaniketan Progress Card Report',
+                                            description: 'Manage Vidyaniketan Progress Card Report Details'
+                                        },
+                                        {
+                                            id: 94,
+                                            name: 'Vidyaniketan I-VIII Card Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/vidyaniketan-report-card-I-VIII',
+                                            title: 'Vidyaniketan I-VIII Card Report',
+                                            description: 'Manage Vidyaniketan I-VIII Card Report Details'
+                                        },
+                                        {
+                                            id: 95,
+                                            name: 'Sophia IX-X Card Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/sophia-report-card-IX-X',
+                                            title: 'Sophia IX-X Card Report',
+                                            description: 'Manage Sophia IX-X Card Report Details'
+                                        },
+                                        {
+                                            id: 96,
+                                            name: 'Sophia Pre-II Card Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/sophia-report-card-pre-II',
+                                            title: 'Sophia Pre-II Card Report',
+                                            description: 'Manage Sophia Pre-II Card Report Details'
+                                        },
+                                        {
+                                            id: 97,
+                                            name: 'Sophia Topper List Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/sophia-topper-list-report',
+                                            title: 'Sophia Topper List Report',
+                                            description: 'Manage Sophia Topper List Report Details'
                                         }
                                     ]
                                 }
@@ -1740,7 +1797,21 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-
+                                {
+                                    id: 5,
+                                    name: 'User Creation',
+                                    icon: 'UserPlus',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Staff User Creation',
+                                            icon: 'UserPlus',
+                                            url: '/SuperAdmin/super-admin-module/user-creation/staff-user-creation',
+                                            title: 'Staff User Creation',
+                                            description: 'Manage Institution Staff User Details'
+                                        }
+                                    ]
+                                },
                                 {
                                     id: 2,
                                     name: 'Employee',
@@ -1757,7 +1828,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 3,
+                                    id: 7,
                                     name: 'Transactions',
                                     icon: 'FileText',
                                     pages: [
@@ -1801,14 +1872,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Mass Updation',
                                             description: 'Bulk Update Employee Data'
                                         },
-                                        // {
-                                        //     id: 6,
-                                        //     name: 'Salary Advance',
-                                        //     icon: 'DollarSign',
-                                        //     url: '/hrms/transactions/salary-advance',
-                                        //     title: 'Salary Advance',
-                                        //     description: 'Manage Salary Advances'
-                                        // },
+                                        {
+                                            id: 6,
+                                            name: 'Salary Advance',
+                                            icon: 'DollarSign',
+                                            url: '/hrms/transactions/salary-advance',
+                                            title: 'Salary Advance',
+                                            description: 'Manage Salary Advances'
+                                        },
                                         {
                                             id: 7,
                                             name: 'Employee Loan',
@@ -1820,7 +1891,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 4,
+                                    id: 6,
                                     name: 'Reports',
                                     icon: 'FileText',
                                     pages: [
@@ -1832,6 +1903,21 @@ export async function getUserAccessibleModules() {
                                             title: 'Cumulative Salary Report',
                                             description: 'Cumulative Salary Analysis'
                                         },
+
+                                        {
+                                            id: 23,
+
+                                            name: 'Employee Details Report',
+
+                                            icon: 'FileText',
+
+                                            url: '/hrms/reports/employeeDetailsReport',
+
+                                            title: 'Employee Details Report',
+
+                                            description: 'Detailed Employee Information Report'
+                                        },
+
                                         //,
                                         // {
                                         //     id: 2,
@@ -1865,14 +1951,14 @@ export async function getUserAccessibleModules() {
                                             title: 'E-PF Contribution Register',
                                             description: 'E-PF Contribution Register Report'
                                         },
-                                        // {
-                                        //     id: 6,
-                                        //     name: 'Employee Salary Details',
-                                        //     icon: 'DollarSign',
-                                        //     url: '/hrms/reports/employee-salary-details',
-                                        //     title: 'Employee Salary Details',
-                                        //     description: 'Detailed Salary Information'
-                                        // },
+                                        {
+                                            id: 6,
+                                            name: 'Employee Salary Details',
+                                            icon: 'DollarSign',
+                                            url: '/hrms/reports/employee-salary-details',
+                                            title: 'Employee Salary Details',
+                                            description: 'Detailed Salary Information'
+                                        },
                                         {
                                             id: 7,
                                             name: 'Employee Strength',
@@ -2014,7 +2100,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
-                        }
+                        },
                         // ,
                         // {
                         //     id: 2,
@@ -2327,7 +2413,8 @@ export async function getUserAccessibleModules() {
                         //         }
                         //     ]
                         // },
-                        // ,{
+
+                        // , {
                         //     id: 4,
                         //     name: 'Leave Management',
                         //     icon: 'Calendar',
@@ -2438,6 +2525,14 @@ export async function getUserAccessibleModules() {
                         //                     url: '/hrms/leave-management/transaction/leave-opening-balance',
                         //                     title: 'Leave Opening Balance',
                         //                     description: 'Manage Leave Opening Balance'
+                        //                 },
+                        //                 {
+                        //                     id: 7,
+                        //                     name: 'Admin On Duty Apply',
+                        //                     icon: 'Briefcase',
+                        //                     url: '/hrms/leave-management/transaction/admin-on-duty-apply',
+                        //                     title: 'Admin On Duty Apply',
+                        //                     description: 'Apply for On Duty Leave'
                         //                 }
                         //             ]
                         //         },
@@ -2474,6 +2569,356 @@ export async function getUserAccessibleModules() {
                         //         }
                         //     ]
                         // }
+
+                        {
+                            id: 4,
+                            name: 'Leave Management',
+                            icon: 'Calendar',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Masters',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Leave',
+                                            icon: 'Calendar',
+                                            url: '/hrms/leave-management/masters/master-leave',
+                                            title: 'Master Leave',
+                                            description: 'Manage Leave Types'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Leave Authorization',
+                                            icon: 'Shield',
+                                            url: '/hrms/leave-management/masters/leave-authorization',
+                                            title: 'Leave Authorization',
+                                            description: 'Configure Leave Approvers'
+                                        }
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Master Leave Year',
+                                        //     icon: 'CalendarRange',
+                                        //     url: '/hrms/leave-management/masters/master-leaveYear',
+                                        //     title: 'Master Leave Year',
+                                        //     description: 'Manage Leave Year'
+                                        // }
+                                    ]
+                                },
+                                {
+                                    id: 4,
+                                    name: 'Leave Config',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Leave Configuration',
+                                            icon: 'CheckSquare',
+                                            url: '/hrms/leave-management/leave-Configuration',
+                                            title: 'Leave Configuration',
+                                            description: 'Leave Configuration'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Apply Leave',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Apply Leave',
+                                            icon: 'FilePlus',
+                                            url: '/hrms/leave-management/apply-leave',
+                                            title: 'Apply Leave',
+                                            description: 'Submit Leave Application'
+                                        }
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Leave Approval',
+                                        //     icon: 'CheckCircle',
+                                        //     url: '/hrms/leave-management/leave-approval',
+                                        //     title: 'Leave Approval',
+                                        //     description: 'Approve or Reject Leave Requests'
+                                        // }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Transaction',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Leave Transfer',
+                                            icon: 'Plus',
+                                            url: '/hrms/leave-management/transaction/leave-transfer',
+                                            title: 'Leave Transfer',
+                                            description: 'Transfer Leave'
+                                        },
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Comp Off Approval',
+                                        //     icon: 'CheckSquare',
+                                        //     url: '/hrms/leave-management/transaction/comp-off-approval',
+                                        //     title: 'Comp Off Approval',
+                                        //     description: 'Approve Compensatory Off'
+                                        // },
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Comp Off Request',
+                                        //     icon: 'FileText',
+                                        //     url: '/hrms/leave-management/transaction/comp-off-request',
+                                        //     title: 'Comp Off Request',
+                                        //     description: 'Request Compensatory Off'
+                                        // },
+                                        // {
+                                        //     id: 4,
+                                        //     name: 'Leave Credit Details',
+                                        //     icon: 'Info',
+                                        //     url: '/hrms/leave-management/transaction/leave-credit-details',
+                                        //     title: 'Leave  Details',
+                                        //     description: 'View Leave Credit Details'
+                                        // },
+                                        {
+                                            id: 5,
+                                            name: 'Leave Transaction',
+                                            icon: 'List',
+                                            url: '/hrms/leave-management/transaction/leave-credit-transaction',
+                                            title: 'Leave Transaction',
+                                            description: 'Leave Transaction'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Leave Opening Balance',
+                                            icon: 'Database',
+                                            url: '/hrms/leave-management/transaction/leave-opening-balance',
+                                            title: 'Leave Opening Balance',
+                                            description: 'Manage Leave Opening Balance'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Admin On Duty Apply',
+                                            icon: 'Briefcase',
+                                            url: '/hrms/leave-management/transaction/admin-on-duty-apply',
+                                            title: 'Admin On Duty Apply',
+                                            description: 'Apply for On Duty Leave'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Online Admin Leave',
+                                            icon: 'Briefcase',
+                                            url: '/hrms/leave-management/transaction/online-admin-leave',
+                                            title: 'Online Admin Leave',
+                                            description: 'Apply for On Duty Leave'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 5,
+                                    name: 'Report',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Leave Report',
+                                            icon: 'FileSearch',
+                                            url: '/hrms/leave-management/reports/leave-report',
+                                            title: 'Leave Report',
+                                            description: 'Leave Summary Report'
+                                        }
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Overall Report',
+                                        //     icon: 'BarChart3',
+                                        //     url: '/hrms/leave-management/reports/overAll-report',
+                                        //     title: 'Overall Report',
+                                        //     description: 'Overall Leave Analysis'
+                                        // },
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Unauthorized Leave Report',
+                                        //     icon: 'AlertTriangle',
+                                        //     url: '/hrms/leave-management/reports/unauthorizedLeaveCount-report',
+                                        //     title: 'Unauthorized Leave Report',
+                                        //     description: 'Unauthorized Leave Count'
+                                        // }
+                                    ]
+                                }
+                            ]
+                        }
+                        // {
+                        //     id: 4,
+                        //     name: 'Leave Management',
+                        //     icon: 'Calendar',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'Masters',
+                        //             icon: 'Database',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Master Leave',
+                        //                     icon: 'Calendar',
+                        //                     url: '/hrms/leave-management/masters/master-leave',
+                        //                     title: 'Master Leave',
+                        //                     description: 'Manage Leave Types'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Leave Authorization',
+                        //                     icon: 'Shield',
+                        //                     url: '/hrms/leave-management/masters/leave-authorization',
+                        //                     title: 'Leave Authorization',
+                        //                     description: 'Configure Leave Approvers'
+                        //                 }
+                        //                 // {
+                        //                 //     id: 3,
+                        //                 //     name: 'Master Leave Year',
+                        //                 //     icon: 'CalendarRange',
+                        //                 //     url: '/hrms/leave-management/masters/master-leaveYear',
+                        //                 //     title: 'Master Leave Year',
+                        //                 //     description: 'Manage Leave Year'
+                        //                 // }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 4,
+                        //             name: 'Leave Config',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Leave Configuration',
+                        //                     icon: 'CheckSquare',
+                        //                     url: '/hrms/leave-management/leave-Configuration',
+                        //                     title: 'Leave Configuration',
+                        //                     description: 'Leave Configuration'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 2,
+                        //             name: 'Apply Leave',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Apply Leave',
+                        //                     icon: 'FilePlus',
+                        //                     url: '/hrms/leave-management/apply-leave',
+                        //                     title: 'Apply Leave',
+                        //                     description: 'Submit Leave Application'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Leave Approval',
+                        //                     icon: 'CheckCircle',
+                        //                     url: '/hrms/leave-management/leave-approval',
+                        //                     title: 'Leave Approval',
+                        //                     description: 'Approve or Reject Leave Requests'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 3,
+                        //             name: 'Transaction',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Leave Transfer',
+                        //                     icon: 'Plus',
+                        //                     url: '/hrms/leave-management/transaction/leave-transfer',
+                        //                     title: 'Leave Transfer',
+                        //                     description: 'Transfer Leave'
+                        //                 },
+                        //                 // {
+                        //                 //     id: 2,
+                        //                 //     name: 'Comp Off Approval',
+                        //                 //     icon: 'CheckSquare',
+                        //                 //     url: '/hrms/leave-management/transaction/comp-off-approval',
+                        //                 //     title: 'Comp Off Approval',
+                        //                 //     description: 'Approve Compensatory Off'
+                        //                 // },
+                        //                 // {
+                        //                 //     id: 3,
+                        //                 //     name: 'Comp Off Request',
+                        //                 //     icon: 'FileText',
+                        //                 //     url: '/hrms/leave-management/transaction/comp-off-request',
+                        //                 //     title: 'Comp Off Request',
+                        //                 //     description: 'Request Compensatory Off'
+                        //                 // },
+                        //                 // {
+                        //                 //     id: 4,
+                        //                 //     name: 'Leave Credit Details',
+                        //                 //     icon: 'Info',
+                        //                 //     url: '/hrms/leave-management/transaction/leave-credit-details',
+                        //                 //     title: 'Leave  Details',
+                        //                 //     description: 'View Leave Credit Details'
+                        //                 // },
+                        //                 {
+                        //                     id: 5,
+                        //                     name: 'Leave Transaction',
+                        //                     icon: 'List',
+                        //                     url: '/hrms/leave-management/transaction/leave-credit-transaction',
+                        //                     title: 'Leave Transaction',
+                        //                     description: 'Leave Transaction'
+                        //                 },
+                        //                 {
+                        //                     id: 6,
+                        //                     name: 'Leave Opening Balance',
+                        //                     icon: 'Database',
+                        //                     url: '/hrms/leave-management/transaction/leave-opening-balance',
+                        //                     title: 'Leave Opening Balance',
+                        //                     description: 'Manage Leave Opening Balance'
+                        //                 },
+                        //                 {
+                        //                     id: 7,
+                        //                     name: 'Admin On Duty Apply',
+                        //                     icon: 'Briefcase',
+                        //                     url: '/hrms/leave-management/transaction/admin-on-duty-apply',
+                        //                     title: 'Admin On Duty Apply',
+                        //                     description: 'Apply for On Duty Leave'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 5,
+                        //             name: 'Report',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Leave Report',
+                        //                     icon: 'FileSearch',
+                        //                     url: '/hrms/leave-management/reports/leave-report',
+                        //                     title: 'Leave Report',
+                        //                     description: 'Leave Summary Report'
+                        //                 }
+                        //                 // {
+                        //                 //     id: 2,
+                        //                 //     name: 'Overall Report',
+                        //                 //     icon: 'BarChart3',
+                        //                 //     url: '/hrms/leave-management/reports/overAll-report',
+                        //                 //     title: 'Overall Report',
+                        //                 //     description: 'Overall Leave Analysis'
+                        //                 // },
+                        //                 // {
+                        //                 //     id: 3,
+                        //                 //     name: 'Unauthorized Leave Report',
+                        //                 //     icon: 'AlertTriangle',
+                        //                 //     url: '/hrms/leave-management/reports/unauthorizedLeaveCount-report',
+                        //                 //     title: 'Unauthorized Leave Report',
+                        //                 //     description: 'Unauthorized Leave Count'
+                        //                 // }
+                        //             ]
+                        //         }
+                        //     ]
+                        // }
+
                         // {
                         //     id: 5,
                         //     name: 'Exit Management',
@@ -2574,37 +3019,81 @@ export async function getUserAccessibleModules() {
                         // }
                     ]
                 },
-
                 {
                     id: 5,
-                    name: 'IFrame',
-                    icon: 'Users',
+                    name: 'AI Edge',
+                    icon: 'Sparkles',
                     menu: [
                         {
                             id: 1,
-                            name: 'IFrame',
+                            name: 'AI Edge',
                             icon: 'BookOpen',
                             sub_menu: [
                                 {
                                     id: 1,
-                                    name: 'IFrame',
+                                    name: 'AI Tools',
                                     icon: 'Database',
                                     pages: [
                                         {
                                             id: 1,
-                                            name: 'AI Assignment',
-                                            icon: 'BookOpen',
-                                            url: '/iframe/ai-assignment',
-                                            title: 'IFrame',
-                                            description: 'Manage AI Assignment Details'
+                                            name: 'Question Paper Generator',
+                                            icon: 'FileText',
+                                            url: '/iframe/ai-question-paper-generator',
+                                            title: 'AI Question Paper Generator',
+                                            description: 'Generate question papers from textbooks using AI'
                                         },
                                         {
                                             id: 2,
-                                            name: 'Question Generator',
-                                            icon: 'BookOpen',
-                                            url: '/iframe/question-generator',
-                                            title: 'IFrame',
-                                            description: 'Manage Question Generator Details'
+                                            name: 'AI Notemaker',
+                                            icon: 'FileText',
+                                            url: '/iframe/ai-notemaker',
+                                            title: 'AI Notemaker',
+                                            description: 'Summarize and create structured notes from textbooks using AI'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'AI Performance Analysis',
+                                            icon: 'BarChart',
+                                            url: '/Exam/exam-module/ai-performance-analysis',
+                                            title: 'AI Performance Analysis',
+                                            description: 'Analyze performance metrics and AI-driven insights'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 9001,
+                    name: 'Visual Insights',
+                    icon: 'bar-chart-3',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Visual Insights',
+                            icon: 'bar-chart-3',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Visual Insights Tools',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Custom Templates',
+                                            icon: 'FileText',
+                                            url: '/visual-insights/custom-templates',
+                                            title: 'Custom Templates',
+                                            description: 'Create and manage custom templates for visual insights'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Statistical Analysis',
+                                            icon: 'FileText',
+                                            url: '/visual-insights/statistics-graphs',
+                                            title: 'Statistical Analysis',
+                                            description: 'Analyze data and generate statistical insights'
                                         }
                                     ]
                                 }
@@ -3021,313 +3510,306 @@ export async function getUserAccessibleModules() {
                 //     ]
                 // },
 
-                // {
-                //     id: 6,
-                //     name: 'Time Table',
-                //     icon: 'Clock',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Time Table',
-                //             icon: 'Clock',
-                //             sub_menu: [
-                //                 // {
-                //                 //     id: 4,
-                //                 //     name: 'Configuration',
-                //                 //     icon: 'BadgeIndianRupee',
-                //                 //     pages: [
-                //                 //         {
-                //                 //             id: 21,
-                //                 //             name: 'Fee configuration',
-                //                 //             icon: 'BadgeIndianRupee',
-                //                 //             url: '/fees/configuration/masterfeeconfig',
-                //                 //             title: 'Fee configuration',
-                //                 //             description: 'Fee configuration'
-                //                 //         }
-                //                 //     ]
-                //                 // },
-                //                 {
-                //                     id: 1,
-                //                     name: 'Masters',
-                //                     icon: 'Clock',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Master Day',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/masterday',
-                //                             title: 'Master Day',
-                //                             description: 'Manage Master Day Details'
-                //                         },
-                //                         {
-                //                             id: 9,
-                //                             name: 'Master Day Class Wise',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/masterdayclasswise',
-                //                             title: 'Master Day Class Wise',
-                //                             description: 'Manage Master Day Class Wise Details'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Master Building',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/masterbuilding',
-                //                             title: 'Master Building',
-                //                             description: 'Manage Master Building Details'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Staff Abbreviation',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/staffabbreviations',
-                //                             title: 'Staff Abbreviation',
-                //                             description: 'Manage Staff Abbreviation Details'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Subject Abbreviation',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/subjectabbreviations',
-                //                             title: 'Subject Abbreviation',
-                //                             description: 'Manage Subject Abbreviation Details'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Category Class Mapping',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/categoryclassmapping',
-                //                             title: 'Category Class Mapping',
-                //                             description: 'Manage Category Class Mapping Details'
-                //                         },
-                //                         {
-                //                             id: 6,
-                //                             name: 'Master Category',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/mastercategory',
-                //                             title: 'Master Category',
-                //                             description: 'Manage Master Category Details'
-                //                         },
-                //                         {
-                //                             id: 7,
-                //                             name: 'Master Break Time Settings',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/breaktimesettings',
-                //                             title: 'Master Break Time Settings',
-                //                             description: 'Manage Master Break Time Settings Details'
-                //                         },
-                //                         {
-                //                             id: 8,
-                //                             name: 'Master Period',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/masterperiod',
-                //                             title: 'Master Period',
-                //                             description: 'Manage Master Period Details'
-                //                         },
+                {
+                    id: 6,
+                    name: 'Time Table',
+                    icon: 'Clock',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Time Table',
+                            icon: 'Clock',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Masters',
+                                    icon: 'Clock',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Day',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterday',
+                                            title: 'Master Day',
+                                            description: 'Manage Master Day Details'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Master Day Class Wise',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterdayclasswise',
+                                            title: 'Master Day Class Wise',
+                                            description: 'Manage Master Day Class Wise Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Master Building',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterbuilding',
+                                            title: 'Master Building',
+                                            description: 'Manage Master Building Details'
+                                        },
+                                        {
+                                            id: 11111111,
+                                            name: 'Master Building Class Section',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterbuildingclasssection',
+                                            title: 'Master Building Class Section',
+                                            description: 'Manage Master Building Class Section Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Staff Abbreviation',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/staffabbreviations',
+                                            title: 'Staff Abbreviation',
+                                            description: 'Manage Staff Abbreviation Details'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Subject Abbreviation',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/subjectabbreviations',
+                                            title: 'Subject Abbreviation',
+                                            description: 'Manage Subject Abbreviation Details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Category Class Mapping',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/categoryclassmapping',
+                                            title: 'Category Class Mapping',
+                                            description: 'Manage Category Class Mapping Details'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Master Category',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/mastercategory',
+                                            title: 'Master Category',
+                                            description: 'Manage Master Category Details'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Master Break Time Settings',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/breaktimesettings',
+                                            title: 'Master Break Time Settings',
+                                            description: 'Manage Master Break Time Settings Details'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Master Period',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterperiod',
+                                            title: 'Master Period',
+                                            description: 'Manage Master Period Details'
+                                        },
 
-                //                         {
-                //                             id: 10,
-                //                             name: 'Period Distribution',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/perioddistribution',
-                //                             title: 'Period Distribution',
-                //                             description: 'Manage Period Distribution Details'
-                //                         },
-                //                         {
-                //                             id: 11,
-                //                             name: 'Period Allocation Master Period',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/periodallocationmasterperiod',
-                //                             title: 'Period Allocation Master Period',
-                //                             description: 'Manage Period Allocation Master Period Details'
-                //                         },
-                //                         {
-                //                             id: 12,
-                //                             name: 'Master Period Class',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/masterperiodclass',
-                //                             title: 'Master Period Class',
-                //                             description: 'Manage Master Period Class Details'
-                //                         },
+                                        {
+                                            id: 10,
+                                            name: 'Period Distribution',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/perioddistribution',
+                                            title: 'Period Distribution',
+                                            description: 'Manage Period Distribution Details'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Period Allocation Master Period',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/periodallocationmasterperiod',
+                                            title: 'Period Allocation Master Period',
+                                            description: 'Manage Period Allocation Master Period Details'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Master Period Class',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterperiodclass',
+                                            title: 'Master Period Class',
+                                            description: 'Manage Master Period Class Details'
+                                        },
 
-                //                         {
-                //                             id: 13,
-                //                             name: 'Period Time Setting',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/periodtimesetting',
-                //                             title: 'Period Time Setting',
-                //                             description: 'Manage Period Time Settings'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 3,
-                //                     name: 'Constraints',
-                //                     icon: 'Clock',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Bifurcation Constraints',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/constraints/bifurcationconstraints',
-                //                             title: 'Bifurcation Constraints',
-                //                             description: 'Manage Bifurcation Constraints Details'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'consecutive',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/constraints/consecutive',
-                //                             title: 'Consecutive Constraints',
-                //                             description: 'Manage Consecutive Constraints Details'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Fixing',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/constraints/fixing',
-                //                             title: 'Fixing Constraints',
-                //                             description: 'Manage Fixing Constraints Details'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Lab Constraints',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/constraints/labconstraints',
-                //                             title: 'Lab Constraints',
-                //                             description: 'Manage Lab Constraints Details'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Subject Restrictions',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/constraints/subjectrestriction',
-                //                             title: 'Subject Restrictions',
-                //                             description: 'Manage Subject Restrictions Details'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 4,
-                //                     name: 'Transactions',
-                //                     icon: 'Clock',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Class Section Time Table Report',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/class-section-report/class-section-report',
-                //                             title: 'Class Section Time Table Report',
-                //                             description: 'View and generate class-wise timetable grids'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Deputation',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/deputation',
-                //                             title: 'Deputation',
-                //                             description: 'ABSENT STAFF ALLOTMENT DETAILS'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Manual Period Insertion',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/manual-Period-insersion',
-                //                             title: 'Manual Period Insertion',
-                //                             description: 'ABSENT STAFF ALLOTMENT DETAILS'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Staff Period Transfer',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/staff-Periods-Transfer',
-                //                             title: 'Staff Period Transfer',
-                //                             description: 'Transfer Staff Periods Between Classes and Sections'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Staff Replacement Existing To New',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/staff-replacement-existing-to-new',
-                //                             title: 'Staff Replacement Existing To New',
-                //                             description: 'Replacing staff Existing To New'
-                //                         },
-                //                         {
-                //                             id: 6,
-                //                             name: 'Staff Replacement In Their TimeTable',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/staff-replacement-In-their-timeTable',
-                //                             title: 'Staff Replacement In Their TimeTable',
-                //                             description: 'Staff Replacement In Their TimeTable'
-                //                         },
-                //                         {
-                //                             id: 7,
-                //                             name: 'Staff Replacement In Unallocated Period',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/staff-replacement-in-unallocated-period',
-                //                             title: 'Staff Replacement In Unallocated Period',
-                //                             description: 'Staff Replacement In Unallocated Period'
-                //                         },
-                //                         {
-                //                             id: 8,
-                //                             name: 'Time Table Generation',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/time-table-generation',
-                //                             title: 'Time Table Generation',
-                //                             description: 'Time Table Generation'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 2,
-                //                     name: 'Reports',
-                //                     icon: 'Clock',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Consolidated Report',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/reports/consolidated',
-                //                             title: 'Consolidated Report',
-                //                             description: 'TimeTable Consolidated Report'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Class Wise TimeTable',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/reports/classwisett',
-                //                             title: 'Class Wise TimeTable',
-                //                             description: 'Class Wise TimeTable Report'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Subject Wise TimeTable',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/reports/subjectwisett',
-                //                             title: 'Subject Wise TimeTable',
-                //                             description: 'Subject Wise TimeTable Report'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Staff Wise TimeTable',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/reports/staffwisett',
-                //                             title: 'Staff Wise TimeTable',
-                //                             description: 'Staff Wise TimeTable Report'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Deputation Report',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/reports/deputationreport',
-                //                             title: 'Deputation Report',
-                //                             description: 'Deputation Report'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
+                                        {
+                                            id: 13,
+                                            name: 'Period Time Setting',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/periodtimesetting',
+                                            title: 'Period Time Setting',
+                                            description: 'Manage Period Time Settings'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Constraints',
+                                    icon: 'Clock',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Bifurcation Constraints',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/bifurcationconstraints',
+                                            title: 'Bifurcation Constraints',
+                                            description: 'Manage Bifurcation Constraints Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'consecutive',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/consecutive',
+                                            title: 'Consecutive Constraints',
+                                            description: 'Manage Consecutive Constraints Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Fixing',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/fixing',
+                                            title: 'Fixing Constraints',
+                                            description: 'Manage Fixing Constraints Details'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Lab Constraints',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/labconstraints',
+                                            title: 'Lab Constraints',
+                                            description: 'Manage Lab Constraints Details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Subject Restrictions',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/subjectrestriction',
+                                            title: 'Subject Restrictions',
+                                            description: 'Manage Subject Restrictions Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 4,
+                                    name: 'Transactions',
+                                    icon: 'Clock',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Class Section Time Table Report',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/class-section-report/class-section-report',
+                                            title: 'Class Section Time Table Report',
+                                            description: 'View and generate class-wise timetable grids'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Deputation',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/deputation',
+                                            title: 'Deputation',
+                                            description: 'ABSENT STAFF ALLOTMENT DETAILS'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Manual Period Insertion',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/manual-Period-insersion',
+                                            title: 'Manual Period Insertion',
+                                            description: 'ABSENT STAFF ALLOTMENT DETAILS'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Staff Period Transfer',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/staff-Periods-Transfer',
+                                            title: 'Staff Period Transfer',
+                                            description: 'Transfer Staff Periods Between Classes and Sections'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Staff Replacement Existing To New',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/staff-replacement-existing-to-new',
+                                            title: 'Staff Replacement Existing To New',
+                                            description: 'Replacing staff Existing To New'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Staff Replacement In Their TimeTable',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/staff-replacement-In-their-timeTable',
+                                            title: 'Staff Replacement In Their TimeTable',
+                                            description: 'Staff Replacement In Their TimeTable'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Staff Replacement In Unallocated Period',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/staff-replacement-in-unallocated-period',
+                                            title: 'Staff Replacement In Unallocated Period',
+                                            description: 'Staff Replacement In Unallocated Period'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Time Table Generation',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/time-table-generation',
+                                            title: 'Time Table Generation',
+                                            description: 'Time Table Generation'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Reports',
+                                    icon: 'Clock',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Consolidated Report',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/consolidated',
+                                            title: 'Consolidated Report',
+                                            description: 'TimeTable Consolidated Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Class Wise TimeTable',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/classwisett',
+                                            title: 'Class Wise TimeTable',
+                                            description: 'Class Wise TimeTable Report'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Subject Wise TimeTable',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/subjectwisett',
+                                            title: 'Subject Wise TimeTable',
+                                            description: 'Subject Wise TimeTable Report'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Staff Wise TimeTable',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/staffwisett',
+                                            title: 'Staff Wise TimeTable',
+                                            description: 'Staff Wise TimeTable Report'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Deputation Report',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/deputationreport',
+                                            title: 'Deputation Report',
+                                            description: 'Deputation Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
                 // {
                 //     id: 7,
                 //     name: 'Library',
@@ -3771,85 +4253,86 @@ export async function getUserAccessibleModules() {
                 //         }
                 //     ]
                 // },
-                {
-                    id: 25,
-                    name: 'COE',
-                    icon: 'Settings',
-                    menu: [
-                        {
-                            id: 1,
-                            name: 'Calendar of Events',
-                            icon: 'Settings',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Master',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Master Event',
-                                            icon: 'Settings',
-                                            url: '/coe/master/masterevent',
-                                            title: 'Master Event',
-                                            description: 'Manage Master Event Details'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Mapping',
-                                            icon: 'Settings',
-                                            url: '/coe/master/master-coe',
-                                            title: 'Mapping',
-                                            description: 'Manage Mapping Details'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Report',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'COE Report',
-                                            icon: 'Settings',
-                                            url: '/coe/report/coereport',
-                                            title: 'COE Report',
-                                            description: 'Manage COE Report'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'COE Month End Report',
-                                            icon: 'Settings',
-                                            url: '/coe/report/coemonthendreport',
-                                            title: 'COE Month End Report',
-                                            description: 'Manage COE Month End Report'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
+                // {
+                //     id: 25,
+                //     name: 'COE',
+                //     icon: 'Settings',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'Calendar of Events',
+                //             icon: 'Settings',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Master',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'Master Event',
+                //                             icon: 'Settings',
+                //                             url: '/coe/master/masterevent',
+                //                             title: 'Master Event',
+                //                             description: 'Manage Master Event Details'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'Mapping',
+                //                             icon: 'Settings',
+                //                             url: '/coe/master/master-coe',
+                //                             title: 'Mapping',
+                //                             description: 'Manage Mapping Details'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Report',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'COE Report',
+                //                             icon: 'Settings',
+                //                             url: '/coe/report/coereport',
+                //                             title: 'COE Report',
+                //                             description: 'Manage COE Report'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'COE Month End Report',
+                //                             icon: 'Settings',
+                //                             url: '/coe/report/coemonthendreport',
+                //                             title: 'COE Month End Report',
+                //                             description: 'Manage COE Month End Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
+
                 {
                     id: 10,
                     name: 'Inventory Management',
-                    icon: 'Users',
+                    icon: 'Package',
                     menu: [
                         {
                             id: 1,
                             name: 'Inventory Module',
-                            icon: 'Users',
+                            icon: 'Package',
                             sub_menu: [
                                 {
                                     id: 1,
                                     name: 'Masters',
-                                    icon: 'LayoutGrid',
+                                    icon: 'Database',
                                     pages: [
                                         {
                                             id: 101,
                                             name: 'Tax',
-                                            icon: 'Settings',
+                                            icon: 'Percent',
                                             url: '/inventory/inventory-module/masters/inv-master-tax',
                                             title: 'Inventory Master Tax',
                                             description: 'Manage Inventory Master Tax'
@@ -3857,7 +4340,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 102,
                                             name: 'Store',
-                                            icon: 'Settings',
+                                            icon: 'Store',
                                             url: '/inventory/inventory-module/masters/inv-master-store',
                                             title: 'Inventory Master Store',
                                             description: 'Manage Inventory Master Store'
@@ -3865,7 +4348,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 103,
                                             name: 'Supplier',
-                                            icon: 'Settings',
+                                            icon: 'Truck',
                                             url: '/inventory/inventory-module/masters/inv-master-supplier',
                                             title: 'Inventory Master Supplier',
                                             description: 'Manage Inventory Master Supplier'
@@ -3873,7 +4356,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 104,
                                             name: 'Customer',
-                                            icon: 'Settings',
+                                            icon: 'Users',
                                             url: '/inventory/inventory-module/masters/inv-master-customer',
                                             title: 'Inventory Master Customer',
                                             description: 'Manage Inventory Master Customer'
@@ -3881,7 +4364,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 105,
                                             name: 'Main Group',
-                                            icon: 'Settings',
+                                            icon: 'Grid',
                                             url: '/inventory/inventory-module/masters/inv-master-main-group',
                                             title: 'Main Group',
                                             description: 'Manage Inventory Main Group Details'
@@ -3889,7 +4372,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 106,
                                             name: 'User Group',
-                                            icon: 'Settings',
+                                            icon: 'UserCog',
                                             url: '/inventory/inventory-module/masters/inv-master-user-group',
                                             title: 'User Group',
                                             description: 'Manage Inventory User Group Details'
@@ -3897,7 +4380,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 107,
                                             name: 'Item Group',
-                                            icon: 'Settings',
+                                            icon: 'Boxes',
                                             url: '/inventory/inventory-module/masters/inv-master-item-group',
                                             title: 'Item Group',
                                             description: 'Manage Inventory Item Group Details'
@@ -3905,7 +4388,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 108,
                                             name: 'UOM',
-                                            icon: 'Settings',
+                                            icon: 'Ruler',
                                             url: '/inventory/inventory-module/masters/inv-master-uom',
                                             title: 'Inventory Master UOM',
                                             description: 'Manage Unit of Measurement Details'
@@ -3913,7 +4396,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 109,
                                             name: 'Master Item',
-                                            icon: 'Settings',
+                                            icon: 'Box',
                                             url: '/inventory/inventory-module/masters/inv-master-item',
                                             title: 'Master Item',
                                             description: 'Manage Inventory Master Item Details'
@@ -3921,7 +4404,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 110,
                                             name: 'Master Product',
-                                            icon: 'Settings',
+                                            icon: 'Package',
                                             url: '/inventory/inventory-module/masters/inv-master-product',
                                             title: 'Master Product',
                                             description: 'Manage Inventory Master Product Details'
@@ -3931,12 +4414,12 @@ export async function getUserAccessibleModules() {
                                 {
                                     id: 2,
                                     name: 'Transactions',
-                                    icon: 'FileText',
+                                    icon: 'ArrowRightLeft',
                                     pages: [
                                         {
                                             id: 201,
                                             name: 'GRN',
-                                            icon: 'FileText',
+                                            icon: 'ClipboardList',
                                             url: '/inventory/inventory-module/transactions/inv-t-grn',
                                             title: 'Inventory GRN',
                                             description: 'Manage Inventory Goods Receipt Note'
@@ -3944,7 +4427,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 202,
                                             name: 'Sales',
-                                            icon: 'FileText',
+                                            icon: 'ShoppingCart',
                                             url: '/inventory/inventory-module/transactions/inv-t-sales',
                                             title: 'Inventory Sales',
                                             description: 'Manage Inventory Sales'
@@ -3952,7 +4435,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 203,
                                             name: 'Item Consumption',
-                                            icon: 'FileText',
+                                            icon: 'PackageMinus',
                                             url: '/inventory/inventory-module/transactions/inv-t-item-consumption',
                                             title: 'Item Consumption',
                                             description: 'Manage Item Consumption'
@@ -3960,7 +4443,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 204,
                                             name: 'Opening Balance',
-                                            icon: 'FileText',
+                                            icon: 'Wallet',
                                             url: '/inventory/inventory-module/transactions/inv-opening-balance',
                                             title: 'Opening Balance',
                                             description: 'Manage Inventory Opening Balance'
@@ -3968,7 +4451,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 205,
                                             name: 'Stock Updation',
-                                            icon: 'FileText',
+                                            icon: 'Layers',
                                             url: '/inventory/inventory-module/transactions/inv-stock',
                                             title: 'Stock Updation',
                                             description: 'Manage Inventory Stock Updation'
@@ -3976,7 +4459,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 206,
                                             name: 'Vendor Payment',
-                                            icon: 'FileText',
+                                            icon: 'CreditCard',
                                             url: '/inventory/inventory-module/transactions/inv-vendor-payment',
                                             title: 'Vendor Payment',
                                             description: 'Manage Vendor Payments'
@@ -3986,7 +4469,7 @@ export async function getUserAccessibleModules() {
                                 {
                                     id: 3,
                                     name: 'Reports',
-                                    icon: 'FileText',
+                                    icon: 'BarChart3',
                                     pages: [
                                         {
                                             id: 1,
@@ -4027,13 +4510,21 @@ export async function getUserAccessibleModules() {
                                             url: '/inventory/inventory-module/reports/inv-r-month-end-report',
                                             title: 'Inventory Month End Report',
                                             description: 'Generate Inventory Month End Reports'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Vendor Payment Report',
+                                            icon: 'FileText',
+                                            url: '/inventory/inventory-module/reports/inv-r-vendor-payment',
+                                            title: 'Vendor Payment Report',
+                                            description: 'Generate Vendor Payment Reports'
                                         }
                                     ]
                                 }
                             ]
                         }
                     ]
-                }
+                },
                 //         {
                 //             id: 3,
                 //             name: 'Interaction',
@@ -4509,241 +5000,7 @@ export async function getUserAccessibleModules() {
                 //             ]
                 //         }
                 //     ]
-                // },
-                // {
-                //     id: 13,
-                //     name: 'Super Admin',
-                //     icon: 'Settings',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Super Admin Module',
-                //             icon: 'Settings',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Master Trust',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Master Trust',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/masters/trust-master',
-                //                             title: 'Master Trust',
-                //                             description: 'Manage Master Trust Details'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 2,
-                //                     name: 'Institution',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Master Institution',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/institution/master-institution',
-                //                             title: 'Master Institution',
-                //                             description: 'Manage Master Institution'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Institution Subscription',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/institution/institution-subscription',
-                //                             title: 'Institution Subscription',
-                //                             description: 'Manage Institution Subscription'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Auto Mapping',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/institution/auto-mapping',
-                //                             title: 'Auto Mapping',
-                //                             description: 'Manage Institution Auto Mapping'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 3,
-                //                     name: 'General Setting',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'General Setting Wizard',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/wizard',
-                //                             title: 'General Setting Wizard',
-                //                             description: 'General Setting Wizard'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Modules',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/module',
-                //                             title: 'Modules',
-                //                             description: 'Manage Master Modules'
-                //                         },
-                //                         {
-                //                             id: 7,
-                //                             name: 'Master Page',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/master-page',
-                //                             title: 'Master Page',
-                //                             description: 'Manage Master Page'
-                //                         },
-                //                         {
-                //                             id: 8,
-                //                             name: 'Page Mapping',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/page-mapping',
-                //                             title: 'Page Mapping',
-                //                             description: 'Map Pages to Modules'
-                //                         },
-                //                         {
-                //                             id: 9,
-                //                             name: 'Master Role',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/master-role',
-                //                             title: 'Master Role',
-                //                             description: 'Manage Master Role'
-                //                         },
-                //                         {
-                //                             id: 10,
-                //                             name: 'Master Role Type',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/master-role-type',
-                //                             title: 'Master Role Type',
-                //                             description: 'Manage Master Role Type'
-                //                         },
-                //                         {
-                //                             id: 11,
-                //                             name: 'Privileges',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/privileges',
-                //                             title: 'Privileges',
-                //                             description: 'Privileges'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Master Main Menu',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/master-main-menu',
-                //                             title: 'Master Main Menu',
-                //                             description: 'Manage Master Main Menu'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Master Sub Menu',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/master-sub-menu',
-                //                             title: 'Master Sub Menu',
-                //                             description: 'Manage Master Sub Menu'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Master Menu Page Mapping',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/master-menu-page-mapping',
-                //                             title: 'Master Menu Page Mapping',
-                //                             description: 'Manage Master Menu Page Mapping'
-                //                         },
-
-                //                         {
-                //                             id: 6,
-                //                             name: 'Master School Type',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/master-school-type',
-                //                             title: 'Master School Type',
-                //                             description: 'Manage Master School Type'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 4,
-                //                     name: 'Configuration Setting',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Institution Module Page',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/configuration-setting/institution-module-page',
-                //                             title: 'Institution Module Page',
-                //                             description: 'Master Institution Role and Module Mapping'
-                //                         },
-
-                //                         {
-                //                             id: 2,
-                //                             name: 'Master Main Menu INS',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/configuration-setting/master-main-menu-ins',
-                //                             title: 'Master Main Menu INS',
-                //                             description: 'Master Main Menu Institution Mapping'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Master Sub Menu INS',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/configuration-setting/master-sub-menu-ins',
-                //                             title: 'Master Sub Menu INS',
-                //                             description: 'Master Sub Menu Institution Mapping'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Master Menu Page Mapping Institutionwise',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/configuration-setting/master-menu-page-mapping-institutionwise',
-                //                             title: 'Master Menu Page Mapping Institutionwise',
-                //                             description: 'Master Menu Page Mapping Institutionwise'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 5,
-                //                     name: 'Mobile Configuration',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Mobile Master Page',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/configuration-setting/mobilemasterpage',
-                //                             title: 'Mobile Master Page',
-                //                             description: 'Mobile Master Page'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Mobile Role Privileges',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/configuration-setting/mobileroleprivileges',
-                //                             title: 'Mobile Role Privileges',
-                //                             description: 'Mobile Role Privileges'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 6,
-                //                     name: 'User Creation',
-                //                     icon: 'UserPlus',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Staff User Creation',
-                //                             icon: 'UserPlus',
-                //                             url: '/SuperAdmin/super-admin-module/user-creation/staff-user-creation',
-                //                             title: 'Staff User Creation',
-                //                             description: 'Manage Institution Staff User Details'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
+                // }
 
                 // {
                 //     id: 14,
@@ -4842,203 +5099,202 @@ export async function getUserAccessibleModules() {
                 //                 }
                 //             ]
                 //         }
-                // ,
-                // {
-                //     id: 111,
-                //     name: 'Transport',
-                //     icon: 'BookOpen',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Transport',
-                //             icon: 'BookOpen',
-                //             sub_menu: [
-                //                 {
-                //                     id: 3000,
-                //                     name: 'Masters',
-                //                     icon: 'Database',
-                //                     pages: [
-                //                         {
-                //                             id: 30001,
-                //                             name: 'Master Area',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-area',
-                //                             title: 'Master Area / Zone',
-                //                             description: 'Master Area / Zone Details'
-                //                         },
-                //                         {
-                //                             id: 30002,
-                //                             name: 'Master Driver',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-driver',
-                //                             title: 'Master Driver',
-                //                             description: 'Master Driver Details'
-                //                         },
-                //                         {
-                //                             id: 30003,
-                //                             name: 'Master Fuel Type',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-fuel-type',
-                //                             title: 'Master Fuel Type',
-                //                             description: 'Master Fuel Type Details'
-                //                         },
-                //                         {
-                //                             id: 30004,
-                //                             name: 'Master Location',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-location',
-                //                             title: 'Master Location',
-                //                             description: 'Master Location Details'
-                //                         },
-                //                         {
-                //                             id: 30005,
-                //                             name: 'Master Route',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-route',
-                //                             title: 'Master Route',
-                //                             description: 'Master Route Details'
-                //                         },
-                //                         {
-                //                             id: 30006,
-                //                             name: 'Route Area Mapping',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/route-area-mapping',
-                //                             title: 'Route Area Mapping',
-                //                             description: 'Route Area Mapping Details'
-                //                         },
-                //                         {
-                //                             id: 30007,
-                //                             name: 'Master Service Station',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-service-station',
-                //                             title: 'Master Service Station',
-                //                             description: 'Master Service Station Details'
-                //                         },
-                //                         {
-                //                             id: 30008,
-                //                             name: 'Master Session',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-session',
-                //                             title: 'Master Session',
-                //                             description: 'Master Session Details'
-                //                         },
-                //                         {
-                //                             id: 30009,
-                //                             name: 'Master Vehicle Type',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-vehicle-type',
-                //                             title: 'Master Vehicle Type',
-                //                             description: 'Master Vehicle Type Details'
-                //                         },
-                //                         {
-                //                             id: 30010,
-                //                             name: 'Master Route Schedule',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-route-schedule',
-                //                             title: 'Master Route Schedule',
-                //                             description: 'Master Route Schedule Details'
-                //                         },
-                //                         {
-                //                             id: 30011,
-                //                             name: 'Master Vehicle',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/master-vehicle',
-                //                             title: 'Master Vehicle',
-                //                             description: 'Master Vehicle Details'
-                //                         },
-                //                         {
-                //                             id: 30012,
-                //                             name: 'Expiry Settings',
-                //                             icon: 'BookOpen',
-                //                             url: '/Transport/transport-module/masters/expiry-settings',
-                //                             title: 'Expiry Settings',
-                //                             description: 'Transport Expiry Settings'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 3001,
-                //                     name: 'Transactions',
-                //                     icon: 'BookOpen',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Route Location Mapping',
-                //                             icon: 'Settings',
-                //                             url: '/Transport/transport-module/transaction/route-location-mapping',
-                //                             title: 'Route Location Mapping',
-                //                             description: 'Manage Route Location Mapping'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Vehicle Driver Mapping',
-                //                             icon: 'Settings',
-                //                             url: '/Transport/transport-module/transaction/vehicle-driver-mapping',
-                //                             title: 'Vehicle Driver Mapping',
-                //                             description: 'Manage Vehicle Driver Mapping'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Vehicle Route Mapping',
-                //                             icon: 'Settings',
-                //                             url: '/Transport/transport-module/transaction/vehicle-route-mapping',
-                //                             title: 'Vehicle Route Mapping',
-                //                             description: 'Manage Vehicle Route Mapping'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Transport Approve',
-                //                             icon: 'Settings',
-                //                             url: '/Transport/transport-module/transaction/transport-approve',
-                //                             title: 'Transport Approve',
-                //                             description: 'Manage Transport Approve'
-                //                         }
-
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 3002,
-                //                     name: 'Reports',
-                //                     icon: 'BookOpen',
-                //                     pages: [
-                //                         {
-                //                             id: 30201,
-                //                             name: 'Month End Report',
-                //                             icon: 'FileText',
-                //                             url: '/Transport/transport-module/reports/month-end-report',
-                //                             title: 'Month End Report',
-                //                             description: 'Transport Month End Report'
-                //                         },
-                //                         {
-                //                             id: 30202,
-                //                             name: 'Transport Report',
-                //                             icon: 'FileText',
-                //                             url: '/Transport/transport-module/reports/transport-report',
-                //                             title: 'Transport Report',
-                //                             description: 'Transport Report'
-                //                         },
-                //                         {
-                //                             id: 30203,
-                //                             name: 'Fee Student Route Mapping Report',
-                //                             icon: 'FileText',
-                //                             url: '/Transport/transport-module/reports/fee-student-route-mapping-report',
-                //                             title: 'Fee Student Route Mapping Report',
-                //                             description: 'Fee Student Route Mapping Report'
-                //                         },
-                //                         {
-                //                             id: 30204,
-                //                             name: 'Student Route Mapping Report',
-                //                             icon: 'FileText',
-                //                             url: '/Transport/transport-module/reports/student-route-mapping-report',
-                //                             title: 'Student Route Mapping Report',
-                //                             description: 'Student Route Mapping Report'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
+                //
+                {
+                    id: 111,
+                    name: 'Transport',
+                    icon: 'BookOpen',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Transport',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 3000,
+                                    name: 'Masters',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 30001,
+                                            name: 'Master Area',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-area',
+                                            title: 'Master Area / Zone',
+                                            description: 'Master Area / Zone Details'
+                                        },
+                                        {
+                                            id: 30002,
+                                            name: 'Master Driver',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-driver',
+                                            title: 'Master Driver',
+                                            description: 'Master Driver Details'
+                                        },
+                                        {
+                                            id: 30003,
+                                            name: 'Master Fuel Type',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-fuel-type',
+                                            title: 'Master Fuel Type',
+                                            description: 'Master Fuel Type Details'
+                                        },
+                                        {
+                                            id: 30004,
+                                            name: 'Master Location',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-location',
+                                            title: 'Master Location',
+                                            description: 'Master Location Details'
+                                        },
+                                        {
+                                            id: 30005,
+                                            name: 'Master Route',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-route',
+                                            title: 'Master Route',
+                                            description: 'Master Route Details'
+                                        },
+                                        {
+                                            id: 30006,
+                                            name: 'Route Area Mapping',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/route-area-mapping',
+                                            title: 'Route Area Mapping',
+                                            description: 'Route Area Mapping Details'
+                                        },
+                                        {
+                                            id: 30007,
+                                            name: 'Master Service Station',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-service-station',
+                                            title: 'Master Service Station',
+                                            description: 'Master Service Station Details'
+                                        },
+                                        {
+                                            id: 30008,
+                                            name: 'Master Session',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-session',
+                                            title: 'Master Session',
+                                            description: 'Master Session Details'
+                                        },
+                                        {
+                                            id: 30009,
+                                            name: 'Master Vehicle Type',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-vehicle-type',
+                                            title: 'Master Vehicle Type',
+                                            description: 'Master Vehicle Type Details'
+                                        },
+                                        {
+                                            id: 30010,
+                                            name: 'Master Route Schedule',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-route-schedule',
+                                            title: 'Master Route Schedule',
+                                            description: 'Master Route Schedule Details'
+                                        },
+                                        {
+                                            id: 30011,
+                                            name: 'Master Vehicle',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-vehicle',
+                                            title: 'Master Vehicle',
+                                            description: 'Master Vehicle Details'
+                                        },
+                                        {
+                                            id: 30012,
+                                            name: 'Expiry Settings',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/expiry-settings',
+                                            title: 'Expiry Settings',
+                                            description: 'Transport Expiry Settings'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3001,
+                                    name: 'Transactions',
+                                    icon: 'BookOpen',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Route Location Mapping',
+                                            icon: 'Settings',
+                                            url: '/Transport/transport-module/transaction/route-location-mapping',
+                                            title: 'Route Location Mapping',
+                                            description: 'Manage Route Location Mapping'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Vehicle Driver Mapping',
+                                            icon: 'Settings',
+                                            url: '/Transport/transport-module/transaction/vehicle-driver-mapping',
+                                            title: 'Vehicle Driver Mapping',
+                                            description: 'Manage Vehicle Driver Mapping'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Vehicle Route Mapping',
+                                            icon: 'Settings',
+                                            url: '/Transport/transport-module/transaction/vehicle-route-mapping',
+                                            title: 'Vehicle Route Mapping',
+                                            description: 'Manage Vehicle Route Mapping'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Transport Approve',
+                                            icon: 'Settings',
+                                            url: '/Transport/transport-module/transaction/transport-approve',
+                                            title: 'Transport Approve',
+                                            description: 'Manage Transport Approve'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3002,
+                                    name: 'Reports',
+                                    icon: 'BookOpen',
+                                    pages: [
+                                        {
+                                            id: 30201,
+                                            name: 'Month End Report',
+                                            icon: 'FileText',
+                                            url: '/Transport/transport-module/reports/month-end-report',
+                                            title: 'Month End Report',
+                                            description: 'Transport Month End Report'
+                                        },
+                                        {
+                                            id: 30202,
+                                            name: 'Transport Report',
+                                            icon: 'FileText',
+                                            url: '/Transport/transport-module/reports/transport-report',
+                                            title: 'Transport Report',
+                                            description: 'Transport Report'
+                                        },
+                                        {
+                                            id: 30203,
+                                            name: 'Fee Student Route Mapping Report',
+                                            icon: 'FileText',
+                                            url: '/Transport/transport-module/reports/fee-student-route-mapping-report',
+                                            title: 'Fee Student Route Mapping Report',
+                                            description: 'Fee Student Route Mapping Report'
+                                        },
+                                        {
+                                            id: 30204,
+                                            name: 'Student Route Mapping Report',
+                                            icon: 'FileText',
+                                            url: '/Transport/transport-module/reports/student-route-mapping-report',
+                                            title: 'Student Route Mapping Report',
+                                            description: 'Student Route Mapping Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
                 //         //    ,
                 //         //        {
                 //         //         id: 8,
@@ -5239,6 +5495,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Home Work',
                                             description: 'Upload Home Work'
                                         },
+                                        // {
+                                        //     id: 4,
+                                        //     name: 'Sport House Committee Report',
+                                        //     icon: 'FileText',
+                                        //     url: '/Sports/Reports/SportHouseCommitteeReport',
+                                        //     title: 'Sport House Committee Report',
+                                        //     description: 'Sport House Committee Report'
+                                        // },
                                         {
                                             id: 80010,
                                             name: 'Homework Marks Update',
@@ -5256,12 +5520,37 @@ export async function getUserAccessibleModules() {
                                             description: 'Homework Upload Report'
                                         },
                                         {
-                                            id: 80012,
-                                            name: 'Interactions',
-                                            icon: 'MessageSquare',
-                                            url: '/StaffPortal/interactions',
-                                            title: 'Interactions',
-                                            description: 'Interact with Students/Staff'
+                                            id: 6,
+                                            name: 'Sport House Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/SportHouseReport',
+                                            title: 'Sport House Report',
+                                            description: 'Sport House Report'
+                                        },
+
+                                        {
+                                            id: 11,
+                                            name: 'Venue Wise Participation',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/VenueWiseParticipationReport',
+                                            title: 'Venue Wise Participation',
+                                            description: 'View Venue Wise Participation Report'
+                                        },
+                                        // {
+                                        //     id: 7,
+                                        //     name: 'Sport Student Participation Report',
+                                        //     icon: 'FileText',
+                                        //     url: '/Sports/Reports/SportStudentParticipationReport',
+                                        //     title: 'Sport Student Participation Report',
+                                        //     description: 'Sport Student Participation Report'
+                                        // },
+                                        {
+                                            id: 8,
+                                            name: 'Sport Topper List Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/SportTopperListReport',
+                                            title: 'Sport Topper List Report',
+                                            description: 'Sport Topper List Report'
                                         },
                                         {
                                             id: 80013,
@@ -5279,6 +5568,7 @@ export async function getUserAccessibleModules() {
                                             title: 'Classwork Upload',
                                             description: 'Classwork Upload'
                                         },
+
                                         {
                                             id: 80015,
                                             name: 'Classwork Marks Update',
@@ -5308,6 +5598,15 @@ export async function getUserAccessibleModules() {
                                             url: '/StaffPortal/leave-management/online-leave-application',
                                             title: 'Online Leave Application',
                                             description: 'Apply for leaves'
+                                        },
+
+                                        {
+                                            id: 80019,
+                                            name: 'Leave Approval',
+                                            icon: 'CheckCircle',
+                                            url: '/StaffPortal/leave-management/leave-approval',
+                                            title: 'Leave Approval',
+                                            description: 'Approve or Reject Leave Requests'
                                         }
                                     ]
                                 }
@@ -5368,12 +5667,12 @@ export async function getUserAccessibleModules() {
             message: 'Data fetched successfully!!',
             data: [
                 {
-                    id: 9,
+                    id: 40000,
                     name: 'Student Portal',
                     icon: 'Users',
                     menu: [
                         {
-                            id: 1,
+                            id: 40000,
                             name: 'Home',
                             icon: 'BookOpen',
                             sub_menu: [
@@ -5382,11 +5681,20 @@ export async function getUserAccessibleModules() {
                                     name: 'Home',
                                     icon: 'Database',
                                     pages: [
+                                        // {
+                                        //     id: 40000,
+                                        //     name: 'Dashboard',
+                                        //     icon: 'LayoutDashboard',
+                                        //     url: '/StudentPortal/student-dashboard',
+                                        //     title: 'StudentDashboard',
+                                        //     description: 'Main Dashboard'
+                                        // },
+
                                         {
-                                            id: 40000,
-                                            name: 'Dashboard',
+                                            id: 402000,
+                                            name: 'Dashboard Demo',
                                             icon: 'LayoutDashboard',
-                                            url: '/StudentPortal/student-dashboard',
+                                            url: '/StudentPortal/StudentPortalDashboard',
                                             title: 'StudentDashboard',
                                             description: 'Main Dashboard'
                                         }
@@ -5435,6 +5743,7 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/masters/attendance-details',
                                             title: 'Attendance Details'
                                         },
+
                                         {
                                             id: 40003,
                                             name: 'Online Leave Apply',
@@ -5566,6 +5875,262 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/feedback/studentfeedback',
                                             title: 'Student Feedback Details',
                                             description: 'Provide Feedback'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 8,
+                            name: 'User Password Creation',
+                            icon: 'MessageSquare',
+                            sub_menu: [
+                                {
+                                    id: 40010,
+                                    name: 'Transaction',
+                                    icon: 'List',
+                                    pages: [
+                                        {
+                                            id: 40012,
+                                            name: 'User Password Creation',
+                                            icon: 'KeyRound',
+                                            url: '/StudentPortal/transactions/user-password-creation',
+                                            title: 'User Password Creation',
+                                            description: 'Generate Usernames and Passwords'
+                                        },
+                                        {
+                                            id: 40013,
+                                            name: 'Student Password Creation',
+                                            icon: 'LockKeyhole',
+                                            url: '/StudentPortal/transactions/student-password-creation',
+                                            title: 'Student Password Creation',
+                                            description: 'Student Credentials Management'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+    } else if (session?.role.toUpperCase() === 'SUPER ADMIN') {
+        response = {
+            success: true,
+            message: 'Data fetched successfully!!',
+            data: [
+                {
+                    id: 13,
+                    name: 'Super Admin',
+                    icon: 'Settings',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Super Admin Module',
+                            icon: 'Settings',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Master Trust',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Trust',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/masters/trust-master',
+                                            title: 'Master Trust',
+                                            description: 'Manage Master Trust Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Institution',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Institution',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/institution/master-institution',
+                                            title: 'Master Institution',
+                                            description: 'Manage Master Institution'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Institution Subscription',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/institution/institution-subscription',
+                                            title: 'Institution Subscription',
+                                            description: 'Manage Institution Subscription'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Auto Mapping',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/institution/auto-mapping',
+                                            title: 'Auto Mapping',
+                                            description: 'Manage Institution Auto Mapping'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'General Setting',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'General Setting Wizard',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/wizard',
+                                            title: 'General Setting Wizard',
+                                            description: 'General Setting Wizard'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Modules',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/module',
+                                            title: 'Modules',
+                                            description: 'Manage Master Modules'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Master Page',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-page',
+                                            title: 'Master Page',
+                                            description: 'Manage Master Page'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Page Mapping',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/page-mapping',
+                                            title: 'Page Mapping',
+                                            description: 'Map Pages to Modules'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Master Role',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-role',
+                                            title: 'Master Role',
+                                            description: 'Manage Master Role'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'Master Role Type',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-role-type',
+                                            title: 'Master Role Type',
+                                            description: 'Manage Master Role Type'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Privileges',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/privileges',
+                                            title: 'Privileges',
+                                            description: 'Privileges'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Master Main Menu',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-main-menu',
+                                            title: 'Master Main Menu',
+                                            description: 'Manage Master Main Menu'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Master Sub Menu',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-sub-menu',
+                                            title: 'Master Sub Menu',
+                                            description: 'Manage Master Sub Menu'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Master Menu Page Mapping',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-menu-page-mapping',
+                                            title: 'Master Menu Page Mapping',
+                                            description: 'Manage Master Menu Page Mapping'
+                                        },
+
+                                        {
+                                            id: 6,
+                                            name: 'Master School Type',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-school-type',
+                                            title: 'Master School Type',
+                                            description: 'Manage Master School Type'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 4,
+                                    name: 'Configuration Setting',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Institution Module Page',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/institution-module-page',
+                                            title: 'Institution Module Page',
+                                            description: 'Master Institution Role and Module Mapping'
+                                        },
+
+                                        {
+                                            id: 2,
+                                            name: 'Master Main Menu INS',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/master-main-menu-ins',
+                                            title: 'Master Main Menu INS',
+                                            description: 'Master Main Menu Institution Mapping'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Master Sub Menu INS',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/master-sub-menu-ins',
+                                            title: 'Master Sub Menu INS',
+                                            description: 'Master Sub Menu Institution Mapping'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Master Menu Page Mapping Institutionwise',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/master-menu-page-mapping-institutionwise',
+                                            title: 'Master Menu Page Mapping Institutionwise',
+                                            description: 'Master Menu Page Mapping Institutionwise'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 5,
+                                    name: 'Mobile Configuration',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Mobile Master Page',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/mobilemasterpage',
+                                            title: 'Mobile Master Page',
+                                            description: 'Mobile Master Page'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Mobile Role Privileges',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/mobileroleprivileges',
+                                            title: 'Mobile Role Privileges',
+                                            description: 'Mobile Role Privileges'
                                         }
                                     ]
                                 }

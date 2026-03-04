@@ -77,7 +77,8 @@ export const ADMISSION_QUERY_KEYS = {
     ATTENDANCE_REPORT: 'attendance_report',
     STUDENT_ATTENDANCE_REPORT: 'student_attendance_report',
     DATE_OF_BIRTH_REPORT: 'date_of_birth_report',
-    STUDENT_ATTENDANCE_SEARCH: 'student_attendance_search'
+    STUDENT_ATTENDANCE_SEARCH: 'student_attendance_search',
+    STUDENT_CATEGORY_BY_CLASS: 'student_category_by_class'
 };
 
 export const PREADMISSION_QUERY_KEYS = {
@@ -110,7 +111,10 @@ export const PREADMISSION_QUERY_KEYS = {
     STUDENT_COUNT_REPORT: 'student_count_report',
     STUDENT_APPLICATION_FORM: 'student_application_form',
     ACADEMIC_YEAR_MASTER_CONFIGURATION: 'academic_year_master_configuration',
-    PARENTS_DASHBOARD: 'parents_dashboard'
+    PARENTS_DASHBOARD: 'parents_dashboard',
+    STUDY_CERTIFICATE_REPORT: 'study_certificate_report',
+    CHARACTER_CERTIFICATE_REPORT: 'character_certificate_report',
+    GENERATE_QR_CODE_CERTIFICATE: 'generate_qr_code_certificate'
 };
 
 export const FEES_QUERY_KEYS = {
@@ -239,6 +243,7 @@ export const FEES_QUERY_KEYS = {
     FEE_CONCESSION_TERM_DROPDOWN: 'fee_concession_term_dropdown',
     FEE_REFUNDABLE_LIST: 'fee_refundable_list',
     FEE_CONCESSION_ON_LOAD: 'fee_concession_on_load',
+    FEE_STUDENT_TRANSACTIONSTTHOMAS: 'fee_student_transactionstthomas',
 
     FEE_CONCESSION_CLASS_DROPDOWN: 'fee_concession_class_dropdown',
     FEE_CONCESSION_HEAD_LIST: 'fee_concession_head_list',
@@ -473,6 +478,7 @@ export const HRMS_QUERY_KEYS = {
     LEAVE_HISTORY: 'leave_leave_history',
     APPLY_LEAVE: 'leave_apply_leave',
     LEAVE_APPROVAL: 'leave_leave_approval',
+    LEAVE_CONFIGURATION: 'leave_leave_configuration',
 
     // Master drop down
     MASTER_GROUP_TYPES: 'hrms_master_group_type',
