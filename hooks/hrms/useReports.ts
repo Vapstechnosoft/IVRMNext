@@ -2,9 +2,14 @@
 
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
+    getLeaveStatusReport,
+    type LeaveStatusReportRequest
+} from '@/server/hrms/reports/leave-status-report';
+import {
     getCumulativeSalaryReport,
     getDepartmentsByGroupType,
     getDesignationsByGroupAndDept,
+    getEmployeesByDeptAndDesignation,
     getGroupTypes,
     type CumulativeSalaryReportRequest
 } from '@/server/hrms/reports/cumulative-salary-report';
@@ -127,6 +132,16 @@ export function useReportDesignations(groupTypeIds: string, deptIds: string) {
         queryKey: ['report-designations', groupTypeIds, deptIds],
         queryFn: () => getDesignationsByGroupAndDept(groupTypeIds, deptIds),
         enabled: !!groupTypeIds && !!deptIds,
+        staleTime: 1000 * 60 * 5
+    });
+}
+
+export function useReportEmployeesByDeptAndDesignation(deptIds: string, desigIds: string) {
+    console.log('📡 [HOOK] Fetching employees with:', { deptIds, desigIds });
+    return useQuery({
+        queryKey: ['report-employees', deptIds, desigIds],
+        queryFn: () => getEmployeesByDeptAndDesignation(deptIds, desigIds),
+        enabled: !!deptIds && !!desigIds,
         staleTime: 1000 * 60 * 5
     });
 }
@@ -552,5 +567,14 @@ export function usePeriodLeaveReportEmployees(departmentIds: number[], designati
         },
         enabled: !!departmentIds && departmentIds.length > 0 && !!designationIds && designationIds.length > 0,
         staleTime: 1000 * 60 * 5
+    });
+}
+
+export function useLeaveStatusReport() {
+    return useMutation({
+        mutationFn: (data: LeaveStatusReportRequest) => getLeaveStatusReport(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch Leave Status Report');
+        }
     });
 }

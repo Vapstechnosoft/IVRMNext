@@ -397,7 +397,7 @@ export default function MassUpdationPage() {
                                 <Label className='font-semibold'>Group Type <span className='text-destructive'>*</span></Label>
                                 <Controller name='groupType' control={control} render={({ field }) => (
                                     <MultiSelect
-                                        options={[{ label: 'All', value: 'All' }, ...groupTypes.map((gt: any) => ({ label: gt.HRMGT_EmployeeGroupType, value: gt.HRMGT_Id?.toString() || '' }))]}
+                                        options={[ ...groupTypes.map((gt: any) => ({ label: gt.HRMGT_EmployeeGroupType, value: gt.HRMGT_Id?.toString() || '' }))]}
                                         defaultValue={Array.isArray(field.value) ? field.value : []}
                                         onValueChange={field.onChange}
                                         placeholder='Select Group Types'
@@ -409,7 +409,7 @@ export default function MassUpdationPage() {
                                 <Label className='font-semibold'>Department <span className='text-destructive'>*</span></Label>
                                 <Controller name='department' control={control} render={({ field }) => (
                                     <MultiSelect
-                                        options={[{ label: 'All', value: 'All' }, ...departments.map((d: any) => ({ label: d.HRMD_DepartmentName, value: d.HRMD_Id?.toString() || '' }))]}
+                                        options={[ ...departments.map((d: any) => ({ label: d.HRMD_DepartmentName, value: d.HRMD_Id?.toString() || '' }))]}
                                         defaultValue={Array.isArray(field.value) ? field.value : []}
                                         onValueChange={field.onChange}
                                         placeholder='Select Departments'
@@ -421,7 +421,7 @@ export default function MassUpdationPage() {
                                 <Label className='font-semibold'>Designation <span className='text-destructive'>*</span></Label>
                                 <Controller name='designation' control={control} render={({ field }) => (
                                     <MultiSelect
-                                        options={[{ label: 'All', value: 'All' }, ...designations.map((d: any) => ({ label: d.HRMDES_DesignationName, value: d.HRMDES_Id?.toString() || '' }))]}
+                                        options={[ ...designations.map((d: any) => ({ label: d.HRMDES_DesignationName, value: d.HRMDES_Id?.toString() || '' }))]}
                                         defaultValue={Array.isArray(field.value) ? field.value : []}
                                         onValueChange={field.onChange}
                                         placeholder='Select Designations'
