@@ -220,7 +220,7 @@ export default function BirthCertificatePageReport(props: {
             return;
         }
 
-        if (studentId === 0 || !studentId) {
+        if (studentId === undefined || studentId === null) {
             toast.error('please select student');
             return;
         }
