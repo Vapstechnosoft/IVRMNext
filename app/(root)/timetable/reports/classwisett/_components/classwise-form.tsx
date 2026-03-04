@@ -21,7 +21,7 @@ interface ClassWiseFormProps {
     onCancel: () => void;
 }
 
-export default function ClassWiseForm({ onReportGenerated, onCancel }: ClassWiseFormProps) {
+export default function ClassWiseForm({ onReportGenerated }: ClassWiseFormProps) {
     const {
         data: academicyeardata,
     } = useTimeTableAcademicYear();
@@ -48,12 +48,15 @@ export default function ClassWiseForm({ onReportGenerated, onCancel }: ClassWise
     const {
         control,
         handleSubmit,
-        formState: { errors, isSubmitting }
+        formState: { errors, isSubmitting },
+        reset
     } = useForm<FormFields>({
         resolver: zodResolver(classWiseReportSchema.search),
         defaultValues: {
             classId: [],
-            sectionId: []
+            sectionId: [],
+            asmaY_Id: 0,
+            ttmC_Id: 0
         }
     });
 
@@ -79,6 +82,10 @@ export default function ClassWiseForm({ onReportGenerated, onCancel }: ClassWise
             throw error;
         }
     };
+    const handleCancelClick = () => {
+        reset();
+        // onCancel();
+    };
 
     return (
         <form onSubmit={handleSubmit(onFormSubmit)} className='space-y-6 rounded-lg border bg-white p-6 shadow-sm'>
@@ -92,7 +99,13 @@ export default function ClassWiseForm({ onReportGenerated, onCancel }: ClassWise
                         control={control}
                         name='asmaY_Id'
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                            <Select
+                                key={field.value ?? 'empty'}
+                                value={field.value && field.value !== 0
+                                    ? field.value.toString()
+                                    : undefined}
+                                onValueChange={(val) => field.onChange(Number(val))}
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
@@ -118,7 +131,13 @@ export default function ClassWiseForm({ onReportGenerated, onCancel }: ClassWise
                         control={control}
                         name='ttmC_Id'
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                            <Select
+                                key={field.value ?? 'empty'}
+                                value={field.value && field.value !== 0
+                                    ? field.value.toString()
+                                    : undefined}
+                                onValueChange={(val) => field.onChange(Number(val))}
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
@@ -182,7 +201,7 @@ export default function ClassWiseForm({ onReportGenerated, onCancel }: ClassWise
                     <Search className='mr-2 h-4 w-4' />
                     Report
                 </Button>
-                <Button type='button' variant='outline' onClick={onCancel}>
+                <Button type='button' variant='outline' onClick={handleCancelClick}>
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>

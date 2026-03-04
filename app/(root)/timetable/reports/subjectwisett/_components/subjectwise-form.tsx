@@ -13,13 +13,15 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof subjectWiseReportSchema.search>;
 
+import { getSubjectWiseReport } from '@/server/timetable/reports/subjectwisett';
+
 interface SubjectWiseFormProps {
     initialData: any;
-    onSubmit: (data: any) => void;
+    onReportGenerated: (response: any, payload: any) => void;
     onCancel: () => void;
 }
 
-export default function SubjectWiseForm({ initialData, onSubmit, onCancel }: SubjectWiseFormProps) {
+export default function SubjectWiseForm({ initialData, onReportGenerated, onCancel }: SubjectWiseFormProps) {
     const {
         data: academicyeardata,
         isLoading: academicyearloading,
@@ -42,7 +44,8 @@ export default function SubjectWiseForm({ initialData, onSubmit, onCancel }: Sub
     const {
         control,
         handleSubmit,
-        formState: { errors, isSubmitting }
+        formState: { errors, isSubmitting },
+        reset
     } = useForm<FormFields>({
         resolver: zodResolver(subjectWiseReportSchema.search),
         defaultValues: {
@@ -51,7 +54,12 @@ export default function SubjectWiseForm({ initialData, onSubmit, onCancel }: Sub
         }
     });
 
-    const onFormSubmit = (data: FormFields) => {
+    const handleCancelClick = () => {
+        reset();
+        onCancel();
+    };
+
+    const onFormSubmit = async (data: FormFields) => {
         const selectedClasses = classList.filter((c: any) => data.classId?.includes(c.asmcL_Id));
         // Ensure property name matches API response. Usually ismS_Id for subjects.
         const selectedSubjects = subjectList.filter((s: any) => data.subjectId?.includes(s.ismS_Id));
@@ -61,7 +69,16 @@ export default function SubjectWiseForm({ initialData, onSubmit, onCancel }: Sub
             classarray: selectedClasses,
             subarray: selectedSubjects
         };
-        onSubmit(payload);
+
+        try {
+            console.log('Subject wise tt payload:', JSON.stringify(payload));
+            const response = await getSubjectWiseReport(payload);
+            console.log('Subject wise tt response:', response);
+            onReportGenerated(response, payload);
+        } catch (error: any) {
+            console.error('Error generating subject wise report:', error);
+            throw error;
+        }
     };
 
     return (
@@ -140,7 +157,7 @@ export default function SubjectWiseForm({ initialData, onSubmit, onCancel }: Sub
                     <Search className='mr-2 h-4 w-4' />
                     Report
                 </Button>
-                <Button type='button' variant='outline' onClick={onCancel}>
+                <Button type='button' variant='outline' onClick={handleCancelClick}>
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
