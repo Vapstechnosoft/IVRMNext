@@ -183,8 +183,8 @@ export async function getEmployeesByDeptAndDesignation(
  * @returns List of leaves for opening balance
  */
 export async function getLeaveOB(): Promise<ApiResponse<any>> {
-    const url = '/api/MasterDropDown/GetLeaveOB';
-    console.log('📡 [SERVER] Fetching Leave OB:', url);
+    const url = '/api/MasterDropDown/GetLeave';
+    console.log('📡 [SERVER] Fetching Leave :', url);
 
     try {
         const response = await api.get<any>('hmslms', url);
@@ -220,5 +220,31 @@ export async function getLeaveOB(): Promise<ApiResponse<any>> {
     } catch (error: any) {
         console.error('❌ [SERVER] Leave OB API Error:', error);
         throw new Error(error?.message || 'Failed to fetch leave opening balance list');
+    }
+}
+
+/**
+ * Get all leaves
+ * GET /api/MasterDropDown/GetLeave
+ * 
+ * @returns List of leaves
+ */
+export async function getLeave(): Promise<ApiResponse<any[]>> {
+    const url = '/api/MasterDropDown/GetLeave';
+    console.log('📡 [SERVER] Fetching Leaves:', url);
+
+    try {
+        const response = await api.get<any[]>('hmslms', url);
+        console.log('📦 [SERVER] Leaves Response:', JSON.stringify(response, null, 2));
+
+        const res = response as any;
+        return {
+            success: res?.success ?? true,
+            message: res?.message || 'Data fetched successfully',
+            data: res?.data || res || []
+        };
+    } catch (error: any) {
+        console.error('❌ [SERVER] Leaves API Error:', error);
+        throw new Error(error?.message || 'Failed to fetch leaves');
     }
 }

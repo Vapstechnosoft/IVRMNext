@@ -348,13 +348,13 @@ export default function PageMappingGrids({
 
     return (
         <div className="space-y-8">
-            <div className="glass-pane p-1.5 bg-slate-100/50 max-w-sm mx-auto">
-                <TabsList className="grid w-full grid-cols-2 bg-transparent p-0 h-11">
-                    <TabsTrigger value="web" className="rounded-2xl h-full data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all font-black uppercase text-[10px] tracking-widest">Web Engine</TabsTrigger>
-                    <TabsTrigger value="mobile" className="rounded-2xl h-full data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all font-black uppercase text-[10px] tracking-widest">Mobile App</TabsTrigger>
-                </TabsList>
-            </div>
             <Tabs defaultValue="web" className="w-full">
+                <div className="glass-pane p-1.5 bg-slate-100/50 max-w-sm mx-auto mb-8">
+                    <TabsList className="grid w-full grid-cols-2 bg-transparent p-0 h-11">
+                        <TabsTrigger value="web" className="rounded-2xl h-full data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all font-black uppercase text-[10px] tracking-widest">Web Engine</TabsTrigger>
+                        <TabsTrigger value="mobile" className="rounded-2xl h-full data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all font-black uppercase text-[10px] tracking-widest">Mobile App</TabsTrigger>
+                    </TabsList>
+                </div>
                 {/* Web Mapping Tab */}
                 <TabsContent value="web" className="space-y-10 pt-4 outline-none">
                     {/* Master Page List */}
