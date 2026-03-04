@@ -2621,29 +2621,29 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-                                {
-                                    id: 2,
-                                    name: 'Apply Leave',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Apply Leave',
-                                            icon: 'FilePlus',
-                                            url: '/hrms/leave-management/apply-leave',
-                                            title: 'Apply Leave',
-                                            description: 'Submit Leave Application'
-                                        }
-                                        // {
-                                        //     id: 2,
-                                        //     name: 'Leave Approval',
-                                        //     icon: 'CheckCircle',
-                                        //     url: '/hrms/leave-management/leave-approval',
-                                        //     title: 'Leave Approval',
-                                        //     description: 'Approve or Reject Leave Requests'
-                                        // }
-                                    ]
-                                },
+                                // {
+                                //     id: 2,
+                                //     name: 'Apply Leave',
+                                //     icon: 'FileText',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Apply Leave',
+                                //             icon: 'FilePlus',
+                                //             url: '/hrms/leave-management/apply-leave',
+                                //             title: 'Apply Leave',
+                                //             description: 'Submit Leave Application'
+                                //         },
+                                //         // {
+                                //         //     id: 2,
+                                //         //     name: 'Leave Approval',
+                                //         //     icon: 'CheckCircle',
+                                //         //     url: '/hrms/leave-management/leave-approval',
+                                //         //     title: 'Leave Approval',
+                                //         //     description: 'Approve or Reject Leave Requests'
+                                //         // }
+                                //     ]
+                                // },
                                 {
                                     id: 3,
                                     name: 'Transaction',
@@ -2727,6 +2727,14 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/leave-management/reports/leave-report',
                                             title: 'Leave Report',
                                             description: 'Leave Summary Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Leave Status Report',
+                                            icon: 'FileSearch',
+                                            url: '/hrms/leave-management/reports/leave-status-report',
+                                            title: 'Leave Status Report',
+                                            description: 'Leave Status Report'
                                         }
                                         // {
                                         //     id: 2,
