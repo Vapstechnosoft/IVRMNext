@@ -1,4 +1,11 @@
 import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
+import {
+    getBifurcationConstraintsDetails,
+    getSectioDropdownBifurcationConstraints,
+    getStaffDropdownBifurcationConstraints,
+    getSubjectDropdownBifurcationConstraints
+} from '@/server/timetable/constraints/bifurcationconstraints';
+import { getConsecutiveConstraintsDetails } from '@/server/timetable/constraints/consecutive';
 import { getBreakTimeSettingsDetails } from '@/server/timetable/masters/breaktimesettings';
 import {
     getCategoryClassMappingDetails,
@@ -30,6 +37,7 @@ import {
     getClassPeriodDistrubution,
     getPeriodDistributionDetails,
     getPeriodDistributionViewData,
+    getPeriodDropdown,
     getSectionPeriodDistrubution,
     getStaffPeriodDistrubution,
     getSubjectPeriodDistrubution
@@ -647,6 +655,114 @@ export const useMasterSectionDropDown = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [TIMETABLE_QUERY_KEYS.MASTER_SECTION_DROP_DOWN]
+            });
+        }
+    };
+};
+
+export const usePeriodDropdown = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getPeriodDropdown(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useBifurcationConstraints = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_BIFURCATION_CONSTRAINTS, searchParams ?? {}],
+            queryFn: async () => getBifurcationConstraintsDetails(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_BIFURCATION_CONSTRAINTS]
+            });
+        }
+    };
+};
+
+export const useStaffDropdownBifurcationConstraints = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_STAFF_DROPDOWN_BIFURCATION_CONSTRAINTS, searchParams ?? {}],
+            queryFn: async () => getStaffDropdownBifurcationConstraints(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_STAFF_DROPDOWN_BIFURCATION_CONSTRAINTS]
+            });
+        }
+    };
+};
+
+export const useSectionDropdownBifurcationConstraints = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_SECTION_DROPDOWN_BIFURCATION_CONSTRAINTS, searchParams ?? {}],
+            queryFn: async () => getSectioDropdownBifurcationConstraints(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_SECTION_DROPDOWN_BIFURCATION_CONSTRAINTS]
+            });
+        }
+    };
+};
+
+export const useSubjectDropdownBifurcationConstraints = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_SUBJECT_DROPDOWN_BIFURCATION_CONSTRAINTS, searchParams ?? {}],
+            queryFn: async () => getSubjectDropdownBifurcationConstraints(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_SUBJECT_DROPDOWN_BIFURCATION_CONSTRAINTS]
+            });
+        }
+    };
+};
+
+export const useConsecutiveConstraints = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_CONSECUTIVE_CONSTRAINTS, searchParams ?? {}],
+            queryFn: async () => getConsecutiveConstraintsDetails(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_CONSECUTIVE_CONSTRAINTS]
             });
         }
     };

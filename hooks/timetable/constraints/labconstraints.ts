@@ -1,9 +1,9 @@
 import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
 import {
-    getAcademicYearDropDown,
-    getCategoryDropDown,
+    getAcademicYear,
     getClassDetails,
-    getSectionDetails
+    getSectionDetails,
+    getTimeTableCategoryDropDownDetails
 } from '@/server/timetable/constraints/labconstraints';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -15,7 +15,7 @@ export const useAcademicYearDropDownMasterDayClasswise = (searchParams?: ApiSear
     return {
         ...useQuery({
             queryKey: [TIMETABLE_QUERY_KEYS.ACADEMIC_YEAR_DROPDOWN_MASTERDAYCLASSWISE, searchParams ?? {}],
-            queryFn: async () => getAcademicYearDropDown(),
+            queryFn: async () => getAcademicYear(searchParams),
             staleTime: 0
         }),
 
@@ -34,7 +34,7 @@ export const useCategtoryDropDownMasterDayClasswise = (searchParams?: ApiSearchp
     return {
         ...useQuery({
             queryKey: [TIMETABLE_QUERY_KEYS.CATEGORY_DROPDOWN_MASTERDAYCLASSWISE, searchParams ?? {}],
-            queryFn: async () => getCategoryDropDown(),
+            queryFn: async () => getTimeTableCategoryDropDownDetails(searchParams),
             staleTime: 0
         }),
 

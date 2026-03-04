@@ -340,9 +340,13 @@ export interface IMasterDayClassWise {
 export interface IPeriodTimeSettingData {
     ttmdpT_Id: number;
     asmaY_Year: string;
+    asmaY_Id: number;
+    ttmD_Id: number;
     ttmD_DayName: string;
     ttmC_CategoryName: string;
     ttmP_PeriodName: string;
+    ttmC_Id: number;
+    ttmP_Id: number;
     ttmdpT_StartTime: string;
     ttmdpT_EndTime: string;
     ttmdpT_ActiveFlag: boolean;
@@ -467,3 +471,12 @@ export interface IMasterBuildClassSectionGrid {
     ttmbcS_ActiveFlag: boolean;
     asmC_SectionName: string;
 }
+
+export type PeriodDropdownData = {
+    ttmP_Id: number;
+    mI_Id: number;
+    ttmP_PeriodName: string;
+    ttmP_ActiveFlag: boolean;
+    createdDate: string;
+    updatedDate: string;
+};

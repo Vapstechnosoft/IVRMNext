@@ -10,7 +10,7 @@ import type {
 } from '@/types/timetable/masters/masters';
 
 export async function getCategoryClassMappingDetails(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ttmB_BuildingName');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'categoryName,className,sectionName');
     const url = `/CategoryClassMappFacade/GetCategoryClassMappingGridList?${urlParams}`;
     console.info('MasterDayFacade', url);
     return await api.get<ICategoryClassMapping[]>('timetable', url);

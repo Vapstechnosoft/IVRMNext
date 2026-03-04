@@ -165,16 +165,12 @@ export const periodTimeSettingSchema = {
         asmaY_Id: z.number().min(1, 'Academic Year is required'),
         ttmC_Id: z.number().min(1, 'Category is required'),
         ttmP_Id: z.number().min(1, 'Period is required'),
-        dayIds: z
-            .array(
-                z.object({
-                    ttmD_Id: z.number(),
-                    ttmD_DayName: z.string().optional()
-                })
-            )
-            .min(1, 'Select at least one day'),
+        dayids: z.array(z.string()).nonempty('Please select at least one Day'),
         startTime: z.date({ required_error: 'Start Time is required' }),
         endTime: z.date({ required_error: 'End Time is required' })
+    }),
+    delete: z.object({
+        ttmdpT_Id: deleteIdSchema('ttmdpT_Id')
     })
 };
 export const masterBuildingClassSectionSchema = {
