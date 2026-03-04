@@ -5,7 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IHomeWork, IHomeWorkMarksList, IHomeWorkMarks } from '@/schemas/upload/transactions/ivrm-homework.schema';
-import { fetchHomeWorkMarksList, saveHomeWorkMarks } from '@/server/upload/transactions/ivrm-homework/server-action';
+import { fetchHomeWorkMarksList } from '@/server/upload/transactions/ivrm-homework/server-action';
 import { Eye, Save, Upload } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -62,17 +62,17 @@ export default function MarksEntryForm() {
         }
 
         try {
-            const result = await saveHomeWorkMarks({
-                ihW_Id: selectedRow?.ihW_Id,
-                students: checkedStudents
-            });
-            if (result.success) {
-                toast.success(result.message);
-            } else {
-                toast.error(result.message);
-            }
+            // const result = await saveHomeWorkMarks({
+            //     ihW_Id: selectedRow?.ihW_Id,
+            //     students: checkedStudents
+            // });
+            // if (result.success) {
+            //     toast.success(result.message);
+            // } else {
+            //     toast.error(result.message);
+            // }
         } catch (error) {
-            toast.error('Failed to save marks');
+           // toast.error('Failed to save marks');
         }
     };
 

@@ -19,20 +19,16 @@ interface ToggleClassWorkFormProps {
 }
 
 export default function ToggleClassWorkForm({ rowData, onClose }: ToggleClassWorkFormProps) {
-    const payload = {
-        asmaY_Id: 176
-    };
-    const { refetchAll } = ClassWorkUploadedList(payload);
 
-        const {
-            register,
-            handleSubmit,
-            reset,
-            formState: { errors, isSubmitting }
-        } = useForm<FormFields>({
-            resolver: zodResolver(classWorkSchema.delete),
-            mode: 'onChange'
-        });
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors, isSubmitting }
+    } = useForm<FormFields>({
+        resolver: zodResolver(classWorkSchema.delete),
+        mode: 'onChange'
+    });
 
     function closeDialog() {
         onClose();
@@ -44,7 +40,6 @@ export default function ToggleClassWorkForm({ rowData, onClose }: ToggleClassWor
             const response = await toggleUploadClassWork(Number(rowData.icW_Id));
             if (response.success) {
                 toast.success(response.message);
-                refetchAll();
                 closeDialog();
             } else {
                 toast.error(response.message);
