@@ -87,11 +87,19 @@ export function ComposeTab({ roleFlg, configFlag, userHrmIds, onSuccess, isGroup
                 userflag: userFlag
             };
             const response = await getInteractionDetails(data);
+
+            let dataList = [];
             if (response && response.getdetails) {
-                setRecipients(response.getdetails);
-            } else {
-                setRecipients([]);
+                dataList = response.getdetails;
+            } else if (response && response.studentList) {
+                dataList = response.studentList;
+            } else if (response && response.staffList) {
+                dataList = response.staffList;
+            } else if (Array.isArray(response)) {
+                dataList = response;
             }
+
+            setRecipients(dataList);
         } catch (error) {
             console.error("Error fetching details", error);
             setRecipients([]);
@@ -172,8 +180,14 @@ export function ComposeTab({ roleFlg, configFlag, userHrmIds, onSuccess, isGroup
                     setIsSending(false);
                     return;
                 }
-                // For Teacher/HOD/Principal, usually HRME_Id is the identifier
-                recipientPayload.push({ hrme_Id: Number.parseInt(selectedRecipient) });
+
+                // Determine if we are sending to a student or a staff based on the selected object
+                const selectedRec = recipients.find(r => (r.HRME_Id || r.hrMe_Id || r.amsT_Id || r.AMST_Id)?.toString() === selectedRecipient);
+                if (selectedRec && (selectedRec.amsT_Id || selectedRec.AMST_Id)) {
+                    recipientPayload.push({ amst_Id: Number.parseInt(selectedRecipient) });
+                } else {
+                    recipientPayload.push({ hrme_Id: Number.parseInt(selectedRecipient) });
+                }
             } else {
                 // Staff -> Student Logic
                 if (isGroup) {
@@ -391,12 +405,16 @@ export function ComposeTab({ roleFlg, configFlag, userHrmIds, onSuccess, isGroup
                                     ))
                                 ) : (
                                     // Generic Recipients List
-                                    recipients.map((rec: any) => (
-                                        <SelectItem key={rec.HRME_Id || rec.hrMe_Id} value={(rec.HRME_Id || rec.hrMe_Id).toString()}>
-                                            {rec.EmpName || rec.empName}
-                                            {rec.ISMS_SubjectName ? ` - ${rec.ISMS_SubjectName}` : ''}
-                                        </SelectItem>
-                                    ))
+                                    recipients.map((rec: any) => {
+                                        const id = rec.HRME_Id || rec.hrMe_Id || rec.amsT_Id || rec.AMST_Id;
+                                        const name = rec.EmpName || rec.empName || rec.studentName || rec.AMST_FirstName;
+                                        return (
+                                            <SelectItem key={id} value={id?.toString() || ""}>
+                                                {name}
+                                                {rec.ISMS_SubjectName ? ` - ${rec.ISMS_SubjectName}` : ''}
+                                            </SelectItem>
+                                        );
+                                    })
                                 )}
                             </SelectContent>
                         </Select>

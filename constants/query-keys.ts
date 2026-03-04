@@ -549,7 +549,9 @@ export const PORTAL_QUERY_KEYS = {
     GET_EMPLOYEES_FOR_NOTICE_BOARD: 'get_employees_for_notice_board',
     GET_ROUTES_FOR_NOTICE_BOARD: 'get_routes_for_notice_board',
     GET_GROUPS_FOR_NOTICE_BOARD: 'get_groups_for_notice_board',
-    GET_TERMS_FOR_NOTICE_BOARD: 'get_terms_for_notice_board'
+    GET_TERMS_FOR_NOTICE_BOARD: 'get_terms_for_notice_board',
+    EXAM_STUDENT_REPORT_YEAR_DROP_DOWN: 'exam_student_report_year_drop_down',
+    EXAM_STUDENT_COMPLIANTS_YEAR_DROP_DOWN: 'exam_student_compliants_year_drop_down'
 };
 
 export const STAFF_PORTAL_QUERY_KEYS = {

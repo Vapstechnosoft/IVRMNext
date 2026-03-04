@@ -62,8 +62,9 @@ export const columns: ColumnDef<StudentComplaint>[] = [
             const complaint = row.original
             if (!complaint.ASCOMP_FilePath) return null
 
-            const fileType = complaint.filetype?.toLowerCase()
             const fileName = complaint.ASCOMP_FileName || "File"
+            const fileExtension = fileName.split('.').pop()?.toLowerCase() || ""
+            const fileType = complaint.filetype?.toLowerCase() || fileExtension
             const filePath = complaint.ASCOMP_FilePath
             const docPath = complaint.document_Pathnew || filePath
 

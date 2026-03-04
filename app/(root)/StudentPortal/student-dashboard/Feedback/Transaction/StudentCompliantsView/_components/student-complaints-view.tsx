@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState, useEffect } from 'react';
-import { getStudentComplaintsReport, getExamReportLoadData } from './actions';
+import { getStudentComplaintsReport, getStudentComplaintsLoadData } from './actions';
 import { columns } from './columns';
 import { AcademicYear, StudentComplaint } from '@/constants/types';
 import { useAcademicStudentCompliants } from '@/hooks/student-portal/useCumulative';
@@ -25,7 +25,7 @@ export default function StudentComplaintsViewClient() {
         const fetchInitialData = async () => {
             try {
                 setIsLoading(true);
-                const loadData = await getExamReportLoadData();
+                const loadData = await getStudentComplaintsLoadData();
                 console.log("DEBUG: Client received initial load data:", loadData);
 
                 if (loadData && loadData.studentdivlist && loadData.studentdivlist.length > 0) {

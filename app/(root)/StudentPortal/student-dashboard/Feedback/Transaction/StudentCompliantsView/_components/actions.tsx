@@ -184,12 +184,8 @@ export async function getStudentComplaintsReport(payload: { ASMAY_Id: number, AS
 
         // Construct the payload as per user request
         const requestPayload = {
-            studentview: [0],
-            asmcL_Id: payload.ASMCL_Id || 0, // Default to 0 if not provided
-            asmS_Id: payload.ASMS_Id || 0,   // Default to 0 if not provided
             asmaY_Id: payload.ASMAY_Id,
-            amsT_Id: amst_id,
-            MI_Id: mi_id,
+            amsT_Id: amst_id
         };
 
         console.log(`DEBUG: Fetching report for ASMAY_Id: ${payload.ASMAY_Id} with Payload:`, JSON.stringify(requestPayload));
