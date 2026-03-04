@@ -1,170 +1,30 @@
 'use client';
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { getClassWiseReport, getClassWiseReportDetails } from '@/server/timetable/reports/classwisett';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import ClassWiseForm from './_components/classwise-form';
 import ClassWiseReportGrid from './_components/classwise-report-grid';
 import ClassWiseReportPrintable from './_components/classwise-report-printable';
 
 export default function ClassWiseReportPage() {
-    const [initialData, setInitialData] = useState<any>({});
     const [reportData, setReportData] = useState<any[]>([]);
     const [isReportVisible, setIsReportVisible] = useState(false);
-    const [loading, setLoading] = useState(false);
     const printRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        const fetchDetails = async () => {
-            try {
-                const data = await getClassWiseReportDetails({});
-                if (data) {
-                    setInitialData(data);
-                }
-            } catch (error: any) {
-                console.error('Error fetching initial details', error);
-            }
-        };
-        fetchDetails();
-    }, []);
 
-    const handleFormSubmit = async (payload: any) => {
-        setLoading(true);
-        try {
-            // Temporary static data as requested by user
-            const mockPeriodList = [
-                { ped_id: 1, ped_name: '1', is_break: false },
-                { ped_id: 2, ped_name: '2', is_break: false },
-                { ped_id: 3, ped_name: '3', is_break: false },
-                { ped_id: 0, ped_name: 'Break', brk_name: 'INTERVAL', is_break: true },
-                { ped_id: 4, ped_name: '4', is_break: false },
-                { ped_id: 5, ped_name: '5', is_break: false },
-                { ped_id: 6, ped_name: '6', is_break: false },
-                { ped_id: 0, ped_name: 'Break', brk_name: 'LUNCH BREAK', is_break: true },
-                { ped_id: 7, ped_name: '7', is_break: false },
-                { ped_id: 8, ped_name: '8', is_break: false },
-                { ped_id: 9, ped_name: '9', is_break: false },
-            ];
 
-            const mockRows = [
-                {
-                    dayName: 'MONDAY',
-                    cells: [
-                        { content: 'ENG :Simran', color: 'black' },
-                        { content: 'CHEM :Suparna', color: 'black' },
-                        { content: 'Hindi :Anjana && Kan :Nisha S && Fre :Neha', color: 'black' },
-                        { content: 'INTERVAL', color: 'red', is_break: true },
-                        { content: 'H & C :Annette', color: 'black' },
-                        { content: 'ELIT :TENZ', color: 'black' },
-                        { content: '', color: 'black' },
-                        { content: 'LUNCH BREAK', color: 'red', is_break: true },
-                        { content: 'GEO :Aarthi', color: 'black' },
-                        { content: 'BIO :Sneha', color: 'black' },
-                        { content: 'PHYSICS :Alka', color: 'black' },
-                    ]
-                },
-                {
-                    dayName: 'TUESDAY',
-                    cells: [
-                        { content: 'H & C :Annette', color: 'black' },
-                        { content: 'BIO :Sneha', color: 'black' },
-                        { content: '', color: 'black' },
-                        { content: 'INTERVAL', color: 'red', is_break: true },
-                        { content: 'C.A :Varima && Mass Media :Titto && BIO :Maria P J', color: 'black' },
-                        { content: 'PHYSICS :Alka', color: 'black' },
-                        { content: 'ENG :Simran', color: 'black' },
-                        { content: 'LUNCH BREAK', color: 'red', is_break: true },
-                        { content: 'Hindi :Anjana && Kan :Nisha S && Fre :Neha', color: 'black' },
-                        { content: '', color: 'black' },
-                        { content: '', color: 'black' },
-                    ]
-                },
-                {
-                    dayName: 'WEDNESDAY',
-                    cells: [
-                        { content: 'BIO :Sneha', color: 'black' },
-                        { content: '', color: 'black' },
-                        { content: '', color: 'black' },
-                        { content: 'INTERVAL', color: 'red', is_break: true },
-                        { content: 'Hindi :Anjana && Kan :Nisha S && Fre :Neha', color: 'black' },
-                        { content: 'H & C :Annette', color: 'black' },
-                        { content: 'CHEM :Suparna', color: 'black' },
-                        { content: 'LUNCH BREAK', color: 'red', is_break: true },
-                        { content: 'ELIT :TENZ', color: 'black' },
-                        { content: 'GEO :Aarthi', color: 'black' },
-                        { content: 'C.A :Varima && Mass Media :Titto', color: 'black' },
-                    ]
-                },
-                {
-                    dayName: 'THURSDAY',
-                    cells: [
-                        { content: 'PHYSICS :Alka', color: 'black' },
-                        { content: 'GEO :Aarthi', color: 'black' },
-                        { content: 'C.A :Varima && Mass Media :Titto', color: 'black' },
-                        { content: 'INTERVAL', color: 'red', is_break: true },
-                        { content: 'CHEM :Suparna', color: 'black' },
-                        { content: 'Hindi :Anjana && Kan :Nisha S && Fre :Neha', color: 'black' },
-                        { content: '', color: 'black' },
-                        { content: 'LUNCH BREAK', color: 'red', is_break: true },
-                        { content: 'H & C :Annette', color: 'black' },
-                        { content: 'BIO :Sneha', color: 'black' },
-                        { content: '', color: 'black' },
-                    ]
-                },
-                {
-                    dayName: 'FRIDAY',
-                    cells: [
-                        { content: 'ELIT :TENZ', color: 'black' },
-                        { content: 'ENG :Simran', color: 'black' },
-                        { content: '', color: 'black' },
-                        { content: 'INTERVAL', color: 'red', is_break: true },
-                        { content: 'GEO :Aarthi', color: 'black' },
-                        { content: 'PHYSICS :Alka', color: 'black' },
-                        { content: 'C.A :Varima && Mass Media :Titto && BIO :Maria P J', color: 'black' },
-                        { content: 'LUNCH BREAK', color: 'red', is_break: true },
-                        { content: 'CHEM :Suparna', color: 'black' },
-                        { content: '', color: 'black' },
-                        { content: '', color: 'black' },
-                    ]
-                }
-            ];
-
-            const processedList: any[] = [];
-            payload.classarray.forEach((cls: any) => {
-                payload.sectionarray.forEach((sec: any) => {
-                    processedList.push({
-                        header: `Class : ${cls.asmcL_ClassName} & Section : ${sec.asmC_SectionName}`,
-                        periodList: mockPeriodList.map(p => ({ ...p, ped_name: p.is_break ? 'Break' : p.ped_name })),
-                        rows: mockRows
-                    });
-                });
-            });
-
-            setReportData(processedList);
+    const handleReportGenerated = (response: any, payload: any) => {
+        const data = response.data || response;
+        if (data?.tt?.length > 0) {
+            processReportData(data, payload.classarray, payload.sectionarray);
             setIsReportVisible(true);
-            toast.success('Report generated successfully (Static Data)');
-
-            /* 
-            // Commenting out real API call for temporary static data demonstration
-            const response = await getClassWiseReport(payload);
-            if ((response as AnalyserOptions) && response.tt) {
-                processReportData(response, payload.classarray, payload.sectionarray);
-                setIsReportVisible(true);
-                toast.success('Report generated successfully');
-            } else {
-                toast.error('TimeTable is Not Generated For Selected Details !!!!');
-                setReportData([]);
-                setIsReportVisible(false);
-            }
-            */
-        } catch (error: any) {
-            console.error('Error generating report', error);
-            toast.error(error.message || 'Failed to generate report.');
+            toast.success('Report generated successfully');
+        } else {
+            const msg = response.message || 'TimeTable is Not Generated For Selected Details !!!!';
+            toast.error(msg);
             setReportData([]);
             setIsReportVisible(false);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -173,67 +33,143 @@ export default function ClassWiseReportPage() {
         setIsReportVisible(false);
     };
 
-    const processReportData = (data: any, selectedClasses: any[], selectedSections: any[]) => {
+    const processReportData = (response: any, selectedClasses: any[], selectedSections: any[]) => {
         const processedList: any[] = [];
-        const periodList = data.periodslst || [];
-        const breakList = data.tT_Break_list || [];
-        const allBreakList = data.tT_Break_list_all || [];
-        const gridWeeks = data.gridweeks || [];
-        const timetable = data.tt || [];
 
-        selectedClasses.forEach((cls: any) => {
-            const classPeriodList: any[] = [];
-            periodList.forEach((period: any) => {
-                const breakItem = breakList.find(
-                    (b: any) => b.asmcL_Id === cls.asmcL_Id && Number.parseFloat(period.ttmP_PeriodName) === b.ttmB_AfterPeriod
-                );
+        // Helper to find the object containing TimeTable data (VAPS nesting varies)
+        const findRoot = (obj: any): any => {
+            if (!obj) return null;
+            // Check for core keys at this level
+            const hasData = (o: any) => o && (
+                (o.tt && Array.isArray(o.tt)) ||
+                (o.TT && Array.isArray(o.TT)) ||
+                (o.timetable && Array.isArray(o.timetable)) ||
+                (o.Table4 && Array.isArray(o.Table4))
+            );
 
-                classPeriodList.push({ ped_id: period.ttmP_Id, ped_name: period.ttmP_PeriodName, is_break: false });
+            if (hasData(obj)) return obj;
+            if (obj.data) return findRoot(obj.data);
+            return obj;
+        };
 
-                if (breakItem) {
-                    classPeriodList.push({ ped_id: 0, ped_name: 'Break', brk_name: breakItem.ttmB_BreakName, is_break: true });
-                }
-            });
+        const root = findRoot(response);
 
-            selectedSections.forEach((sec: any) => {
+        // Helper for case-insensitive and alternative key access
+        const getList = (obj: any, ...keys: string[]): any[] => {
+            if (!obj) return [];
+            for (const k of keys) {
+                if (obj[k] && Array.isArray(obj[k])) return obj[k];
+                // Case-insensitive search
+                const lowerK = k.toLowerCase();
+                const foundKey = Object.keys(obj).find(key => key.toLowerCase() === lowerK);
+                if (foundKey && Array.isArray(obj[foundKey])) return obj[foundKey];
+            }
+            return [];
+        };
+
+        const timetable = getList(root, 'tt', 'TT', 'timetable', 'Table4', 'Table');
+        const periodList = getList(root, 'periodslst', 'periodList', 'periodsLst', 'periodsList', 'allperiods', 'Table1');
+        const gridWeeks = getList(root, 'gridweeks', 'gridWeeks', 'day_list', 'day_List', 'Table', 'grid_Weeks');
+        const breakList = getList(root, 'tT_Break_list', 'breakList', 'Table2', 'tt_break_list', 'tT_Break_list');
+        const allBreakList = getList(root, 'tT_Break_list_all', 'allBreakList', 'Table3', 'tt_break_list_all', 'tT_Break_list_all');
+
+        console.log('ClassWise Report Deep Analysis:', {
+            rootKeys: root ? Object.keys(root) : 'none',
+            counts: {
+                periods: periodList.length,
+                days: gridWeeks.length,
+                tt: timetable.length
+            }
+        });
+
+        // Use selected items from payload but handle potential key differences
+        const classesToProcess = Array.isArray(selectedClasses) ? selectedClasses : [];
+        const sectionsToProcess = Array.isArray(selectedSections) ? selectedSections : [];
+
+        classesToProcess.forEach((cls: any) => {
+            const clsId = cls.asmcL_Id || cls.ASMC_Id || cls.asmcl_Id;
+            const clsName = cls.asmcL_ClassName || cls.className || cls.asmcL_ClassName || '';
+
+            sectionsToProcess.forEach((sec: any) => {
+                const secId = sec.asmS_Id || sec.ASMS_Id || sec.asms_Id;
+                const secName = sec.asmC_SectionName || sec.sectionName || sec.asmC_SectionName || '';
+
                 const tableRows: any[] = [];
+                const classPeriodSequence: any[] = [];
 
+                // 1. Reconstruct logical timeline for this specific class (Periods + Breaks)
+                periodList.forEach((period: any) => {
+                    const pedId = period.ttmP_Id || period.TTMP_Id || period.ped_id;
+                    const pedName = period.ttmP_PeriodName || period.periodName || period.ped_name;
+
+                    classPeriodSequence.push({
+                        ped_id: pedId,
+                        ped_name: String(pedName),
+                        is_break: false
+                    });
+
+                    // Check for class-specific breaks mapped after this period
+                    const breakItem = breakList.find((b: any) => {
+                        const bClsId = b.asmcL_Id || b.ASMC_Id || b.asmcl_Id;
+                        const bAfter = b.ttmB_AfterPeriod || b.afterPeriod || b.ttmb_afterperiod;
+                        return Number(bClsId) === Number(clsId) &&
+                            Number.parseFloat(String(pedName)) === Number.parseFloat(String(bAfter));
+                    });
+
+                    if (breakItem) {
+                        classPeriodSequence.push({
+                            ped_id: 0,
+                            ped_name: 'Break',
+                            brk_name: breakItem.ttmB_BreakName || breakItem.breakName || 'Break',
+                            is_break: true,
+                            after_ped_name: String(pedName)
+                        });
+                    }
+                });
+
+                // 2. Map TimeTable entries to the constructed Matrix
                 gridWeeks.forEach((day: any) => {
                     const rowCells: any[] = [];
-                    classPeriodList.forEach((periodCol: any, pIdx: number) => {
+                    const dayId = day.ttmD_Id || day.TTMD_Id || day.day_id || day.ttmd_id;
+                    const dayName = day.ttmD_DayName || day.dayName || day.day_name || '';
+
+                    classPeriodSequence.forEach((periodCol: any) => {
                         let cellContent = '';
                         let cellColor = 'black';
 
                         if (!periodCol.is_break) {
-                            const entries = timetable.filter(
-                                (t: any) =>
-                                    t.ttmP_Id === periodCol.ped_id &&
-                                    t.ttmD_Id === day.ttmD_Id &&
-                                    t.asmcL_Id === cls.asmcL_Id &&
-                                    t.asmS_Id === sec.asmS_Id
-                            );
+                            const entries = timetable.filter((t: any) => {
+                                const tPedId = t.ttmP_Id || t.TTMP_Id || t.ped_id;
+                                const tDayId = t.ttmD_Id || t.TTMD_Id || t.day_id;
+                                const tClsId = t.asmcL_Id || t.ASMC_Id || t.asmcl_Id;
+                                const tSecId = t.asmS_Id || t.ASMS_Id || t.asms_Id;
+
+                                return Number(tPedId) === Number(periodCol.ped_id) &&
+                                    Number(tDayId) === Number(dayId) &&
+                                    Number(tClsId) === Number(clsId) &&
+                                    Number(tSecId) === Number(secId);
+                            });
 
                             if (entries.length > 0) {
-                                cellContent = entries.map((t: any) => `${t.ismS_SubjectName} : ${t.staffName}`).join(' && ');
+                                cellContent = entries.map((t: any) => {
+                                    const sub = t.ismS_SubjectName || t.subjectName || t.subject || '';
+                                    const stf = t.staffName || t.empName || t.staff || t.hrmE_EmployeeName || '';
+                                    return `${sub} : ${stf}`;
+                                }).join(' && ');
                             }
                         } else {
-                            // Break Handling logic from Angular
-                            // Previous period ped_id
-                            const prevPeriodId = pIdx > 0 ? classPeriodList[pIdx - 1].ped_id : -1;
-
-                            const daySpecificBreak = allBreakList.find(
-                                (b: any) =>
-                                    b.ttmD_Id === day.ttmD_Id &&
-                                    b.asmcL_Id === cls.asmcL_Id &&
-                                    // Match by AfterPeriod float
-                                    periodList.find(
-                                        (p: any) =>
-                                            p.ttmP_Id === prevPeriodId && Number.parseFloat(p.ttmP_PeriodName) === b.ttmB_AfterPeriod
-                                    )
-                            );
+                            // Priority: Day-Specific Break from Table3 (allBreakList)
+                            const daySpecificBreak = allBreakList.find((b: any) => {
+                                const bDayId = b.ttmD_Id || b.TTMD_Id || b.day_id || b.ttmd_id;
+                                const bClsId = b.asmcL_Id || b.ASMC_Id || b.asmcl_Id;
+                                const bAfter = b.ttmB_AfterPeriod || b.afterPeriod || b.ttmb_afterperiod;
+                                return Number(bDayId) === Number(dayId) &&
+                                    Number(bClsId) === Number(clsId) &&
+                                    Number.parseFloat(String(periodCol.after_ped_name)) === Number.parseFloat(String(bAfter));
+                            });
 
                             if (daySpecificBreak) {
-                                cellContent = daySpecificBreak.ttmB_BreakName;
+                                cellContent = daySpecificBreak.ttmB_BreakName || daySpecificBreak.breakName || 'Break';
                                 cellColor = 'red';
                             } else {
                                 cellContent = periodCol.brk_name || 'Break';
@@ -243,17 +179,18 @@ export default function ClassWiseReportPage() {
 
                         rowCells.push({
                             ...periodCol,
-                            dayId: day.ttmD_Id,
+                            dayId: dayId,
                             content: cellContent,
                             color: cellColor
                         });
                     });
-                    tableRows.push({ dayName: day.ttmD_DayName, cells: rowCells });
+
+                    tableRows.push({ dayName: String(dayName), cells: rowCells });
                 });
 
                 processedList.push({
-                    header: `Class : ${cls.asmcL_ClassName} & Section : ${sec.asmC_SectionName}`,
-                    periodList: classPeriodList,
+                    header: `Class : ${clsName} & Section : ${secName}`,
+                    periodList: classPeriodSequence,
                     rows: tableRows
                 });
             });
@@ -269,7 +206,10 @@ export default function ClassWiseReportPage() {
     return (
         <div className='container mx-auto space-y-6 p-4'>
             <CollapsibleSection title='Class Wise TimeTable Report' defaultOpen={true}>
-                <ClassWiseForm initialData={initialData} onSubmit={handleFormSubmit} onCancel={handleCancel} />
+                <ClassWiseForm
+                    onReportGenerated={handleReportGenerated}
+                    onCancel={handleCancel}
+                />
             </CollapsibleSection>
 
             {isReportVisible && (

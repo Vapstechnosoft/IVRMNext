@@ -6,7 +6,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { usePeriodStaffGridData } from '@/hooks/timetable/constraints/fixingData';
 import { masterDaySchema } from '@/schemas/timetable/masters';
 import { deactivateFixingPeriodStaff } from '@/server/timetable/constraints/fixing';
-import { TTPeriodStaffGridData } from '@/types/timetable/constraints/fixing';
+import type { TTPeriodStaffGridData } from '@/types/timetable/constraints/fixing';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -21,7 +21,10 @@ interface TogglePeriodStaffProps {
 
 export default function TogglePeriodStaffForm({ rowData, onClose }: TogglePeriodStaffProps) {
     const { refetchAll } = usePeriodStaffGridData();
-    const isActive = rowData.ttfpS_ActiveFlag;
+    const isActive =
+        (rowData as any).ttfpS_ActiveFlag === true ||
+        (rowData as any).ttfpS_ActiveFlag === 1 ||
+        (rowData as any).ttfpS_ActiveFlag === 'true';
 
     const {
         register,
@@ -40,17 +43,20 @@ export default function TogglePeriodStaffForm({ rowData, onClose }: TogglePeriod
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await deactivateFixingPeriodStaff(Number(rowData.ttfpS_Id));
+            const response = await deactivateFixingPeriodStaff({
+                TTFPS_Id: Number(rowData.ttfpS_Id),
+                TTFPS_ActiveFlag: !isActive
+            });
 
-            if (response.success || response.returnval === true) {
-                toast.success(response.message || 'Status updated successfully');
+            if (response.success) {
+                toast.success(response.message);
                 refetchAll();
                 closeDialog();
             } else {
-                toast.error(response.message || 'Failed to update status');
+                toast.error(response.message);
             }
         } catch (error: any) {
-            toast.error(error.message || 'An error occurred');
+            toast.error(error.message);
         }
     };
 
@@ -60,8 +66,7 @@ export default function TogglePeriodStaffForm({ rowData, onClose }: TogglePeriod
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('ttmD_Id')} defaultValue={rowData.ttfpS_Id} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
-                        <strong>{rowData.staffName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.staffName}</strong>?
                     </p>
                     <FormError>{errors.ttmD_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>

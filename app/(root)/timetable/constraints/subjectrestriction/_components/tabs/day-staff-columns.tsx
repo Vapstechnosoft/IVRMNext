@@ -11,6 +11,7 @@ export interface IDayStaffList {
     asmaY_Year: string;
     ttmD_DayName: string;
     staffName: string;
+    ttrdS_ActiveFlag: boolean;
     // Add other fields if returned by API
 }
 
@@ -41,6 +42,19 @@ export const columns: ColumnDef<IDayStaffList>[] = [
         accessorKey: 'staffName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Staff' />,
         cell: ({ row }) => <div>{row.getValue('staffName')}</div>
+    },
+    {
+        accessorKey: 'ttrdS_ActiveFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Active' />,
+        cell: ({ row }) => (
+            <div>
+                {row.original.ttrdS_ActiveFlag ? (
+                    <span className='rounded bg-green-100 px-2 py-1 font-semibold text-green-800 text-xs'>Active</span>
+                ) : (
+                    <span className='rounded bg-red-100 px-2 py-1 font-semibold text-red-800 text-xs'>Inactive</span>
+                )}
+            </div>
+        )
     },
     {
         id: 'actions',
@@ -74,7 +88,7 @@ function ActionButtonsCell({ rowData }: { rowData: IDayStaffList }) {
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='ttrdsU_ActiveFlag'
+            toggleConditionKey='ttrdS_ActiveFlag'
         />
     );
 }
