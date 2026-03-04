@@ -16,12 +16,13 @@ import {
     useLeaveStatusReport
 } from '@/hooks/hrms/useReports';
 import { Download, Loader2, Printer, Search } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { X } from 'lucide-react';
 import { columns } from './_components/columns';
-
+import { printLeaveStatusReport } from './_components/leave-status-print';
+import { exportLeaveStatusReport } from './_components/leave-status-export';
 interface FilterFormValues {
     year: string;
     groupType: string[];
@@ -55,6 +56,9 @@ function LeaveStatusReportContent() {
     const watchedGroupType = watch('groupType');
     const watchedDepartment = watch('department');
     const watchedDesignation = watch('designation');
+    const watchedYear = watch('year');
+
+
 
     // Mapped ID arrays for hook dependencies
     const groupTypeIds = useMemo(() => watchedGroupType.map(Number).filter(Boolean), [watchedGroupType]);
@@ -156,7 +160,7 @@ function LeaveStatusReportContent() {
         const payload = {
             hrmlY_Id: data.year,
             hrme_Ids: data.employees.join(','),
-            hrml_Ids: data.leaves.join(',')
+            hrml_Ids: Array.isArray(data.leaves) ? data.leaves.join(',') : data.leaves
         };
 
         setIsPending(true);
@@ -184,19 +188,26 @@ function LeaveStatusReportContent() {
     };
 
     const handlePrint = () => {
-        if (!reportData) {
+        if (!reportData || reportData.length === 0) {
             toast.error('No data to print');
             return;
         }
-        window.print();
+        printLeaveStatusReport(reportData);
+
     };
 
     const handleExport = () => {
-        if (!reportData) {
+        if (!reportData || reportData.length === 0) {
             toast.error('No data to export');
             return;
         }
-        toast.info('Export functionality not yet linked');
+
+        const success = exportLeaveStatusReport(reportData);
+        if (success) {
+            toast.success('Report exported successfully');
+        } else {
+            toast.error('Failed to export report');
+        }
     };
 
 
@@ -318,17 +329,20 @@ function LeaveStatusReportContent() {
                                 name='leaves'
                                 control={control}
                                 render={({ field }) => (
-                                    <MultiSelect
-                                        options={
-                                            leavesDataTransformed.map((lv: any) => ({
-                                                label: lv.name,
-                                                value: String(lv.id)
-                                            }))
-                                        }
-                                        defaultValue={field.value}
-                                        onValueChange={field.onChange}
-                                        placeholder='Select Leave Types'
-                                    />
+                                    <Select onValueChange={field.onChange} value={field.value.toString()} >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Leave Types' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {
+                                                leavesDataTransformed.map((lv: any) => (
+                                                    <SelectItem key={lv.id} value={String(lv.id)}>
+                                                        {lv.name}
+                                                    </SelectItem>
+                                                ))
+                                            }
+                                        </SelectContent>
+                                    </Select>
                                 )}
                             />
                         </div>
@@ -380,6 +394,8 @@ function LeaveStatusReportContent() {
                     </div>
                 </form>
             </CollapsibleSection>
+
+
 
             {reportData && (
                 <CollapsibleSection
