@@ -6,7 +6,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { useSubjectRestrictionDaySubjectGridData } from '@/hooks/timetable/constraints/subjectrestriction';
 import { masterDaySchema } from '@/schemas/timetable/masters';
 import { ToggleSubjectDaySubject } from '@/server/timetable/constraints/subjectrestriction';
-import { SubjectRestrictionDaySubjectGridData } from '@/types/timetable/constraints/subjectRestrictions';
+import type { SubjectRestrictionDaySubjectGridData } from '@/types/timetable/constraints/subjectRestrictions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -20,7 +20,7 @@ interface ToggleSubjectDaySubjectProps {
 }
 
 export default function ToggleDaySubjectForm({ rowData, onClose }: ToggleSubjectDaySubjectProps) {
-    const { refetchAll } = useSubjectRestrictionDaySubjectGridData({ ASMAY_Id: 0, TTMC_Id: 0 });
+    const { refetchAll } = useSubjectRestrictionDaySubjectGridData({ ASMAY_Id: rowData.asmaY_Id || 0, TTMC_Id: 0 });
     const isActive = rowData.ttrdsU_ActiveFlag;
 
     const {
@@ -63,7 +63,8 @@ export default function ToggleDaySubjectForm({ rowData, onClose }: ToggleSubject
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
                         <strong>
                             {rowData.ismS_SubjectName} ({rowData.ttmD_DayName})
-                        </strong>?
+                        </strong>
+                        ?
                     </p>
                     <FormError>{errors.ttmD_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>

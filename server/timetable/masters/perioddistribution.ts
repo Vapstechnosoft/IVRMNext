@@ -2,7 +2,7 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { PeriodDistributionColumn } from '@/types/timetable/masters/masters';
+import type { PeriodDistributionColumn, PeriodDropdownData } from '@/types/timetable/masters/masters';
 
 export async function getPeriodDistributionDetails(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'staffName');
@@ -80,4 +80,15 @@ export async function getSubjectPeriodDistrubution() {
     const url = '/TimeTableCommon/subject-details';
     const response = await api.get<any[]>('timetable', url);
     return response.data;
+}
+
+export async function saveperioddistribution(data: any) {
+    const url = '/ClassMasterFacade/save-period-distribution';
+    return await api.post<any>('timetable', url, data);
+}
+
+export async function getPeriodDropdown() {
+    const url = '/TimeTableCommon/period-details';
+    console.info('PeriodDistributionFacade', url);
+    return await api.get<PeriodDropdownData[]>('timetable', url);
 }

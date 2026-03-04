@@ -12,7 +12,7 @@ export async function getMasterBuildingDetails(searchParams?: ApiSearchparams) {
 }
 
 export async function addOrUpdateMasterBuilding(data: any) {
-    const url = '/MasterBuildingFacade/AddorUpdateMasterBuildingClassSection';
+    const url = '/MasterBuildingFacade/AddorUpdateMasterBuilding';
     return await api.post<any>('timetable', url, data);
 }
 
@@ -44,7 +44,7 @@ export async function getMasterSection() {
 }
 
 export async function addOrUpdateMasterBuildingclasssection(data: any) {
-    const url = '/MasterBuildingFacade/AddorUpdateMasterBuilding';
+    const url = '/MasterBuildingFacade/AddorUpdateMasterBuildingClassSection';
     return await api.post<any>('timetable', url, data);
 }
 

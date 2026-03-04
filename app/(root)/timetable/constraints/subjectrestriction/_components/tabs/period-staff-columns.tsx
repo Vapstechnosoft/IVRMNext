@@ -44,6 +44,28 @@ export const columns: ColumnDef<IPeriodStaffList>[] = [
         cell: ({ row }) => <div>{row.getValue('staffName')}</div>
     },
     {
+        accessorKey: 'ttrpS_SUbSelcFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Restriction Level' />,
+        cell: ({ row }) => (
+            <div className={`font-medium ${row.original.ttrpS_SUbSelcFlag ? 'text-blue-600' : 'text-green-600'}`}>
+                {row.original.ttrpS_SUbSelcFlag ? 'Class-Section Wise' : 'General'}
+            </div>
+        )
+    },
+    {
+        accessorKey: 'ttrpS_ActiveFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+        cell: ({ row }) => (
+            <div>
+                {row.original.ttrpS_ActiveFlag ? (
+                    <span className='rounded bg-green-100 px-2 py-1 font-semibold text-green-800 text-xs'>Active</span>
+                ) : (
+                    <span className='rounded bg-red-100 px-2 py-1 font-semibold text-red-800 text-xs'>Inactive</span>
+                )}
+            </div>
+        )
+    },
+    {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
         accessorFn: (row) => row,

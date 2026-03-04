@@ -9,16 +9,15 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
+import { useDayStaffGridData } from '@/hooks/timetable/constraints/fixingData';
 import { type FixingDayStaffSchema, fixingDayStaffSchema } from '@/schemas/timetable/constraints/fixing';
 import {
-    getStaffDropDown
-} from '@/server/timetable/constraints/FixingForm';
-import {
-    deactivateFixingDayStaff,
-    getClassByCategory,
+    getFixingClassDropdown,
+    getFixingClassSectionSubjectByStaff,
     getFixingDayStaffDetails,
-    getSectionByClass,
-    getSubjectByStaff,
+    getFixingDayStaffGridData,
+    getdetailsAllFixing,
     saveFixingDayStaff
 } from '@/server/timetable/constraints/fixing';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,17 +26,16 @@ import { Plus, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import ToggleDayStaffForm from './DayStaffToggle';
 import { dayStaffColumns } from './columns';
-import { TTDayStaffGridData } from '@/types/timetable/constraints/fixing';
 import { FixingViewModal } from './fixing-view-modal';
-import { useDayStaffGridData } from '@/hooks/timetable/constraints/fixingData';
-import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
 
 interface DayStaffTabProps {
     initialData: any;
+    searchParams?: any;
 }
 
-function DayStaffTabContent({ initialData }: DayStaffTabProps) {
+function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -53,33 +51,84 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
     } = useFormContext();
 
     const { data: academicData } = usebifurcationAcademicYear();
-    const academicList = (academicData as any)?.data || [];
+    const academicList = Array.isArray(academicData) ? academicData : (academicData as any)?.data || [];
 
-    const [dayList] = useState<any[]>(initialData?.daylist || []);
-    const [staffList, setStaffList] = useState<any[]>([]);
+    const [dayList, setDayList] = useState<any[]>(initialData?.daylist || initialData?.data?.daylist || []);
+    const [staffList, setStaffList] = useState<any[]>(initialData?.stafflist || initialData?.data?.stafflist || []);
 
-    const { data: gridResponse, isLoading: isGridLoading } = useDayStaffGridData();
+    const { data: gridResponse, isLoading: isGridLoading, refetchAll } = useDayStaffGridData(searchParams);
 
-    // Robust data extraction
-    let gridData: TTDayStaffGridData[] = [];
-    if (gridResponse) {
-        if (Array.isArray(gridResponse)) {
-            gridData = gridResponse;
-        } else if (Array.isArray((gridResponse as any)?.data)) {
-            gridData = (gridResponse as any).data;
-        } else if (Array.isArray((gridResponse as any)?.fix_day_staff_list)) {
-            gridData = (gridResponse as any).fix_day_staff_list;
-        }
-    }
+    const gridData = gridResponse
+        ? (gridResponse as any)?.data || (gridResponse as any)?.fix_day_staff_list || (Array.isArray(gridResponse) ? gridResponse : [])
+        : initialData?.data?.fix_day_staff_list || initialData?.fix_day_staff_list || [];
 
-    if (gridData.length === 0 && initialData?.fix_day_staff_list) {
-        gridData = initialData.fix_day_staff_list;
-    }
+    const totalItems =
+        (gridResponse as any)?.total ||
+        (gridResponse as any)?.count ||
+        (Array.isArray(gridResponse) ? gridResponse.length : initialData?.total || gridData.length);
 
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subSubjectList, setSubSubjectList] = useState<any[]>([]);
-    const [categoryList] = useState<any[]>(initialData?.categorylist || []);
+    const [isClassLoading, setIsClassLoading] = useState(false);
+
+    // Master lists for the selected staff member
+    const [masterClasses, setMasterClasses] = useState<any[]>([]);
+    const [masterSections, setMasterSections] = useState<any[]>([]);
+    const [masterSubjects, setMasterSubjects] = useState<any[]>([]);
+
+    const extractList = (data: any, preferredKey?: string) => {
+        if (!data) return [];
+        if (Array.isArray(data)) return data;
+
+        // Handle ApiResponse wrapper or double-nested data
+        let target = data?.data !== undefined ? data.data : data;
+
+        if (target && !Array.isArray(target) && typeof target === 'object' && target.data !== undefined) {
+            target = target.data;
+        }
+
+        if (Array.isArray(target)) return target;
+        if (!target || typeof target !== 'object') return [];
+
+        if (preferredKey) {
+            const foundKey = Object.keys(target).find((k) => k.toLowerCase() === preferredKey.toLowerCase());
+            const result = foundKey ? target[foundKey] : undefined;
+            if (Array.isArray(result)) return result;
+            // If preferred key fails, don't fall through to generic loop as it can pick the wrong list (e.g. class for section)
+            return [];
+        }
+
+        const keys = [
+            'academiclist',
+            'categorylist',
+            'catelist',
+            'categorylistbystaff',
+            'classlist',
+            'clssbystaff',
+            'clsbystaff',
+            'sectionlist',
+            'secsbystaff',
+            'sectionlistbystaff',
+            'subjectlist',
+            'subsbystaff',
+            'subjectlistbystaff',
+            'subsbyall',
+            'stafflist',
+            'staffbyall',
+            'subjectbystaff',
+            'sectionbyclass',
+            'classbycategory'
+        ];
+        for (const key of keys) {
+            const foundKey = Object.keys(target).find((k) => k.toLowerCase() === key.toLowerCase());
+            const result = foundKey ? target[foundKey] : undefined;
+            if (Array.isArray(result)) return result;
+        }
+
+        const firstArray = Object.values(target).find((v) => Array.isArray(v));
+        return Array.isArray(firstArray) ? (firstArray as any[]) : [];
+    };
 
     // View Modal State
     const [viewDetails, setViewDetails] = useState<any[]>([]);
@@ -88,20 +137,20 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
     const form = useForm<FixingDayStaffSchema>({
         resolver: zodResolver(fixingDayStaffSchema),
         defaultValues: {
-            TTFDS_Id: 0,
-            ASMAY_Id: undefined,
-            TTMD_Id: undefined,
-            HRME_Id: undefined,
-            TTFDS_SUbSelcFlag: false,
-            TempararyArrayList: []
+            ttfdS_Id: 0,
+            asmaY_Id: undefined,
+            ttmD_Id: undefined,
+            hrmE_Id: undefined,
+            ttfdS_SUbSelcFlag: false,
+            tempararyArrayList: []
         }
     });
 
-    const { reset, watch, handleSubmit, control } = form;
-    const ASMAY_Id = watch('ASMAY_Id');
-    const TTFDS_SUbSelcFlag = watch('TTFDS_SUbSelcFlag');
+    const { reset, setValue, watch, handleSubmit, control } = form;
+    const asmaY_Id = watch('asmaY_Id');
+    const ttfdS_SUbSelcFlag = watch('ttfdS_SUbSelcFlag');
 
-    const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
+
     const [selectedClass, setSelectedClass] = useState<number | undefined>();
     const [selectedSection, setSelectedSection] = useState<number | undefined>();
     const [selectedSubject, setSelectedSubject] = useState<number | undefined>();
@@ -109,23 +158,39 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
 
     const { fields, append, remove } = useFieldArray({
         control,
-        name: 'TempararyArrayList'
+        name: 'tempararyArrayList'
     });
+
+    const filterData = (list: any[], key: string) => {
+        return (list || []).filter((item: any) => {
+            if (!item) return false;
+            // Case-insensitive key lookup
+            const actualKey = Object.keys(item).find((k) => k.toLowerCase() === key.toLowerCase());
+            const val = actualKey ? item[actualKey] : undefined;
+            if (val === undefined || val === null) return false;
+            if (typeof val !== 'string') return !!val;
+            const name = val.trim();
+            return name && name.toLowerCase() !== 'test';
+        });
+    };
 
     useEffect(() => {
         const loadDropdowns = async () => {
             try {
-                const [staff] = await Promise.all([
-                    getStaffDropDown()
-                ]);
 
-                setStaffList(staff || []);
+                const [fixingData, gridRes] = await Promise.all([getdetailsAllFixing(), getFixingDayStaffGridData(searchParams)]);
+
+                if (fixingData?.data) {
+                    setDayList(filterData(fixingData.data.daylist || [], 'ttmD_DayName'));
+                    setStaffList(filterData(fixingData.data.stafflist || [], 'staffName'));
+                }
+
+                await refetchAll();
             } catch (error) {
-                console.error("Failed to load dropdowns:", error);
-                toast.error("Failed to load dropdown options");
+                console.error('Failed to load dropdowns:', error);
+                toast.error('Failed to load dropdown options');
             }
         };
-
         loadDropdowns();
     }, []);
 
@@ -151,52 +216,134 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
         }
     }, [isDetailsViewOpen, viewRow]);
 
-    const handleCategoryChange = async (categoryId: number) => {
-        setSelectedCategory(categoryId);
+
+
+    const handleAcademicYearChange = (yearId: number) => {
+        setValue('asmaY_Id', yearId);
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
         setClassList([]);
         setSectionList([]);
         setSubSubjectList([]);
-        if (ASMAY_Id && categoryId) {
-            try {
-                const res = await getClassByCategory({ ASMAY_Id, TTMC_Id: categoryId });
-                if (Array.isArray(res) && res && res.classbycategory) setClassList(res.classbycategory as any[]);
-            } catch (e) {
-                console.error(e);
-            }
+
+        const currentStaffId = form.getValues('hrmE_Id');
+        if (yearId && currentStaffId) {
+            handleStaffChange(currentStaffId, yearId);
         }
+
+        // Fetch categories when year changes is already handled by main effect or can be removed if strictly only once
+        // Removing local override as per user request to keep list "clear" and only from one source
     };
+
+    // If masterClasses don't have category link, or filter yields nothing,
+    // fallback to server fetch for this category or keep current list
 
     const handleClassChange = async (classId: number) => {
         setSelectedClass(classId);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
-        setSectionList([]);
+
+        // Filter sections from master list by class
+        const filtered = masterSections.filter(
+            (s) =>
+                (s.asmcL_Id !== undefined && Number(s.asmcL_Id) === classId) ||
+                (s.asmcl_id !== undefined && Number(s.asmcl_id) === classId) ||
+                (s.ASMCL_Id !== undefined && Number(s.ASMCL_Id) === classId)
+        );
+
+        setSectionList(filterData(filtered.length > 0 ? filtered : masterSections, 'asmC_SectionName'));
         setSubSubjectList([]);
-        if (ASMAY_Id && selectedCategory && classId) {
-            try {
-                const res = await getSectionByClass({ ASMAY_Id, ASMCL_Id: classId, TTMC_Id: selectedCategory });
-                if (Array.isArray(res) && res && res.sectionlist) setSectionList(res.sectionlist as any[]);
-            } catch (e) {
-                console.error(e);
-            }
-        }
     };
 
     const handleSectionChange = async (sectionId: number) => {
         setSelectedSection(sectionId);
         setSelectedSubject(undefined);
+
+        // Filter subjects from master list by section
+        const filtered = masterSubjects.filter(
+            (sub) =>
+                (sub.asmS_Id !== undefined && Number(sub.asmS_Id) === sectionId) ||
+                (sub.asms_id !== undefined && Number(sub.asms_id) === sectionId) ||
+                (sub.ASMS_Id !== undefined && Number(sub.ASMS_Id) === sectionId)
+        );
+
+        if (filtered.length > 0) {
+            setSubSubjectList(filterData(filtered, 'ismS_SubjectName'));
+        } else {
+            // If local filter is missing link, show staff's full subject list as it's specifically for them
+            setSubSubjectList(filterData(masterSubjects, 'ismS_SubjectName'));
+        }
+    };
+
+    const handleStaffChange = async (staffId: number, yearId?: number) => {
+        setValue('hrmE_Id', staffId);
+        setSelectedClass(undefined);
+        setSelectedSection(undefined);
+        setSelectedSubject(undefined);
+        setClassList([]);
+        setSectionList([]);
         setSubSubjectList([]);
-        const HRME_Id = watch('HRME_Id');
-        if (ASMAY_Id && selectedClass && sectionId && HRME_Id) {
+
+        const effectiveYearId = yearId ?? form.getValues('asmaY_Id');
+
+        if (effectiveYearId && staffId) {
             try {
-                const res = await getSubjectByStaff({ ASMAY_Id, ASMCL_Id: selectedClass, ASMS_Id: sectionId, HRME_Id });
-                if (Array.isArray(res) && res && res.subjectbystaff) setSubSubjectList(res.subjectbystaff as any[]);
+                console.log(`Fetching assignments for Year: ${effectiveYearId}, Staff: ${staffId}`);
+                const res = await getFixingClassSectionSubjectByStaff(effectiveYearId, staffId);
+                console.log('DayStaff - get_cls_sec_subsData response:', res);
+
+                if (res && (res.success || res.success === undefined)) {
+                    const classes =
+                        extractList(res, 'classlist').length > 0
+                            ? extractList(res, 'classlist')
+                            : extractList(res, 'clssbystaff').length > 0
+                                ? extractList(res, 'clssbystaff')
+                                : extractList(res, 'clsbystaff');
+
+                    const sections =
+                        extractList(res, 'sectionlist').length > 0
+                            ? extractList(res, 'sectionlist')
+                            : extractList(res, 'secsbystaff').length > 0
+                                ? extractList(res, 'secsbystaff')
+                                : extractList(res, 'sectionlistbystaff');
+
+                    const subjects =
+                        extractList(res, 'subjectlist').length > 0
+                            ? extractList(res, 'subjectlist')
+                            : extractList(res, 'subsbystaff').length > 0
+                                ? extractList(res, 'subsbystaff')
+                                : extractList(res, 'subjectlistbystaff');
+
+                    const cats =
+                        extractList(res, 'categorylist').length > 0 ? extractList(res, 'categorylist') : extractList(res, 'catelist');
+
+
+                    setMasterClasses(classes);
+                    setMasterSections(sections);
+                    setMasterSubjects(subjects);
+
+                    // Populate lists directly for Day Staff as per user request (dropdowns should come on staff change)
+                    if (classes && classes.length > 0) {
+                        setClassList(filterData(classes, 'asmcL_ClassName'));
+                    }
+                    if (sections && sections.length > 0) {
+                        setSectionList(filterData(sections, 'asmC_SectionName'));
+                    }
+                    if (subjects && subjects.length > 0) {
+                        setSubSubjectList(filterData(subjects, 'ismS_SubjectName'));
+                    }
+
+                    // Category list updates removed as per user request to keep it "clear" from getCategoryDropDown only
+                } else {
+                    console.warn('API returned unsuccessful status:', res);
+                }
             } catch (e) {
-                console.error(e);
+                console.error('Error fetching assignments:', e);
+                toast.error('Failed to load details for selected staff');
             }
+        } else {
+            console.warn('Missing yearId or staffId for assignment fetch:', { effectiveYearId, staffId });
         }
     };
 
@@ -212,7 +359,7 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
 
         // Check duplicate
         const exists = fields.some(
-            (f: any) => f.ASMCL_Id === selectedClass && f.ASMS_Id === selectedSection && f.ISMS_Id === selectedSubject
+            (f: any) => f.asmcL_Id === selectedClass && f.asmS_Id === selectedSection && f.ismS_Id === selectedSubject
         );
         if (exists) {
             toast.warning('Already Exists');
@@ -220,10 +367,10 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
         }
 
         append({
-            ASMCL_Id: selectedClass,
-            ASMS_Id: selectedSection,
-            ISMS_Id: selectedSubject,
-            NOP: Number(nop),
+            asmcL_Id: selectedClass,
+            asmS_Id: selectedSection,
+            ismS_Id: selectedSubject,
+            nop: Number(nop),
             clsDisplay: clsObj?.asmcL_ClassName,
             sectDisplay: secObj?.asmC_SectionName || secObj?.asmS_SectionName,
             subDisplay: subObj?.ismS_SubjectName || subObj?.subjectName
@@ -235,16 +382,16 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
             { accessorKey: 'clsDisplay', header: 'Class' },
             { accessorKey: 'sectDisplay', header: 'Section' },
             { accessorKey: 'subDisplay', header: 'Subject' },
-            { accessorKey: 'NOP', header: 'No Of Periods' },
-            {
-                id: 'actions',
-                header: 'Actions',
-                cell: ({ row }) => (
-                    <Button type='button' variant='ghost' size='sm' onClick={() => remove(row.index)}>
-                        <span className='text-red-500'>Delete</span>
-                    </Button>
-                )
-            }
+            { accessorKey: 'nop', header: 'No Of Periods' }
+            // {
+            //     id: 'actions',
+            //     header: 'Actions',
+            //     // cell: ({ row }) => (
+            //     //     <Button type='button' variant='ghost' size='sm' onClick={() => remove(row.index)}>
+            //     //         <span className='text-red-500'>Delete</span>
+            //     //     </Button>
+            //     // )
+            // }
         ],
         [remove]
     );
@@ -267,21 +414,21 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
                 const d = (res.fix_day_staff_edit as any[])[0];
 
                 reset({
-                    TTFDS_Id: d.ttfdS_Id,
-                    ASMAY_Id: d.asmaY_Id,
-                    TTMD_Id: d.ttmD_Id,
-                    HRME_Id: d.hrmE_Id,
-                    TTFDS_SUbSelcFlag: d.ttfdS_SUbSelcFlag,
-                    TempararyArrayList: []
+                    ttfdS_Id: d.ttfdS_Id,
+                    asmaY_Id: d.asmaY_Id,
+                    ttmD_Id: d.ttmD_Id,
+                    hrmE_Id: d.hrmE_Id,
+                    ttfdS_SUbSelcFlag: d.ttfdS_SUbSelcFlag,
+                    tempararyArrayList: []
                 });
 
-                if (d.ttrdS_SUbSelcFlag && res.fix_day_staff__classecedit) {
+                if (d.ttfdS_SUbSelcFlag && res.fix_day_staff__classecedit) {
                     (res.fix_day_staff__classecedit as any[]).forEach((sub: any) => {
                         append({
-                            ASMCL_Id: sub.asmcL_Id,
-                            ASMS_Id: sub.asmS_Id,
-                            ISMS_Id: sub.ismS_Id,
-                            NOP: sub.ttfdscC_Periods || sub.ttscC_Periods,
+                            asmcL_Id: sub.asmcL_Id,
+                            asmS_Id: sub.asmS_Id,
+                            ismS_Id: sub.ismS_Id,
+                            nop: sub.ttfdscC_Periods || sub.ttscC_Periods,
                             clsDisplay: sub.asmcL_ClassName,
                             sectDisplay: sub.asmC_SectionName,
                             subDisplay: sub.ismS_SubjectName
@@ -304,7 +451,7 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
                     clsDisplay: sub.asmcL_ClassName,
                     sectDisplay: sub.asmC_SectionName,
                     subDisplay: sub.ismS_SubjectName,
-                    NOP: sub.ttfdscC_Periods || sub.ttscC_Periods
+                    nop: sub.ttfdscC_Periods || sub.ttscC_Periods
                 }));
                 setViewDetails(details);
             }
@@ -332,21 +479,23 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
 
     const onSubmit = async (data: FixingDayStaffSchema) => {
         try {
-            if (!data.TTFDS_SUbSelcFlag) {
-                data.TempararyArrayList = [];
+            if (!data.ttfdS_SUbSelcFlag) {
+                data.tempararyArrayList = [];
             } else {
-                if (!data.TempararyArrayList || data.TempararyArrayList.length === 0) {
-                    toast.warning('Please add at least one Class-Section details');
+                if (!data.tempararyArrayList || data.tempararyArrayList.length === 0) {
                     return;
                 }
             }
 
             const res = await saveFixingDayStaff(data);
-            if (res?.returnval === true) {
-                toast.success('Record Saved Successfully');
-                window.location.reload();
+            if (res?.returnval === true || res?.success === true) {
+                toast.success(res?.message);
+                refetchAll();
+                closeAddForm();
+                closeEditForm();
+                reset();
             } else {
-                toast.error(res?.message || 'Failed to save');
+                toast.error(res?.message);
             }
         } catch (e) {
             console.error(e);
@@ -371,8 +520,10 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
                 variant='default'
                 size='lg'
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <GenericDataTable data={gridData} columns={dayStaffColumns} totalItems={gridData.length} isLoading={isGridLoading} />
+                <GenericDataTable data={gridData} columns={dayStaffColumns} totalItems={totalItems} isLoading={isGridLoading} />
             </CollapsibleSection>
+
+            {isToggleFormOpen && selectedRow && <ToggleDayStaffForm rowData={selectedRow as any} onClose={closeToggleForm} />}
 
             {(isAddFormOpen || isEditFormOpen) && (
                 <CollapsibleSection
@@ -396,22 +547,28 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                     <FormField
                                         control={form.control}
-                                        name='ASMAY_Id'
+                                        name='asmaY_Id'
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Academic Year</FormLabel>
-                                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                                <Select
+                                                    onValueChange={(v) => handleAcademicYearChange(Number(v))}
+                                                    value={field.value?.toString()}>
                                                     <FormControl>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select' />
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {academicList.filter((item: any) => item.asmaY_Id).map((item: any) => (
-                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                                {item.asmaY_Year}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {academicList
+                                                            .filter((item: any) => item.asmaY_Id)
+                                                            .map((item: any, idx: number) => (
+                                                                <SelectItem
+                                                                    key={item.asmaY_Id || `acad-${idx}`}
+                                                                    value={item.asmaY_Id.toString()}>
+                                                                    {item.asmaY_Year}
+                                                                </SelectItem>
+                                                            ))}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -421,7 +578,7 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
 
                                     <FormField
                                         control={form.control}
-                                        name='TTMD_Id'
+                                        name='ttmD_Id'
                                         render={({ field }: { field: any }) => (
                                             <FormItem>
                                                 <FormLabel>Day</FormLabel>
@@ -432,8 +589,8 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {dayList.map((item: any) => (
-                                                            <SelectItem key={item.ttmD_Id} value={item.ttmD_Id.toString()}>
+                                                        {dayList.map((item: any, idx: number) => (
+                                                            <SelectItem key={item.ttmD_Id || `day-${idx}`} value={item.ttmD_Id.toString()}>
                                                                 {item.ttmD_DayName}
                                                             </SelectItem>
                                                         ))}
@@ -446,22 +603,26 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
 
                                     <FormField
                                         control={form.control}
-                                        name='HRME_Id'
+                                        name='hrmE_Id'
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Staff</FormLabel>
-                                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                                <Select onValueChange={(v) => handleStaffChange(Number(v))} value={field.value?.toString()}>
                                                     <FormControl>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select' />
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {staffList.filter((item: any) => item.hrmE_Id).map((item: any) => (
-                                                            <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
-                                                                {item.staffName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {staffList
+                                                            .filter((item: any) => item.hrmE_Id)
+                                                            .map((item: any, idx: number) => (
+                                                                <SelectItem
+                                                                    key={item.hrmE_Id || `staff-${idx}`}
+                                                                    value={item.hrmE_Id.toString()}>
+                                                                    {item.staffName?.trim()}
+                                                                </SelectItem>
+                                                            ))}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -473,7 +634,7 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
                                 <div className='flex items-center space-x-2'>
                                     <FormField
                                         control={form.control}
-                                        name='TTFDS_SUbSelcFlag'
+                                        name='ttfdS_SUbSelcFlag'
                                         render={({ field }) => (
                                             <FormItem className='flex flex-row items-start space-x-3 space-y-0 p-4'>
                                                 <FormControl>
@@ -487,27 +648,10 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
                                     />
                                 </div>
 
-                                {TTFDS_SUbSelcFlag && (
+                                {ttfdS_SUbSelcFlag && (
                                     <div className='space-y-4 rounded-md border bg-gray-50 p-4'>
                                         <h4 className='font-semibold'>Add Class Details</h4>
                                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-5'>
-                                            <div className='space-y-2'>
-                                                <FormLabel>Category</FormLabel>
-                                                <Select
-                                                    onValueChange={(v) => handleCategoryChange(Number(v))}
-                                                    value={selectedCategory?.toString()}>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder='Select' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {categoryList.map((item: any) => (
-                                                            <SelectItem key={item.ttmC_Id} value={item.ttmC_Id.toString()}>
-                                                                {item.ttmC_CategoryName}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
                                             <div className='space-y-2'>
                                                 <FormLabel>Class</FormLabel>
                                                 <Select
@@ -517,11 +661,25 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {classList.map((item: any) => (
-                                                            <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                                                {item.asmcL_ClassName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {isClassLoading ? (
+                                                            <SelectItem value='loading'>Loading...</SelectItem>
+                                                        ) : (
+                                                            classList.map((item: any, idx: number) => {
+                                                                const id = item.asmcL_Id ?? item.asmcl_id ?? item.ASMCL_Id;
+                                                                const name =
+                                                                    item.asmcL_ClassName ??
+                                                                    item.asmcl_classname ??
+                                                                    item.ASMCL_ClassName ??
+                                                                    item.className ??
+                                                                    item.asmcL_Classname ??
+                                                                    '';
+                                                                return (
+                                                                    <SelectItem key={id || `cls-${idx}`} value={id?.toString()}>
+                                                                        {name}
+                                                                    </SelectItem>
+                                                                );
+                                                            })
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -534,11 +692,22 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {sectionList.map((item: any) => (
-                                                            <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
-                                                                {item.asmS_SectionName || item.asmC_SectionName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {sectionList.map((item: any, idx: number) => {
+                                                            const id = item.asmS_Id ?? item.asms_id ?? item.ASMS_Id;
+                                                            const name =
+                                                                item.asmC_SectionName ??
+                                                                item.asmc_sectionname ??
+                                                                item.asmS_SectionName ??
+                                                                item.asms_sectionname ??
+                                                                item.asmC_Sectionname ??
+                                                                item.sectionName ??
+                                                                '';
+                                                            return (
+                                                                <SelectItem key={id || `sec-${idx}`} value={id?.toString()}>
+                                                                    {name}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -551,11 +720,20 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {subSubjectList.map((item: any) => (
-                                                            <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
-                                                                {item.ismS_SubjectName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {subSubjectList.map((item: any, idx: number) => {
+                                                            const id = item.ismS_Id ?? item.isms_id ?? item.ISMS_Id;
+                                                            const name =
+                                                                item.ismS_SubjectName ??
+                                                                item.isms_subjectname ??
+                                                                item.ISMS_SubjectName ??
+                                                                item.subjectName ??
+                                                                '';
+                                                            return (
+                                                                <SelectItem key={id || `sub-${idx}`} value={id?.toString()}>
+                                                                    {name}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -596,10 +774,10 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
     );
 }
 
-export default function DayStaffTab({ initialData }: DayStaffTabProps) {
+export default function DayStaffTab({ initialData, searchParams }: DayStaffTabProps) {
     return (
         <FormProvider>
-            <DayStaffTabContent initialData={initialData} />
+            <DayStaffTabContent initialData={initialData} searchParams={searchParams} />
         </FormProvider>
     );
 }

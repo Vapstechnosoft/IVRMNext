@@ -7,7 +7,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
 // Interfaces for List Data
-import {
+import type {
     TTDayPeriodGridData,
     TTDayStaffGridData,
     TTDaySubjectGridData,
@@ -58,7 +58,7 @@ function ActionButtonsCell<T>({
             buttons={{
                 edit: true,
                 toggle: true,
-                delete: true
+                delete: false
                 //view: showView
             }}
             onEdit={handleEdit}
@@ -230,7 +230,7 @@ export const periodStaffColumns: ColumnDef<TTPeriodStaffGridData>[] = [
 // 5. Period Subject
 export const periodSubjectColumns: ColumnDef<TTPeriodSubjectGridData>[] = [
     {
-        accessorKey: 'ttrpsU_Id',
+        accessorKey: 'ttfpsU_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -244,16 +244,14 @@ export const periodSubjectColumns: ColumnDef<TTPeriodSubjectGridData>[] = [
     { accessorKey: 'ismS_SubjectName', header: ({ column }) => <DataTableColumnHeader column={column} title='Subject' /> },
     { accessorKey: 'ttmP_PeriodName', header: ({ column }) => <DataTableColumnHeader column={column} title='Period' /> },
     {
-        accessorKey: 'ttrpsU_SUbSelcFlag',
+        accessorKey: 'ttfpsU_SUbSelcFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Class-Section Wise' />,
-        cell: ({ row }) => (row.original.ttrpsU_SUbSelcFlag ? 'Yes' : 'No')
+        cell: ({ row }) => (row.original.ttfpsU_SUbSelcFlag ? 'Yes' : 'No')
     },
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
         accessorFn: (row) => row,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} idKey='ttrpsU_Id' toggleKey='ttrpsU_ActiveFlag' showView={true} />
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} idKey='ttfpsU_Id' toggleKey='ttfpsU_ActiveFlag' showView={true} />
     }
 ];
-
-
