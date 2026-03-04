@@ -32,6 +32,8 @@ export type UserResponseData = {
     roleId?: number;
     designation: string;
     user_image: string | null;
+    amst_id: number;
+    user_id: number;
     [key: string]: any;
 };
 
