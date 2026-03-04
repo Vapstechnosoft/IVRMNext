@@ -9,6 +9,8 @@ export interface IStudentSearch {
     studentName: string;
     class: string;
     section: string;
+    classId: number;
+    sectionId: number;
 }
 
 export const studentSearchColumns = (onSelect: (student: IStudentSearch) => void): ColumnDef<IStudentSearch>[] => [
@@ -40,5 +42,73 @@ export const studentSearchColumns = (onSelect: (student: IStudentSearch) => void
                 Select
             </Button>
         )
+    }
+];
+
+export interface IGeneratedTC {
+    amsT_Id: number;
+    amsT_FirstName: string;
+    astC_TCDate: string;
+}
+
+export const generatedTCColumns: ColumnDef<IGeneratedTC>[] = [
+    {
+        accessorKey: 'amsT_FirstName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+        cell: ({ row }) => <div>{row.getValue('amsT_FirstName')}</div>
+    },
+    {
+        accessorKey: 'astC_TCDate',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='TC Date' />,
+        cell: ({ row }) => <div>{new Date(row.getValue('astC_TCDate')).toLocaleDateString('en-GB')}</div>
+    }
+];
+
+export interface IDeletedTC {
+    amsT_FirstName: string;
+    astC_TCDate: string;
+    tC_CancelReason: string;
+    leftclassname: string;
+    amsT_AdmNo: string;
+    astC_TCNO: string;
+    leftyearname: string;
+    leftsectionname: string;
+}
+
+export const deletedTCColumns: ColumnDef<IDeletedTC>[] = [
+    {
+        accessorKey: 'amsT_FirstName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+        cell: ({ row }) => <div>{row.getValue('amsT_FirstName')}</div>
+    },
+    {
+        accessorKey: 'amsT_AdmNo',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Adm No' />,
+        cell: ({ row }) => <div>{row.getValue('amsT_AdmNo')}</div>
+    },
+    {
+        accessorKey: 'leftclassname',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
+        cell: ({ row }) => <div>{row.getValue('leftclassname')}</div>
+    },
+    {
+        accessorKey: 'leftsectionname',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />,
+        cell: ({ row }) => <div>{row.getValue('leftsectionname')}</div>
+    },
+    {
+        accessorKey: 'astC_TCNO',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='TC No' />,
+        cell: ({ row }) => <div>{row.getValue('astC_TCNO') || '-'}</div>
+    },
+    {
+        accessorKey: 'astC_TCDate',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='TC Date' />,
+        cell: ({ row }) => <div>{new Date(row.getValue('astC_TCDate')).toLocaleDateString('en-GB')}</div>
+    },
+    {
+        accessorKey: 'tC_CancelReason',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Reason' />,
+        cell: ({ row }) => <div>{row.getValue('tC_CancelReason')}</div>
     }
 ];

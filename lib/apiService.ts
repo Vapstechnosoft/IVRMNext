@@ -106,7 +106,7 @@ class ApiService {
             // Create config with optional SSL bypass for localhost in development
             const config: AxiosRequestConfig = {
                 baseURL,
-                timeout: 60000,
+                timeout: 180000,
                 headers: {
                     'Content-Type': 'application/json',
                     Accept: '*/*'
@@ -447,6 +447,14 @@ export function getSearchParamsUrl(searchParams: ApiSearchparams | undefined, se
             url += `&search_column=${encodeURIComponent(searchColumns)}`;
         } else if (search_columns && search_columns !== '') {
             url += `&search_column=${encodeURIComponent(search_columns)}`;
+        }
+    }
+
+    // Add any other arbitrary parameters from searchParams
+    const handledKeys = ['page', 'page_size', 'sort_column', 'sort_direction', 'search_query', 'search_columns', 'search_column'];
+    for (const key in searchParams) {
+        if (!handledKeys.includes(key) && searchParams[key] !== undefined && searchParams[key] !== null) {
+            url += `&${key}=${encodeURIComponent(String(searchParams[key]))}`;
         }
     }
 

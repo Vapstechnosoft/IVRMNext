@@ -30,62 +30,101 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { IOnlineLeaveInitialData, ILeaveBalance } from '@/types/staff-portal/online-leave';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { ILeaveBalance, ILeaveHistory } from '@/types/staff-portal/online-leave';
 import { onlineLeaveSchema, OnlineLeaveValues } from '@/types/staff-portal/online-leave-schema';
+import { toast } from 'sonner';
 import { useOnlineLeave } from '@/hooks/staff-portal/useOnlineLeave';
 
 interface Props {
-    initialData: IOnlineLeaveInitialData | null | undefined;
+    initialData: any | null | undefined;
+    masterLeaveData: any | null | undefined;
 }
 
-const LeaveApplicationForm = ({ initialData }: Props) => {
-    const {
-        applyMutation,
-        selectedLeaves,
-        updateLeaveRow,
-        setSelectedLeaves
-    } = useOnlineLeave();
+const LeaveApplicationForm = ({ initialData, masterLeaveData }: Props) => {
+    const { applyMutation } = useOnlineLeave();
 
-    const employee = initialData?.online_leave?.[0];
-    const leaveBalances = initialData?.leave_name || [];
+    const employee = initialData?.employeeDetails?.[0];
+    const leaveBalances = initialData?.employeeLeaveDetails || [];
 
     const form = useForm<OnlineLeaveValues>({
         resolver: zodResolver(onlineLeaveSchema),
         defaultValues: {
+            leaveType: '',
             reason: '',
-            contact: employee?.hrmE_MobileNo || '',
+            contact: employee?.hrmE_MobileNo?.toString() || '',
             supportingDocument: '',
+            isHalfDay: false,
         },
     });
 
+    useEffect(() => {
+        if (employee?.hrmE_MobileNo) {
+            form.setValue('contact', employee.hrmE_MobileNo.toString());
+        }
+    }, [employee, form]);
+
+    useEffect(() => {
+        if (applyMutation.isSuccess) {
+            form.reset({
+                leaveType: '',
+                reason: '',
+                contact: employee?.hrmE_MobileNo?.toString() || '',
+                supportingDocument: '',
+                isHalfDay: false,
+            });
+        }
+    }, [applyMutation.isSuccess, form, employee]);
+
+    const selectedLeaveId = form.watch('leaveType');
+    const fromDate = form.watch('fromDate');
+    const toDate = form.watch('toDate');
+    const isHalfDay = form.watch('isHalfDay');
+
+    // Find in both lists to ensure we get all info, but prefer balance records
+    const masterList = masterLeaveData?.data?.GridviewDetails || masterLeaveData?.data || [];
+    const selectedLeaveInfo = [...leaveBalances, ...masterList].find((l: any) => l.hrmL_Id.toString() === selectedLeaveId);
+
+    const totalDays = React.useMemo(() => {
+        if (!fromDate || !toDate) return 0;
+        let days = differenceInDays(toDate, fromDate) + 1;
+        if (isHalfDay) days -= 0.5;
+        return days > 0 ? days : 0;
+    }, [fromDate, toDate, isHalfDay]);
+
     // Handle form submission
     const onSubmit = (values: OnlineLeaveValues) => {
-        const rows = Object.values(selectedLeaves).filter(l => l.fromDate && l.toDate);
-
-        if (rows.length === 0) {
-            alert('Please select at least one leave type and dates');
-            return;
-        }
-
         const payload = {
-            HRELAP_ApplicationDate: new Date().toISOString(),
-            HRELAP_LeaveReason: values.reason,
-            HRELAP_ContactNoOnLeave: Number(values.contact),
-            HRELAP_ReportingDate: values.reportingDate.toISOString(),
-            HRELT_SupportingDocument: values.supportingDocument,
-            temp_table_data: rows.map(r => ({
-                ...r,
-                fromDate: r.fromDate?.toISOString(),
-                toDate: r.toDate?.toISOString(),
-            })) as any,
-            frmToDates: rows.map(r => ({
-                HRELAP_FromDate: r.fromDate?.toISOString() || '',
-                HRELAP_ToDate: r.toDate?.toISOString() || '',
-                HRELAP_TotalDays: r.hrelaP_TotalDays || 0,
-            })),
+            hrmE_Id: employee?.hrmE_Id || 1207,
+            hrelaP_Id: 0,
+            hrelaP_ApplicationID: null,
+            hrelaP_LeaveReason: values.reason,
+            hrelT_LeaveReason: values.reason,
+            hrelT_Reportingdate: values.reportingDate.toISOString(),
+            hrelT_SupportingDocument: values.supportingDocument || 'leave_doc.pdf',
+            asmay_id: 0,
+            hrmE_MobileNo: Number(values.contact || employee?.hrmE_MobileNo || 0),
+            frmToDates: [{
+                hrelaP_FromDate: values.fromDate.toISOString(),
+                hrelaP_ToDate: values.toDate.toISOString(),
+                hrelaP_TotalDays: totalDays,
+            }],
+            temp_table_data: selectedLeaveInfo ? [{
+                hrmL_Id: selectedLeaveInfo.hrmL_Id,
+                hrmL_LeaveName: selectedLeaveInfo.hrmL_LeaveName,
+                hrelS_Id: selectedLeaveInfo.hrelS_Id || 0,
+                hrelS_CBLeaves: selectedLeaveInfo.hrelS_CBLeaves || 0
+            }] : [],
         };
 
-        applyMutation.mutate(payload);
+        console.log('📤 [FORM] Submitting Payload:', JSON.stringify(payload, null, 2));
+        applyMutation.mutate(payload as any);
     };
 
     return (
@@ -101,7 +140,7 @@ const LeaveApplicationForm = ({ initialData }: Props) => {
                     </CardHeader>
                     <CardContent className="pt-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <InfoField label="Employee Name" value={employee?.hrmE_EmployeeFirstName} />
+                            <InfoField label="Employee Name" value={employee?.hrmE_EmployeeName} />
                             <InfoField label="Designation" value={employee?.hrmdeS_DesignationName} />
                             <InfoField label="DOJ" value={employee?.hrmE_DOJ ? format(new Date(employee.hrmE_DOJ), 'dd-MM-yyyy') : ''} />
                             <InfoField label="Email" value={employee?.hrmE_EmailId} />
@@ -110,78 +149,138 @@ const LeaveApplicationForm = ({ initialData }: Props) => {
                     </CardContent>
                 </Card>
 
-                {/* 2. Leave Details Grid Section */}
+                {/* 2. Leave Application Section */}
                 <Card className="shadow-md">
                     <CardHeader className="border-b bg-muted/30">
-                        <CardTitle className="text-lg">Employee Leave Details</CardTitle>
+                        <CardTitle className="text-lg">Apply for Leave</CardTitle>
                     </CardHeader>
-                    <CardContent className="pt-6">
-                        <div className="rounded-md border overflow-hidden">
-                            <Table>
-                                <TableHeader className="bg-muted/50">
-                                    <TableRow>
-                                        <TableHead className="w-[50px] text-center">SlNo</TableHead>
-                                        <TableHead>Leave Type</TableHead>
-                                        <TableHead className="text-center">Total</TableHead>
-                                        <TableHead className="text-center">Balance</TableHead>
-                                        <TableHead className="w-[180px]">From Date</TableHead>
-                                        <TableHead className="w-[180px]">To Date</TableHead>
-                                        <TableHead className="w-[200px]">No. of Days</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {leaveBalances.map((leave, index) => {
-                                        const state = selectedLeaves[leave.hrelS_Id] || {};
-                                        return (
-                                            <TableRow key={leave.hrelS_Id}>
-                                                <TableCell className="text-center">{index + 1}</TableCell>
-                                                <TableCell className="font-medium">{leave.hrmL_LeaveName}</TableCell>
-                                                <TableCell className="text-center">{leave.hrelS_TotalLeaves}</TableCell>
-                                                <TableCell className="text-center">{leave.hrelS_CBLeaves}</TableCell>
-                                                <TableCell>
-                                                    <DateCell
-                                                        value={state.fromDate}
-                                                        onChange={(d) => updateLeaveRow(leave.hrelS_Id, 'fromDate', d)}
-                                                        disabled={leave.hrelS_CBLeaves === 0}
+                    <CardContent className="pt-6 space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                            <FormField
+                                control={form.control}
+                                name="leaveType"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Leave Type</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select leave type" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {/* Prioritize master leave list if available, else use balances */}
+                                                {(masterLeaveData?.data?.GridviewDetails || masterLeaveData?.data || leaveBalances).map((l: any) => (
+                                                    <SelectItem key={l.hrmL_Id} value={l.hrmL_Id.toString()}>
+                                                        {l.hrmL_LeaveName} {l.hrelS_CBLeaves !== undefined ? `(Bal: ${l.hrelS_CBLeaves})` : ''}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="fromDate"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col">
+                                        <FormLabel>From Date <span className="text-destructive">*</span></FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <FormControl>
+                                                    <Button
+                                                        variant={"outline"}
+                                                        className={cn(
+                                                            "w-full pl-3 text-left font-normal",
+                                                            !field.value && "text-muted-foreground"
+                                                        )}
+                                                    >
+                                                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                    </Button>
+                                                </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={field.value}
+                                                    onSelect={field.onChange}
+                                                    initialFocus
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="toDate"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col">
+                                        <FormLabel>To Date <span className="text-destructive">*</span></FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <FormControl>
+                                                    <Button
+                                                        variant={"outline"}
+                                                        className={cn(
+                                                            "w-full pl-3 text-left font-normal",
+                                                            !field.value && "text-muted-foreground"
+                                                        )}
+                                                    >
+                                                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                    </Button>
+                                                </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={field.value}
+                                                    onSelect={field.onChange}
+                                                    initialFocus
+                                                    disabled={(date) => fromDate ? date < fromDate : false}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormItem>
+                                <FormLabel>Total Days</FormLabel>
+                                <div className="flex items-center gap-4">
+                                    <Input value={totalDays} readOnly className="w-20 bg-muted font-bold" />
+                                    <FormField
+                                        control={form.control}
+                                        name="isHalfDay"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                                <FormControl>
+                                                    <Checkbox
+                                                        id="isHalfDay"
+                                                        checked={field.value}
+                                                        onCheckedChange={field.onChange}
                                                     />
-                                                </TableCell>
-                                                <TableCell>
-                                                    <DateCell
-                                                        value={state.toDate}
-                                                        onChange={(d) => updateLeaveRow(leave.hrelS_Id, 'toDate', d)}
-                                                        disabled={leave.hrelS_CBLeaves === 0}
-                                                    />
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex items-center gap-3">
-                                                        <Input
-                                                            className="w-16 h-8 text-center"
-                                                            readOnly
-                                                            value={state.hrelaP_TotalDays || ''}
-                                                        />
-                                                        <div className="flex items-center space-x-2">
-                                                            <Checkbox
-                                                                id={`halfday-${leave.hrelS_Id}`}
-                                                                checked={state.cklop}
-                                                                onCheckedChange={(checked) => updateLeaveRow(leave.hrelS_Id, 'cklop', !!checked)}
-                                                            />
-                                                            <label
-                                                                htmlFor={`halfday-${leave.hrelS_Id}`}
-                                                                className="text-xs font-medium cursor-pointer"
-                                                            >
-                                                                Half Day
-                                                            </label>
-                                                        </div>
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })}
-                                </TableBody>
-                            </Table>
+                                                </FormControl>
+                                                <label htmlFor="isHalfDay" className="text-sm font-medium leading-none cursor-pointer">
+                                                    Half Day
+                                                </label>
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            </FormItem>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t">
                             <FormField
                                 control={form.control}
                                 name="reason"
@@ -307,7 +406,6 @@ const LeaveApplicationForm = ({ initialData }: Props) => {
                                 className="px-8"
                                 onClick={() => {
                                     form.reset();
-                                    setSelectedLeaves({});
                                 }}
                             >
                                 <X className="h-4 w-4 mr-2" /> Cancel
@@ -326,31 +424,6 @@ const InfoField = ({ label, value }: { label: string; value: string | undefined 
         <p className="text-xs font-semibold text-primary/70 uppercase tracking-wider">{label}</p>
         <p className="text-sm font-medium border-b pb-1">{value || '--'}</p>
     </div>
-);
-
-const DateCell = ({ value, onChange, disabled }: { value?: Date, onChange: (d: Date | undefined) => void, disabled: boolean }) => (
-    <Popover>
-        <PopoverTrigger asChild disabled={disabled}>
-            <Button
-                variant="outline"
-                className={cn(
-                    "w-full h-8 justify-start text-left font-normal text-xs",
-                    !value && "text-muted-foreground"
-                )}
-            >
-                <CalendarIcon className="mr-2 h-3 w-3" />
-                {value ? format(value, "dd-MM-yyyy") : "Select date"}
-            </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-                mode="single"
-                selected={value}
-                onSelect={onChange}
-                initialFocus
-            />
-        </PopoverContent>
-    </Popover>
 );
 
 export default LeaveApplicationForm;

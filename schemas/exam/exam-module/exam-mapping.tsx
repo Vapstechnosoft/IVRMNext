@@ -654,12 +654,12 @@ export const lifeSkillAreaMappingSchema = {
             .array(
                 z.object({
                     ecsaM_Id: z.number().default(0),
-                    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).int({ message: 'Academic Year must be integer' }),
+                    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).int({ message: 'Academic Year must be integer' }).min(1, { message: 'Please select an Academic Year' }),
                     mI_Id: z.number().optional(),
-                    ecS_Id: z.number({ required_error: 'Life Skill ID is required' }).int(),
-                    ecsA_Id: z.number({ required_error: 'Skill Area ID is required' }).int(),
+                    ecS_Id: z.number({ required_error: 'Life Skill ID is required' }).int().min(1, { message: 'Please select a Life Skill' }),
+                    ecsA_Id: z.number({ required_error: 'Skill Area ID is required' }).int().min(1, { message: 'Please select a Skill Area' }),
                     ecsaM_IndicatorDescription: createCustomStringSchema('Indicator Description', 1, 300),
-                    emgR_Id: z.number({ required_error: 'Grade ID is required' }).int(),
+                    emgR_Id: z.number({ required_error: 'Grade ID is required' }).int().min(1, { message: 'Please select a Grade' }),
                     ecsaM_ActiveFlag: z.boolean().default(true)
                 })
             )
@@ -685,32 +685,37 @@ export const examMarksProcessConditionSchema = {
             emE_Id: z.number().min(1, { message: 'Exam is required' }),
             eycE_ExamStartDate: z
                 .string()
-                .nonempty({ message: 'Exam start date is required' })
-                .refine((v) => parseDate(v) !== null, { message: 'Exam start date must be valid' }),
+                .optional()
+                .nullable()
+                .refine((v) => !v || parseDate(v) !== null, { message: 'Exam start date must be valid' }),
 
             eycE_ExamEndDate: z
                 .string()
-                .nonempty({ message: 'Exam end date is required' })
-                .refine((v) => parseDate(v) !== null, { message: 'Exam end date must be valid' }),
+                .optional()
+                .nullable()
+                .refine((v) => !v || parseDate(v) !== null, { message: 'Exam end date must be valid' }),
 
             eycE_MarksEntryLastDate: z
                 .string()
-                .nonempty({ message: 'Marks entry last date is required' })
-                .refine((v) => parseDate(v) !== null, {
+                .optional()
+                .nullable()
+                .refine((v) => !v || parseDate(v) !== null, {
                     message: 'Marks entry last date must be valid'
                 }),
 
             eycE_MarksProcessLastDate: z
                 .string()
-                .nonempty({ message: 'Marks process last date is required' })
-                .refine((v) => parseDate(v) !== null, {
+                .optional()
+                .nullable()
+                .refine((v) => !v || parseDate(v) !== null, {
                     message: 'Marks process last date must be valid'
                 }),
 
             eycE_MarksPublishDate: z
                 .string()
-                .nonempty({ message: 'Marks publish date is required' })
-                .refine((v) => parseDate(v) !== null, {
+                .optional()
+                .nullable()
+                .refine((v) => !v || parseDate(v) !== null, {
                     message: 'Marks publish date must be valid'
                 })
         })
@@ -851,3 +856,17 @@ export const StudentTransactionSchema = {
 };
 
 export type StudentTransactionFormData = z.infer<typeof StudentTransactionSchema.search>;
+
+export const studentSubjectMappingSchema = z.object({
+    mI_Id: z.number().int().positive().optional(),
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Academic Year is required' }),
+    asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Class is required' }),
+    asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Section is required' }),
+    emcA_Id: z.number({ required_error: 'Exam Category is required' }).min(1, { message: 'Exam Category is required' }),
+    eme_Id: z.number().optional(),
+    subject_group_id: z.number({ required_error: 'Subject Group is required' }).min(1, { message: 'Subject Group is required' }),
+    Left_Flag: z.boolean().optional().default(true),
+    Deactive_Flag: z.boolean().optional().default(true)
+});
+
+export type StudentSubjectMappingSchema = z.infer<typeof studentSubjectMappingSchema>;

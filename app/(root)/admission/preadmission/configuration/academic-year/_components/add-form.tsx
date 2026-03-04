@@ -13,7 +13,7 @@ import { PreAdmissionAcademicYearSchema } from '@/schemas/admission/preadmission
 import { addOrUpdatePreAdmissionYear } from '@/server/admission/preadmission/configuration/academic_year_master';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { addDays, format } from 'date-fns';
-import { CalendarIcon, Save } from 'lucide-react';
+import { CalendarIcon, ChevronDown, ChevronUp, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -24,9 +24,10 @@ type FormFields = z.infer<typeof PreAdmissionAcademicYearSchema.addOrUpdate>;
 interface AddMasterAcademicYearFormProps {
     onSuccess?: () => void;
     className?: string;
+    institutionList?: { mI_Id: number; mI_Name: string }[];
 }
 
-export default function AddMasterAcademicYearForm({ onSuccess, className = '' }: AddMasterAcademicYearFormProps) {
+export default function AddMasterAcademicYearForm({ onSuccess, className = '', institutionList = [] }: AddMasterAcademicYearFormProps) {
     const { refetchAll } = usePreAdmissionAcademicYear();
     const [openPopover, setOpenPopover] = useState<string | null>(null);
 
@@ -41,12 +42,15 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
         resolver: zodResolver(PreAdmissionAcademicYearSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
+            mI_Id: 0,
             asmaY_ActiveFlag: 0,
             asmaY_Pre_ActiveFlag: false,
             asmaY_ReggularFlg: false,
             asmaY_NewFlg: false,
             asmaY_NewAdmissionFlg: false,
-            asmaY_Order: 0
+            asmaY_Order: 0,
+            asmaY_PreAdm_F_Time: '',
+            asmaY_PreAdm_T_Time: ''
         }
     });
 
@@ -92,11 +96,14 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
         try {
             const payload = {
                 ASMAY_Id: 0,
+                MI_Id: Number(data.mI_Id),
                 ASMAY_Year: data.asmaY_Year,
                 ASMAY_From_Date: data.asmaY_From_Date,
                 ASMAY_To_Date: data.asmaY_To_Date,
                 ASMAY_PreAdm_F_Date: data.asmaY_PreAdm_F_Date,
                 ASMAY_PreAdm_T_Date: data.asmaY_PreAdm_T_Date,
+                ASMAY_PreAdm_F_Time: data.asmaY_PreAdm_F_Time || null,
+                ASMAY_PreAdm_T_Time: data.asmaY_PreAdm_T_Time || null,
                 ASMAY_Order: Number(data.asmaY_Order),
                 ASMAY_ActiveFlag: 1,
                 ASMAY_Cut_Of_Date: data.asmaY_Cut_Of_Date,
@@ -139,6 +146,38 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                 <div className='space-y-6'>
                     {/* Academic Year (Main + Split) */}
                     <div className='space-y-4'>
+                        {/* Institution */}
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                            <div className='flex flex-col gap-1.5'>
+                                <Label>
+                                    Institution <span className='text-red-600'>*</span>
+                                </Label>
+                                <Controller
+                                    name='mI_Id'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <select
+                                            id='mI_Id'
+                                            value={field.value || ''}
+                                            onChange={(e) => field.onChange(Number(e.target.value))}
+                                            className={cn(
+                                                'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors',
+                                                'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+                                                errors.mI_Id && 'border-red-500'
+                                            )}>
+                                            <option value=''>--Select Institution--</option>
+                                            {institutionList.map((inst) => (
+                                                <option key={inst.mI_Id} value={inst.mI_Id}>
+                                                    {inst.mI_Name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    )}
+                                />
+                                {errors.mI_Id && <p className='text-red-500 text-sm'>{errors.mI_Id.message}</p>}
+                            </div>
+                        </div>
+
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                             <InputText
                                 label='Academic From Year'
@@ -366,6 +405,38 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                             <p className='text-red-500 text-sm'>{errors.asmaY_PreAdm_T_Date.message}</p>
                                         )}
                                     </div>
+                                )}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Pre-Admission Times */}
+                    <div className='space-y-4'>
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                            {/* Start Time */}
+                            <Controller
+                                name='asmaY_PreAdm_F_Time'
+                                control={control}
+                                render={({ field }) => (
+                                    <TimeSpinnerField
+                                        label='Pre Admission Start Time'
+                                        value={field.value ?? ''}
+                                        onChange={field.onChange}
+                                        error={errors.asmaY_PreAdm_F_Time?.message}
+                                    />
+                                )}
+                            />
+                            {/* End Time */}
+                            <Controller
+                                name='asmaY_PreAdm_T_Time'
+                                control={control}
+                                render={({ field }) => (
+                                    <TimeSpinnerField
+                                        label='Pre Admission End Time'
+                                        value={field.value ?? ''}
+                                        onChange={field.onChange}
+                                        error={errors.asmaY_PreAdm_T_Time?.message}
+                                    />
                                 )}
                             />
                         </div>
@@ -765,6 +836,86 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                     </Button>
                 </div>
             </form>
+        </div>
+    );
+}
+
+// ─── Reusable Time Spinner ────────────────────────────────────────────────────
+export function TimeSpinnerField({
+    label,
+    value,
+    onChange,
+    error
+}: {
+    label: string;
+    value: string;
+    onChange: (val: string) => void;
+    error?: string;
+}) {
+    // Parse "HH:mm" (24h) → h (1-12), mm, ampm
+    function parse(v: string) {
+        const [hStr = '12', mStr = '00'] = (v || '').split(':');
+        let h = Number(hStr) % 24;
+        const m = Math.min(59, Math.max(0, Number(mStr)));
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12 || 12;
+        return { h, m, ampm };
+    }
+
+    function emit(h: number, m: number, ampm: string) {
+        let h24 = h % 12;
+        if (ampm === 'PM') h24 += 12;
+        onChange(`${String(h24).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+    }
+
+    const { h, m, ampm } = parse(value);
+
+    return (
+        <div className='flex flex-col gap-1.5'>
+            <Label>{label}</Label>
+            <div className='flex items-center gap-2'>
+                {/* Hours */}
+                <div className='flex flex-col items-center'>
+                    <button type='button' onClick={() => emit((h % 12) + 1 || 12, m, ampm)} className='rounded p-0.5 hover:bg-muted'>
+                        <ChevronUp className='h-4 w-4' />
+                    </button>
+                    <div className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-sm font-medium'>
+                        {String(h).padStart(2, '0')}
+                    </div>
+                    <button type='button' onClick={() => emit(((h - 2 + 12) % 12) + 1, m, ampm)} className='rounded p-0.5 hover:bg-muted'>
+                        <ChevronDown className='h-4 w-4' />
+                    </button>
+                </div>
+
+                <span className='text-lg font-bold leading-none'>:</span>
+
+                {/* Minutes */}
+                <div className='flex flex-col items-center'>
+                    <button type='button' onClick={() => emit(h, (m + 1) % 60, ampm)} className='rounded p-0.5 hover:bg-muted'>
+                        <ChevronUp className='h-4 w-4' />
+                    </button>
+                    <div className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-sm font-medium'>
+                        {String(m).padStart(2, '0')}
+                    </div>
+                    <button type='button' onClick={() => emit(h, (m - 1 + 60) % 60, ampm)} className='rounded p-0.5 hover:bg-muted'>
+                        <ChevronDown className='h-4 w-4' />
+                    </button>
+                </div>
+
+                {/* AM / PM toggle */}
+                <div className='flex flex-col items-center'>
+                    <button type='button' onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')} className='rounded p-0.5 hover:bg-muted'>
+                        <ChevronUp className='h-4 w-4' />
+                    </button>
+                    <div className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-sm font-medium'>
+                        {ampm}
+                    </div>
+                    <button type='button' onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')} className='rounded p-0.5 hover:bg-muted'>
+                        <ChevronDown className='h-4 w-4' />
+                    </button>
+                </div>
+            </div>
+            {error && <p className='text-red-500 text-sm'>{error}</p>}
         </div>
     );
 }

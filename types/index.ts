@@ -45,6 +45,8 @@ export type ApiSearchparams = {
     sort_column?: string;
     sort_direction?: string;
     search_columns?: string;
+    ASMAY_Id?: number;
+    [key: string]: any;
 };
 
 export interface IDropdown {

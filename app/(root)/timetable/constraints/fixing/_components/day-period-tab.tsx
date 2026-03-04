@@ -6,239 +6,325 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
+import { useFixingDayPeriodGridData } from '@/hooks/timetable/constraints/fixingData';
 import { type FixingDayPeriodSchema, fixingDayPeriodSchema } from '@/schemas/timetable/constraints/fixing';
+import { getCategoryDropDown } from '@/server/timetable/constraints/FixingForm';
 import {
-    deactivateFixingDayPeriod,
-    getClassByCategory,
+    getFixingClassDropdown,
     getFixingDayPeriodDetails,
-    getSectionByClass,
-    getStaffByClassSection,
-    getSubjectByStaff,
+    getSectionDropdownByClassCategory,
+    getStaffByFixing,
+    getSubjectByFixing,
+    getdetailsAllFixing,
     saveFixingDayPeriod
 } from '@/server/timetable/constraints/fixing';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, X } from 'lucide-react';
+import { Plus, Save, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { type IFixingDayPeriodList, dayPeriodColumns } from './columns';
+import ToggleDayPeriodForm from './DayPeriodToggle';
+import { dayPeriodColumns } from './columns';
 
 interface DayPeriodTabProps {
     initialData: any;
+    searchParams?: any;
 }
 
-function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
-    const { isAddFormOpen, isEditFormOpen, openAddForm, closeAddForm, closeEditForm, selectedRow, closeToggleForm, isToggleFormOpen } =
-        useFormContext();
+const extractList = (data: any, preferredKey?: string) => {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    const target = data?.data !== undefined ? data.data : data;
+    if (Array.isArray(target)) return target;
+    if (!target) return [];
 
-    const [academicList, setAcademicList] = useState<any[]>(initialData?.yearlist || []);
-    const [categoryList, setCategoryList] = useState<any[]>(initialData?.categorylist || []);
-    const [dayList, setDayList] = useState<any[]>(initialData?.daylist || []);
-    const [periodList, setPeriodList] = useState<any[]>(initialData?.periodlist || []);
-    const [gridData, setGridData] = useState<IFixingDayPeriodList[]>(initialData?.fix_day_period_list || []);
+    if (preferredKey) {
+        const foundKey = Object.keys(target).find((k) => k.toLowerCase() === preferredKey.toLowerCase());
+        if (foundKey && Array.isArray(target[foundKey])) return target[foundKey];
+    }
 
+    const keys = [
+        'academiclist',
+        'catelist',
+        'classlist',
+        'sectionlist',
+        'stafflist',
+        'subjectlist',
+        'staffbyall',
+        'subjectbystaff',
+        'sectionbyclass',
+        'classbycategory',
+        'categorylist',
+        'daylist',
+        'periodlist'
+    ];
+    for (const key of keys) {
+        const foundKey = Object.keys(target).find((k) => k.toLowerCase() === key.toLowerCase());
+        if (foundKey && Array.isArray(target[foundKey])) return target[foundKey];
+    }
+    return [];
+};
+
+export default function DayPeriodTab({ initialData, searchParams }: DayPeriodTabProps) {
+    return (
+        <FormProvider>
+            <DayPeriodTabContent initialData={initialData} searchParams={searchParams} />
+        </FormProvider>
+    );
+}
+
+function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        openAddForm,
+        closeAddForm,
+        closeEditForm,
+        closeAllForms,
+        isToggleFormOpen,
+        closeToggleForm,
+        selectedRow
+    } = useFormContext();
+
+    const { data: academicData } = usebifurcationAcademicYear();
+    const academicList = (academicData as any)?.data || [];
+
+    const [categoryList, setCategoryList] = useState<any[]>([]);
+    const [dayList, setDayList] = useState<any[]>([]);
+    const [periodList, setPeriodList] = useState<any[]>([]);
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [staffList, setStaffList] = useState<any[]>([]);
     const [subjectList, setSubjectList] = useState<any[]>([]);
+    const [isClassLoading, setIsClassLoading] = useState(false);
 
     const form = useForm<FixingDayPeriodSchema>({
         resolver: zodResolver(fixingDayPeriodSchema),
         defaultValues: {
-            TTFDP_Id: 0,
-            ASMAY_Id: undefined,
-            TTMC_Id: undefined,
-            ASMCL_Id: undefined,
-            ASMS_Id: undefined,
-            HRME_Id: undefined,
-            ISMS_Id: undefined,
-            TTMD_Id: undefined,
-            TTMP_Id: undefined
+            ttfdP_Id: 0,
+            asmaY_Id: undefined,
+            ttmC_Id: undefined,
+            asmcL_Id: undefined,
+            asmS_Id: undefined,
+            hrmE_Id: undefined,
+            ismS_Id: undefined,
+            ttmD_Id: undefined,
+            ttmP_Id: undefined
         }
     });
 
-    const { reset, setValue, watch, handleSubmit } = form;
-    const ASMAY_Id = watch('ASMAY_Id');
-    const TTMC_Id = watch('TTMC_Id');
-    const ASMCL_Id = watch('ASMCL_Id');
-    const ASMS_Id = watch('ASMS_Id');
+    const {
+        reset,
+        setValue,
+        watch,
+        handleSubmit,
+        formState: { isSubmitting }
+    } = form;
+    const watchedYear = watch('asmaY_Id');
+    const watchedCategory = watch('ttmC_Id');
+    const watchedClass = watch('asmcL_Id');
+    const watchedSection = watch('asmS_Id');
+    const watchedStaff = watch('hrmE_Id');
 
-    // Effect to populate form on Edit
+    const filterData = (list: any[], key: string) => {
+        return (list || []).filter((item: any) => {
+            if (!item) return false;
+            const actualKey = Object.keys(item).find((k) => k.toLowerCase() === key.toLowerCase());
+            const val = actualKey ? item[actualKey] : undefined;
+            if (val === undefined || val === null) return true;
+            if (typeof val !== 'string') return !!val;
+            const name = val.trim();
+            return name && name.toLowerCase() !== 'test';
+        });
+    };
+
     useEffect(() => {
-        if (isEditFormOpen && selectedRow) {
-            onEdit(selectedRow);
-        }
-    }, [isEditFormOpen, selectedRow]);
+        const loadDropdowns = async () => {
+            try {
+                const [category, fixingData] = await Promise.all([getCategoryDropDown(), getdetailsAllFixing()]);
+                setCategoryList(filterData(category || [], 'ttmC_CategoryName'));
+                if (fixingData?.data) {
+                    setDayList(filterData(fixingData.data.daylist || [], 'ttmD_DayName'));
+                    setPeriodList(filterData(fixingData.data.periodlist || [], 'ttmP_PeriodName'));
+                }
+            } catch (error) {
+                console.error('Failed to load initial dropdowns:', error);
+            }
+        };
+        loadDropdowns();
+    }, []);
 
-    // Effect to handle Toggle (Active/Deactive)
-    useEffect(() => {
-        if (isToggleFormOpen && selectedRow) {
-            onToggle(selectedRow);
-            closeToggleForm();
+    const fetchClasses = async (yearId: number, categoryId: number) => {
+        if (!yearId || !categoryId) {
+            setClassList([]);
+            return;
         }
-    }, [isToggleFormOpen, selectedRow]);
+        setIsClassLoading(true);
+        try {
+            const data = await getFixingClassDropdown(yearId, categoryId);
+            const list = extractList(data, 'classbycategory');
+            setClassList(filterData(list || [], 'asmcL_ClassName'));
+        } catch (error) {
+            console.error('Error fetching classes:', error);
+        } finally {
+            setIsClassLoading(false);
+        }
+    };
 
-    const handleCategoryChange = async (categoryId: number) => {
-        setValue('TTMC_Id', categoryId);
-        setValue('ASMCL_Id', 0);
-        setValue('ASMS_Id', 0);
-        setValue('HRME_Id', 0);
-        setValue('ISMS_Id', 0);
+    const fetchStaff = async (yearId: number, categoryId: number, classId: number, sectionId: number) => {
+        try {
+            const res = await getStaffByFixing({ ASMAY_Id: yearId, TTMC_Id: categoryId, ASMCL_Id: classId, ASMS_Id: sectionId });
+            const list = extractList(res, 'stafflist');
+            setStaffList(filterData(list || [], 'staffName'));
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const fetchSubjects = async (yearId: number, categoryId: number, classId: number, sectionId: number, staffId: number) => {
+        try {
+            const res = await getSubjectByFixing({
+                ASMAY_Id: yearId,
+                TTMC_Id: categoryId,
+                ASMCL_Id: classId,
+                ASMS_Id: sectionId,
+                HRME_Id: staffId
+            });
+            const list = extractList(res, 'subjectlist');
+            setSubjectList(filterData(list || [], 'ismS_SubjectName'));
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const handleAcademicYearChange = (yearId: number) => {
+        setValue('asmaY_Id', yearId);
+        setValue('ttmC_Id', 0);
+        setValue('asmcL_Id', 0);
+        setValue('asmS_Id', 0);
+        setValue('hrmE_Id', 0);
+        setValue('ismS_Id', 0);
         setClassList([]);
         setSectionList([]);
         setStaffList([]);
         setSubjectList([]);
+    };
 
-        if (ASMAY_Id && categoryId) {
-            try {
-                const res = await getClassByCategory({ ASMAY_Id, TTMC_Id: categoryId });
-                if (Array.isArray(res) && res && res.classbycategory) {
-                    setClassList(res.classbycategory as any[]);
-                }
-            } catch (e) {
-                console.error(e);
-            }
+    const handleCategoryChange = async (categoryId: number) => {
+        setValue('ttmC_Id', categoryId);
+        setValue('asmcL_Id', 0);
+        setValue('asmS_Id', 0);
+        setValue('hrmE_Id', 0);
+        setValue('ismS_Id', 0);
+        setClassList([]);
+        setSectionList([]);
+        setStaffList([]);
+        setSubjectList([]);
+        if (watchedYear && categoryId) {
+            await fetchClasses(watchedYear, categoryId);
         }
     };
 
     const handleClassChange = async (classId: number) => {
-        setValue('ASMCL_Id', classId);
-        setValue('ASMS_Id', 0);
-        setValue('HRME_Id', 0);
-        setValue('ISMS_Id', 0);
+        setValue('asmcL_Id', classId);
+        setValue('asmS_Id', 0);
+        setValue('hrmE_Id', 0);
+        setValue('ismS_Id', 0);
         setSectionList([]);
         setStaffList([]);
         setSubjectList([]);
-
-        if (ASMAY_Id && TTMC_Id && classId) {
+        if (watchedYear && watchedCategory && classId) {
             try {
-                const res = await getSectionByClass({ ASMAY_Id, ASMCL_Id: classId, TTMC_Id });
-                if (Array.isArray(res) && res && res.sectionlist) {
-                    setSectionList(res.sectionlist as any[]);
-                }
-            } catch (e) {
-                console.error(e);
+                const response = await getSectionDropdownByClassCategory(watchedYear, classId, watchedCategory);
+                const sections = extractList(response, 'get_period_section1');
+                setSectionList(sections || []);
+            } catch (error) {
+                console.error(error);
             }
         }
     };
 
     const handleSectionChange = async (sectionId: number) => {
-        setValue('ASMS_Id', sectionId);
-        setValue('HRME_Id', 0);
-        setValue('ISMS_Id', 0);
+        setValue('asmS_Id', sectionId);
+        setValue('hrmE_Id', 0);
+        setValue('ismS_Id', 0);
         setStaffList([]);
         setSubjectList([]);
-
-        if (ASMAY_Id && ASMCL_Id && sectionId) {
-            try {
-                const res = await getStaffByClassSection({ ASMAY_Id, TTMC_Id, ASMCL_Id, ASMS_Id: sectionId });
-                if (Array.isArray(res) && res && res.staffbyall) {
-                    setStaffList(res.staffbyall as any[]);
-                }
-            } catch (e) {
-                console.error(e);
-            }
+        if (watchedYear && watchedCategory && watchedClass && sectionId) {
+            await fetchStaff(watchedYear, watchedCategory, watchedClass, sectionId);
         }
     };
 
     const handleStaffChange = async (staffId: number) => {
-        setValue('HRME_Id', staffId);
-        setValue('ISMS_Id', 0);
+        setValue('hrmE_Id', staffId);
+        setValue('ismS_Id', 0);
         setSubjectList([]);
-
-        if (ASMAY_Id && ASMCL_Id && ASMS_Id && staffId) {
-            try {
-                const res = await getSubjectByStaff({ ASMAY_Id, ASMCL_Id, ASMS_Id, HRME_Id: staffId });
-                if (Array.isArray(res) && res && res.subjectbystaff) {
-                    setSubjectList(res.subjectbystaff as any[]);
-                }
-            } catch (e) {
-                console.error(e);
-            }
+        if (watchedYear && watchedCategory && watchedClass && watchedSection && staffId) {
+            await fetchSubjects(watchedYear, watchedCategory, watchedClass, watchedSection, staffId);
         }
     };
 
-    const onEdit = async (item: any) => {
-        try {
-            const res = await getFixingDayPeriodDetails(item.ttfdP_Id);
-            if (res?.fix_day_period_edit && (res.fix_day_period_edit as any[]).length > 0) {
-                const d = (res.fix_day_period_edit as any[])[0];
+    const { data: gridResponse, isLoading: gridLoading, refetchAll } = useFixingDayPeriodGridData(searchParams);
+    const gridData = gridResponse
+        ? (gridResponse as any)?.data || (gridResponse as any)?.fix_day_period_list || []
+        : initialData?.fix_day_period_list || [];
 
-                const _ASMAY_Id = d.asmaY_Id;
-                const _TTMC_Id = d.ttmC_Id;
-                const _ASMCL_Id = d.asmcL_Id;
-                const _ASMS_Id = d.asmS_Id;
-                const _HRME_Id = d.hrmE_Id;
+    useEffect(() => {
+        if (isEditFormOpen && selectedRow) {
+            const onEdit = async (item: any) => {
+                try {
+                    const res = await getFixingDayPeriodDetails(item.ttfdP_Id);
+                    if (res?.fix_day_period_edit && (res.fix_day_period_edit as any[]).length > 0) {
+                        const d = (res.fix_day_period_edit as any[])[0];
 
-                // 1. Class
-                if (_ASMAY_Id && _TTMC_Id) {
-                    const clsRes = await getClassByCategory({ ASMAY_Id: _ASMAY_Id, TTMC_Id: _TTMC_Id });
-                    if (Array.isArray(clsRes) && clsRes && clsRes.classbycategory) setClassList(clsRes.classbycategory as any[]);
-                }
-                // 2. Section
-                if (_ASMAY_Id && _ASMCL_Id && _TTMC_Id) {
-                    const secRes = await getSectionByClass({ ASMAY_Id: _ASMAY_Id, ASMCL_Id: _ASMCL_Id, TTMC_Id: _TTMC_Id });
-                    if (Array.isArray(secRes) && secRes && secRes.sectionlist) setSectionList(secRes.sectionlist as any[]);
-                }
-                // 3. Staff
-                if (_ASMAY_Id && _ASMCL_Id && _ASMS_Id && _TTMC_Id) {
-                    const staffRes = await getStaffByClassSection({
-                        ASMAY_Id: _ASMAY_Id,
-                        ASMCL_Id: _ASMCL_Id,
-                        ASMS_Id: _ASMS_Id,
-                        TTMC_Id: _TTMC_Id
-                    });
-                    if (Array.isArray(staffRes) && staffRes && staffRes.staffbyall) setStaffList(staffRes.staffbyall as any[]);
-                }
-                // 4. Subject
-                if (_ASMAY_Id && _ASMCL_Id && _ASMS_Id && _HRME_Id) {
-                    const subRes = await getSubjectByStaff({
-                        ASMAY_Id: _ASMAY_Id,
-                        ASMCL_Id: _ASMCL_Id,
-                        ASMS_Id: _ASMS_Id,
-                        HRME_Id: _HRME_Id
-                    });
-                    if (Array.isArray(subRes) && subRes && subRes.subjectbystaff) setSubjectList(subRes.subjectbystaff as any[]);
-                }
+                        if (d.asmaY_Id && d.ttmC_Id) {
+                            await fetchClasses(d.asmaY_Id, d.ttmC_Id);
+                            if (d.asmcL_Id) {
+                                const secRes = await getSectionDropdownByClassCategory(d.asmaY_Id, d.asmcL_Id, d.ttmC_Id);
+                                const sections = extractList(secRes, 'get_period_section1');
+                                setSectionList(sections || []);
+                                if (d.asmS_Id) {
+                                    await fetchStaff(d.asmaY_Id, d.ttmC_Id, d.asmcL_Id, d.asmS_Id);
+                                    if (d.hrmE_Id) {
+                                        await fetchSubjects(d.asmaY_Id, d.ttmC_Id, d.asmcL_Id, d.asmS_Id, d.hrmE_Id);
+                                    }
+                                }
+                            }
+                        }
 
-                reset({
-                    TTFDP_Id: d.ttfdP_Id,
-                    ASMAY_Id: d.asmaY_Id,
-                    TTMC_Id: d.ttmC_Id,
-                    ASMCL_Id: d.asmcL_Id,
-                    ASMS_Id: d.asmS_Id,
-                    HRME_Id: d.hrmE_Id,
-                    ISMS_Id: d.ismS_Id,
-                    TTMD_Id: d.ttmD_Id,
-                    TTMP_Id: d.ttmP_Id
-                });
-            }
-        } catch (e) {
-            console.error(e);
+                        reset({
+                            ttfdP_Id: d.ttfdP_Id,
+                            asmaY_Id: d.asmaY_Id,
+                            ttmC_Id: d.ttmC_Id,
+                            asmcL_Id: d.asmcL_Id,
+                            asmS_Id: d.asmS_Id,
+                            hrmE_Id: d.hrmE_Id,
+                            ismS_Id: d.ismS_Id,
+                            ttmD_Id: d.ttmD_Id,
+                            ttmP_Id: d.ttmP_Id
+                        });
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            };
+            onEdit(selectedRow);
         }
-    };
+    }, [isEditFormOpen, selectedRow, reset]);
 
-    const onToggle = async (item: any) => {
-        try {
-            const payload = { TTFDP_Id: item.ttfdP_Id, TTFDP_ActiveFlag: !item.ttfdP_ActiveFlag };
-            const res = await deactivateFixingDayPeriod(payload);
-            if (res?.returnval === true) {
-                toast.success('Status Updated');
-                window.location.reload();
-            } else {
-                toast.error('Failed to update status');
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    };
-
-    const onSubmit = async (data: FixingDayPeriodSchema) => {
+    const onSubmit: SubmitHandler<FixingDayPeriodSchema> = async (data) => {
         try {
             const res = await saveFixingDayPeriod(data);
-            if (res?.returnval === true) {
+            if (res?.returnval === true || res?.success === true) {
                 toast.success('Record Saved Successfully');
-                window.location.reload();
+                refetchAll();
+                closeAllForms();
+                reset();
+            } else if (res?.returnfixstatus === 'Fixed') {
+                toast.warning('Selected Staff and Subject is already Fixed!');
+            } else if (res?.returnduplicatestatus === 'Duplicate') {
+                toast.warning('Record Already Exists!');
             } else {
                 toast.error(res?.message || 'Failed to save');
             }
@@ -260,14 +346,11 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                 </Button>
             </div>
 
-            <CollapsibleSection
-                title='Day Period Constraints List'
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <GenericDataTable data={gridData} columns={dayPeriodColumns} totalItems={gridData.length} isLoading={false} />
+            <CollapsibleSection title='Day Period Constraints List' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
+                <GenericDataTable data={gridData} columns={dayPeriodColumns} isLoading={gridLoading} />
             </CollapsibleSection>
+
+            {isToggleFormOpen && selectedRow && <ToggleDayPeriodForm rowData={selectedRow} onClose={closeToggleForm} />}
 
             {(isAddFormOpen || isEditFormOpen) && (
                 <CollapsibleSection
@@ -275,7 +358,7 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                     defaultOpen={true}
                     variant='outline'
                     size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                    className='slide-in-from-top-4 animate-in shadow-lg'>
                     <div className='relative'>
                         <Button
                             type='button'
@@ -291,11 +374,15 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                     <FormField
                                         control={form.control}
-                                        name='ASMAY_Id'
+                                        name='asmaY_Id'
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Academic Year</FormLabel>
-                                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                                <FormLabel>
+                                                    Academic Year <span className='text-red-500'>*</span>
+                                                </FormLabel>
+                                                <Select
+                                                    onValueChange={(v) => handleAcademicYearChange(Number(v))}
+                                                    value={field.value?.toString()}>
                                                     <FormControl>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select' />
@@ -316,10 +403,12 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
 
                                     <FormField
                                         control={form.control}
-                                        name='TTMC_Id'
+                                        name='ttmC_Id'
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Category</FormLabel>
+                                                <FormLabel>
+                                                    Category <span className='text-red-500'>*</span>
+                                                </FormLabel>
                                                 <Select
                                                     onValueChange={(v) => handleCategoryChange(Number(v))}
                                                     value={field.value?.toString()}>
@@ -343,14 +432,14 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
 
                                     <FormField
                                         control={form.control}
-                                        name='ASMCL_Id'
+                                        name='asmcL_Id'
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Class</FormLabel>
                                                 <Select onValueChange={(v) => handleClassChange(Number(v))} value={field.value?.toString()}>
                                                     <FormControl>
                                                         <SelectTrigger>
-                                                            <SelectValue placeholder='Select' />
+                                                            <SelectValue placeholder={isClassLoading ? 'Loading...' : 'Select'} />
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
@@ -368,7 +457,7 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
 
                                     <FormField
                                         control={form.control}
-                                        name='ASMS_Id'
+                                        name='asmS_Id'
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Section</FormLabel>
@@ -382,7 +471,9 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                                                     </FormControl>
                                                     <SelectContent>
                                                         {sectionList.map((item: any) => (
-                                                            <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
+                                                            <SelectItem
+                                                                key={item.asmS_Id || item.asmC_Id}
+                                                                value={(item.asmS_Id || item.asmC_Id).toString()}>
                                                                 {item.asmS_SectionName || item.asmC_SectionName}
                                                             </SelectItem>
                                                         ))}
@@ -395,7 +486,7 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
 
                                     <FormField
                                         control={form.control}
-                                        name='HRME_Id'
+                                        name='hrmE_Id'
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Staff</FormLabel>
@@ -408,7 +499,7 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                                                     <SelectContent>
                                                         {staffList.map((item: any) => (
                                                             <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
-                                                                {item.hrmE_EmployeeCode} - {item.hrmE_EmployeeFirstName}
+                                                                {item.staffName}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -420,7 +511,7 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
 
                                     <FormField
                                         control={form.control}
-                                        name='ISMS_Id'
+                                        name='ismS_Id'
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Subject</FormLabel>
@@ -445,7 +536,7 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
 
                                     <FormField
                                         control={form.control}
-                                        name='TTMD_Id'
+                                        name='ttmD_Id'
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Day</FormLabel>
@@ -470,7 +561,7 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
 
                                     <FormField
                                         control={form.control}
-                                        name='TTMP_Id'
+                                        name='ttmP_Id'
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Period</FormLabel>
@@ -494,11 +585,19 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                                     />
                                 </div>
 
-                                <div className='flex justify-end gap-2'>
-                                    <Button type='button' variant='outline' onClick={() => reset()}>
+                                <div className='flex justify-center gap-4 pt-4'>
+                                    <Button type='submit' disabled={isSubmitting}>
+                                        <Save className='mr-2 h-4 w-4' /> {isEditFormOpen ? 'Update' : 'Save'}
+                                    </Button>
+                                    <Button
+                                        type='button'
+                                        variant='outline'
+                                        onClick={() => {
+                                            reset();
+                                            closeAllForms();
+                                        }}>
                                         Cancel
                                     </Button>
-                                    <Button type='submit'>Save</Button>
                                 </div>
                             </form>
                         </Form>
@@ -506,13 +605,5 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                 </CollapsibleSection>
             )}
         </div>
-    );
-}
-
-export default function DayPeriodTab({ initialData }: DayPeriodTabProps) {
-    return (
-        <FormProvider>
-            <DayPeriodTabContent initialData={initialData} />
-        </FormProvider>
     );
 }

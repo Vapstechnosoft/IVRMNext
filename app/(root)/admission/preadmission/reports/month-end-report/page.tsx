@@ -120,8 +120,8 @@ export default function MonthendreportPage() {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -136,9 +136,6 @@ export default function MonthendreportPage() {
                 link.remove();
                 window.URL.revokeObjectURL(url);
             }, 100);
-
-            setShowReport(false);
-            setReportData([]);
 
             toast.success('Excel downloaded successfully');
         } catch (error) {

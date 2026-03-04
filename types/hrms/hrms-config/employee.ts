@@ -91,6 +91,8 @@ export interface IInstitutionDropdown {
 export interface IPaymentModeDropdown {
     key: string;
     value: string;
+    ivrmmod_Id?: number;
+    ivrmmod_ModeOfPayment?: string;
 }
 
 export interface ILeaveReasonDropdown {

@@ -2,35 +2,87 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
+import { usePeriodSubjectGridData } from '@/hooks/timetable/constraints/fixingData';
 import { type FixingPeriodSubjectSchema, fixingPeriodSubjectSchema } from '@/schemas/timetable/constraints/fixing';
 import {
-    deactivateFixingPeriodSubject,
-    getClassByCategory,
+    getFixingClassDropdown,
+    getFixingClassSectionStaffsBySubject,
     getFixingPeriodSubjectDetails,
-    getSectionByClass,
-    getStaffByClassSection,
+    getdetailsAllFixing,
     saveFixingPeriodSubject
 } from '@/server/timetable/constraints/fixing';
+import type { TTPeriodSubjectGridData } from '@/types/timetable/constraints/fixing';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Plus, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { type IFixingPeriodSubjectList, periodSubjectColumns } from './columns';
+import TogglePeriodSubjectForm from './PeriodSubjectToggle';
+import { periodSubjectColumns } from './columns';
 import { FixingViewModal } from './fixing-view-modal';
 
 interface PeriodSubjectTabProps {
     initialData: any;
+    searchParams?: any;
 }
 
-function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
+export const TTGeneration: ColumnDef<TTPeriodSubjectGridData>[] = [
+    {
+        id: 'actions',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
+        accessorFn: (row: any) => row,
+        enableSorting: false,
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
+    }
+];
+
+function ActionButtonsCell({ rowData }: { rowData: TTPeriodSubjectGridData }) {
+    // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
+    let formContext;
+    try {
+        formContext = useFormContext<TTPeriodSubjectGridData>();
+    } catch {
+        return null;
+    }
+
+    const { openEditForm, openToggleForm } = formContext;
+
+    const handleEdit = useCallback(
+        (data: TTPeriodSubjectGridData) => {
+            openEditForm(data);
+        },
+        [openEditForm]
+    );
+
+    const handleToggle = useCallback(
+        (data: TTPeriodSubjectGridData) => {
+            openToggleForm(data);
+        },
+        [openToggleForm]
+    );
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: true, delete: false }}
+            onEdit={handleEdit}
+            onToggle={handleToggle}
+            toggleConditionKey='ttfpsU_ActiveFlag'
+        />
+    );
+}
+
+function PeriodSubjectTabContent({ initialData, searchParams }: PeriodSubjectTabProps) {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -45,38 +97,107 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
         closeDetailsView
     } = useFormContext();
 
-    const [academicList] = useState<any[]>(initialData?.yearlist || []);
-    const [periodList] = useState<any[]>(initialData?.periodlist || []);
-    const [subjectList, setSubjectList] = useState<any[]>(initialData?.subjectlist || []);
-    const [gridData, setGridData] = useState<IFixingPeriodSubjectList[]>(initialData?.fix_period_subject_list || []);
+    const { data: academicData } = usebifurcationAcademicYear();
+    const academicList = (academicData as any)?.data || [];
 
+    const [dayList, setDayList] = useState<any[]>(initialData?.daylist || []);
+    const [periodList, setPeriodList] = useState<any[]>(initialData?.periodlist || []);
+    const [subjectList, setSubjectList] = useState<any[]>([]);
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subStaffList, setSubStaffList] = useState<any[]>([]);
-    const [categoryList] = useState<any[]>(initialData?.categorylist || []);
+    const [isClassLoading, setIsClassLoading] = useState(false);
 
-    // View Modal State
+    // Master lists for the selected subject
+    const [masterClasses, setMasterClasses] = useState<any[]>([]);
+    const [masterSections, setMasterSections] = useState<any[]>([]);
+    const [masterStaff, setMasterStaff] = useState<any[]>([]);
+
+    const { data: gridResponse, isLoading: isGridLoading, refetchAll } = usePeriodSubjectGridData(searchParams);
+
+    const gridData = gridResponse
+        ? (gridResponse as any)?.data || (gridResponse as any)?.fix_period_subject_list || (Array.isArray(gridResponse) ? gridResponse : [])
+        : initialData?.fix_period_subject_list || [];
+
+    const totalItems =
+        (gridResponse as any)?.total ||
+        (gridResponse as any)?.count ||
+        (Array.isArray(gridResponse) ? gridResponse.length : initialData?.total || gridData.length);
+
+    const extractList = (data: any, preferredKey?: string) => {
+        if (!data) return [];
+        if (Array.isArray(data)) return data;
+        const target = data?.data !== undefined ? data.data : data;
+        if (Array.isArray(target)) return target;
+        if (!target) return [];
+
+        if (preferredKey) {
+            const foundKey = Object.keys(target).find((k) => k.toLowerCase() === preferredKey.toLowerCase());
+            if (foundKey && Array.isArray(target[foundKey])) return target[foundKey];
+        }
+
+        const keys = [
+            'academiclist',
+            'catelist',
+            'categorylist',
+            'classlist',
+            'clsbysubject',
+            'clssbysub',
+            'sectionlist',
+            'sectbysubject',
+            'secsbysub',
+            'stafflist',
+            'staffbysubject',
+            'staffbysub',
+            'staffbyall',
+            'subjectlist',
+            'classbycategory',
+            'sectionbyclass',
+            'subjectbystaff'
+        ];
+        for (const key of keys) {
+            const foundKey = Object.keys(target).find((k) => k.toLowerCase() === key.toLowerCase());
+            if (foundKey && Array.isArray(target[foundKey])) return target[foundKey];
+        }
+
+        const firstArray = Object.values(target).find((v) => Array.isArray(v));
+        return Array.isArray(firstArray) ? firstArray : [];
+    };
+
+    const uniqueById = (list: any[], idKey: string) => {
+        const seen = new Set();
+        return (list || []).filter((item: any) => {
+            if (!item) return false;
+            // Case-insensitive key lookup
+            const actualKey = Object.keys(item).find((k) => k.toLowerCase() === idKey.toLowerCase());
+            const id = actualKey ? item[actualKey] : undefined;
+            if (id === undefined || id === null) return false;
+            if (seen.has(id)) return false;
+            seen.add(id);
+            return true;
+        });
+    };
+
     const [viewDetails, setViewDetails] = useState<any[]>([]);
     const [isLoadingView, setIsLoadingView] = useState(false);
 
     const form = useForm<FixingPeriodSubjectSchema>({
         resolver: zodResolver(fixingPeriodSubjectSchema),
         defaultValues: {
-            TTFPSU_Id: 0,
-            ASMAY_Id: undefined,
-            TTMP_Id: undefined,
-            ISMS_Id: undefined,
-            TTFPSU_SUbSelcFlag: false,
-            TempararyArrayList: []
+            ttrpsU_Id: 0,
+            asmaY_Id: undefined,
+            ttmP_Id: undefined,
+            ismS_Id: undefined,
+            ttfpsU_SUbSelcFlag: false,
+            tempararyArrayList: []
         }
     });
 
-    const { reset, setValue, watch, handleSubmit, control } = form;
-    const ASMAY_Id = watch('ASMAY_Id');
-    const TTFPSU_SUbSelcFlag = watch('TTFPSU_SUbSelcFlag');
-    const ISMS_Id = watch('ISMS_Id');
-
-    const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
+    const { reset, setValue, watch, control, handleSubmit } = form;
+    const asmaY_Id = watch('asmaY_Id');
+    const ttmP_Id = watch('ttmP_Id');
+    const ismS_Id = watch('ismS_Id');
+    const ttfpsU_SUbSelcFlag = watch('ttfpsU_SUbSelcFlag');
     const [selectedClass, setSelectedClass] = useState<number | undefined>();
     const [selectedSection, setSelectedSection] = useState<number | undefined>();
     const [selectedStaff, setSelectedStaff] = useState<number | undefined>();
@@ -84,23 +205,45 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
 
     const { fields, append, remove } = useFieldArray({
         control,
-        name: 'TempararyArrayList'
+        name: 'tempararyArrayList'
     });
 
-    // Effect to populate form on Edit
+    const filterData = (list: any[], key: string) => {
+        return (list || []).filter((item: any) => {
+            if (!item) return false;
+            // Case-insensitive key lookup
+            const actualKey = Object.keys(item).find((k) => k.toLowerCase() === key.toLowerCase());
+            const val = actualKey ? item[actualKey] : undefined;
+            if (val === undefined || val === null) return false;
+            if (typeof val !== 'string') return !!val;
+            const name = val.trim();
+            return name && name.toLowerCase() !== 'test';
+        });
+    };
+
+    useEffect(() => {
+        const loadDropdowns = async () => {
+            try {
+                const fixingData = await getdetailsAllFixing();
+                if (fixingData?.data) {
+                    setDayList(filterData(fixingData.data.daylist || [], 'ttmD_DayName'));
+                    setPeriodList(filterData(fixingData.data.periodlist || [], 'ttmP_PeriodName'));
+                    setSubjectList(filterData(fixingData.data.subjectlist || [], 'ismS_SubjectName'));
+                }
+                await refetchAll();
+            } catch (error) {
+                console.error('Failed to load dropdowns:', error);
+                toast.error('Failed to load dropdown options');
+            }
+        };
+        loadDropdowns();
+    }, []);
+
     useEffect(() => {
         if (isEditFormOpen && selectedRow) {
             onEdit(selectedRow);
         }
     }, [isEditFormOpen, selectedRow]);
-
-    // Effect to handle Toggle
-    useEffect(() => {
-        if (isToggleFormOpen && selectedRow) {
-            onToggle(selectedRow);
-            closeToggleForm();
-        }
-    }, [isToggleFormOpen, selectedRow]);
 
     // Effect to handle View
     useEffect(() => {
@@ -109,58 +252,210 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
         }
     }, [isDetailsViewOpen, viewRow]);
 
-    const handleCategoryChange = async (categoryId: number) => {
-        setSelectedCategory(categoryId);
+
+
+    const handleAcademicYearChange = (yearId: number) => {
+        setValue('asmaY_Id', yearId);
+        setValue('ismS_Id', 0);
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedStaff(undefined);
         setClassList([]);
         setSectionList([]);
         setSubStaffList([]);
-        if (ASMAY_Id && categoryId) {
-            try {
-                const res = await getClassByCategory({ ASMAY_Id, TTMC_Id: categoryId });
-                if (Array.isArray(res) && res && res.classbycategory) setClassList(res.classbycategory as any[]);
-            } catch (e) {
-                console.error(e);
-            }
-        }
+        setMasterClasses([]);
+        setMasterSections([]);
+        setMasterStaff([]);
     };
 
-    const handleClassChange = async (classId: number) => {
+
+
+    // const handleCategoryChange = async (categoryId: number) => {
+    //     setSelectedCategory(categoryId);
+    //     setSelectedClass(undefined);
+    //     setSelectedSection(undefined);
+    //     setSelectedStaff(undefined);
+
+    //     // Filter classes from master list by category
+    //     const filtered = masterClasses.filter(
+    //         (c) =>
+    //             (c.ttmC_Id !== undefined && Number(c.ttmC_Id) === categoryId) ||
+    //             (c.ttmc_id !== undefined && Number(c.ttmc_id) === categoryId) ||
+    //             (c.TTMC_Id !== undefined && Number(c.TTMC_Id) === categoryId)
+    //     );
+
+    //     if (filtered.length > 0) {
+    //         setClassList(uniqueById(filterData(filtered, 'asmcL_ClassName'), 'asmcL_Id'));
+    //     } else {
+    //         // Fallback: show all classes or fetch (to keep data visible if links are missing)
+    //         setClassList(uniqueById(filterData(masterClasses, 'asmcL_ClassName'), 'asmcL_Id'));
+    //         if (asmaY_Id) {
+    //             try {
+    //                 const data = await getFixingClassDropdown(asmaY_Id, categoryId);
+    //                 const list = extractList(data, 'classlist');
+    //                 if (list && list.length > 0) {
+    //                     setClassList(uniqueById(filterData(list, 'asmcL_ClassName'), 'asmcL_Id'));
+    //                 }
+    //             } catch (e) {
+    //                 console.error(e);
+    //             }
+    //         }
+    //     }
+
+    //     setSectionList([]);
+    //     setSubStaffList([]);
+    // };
+
+    // const handleClassChange = async (classId: number) => {
+    //     setSelectedClass(classId);
+    //     setSelectedSection(undefined);
+    //     setSelectedStaff(undefined);
+
+    //     // Filter sections from master list by class
+    //     const filtered = masterSections.filter(
+    //         (s) =>
+    //             (s.asmcL_Id !== undefined && Number(s.asmcL_Id) === classId) ||
+    //             (s.asmcl_id !== undefined && Number(s.asmcl_id) === classId) ||
+    //             (s.ASMCL_Id !== undefined && Number(s.ASMCL_Id) === classId)
+    //     );
+
+    //     const listToUse = filtered.length > 0 ? filtered : masterSections;
+    //     setSectionList(uniqueById(filterData(listToUse, 'asmC_SectionName'), 'asmS_Id'));
+    //     setSubStaffList([]);
+    // };
+
+    const handleClassChange = (classId: number) => {
         setSelectedClass(classId);
+    };
+    console.log(masterSections, 'mastersections');
+
+    // const handleSectionChange = async (sectionId: number) => {
+    //     setSelectedSection(sectionId);
+    //     setSelectedStaff(undefined);
+
+    //     // Filter staff from master list by section
+    //     const filtered = masterStaff.filter(
+    //         (st) =>
+    //             (st.asmS_Id !== undefined && Number(st.asmS_Id) === sectionId) ||
+    //             (st.asms_id !== undefined && Number(st.asms_id) === sectionId) ||
+    //             (st.ASMS_Id !== undefined && Number(st.ASMS_Id) === sectionId)
+    //     );
+
+    //     const listToUse = filtered.length > 0 ? filtered : masterStaff;
+    //     setSubStaffList(uniqueById(filterData(listToUse, 'staffName'), 'hrmE_Id'));
+    // };
+
+    const handleSectionChange = (sectionId: number) => {
+        setSelectedSection(sectionId);
+    };
+
+    console.log(subStaffList, 'subStaffList');
+
+    // const handleSubjectChange = async (subjectId: number) => {
+    //     setValue('ismS_Id', subjectId);
+    //     setSelectedCategory(undefined);
+    //     setSelectedClass(undefined);
+    //     setSelectedSection(undefined);
+    //     setSelectedStaff(undefined);
+    //     setClassList([]);
+    //     setSectionList([]);
+    //     setSubStaffList([]);
+
+    //     if (asmaY_Id && subjectId) {
+    //         try {
+    //             const res = await getFixingClassSectionStaffsBySubject(asmaY_Id, subjectId);
+    //             console.log('PeriodSubject - get_cls_sec_staffsData response:', res);
+
+    //             if (res) {
+    //                 const cats = extractList(res, 'categorylist').length > 0 ? extractList(res, 'categorylist') : extractList(res, 'catelist');
+
+    //                 const classes = extractList(res, 'classlist').length > 0
+    //                     ? extractList(res, 'classlist')
+    //                     : (extractList(res, 'clsbysubject').length > 0 ? extractList(res, 'clsbysubject') : (extractList(res, 'clssbysub').length > 0 ? extractList(res, 'clssbysub') : extractList(res, 'clssbysubject')));
+
+    //                 const sections = extractList(res, 'sectionlist').length > 0
+    //                     ? extractList(res, 'sectionlist')
+    //                     : (extractList(res, 'sectbysubject').length > 0 ? extractList(res, 'sectbysubject') : (extractList(res, 'secsbysub').length > 0 ? extractList(res, 'secsbysub') : extractList(res, 'sectionsbysubject')));
+
+    //                 const staff = extractList(res, 'stafflist').length > 0
+    //                     ? extractList(res, 'stafflist')
+    //                     : (extractList(res, 'staffbysubject').length > 0 ? extractList(res, 'staffbysubject') : (extractList(res, 'staffbysub').length > 0 ? extractList(res, 'staffbysub') : extractList(res, 'staffbyall')));
+
+    //                 setMasterCategories(cats);
+    //                 setMasterClasses(classes);
+    //                 setMasterSections(sections);
+    //                 setMasterStaff(staff);
+
+    //                 if (cats && cats.length > 0) {
+    //                     setCategoryList(uniqueById(filterData(cats, 'ttmC_CategoryName'), 'ttmC_Id'));
+    //                 }
+    //                 if (classes && classes.length > 0) {
+    //                     setClassList(uniqueById(filterData(classes, 'asmcL_ClassName'), 'asmcL_Id'));
+    //                 }
+    //                 if (sections && sections.length > 0) {
+    //                     setSectionList(uniqueById(filterData(sections, 'asmC_SectionName'), 'asmS_Id'));
+    //                 }
+    //                 if (staff && staff.length > 0) {
+    //                     setSubStaffList(uniqueById(filterData(staff, 'staffName'), 'hrmE_Id'));
+    //                 }
+    //             }
+    //         } catch (e) {
+    //             console.error(e);
+    //             toast.error('Failed to load details for selected subject');
+    //         }
+    //     }
+    // };
+    const handleSubjectChange = async (subjectId: number) => {
+        setValue('ismS_Id', subjectId);
+
+
+        setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedStaff(undefined);
+
+        setClassList([]);
         setSectionList([]);
         setSubStaffList([]);
-        if (ASMAY_Id && selectedCategory && classId) {
-            try {
-                const res = await getSectionByClass({ ASMAY_Id, ASMCL_Id: classId, TTMC_Id: selectedCategory });
-                if (Array.isArray(res) && res && res.sectionlist) setSectionList(res.sectionlist as any[]);
-            } catch (e) {
-                console.error(e);
-            }
-        }
-    };
 
-    const handleSectionChange = async (sectionId: number) => {
-        setSelectedSection(sectionId);
-        setSelectedStaff(undefined);
-        setSubStaffList([]);
-        if (ASMAY_Id && selectedCategory && selectedClass && sectionId) {
-            try {
-                const res = await getStaffByClassSection({
-                    ASMAY_Id,
-                    TTMC_Id: selectedCategory,
-                    ASMCL_Id: selectedClass!,
-                    ASMS_Id: sectionId
-                });
-                if (Array.isArray(res) && res && res.staffbyall) setSubStaffList(res.staffbyall as any[]);
-            } catch (e) {
-                console.error(e);
-            }
+        if (!asmaY_Id || !subjectId) return;
+
+        try {
+            const res = await getFixingClassSectionStaffsBySubject(asmaY_Id, subjectId);
+
+            const classes = extractList(res, 'clssbysub');
+            const sections = extractList(res, 'secsbysub');
+            const staff = extractList(res, 'staffbysub');
+
+            // 🔥 STORE MASTER DATA
+            setMasterClasses(classes);
+            setMasterSections(sections);
+            setMasterStaff(staff);
+
+            setClassList(uniqueById(classes, 'asmcL_Id'));
+            setSectionList(uniqueById(sections, 'asmS_Id'));
+            setSubStaffList(uniqueById(staff, 'hrmE_Id'));
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to load subject details');
         }
     };
+    // const handleSubjectChange = async (subjectId: number) => {
+    //     setValue('ismS_Id', subjectId);
+
+    //     if (asmaY_Id && subjectId) {
+    //         const res = await getFixingClassSectionStaffsBySubject(asmaY_Id, subjectId);
+
+    //         const classes = res?.data?.clssbysub || [];
+    //         const sections = res?.data?.secsbysub || [];
+    //         const staff = res?.data?.staffbysub || [];
+
+    //         setClassList(classes);
+    //         setSectionList(sections);
+    //         setSubStaffList(staff);
+    //     }
+    // };
+
+    console.log('staffsdata later', subStaffList);
 
     const addToGrid = () => {
         if (!selectedClass || !selectedSection || !selectedStaff || !nod) {
@@ -172,9 +467,8 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
         const secObj = sectionList.find((s) => s.asmS_Id === selectedSection);
         const staffObj = subStaffList.find((s) => s.hrmE_Id === selectedStaff);
 
-        // Check duplicate
         const exists = fields.some(
-            (f: any) => f.ASMCL_Id === selectedClass && f.ASMS_Id === selectedSection && f.HRME_Id === selectedStaff
+            (f: any) => f.asmcL_Id === selectedClass && f.asmS_Id === selectedSection && f.hrmE_Id === selectedStaff
         );
         if (exists) {
             toast.warning('Already Exists');
@@ -182,10 +476,10 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
         }
 
         append({
-            ASMCL_Id: selectedClass,
-            ASMS_Id: selectedSection,
-            HRME_Id: selectedStaff,
-            NOD: Number(nod),
+            asmcL_Id: selectedClass,
+            asmS_Id: selectedSection,
+            hrmE_Id: selectedStaff,
+            nod: Number(nod),
             clsDisplay: clsObj?.asmcL_ClassName,
             sectDisplay: secObj?.asmC_SectionName,
             staffDisplay: staffObj?.hrmE_EmployeeFirstName
@@ -197,27 +491,26 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
             { accessorKey: 'clsDisplay', header: 'Class' },
             { accessorKey: 'sectDisplay', header: 'Section' },
             { accessorKey: 'staffDisplay', header: 'Staff' },
-            { accessorKey: 'NOD', header: 'No Of Days' },
-            {
-                id: 'actions',
-                header: 'Actions',
-                cell: ({ row }) => (
-                    <Button type='button' variant='ghost' size='sm' onClick={() => remove(row.index)}>
-                        <span className='text-red-500'>Delete</span>
-                    </Button>
-                )
-            }
+            { accessorKey: 'nod', header: 'No Of Days' }
+            // {
+            //     id: 'actions',
+            //     header: 'Actions',
+            //     // cell: ({ row }) => (
+            //     //     <Button type='button' variant='ghost' size='sm' onClick={() => remove(row.index)}>
+            //     //         <span className='text-red-500'>Delete</span>
+            //     //     </Button>
+            //     // )
+            // }
         ],
         [remove]
     );
 
-    // View Columns
     const viewColumns: ColumnDef<any>[] = useMemo(
         () => [
             { accessorKey: 'clsDisplay', header: 'Class' },
             { accessorKey: 'sectDisplay', header: 'Section' },
             { accessorKey: 'staffDisplay', header: 'Staff' },
-            { accessorKey: 'NOD', header: 'No Of Days' }
+            { accessorKey: 'nod', header: 'No Of Days' }
         ],
         []
     );
@@ -228,23 +521,23 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
             if (res?.fix_period_subject_edit && (res.fix_period_subject_edit as any[]).length > 0) {
                 const d = (res.fix_period_subject_edit as any[])[0];
                 reset({
-                    TTFPSU_Id: d.ttfpsU_Id,
-                    ASMAY_Id: d.asmaY_Id,
-                    TTMP_Id: d.ttmP_Id,
-                    ISMS_Id: d.ismS_Id,
-                    TTFPSU_SUbSelcFlag: d.ttfpsU_SUbSelcFlag,
-                    TempararyArrayList: []
+                    ttrpsU_Id: d.ttfpsU_Id || d.ttrpsU_Id,
+                    asmaY_Id: d.asmaY_Id,
+                    ttmP_Id: d.ttmP_Id,
+                    ismS_Id: d.ismS_Id,
+                    ttfpsU_SUbSelcFlag: d.ttfpsU_SUbSelcFlag || d.ttrpsU_SUbSelcFlag,
+                    tempararyArrayList: []
                 });
-                if (d.ttfpsU_SUbSelcFlag && res.fix_period_subject__classecedit) {
+                if ((d.ttfpsU_SUbSelcFlag || d.ttrpsU_SUbSelcFlag) && res.fix_period_subject__classecedit) {
                     (res.fix_period_subject__classecedit as any[]).forEach((sub: any) => {
                         append({
-                            ASMCL_Id: sub.asmcL_Id,
-                            ASMS_Id: sub.asmS_Id,
-                            HRME_Id: sub.hrmE_Id,
-                            NOD: sub.ttfpsucC_Days,
+                            asmcL_Id: sub.asmcL_Id,
+                            asmS_Id: sub.asmS_Id,
+                            hrmE_Id: sub.hrmE_Id,
+                            nod: sub.ttfpsucC_Days,
                             clsDisplay: sub.asmcL_ClassName,
                             sectDisplay: sub.asmC_SectionName,
-                            staffDisplay: sub.staffName // Check this property match API
+                            staffDisplay: sub.staffName
                         });
                     });
                 }
@@ -264,7 +557,7 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                     clsDisplay: sub.asmcL_ClassName,
                     sectDisplay: sub.asmC_SectionName,
                     staffDisplay: sub.staffName,
-                    NOD: sub.ttfpsucC_Days
+                    nod: sub.ttfpsucC_Days
                 }));
                 setViewDetails(details);
             }
@@ -275,34 +568,21 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
         }
     };
 
-    const onToggle = async (item: any) => {
-        try {
-            const payload = { TTFPSU_Id: item.ttfpsU_Id, TTFPSU_ActiveFlag: !item.ttfpsU_ActiveFlag };
-            const res = await deactivateFixingPeriodSubject(payload);
-            if (res?.returnval === true) {
-                toast.success('Status Updated');
-                window.location.reload();
-            } else {
-                toast.error('Failed to update status');
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    };
-
     const onSubmit = async (data: FixingPeriodSubjectSchema) => {
         try {
-            if (!data.TTFPSU_SUbSelcFlag) {
-                data.TempararyArrayList = [];
-            } else if (!data.TempararyArrayList || data.TempararyArrayList.length === 0) {
+            if (!(data as any).ttfpsU_SUbSelcFlag && !(data as any).ttrpsU_SUbSelcFlag) {
+                data.tempararyArrayList = [];
+            } else if (!data.tempararyArrayList || data.tempararyArrayList.length === 0) {
                 toast.warning('Please add at least one Class-Section details');
                 return;
             }
-
             const res = await saveFixingPeriodSubject(data);
-            if (res?.returnval === true) {
-                toast.success('Record Saved Successfully');
-                window.location.reload();
+            if (res?.returnval === true || res?.success === true) {
+                toast.success(res?.message || 'Record Saved Successfully');
+                refetchAll();
+                closeAddForm();
+                closeEditForm();
+                reset();
             } else {
                 toast.error(res?.message || 'Failed to save');
             }
@@ -329,12 +609,14 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                 variant='default'
                 size='lg'
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <GenericDataTable data={gridData} columns={periodSubjectColumns} totalItems={gridData.length} isLoading={false} />
+                <GenericDataTable data={gridData} columns={periodSubjectColumns} totalItems={totalItems} isLoading={isGridLoading} />
             </CollapsibleSection>
+
+            {isToggleFormOpen && selectedRow && <TogglePeriodSubjectForm rowData={selectedRow} onClose={closeToggleForm} />}
 
             {(isAddFormOpen || isEditFormOpen) && (
                 <CollapsibleSection
-                    title={isEditFormOpen ? 'Edit Period Subject Constraint' : 'Add New Period Subject Constraint'}
+                    title={isAddFormOpen ? 'Add New Period Subject Constraint' : 'Edit Period Subject Constraint'}
                     defaultOpen={true}
                     variant='outline'
                     size='md'
@@ -354,19 +636,21 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                     <FormField
                                         control={form.control}
-                                        name='ASMAY_Id'
+                                        name='asmaY_Id'
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Academic Year</FormLabel>
-                                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                                <Select
+                                                    onValueChange={(v) => handleAcademicYearChange(Number(v))}
+                                                    value={field.value?.toString()}>
                                                     <FormControl>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select' />
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {academicList.map((item: any) => (
-                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                        {academicList?.map((item: any) => (
+                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id?.toString()}>
                                                                 {item.asmaY_Year}
                                                             </SelectItem>
                                                         ))}
@@ -379,7 +663,7 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
 
                                     <FormField
                                         control={form.control}
-                                        name='TTMP_Id'
+                                        name='ttmP_Id'
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Period</FormLabel>
@@ -390,11 +674,14 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {periodList.map((item: any) => (
-                                                            <SelectItem key={item.ttmP_Id} value={item.ttmP_Id.toString()}>
-                                                                {item.ttmP_PeriodName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {periodList.map((item: any) => {
+                                                            const id = item.ttmP_Id ?? item.ttmp_id ?? item.TTMP_Id;
+                                                            return (
+                                                                <SelectItem key={id} value={id?.toString()}>
+                                                                    {item.ttmP_PeriodName || item.ttmp_periodname || item.periodName}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -404,22 +691,29 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
 
                                     <FormField
                                         control={form.control}
-                                        name='ISMS_Id'
+                                        name='ismS_Id'
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Subject</FormLabel>
-                                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                                <Select
+                                                    onValueChange={(v) => handleSubjectChange(Number(v))}
+                                                    value={field.value?.toString()}>
                                                     <FormControl>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select' />
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {subjectList.map((item: any) => (
-                                                            <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
-                                                                {item.ismS_SubjectName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {subjectList
+                                                            .filter((item: any) => item.ismS_Id)
+                                                            .map((item: any) => {
+                                                                const id = item.ismS_Id ?? item.isms_id ?? item.ISMS_Id;
+                                                                return (
+                                                                    <SelectItem key={id} value={id?.toString()}>
+                                                                        {item.ismS_SubjectName || item.isms_subjectname || item.subjectName}
+                                                                    </SelectItem>
+                                                                );
+                                                            })}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -431,7 +725,7 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                                 <div className='flex items-center space-x-2'>
                                     <FormField
                                         control={form.control}
-                                        name='TTFPSU_SUbSelcFlag'
+                                        name={'ttfpsU_SUbSelcFlag' as any}
                                         render={({ field }) => (
                                             <FormItem className='flex flex-row items-start space-x-3 space-y-0 p-4'>
                                                 <FormControl>
@@ -445,27 +739,11 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                                     />
                                 </div>
 
-                                {TTFPSU_SUbSelcFlag && (
+                                {ttfpsU_SUbSelcFlag && (
                                     <div className='space-y-4 rounded-md border bg-gray-50 p-4'>
                                         <h4 className='font-semibold'>Add Class Details</h4>
                                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-5'>
-                                            <div className='space-y-2'>
-                                                <FormLabel>Category</FormLabel>
-                                                <Select
-                                                    onValueChange={(v) => handleCategoryChange(Number(v))}
-                                                    value={selectedCategory?.toString()}>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder='Select' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {categoryList.map((item: any) => (
-                                                            <SelectItem key={item.ttmC_Id} value={item.ttmC_Id.toString()}>
-                                                                {item.ttmC_CategoryName}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
+
                                             <div className='space-y-2'>
                                                 <FormLabel>Class</FormLabel>
                                                 <Select
@@ -475,11 +753,18 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {classList.map((item: any) => (
-                                                            <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                                                {item.asmcL_ClassName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {isClassLoading ? (
+                                                            <SelectItem value='loading'>Loading...</SelectItem>
+                                                        ) : (
+                                                            classList.map((item: any) => {
+                                                                const id = item.asmcL_Id ?? item.asmcl_id ?? item.ASMCL_Id;
+                                                                return (
+                                                                    <SelectItem key={id} value={id?.toString()}>
+                                                                        {item.asmcL_ClassName || item.asmcL_Classname || item.className}
+                                                                    </SelectItem>
+                                                                );
+                                                            })
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -492,11 +777,14 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {sectionList.map((item: any) => (
-                                                            <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
-                                                                {item.asmS_SectionName || item.asmC_SectionName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {sectionList.map((item: any) => {
+                                                            const id = item.asmS_Id ?? item.asms_id ?? item.ASMS_Id;
+                                                            return (
+                                                                <SelectItem key={id} value={id?.toString()}>
+                                                                    {item.asmC_SectionName}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -509,11 +797,14 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {subStaffList.map((item: any) => (
-                                                            <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
-                                                                {item.hrmE_EmployeeCode}-{item.hrmE_EmployeeFirstName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {subStaffList.map((item: any) => {
+                                                            const id = item.hrmE_Id ?? item.hrme_id ?? item.HRME_Id;
+                                                            return (
+                                                                <SelectItem key={id} value={id?.toString()}>
+                                                                    {item.staffName?.replace(/\n/g, ' ').trim()}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -543,10 +834,11 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                                     <Button type='submit'>Save</Button>
                                 </div>
                             </form>
-                        </Form>
-                    </div>
-                </CollapsibleSection>
-            )}
+                        </Form >
+                    </div >
+                </CollapsibleSection >
+            )
+            }
 
             <FixingViewModal
                 isOpen={!!isDetailsViewOpen}
@@ -556,14 +848,14 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                 columns={viewColumns}
                 isLoading={isLoadingView}
             />
-        </div>
+        </div >
     );
 }
 
-export default function PeriodSubjectTab({ initialData }: PeriodSubjectTabProps) {
+export default function PeriodSubjectTab({ initialData, searchParams }: PeriodSubjectTabProps) {
     return (
         <FormProvider>
-            <PeriodSubjectTabContent initialData={initialData} />
+            <PeriodSubjectTabContent initialData={initialData} searchParams={searchParams} />
         </FormProvider>
     );
 }

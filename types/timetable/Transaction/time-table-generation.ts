@@ -1,11 +1,11 @@
 export interface AcademicYear {
-    asmaY_Id: number;
+    ttfG_Id: number;
     asmaY_Year: string;
 }
 
 export interface Category {
     ttmC_Id: number;
-    ttmC_CategoryName: string;
+    categoryname: string;
 }
 
 export interface TotalNoOfPeriods {
@@ -23,10 +23,22 @@ export interface TotalNoOfperiodNotallotted {
     TotalNoofperiodallotted: string;
 }
 
-export interface GenerationMasters {
-    years: AcademicYear[];
-    categories: Category[];
-    TotalNoOfPeriods: TotalNoOfPeriods[];
-    TotalNoOfPeriodsAllotted: TotalNoOfPeriodsAllotted[];
-    TotalNoOfperiodNotallotted: TotalNoOfperiodNotallotted[];
+export interface InstutionName {
+    insname: number;
+    inst_name: string;
+}
+
+export interface TTGenerationGridData {
+    ttfG_Id: number;
+    insname: string;
+    asmayname: string;
+    categoryname: string;
+    ttfG_ActiveFlag: boolean;
+}
+
+export interface GenerationDetails {
+    totalPeriods: number;
+    allottedPeriods: number;
+    notAllottedPeriods: number;
+    notConfirmedPeriods: number;
 }

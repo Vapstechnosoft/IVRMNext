@@ -7,20 +7,19 @@ import { getClassSetOrder, getMasterClass } from '@/server/admission/preadmissio
 import {
     getAcademicYearDropdown,
     getClassCategorySection,
+    getMasterCategoryDropdown,
     getMasterClassCategory,
     getMasterClassDropdown,
     getMasterSectionDropdown,
-    getMasterUnmappedClassDropdown
+    getMasterUnmappedClassDropdown,
+    getStudentCategoryByClass
 } from '@/server/admission/preadmission/masters/class_category';
 import { getMasterMonthDropDownList, getMasterSectionHeld } from '@/server/admission/preadmission/masters/class_held';
 import { getEmployeeDrowpDown, getMasterClassTeacher, getTeacherClassSection } from '@/server/admission/preadmission/masters/class_teacher';
 import { getMasterDocument } from '@/server/admission/preadmission/masters/document';
 import { getMasterReference } from '@/server/admission/preadmission/masters/reference';
 import { getMasterReligion } from '@/server/admission/preadmission/masters/religion';
-import {
-    getMasterReligionCasteCategory,
-    getUnmappedCasteCategoryDropdown
-} from '@/server/admission/preadmission/masters/religion_caste_category';
+import { getMasterReligionCasteCategory } from '@/server/admission/preadmission/masters/religion_caste_category';
 import { getMasterSection, getSectionSetOrder } from '@/server/admission/preadmission/masters/section';
 import { getMasterSource } from '@/server/admission/preadmission/masters/source';
 import { getConcessionDropdown } from '@/server/admission/preadmission/reports/report';
@@ -337,7 +336,7 @@ export const useMasterCategoryDropdown = () => {
     return {
         ...useQuery({
             queryKey: [ADMISSION_QUERY_KEYS.MASTER_CATEGORY_DROPDOWN],
-            queryFn: async () => getMasterCategory({ page: 1, page_size: 10000 }),
+            queryFn: async () => getMasterCategoryDropdown(),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -557,6 +556,28 @@ export const useMasterStudentList = (
         refetchAll: (amst_solArg?: string, year?: number, clazz?: number, section?: number) => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.ACTIVE_DEACTIVE_STUDENTS, amst_solArg ?? {}, year ?? {}, clazz ?? {}, section ?? {}]
+            });
+        }
+    };
+};
+
+export const useStudentCategoryByClass = (asmcL_Id?: number, asmaY_Id?: number) => {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.STUDENT_CATEGORY_BY_CLASS, asmcL_Id ?? 0, asmaY_Id ?? 0],
+            queryFn: async () => {
+                if (!asmcL_Id || asmcL_Id <= 0 || !asmaY_Id || asmaY_Id <= 0) {
+                    return { data: null } as any;
+                }
+                return await getStudentCategoryByClass(asmcL_Id, asmaY_Id);
+            },
+            enabled: Boolean(asmcL_Id && asmcL_Id > 0 && asmaY_Id && asmaY_Id > 0),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.STUDENT_CATEGORY_BY_CLASS]
             });
         }
     };

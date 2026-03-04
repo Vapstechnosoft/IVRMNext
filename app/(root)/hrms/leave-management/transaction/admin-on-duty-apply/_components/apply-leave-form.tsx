@@ -14,12 +14,17 @@ import {
     FormMessage
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Separator } from '@/components/ui/separator';
-import { useEmployeeOnDutyDetails, useSaveOnDutyLeaveRequest } from '@/hooks/hrms/leave-management/useAdminOnDutyApply';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from '@/components/ui/select';
+import { useAdminOnDutyEmployeeDropdown, useEmployeeOnDutyDetails, useSaveOnDutyLeaveRequest } from '@/hooks/hrms/leave-management/useAdminOnDutyApply';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format, differenceInDays, parse } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     CalendarIcon,
@@ -39,6 +44,9 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { toast } from 'sonner';
+import { Separator } from '@/components/ui/separator';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { AdminOnDutyApply } from '@/types/hrms/leave-management/admin-on-duty-apply';
 
 const formSchema = z.object({
     hrmE_Id: z.coerce.number().min(1, 'Employee ID is required'),
@@ -58,23 +66,62 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface ApplyLeaveFormProps {
     onSuccess?: () => void;
+    onCancel?: () => void;
+    editingRow?: AdminOnDutyApply | null;
 }
 
-export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
+export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: ApplyLeaveFormProps) {
     const { mutate: saveLeave, isPending } = useSaveOnDutyLeaveRequest();
-    const [empIdInput, setEmpIdInput] = useState('');
+    const { data: employeeList, isLoading: isLoadingList } = useAdminOnDutyEmployeeDropdown();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            hrmE_Id: 0,
+            hrmE_Id: editingRow?.employeeId || 0,
             leaveType: 'OD',
-            totalDays: 1,
-            leaveReason: '',
-            inTime: '10:00',
-            outTime: '18:00'
+            fromDate: editingRow?.fromDate || undefined,
+            toDate: editingRow?.toDate || undefined,
+            totalDays: editingRow?.totalDays || 1,
+            leaveReason: editingRow?.leaveReason || '',
+            inTime: editingRow?.inTime || '10:00',
+            outTime: editingRow?.outTime || '18:00'
         }
     });
+
+    // Reset form when editingRow changes
+    useEffect(() => {
+        if (editingRow) {
+            // Ensure time format is HH:mm for the time input
+            const formatTime = (time: string) => {
+                if (!time) return '';
+                const parts = time.split(':');
+                if (parts.length >= 2) {
+                    return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+                }
+                return time;
+            };
+
+            form.reset({
+                hrmE_Id: editingRow.employeeId,
+                leaveType: 'OD',
+                fromDate: editingRow.fromDate ? new Date(editingRow.fromDate) : undefined,
+                toDate: editingRow.toDate ? new Date(editingRow.toDate) : undefined,
+                totalDays: editingRow.totalDays,
+                leaveReason: editingRow.leaveReason || '',
+                inTime: formatTime(editingRow.inTime),
+                outTime: formatTime(editingRow.outTime)
+            });
+        } else {
+            form.reset({
+                hrmE_Id: 0,
+                leaveType: 'OD',
+                totalDays: 1,
+                leaveReason: '',
+                inTime: '10:00',
+                outTime: '18:00'
+            });
+        }
+    }, [editingRow, form]);
 
     const hrmE_Id = form.watch('hrmE_Id');
     const fromDate = form.watch('fromDate');
@@ -82,32 +129,33 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
 
     // Auto-calculate total days
     useEffect(() => {
-        if (fromDate && toDate) {
+        if (fromDate && toDate && !editingRow) {
             const days = differenceInDays(toDate, fromDate) + 1;
             if (days > 0) {
                 form.setValue('totalDays', days);
             }
         }
-    }, [fromDate, toDate, form]);
+    }, [fromDate, toDate, form, editingRow]);
 
     const { data: employeeData, isLoading: isLoadingEmp } = useEmployeeOnDutyDetails(hrmE_Id > 0 ? hrmE_Id : null);
 
     function onSubmit(values: FormValues) {
         saveLeave(
             {
-                HRME_Id: values.hrmE_Id,
-                HRML_LeaveType: values.leaveType,
-                HRELAP_FromDate: format(values.fromDate, 'yyyy-MM-dd'),
-                HRELAP_ToDate: format(values.toDate, 'yyyy-MM-dd'),
-                HRELAP_TotalDays: values.totalDays,
-                HRELAP_LeaveReason: values.leaveReason,
-                HRELAPD_InTime: values.inTime,
-                HRELAPD_OutTime: values.outTime
+                hrelaP_Id: editingRow?.id || 0,
+                hrmE_Id: values.hrmE_Id,
+                hrmL_LeaveType: values.leaveType,
+                hrelaP_FromDate: values.fromDate.toISOString(),
+                hrelaP_ToDate: values.toDate.toISOString(),
+                hrelaP_TotalDays: values.totalDays,
+                hrelaP_LeaveReason: values.leaveReason,
+                hrelapD_InTime: values.inTime.includes(':') && values.inTime.split(':').length === 2 ? `${values.inTime}:00` : values.inTime,
+                hrelapD_OutTime: values.outTime.includes(':') && values.outTime.split(':').length === 2 ? `${values.outTime}:00` : values.outTime,
+                hrelT_SupportingDocument: ''
             },
             {
                 onSuccess: () => {
                     form.reset();
-                    setEmpIdInput('');
                     onSuccess?.();
                 }
             }
@@ -140,36 +188,38 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
                                         name='hrmE_Id'
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className='font-semibold'>Employee ID Lookup</FormLabel>
-                                                <FormControl>
-                                                    <div className='relative group'>
-                                                        <UserIcon className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors' />
-                                                        <Input
-                                                            type='number'
-                                                            placeholder='Enter HRMS Employee ID (e.g. 1207)'
-                                                            className='pl-10 h-11 border-muted-foreground/20 focus-visible:ring-primary/30 transition-all'
-                                                            value={empIdInput}
-                                                            onChange={(e) => {
-                                                                setEmpIdInput(e.target.value);
-                                                                const val = Number(e.target.value);
-                                                                if (val > 0) field.onChange(val);
-                                                                else field.onChange(0);
-                                                            }}
-                                                        />
-                                                        {isLoadingEmp && (
-                                                            <div className='absolute right-3 top-1/2 -translate-y-1/2'>
-                                                                <motion.div
-                                                                    animate={{ rotate: 360 }}
-                                                                    transition={{ repeat: Number.POSITIVE_INFINITY, duration: 1, ease: 'linear' }}
-                                                                >
-                                                                    <Clock className='h-4 w-4 text-primary opacity-50' />
-                                                                </motion.div>
+                                                <FormLabel className='font-semibold'>Select Employee</FormLabel>
+                                                <Select
+                                                    onValueChange={(value) => {
+                                                        const id = Number(value);
+                                                        field.onChange(id);
+                                                    }}
+                                                    value={field.value > 0 ? field.value.toString() : ''}
+                                                >
+                                                    <FormControl>
+                                                        <SelectTrigger className='h-11 border-muted-foreground/20 focus:ring-primary/30 transition-all'>
+                                                            <div className='flex items-center gap-2'>
+                                                                <UserIcon className='h-4 w-4 text-muted-foreground' />
+                                                                <SelectValue placeholder='Search/Select Employee' />
                                                             </div>
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {isLoadingList ? (
+                                                            <div className='p-2 text-center text-sm text-muted-foreground'>
+                                                                Loading employees...
+                                                            </div>
+                                                        ) : (
+                                                            employeeList?.map((emp) => (
+                                                                <SelectItem key={emp.hrmE_Id} value={emp.hrmE_Id.toString()}>
+                                                                    {emp.employeeName} (ID: {emp.hrmE_Id})
+                                                                </SelectItem>
+                                                            ))
                                                         )}
-                                                    </div>
-                                                </FormControl>
+                                                    </SelectContent>
+                                                </Select>
                                                 <FormDescription className='text-[11px]'>
-                                                    Enter the employee ID to auto-fetch details.
+                                                    Select an employee to auto-fetch details.
                                                 </FormDescription>
                                                 <FormMessage />
                                             </FormItem>
@@ -448,13 +498,16 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
                                         type='button'
                                         variant='outline'
                                         onClick={() => {
-                                            form.reset();
-                                            setEmpIdInput('');
+                                            if (editingRow) {
+                                                onCancel?.();
+                                            } else {
+                                                form.reset();
+                                            }
                                         }}
                                         disabled={isPending}
                                         className='px-6 border-muted-foreground/20'
                                     >
-                                        Reset
+                                        {editingRow ? 'Cancel' : 'Reset'}
                                     </Button>
                                     <Button
                                         type='submit'
@@ -464,11 +517,11 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
                                         {isPending ? (
                                             <>
                                                 <Clock className='mr-2 h-4 w-4 animate-spin' />
-                                                Submitting...
+                                                {editingRow ? 'Updating...' : 'Submitting...'}
                                             </>
                                         ) : (
                                             <>
-                                                Submit Request
+                                                {editingRow ? 'Update Request' : 'Submit Request'}
                                                 <ArrowRight className='ml-2 h-4 w-4' />
                                             </>
                                         )}
