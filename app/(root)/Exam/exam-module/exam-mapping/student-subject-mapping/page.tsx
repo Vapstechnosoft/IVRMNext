@@ -718,7 +718,7 @@ function StudentSubjectMappingContent() {
                                 }}>
                                 Cancel
                             </Button>
-                            <Button type='button' className='px-8 py-2 shadow-lg' onClick={handleSearch} disabled={isLoading}>
+                            <Button type='button' className='w-fit px-8 py-2 shadow-lg' onClick={handleSearch} disabled={isLoading}>
                                 {isLoading ? 'Searching...' : 'Search'}
                             </Button>
                         </div>

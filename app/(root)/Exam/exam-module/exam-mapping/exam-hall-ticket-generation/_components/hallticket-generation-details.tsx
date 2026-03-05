@@ -18,6 +18,7 @@ interface Props {
 }
 
 export default function HallTicketGeneratedDetailsPage({ rowData, onClose }: Props) {
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const [loading, setLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -25,6 +26,7 @@ export default function HallTicketGeneratedDetailsPage({ rowData, onClose }: Pro
     const {
         data: studentsData,
         isLoading: studentsLoading,
+        // biome-ignore lint/correctness/noUnusedVariables: <explanation>
         error: studentsError,
         refetchAll
     } = usegetHallTicketStudentList({
@@ -94,12 +96,20 @@ export default function HallTicketGeneratedDetailsPage({ rowData, onClose }: Pro
                     </div>
 
                     {/* BOTTOM BUTTONS */}
-                    <div className='flex w-fit justify-center gap-4 border-t pt-4'>
-                        <Button onClick={handleUpdate} className='px-6 py-2 text-white'>
+                    <div className="w-fit  flex justify-center gap-4 border-t pt-4">
+
+                        <Button
+                            onClick={handleUpdate}
+                            className="text-white px-6 py-2 w-fit"
+                        >
                             {isSubmitting ? 'Updating...' : 'Update'}
                         </Button>
 
-                        <Button variant='outline' onClick={onClose} className='px-6 py-2'>
+                        <Button
+                            variant="outline"
+                            onClick={onClose}
+                            className="px-6 py-2 w-fit"
+                        >
                             CLOSE
                         </Button>
                     </div>

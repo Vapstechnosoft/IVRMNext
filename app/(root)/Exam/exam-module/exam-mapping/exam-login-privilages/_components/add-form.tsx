@@ -1070,16 +1070,16 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                             <div className='flex w-fit justify-center gap-3'>
                                 {editingId ? (
                                     <>
-                                        <Button type='button' onClick={handleUpdateRow}>
+                                        <Button type='button' onClick={handleUpdateRow} className='w-fit'>
                                             Update Row
                                         </Button>
-                                        <Button type='button' variant='outline' onClick={cancelEdit}>
+                                        <Button type='button' variant='outline' onClick={cancelEdit} className='w-fit'>
                                             Cancel Edit
                                         </Button>
                                     </>
                                 ) : (
                                     <>
-                                        <Button type='button' onClick={handleAddRows}>
+                                        <Button type='button' onClick={handleAddRows} className='w-fit'>
                                             + ADD
                                         </Button>
                                         <Button
@@ -1109,7 +1109,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 setActiveTab(0);
                                                 setDisableClassSection(false);
                                                 setEditingId(null);
-                                            }}>
+                                            }}
+                                            className='w-fit'>
                                             Reset
                                         </Button>
                                     </>
@@ -1131,7 +1132,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                             <div className='overflow-x-auto'>{detailsTable}</div>
                             <div className='mt-5 flex w-full justify-center'>
                                 <div className='w-fit'>
-                                    <Button type='button' disabled={isSubmitting} onClick={() => onSubmit(getValues())}>
+                                    <Button type='button' disabled={isSubmitting} onClick={() => onSubmit(getValues())} className='w-fit'>
                                         {isSubmitting
                                             ? editMode === 'edit'
                                                 ? 'Updating...'
@@ -1164,7 +1165,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                 onClick={() => {
                                     setConfirmOpen(false);
                                     setDeleteIndex(null);
-                                }}>
+                                }}
+                                className='w-fit'>
                                 Cancel
                             </Button>
                             <Button
@@ -1173,7 +1175,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                     handleDeleteRowByIndex(deleteIndex);
                                     setConfirmOpen(false);
                                     setDeleteIndex(null);
-                                }}>
+                                }}
+                                className='w-fit'>
                                 Yes, Delete
                             </Button>
                         </div>
