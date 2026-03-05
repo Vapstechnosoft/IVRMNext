@@ -1656,6 +1656,21 @@ export async function getUserAccessibleModules() {
                             sub_menu: [
                                 {
                                     id: 1,
+                                    name: 'HRMS Config',
+                                    icon: 'Users',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Numbering',
+                                            icon: 'CheckSquare',
+                                            url: '/hrms/config/numbering',
+                                            title: 'Numbering',
+                                            description: 'Manage numbering Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 1,
                                     name: 'Masters',
                                     icon: 'Database',
                                     pages: [
