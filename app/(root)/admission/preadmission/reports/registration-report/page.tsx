@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
-import { use, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 import type { IRigistrationReportList } from '@/types/admission/preadmission/reports';
 import { registrationColumns } from './_components/columns';
@@ -18,16 +18,20 @@ import { registrationColumns } from './_components/columns';
 import { CalendarIcon, FileSpreadsheet, Printer, RotateCcw } from 'lucide-react';
 
 import { usePreAdmissionRegistrationReport } from '@/hooks/admission/preadmission/useReports';
+import { getPreAdmissionRegistrationReport } from '@/server/admission/preadmission/reports/report';
 import { getExcelRegistrationReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { useReactToPrint } from 'react-to-print';
+import { RegistrationReportPrint } from './_components/registration-report-print';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function RegistrationPageprops(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const tableRef = useRef<DataTableRef>(null);
+    const printRef = useRef<HTMLDivElement>(null);
 
     /** -----------------------------
      *  Academic Year API
@@ -40,6 +44,11 @@ export default function RegistrationPageprops(props: {
     const [academicYearId, setAcademicYearId] = useState(0);
     const [reportType, setReportType] = useState('year_wise');
     const [showTable, setShowTable] = useState(false);
+    // Removed selection state as per user request
+    const [printData, setPrintData] = useState<IRigistrationReportList[]>([]);
+    const [isPrinting, setIsPrinting] = useState(false);
+
+
 
     /** -----------------------------
      *  Date Filters
@@ -64,24 +73,11 @@ export default function RegistrationPageprops(props: {
     } = usePreAdmissionRegistrationReport(academicIdParam, fromDateParam, toDateParam, searchParams);
 
     const tableProps = useDataTableProps({
+        ...(response || {}),
         data: response?.data?.searchstudentDetails ?? []
     });
 
     const handleReport = () => {
-        const payload: any = {};
-
-        if (reportType === 'year_wise') {
-            if (academicYearId) {
-                payload.academicYearId = academicYearId;
-            }
-        }
-
-        if (reportType === 'between_dates') {
-            payload.fromDate = watchedFromDate ? format(watchedFromDate, 'yyyy-MM-dd') : null;
-
-            payload.toDate = watchedToDate ? format(watchedToDate, 'yyyy-MM-dd') : null;
-        }
-
         setShowTable(true);
         refetchAdmissionStudents();
     };
@@ -93,6 +89,7 @@ export default function RegistrationPageprops(props: {
         setReportType('year_wise');
         setWatchedFromDate(null);
         setWatchedToDate(null);
+        setPrintData([]);
         tableRef.current?.resetSelection();
 
         setShowTable(false); // Hide table
@@ -105,15 +102,15 @@ export default function RegistrationPageprops(props: {
                 return;
             }
 
-            const response = await getExcelRegistrationReport(academicIdParam, fromDateParam, toDateParam, searchParams);
+            const excelResponse = await getExcelRegistrationReport(academicIdParam, fromDateParam, toDateParam, searchParams);
 
             // Ensure we have a Blob
             const blob =
-                response instanceof Blob
-                    ? response
-                    : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                excelResponse instanceof Blob
+                    ? excelResponse
+                    : new Blob([new Uint8Array(excelResponse)], {
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -135,6 +132,78 @@ export default function RegistrationPageprops(props: {
             toast.error('Failed to download Excel');
         }
     };
+
+    const handlePrintContent = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: 'Registration_Report'
+    });
+
+    /** -----------------------------
+     *  Effects
+     * ----------------------------- */
+    React.useEffect(() => {
+        if (isPrinting && printData.length > 0 && printRef.current && handlePrintContent) {
+            handlePrintContent();
+            setIsPrinting(false);
+        }
+    }, [isPrinting, printData, handlePrintContent]);
+
+    React.useEffect(() => {
+        if (academicYearOptions?.data && academicYearOptions.data.length > 0 && academicYearId === 0) {
+            setAcademicYearId(Number(academicYearOptions.data[0].asmaY_Id));
+        }
+    }, [academicYearOptions, academicYearId]);
+
+    const triggerPrint = async () => {
+        if (!response?.data?.searchstudentDetails?.length) {
+            toast.error('No data available to print');
+            return;
+        }
+
+        try {
+            // ALWAYS fetch all data for printing, regardless of selection (selection removed)
+            toast.loading('Fetching all records for print...', { id: 'print-fetch' });
+
+            // Fetch all data by passing a very large page size and resetting page to 1
+            const allDataResponse = await getPreAdmissionRegistrationReport(
+                {
+                    academicYearId: academicIdParam,
+                    fromDate: fromDateParam,
+                    toDate: toDateParam
+                },
+                { ...searchParams, page_size: 1000000, page: 1 }
+            );
+
+            const allData = allDataResponse?.data?.searchstudentDetails || [];
+
+            if (allData.length === 0) {
+                toast.dismiss('print-fetch');
+                toast.error('No data found to print');
+                return;
+            }
+
+            setPrintData(allData);
+            setIsPrinting(true);
+            toast.dismiss('print-fetch');
+            toast.success(`Ready to print ${allData.length} records`);
+
+            // Give React time to re-render the hidden component with new data
+            setTimeout(() => {
+                if (printRef.current) {
+                    handlePrintContent();
+                    setIsPrinting(false);
+                } else {
+                    toast.error('Print functionality is not ready. Please try again.');
+                }
+            }, 1000);
+        } catch (error) {
+            console.error('Print error:', error);
+            toast.dismiss('print-fetch');
+            toast.error('Failed to prepare print');
+            setIsPrinting(false);
+        }
+    };
+
     /** -----------------------------
      *  JSX
      * ----------------------------- */
@@ -163,7 +232,7 @@ export default function RegistrationPageprops(props: {
                     </RadioGroup>
                 </div>
 
-                {/* ---------------------- Academic Year (Show only for Year Wise) ---------------------- */}
+                {/* ... (rest of filters) ... */}
                 {reportType === 'year_wise' && (
                     <div className='flex justify-center'>
                         <div className='flex w-full max-w-md items-center gap-4'>
@@ -172,7 +241,7 @@ export default function RegistrationPageprops(props: {
                                 onValueChange={(value) => setAcademicYearId(Number(value))}
                                 value={academicYearId ? String(academicYearId) : undefined}>
                                 <SelectTrigger className='w-48'>
-                                    <SelectValue placeholder='Select Academic Year' />
+                                    <SelectValue placeholder='--Select Year--' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {academicYearLoading ? (
@@ -247,7 +316,6 @@ export default function RegistrationPageprops(props: {
                     </div>
                 )}
 
-                {/* ---------------------- Action Buttons ---------------------- */}
                 <div className='flex items-center justify-center gap-3 border-t pt-4'>
                     <Button variant='outline' onClick={handleReset}>
                         <RotateCcw className='mr-2 h-4 w-4' />
@@ -263,7 +331,9 @@ export default function RegistrationPageprops(props: {
                         Export to Excel
                     </Button>
 
-                    <Button variant='outline'>
+                    <Button
+                        variant='outline'
+                        onClick={triggerPrint}>
                         <Printer className='mr-2 h-4 w-4' />
                         Print
                     </Button>
@@ -296,6 +366,25 @@ export default function RegistrationPageprops(props: {
                     </CollapsibleSection>
                 </div>
             )}
+
+            {/* Print Component */}
+            <div
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: 0,
+                    height: 0,
+                    overflow: 'hidden', // Changed to hidden to prevent scrollbars
+                    opacity: 0,
+                    pointerEvents: 'none',
+                    zIndex: -1
+                }}>
+                <RegistrationReportPrint
+                    ref={printRef}
+                    data={printData}
+                />
+            </div>
         </div>
     );
 }

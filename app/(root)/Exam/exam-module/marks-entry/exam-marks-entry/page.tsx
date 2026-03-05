@@ -204,11 +204,20 @@ function MarksEntryContent() {
        Load classes when academic year changes
        ------------------------- */
     useEffect(() => {
-        if (!selectedAcademicYear) {
-            setClasses([]);
-            setSelectedClass(undefined);
-            return;
-        }
+        // Immediate reset of all downstream states
+        setClasses([]);
+        setSelectedClass(undefined);
+        setSections([]);
+        setSelectedSectionId(undefined);
+        setExams([]);
+        setSelectedExam(undefined);
+        setSubjects([]);
+        setSelectedSubjectId(undefined);
+        setIsStudentsGridOpen(false);
+        setSubjectMeta(null);
+        setStudents([]);
+
+        if (!selectedAcademicYear) return;
 
         (async () => {
             setLoadingClasses(true);
@@ -220,16 +229,9 @@ function MarksEntryContent() {
                     toast.info('No classes are mapped for your selections');
                 }
                 setClasses(Array.isArray(data) ? data : []);
-                // reset dependent selects
-                setSections([]);
-                setSelectedSectionId(undefined);
-                setExams([]);
-                setSelectedExam(undefined);
             } catch (err) {
                 console.error(err);
                 toast.error('Failed to load classes');
-                setClasses([]);
-                setSelectedClass(undefined);
             } finally {
                 setLoadingClasses(false);
             }
@@ -240,11 +242,18 @@ function MarksEntryContent() {
        Load sections when class changes
        ------------------------- */
     useEffect(() => {
-        if (!selectedAcademicYear || !selectedClass) {
-            setSections([]);
-            setSelectedSectionId(undefined);
-            return;
-        }
+        // Immediate reset of all downstream states
+        setSections([]);
+        setSelectedSectionId(undefined);
+        setExams([]);
+        setSelectedExam(undefined);
+        setSubjects([]);
+        setSelectedSubjectId(undefined);
+        setIsStudentsGridOpen(false);
+        setSubjectMeta(null);
+        setStudents([]);
+
+        if (!selectedAcademicYear || !selectedClass) return;
 
         (async () => {
             setLoadingSections(true);
@@ -252,14 +261,9 @@ function MarksEntryContent() {
                 const res = await GetLoginPrivilegeSectionsDropdown(selectedAcademicYear, selectedClass);
                 const data = res?.data ?? [];
                 setSections(Array.isArray(data) ? data : []);
-                setSelectedSectionId(undefined);
-                setExams([]);
-                setSelectedExam(undefined);
             } catch (err) {
                 console.error(err);
                 toast.error('Failed to load sections');
-                setSections([]);
-                setSelectedSectionId(undefined);
             } finally {
                 setLoadingSections(false);
             }
@@ -270,11 +274,16 @@ function MarksEntryContent() {
        Load exams when section selected
        ------------------------- */
     useEffect(() => {
-        if (activeTab !== 0 || !selectedAcademicYear || !selectedClass || !selectedSectionId) {
-            setExams([]);
-            setSelectedExam(undefined);
-            return;
-        }
+        // Immediate reset of all downstream states
+        setExams([]);
+        setSelectedExam(undefined);
+        setSubjects([]);
+        setSelectedSubjectId(undefined);
+        setIsStudentsGridOpen(false);
+        setSubjectMeta(null);
+        setStudents([]);
+
+        if (activeTab !== 0 || !selectedAcademicYear || !selectedClass || !selectedSectionId) return;
 
         (async () => {
             setLoadingExams(true);
@@ -298,8 +307,6 @@ function MarksEntryContent() {
             } catch (err) {
                 console.error(err);
                 toast.error('Failed to load exams');
-                setExams([]);
-                setSelectedExam(undefined);
             } finally {
                 setLoadingExams(false);
             }
@@ -310,6 +317,13 @@ function MarksEntryContent() {
        mock subjects list (still using your static list)
        ------------------------- */
     useEffect(() => {
+        // Immediate reset of all downstream states
+        setSubjects([]);
+        setSelectedSubjectId(undefined);
+        setIsStudentsGridOpen(false);
+        setSubjectMeta(null);
+        setStudents([]);
+
         if (!selectedAcademicYear || !selectedClass || !selectedSectionId || !selectedExam) return;
 
         const fetchSubjects = async () => {
@@ -336,6 +350,11 @@ function MarksEntryContent() {
 
         fetchSubjects();
     }, [selectedAcademicYear, selectedClass, selectedSectionId, selectedExam]);
+
+    /* -------------------------
+       Note: Grid is NOT auto-closed when subject changes.
+       User must click SEARCH button to fetch new data.
+       ------------------------- */
 
     /* ----------
        handleSearch -> fetch subject+students
@@ -711,6 +730,8 @@ function MarksEntryContent() {
                                 ISMS_Id={selectedSubjectId === undefined ? null : selectedSubjectId}
                                 onSave={async (data) => {
                                     console.info('Saving data:', data);
+                                    // Refresh the grid after successful save
+                                    await handleSearch();
                                 }}
                                 onClose={() => setIsStudentsGridOpen(false)}
                             />

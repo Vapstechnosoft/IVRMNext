@@ -11,13 +11,16 @@ export default function StudentAgeCalculationReportPage() {
 
     return (
         <div className='flex flex-col gap-6'>
-            <ReportForm onReportGenerated={setReportData} />
+            <ReportForm
+                onReportGenerated={setReportData}
+                onReset={() => setReportData(null)}
+            />
             {reportData && (
                 <ReportGrid
                     data={reportData}
                     searchQuery={searchQuery}
                     onSearchChange={setSearchQuery}
-                    //manualPagination={false}
+                //manualPagination={false}
                 />
             )}
         </div>

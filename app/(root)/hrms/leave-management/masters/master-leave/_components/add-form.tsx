@@ -5,10 +5,9 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterLeave, useMasterLeaveDropdowns, useSaveMasterLeave } from '@/hooks/hrms/leave-management/useMasters';
+import { useMasterLeave, useSaveMasterLeave } from '@/hooks/hrms/leave-management/useMasters';
 import { MASTER_LEAVE_VALIDATION } from '@/lib/validation/hrms-master-validation';
-import { Save, X } from 'lucide-react';
-import { useMemo } from 'react';
+import { Loader2, RotateCcw, Save, X } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { MasterLeave } from './columns';
 interface AddMasterLeaveFormProps {
@@ -16,17 +15,18 @@ interface AddMasterLeaveFormProps {
     onCancel?: () => void;
     className?: string;
 }
+const LEAVE_TYPE_OPTIONS = [
+    { value: 'Comp_Off', label: 'Comp Off' },
+    { value: 'LWP', label: 'LWP' },
+    { value: 'On_Duty', label: 'On Duty' },
+    { value: 'Sat_Off', label: 'Sat Off' }
+];
+
 export default function AddMasterLeaveForm({ onSuccess, onCancel, className = '' }: AddMasterLeaveFormProps) {
     const { refetchAll } = useMasterLeave();
     const { mutate: saveMasterLeave, isPending } = useSaveMasterLeave();
-    const { data: dropdownData, isLoading: isLoadingDropdowns } = useMasterLeaveDropdowns();
-    // Extract leave type options from API
-    const leaveTypeOptions = useMemo(() => {
-        if (!dropdownData?.data?.leaveTypes || !Array.isArray(dropdownData.data.leaveTypes)) {
-            return [];
-        }
-        return dropdownData.data.leaveTypes;
-    }, [dropdownData]);
+
+    const leaveTypeOptions = LEAVE_TYPE_OPTIONS;
     const {
         register,
         handleSubmit,
@@ -38,13 +38,17 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
     } = useForm<MasterLeave>({
         mode: 'onChange',
         defaultValues: {
-            leaveName: '',
-            leaveCode: '',
-            leaveType: '',
-            leaveDetails: '',
-            leaveCredit: false,
-            lateDeduct: false,
-            leaveOrder: 0,
+            hrmL_LeaveName: '',
+            hrmL_LeaveCode: '',
+            hrmL_LeaveType: '',
+            hrmL_LeaveDetails: '',
+            hrmL_LeaveCreditFlg: true,
+            hrmL_LateDeductFlag: false,
+            hrmL_ProbationNotApplicableFlg: false,
+            hrmL_LeaveApplyCriteria: '',
+            hrmL_DaysForApplyCriteria: '',
+            hrmL_MaxDaysForApply: '',
+            hrmL_LateDeductOrder: 0,
             isActive: true
         }
     });
@@ -52,7 +56,7 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
         saveMasterLeave(
             {
                 ...data,
-                leaveOrder: data.leaveOrder || 0
+                hrmL_LateDeductOrder: data.hrmL_LateDeductOrder || 0
             },
             {
                 onSuccess: () => {
@@ -66,6 +70,7 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
     const handleReset = () => {
         reset();
     };
+    const mastersLoading = isPending || isSubmitting;
     return (
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -74,47 +79,43 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                         <InputText
                             label='Leave Name'
                             required
-                            id='leaveName'
-                            {...register('leaveName', MASTER_LEAVE_VALIDATION.leaveName)}
-                            error={errors.leaveName?.message}
+                            id='hrmL_LeaveName'
+                            {...register('hrmL_LeaveName', MASTER_LEAVE_VALIDATION.hrmL_LeaveName)}
+                            error={errors.hrmL_LeaveName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <InputText
                             label='Leave Code'
                             required
-                            id='leaveCode'
-                            {...register('leaveCode', MASTER_LEAVE_VALIDATION.leaveCode)}
-                            error={errors.leaveCode?.message}
+                            id='hrmL_LeaveCode'
+                            {...register('hrmL_LeaveCode', MASTER_LEAVE_VALIDATION.hrmL_LeaveCode)}
+                            error={errors.hrmL_LeaveCode?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <Controller
-                            name='leaveType'
+                            name='hrmL_LeaveType'
                             control={control}
-                            rules={MASTER_LEAVE_VALIDATION.leaveType}
+                            rules={MASTER_LEAVE_VALIDATION.hrmL_LeaveType}
                             render={({ field }) => (
                                 <div>
-                                    <label htmlFor='leaveType' className='mb-2 block font-medium text-sm'>
-                                        Leave Type <span className='text-red-500'>*</span>
+                                    <label htmlFor='hrmL_LeaveType' className='mb-1.5 block font-medium text-sm'>
+                                        Leave Type <span className='text-destructive'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingDropdowns}>
-                                        <SelectTrigger id='leaveType' className={errors.leaveType ? 'border-red-500' : ''}>
-                                            <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : 'Select Leave Type'} />
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger id='hrmL_LeaveType'>
+                                            <SelectValue placeholder='Select Leave Type' />
                                         </SelectTrigger>
-                                        <SelectContent>
-                                            {leaveTypeOptions.length > 0 ? (
-                                                leaveTypeOptions.map((option) => (
-                                                    <SelectItem key={option.value} value={option.value}>
-                                                        {option.label}
-                                                    </SelectItem>
-                                                ))
-                                            ) : (
-                                                <div className='px-2 py-1.5 text-muted-foreground text-sm'>
-                                                    {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
-                                                </div>
-                                            )}
+                                        <SelectContent side='top'>
+                                            {leaveTypeOptions.map((option) => (
+                                                <SelectItem key={option.value} value={option.value}>
+                                                    {option.label}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
-                                    {errors.leaveType && <FormError>{errors.leaveType.message}</FormError>}
+                                    {errors.hrmL_LeaveType?.message && (
+                                        <p className='mt-1 text-xs text-destructive'>{errors.hrmL_LeaveType.message}</p>
+                                    )}
                                 </div>
                             )}
                         />
@@ -123,41 +124,55 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                         <InputTextarea
                             label='Leave Details'
                             required
-                            id='leaveDetails'
-                            {...register('leaveDetails', MASTER_LEAVE_VALIDATION.leaveDetails)}
-                            error={errors.leaveDetails?.message}
+                            id='hrmL_LeaveDetails'
+                            {...register('hrmL_LeaveDetails', MASTER_LEAVE_VALIDATION.hrmL_LeaveDetails)}
+                            error={errors.hrmL_LeaveDetails?.message}
                             rows={3}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-                        <div className='flex items-center space-x-2'>
-                            <Controller
-                                name='leaveCredit'
-                                control={control}
-                                render={({ field }) => <Checkbox id='leaveCredit' checked={field.value} onCheckedChange={field.onChange} />}
-                            />
-                            <label htmlFor='leaveCredit' className='font-medium text-sm'>
-                                Leave Credit
-                            </label>
-                        </div>
-                        <div className='flex items-center space-x-2'>
-                            <Controller
-                                name='lateDeduct'
-                                control={control}
-                                render={({ field }) => <Checkbox id='lateDeduct' checked={field.value} onCheckedChange={field.onChange} />}
-                            />
-                            <label htmlFor='lateDeduct' className='font-medium text-sm'>
-                                Late Deduct
-                            </label>
-                        </div>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                        <Controller
+                            name='hrmL_LeaveApplyCriteria'
+                            control={control}
+                            rules={MASTER_LEAVE_VALIDATION.hrmL_LeaveApplyCriteria}
+                            render={({ field }) => (
+                                <div>
+                                    <label htmlFor='hrmL_LeaveApplyCriteria' className='mb-1.5 block font-medium text-sm'>
+                                        Apply Criteria <span className='text-destructive'>*</span>
+                                    </label>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger id='hrmL_LeaveApplyCriteria'>
+                                            <SelectValue placeholder='Select Criteria' />
+                                        </SelectTrigger>
+                                        <SelectContent side='top'>
+                                            <SelectItem value='Before'>Before</SelectItem>
+                                            <SelectItem value='After'>After</SelectItem>
+                                            <SelectItem value='Same Day'>Same Day</SelectItem>
+                                            <SelectItem value='Month'>Month</SelectItem>
+                                            <SelectItem value='Quarter'>Quarter</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.hrmL_LeaveApplyCriteria?.message && (
+                                        <p className='mt-1 text-xs text-destructive'>{errors.hrmL_LeaveApplyCriteria.message}</p>
+                                    )}
+                                </div>
+                            )}
+                        />
                         <InputText
-                            label='Leave Order'
-                            id='leaveOrder'
+                            label='No of Days'
+                            required
                             type='number'
-                            {...register('leaveOrder', { valueAsNumber: true })}
-                            error={errors.leaveOrder?.message}
+                            id='hrmL_DaysForApplyCriteria'
+                            {...register('hrmL_DaysForApplyCriteria', MASTER_LEAVE_VALIDATION.hrmL_DaysForApplyCriteria)}
+                            error={errors.hrmL_DaysForApplyCriteria?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                        <InputText
+                            label='Max Days for Apply'
+                            error={errors.hrmL_MaxDaysForApply?.message}
+                            placeholder='Enter max days'
+                            type='number'
                         />
                     </div>
                 </div>
@@ -169,8 +184,10 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                         </Button>
                     )}
                     <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
+                        <RotateCcw className='mr-1.5 h-4 w-4' />
                         Reset
                     </Button>
+                    {mastersLoading && <Loader2 className='h-4 w-4 animate-spin text-purple-500' />}
                     <Button type='submit' disabled={isPending || isSubmitting}>
                         <Save className='mr-2 h-4 w-4' />
                         {isPending || isSubmitting ? 'Saving...' : 'Save'}

@@ -378,4 +378,124 @@ export interface ExcelNotImportedStudentDetailsReport {
     remarks: string;
     paymentmode: string;
     id: number;
+    feipsT_Id: number;
+    mI_Id: number;
+    asmaY_Id: number;
+    amsT_Id: number;
+    feipsT_Date: string;
+    feipsT_ActiveFlg: boolean;
+    asmaY_Year: string;
+    feipsT_Remarks: string;
+    feipsT_PayementMode: string;
+    feipsT_Amount: number;
+    amsT_AdmNo: string;
+}
+
+export interface IFeeYearlyCollectionReport {
+    id: number;
+    fmg_groupname: string;
+    fmh_feename: string;
+    fss_paidamount: number;
+    balance: number;
+    concession: number;
+    waived: number;
+    rebate: number;
+    fine: number;
+    totalpayable: number;
+    adjusted: number;
+    excess: number;
+    runningexcess: number;
+    studentname: string;
+    asmcl_classname: string;
+    amst_admno: string;
+    openingbalance: number;
+    mobileNo: number;
+    asmcl_id: number;
+    asms_id: number;
+    fmh_id: number;
+    fmt_id: number;
+    fmt_name: string;
+    arrear: number;
+    paid: number;
+    payable: number;
+    charges: number;
+    amsT_Id: number;
+    ftI_Id: number;
+    ftI_Name: string;
+    charge: number;
+    studentName: string;
+    asmcL_ClassName: string;
+    amsT_AdmNo: string;
+    amst_Id: number;
+    fmt_Id: number;
+    fmt_Name: string;
+    asmcl_ClassName: string;
+    amst_AdmNo: string;
+    fma_Id: number;
+    amst_FatherName: string;
+    amst_FatherMobileNo: string;
+    cdNetAmount: number;
+    cdPaidAmount: number;
+    cdBalanceAmount: number;
+    refund: number;
+    fmcc_classcategoryname: string;
+    bybank: number;
+    bycash: number;
+    byonline: number;
+    bycard: number;
+    byecs: number;
+    byrtgs: number;
+    asmc_sectionname: string;
+    totalcharges: number;
+    totalbalance: number;
+    totalpaid: number;
+    totalconcession: number;
+    totalwaivedoff: number;
+    totalrefund: number;
+    adjustment: number;
+    amst_mobileno: string;
+}
+
+export interface IFeeYearlyStudentTermWiseReport {
+    id: number;
+    amst_Id: number;
+    fmt_Id: number;
+    fmt_Name: string;
+    arrear: number;
+    excess: number;
+    balance: number;
+    paid: number;
+    payable: number;
+    concession: number;
+    charges: number;
+    studentName: string;
+    asmcl_ClassName: string;
+    fma_Id: number;
+    amst_FatherName: string;
+    amst_FatherMobileNo: string;
+    waived: number;
+    adjusted: number;
+    refund: number;
+    cdNetAmount: number;
+    cdPaidAmount: number;
+    cdBalanceAmount: number;
+}
+
+export interface IFeeConcessionCustomGroupDropdownList {
+    fmgG_Id: number;
+    fmg_groupname: string;
+}
+
+export interface IFeeConcessionReport {
+    id: number;
+    studentname: string;
+    reportname: number;
+    fss_paidamount: string;
+    balance: number;
+    concession: number;
+    waived: number;
+    rebate: number;
+    fine: number;
+    classname: string;
+    sectionname: string;
 }

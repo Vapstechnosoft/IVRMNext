@@ -5,6 +5,9 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
+import type { LeaveCreditBalanceGridItem } from '@/types/hrms/leave-management/leave-transfer-new';
+
+export type { LeaveCreditBalanceGridItem };
 export interface LeaveCredit extends BaseEntity {
     leaveYear: string;
     leaveName: string;
@@ -90,3 +93,66 @@ export const getLeaveCreditColumns = ({ onEdit, onDelete }: LeaveCreditColumnsPr
         }
     }
 ];
+
+interface LeaveTransferColumnsProps {
+    onEdit: (row: LeaveCreditBalanceGridItem) => void;
+    onDelete: (id: number) => void;
+}
+
+export const getLeaveTransferColumns = ({ onEdit, onDelete }: LeaveTransferColumnsProps): ColumnDef<LeaveCreditBalanceGridItem>[] => [
+
+    {
+        id: 'sl',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sno' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='font-medium'>{continuousIndex}</div>;
+        },
+        enableSorting: false
+    },
+    {
+        accessorKey: 'hrmlY_LeaveYear',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='LEAVE YEAR' />,
+        cell: ({ row }) => <div>{row.getValue('hrmlY_LeaveYear')}</div>
+    },
+    {
+        accessorKey: 'hrmE_EmployeeName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='EMPLOYEE NAME' />,
+        cell: ({ row }) => <div className='font-medium'>{row.getValue('hrmE_EmployeeName') || '-'}</div>
+    },
+    {
+        accessorKey: 'hrmL_LeaveName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='LEAVE NAME' />,
+        cell: ({ row }) => <div>{row.getValue('hrmL_LeaveName')}</div>
+    },
+    {
+        accessorKey: 'hrelS_TotalLeaves',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='TOTAL LEAVES' />,
+        cell: ({ row }) => <div className='text-center'>{row.getValue('hrelS_TotalLeaves')}</div>
+    },
+    {
+        accessorKey: 'hrelS_CBLeaves',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='LEAVE BALANCE' />,
+        cell: ({ row }) => <div className='text-center'>{row.getValue('hrelS_CBLeaves')}</div>
+    },
+    {
+        id: 'actions',
+        header: 'ACTIONS',
+        cell: ({ row }) => {
+            const entity = row.original;
+            return (
+                <div className='flex gap-2'>
+                    {/* <Button variant='outline' size='sm' onClick={() => onEdit(entity)}>
+                        <Edit className='h-4 w-4' />
+                    </Button> */}
+                    <Button variant='outline' size='sm' onClick={() => onDelete(entity.hrelS_Id)}>
+                        <Trash2 className='h-4 w-4' />
+                    </Button>
+                </div>
+            );
+        }
+    }
+];
+

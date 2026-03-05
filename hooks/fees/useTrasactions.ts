@@ -21,6 +21,7 @@ import {
     getFeesCommonSettingConfigSet,
     getFeesConcessionStudentData
 } from '@/server/fees/trasactions/FeeConcession';
+import { getAcademicYearDropdownDatastthomas, getAmountEntrystthomas } from '@/server/fees/trasactions/feeAmountEntryStThomas';
 import {
     getFeeAdjustmentFromHeadDropDown,
     getFeeAdjustmentGroupDropDown,
@@ -47,6 +48,7 @@ import {
     updateFeeStudentCurrentAcademicDetails,
     updateFeeStudentTransactionDetails
 } from '@/server/fees/trasactions/fee_student_transaction';
+import { getFeeStudentTransactionDetailsstthomas } from '@/server/fees/trasactions/fee_transaction_stthomas';
 import {
     getFeePreadmissionTransactionList,
     getFeeProspectusTransactionList,
@@ -1044,3 +1046,53 @@ export const useFeeStudentCurrentAcademicDetails = (amst_Id: number, asmay_Id: n
 //         }
 //     };
 // };
+
+export const useFeeAmountEntryforStThomas = (asmay_id?: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_AMOUNT_ENTRY_STTHOMAS, asmay_id, searchParams ?? {}],
+            queryFn: async () => getAmountEntrystthomas(asmay_id, searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_AMOUNT_ENTRY_STTHOMAS]
+            });
+        }
+    };
+};
+
+export const useacademicyerdropofStThomas = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN_FEES_STTHOMAS, searchParams ?? {}],
+            queryFn: async () => getAcademicYearDropdownDatastthomas(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN_FEES_STTHOMAS]
+            });
+        }
+    };
+};
+
+export const useFeeTransactionListStThomas = (asmaY_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_TRANSACTIONSTTHOMAS, asmaY_Id, searchParams ?? {}],
+            queryFn: async () => getFeeStudentTransactionDetailsstthomas(asmaY_Id, searchParams)
+        }),
+
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_TRANSACTIONSTTHOMAS]
+            })
+    };
+};

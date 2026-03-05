@@ -48,7 +48,7 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
 
     // categories and exams
     const [categories, setCategories] = useState<ICategory[]>([]);
-    const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
+    const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string; eycE_Id?: number }[]>([]);
 
     // When academic year changes -> load categories
     const selectedYearId = useWatch({ control, name: 'asmaY_Id' });
@@ -63,7 +63,7 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
 
         (async () => {
             try {
-                const { data: cats } = await getCategoryDropDowByExamYearCategoryList(orgId, Number(selectedYearId));
+                const { data: cats } = await getCategoryDropDowByExamYearCategoryList(Number(selectedYearId));
                 setCategories(Array.isArray(cats) ? cats : []);
                 // reset selected category & exams
                 setValue('emcA_Id', 0);
@@ -88,7 +88,7 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
         (async () => {
             try {
                 // server helper to fetch exam list for category (I added this helper in server file)
-                const { data: ex } = await getExamsByCategoryandAcademicYear(orgId, Number(selectedYearId), Number(selectedCategoryId));
+                const { data: ex } = await getExamsByCategoryandAcademicYear(Number(selectedYearId), Number(selectedCategoryId));
                 setExams(Array.isArray(ex) ? ex : []);
                 setValue('emE_Id', 0);
             } catch (err: any) {
@@ -96,11 +96,33 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
                 setExams([]);
             }
         })();
-    }, [selectedCategoryId, setValue]);
+    }, [selectedCategoryId, setValue, selectedYearId]);
 
     const onSubmit = async (payload: FormFields) => {
+        console.log('payload', payload);
+
+        // Remove empty string date fields instead of sending them, 
+        // taking care of both cases where backend crashes on `null` or missing record mapping info.
+        const formattedPayload = { ...payload };
+
+        if (!formattedPayload.eycE_ExamStartDate || formattedPayload.eycE_ExamStartDate.trim() === '') {
+            delete (formattedPayload as any).eycE_ExamStartDate;
+        }
+        if (!formattedPayload.eycE_ExamEndDate || formattedPayload.eycE_ExamEndDate.trim() === '') {
+            delete (formattedPayload as any).eycE_ExamEndDate;
+        }
+        if (!formattedPayload.eycE_MarksEntryLastDate || formattedPayload.eycE_MarksEntryLastDate.trim() === '') {
+            delete (formattedPayload as any).eycE_MarksEntryLastDate;
+        }
+        if (!formattedPayload.eycE_MarksProcessLastDate || formattedPayload.eycE_MarksProcessLastDate.trim() === '') {
+            delete (formattedPayload as any).eycE_MarksProcessLastDate;
+        }
+        if (!formattedPayload.eycE_MarksPublishDate || formattedPayload.eycE_MarksPublishDate.trim() === '') {
+            delete (formattedPayload as any).eycE_MarksPublishDate;
+        }
+
         try {
-            const res = await addOrUpdateExamMarksProcessCondition(payload);
+            const res = await addOrUpdateExamMarksProcessCondition(formattedPayload);
             if (res?.success) {
                 toast.success(res.message ?? 'Saved successfully');
                 reset(); // reset shows placeholders and empty selects
@@ -199,7 +221,7 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
                                         label='Marks Entry Last Date'
                                         placeholder='Select Marks Entry Last Date'
                                         fromDate={
-                                            methods.watch('eycE_ExamEndDate') === '' ? today : new Date(methods.watch('eycE_ExamEndDate'))
+                                            methods.watch('eycE_ExamEndDate') === '' ? today : new Date(methods.watch('eycE_ExamEndDate' as any))
                                         }
                                     />
                                 )}
@@ -217,7 +239,7 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
                                         fromDate={
                                             methods.watch('eycE_MarksProcessLastDate') === ''
                                                 ? today
-                                                : new Date(methods.watch('eycE_MarksProcessLastDate'))
+                                                : new Date(methods.watch('eycE_MarksProcessLastDate' as any))
                                         }
                                     />
                                 )}
@@ -273,7 +295,7 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
                                         fromDate={
                                             methods.watch('eycE_ExamStartDate') === ''
                                                 ? today
-                                                : new Date(methods.watch('eycE_ExamStartDate'))
+                                                : new Date(methods.watch('eycE_ExamStartDate' as any))
                                         }
                                     />
                                 )}
@@ -291,7 +313,7 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
                                         fromDate={
                                             methods.watch('eycE_MarksEntryLastDate') === ''
                                                 ? today
-                                                : new Date(methods.watch('eycE_MarksEntryLastDate'))
+                                                : new Date(methods.watch('eycE_MarksEntryLastDate' as any))
                                         }
                                     />
                                 )}
@@ -309,7 +331,14 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
                                         <Select
                                             key={field.value}
                                             value={field.value && field.value !== 0 ? String(field.value) : undefined}
-                                            onValueChange={(val) => field.onChange(Number(val))}>
+                                            onValueChange={(val) => {
+                                                const selectedExamId = Number(val);
+                                                const selectedExam = exams.find((e) => e.emE_Id === selectedExamId);
+                                                if (selectedExam?.eycE_Id) {
+                                                    setValue('eycE_Id', selectedExam.eycE_Id);
+                                                }
+                                                field.onChange(selectedExamId);
+                                            }}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
                                             </SelectTrigger>

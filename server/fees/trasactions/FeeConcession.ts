@@ -1,6 +1,6 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
     FeeConcessionTermDropdown,
@@ -68,7 +68,11 @@ export async function getConcessionStudentConcessionGrid(
     // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     searchParams?: ApiSearchparams
 ) {
-    const url = `FeeConcessionFacade/getstudentconcessions?AsmayId=${asmaY_Id || 0}&AsmclId=${asmcL_Id || 0}`;
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'studentName,amsT_AdmNo,asmcL_ClassName,fmG_GroupName,fmH_FeeName,ftI_Name,fmcC_ConcessionName,fsC_ConcessionAmount'
+    );
+    const url = `FeeConcessionFacade/getstudentconcessions?AsmayId=${asmaY_Id || 0}&AsmclId=${asmcL_Id || 0}&${urlParams}`;
     return await api.get<IFeeConcessionStudentConcessionGrid[]>('fees', url);
 }
 export async function saveFeeHead(data: any) {
@@ -105,6 +109,11 @@ export async function getConcessionHeadDetailsList(
     return await api.get<IFeeConcessionHeadList[]>('fees', url);
 }
 
+export async function getconcessionheadgriddatadetails(data: any) {
+    const url = '/FeeConcessionFacade/head-details';
+    return await api.post<IFeeConcessionHeadList[]>('fees', url, data);
+}
+
 export async function getFeesCommonSettingConfigSet(asmaY_Id: number) {
     const url = `FeesCommon/master-setting-by-yearid?asmayId${asmaY_Id || 0}`;
     return await api.get<IFeeCommonSettingConfigSet[]>('fees', url);
@@ -138,4 +147,11 @@ export async function getFeeConcessionAdmissionNo(asmaY_Id: number, searchfilter
 export async function getFeesConcessionStudentData(asmaY_Id: number, amsT_Id: number) {
     const url = `/FeeConcessionFacade/get-student-data?asmayId=${asmaY_Id || 0}&amst_id=${amsT_Id || 0}`;
     return await api.get<IFeeConcessionStudentData[]>('fees', url);
+}
+
+export async function deleteFeeConcessionnew(fsC_Id: number, asmay_id: number, FSCI_ID: number, FSCI_ConcessionAmount: number) {
+    const url = `/FeeConcessionFacade/deletefeeconcessionnew/${fsC_Id}/${asmay_id}/${FSCI_ID}/${FSCI_ConcessionAmount}`;
+
+    console.info('deleteFeeConcessionnew url:', url);
+    return await api.delete<any>('fees', url);
 }

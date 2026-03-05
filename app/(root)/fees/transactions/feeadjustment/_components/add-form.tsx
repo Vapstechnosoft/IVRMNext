@@ -33,7 +33,8 @@ type FromHeadRow = {
 };
 
 type ToHeadRow = {
-    fmH_Id: number;
+    fsA_To_FMH_Id: number;
+    fsA_TO_FTI_Id: number;
     fmH_FeeNameT: string;
     ftI_NameT: string;
     tobepaid: number;
@@ -66,7 +67,7 @@ export default function AddFeeAdjustmentForm({
     const [toGroupSelections, setToGroupSelections] = useState<Set<number>>(new Set());
     const [loadingDropdown, setLoadingDropdown] = useState(false);
     const [studentDropdownList, setStudentDropdownList] = useState<{ value: string; label: string }[]>([]);
-    const [adjustAmounts, setAdjustAmounts] = useState<Record<number, number>>({});
+    const [adjustAmounts, setAdjustAmounts] = useState<{ [key: string]: number }>({});
 
     const { data: academicYear, isLoading: loadingAcademicYear } = useopeningacademicyerdropdowndatafee();
     const { data: classdata, isLoading: loadingClasses } = useopeningClassdropdowndatafee();
@@ -150,7 +151,7 @@ export default function AddFeeAdjustmentForm({
                     fillSecCls: sectionId ? String(sectionId) : '0',
                     filterInitialData: nameType === 'Name:Adm.No' ? 'NameRegNo' : 'RegNoName'
                 };
-
+                console.log('payload', JSON.stringify(payload));
                 const res = await studentNameDropdown(payload);
                 if (!isMounted) return;
 
@@ -229,14 +230,19 @@ export default function AddFeeAdjustmentForm({
         }
 
         const toGroups = (toHeaddata?.data || [])
-            .map((head: any) => ({
-                fmG_Id: toGroup.fsA_To_FMG_Id || 0,
-                fmH_Id: head.fsA_To_FMH_Id || 0,
-                ftI_Id: head.fsA_TO_FTI_Id || 0,
-                fmA_Id: head.fsA_To_FMA_Id || 0,
-                adjustedAmount: adjustAmounts[head.fsA_To_FMH_Id] || 0,
-                runningExcessAmount: 0
-            }))
+            .map((head: any, index: number) => {
+                const headId = head.fsA_To_FMH_Id;
+                const installmentId = head.fsA_TO_FTI_Id;
+                const uniqueKey = `adjust-${headId}-${installmentId}-${index}`;
+                return {
+                    fmG_Id: toGroup.fsA_To_FMG_Id || 0,
+                    fmH_Id: head.fsA_To_FMH_Id || 0,
+                    ftI_Id: head.fsA_TO_FTI_Id || 0,
+                    fmA_Id: head.fsA_To_FMA_Id || 0,
+                    adjustedAmount: adjustAmounts[uniqueKey] || 0, // Use the same key
+                    runningExcessAmount: 0
+                };
+            })
             .filter((item: any) => item.adjustedAmount > 0);
 
         if (toGroups.length === 0) {
@@ -278,7 +284,8 @@ export default function AddFeeAdjustmentForm({
     }));
 
     const toHeads: ToHeadRow[] = (toHeaddata?.data || []).map((h: any) => ({
-        fmH_Id: h.fsA_To_FMH_Id,
+        fsA_To_FMH_Id: h.fsA_To_FMH_Id,
+        fsA_TO_FTI_Id: h.fsA_TO_FTI_Id,
         fmH_FeeNameT: h.fmH_FeeNameT,
         ftI_NameT: h.ftI_NameT,
         tobepaid: h.tobepaid
@@ -349,26 +356,60 @@ export default function AddFeeAdjustmentForm({
                 header: 'Balance',
                 cell: ({ row }) => <div className='font-medium text-red-600'>{row.original.tobepaid ?? 0}</div>
             },
+            // {
+            //     id: 'adjustAmount',
+            //     header: 'Adjust Amount',
+            //     cell: ({ row }) => {
+            //         const headId = row.original.fmH_Id;
+            //         const value = adjustAmounts[headId] ?? 0;
+
+            //         return (
+            //             <Input
+            //                 type='number'
+            //                 min='0'
+            //                 className='w-28'
+            //                 value={value}
+            //                 onChange={(e) => {
+            //                     const newValue = Number(e.target.value) || 0;
+            //                     setAdjustAmounts((prev) => ({
+            //                         ...prev,
+            //                         [headId]: newValue
+            //                     }));
+            //                 }}
+            //             />
+            //         );
+            //     }
+            // }
             {
                 id: 'adjustAmount',
                 header: 'Adjust Amount',
                 cell: ({ row }) => {
-                    const headId = row.original.fmH_Id;
-                    const value = adjustAmounts[headId] ?? 0;
-
+                    const headId = row.original.fsA_To_FMH_Id;
+                    const installmentId = row.original.fsA_TO_FTI_Id;
+                    const uniqueKey = `adjust-${headId}-${installmentId}-${row.index}`;
+                    const value = adjustAmounts[uniqueKey] ?? 0;
                     return (
                         <Input
                             type='number'
                             min='0'
                             className='w-28'
-                            value={value}
-                            onChange={(e) => {
-                                const newValue = Number(e.target.value) || 0;
+                            defaultValue={value}
+                            onBlur={(e) => {
+                                const num = Number(e.target.value) || 0;
                                 setAdjustAmounts((prev) => ({
                                     ...prev,
-                                    [headId]: newValue
+                                    [uniqueKey]: num
                                 }));
                             }}
+                            // onChange={(e) => {
+                            //                                 const num = Number(e.target.value) || 0;
+
+                            //                                     setAdjustAmounts((prev) => ({
+                            //                                         ...prev,
+                            //                                         [uniqueKey]: num
+                            //                                     }));
+
+                            //                             }}
                         />
                     );
                 }
@@ -379,7 +420,7 @@ export default function AddFeeAdjustmentForm({
             data: heads,
             columns,
             getCoreRowModel: getCoreRowModel(),
-            getRowId: (row, index) => `${row.fmH_Id}-${index}`
+            getRowId: (row, index) => `${row.fsA_To_FMH_Id}-${index}`
         });
 
         return (

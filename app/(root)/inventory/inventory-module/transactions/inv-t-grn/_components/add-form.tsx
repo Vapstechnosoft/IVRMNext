@@ -27,7 +27,7 @@ import { useInvTGRN } from '@/hooks/inventory/transactions/use-inv-t-grn';
 import { Plus, Minus, Save, RotateCcw, Calculator, Package, ReceiptIndianRupee, Info } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { getInvTGRNItemTaxDetail } from '@/server/inventory/transactions/inv-t-grn';
+import { getItemTaxDetail, getItemDetail } from '@/server/inventory/transactions/inv-t-grn';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Card } from '@/components/ui/card';
 
@@ -126,11 +126,25 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
     const handleItemChange = async (index: number, itemId: number) => {
         const item = loadData?.data?.get_item?.find((i: any) => i.invmI_Id === itemId);
         if (item) {
-            setValue(`GRNItem.${index}.invmuoM_Id`, item.invmuoM_Id);
             try {
-                const taxRes = await getInvTGRNItemTaxDetail(item.invmI_Id);
-                // Handle the array response directly based on user snippet
-                const taxes = Array.isArray(taxRes.data) ? taxRes.data : (taxRes?.data?.get_itemTax || []);
+                // Call both APIs concurrently
+                const [itemRes, taxRes] = await Promise.all([
+                    getItemDetail(item.invmI_Id),
+                    getItemTaxDetail(item.invmI_Id)
+                ]);
+
+                if (itemRes.success && itemRes.data) {
+                    const detail = itemRes.data.get_itemDetail?.[0];
+                    if (detail) {
+                        if (detail.invmuoM_UOMName) {
+                            setValue(`GRNItem.${index}.invmuoM_UOMName`, detail.invmuoM_UOMName);
+                        }
+                    }
+                    setValue(`GRNItem.${index}.invmuoM_Id`, item.invmuoM_Id);
+                }
+
+                // Use taxRes for tax details
+                const taxes = (taxRes.success && taxRes.data) ? taxRes.data : [];
 
                 if (taxes.length > 0) {
                     const mappedTaxes = taxes.map((t: any) => ({
@@ -144,8 +158,9 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                     setValue(`GRNItem.${index}.GRNItemTax`, []);
                     calculateTax(index, []);
                 }
+
             } catch (error) {
-                console.error('Error fetching item tax:', error);
+                console.error('Error fetching item details:', error);
             }
         }
     };
@@ -399,7 +414,7 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                                     </td>
                                     <td className='border p-2'>
                                         <div className='h-8 flex items-center justify-center bg-muted/30 rounded text-[11px] font-semibold text-muted-foreground border border-dashed'>
-                                            {loadData?.data?.get_item.find((i: any) => i.invmI_Id === watch(`GRNItem.${index}.invmI_Id`))?.invmuoM_UOMName || '-'}
+                                            {watch(`GRNItem.${index}.invmuoM_UOMName`) || loadData?.data?.get_item.find((i: any) => i.invmI_Id === watch(`GRNItem.${index}.invmI_Id`))?.invmuoM_UOMName || '-'}
                                         </div>
                                     </td>
                                     <td className='border p-2'>

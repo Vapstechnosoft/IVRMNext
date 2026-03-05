@@ -186,38 +186,71 @@ export default function AdmissionReportPage(props: {
 
     /* ---------------- Handlers ---------------- */
 
+    const getValidatedPayload = () => {
+        const fromData = watch();
+
+        if (!fromData.asmaY_Id) {
+            toast.error('Please Select Academic Year');
+            return null;
+        }
+
+        if (!fromData.classes || fromData.classes.length === 0) {
+            toast.error('Please Select Class');
+            return null;
+        }
+
+        if (!fromData.class_section || fromData.class_section.length === 0) {
+            toast.error('Please Select Section');
+            return null;
+        }
+
+        if (!fromData.selectedFields || fromData.selectedFields.length === 0) {
+            toast.error('Please Select Search Fields');
+            return null;
+        }
+
+        return {
+            classdetailsdata: fromData.classes.map((id: any) => {
+                const cls = (masterClass?.data as any)?.find((c: any) => String(c.asmcL_Id) === String(id));
+                return {
+                    asmcL_Id: id.toString(),
+                    asmcL_ClassName: cls?.asmcL_ClassName ?? ''
+                };
+            }),
+            sectionsdetailsdata: fromData.class_section.map((id: any) => {
+                const section = (masterSection?.data as any)?.find((s: any) => String(s.asmS_Id) === String(id));
+                return {
+                    asmS_Id: id.toString(),
+                    asmcL_SectionName: section?.asmC_SectionName ?? ''
+                };
+            }),
+            tempararyArrayheadList: fromData.selectedFields.map((id: string) => {
+                const field = ColumnValue.find((f) => f.columnID === id);
+                return {
+                    columnID: id,
+                    columnName: field?.columnName || ''
+                };
+            })
+        };
+    };
+
     const handleReport = async () => {
         setIsLoading(true);
         try {
-            const isValid = await refetch();
-            if (!isValid) {
-                toast.error('Please fill all required fields');
+            const payload = getValidatedPayload();
+            if (!payload) {
+                setIsLoading(false);
                 return;
             }
-            const fromData = watch();
-            const payload = {
-                classdetailsdata: fromData.classes.map((id: any) => {
-                    const cls = (masterClass?.data as any)?.find((c: any) => String(c.asmcL_Id) === String(id));
-                    return {
-                        asmcL_Id: id.toString(),
-                        asmcL_ClassName: cls?.asmcL_ClassName ?? ''
-                    };
-                }),
-                sectionsdetailsdata: fromData.class_section.map((id: any) => {
-                    const section = (masterSection?.data as any)?.find((s: any) => String(s.asmS_Id) === String(id));
-                    return {
-                        asmS_Id: id.toString(),
-                        asmcL_SectionName: section?.asmC_SectionName ?? ''
-                    };
-                }),
-                tempararyArrayheadList: fromData.selectedFields.map((id: string) => {
-                    const field = ColumnValue.find((f) => f.columnID === id);
-                    return {
-                        columnID: id,
-                        columnName: field?.columnName || ''
-                    };
-                })
-            };
+
+            console.log(' Report Button Parameters Debug:', {
+                watchedYear,
+                studentScope,
+                scopeMapValue: scopeMap[studentScope],
+                watchedStudentCategory,
+                'Concession_Id should be': scopeMap[studentScope],
+                'flag should be': watchedStudentCategory
+            });
 
             setRequestPayload(payload);
             setShowReport(true);
@@ -254,11 +287,27 @@ export default function AdmissionReportPage(props: {
 
     const downloadExcel = async () => {
         try {
+            const payload = getValidatedPayload();
+            if (!payload) {
+                return;
+            }
+
+            toast.loading('Downloading Excel...', { id: 'excel-download' });
+
+            console.log(' Excel Export Parameters Debug:', {
+                watchedYear,
+                studentScope,
+                scopeMapValue: scopeMap[studentScope],
+                watchedStudentCategory,
+                'Concession_Id should be': scopeMap[studentScope],
+                'flag should be': watchedStudentCategory
+            });
+
             const response = await getExcelClassWiseStudentReport(
                 watchedYear,
-                scopeMap[studentScope],
-                watchedStudentCategory ?? 0,
-                requestPayload,
+                scopeMap[studentScope], // This should be 0 (Concession_Id)
+                watchedStudentCategory ?? 0, // This should be 2 (flag)
+                payload,
                 resolvedSearchParams
             );
 
@@ -267,8 +316,8 @@ export default function AdmissionReportPage(props: {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -284,11 +333,11 @@ export default function AdmissionReportPage(props: {
                 window.URL.revokeObjectURL(url);
             }, 100);
 
-            setShowReport(false);
-
+            toast.dismiss('excel-download');
             toast.success('Excel downloaded successfully');
         } catch (error) {
             console.error('Download error:', error);
+            toast.dismiss('excel-download');
             toast.error('Failed to download Excel');
         }
     };
@@ -299,7 +348,7 @@ export default function AdmissionReportPage(props: {
 
     return (
         <div className='container min-h-screen space-y-4 p-2'>
-            <CollapsibleSection title='Admission Register' defaultOpen>
+            <CollapsibleSection title='Class Wise Student Details' defaultOpen>
                 <div className='grid grid-cols-1 gap-4 p-4 md:grid-cols-2'>
                     {/* Academic Year */}
                     <div>
@@ -374,7 +423,7 @@ export default function AdmissionReportPage(props: {
                                     }}
                                     defaultValue={selectedSectionItems.map((data) => data.asmS_Id)}
                                     value={selectedSectionItems.map((data) => data.asmS_Id)}
-                                    placeholder='Select Classes'
+                                    placeholder='Select Sections'
                                     variant='inverted'
                                     disabled={masterSectionLoading}
                                 />

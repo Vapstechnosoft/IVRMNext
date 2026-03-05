@@ -2,13 +2,19 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type ReportCardXSchema, reportCardXSchema } from '@/schemas/exam/exam-module/reports';
-import { getClasses, getReportDetails, getSections, getStudents } from '@/server/exam/exam-module/reports/Report_Card_X';
+import {
+    getClassDropDownByAcademicYearlist,
+    getSectionsDropDownByAcademicYearandClasslist,
+    getStudentsDropDownByAcademicYearandClassandSectionlist
+} from '@/server/exam/exam-module/reports/cumulative-report';
+import { getReportDetails } from '@/server/exam/exam-module/reports/Report_Card_X';
+import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -32,14 +38,17 @@ const GROUPS = [
 export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const { data: academicData, isLoading: academicYearLoading } = useAcademicYearDropdown();
     const academicYears = academicData?.data || [];
-    const [classes, setClasses] = useState<any[]>([]);
-    const [sections, setSections] = useState<any[]>([]);
-    const [students, setStudents] = useState<any[]>([]);
-    const [filteredStudents, setFilteredStudents] = useState<any[]>([]);
-    const [studentSearch, setStudentSearch] = useState('');
-    const [loading, setLoading] = useState(true);
+
+    // Dropdown States
+    const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
+    const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
+    const [students, setStudents] = useState<{ amsT_AdmNo: number; amsT_Id: number; studentName?: string | null }[]>([]);
+    const [allStudentsSelected, setAllStudentsSelected] = useState(false);
+
+    // Loading States
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
+    const [loadingStudents, setLoadingStudents] = useState(false);
 
     const methods = useForm<ReportCardXSchema>({
         resolver: zodResolver(reportCardXSchema),
@@ -60,104 +69,121 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const watchSection = useWatch({ control, name: 'ASMS_Id' });
     const watchSelectedStudents = useWatch({ control, name: 'selectedStudents' });
 
-    // Filter students
-    useEffect(() => {
-        if (studentSearch.trim() === '') {
-            setFilteredStudents(students);
-        } else {
-            setFilteredStudents(students.filter((s) => s.studentname.toLowerCase().includes(studentSearch.toLowerCase())));
-        }
-    }, [studentSearch, students]);
-
-    // Initial Data
-    useEffect(() => {
-        setLoading(false);
-    }, []);
-
     // Load Classes
     useEffect(() => {
-        if (watchYear) {
-            setLoadingClasses(true);
-            getClasses(watchYear)
-                .then((res) => {
-                    if (res.ctlist && res.ctlist.length > 0) {
-                        setClasses(res.ctlist);
-                    } else {
-                        setClasses([]);
-                        toast.info('No classes found');
-                    }
-                    setLoadingClasses(false);
-                })
-                .catch((err) => {
-                    toast.error('Failed to load classes');
-                    setLoadingClasses(false);
-                });
-            setValue('ASMCL_Id', '');
-        }
+        if (!watchYear) return;
+        (async () => {
+            try {
+                setLoadingClasses(true);
+                const { data } = await getClassDropDownByAcademicYearlist(Number(watchYear));
+                setClasses(Array.isArray(data) ? data : []);
+                setValue('ASMCL_Id', '');
+                setValue('ASMS_Id', '');
+                setValue('selectedStudents', []);
+                setAllStudentsSelected(false);
+            } catch {
+                toast.error('Failed to load classes');
+            } finally {
+                setLoadingClasses(false);
+            }
+        })();
     }, [watchYear, setValue]);
 
     // Load Sections
     useEffect(() => {
-        if (watchClass) {
-            setLoadingSections(true);
-            getSections(watchClass)
-                .then((res) => {
-                    if (res.seclist && res.seclist.length > 0) {
-                        setSections(res.seclist);
-                    } else {
-                        setSections([]);
-                        toast.info('No sections found');
-                    }
-                    setLoadingSections(false);
-                })
-                .catch((err) => {
-                    toast.error('Failed to load sections');
-                    setLoadingSections(false);
-                });
-            setValue('ASMS_Id', '');
-        }
-    }, [watchClass, setValue]);
+        if (!watchYear || !watchClass) return;
+        (async () => {
+            try {
+                setLoadingSections(true);
+                const { data } = await getSectionsDropDownByAcademicYearandClasslist(Number(watchYear), Number(watchClass));
+                setSections(Array.isArray(data) ? data : []);
+                setValue('ASMS_Id', '');
+                setValue('selectedStudents', []);
+                setAllStudentsSelected(false);
+            } catch {
+                toast.error('Failed to load sections');
+            } finally {
+                setLoadingSections(false);
+            }
+        })();
+    }, [watchYear, watchClass, setValue]);
 
     // Load Students
     useEffect(() => {
-        if (watchSection) {
-            getStudents(watchSection)
-                .then((res) => {
-                    if (res.studentlist && res.studentlist.length > 0) {
-                        setStudents(res.studentlist);
-                    } else {
-                        setStudents([]);
-                        toast.info('No students found');
-                    }
-                })
-                .catch((err) => {
-                    toast.error('Failed to load students');
-                });
-            setValue('selectedStudents', []);
-        }
-    }, [watchSection, setValue]);
+        if (!watchYear || !watchClass || !watchSection) return;
+        (async () => {
+            try {
+                setLoadingStudents(true);
+                const { data } = await getStudentsDropDownByAcademicYearandClassandSectionlist(
+                    Number(watchYear),
+                    Number(watchClass),
+                    Number(watchSection)
+                );
+                const valid = Array.isArray(data)
+                    ? (data as any[]).filter((s): s is { amsT_Id: number; amsT_AdmNo: number; studentName?: string; amsT_FirstName?: string; amsT_MiddleName?: string; amsT_LastName?: string } => !!s?.amsT_Id)
+                    : [];
 
-    const handleSelectAll = (checked: boolean) => {
-        if (checked) {
+                const mappedStudents = valid.map(s => ({
+                    amsT_Id: s.amsT_Id,
+                    amsT_AdmNo: s.amsT_AdmNo,
+                    studentName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
+                }));
+
+                setStudents(mappedStudents);
+                setValue('selectedStudents', []);
+                setAllStudentsSelected(false);
+            } catch {
+                toast.error('Failed to load students');
+            } finally {
+                setLoadingStudents(false);
+            }
+        })();
+    }, [watchYear, watchClass, watchSection, setValue]);
+
+    const handleAllStudents = (checked: boolean) => {
+        if (checked && students.length) {
             setValue(
                 'selectedStudents',
-                filteredStudents.map((s) => String(s.amsT_Id))
+                students.map((s) => String(s.amsT_Id)),
+                { shouldValidate: true }
             );
+            setAllStudentsSelected(true);
         } else {
-            setValue('selectedStudents', []);
+            setValue('selectedStudents', [], { shouldValidate: true });
+            setAllStudentsSelected(false);
         }
     };
 
+    const handleStudentChange = (selectedValues: string[]) => {
+        setValue('selectedStudents', selectedValues, { shouldValidate: true });
+        setAllStudentsSelected(selectedValues.length === students.length && students.length > 0);
+    };
+
     const onSubmit = async (data: ReportCardXSchema) => {
+        const payload = {
+            asmaY_Id: Number(data.ASMAY_Id),
+            asmcL_Id: Number(data.ASMCL_Id),
+            asmS_Id: Number(data.ASMS_Id),
+            temp_AmstIds: data.selectedStudents.map(id => ({
+                amsT_Id: Number(id)
+            })),
+            exmname: data.exmname,
+            brngroup: data.brngroup
+        };
+
+        console.log('Report Card X payload:', payload);
         try {
-            const result = await getReportDetails(data);
+            const [result, institutionRes] = await Promise.all([
+                getReportDetails(payload),
+                getMasterInstitution()
+            ]);
             const enrichedParams = {
                 ...data,
                 ASMAY_Year: academicYears.find((y: any) => String(y.asmaY_Id) === data.ASMAY_Id)?.asmaY_Year,
-                ASMCL_Id_Name: classes.find((c) => String(c.asmcL_Id) === data.ASMCL_Id)?.asmcL_ClassName,
-                ASMS_Id_Name: sections.find((s) => String(s.asmS_Id) === data.ASMS_Id)?.asmC_SectionName
+                ASMCL_Id_Name: classes.find((c) => c.asmcL_Id === Number(data.ASMCL_Id))?.asmcL_ClassName,
+                ASMS_Id_Name: sections.find((s) => s.asmS_Id === Number(data.ASMS_Id))?.asmC_SectionName
             };
-            onReportGenerated(result, enrichedParams);
+            onReportGenerated({ ...result, institution: institutionRes?.data }, enrichedParams);
         } catch (error) {
             console.error('Error:', error);
             toast.error('Failed to generate report');
@@ -180,13 +206,6 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         setStudents([]);
         onReset();
     };
-
-    if (loading)
-        return (
-            <div className='flex justify-center p-4'>
-                <Loader2 className='animate-spin' />
-            </div>
-        );
 
     return (
         <div className='mx-auto w-full rounded-lg border border-gray-200 bg-white p-4 shadow-md'>
@@ -256,11 +275,11 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {loadingClasses ? (
-                                                        <SelectItem value='loading' disabled>
+                                                        <SelectItem value='0' disabled>
                                                             Loading...
                                                         </SelectItem>
                                                     ) : classes.length === 0 ? (
-                                                        <SelectItem value='empty' disabled>
+                                                        <SelectItem value='0' disabled>
                                                             No Classes found
                                                         </SelectItem>
                                                     ) : (
@@ -294,11 +313,11 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {loadingSections ? (
-                                                        <SelectItem value='loading' disabled>
+                                                        <SelectItem value='0' disabled>
                                                             Loading...
                                                         </SelectItem>
                                                     ) : sections.length === 0 ? (
-                                                        <SelectItem value='empty' disabled>
+                                                        <SelectItem value='0' disabled>
                                                             No Sections found
                                                         </SelectItem>
                                                     ) : (
@@ -391,58 +410,31 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
 
                         {/* Right Column: Student Multi-select */}
                         <div className='space-y-4'>
-                            <Label>
-                                Student <span className='text-red-500'>*</span>
-                            </Label>
-                            <div className='rounded-md border p-4'>
-                                <div className='mb-4 flex items-center space-x-2'>
-                                    <Checkbox
-                                        id='selectAll'
-                                        checked={filteredStudents.length > 0 && watchSelectedStudents?.length === filteredStudents.length}
-                                        onCheckedChange={handleSelectAll}
-                                    />
-                                    <Label htmlFor='selectAll' className='cursor-pointer font-bold'>
-                                        Select All
-                                    </Label>
-                                    <Input
-                                        placeholder='Search...'
-                                        value={studentSearch}
-                                        onChange={(e) => setStudentSearch(e.target.value)}
-                                        className='ml-auto w-1/2'
+                            <div className='flex flex-col gap-2 sm:flex-row sm:items-start'>
+                                <Label className='flex items-center gap-2 font-medium text-sm sm:w-32'>
+                                    <Checkbox checked={allStudentsSelected} onCheckedChange={handleAllStudents} />
+                                    Student <span className='text-red-500'>*</span>
+                                </Label>
+                                <div className='flex-1'>
+                                    <Controller
+                                        control={control}
+                                        name='selectedStudents'
+                                        render={({ field, fieldState }) => (
+                                            <CustomMultiSelectBox
+                                                options={students.map((s) => ({
+                                                    label: `${s.studentName?.trim() || 'Unknown'} - ${s.amsT_AdmNo || 'N/A'}`.trim(),
+                                                    value: s.amsT_Id.toString()
+                                                }))}
+                                                onChange={handleStudentChange}
+                                                value={field.value ?? []}
+                                                placeholder='Select Students'
+                                                height='300px'
+                                                isSearchRequired
+                                                error={fieldState.error?.message}
+                                            />
+                                        )}
                                     />
                                 </div>
-                                <ScrollArea className='h-[300px]'>
-                                    {filteredStudents.length === 0 ? (
-                                        <div className='py-4 text-center text-gray-500'>No students found</div>
-                                    ) : (
-                                        filteredStudents.map((student) => (
-                                            <div
-                                                key={student.amsT_Id}
-                                                className='flex flex-row items-center space-x-3 space-y-0 rounded p-2 hover:bg-gray-50'>
-                                                <Controller
-                                                    control={control}
-                                                    name='selectedStudents'
-                                                    render={({ field }) => (
-                                                        <Checkbox
-                                                            checked={field.value?.includes(String(student.amsT_Id))}
-                                                            onCheckedChange={(checked) => {
-                                                                const id = String(student.amsT_Id);
-                                                                const current = field.value || [];
-                                                                return checked
-                                                                    ? field.onChange([...current, id])
-                                                                    : field.onChange(current.filter((val: string) => val !== id));
-                                                            }}
-                                                        />
-                                                    )}
-                                                />
-                                                <Label className='w-full cursor-pointer font-normal text-sm'>{student.studentname}</Label>
-                                            </div>
-                                        ))
-                                    )}
-                                </ScrollArea>
-                                {methods.formState.errors.selectedStudents && (
-                                    <FormError>{methods.formState.errors.selectedStudents.message}</FormError>
-                                )}
                             </div>
                         </div>
                     </div>

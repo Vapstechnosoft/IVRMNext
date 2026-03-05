@@ -8,6 +8,7 @@ export default function JuniorsProgressCardReportPage() {
     const listRef = useRef<HTMLDivElement>(null);
 
     const handleReportGenerated = (data: any) => {
+        console.log('Juniors Progress Card Report data:', data);
         setReportData(data);
     };
 

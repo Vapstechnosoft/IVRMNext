@@ -1,7 +1,8 @@
-import { PORTAL_QUERY_KEYS } from '@/constants/query-keys';
+import {  PORTAL_QUERY_KEYS } from '@/constants/query-keys';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { getCumulativeFeeAnalysisGrid, getstudentfeedetailsGrid } from '@/server/student-portal/masters/cumulative-fee-analysis';
+import { getAcademicYearDropDown } from '@/server/student-portal/reports/student_exam_reports';
 
 export const useStudentFeeDetailsGrid = (asmaY_Id: number, asmcL_Id: number) => {
     const queryClient = useQueryClient();
@@ -34,3 +35,44 @@ export const useCumulativeFeeAnalysisGrid = (amst_Id: number, asmaY_Id: number) 
             })
     };
 };
+
+
+export const useAcademicYearExamReport = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PORTAL_QUERY_KEYS.EXAM_STUDENT_REPORT_YEAR_DROP_DOWN,],
+            queryFn: async () => getAcademicYearDropDown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PORTAL_QUERY_KEYS.EXAM_STUDENT_REPORT_YEAR_DROP_DOWN]
+            });
+        }
+    };
+};
+
+export const useAcademicStudentCompliants = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PORTAL_QUERY_KEYS.EXAM_STUDENT_COMPLIANTS_YEAR_DROP_DOWN,],
+            queryFn: async () => getAcademicYearDropDown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PORTAL_QUERY_KEYS.EXAM_STUDENT_COMPLIANTS_YEAR_DROP_DOWN]
+            });
+        }
+    };
+};
+
+
+
+
+
+

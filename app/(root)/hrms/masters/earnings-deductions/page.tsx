@@ -29,10 +29,9 @@ export default function MasterEarningsDeductionsPage(props: { searchParams: Sear
     }, [props.searchParams]);
 
     const searchParams = useMemo(() => {
-        // Exclude internal category and any existing search params to ensure a clean request for 'all'
-        const { category, search_query, search_column, ...rest } = initialSearchParams;
-
         if (filterCategory !== 'all') {
+            // biome-ignore lint/nursery/noUnusedVariables: <explanation>
+            const { category, ...rest } = initialSearchParams;
             return {
                 ...rest,
                 search_query: filterCategory,
@@ -40,7 +39,7 @@ export default function MasterEarningsDeductionsPage(props: { searchParams: Sear
             };
         }
 
-        return rest;
+        return initialSearchParams;
     }, [initialSearchParams, filterCategory]);
 
     const { data: response, isLoading, error } = useMasterEarningsDeductions(searchParams);
@@ -88,7 +87,7 @@ function MasterEarningsDeductionsPageContent({
                             <option value='all'>All Items</option>
                             <option value='Earning'>Earnings</option>
                             <option value='Deduction'>Deductions</option>
-                            <option value='Arrear'>Arrears</option>
+                            <option value='Arear'>Arear</option>
                             <option value='Gross'>Gross</option>
                         </select>
                     </div>

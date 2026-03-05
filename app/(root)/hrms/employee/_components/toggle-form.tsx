@@ -30,11 +30,14 @@ export default function ToggleEmployeeForm({ rowData, onClose }: ToggleEmployeeF
     const onSubmit: SubmitHandler<any> = async (_data) => {
         try {
             toggleEmployee(rowData.hrmE_Id, {
-                onSuccess: () => {
-                    closeDialog();
+                onSuccess: (response: any) => {
+                    if (response?.success || (response && response.success === undefined)) {
+                        closeDialog();
+                    }
                 },
                 onError: (error: any) => {
-                    toast.error(error.message || 'Failed to update employee status');
+                    // Toast error is handled by the hook, but we can keep this for safety
+                    console.error('Toggle error:', error);
                 }
             });
         } catch (error: any) {
@@ -44,23 +47,24 @@ export default function ToggleEmployeeForm({ rowData, onClose }: ToggleEmployeeF
     const employeeName =
         `${rowData.hrmE_EmployeeFirstName} ${rowData.hrmE_EmployeeMiddleName || ''} ${rowData.hrmE_EmployeeLastName || ''}`.trim();
     return (
-        <AdaptiveDialog title='Toggle Employee Status' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title={isActive ? 'Deactivate Employee' : 'Activate Employee'} isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('hrmE_Id')} defaultValue={rowData.hrmE_Id} />
-                    <p>
+                    <p className="text-sm text-muted-foreground">
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
-                        <strong>{employeeName || rowData.hrmE_EmployeeCode}</strong>?
+                        <span className="font-semibold text-foreground">{employeeName || rowData.hrmE_EmployeeCode}</span>?
+                        {isActive ? ' This employee will no longer be able to log in or be included in payroll.' : ' This employee will be able to log in and be included in payroll.'}
                     </p>
                     <FormError>{errors.hrmE_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>
-                    <Button variant='secondary' onClick={closeDialog} type='button'>
+                    <Button variant='outline' onClick={closeDialog} type='button'>
                         Cancel
                     </Button>
-                    <Button type='submit' isLoading={isSubmitting || isPending} variant={isActive ? 'destructive' : 'default'}>
-                        {isActive ? 'Deactivate' : 'Activate'}
+                    <Button type='submit' isLoading={isSubmitting || isPending} variant={isActive ? 'destructive' : 'success'}>
+                        {isActive ? 'Deactivate Employee' : 'Activate Employee'}
                     </Button>
                 </AdaptiveFooter>
             </form>

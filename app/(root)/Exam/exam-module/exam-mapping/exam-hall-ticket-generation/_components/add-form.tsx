@@ -51,7 +51,7 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
         reValidateMode: 'onChange',
         defaultValues: {
             // Defaults — cast as any to tolerate slight schema mismatches while you iterate.
-            mI_Id: 30,
+            // mI_Id: 30,
             asmaY_Id: 0,
             asmcL_Id: 0,
             classList: [],
@@ -581,7 +581,7 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                             size='lg'
                             onClick={() => {
                                 reset({
-                                    mI_Id: 30,
+                                    // mI_Id: 30,
                                     asmaY_Id: 0,
                                     asmcL_Id: 0,
                                     classList: [],

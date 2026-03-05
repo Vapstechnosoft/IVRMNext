@@ -68,6 +68,7 @@ interface NumberFieldProps extends AriaNumberFieldProps {
     step?: number;
     formatOptions?: Intl.NumberFormatOptions;
     maxDigits?: number;
+    placeholder?: string;
 }
 
 function InputNumber({
@@ -81,6 +82,7 @@ function InputNumber({
     step = 1,
     formatOptions = { minimumFractionDigits: 0, maximumFractionDigits: 1 },
     maxDigits,
+    placeholder,
     ...props
 }: NumberFieldProps) {
     // Check if defaultValue is provided; if undefined, let it be undefined.
@@ -96,6 +98,7 @@ function InputNumber({
             step={step}
             formatOptions={formatOptions}
             defaultValue={safeDefaultValue}
+            isInvalid={!!error}
             {...(computedMaxValue !== undefined ? { maxValue: computedMaxValue } : {})}
             {...props}>
             <Label aria-label={label}>
@@ -104,7 +107,7 @@ function InputNumber({
                 {optional && <span className='text-muted-foreground'>(optional)</span>}
             </Label>
             <FieldGroup className={cn('w-full', inputFieldClassName)}>
-                <NumberFieldInput maxLength={maxDigits} inputMode='numeric' />
+                <NumberFieldInput maxLength={maxDigits} inputMode='numeric' placeholder={placeholder} />
                 <NumberFieldSteppers />
             </FieldGroup>
             {description && !error && (
@@ -112,7 +115,7 @@ function InputNumber({
                     {description}
                 </Text>
             )}
-            <FieldError>{error}</FieldError>
+            {error && <div className='font-medium text-[0.8rem] text-destructive'>{typeof error === 'function' ? 'Invalid input' : error}</div>}
         </NumberField>
     );
 }

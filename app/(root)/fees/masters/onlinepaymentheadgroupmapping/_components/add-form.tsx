@@ -146,7 +146,7 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
         if (masterSubMerchant?.data && Array.isArray(masterSubMerchant.data)) {
             const opts = masterSubMerchant.data.map((c: any) => ({
                 value: c.fpgD_Id.toString(),
-                label: c.fpgD_MerchantId
+                label: c.fpgD_SubMerchantId
             }));
             setSubMerchantIdOptions(opts);
         } else {
@@ -234,7 +234,7 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
         };
 
         fetchHeadwiseInstallments();
-    }, [academicYear, classId, groupId, selectedHeads]);
+    }, [academicYear]);
 
     useEffect(() => {
         if (masterTerms?.data && Array.isArray(masterTerms.data)) {

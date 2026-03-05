@@ -11,7 +11,18 @@ export async function getInvMasterSupplier(searchParams?: ApiSearchparams) {
     const url = `/INV_MasterSupplierFacade/getloaddata?${urlParams}`;
 
     try {
-        const response = await api.post<any>('inventory', url, {});
+        const response: any = await api.post<any>('inventory', url, {});
+
+        if (response.success === false && response.total === 0) {
+            return {
+                success: true,
+                data: {
+                    get_supplier: [],
+                    total: 0
+                },
+                message: response.message
+            };
+        }
 
         const extractData = (res: any) => {
             if (Array.isArray(res)) return res;

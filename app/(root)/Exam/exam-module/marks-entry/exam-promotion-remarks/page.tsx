@@ -222,7 +222,7 @@ function PromotionRemarksContent() {
         (async () => {
             setLoadingTerms(true);
             try {
-                const response = await getDropdownTermNamesByIds(MI_ID, selectedAcademicYear, selectedClass, selectedSectionId);
+                const response = await getDropdownTermNamesByIds(selectedAcademicYear, selectedClass, selectedSectionId);
 
                 if (response?.data && Array.isArray(response.data)) {
                     const termData = response.data.map((term: any) => ({
@@ -308,8 +308,8 @@ function PromotionRemarksContent() {
                 asmaY_Id: selectedAcademicYear!,
                 asmcL_Id: selectedClass!,
                 asmS_Id: selectedSectionId!,
-                ecT_Id: activeTab === 0 ? selectedTerm! : 0, // For overall, we can pass 0 or a special value
-                mI_Id: MI_ID
+                ecT_Id: activeTab === 0 ? selectedTerm! : 0 // For overall, we can pass 0 or a special value
+                // mI_Id: MI_ID
             };
 
             const response = await getStudentListForTermWiseRemarks(requestData);
@@ -409,7 +409,7 @@ function PromotionRemarksContent() {
 
         try {
             const saveData = {
-                mI_Id: MI_ID,
+                // mI_Id: MI_ID,
                 asmcL_Id: selectedClass,
                 asmaY_Id: selectedAcademicYear,
                 asmS_Id: selectedSectionId,

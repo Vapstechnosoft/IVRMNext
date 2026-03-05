@@ -1,8 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError, Label } from '@/components/ui/extension/field';
-import { InputNumber } from '@/components/ui/extension/input-number';
+import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useMasterSubject } from '@/hooks/exam/exammodule/usemasters';
@@ -10,8 +9,8 @@ import { masterSubjectSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterSubject } from '@/server/exam/exam-module/masters/subject';
 import type { IMasterSubject } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { RefreshCw, Save } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -36,27 +35,35 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterSubjectSchema.addOrUpdate),
-        mode: 'onChange'
+        mode: 'onTouched'
     });
+
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        setIsLoading(true);
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [row]);
 
     // Initialize form with selected row safely
     useEffect(() => {
         if (row) {
             reset({
                 ismS_Id: row.ismS_Id,
-                mI_Id: row.mI_Id ?? 30,
                 ismS_SubjectName: row.ismS_SubjectName ?? '',
                 ismS_IVRSSubjectName: row.ismS_IVRSSubjectName ?? '',
                 ismS_SubjectCode: row.ismS_SubjectCode ?? '',
                 ismS_SubjectNameNew: row.ismS_SubjectNameNew ?? '',
-                ismS_Max_Marks: row.ismS_Max_Marks ?? 0, // no Number() needed
-                ismS_Min_Marks: row.ismS_Min_Marks ?? 0, // no Number() needed
                 ismS_PreadmFlag: row.ismS_PreadmFlag ? 1 : 0,
                 ismS_AttendanceFlag: row.ismS_AttendanceFlag ?? true,
                 ismS_BatchAppl: row.ismS_BatchAppl ? 1 : 0,
                 ismS_ExamFlag: row.ismS_ExamFlag ? 1 : 0,
                 ismS_LanguageFlg: row.ismS_LanguageFlg ? 1 : 0,
                 ismS_AtExtraFeeFlg: row.ismS_AtExtraFeeFlg ? 1 : 0,
+                ismS_TTFlag: row.ismS_TTFlag ? 1 : 0,
                 ismS_ActiveFlag: 1
             });
         }
@@ -72,11 +79,10 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                 ismS_ExamFlag: Number(data.ismS_ExamFlag),
                 ismS_LanguageFlg: Number(data.ismS_LanguageFlg),
                 ismS_AtExtraFeeFlg: Number(data.ismS_AtExtraFeeFlg),
-                ismS_ActiveFlag: 1,
-                ismS_Max_Marks: Number(data.ismS_Max_Marks) || 0,
-                ismS_Min_Marks: Number(data.ismS_Min_Marks) || 0
+                ismS_TTFlag: Number(data.ismS_TTFlag),
+                ismS_ActiveFlag: 1
             };
-
+            console.log('PAYLOAD:', payload);
             const response = await addOrUpdateMasterSubject(payload);
 
             if (response.success) {
@@ -96,23 +102,30 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
         if (row) {
             reset({
                 ismS_Id: row.ismS_Id,
-                mI_Id: row.mI_Id ?? 30,
                 ismS_SubjectName: row.ismS_SubjectName ?? '',
                 ismS_IVRSSubjectName: row.ismS_IVRSSubjectName ?? '',
                 ismS_SubjectCode: row.ismS_SubjectCode ?? '',
                 ismS_SubjectNameNew: row.ismS_SubjectNameNew ?? '',
-                ismS_Max_Marks: row.ismS_Max_Marks ?? 0,
-                ismS_Min_Marks: row.ismS_Min_Marks ?? 0,
                 ismS_PreadmFlag: row.ismS_PreadmFlag ? 1 : 0,
                 ismS_AttendanceFlag: row.ismS_AttendanceFlag ?? true,
                 ismS_BatchAppl: row.ismS_BatchAppl ? 1 : 0,
                 ismS_ExamFlag: row.ismS_ExamFlag ? 1 : 0,
                 ismS_LanguageFlg: row.ismS_LanguageFlg ? 1 : 0,
                 ismS_AtExtraFeeFlg: row.ismS_AtExtraFeeFlg ? 1 : 0,
+                ismS_TTFlag: row.ismS_TTFlag ? 1 : 0,
                 ismS_ActiveFlag: 1
             });
         }
     };
+
+    if (isLoading) {
+        return (
+            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
+                <RefreshCw className='h-8 w-8 animate-spin text-secondary' />
+                <p className='text-muted-foreground text-sm'>Loading data...</p>
+            </div>
+        );
+    }
 
     return (
         <div className={className}>
@@ -129,42 +142,6 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                     <InputText label='Subject Code' required {...register('ismS_SubjectCode')} error={errors.ismS_SubjectCode?.message} />
                     <InputText label='New Subject Name' {...register('ismS_SubjectNameNew')} error={errors.ismS_SubjectNameNew?.message} />
                 </div>
-
-                {/* Marks */}
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    <Controller
-                        name='ismS_Max_Marks'
-                        control={control}
-                        render={({ field }) => (
-                            <InputNumber
-                                label='Max Marks'
-                                required
-                                id='ismS_Max_Marks'
-                                value={field.value ?? 0}
-                                onChange={(val) => field.onChange(Number(val) || 0)}
-                                minValue={0}
-                            />
-                        )}
-                    />
-                    {errors.ismS_Max_Marks && <FormError>{errors.ismS_Max_Marks.message}</FormError>}
-
-                    <Controller
-                        name='ismS_Min_Marks'
-                        control={control}
-                        render={({ field }) => (
-                            <InputNumber
-                                label='Min Marks'
-                                required
-                                id='ismS_Min_Marks'
-                                value={field.value ?? 0}
-                                onChange={(val) => field.onChange(Number(val) || 0)}
-                                minValue={0}
-                            />
-                        )}
-                    />
-                    {errors.ismS_Min_Marks && <FormError>{errors.ismS_Min_Marks.message}</FormError>}
-                </div>
-
                 {/* Flags */}
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                     {[
@@ -173,7 +150,8 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                         { key: 'ismS_BatchAppl', label: 'Batch Wise', isBoolean: false },
                         { key: 'ismS_ExamFlag', label: 'Exam', isBoolean: false },
                         { key: 'ismS_LanguageFlg', label: 'Language', isBoolean: false },
-                        { key: 'ismS_AtExtraFeeFlg', label: 'Extra Fee', isBoolean: false }
+                        { key: 'ismS_AtExtraFeeFlg', label: 'Extra Fee', isBoolean: false },
+                        { key: 'ismS_TTFlag', label: 'Time Table Flag', isBoolean: false }
                     ].map((flag) => (
                         <Controller
                             key={flag.key}

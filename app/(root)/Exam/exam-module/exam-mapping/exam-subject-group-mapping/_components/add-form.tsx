@@ -64,7 +64,7 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
         if (!asmaY_Id) return;
         async function fetchCategories() {
             try {
-                const { data: response } = await getCategoryDropDowByExamYearCategoryList(mI_Id, asmaY_Id);
+                const { data: response } = await getCategoryDropDowByExamYearCategoryList(asmaY_Id);
                 setCategories((response ?? []) as ICategory[]);
                 setValue('emcA_Id', 0);
             } catch (err: any) {
@@ -99,10 +99,10 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
             try {
                 if (esG_ExamPromotionFlag === 'IE') {
                     if (!emE_Id) return;
-                    const { data: response } = await getSubjectsForIndividualExam(mI_Id, emE_Id, asmaY_Id, emcA_Id);
+                    const { data: response } = await getSubjectsForIndividualExam(emE_Id, asmaY_Id, emcA_Id);
                     setSubjects((response ?? []) as IESubject[]);
                 } else {
-                    const { data } = await getSubjectsForPromotionalExam(mI_Id, asmaY_Id, emcA_Id);
+                    const { data } = await getSubjectsForPromotionalExam(asmaY_Id, emcA_Id);
                     setSubjects((data ?? []) as IESubject[]);
                     setValue('emE_Id', 0);
                 }

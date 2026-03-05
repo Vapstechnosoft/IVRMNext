@@ -32,7 +32,6 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
         mode: 'onChange',
         defaultValues: {
             emsE_Id: 0,
-            mI_Id: 30, // ✅ Default institution ID or dynamic if needed
             emsE_SubExamName: '',
             emsE_SubExamCode: ''
         }

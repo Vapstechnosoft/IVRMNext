@@ -51,7 +51,7 @@ export default function UpdateLoanForm({ onSuccess, className = '', selectedRow:
             const payload = {
                 hrmlN_Id: data.hrmlN_Id,
                 hrmL_LoanType: data.hrmL_LoanType?.trim() || '',
-                hrmL_Max: data.hrmL_Max || 0,
+                hrmL_Max: Number(data.hrmL_Max) || 0,
                 hrmlN_ActiveFlag: true
             };
             const response = await addOrUpdateMasterLoan(payload);
@@ -96,10 +96,11 @@ export default function UpdateLoanForm({ onSuccess, className = '', selectedRow:
                                     label='Maximum Amount'
                                     required
                                     id='hrmL_Max'
-                                    value={field.value}
+                                    placeholder='Enter maximum amount'
+                                    value={field.value ?? undefined}
                                     maxDigits={10}
                                     onChange={(value) => {
-                                        const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                        const numValue = value !== null && value !== undefined && !Number.isNaN(value) ? Number(value) : undefined;
                                         field.onChange(numValue);
                                     }}
                                     onBlur={field.onBlur}

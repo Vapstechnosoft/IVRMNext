@@ -8,15 +8,13 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type ToppersListSchema, toppersListReportSchema } from '@/schemas/exam/exam-module/reports';
-import {
-    getCategoryDropDownByAcademicYearlist,
-    getExamGroupsByCategory
-} from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import { getToppersReportDetails } from '@/server/exam/exam-module/reports/toppers-list-report';
 import {
-    getClassDropDownByYearCategoryList,
-    getSectionDropDownByYearCategoryClassList
-} from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
+    getClassDropDownByAcademicYearlist,
+    getSectionsDropDownByAcademicYearandClasslist,
+    getExamsDropDownByAcademicYearandClassandSectionlist
+} from '@/server/exam/exam-module/reports/cumulative-report';
+import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
@@ -33,14 +31,12 @@ interface ReportFormProps {
 export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onReset }) => {
     const [loading, setLoading] = useState(false);
     const [academicYears, setAcademicYears] = useState<any[]>([]);
-    const [categories, setCategories] = useState<any[]>([]);
     const [classes, setClasses] = useState<any[]>([]);
     const [sections, setSections] = useState<any[]>([]);
     const [exams, setExams] = useState<any[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
 
     const [loadingYears, setLoadingYears] = useState(true);
-    const [loadingCategories, setLoadingCategories] = useState(false);
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
     const [loadingExams, setLoadingExams] = useState(false);
@@ -55,9 +51,9 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
             exm_check_type: '0',
             sub_check_type: '0',
             ASMAY_Id: '',
-            EMCA_Id: '',
+            EMCA_Id: '0',
             ASMCL_Id: '',
-            ASMS_Id: '',
+            ASMS_Id: '0',
             EME_Id: '',
             ISMS_Id: ''
         }
@@ -69,7 +65,6 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
     // Watchers
     const watchType = useWatch({ control, name: 'type' });
     const watchYear = useWatch({ control, name: 'ASMAY_Id' });
-    const watchCategory = useWatch({ control, name: 'EMCA_Id' });
     const watchClass = useWatch({ control, name: 'ASMCL_Id' });
     const watchSection = useWatch({ control, name: 'ASMS_Id' });
     const watchExam = useWatch({ control, name: 'EME_Id' });
@@ -101,144 +96,69 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
         fetchInitialData();
     }, []);
 
-    // Load Categories when Year changes
+    // Load Classes when Year changes
     useEffect(() => {
         if (watchYear) {
-            const fetchCategories = async () => {
+            const fetchClasses = async () => {
                 try {
-                    setLoadingCategories(true);
-                    // Convert string to number for API call
+                    setLoadingClasses(true);
                     const yearId = Number.parseInt(watchYear, 10);
-                    const { data: cats } = await getCategoryDropDownByAcademicYearlist(30, yearId);
-                    const validCats = Array.isArray(cats) ? cats : [];
-                    setCategories(validCats);
+                    const response = await getClassDropDownByAcademicYearlist(yearId);
+                    if (response.success && response.data) {
+                        setClasses(response.data || []);
+                    } else {
+                        setClasses([]);
+                    }
 
                     // Reset dependent fields
-                    setValue('EMCA_Id', '');
-                    setClasses([]);
+                    setValue('ASMCL_Id', '');
+                    setValue('ASMS_Id', '0');
+                    setValue('EME_Id', '');
                     setSections([]);
                     setExams([]);
                     setSubjects([]);
-
-                    if (validCats.length === 0) {
-                        toast.info('No categories found for selected academic year');
-                    }
                 } catch (error) {
-                    console.error('Error fetching categories:', error);
-                    toast.error('Failed to load categories');
-                    setCategories([]);
+                    console.error('Error fetching classes:', error);
+                    toast.error('Failed to load classes');
+                    setClasses([]);
                 } finally {
-                    setLoadingCategories(false);
+                    setLoadingClasses(false);
                 }
             };
-            fetchCategories();
+            fetchClasses();
         } else {
-            setCategories([]);
             setClasses([]);
             setSections([]);
             setExams([]);
             setSubjects([]);
-            setValue('EMCA_Id', '');
             setValue('ASMCL_Id', '');
-            setValue('ASMS_Id', '');
+            setValue('ASMS_Id', '0');
             setValue('EME_Id', '');
             setValue('ISMS_Id', '');
         }
     }, [watchYear, setValue]);
 
-    // Load Classes and Exams when Category changes
+    // Load Sections when Class changes
     useEffect(() => {
-        if (watchYear && watchCategory) {
-            const fetchClassesAndExams = async () => {
-                try {
-                    setLoadingExams(true);
-                    // Convert strings to numbers for API calls
-                    const yearId = Number.parseInt(watchYear, 10);
-                    const categoryId = Number.parseInt(watchCategory, 10);
-
-                    // Fetch exams for the category
-                    const examsResponse = await getExamGroupsByCategory(yearId, categoryId);
-                    if (examsResponse.success) {
-                        setExams(examsResponse.data || []);
-                        if (!examsResponse.data || examsResponse.data.length === 0) {
-                            toast.info('No Exams found');
-                        }
-                    } else {
-                        setExams([]);
-                    }
-
-                    // Fetch classes only if type is individual (type=2)
-                    if (watchType === '2') {
-                        setLoadingClasses(true);
-                        const classesResponse = await getClassDropDownByYearCategoryList(yearId, categoryId);
-                        const validClasses = Array.isArray(classesResponse) ? classesResponse : [];
-                        setClasses(validClasses);
-
-                        // Reset dependent fields
-                        setValue('ASMCL_Id', '');
-                        setSections([]);
-                        setValue('ASMS_Id', '');
-
-                        if (validClasses.length === 0) {
-                            toast.info('No classes found for this category');
-                        }
-                    } else {
-                        setClasses([]);
-                        setSections([]);
-                        setValue('ASMCL_Id', '');
-                        setValue('ASMS_Id', '');
-                    }
-
-                    // Reset exams and subjects
-                    setValue('EME_Id', '');
-                    setSubjects([]);
-                    setValue('ISMS_Id', '');
-                } catch (error) {
-                    console.error('Error fetching classes and exams:', error);
-                    toast.error('Failed to load classes and exams');
-                    setClasses([]);
-                    setExams([]);
-                } finally {
-                    setLoadingExams(false);
-                    setLoadingClasses(false);
-                }
-            };
-            fetchClassesAndExams();
-        } else {
-            setClasses([]);
-            setExams([]);
-            setSubjects([]);
-            setValue('ASMCL_Id', '');
-            setValue('ASMS_Id', '');
-            setValue('EME_Id', '');
-            setValue('ISMS_Id', '');
-        }
-    }, [watchYear, watchCategory, watchType, setValue]);
-
-    // Load Sections when Class changes (only for individual type)
-    useEffect(() => {
-        if (watchType === '2' && watchYear && watchCategory && watchClass) {
+        if (watchYear && watchClass) {
             const fetchSections = async () => {
                 try {
                     setLoadingSections(true);
-                    // Convert strings to numbers for API call
                     const yearId = Number.parseInt(watchYear, 10);
-                    const categoryId = Number.parseInt(watchCategory, 10);
                     const classId = Number.parseInt(watchClass, 10);
 
-                    const sectionsResponse = await getSectionDropDownByYearCategoryClassList(yearId, categoryId, classId);
-                    const validSections = Array.isArray(sectionsResponse) ? sectionsResponse : [];
-                    setSections(validSections);
+                    const response = await getSectionsDropDownByAcademicYearandClasslist(yearId, classId);
+                    if (response.success && response.data) {
+                        setSections(response.data || []);
+                    } else {
+                        setSections([]);
+                    }
 
                     // Reset dependent fields
-                    setValue('ASMS_Id', '');
+                    setValue('ASMS_Id', '0');
                     setValue('EME_Id', '');
+                    setExams([]);
                     setSubjects([]);
-                    setValue('ISMS_Id', '');
-
-                    if (validSections.length === 0) {
-                        toast.info('No sections found for this class');
-                    }
                 } catch (error) {
                     console.error('Error fetching sections:', error);
                     toast.error('Failed to load sections');
@@ -250,9 +170,44 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
             fetchSections();
         } else {
             setSections([]);
-            setValue('ASMS_Id', '');
+            setValue('ASMS_Id', '0');
+            setValue('EME_Id', '');
         }
-    }, [watchType, watchYear, watchCategory, watchClass, setValue]);
+    }, [watchYear, watchClass, setValue]);
+
+    // Load Exams when Section changes
+    useEffect(() => {
+        if (watchYear && watchClass && watchSection) {
+            const fetchExams = async () => {
+                try {
+                    setLoadingExams(true);
+                    const yearId = Number.parseInt(watchYear, 10);
+                    const classId = Number.parseInt(watchClass, 10);
+                    const sectionId = Number.parseInt(watchSection, 10);
+
+                    const response = await getExamsDropDownByAcademicYearandClassandSectionlist(yearId, classId, sectionId);
+                    if (response.success && response.data) {
+                        setExams(response.data || []);
+                    } else {
+                        setExams([]);
+                    }
+
+                    setValue('EME_Id', '');
+                    setSubjects([]);
+                } catch (error) {
+                    console.error('Error fetching exams:', error);
+                    toast.error('Failed to load exams');
+                    setExams([]);
+                } finally {
+                    setLoadingExams(false);
+                }
+            };
+            fetchExams();
+        } else {
+            setExams([]);
+            setValue('EME_Id', '');
+        }
+    }, [watchYear, watchClass, watchSection, setValue]);
 
     // Update check types when form values change
     useEffect(() => {
@@ -282,29 +237,45 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
     }, [watchType, watchSection, watchSubjectwise, watchSubject, trigger]);
 
     const onSubmit = async (formValues: ToppersListSchema) => {
+        console.log('Form Values:', formValues);
         setLoading(true);
 
         try {
             // Prepare payload according to the required structure
             const payload = {
-                mI_Id: 30, // Institution ID - using 30 as per reference
-                asmaY_Id: Number.parseInt(formValues.ASMAY_Id) || 0,
-                asmcL_Id: formValues.type === '1' ? 0 : Number.parseInt(formValues.ASMCL_Id) || 0,
-                asmS_Id: formValues.type === '1' ? 0 : Number.parseInt(formValues.ASMS_Id || '') || 0,
-                emE_Id: Number.parseInt(formValues.EME_Id) || 0,
-                ismS_Id: formValues.subjectwise ? Number.parseInt(formValues.ISMS_Id || '') || 0 : 0,
-                report_type: formValues.type === '1' ? 'All' : 'Individual',
+                ASMAY_Id: Number.parseInt(formValues.ASMAY_Id) || 0,
+                ASMCL_Id:
+                    formValues.type === '1'
+                        ? 0
+                        : Number.parseInt(formValues.ASMCL_Id || '') || 0,
+                ASMS_Id:
+                    formValues.type === '1'
+                        ? 0
+                        : Number.parseInt(formValues.ASMS_Id || '') || 0,
+                EME_Id: Number.parseInt(formValues.EME_Id) || 0,
+                ISMS_Id:
+                    formValues.subjectwise
+                        ? Number.parseInt(formValues.ISMS_Id || '') || 0
+                        : 0,
+                report_type: formValues.type || '0',
+
                 sub_check_type: formValues.subjectwise ? '1' : '0',
-                exm_check_type: formValues.EME_Id ? '1' : '0',
+
+                exm_check_type:
+                    Number.parseInt(formValues.EME_Id) > 0 ? '1' : '0',
+
                 topper: Number.parseInt(formValues.topper) || 0
             };
 
-            console.log('Sending payload to API:', payload);
+            console.log('Toppers List Report payload:', payload);
 
-            const result = await getToppersReportDetails(payload);
-
+            const [result, institutionRes] = await Promise.all([
+                getToppersReportDetails(payload),
+                getMasterInstitution()
+            ]);
+            console.log('toppers list response', result);
             if (result.success) {
-                onReportGenerated(result.data || result.datareport, result.masterinstitution, formValues);
+                onReportGenerated(result.data, institutionRes?.success ? institutionRes.data : null, payload);
             } else {
                 toast.error(result.message || 'Failed to generate report');
             }
@@ -324,9 +295,9 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
             exm_check_type: '0',
             sub_check_type: '0',
             ASMAY_Id: '',
-            EMCA_Id: '',
+            EMCA_Id: '0',
             ASMCL_Id: '',
-            ASMS_Id: '',
+            ASMS_Id: '0',
             EME_Id: '',
             ISMS_Id: ''
         });
@@ -401,49 +372,6 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                 {errors.ASMAY_Id && <FormError>{errors.ASMAY_Id.message}</FormError>}
                             </div>
 
-                            {/* Category */}
-                            <div className='space-y-2'>
-                                <Label>
-                                    Category <span className='text-red-500'>*</span>
-                                </Label>
-                                <Controller
-                                    control={control}
-                                    name='EMCA_Id'
-                                    render={({ field }) => (
-                                        <Select
-                                            key={field.value}
-                                            onValueChange={(val) => {
-                                                field.onChange(val);
-                                                // Trigger validation when changed
-                                                trigger('EMCA_Id');
-                                            }}
-                                            value={field.value}
-                                            disabled={!watchYear}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select Category' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {loadingCategories ? (
-                                                    <SelectItem value='0' disabled>
-                                                        Categories are loading...
-                                                    </SelectItem>
-                                                ) : categories.length === 0 ? (
-                                                    <SelectItem value='0' disabled>
-                                                        No Categories found
-                                                    </SelectItem>
-                                                ) : (
-                                                    categories.map((item) => (
-                                                        <SelectItem key={item.emcA_Id} value={String(item.emcA_Id)}>
-                                                            {item.emcA_CategoryName}
-                                                        </SelectItem>
-                                                    ))
-                                                )}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
-                                />
-                                {errors.EMCA_Id && <FormError>{errors.EMCA_Id.message}</FormError>}
-                            </div>
 
                             {/* Class (Only for Individual type) */}
                             <div className='space-y-2'>
@@ -462,7 +390,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                                 trigger('ASMCL_Id');
                                             }}
                                             value={field.value}
-                                            disabled={watchType === '1' || !watchCategory}>
+                                            disabled={watchType === '1' || !watchYear}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Class' />
                                             </SelectTrigger>
@@ -486,7 +414,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                         </Select>
                                     )}
                                 />
-                                {errors.ASMCL_Id && <FormError>{errors.ASMCL_Id.message}</FormError>}
+                                {errors.ASMCL_Id && watchType === '2' && <FormError>{errors.ASMCL_Id.message}</FormError>}
                             </div>
 
                             {/* Section (Only for Individual type) */}
@@ -511,26 +439,17 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                                 <SelectValue placeholder='Select Section' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {loadingSections ? (
-                                                    <SelectItem value='0' disabled>
-                                                        Sections are loading...
+                                                <SelectItem value='0'>All</SelectItem>
+                                                {sections.map((item) => (
+                                                    <SelectItem key={item.asmS_Id} value={String(item.asmS_Id)}>
+                                                        {item.asmC_SectionName}
                                                     </SelectItem>
-                                                ) : sections.length === 0 ? (
-                                                    <SelectItem value='0' disabled>
-                                                        No Sections found
-                                                    </SelectItem>
-                                                ) : (
-                                                    sections.map((item) => (
-                                                        <SelectItem key={item.asmS_Id} value={String(item.asmS_Id)}>
-                                                            {item.asmC_SectionName}
-                                                        </SelectItem>
-                                                    ))
-                                                )}
+                                                ))}
                                             </SelectContent>
                                         </Select>
                                     )}
                                 />
-                                {errors.ASMS_Id && <FormError>{errors.ASMS_Id.message}</FormError>}
+                                {errors.ASMS_Id && watchType === '2' && <FormError>{errors.ASMS_Id.message}</FormError>}
                             </div>
 
                             {/* Exam */}
@@ -550,7 +469,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                                 trigger('EME_Id');
                                             }}
                                             value={field.value}
-                                            disabled={!watchCategory}>
+                                            disabled={!watchSection}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Exam' />
                                             </SelectTrigger>
@@ -671,12 +590,11 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                         <Controller control={control} name='sub_check_type' render={({ field }) => <input type='hidden' {...field} />} />
 
                         <div className='flex justify-center space-x-4 pt-4'>
-                            <Button type='submit' disabled={loading || isSubmitting}>
-                                {loading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                            <Button type='submit' disabled={loading || isSubmitting} isLoading={isSubmitting}>
                                 Generate Report
                             </Button>
                             <Button type='button' variant='outline' onClick={handleCancel}>
-                                Cancel
+                                Clear
                             </Button>
                         </div>
                     </form>

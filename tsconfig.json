@@ -20,7 +20,8 @@
         ],
         "paths": {
             "@/*": ["./*"]
-        }
+        },
+        "baseUrl": "."
     },
     "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/(root)/Exam/exam-module/exam-mapping/exam-subject-group-mapping"],
     "exclude": ["node_modules"]

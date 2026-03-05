@@ -1,4 +1,4 @@
- export interface MasterEventCoe {
+export interface MasterEventCoe {
   coemE_Id: number
   coemE_EventName: string
   coemE_EventDesc: string
@@ -8,5 +8,6 @@
   coemE_MailFooter: string
   coemE_Mail_Message: string
   coemE_MailHTMLTemplate: string
-  coemE_ActiveFlag: boolean
+  coemE_ActiveFlag: boolean,
+  coee_Id: number
 }

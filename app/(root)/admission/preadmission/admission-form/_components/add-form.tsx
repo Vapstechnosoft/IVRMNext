@@ -14,12 +14,18 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
-import { useAcademicYearDropdown, useConcessionDropdown, useMasterSectionHeld } from '@/hooks/admission/preadmission/useMasters';
+import {
+    useAcademicYearDropdown,
+    useConcessionDropdown,
+    useMasterSectionHeld,
+    useStudentCategoryByClass
+} from '@/hooks/admission/preadmission/useMasters';
 import {
     useActivePreadmissionDetails,
     useAdmissionClassDropdown,
     useCasteDropdown,
     useCountryDropdown,
+    useDistrictDropdown,
     useReferenceDropdown,
     useReligionDropdown,
     useSourceDropdown,
@@ -119,6 +125,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             amsT_ECSFlag: 0,
             isEmisBpl: 0,
             feeConcessionType: 0,
+            amC_Id: 0,
+            studentCategoryId: 0,
             hostelRequired: false,
             transportRequired: false
         } as any
@@ -237,10 +245,35 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     }, [activePreadmission, setValue]);
 
     const { data: religion, isLoading: religionLoading, error: religionError, refetchAll: refetchReligion } = useReligionDropdown();
+    // Student category is now fetched class-wise via useStudentCategoryByClass below
+
+    // Watch class and academic year for the class-based student category API
+    const classIdForCategory = watch('asmcL_Id');
+    const asmaYId = watch('asmaY_Id' as any);
+    const { data: categoryByClass, isLoading: categoryByClassLoading } = useStudentCategoryByClass(
+        Number(classIdForCategory) || 0,
+        Number(asmaYId) || 0
+    );
+
+    // Auto-set student category when class changes (picks first item from array)
+    useEffect(() => {
+        const items: any[] = (categoryByClass as any)?.data;
+        if (Array.isArray(items) && items.length > 0 && items[0]?.asmcC_Id) {
+            setValue('asmcC_Id' as any, items[0].asmcC_Id);
+            setValue('studentCategoryId' as any, items[0].asmcC_Id);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [(categoryByClass as any)?.data]);
 
     // Watch all country fields
-    const conConuntryId = watch('amsT_ConCountry');
-    const perConuntryId = watch('amsT_PerCountry');
+    const conCountryId = watch('amsT_ConCountry');
+    const perCountryId = watch('amsT_PerCountry');
+
+    const conStateId = watch('amsT_ConState');
+    const { data: conDistrict, isLoading: conDistrictLoading, error: conDistrictError } = useDistrictDropdown(Number(conStateId));
+
+    const perStateId = watch('amsT_PerState');
+    const { data: perDistrict, isLoading: perDistrictLoading, error: perDistrictError } = useDistrictDropdown(Number(perStateId));
 
     // Watch guardian fields to conditionally show uploads when guardian name is present
     const watchedGuardians = watch('guardian');
@@ -321,7 +354,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         isLoading: casteLoading,
         error: casteError,
         refetchAll: refetchCaste
-    } = useCasteDropdown(watch('amsT_ReligionId'));
+    } = useCasteDropdown(watch('amsT_ReligionId') ?? 0);
 
     // Caste dropdowns for father and mother should depend on their selected religion
     const {
@@ -353,16 +386,16 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         isLoading: conStateLoading,
         error: conStateError,
         refetchAll: refetchConState
-    } = useStateDropdown(Number(conConuntryId));
+    } = useStateDropdown(Number(conCountryId));
     const {
         data: perState,
         isLoading: perStateLoading,
         error: perStateError,
         refetchAll: refetchPerState
-    } = useStateDropdown(Number(perConuntryId));
+    } = useStateDropdown(Number(perCountryId));
 
     // Student country -> states (Step 1 student country/state)
-    const studentCountryId = watch('amsT_StudentCountry');
+    const studentCountryId = watch('amsT_Nationality');
     const { data: studentState, isLoading: studentStateLoading, error: studentStateError } = useStateDropdown(Number(studentCountryId));
 
     // Father address states
@@ -501,7 +534,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         try {
             // Guard: ensure minimal required fields are present before calling API
             // This prevents any code path (including forced/auto-save) from calling server with incomplete data.
-            const requiredFields = ['amsT_FirstName', 'amsT_LastName', 'asmcL_Id', 'amsT_Date', 'amsT_DOB'];
+            const requiredFields = ['amsT_FirstName', 'asmcL_Id', 'amsT_Date', 'amsT_DOB'];
 
             // If any required field is missing in formData, abort
             const missingRequired = requiredFields.filter((k) => {
@@ -568,44 +601,36 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 pasR_Age: Number(formData.pasR_Age ?? 0),
                 amsT_MotherTongue: formData.amsT_MotherTongue ?? '',
                 amsT_LanguageSpoken: formData.amsT_LanguageSpoken ?? '',
-                amsT_StudentCategory_Id: Number(formData.amsT_StudentCategory_Id ?? 0),
+                amsT_StudentCategory_Id: Number(formData.asmcC_Id ?? formData.studentCategoryId ?? 0),
                 amsT_BloodGroup: formData.amsT_BloodGroup ?? '',
                 ivrmmR_Id: Number(formData.ivrmmR_Id ?? formData.amsT_ReligionId ?? 0),
-                imcC_Id: formData.studentCategoryId ?? 1,
+                iC_Id: Number(formData.imC_Id ?? 0),
+                asmcC_Id: Number(formData.asmcC_Id ?? formData.studentCategoryId ?? 0),
                 amsT_SubCasteIMC_Id: (formData.amsT_SubCasteIMC_Id ?? '')?.toString() ?? '',
-
                 amsT_CasteCertiNo: formData.amsT_CasteCertiNo ?? '',
-
+                studentPhotoUrl: '',
                 amsT_BirthPlace: formData.amsT_BirthPlace ?? '',
                 amsT_BirthCertNO: formData.amsT_BirthCertNO ?? '',
                 amsT_AadharNo: Number(formData.amsT_AadharNo) || 0,
-
                 amsT_BiometricId: formData.amsT_BiometricId ?? '',
                 amsT_RFCardNo: formData.amsT_RFCardNo ?? '',
-                amsT_BPLCardNo: formData.amsT_BPLCardNo ?? '',
                 isEmisBpl: !!formData.isEmisBpl,
-                mobileNos: (() => {
-                    const src = Array.isArray(getValues('mobileNos'))
-                        ? (getValues('mobileNos') as any[])
-                        : Array.isArray(formData.mobileNos)
-                          ? formData.mobileNos
-                          : [];
-                    const arr = (src || []).slice(0, 5).map((m: any) => ({
-                        amstsmS_MobileNo: [String(m?.amsT_MobileNo ?? m?.mobileNo ?? m ?? '')],
-                        amstsmS_CountryCode: m?.amstsmS_CountryCode ?? m?.countryCode ?? ''
-                    }));
-                    return arr.length ? arr : [];
+                amsT_BPLCardNo: formData.amsT_BPLCardNo ?? '',
+                mobileCountryCode: (() => {
+                    const mobileNos = getValues('mobileNos') as any[];
+                    return Array.isArray(mobileNos) && mobileNos.length > 0 ? String(mobileNos[0]?.amstsmS_CountryCode ?? '') : '';
                 })(),
-                emailIds: (() => {
-                    const src = Array.isArray(formData.adm_M_Student_EmailIdDTO)
-                        ? formData.adm_M_Student_EmailIdDTO
-                        : formData.adm_M_Student_EmailIdDTO
-                          ? [formData.adm_M_Student_EmailIdDTO]
-                          : [];
-                    const arr = (src || []).map((e: any) => ({
-                        amstE_EmailId: [String(e.amsT_emailId ?? e.emailId ?? e ?? '')]
-                    }));
-                    return arr.length ? arr : [];
+                mobileNumber: (() => {
+                    const mobileNos = getValues('mobileNos') as any[];
+                    return Array.isArray(mobileNos) && mobileNos.length > 0
+                        ? String(mobileNos[0]?.amsT_MobileNo ?? '')
+                        : String(formData.amsT_MobileNo ?? '');
+                })(),
+                emailId: (() => {
+                    const emails = formData.adm_M_Student_EmailIdDTO;
+                    return Array.isArray(emails) && emails.length > 0
+                        ? String(emails[0]?.amsT_emailId ?? '')
+                        : String(formData.amsT_emailId ?? '');
                 })(),
                 amsT_PerState: Number(formData.amsT_PerState ?? 0),
                 amsT_PerDistrict: Number(formData.amsT_PerDistrict ?? 0),
@@ -632,14 +657,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     asecS_MICRNo: formData.amsT_ECSFlag ? (formData.adm_M_Student_ECS?.asecS_MICRNo ?? formData.asecS_MICRNo ?? '') : '',
                     asecS_BranchName: formData.amsT_ECSFlag ? (formData.adm_M_Student_ECS?.asecS_Branch ?? formData.asecS_Branch ?? '') : ''
                 },
-
                 feeConcessionType: Number(formData.feeConcessionType ?? 0),
                 amsT_Tpin: formData.amsT_Tpin ?? '',
                 amsT_GPSTrackingId: formData.amsT_GPSTrackingId ?? '',
                 amsT_MediumOfInstruction: formData.amsT_MediumOfInstruction ?? '',
+                amsT_Nationality: Number(formData.amsT_Nationality ?? 0),
+                amsT_State: Number(formData.amsT_State ?? 0),
                 userId: Number(formData.userId ?? 0) || 21602,
                 editFlag: !!formData.editFlag,
-                studentPhotoUrl: '',
                 returnVal: true
             };
 
@@ -694,15 +719,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 fatherAadharNo: formData.fatherAadharNo || '',
                 fatherMaritalStatus: formData.fatherMaritalStatus ?? '',
                 fatherMonthlyIncome: 0,
-                fatherMobileNumbers: Array.isArray(formData.fatherMobileNumbers)
-                    ? formData.fatherMobileNumbers.map((m: any) => ({
+                fatherMobileNumbers: Array.isArray(formData.fatherMobileNumbers as unknown as any[])
+                    ? (formData.fatherMobileNumbers as unknown as any[]).map((m: any) => ({
                           mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m)
                       }))
                     : formData.fatherMobileNumbers
                       ? [{ mobileNo: String(formData.fatherMobileNumbers) }]
                       : [],
-                fatherEmailIds: Array.isArray(formData.fatherEmailIds)
-                    ? formData.fatherEmailIds.map((e: any) => ({
+                fatherEmailIds: Array.isArray(formData.fatherEmailIds as unknown as any[])
+                    ? (formData.fatherEmailIds as unknown as any[]).map((e: any) => ({
                           emailId: String(e.emailId ?? e.amsT_emailId ?? e)
                       }))
                     : formData.fatherEmailIds
@@ -750,15 +775,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 motherSurname: formData.motherSurname || '',
                 motherAadharNo: formData.motherAadharNo || '',
                 motherMaritalStatus: formData.motherMaritalStatus ?? '',
-                motherMobileNumbers: Array.isArray(formData.motherMobileNumbers)
-                    ? formData.motherMobileNumbers.map((m: any) => ({
+                motherMobileNumbers: Array.isArray(formData.motherMobileNumbers as unknown as any[])
+                    ? (formData.motherMobileNumbers as unknown as any[]).map((m: any) => ({
                           mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m)
                       }))
                     : formData.motherMobileNumbers
                       ? [{ mobileNo: String(formData.motherMobileNumbers) }]
                       : [],
-                motherEmailIds: Array.isArray(formData.motherEmailIds)
-                    ? formData.motherEmailIds.map((e: any) => ({
+                motherEmailIds: Array.isArray(formData.motherEmailIds as unknown as any[])
+                    ? (formData.motherEmailIds as unknown as any[]).map((e: any) => ({
                           emailId: String(e.emailId ?? e.amsT_emailId ?? e)
                       }))
                     : formData.motherEmailIds
@@ -857,21 +882,20 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             if (currentStep === 1) {
                 fieldsToValidate = [
                     'amsT_FirstName',
-                    'amsT_MiddleName',
-                    'amsT_LastName',
                     'amsT_RegistrationNo',
                     'amsT_AdmissionNo',
                     'asmcL_Id',
                     'asmS_Id',
-                    'amsT_StudentCountry',
+                    'amsT_Nationality',
                     'amsT_Date',
                     'amsT_DOB',
                     'amsT_ReligionId',
                     'amsT_Sex',
-                    'amsT_PerCountry',
                     'amsT_MobileNo',
+                    'asmcC_Id',
                     'studentCategoryId',
-                    'feeConcessionType'
+                    'feeConcessionType',
+                    'imC_Id'
                 ];
                 // If EMIS checkbox is set, ensure the EMIS field is validated
                 if (Number(getValues('isEmisBpl') ?? 0) === 1) {
@@ -955,9 +979,28 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         }
                     }
                 }
+            } else if (currentStep === 4) {
+                fieldsToValidate = ['amsT_Distirct', 'amsT_Taluk', 'amsT_Town', 'amsT_Village', 'achievements', 'amsT_OtherInformations'];
             }
 
             const isValid = await trigger(fieldsToValidate.length > 0 ? fieldsToValidate : []);
+            console.info('Validation Result:', isValid);
+            console.info('Fields Validated:', fieldsToValidate);
+            console.info('Validation Errors:', errors);
+
+            // Log specific field errors for debugging
+            if (!isValid) {
+                console.error('=== VALIDATION FAILED ===');
+                Object.keys(errors).forEach((fieldName) => {
+                    const error = (errors as any)[fieldName];
+                    console.error(`Field: ${fieldName}`, {
+                        message: error?.message,
+                        type: error?.type,
+                        value: getValues(fieldName as any)
+                    });
+                });
+                console.error('========================');
+            }
 
             // Check if there are any validation errors on the current form state
             if (!isValid) {
@@ -1120,9 +1163,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         tcNumber: school.pasrpS_TcNo || school.tcNumber || '',
                         tcDate: (() => {
                             const d = school.pasrpS_TcDate ?? school.tcDate;
-                            if (!d) return '';
+                            if (!d) return null;
                             const parsed = d instanceof Date ? d : new Date(d);
-                            return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString();
+                            return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
                         })()
                     }));
 
@@ -1402,7 +1445,23 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                 });
                                 const saveRes = await saveFirstTab({
                                     ...formData,
-                                    amsT_Photoname: photo
+                                    amsT_Photoname: photo,
+                                    // Nationality/State
+                                    amsT_Nationality: Number(formData.amsT_Nationality ?? 0),
+                                    amsT_State: Number(formData.amsT_State ?? 0),
+                                    // Flatten mobile/email
+                                    MobileCountryCode: (() => {
+                                        const m = (formData.mobileNos || [])[0] as any;
+                                        return String(m?.amstsmS_CountryCode ?? m?.countryCode ?? '91').replace(/\D/g, '');
+                                    })(),
+                                    MobileNumber: (() => {
+                                        const m = (formData.mobileNos || [])[0] as any;
+                                        return String(m?.amsT_MobileNo || m?.amstsmS_MobileNo || '').trim();
+                                    })(),
+                                    EmailId: (() => {
+                                        const e = (formData.adm_M_Student_EmailIdDTO || [])[0] as any;
+                                        return String(e?.amsT_emailId || e?.amstE_EmailId || '').trim();
+                                    })()
                                 });
                                 console.debug('[Admission] saveFirstTab result (forced):', saveRes);
                                 if (saveRes?.success) {
@@ -1600,9 +1659,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                             tcNumber: String(school.pasrpS_TcNo || school.tcNumber || ''),
                             tcDate: (() => {
                                 const d = school.pasrpS_TcDate ?? school.tcDate;
-                                if (!d) return '';
+                                if (!d) return null;
                                 const parsed = d instanceof Date ? d : new Date(d);
-                                return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString();
+                                return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
                             })()
                         }));
 
@@ -1612,6 +1671,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                             userId: 0,
                             activities: activities,
                             achievements: formData.achievements || '',
+                            amsT_OtherInformations: formData.amsT_OtherInformations || '',
                             sourceDetails: sourceDetails,
                             guardian: guardians,
                             siblings: siblingsList,
@@ -1657,6 +1717,17 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
     const handleDOBChange = (date: Date | undefined) => {
         if (date) {
+            // Validate the date
+            if (Number.isNaN(date.getTime())) {
+                return;
+            }
+
+            // Ensure date is not in the future
+            const today = new Date();
+            if (date > today) {
+                return;
+            }
+
             const dobInWords = dateToWords(date);
             setValue('amsT_DOB_Words', dobInWords);
 
@@ -1732,6 +1803,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         resetObj.amsT_MobileNo = '';
         resetObj.mobileNos = [];
         resetObj.adm_M_Student_EmailIdDTO = [{ amsT_emailId: '' }];
+        resetObj.amsT_ConDistrict = 0;
+        resetObj.amsT_PerDistrict = 0;
 
         // Apply reset to react-hook-form
         reset(resetObj as any);
@@ -1811,28 +1884,47 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         if (checked) {
             const street = getValues('amsT_ConStreet') ?? '';
             const area = getValues('amsT_ConArea') ?? '';
-            const country = getValues('amsT_ConCountry') ?? '';
+            const country = getValues('amsT_ConCountry') ?? 0;
             const state = getValues('amsT_ConState');
+            const district = getValues('amsT_ConDistrict');
             const city = getValues('amsT_ConCity') ?? '';
-            const pincode = getValues('amsT_ConPincode');
+            const pincode = getValues('amsT_ConPincode') ?? '';
 
-            setValue('amsT_PerStreet', street);
-            setValue('amsT_PerArea', area);
-            setValue('amsT_PerCountry', country);
-            setValue('amsT_PerState', state ?? undefined);
-            setValue('amsT_PerCity', city);
-            setValue('amsT_PerPincode', pincode ?? undefined);
+            setValue('amsT_PerStreet', street, { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerArea', area, { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerCountry', Number(country), { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerState', state ?? undefined, { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerDistrict', district ?? undefined, { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerCity', city, { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerPincode', pincode, { shouldValidate: true, shouldDirty: true });
 
-            trigger(['amsT_PerStreet', 'amsT_PerArea', 'amsT_PerCountry', 'amsT_PerState', 'amsT_PerCity', 'amsT_PerPincode']);
+            trigger([
+                'amsT_PerStreet',
+                'amsT_PerArea',
+                'amsT_PerCountry',
+                'amsT_PerState',
+                'amsT_PerDistrict',
+                'amsT_PerCity',
+                'amsT_PerPincode'
+            ]);
         } else {
-            setValue('amsT_PerStreet', '');
-            setValue('amsT_PerArea', '');
-            setValue('amsT_PerCountry', '');
-            setValue('amsT_PerState', 0);
-            setValue('amsT_PerCity', '');
-            setValue('amsT_PerPincode', '');
+            setValue('amsT_PerStreet', '', { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerArea', '', { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerCountry', 0, { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerState', 0, { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerDistrict', 0, { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerCity', '', { shouldValidate: true, shouldDirty: true });
+            setValue('amsT_PerPincode', '', { shouldValidate: true, shouldDirty: true });
 
-            clearErrors(['amsT_PerStreet', 'amsT_PerArea', 'amsT_PerCountry', 'amsT_PerState', 'amsT_PerCity', 'amsT_PerPincode']);
+            clearErrors([
+                'amsT_PerStreet',
+                'amsT_PerArea',
+                'amsT_PerCountry',
+                'amsT_PerState',
+                'amsT_PerDistrict',
+                'amsT_PerCity',
+                'amsT_PerPincode'
+            ]);
         }
     };
 
@@ -2551,14 +2643,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
     // derive zip/pincode length allowed from selected country (useMemo to wait for data)
     const conCountryObj = useMemo(() => {
-        if (!country?.data || conConuntryId === undefined || conConuntryId === null || conConuntryId === '') return undefined;
-        return country.data.find((c: any) => String(c.ivrmmC_Id) === String(conConuntryId));
-    }, [country?.data, conConuntryId]);
+        if (!country?.data || conCountryId === undefined || conCountryId === null) return undefined;
+        return country.data.find((c: any) => String(c.ivrmmC_Id) === String(conCountryId));
+    }, [country?.data, conCountryId]);
 
     const perCountryObj = useMemo(() => {
-        if (!country?.data || perConuntryId === undefined || perConuntryId === null || perConuntryId === '') return undefined;
-        return country.data.find((c: any) => String(c.ivrmmC_Id) === String(perConuntryId));
-    }, [country?.data, perConuntryId]);
+        if (!country?.data || perCountryId === undefined || perCountryId === null) return undefined;
+        return country.data.find((c: any) => String(c.ivrmmC_Id) === String(perCountryId));
+    }, [country?.data, perCountryId]);
 
     const conZipLength: number | undefined = conCountryObj?.ivrmmC_ZipNoLength ?? undefined;
     const perZipLength: number | undefined = perCountryObj?.ivrmmC_ZipNoLength ?? undefined;
@@ -2580,13 +2672,13 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
     useEffect(() => {
         setValue('amsT_ConPincode', '');
-    }, [conConuntryId, setValue]);
+    }, [conCountryId, setValue]);
 
     useEffect(() => {
         if (!sameAsResidential) {
             setValue('amsT_PerPincode', '');
         }
-    }, [perConuntryId, setValue, sameAsResidential]);
+    }, [perCountryId, setValue, sameAsResidential]);
 
     useEffect(() => {
         setValue('asmS_Id', 0);
@@ -2934,7 +3026,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             />
                                             <InputText
                                                 label='Middle Name'
-                                                required
                                                 id='amsT_MiddleName'
                                                 placeholder='Enter middle name'
                                                 {...register('amsT_MiddleName')}
@@ -2942,7 +3033,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             />
                                             <InputText
                                                 label='Last Name'
-                                                required
                                                 id='amsT_LastName'
                                                 placeholder='Enter last name'
                                                 {...register('amsT_LastName')}
@@ -3232,11 +3322,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             </div>
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_StudentCategory_Id'>
-                                                    Caste Category <span className='ml-1 text-red-500'>*</span>
+                                                <Label htmlFor='imC_Id'>
+                                                    Caste <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
                                                 <Controller
-                                                    name='amsT_StudentCategory_Id'
+                                                    name='imC_Id'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
@@ -3266,9 +3356,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.amsT_StudentCategory_Id && (
-                                                    <FormError>{errors.amsT_StudentCategory_Id.message}</FormError>
-                                                )}
+                                                {errors.imC_Id && <FormError>{errors.imC_Id.message}</FormError>}
                                             </div>
                                             {/* <InputText
                                                 label='Caste '
@@ -3359,12 +3447,12 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             />
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_StudentCountry'>
+                                                <Label htmlFor='amsT_Nationality'>
                                                     Country <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
 
                                                 <Controller
-                                                    name='amsT_StudentCountry'
+                                                    name='amsT_Nationality'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
@@ -3394,13 +3482,13 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.amsT_StudentCountry && <FormError>{errors.amsT_StudentCountry.message}</FormError>}
+                                                {errors.amsT_Nationality && <FormError>{errors.amsT_Nationality.message}</FormError>}
                                             </div>
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_StudentState'>State</Label>
+                                                <Label htmlFor='amsT_State'>State</Label>
                                                 <Controller
-                                                    name='amsT_StudentState'
+                                                    name='amsT_State'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
@@ -3430,7 +3518,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.amsT_StudentState && <FormError>{errors.amsT_StudentState.message}</FormError>}
+                                                {errors.amsT_State && <FormError>{errors.amsT_State.message}</FormError>}
                                             </div>
 
                                             <div className='flex flex-col gap-1.5 '>
@@ -3455,7 +3543,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 inputProps={{
                                                                     id: 'amsT_MobileNo',
                                                                     name: 'amsT_MobileNo',
-                                                                    maxLength: 25,
+                                                                    maxLength: 15,
                                                                     required: false,
                                                                     style: {
                                                                         width: '87%',
@@ -3561,7 +3649,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             label='Aadhaar No.'
                                                             placeholder='Enter Aadhaar No'
                                                             id='amsT_AadharNo'
-                                                            value={field.value}
+                                                            value={field.value ?? ''}
                                                             onChange={(value) => field.onChange(value)}
                                                             type='number'
                                                             showSpinner={false}
@@ -3616,29 +3704,57 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             </div>
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='studentCategoryId'>
-                                                    Student Category <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
+                                                <Label htmlFor='asmcC_Id'>Student Category</Label>
                                                 <Controller
-                                                    name='studentCategoryId'
+                                                    name='asmcC_Id'
                                                     control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            key={field.value || 'empty'}
-                                                            onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || ''}>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder='Select option' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value='1'>Pre-Primary School</SelectItem>
-                                                                <SelectItem value='2'>Primary School</SelectItem>
-                                                                <SelectItem value='3'>High School</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
+                                                    render={({ field }) => {
+                                                        // Student category from class-based API only
+                                                        const rawData = (categoryByClass as any)?.data;
+                                                        const items: any[] = Array.isArray(rawData) ? rawData : rawData ? [rawData] : [];
+                                                        return (
+                                                            <Select
+                                                                key={`cat-${classIdForCategory || 'none'}`}
+                                                                onValueChange={(value) => {
+                                                                    const val = Number(value);
+                                                                    field.onChange(val);
+                                                                    setValue('asmcC_Id', val);
+                                                                    setValue('studentCategoryId', val);
+                                                                }}
+                                                                value={field.value?.toString() || ''}>
+                                                                <SelectTrigger>
+                                                                    <SelectValue
+                                                                        placeholder={
+                                                                            categoryByClassLoading ? 'Loading...' : 'Select option'
+                                                                        }
+                                                                    />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {categoryByClassLoading ? (
+                                                                        <SelectItem value='loading' disabled>
+                                                                            Loading...
+                                                                        </SelectItem>
+                                                                    ) : items.length > 0 ? (
+                                                                        items.map((item: any) => (
+                                                                            <SelectItem
+                                                                                key={item.asmcC_Id}
+                                                                                value={item.asmcC_Id?.toString()}>
+                                                                                {item.amC_Name || 'No Name'}
+                                                                            </SelectItem>
+                                                                        ))
+                                                                    ) : (
+                                                                        <SelectItem value='none' disabled>
+                                                                            {classIdForCategory
+                                                                                ? 'No category for this class'
+                                                                                : 'Select a class first'}
+                                                                        </SelectItem>
+                                                                    )}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        );
+                                                    }}
                                                 />
-                                                {errors.studentCategoryId && <FormError>{errors.studentCategoryId.message}</FormError>}
+                                                {errors.asmcC_Id && <FormError>{(errors.asmcC_Id as any).message}</FormError>}
                                             </div>
 
                                             <div className='col-span-full'>
@@ -3967,6 +4083,43 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         />
                                                         {errors.amsT_ConState && <FormError>{errors.amsT_ConState.message}</FormError>}
                                                     </div>
+                                                    {/* <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='amsT_ConDistrict'>District</Label>
+                                                        <Controller
+                                                            name='amsT_ConDistrict'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    key={field.value || 'empty'}
+                                                                    onValueChange={(value) => field.onChange(Number(value))}
+                                                                    value={field.value?.toString() || ''}>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder='Select District' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {conDistrictLoading ? (
+                                                                            <SelectItem value='loading' disabled>
+                                                                                Loading...
+                                                                            </SelectItem>
+                                                                        ) : conDistrictError ? (
+                                                                            <SelectItem value='error' disabled>
+                                                                                Error loading
+                                                                            </SelectItem>
+                                                                        ) : (
+                                                                            conDistrict?.data?.map((item) => (
+                                                                                <SelectItem
+                                                                                    key={item.ivrmmD_Id}
+                                                                                    value={item.ivrmmD_Id.toString()}>
+                                                                                    {item.ivrmmD_Name}
+                                                                                </SelectItem>
+                                                                            ))
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {errors.amsT_ConDistrict && <FormError>{errors.amsT_ConDistrict.message}</FormError>}
+                                                    </div> */}
                                                     <InputText
                                                         label='City'
                                                         id='amsT_ConCity'
@@ -4029,7 +4182,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     />
                                                                     {conCountryObj && conZipLength && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {` Pin code must be ${conZipLength} digits for ${conCountryObj.ivrmmC_CountryName}`}
+                                                                            {`Pin code must be ${conZipLength} digits for ${conCountryObj.ivrmmC_CountryName}`}
                                                                         </span>
                                                                     )}
                                                                 </>
@@ -4147,6 +4300,44 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         />
                                                         {errors.amsT_PerState && <FormError>{errors.amsT_PerState.message}</FormError>}
                                                     </div>
+                                                    {/* <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='amsT_PerDistrict'>District</Label>
+                                                        <Controller
+                                                            name='amsT_PerDistrict'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    key={field.value || 'empty'}
+                                                                    onValueChange={(value) => field.onChange(Number(value))}
+                                                                    value={field.value?.toString() || ''}
+                                                                    disabled={sameAsResidential}>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder='Select District' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {perDistrictLoading ? (
+                                                                            <SelectItem value='loading' disabled>
+                                                                                Loading...
+                                                                            </SelectItem>
+                                                                        ) : perDistrictError ? (
+                                                                            <SelectItem value='error' disabled>
+                                                                                Error loading
+                                                                            </SelectItem>
+                                                                        ) : (
+                                                                            perDistrict?.data?.map((item) => (
+                                                                                <SelectItem
+                                                                                    key={item.ivrmmD_Id}
+                                                                                    value={item.ivrmmD_Id.toString()}>
+                                                                                    {item.ivrmmD_Name}
+                                                                                </SelectItem>
+                                                                            ))
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {errors.amsT_PerDistrict && <FormError>{errors.amsT_PerDistrict.message}</FormError>}
+                                                    </div> */}
                                                     <InputText
                                                         label='City'
                                                         id='amsT_PerCity'
@@ -6935,9 +7126,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             </Select>
                                                         )}
                                                     />
-                                                    {errors.amsT_PlaceOfBirthCountry && (
-                                                        <FormError>{errors.amsT_PlaceOfBirthCountry.message}</FormError>
-                                                    )}
                                                 </div>
 
                                                 {/* State */}
@@ -6976,9 +7164,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             </Select>
                                                         )}
                                                     />
-                                                    {errors.amsT_PlaceOfBirthState && (
-                                                        <FormError>{errors.amsT_PlaceOfBirthState.message}</FormError>
-                                                    )}
                                                 </div>
 
                                                 {/* District */}

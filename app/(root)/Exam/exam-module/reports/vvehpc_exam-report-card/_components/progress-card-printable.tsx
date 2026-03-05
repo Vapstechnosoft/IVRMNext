@@ -1,11 +1,12 @@
 // _components/progress-card-printable.tsx
 
 'use client';
-import type { IExamReportCard, ISubject } from '@/types/exam/exam-module/report';
+import type { IExamReportCard, IMasterInstitution, Institution, ISubject } from '@/types/exam/exam-module/report';
 import Image from 'next/image';
 
 interface Props {
     reportData: IExamReportCard[];
+    institution: Institution | IMasterInstitution | null | undefined;
     subjects: ISubject[];
     headerInfo: any;
     examName: string;
@@ -13,7 +14,7 @@ interface Props {
     year: string;
 }
 
-export default function ProgressCardPrintView({ reportData, subjects, headerInfo, examName, examCode, year }: Props) {
+export default function ProgressCardPrintView({ reportData, institution, subjects, headerInfo, examName, examCode, year }: Props) {
     const formatDate = (dateStr?: string | null) => {
         if (!dateStr) return 'N/A';
         return new Date(dateStr).toLocaleDateString('en-GB');
@@ -50,8 +51,8 @@ export default function ProgressCardPrintView({ reportData, subjects, headerInfo
                         {/* School Header */}
                         <div className='mb-4 text-center'>
                             <Image
-                                src='https://kusumadata.blob.core.windows.net/files/30/Vidya%20Vikas%20Marks.jpg'
-                                alt='School Logo'
+                                src={institution?.mI_Logo || 'https://kusumadata.blob.core.windows.net/files/30/Vidya%20Vikas%20Marks.jpg'}
+                                alt={institution?.mI_Name || 'School Logo'}
                                 width={800}
                                 height={180}
                                 className='inline-block border border-black'

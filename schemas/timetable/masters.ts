@@ -26,7 +26,7 @@ export const masterDayClasswiseSchema = {
 
 export const masterBuildingSchema = {
     addOrUpdate: z.object({
-        ttmB_Id: z.number().optional(),
+        ttmB_Id: number().optional(),
         ttmB_BuildingName: createStringOnlySchema('Building Name', 1, 100)
     }),
     delete: z.object({
@@ -101,9 +101,22 @@ export const masterPeriodSchema = {
     save: z.object({
         periodname: number().min(1, 'Please select Academic Year'),
         periodorder: number().min(1, 'Please enter Period Order'),
-        dayids: z.array(z.string()).nonempty('Please select at least one Day'),
+        categoryids: z.array(z.string()).nonempty('Please select at least one Category'),
         noOfPeriods: z.number().min(1, 'Enter at least 1 period').max(20, 'Max 20 periods allowed'),
-        half: z.string().optional()
+        half: z.string().min(1, 'Please select Half Day')
+    })
+};
+
+export const periodAllocationmasterPeriod = {
+    save: z.object({
+        //   periodname: number().min(1, 'Please select Academic Year'),
+        periodorder: number().optional(),
+        // categoryids: z.array(z.string()).nonempty('Please select at least one Category'),
+        noOfPeriods: z.number().optional()
+        // half: z.string().optional()
+    }),
+    delete: z.object({
+        ttmP_Id: deleteIdSchema('ttmP_Id')
     })
 };
 
@@ -123,6 +136,9 @@ export const masterPeriodClassSchema = {
         ttmC_Id: number().min(1, 'Please select Category'),
         calssids: z.array(z.string()).nonempty('Please select at least one Class'),
         noOfPeriods: z.coerce.number().min(1, 'Enter at least 1 period')
+    }),
+    delete: z.object({
+        ttmpC_Id: deleteIdSchema('ttmpC_Id')
     })
 };
 
@@ -137,6 +153,9 @@ export const periodDistributionSchema = {
         asmS_Id: z.number().min(1, 'Section is required').optional().or(z.literal(0)),
         ismS_Id: z.number().min(1, 'Subject is required').optional().or(z.literal(0)),
         nop2: z.coerce.number().optional().or(z.literal(0))
+    }),
+    delete: z.object({
+        ttfpD_Id: deleteIdSchema('ttfpD_Id')
     })
 };
 
@@ -146,15 +165,22 @@ export const periodTimeSettingSchema = {
         asmaY_Id: z.number().min(1, 'Academic Year is required'),
         ttmC_Id: z.number().min(1, 'Category is required'),
         ttmP_Id: z.number().min(1, 'Period is required'),
-        dayIds: z
-            .array(
-                z.object({
-                    ttmD_Id: z.number(),
-                    ttmD_DayName: z.string().optional()
-                })
-            )
-            .min(1, 'Select at least one day'),
+        dayids: z.array(z.string()).nonempty('Please select at least one Day'),
         startTime: z.date({ required_error: 'Start Time is required' }),
         endTime: z.date({ required_error: 'End Time is required' })
+    }),
+    delete: z.object({
+        ttmdpT_Id: deleteIdSchema('ttmdpT_Id')
+    })
+};
+export const masterBuildingClassSectionSchema = {
+    addOrUpdate: z.object({
+        ttmB_Id: number().min(1, 'Please select Category'),
+        // ttmB_BuildingName: createStringOnlySchema('Building Name', 1, 100),
+        calssids: z.array(z.string()).nonempty('Please select at least one Class'),
+        sectionids: z.array(z.string()).nonempty('Please select at least one Section')
+    }),
+    delete: z.object({
+        ttmbcS_Id: deleteIdSchema('ttmbcS_Id')
     })
 };

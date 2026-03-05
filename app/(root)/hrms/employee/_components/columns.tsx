@@ -2,6 +2,7 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { IEmployeeList } from '@/types/hrms/hrms-config/employee';
 import type { ColumnDef } from '@tanstack/react-table';
+import { Badge } from '@/components/ui/badge';
 import { ActionsCell } from './actions-cell';
 export const employeeColumns: ColumnDef<IEmployeeList>[] = [
     {
@@ -113,6 +114,21 @@ export const employeeColumns: ColumnDef<IEmployeeList>[] = [
         cell: ({ row }) => {
             const order = row.original.hrmE_EmployeeOrder || 0;
             return <div className='text-center'>{order || '-'}</div>;
+        },
+        enableSorting: true
+    },
+    {
+        accessorKey: 'hrmE_ActiveFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+        cell: ({ row }) => {
+            const isActive = row.getValue('hrmE_ActiveFlag') as boolean;
+            return (
+                <div className='flex justify-center'>
+                    <Badge variant={isActive ? 'success' : 'destructive'}>
+                        {isActive ? 'Active' : 'Deactive'}
+                    </Badge>
+                </div>
+            );
         },
         enableSorting: true
     },

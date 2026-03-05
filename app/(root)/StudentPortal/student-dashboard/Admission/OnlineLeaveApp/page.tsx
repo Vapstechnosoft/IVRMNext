@@ -22,12 +22,17 @@ export default function OnlineLeaveAppPage() {
     const [student, setStudent] = useState<StudentDetails | null>(null);
     const [leaveApplications, setLeaveApplications] = useState<LeaveApplication[]>([]);
     const [editingLeave, setEditingLeave] = useState<LeaveApplication | null>(null);
+    const [mi_Id, setMi_Id] = useState<number>(0);
+    const [asmaY_Id, setAsmaY_Id] = useState<number>(0);
 
     const loadInitialData = async () => {
         setIsLoading(true);
         try {
             const result = await getLeaveLoadData();
             if (result) {
+                setMi_Id(result.mi_Id || 0);
+                setAsmaY_Id(result.asmaY_Id || 0);
+
                 if (result.studentdetails && result.studentdetails.length > 0) {
                     setStudent(result.studentdetails[0]);
                 } else if (!student && session?.user) {
@@ -67,13 +72,16 @@ export default function OnlineLeaveAppPage() {
         setIsSubmitting(true);
         try {
             const payload = {
-                ASLA_Id: data.aslA_Id,
-                ASLA_ApplyDate: new Date().toISOString(),
-                ASLA_FromDate: data.aslA_FromDate.toISOString(),
-                ASLA_ToDate: data.aslA_ToDate.toISOString(),
-                ASLA_Flag: data.aslA_Flag,
-                ASLA_LeaveId: data.aslA_LeaveId ? parseInt(data.aslA_LeaveId) : 0,
-                ASLA_Reason: data.aslA_Reason,
+                aslA_Id: data.aslA_Id,
+                mi_Id: mi_Id,
+                amsT_Id: student?.amsT_Id || 0,
+                asmaY_Id: asmaY_Id,
+                aslA_LeaveId: data.aslA_LeaveId ? parseInt(data.aslA_LeaveId) : 0,
+                aslA_Reason: data.aslA_Reason,
+                aslA_ApplyDate: new Date().toISOString(),
+                aslA_FromDate: data.aslA_FromDate.toISOString(),
+                aslA_ToDate: data.aslA_ToDate.toISOString(),
+                aslA_Flag: data.aslA_Flag
             };
 
             await applyLeave(payload);

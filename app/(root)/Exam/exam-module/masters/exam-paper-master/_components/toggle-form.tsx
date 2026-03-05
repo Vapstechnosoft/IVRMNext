@@ -40,7 +40,7 @@ export default function ToggleExamPaperForm({ rowData, onClose }: ToggleExamPape
 
     const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
-            const response = await toggleMasterExamPaper(30, rowData.empatY_Id);
+            const response = await toggleMasterExamPaper(rowData.empatY_Id);
 
             if (response.success) {
                 toast.success(response.message);

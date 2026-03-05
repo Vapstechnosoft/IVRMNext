@@ -8,7 +8,13 @@ import {
     getStudentList,
     getSectionList,
     getItemOnStoreChange,
-    getItemDetail
+    getItemDetail,
+    getInvTSalesEmployees,
+    getInvTSalesCustomers,
+    getInvTSalesStores,
+    getInvTSalesItemDetails,
+    getSaleItemDetails,
+    getSaletypes
 } from '@/server/inventory/transactions/inv-t-sales';
 import type { ApiSearchparams } from '@/types';
 import { toast } from 'sonner';
@@ -82,6 +88,26 @@ export function useInvTSales(searchParams?: ApiSearchparams) {
         mutationFn: getItemDetail
     });
 
+    const getEmployeesMutation = useMutation({
+        mutationFn: getInvTSalesEmployees
+    });
+
+    const getCustomersMutation = useMutation({
+        mutationFn: getInvTSalesCustomers
+    });
+
+    const getStoresMutation = useMutation({
+        mutationFn: getInvTSalesStores
+    });
+
+    const getSaleItemDetailsMutation = useMutation({
+        mutationFn: (invmsL_Id: number) => getSaleItemDetails(invmsL_Id)
+    });
+
+    const getSaletypesMutation = useMutation({
+        mutationFn: ({ invmsL_Id, saletype }: { invmsL_Id: number, saletype: string }) => getSaletypes(invmsL_Id, saletype)
+    });
+
     return {
         ...query,
         saveMutation,
@@ -91,6 +117,11 @@ export function useInvTSales(searchParams?: ApiSearchparams) {
         studentListMutation,
         sectionListMutation,
         itemOnStoreChangeMutation,
-        itemDetailMutation
+        itemDetailMutation,
+        getEmployeesMutation,
+        getCustomersMutation,
+        getStoresMutation,
+        getSaleItemDetailsMutation,
+        getSaletypesMutation
     };
 }

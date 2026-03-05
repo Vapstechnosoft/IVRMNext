@@ -11,9 +11,6 @@ export const INVENTORY_QUERY_KEYS = {
     INV_MASTER_GROUP: 'INV_MASTER_GROUP',
     INV_MASTER_ITEM: 'INV_MASTER_ITEM',
     INV_MASTER_UOM: 'INV_MASTER_UOM'
-
-
-
 };
 
 export const SUPER_ADMIN_QUERY_KEYS = {
@@ -80,7 +77,8 @@ export const ADMISSION_QUERY_KEYS = {
     ATTENDANCE_REPORT: 'attendance_report',
     STUDENT_ATTENDANCE_REPORT: 'student_attendance_report',
     DATE_OF_BIRTH_REPORT: 'date_of_birth_report',
-    STUDENT_ATTENDANCE_SEARCH: 'student_attendance_search'
+    STUDENT_ATTENDANCE_SEARCH: 'student_attendance_search',
+    STUDENT_CATEGORY_BY_CLASS: 'student_category_by_class'
 };
 
 export const PREADMISSION_QUERY_KEYS = {
@@ -113,7 +111,10 @@ export const PREADMISSION_QUERY_KEYS = {
     STUDENT_COUNT_REPORT: 'student_count_report',
     STUDENT_APPLICATION_FORM: 'student_application_form',
     ACADEMIC_YEAR_MASTER_CONFIGURATION: 'academic_year_master_configuration',
-    PARENTS_DASHBOARD: 'parents_dashboard'
+    PARENTS_DASHBOARD: 'parents_dashboard',
+    STUDY_CERTIFICATE_REPORT: 'study_certificate_report',
+    CHARACTER_CERTIFICATE_REPORT: 'character_certificate_report',
+    GENERATE_QR_CODE_CERTIFICATE: 'generate_qr_code_certificate'
 };
 
 export const FEES_QUERY_KEYS = {
@@ -225,7 +226,9 @@ export const FEES_QUERY_KEYS = {
     FEE_STUDENT_CURRENT_ACADEMIC_DETAILS: 'fee_student_current_academic_details',
     MASTER_SETTING_LIST: 'master_setting_list',
     FEE_PAYMENTGATEWAY_INSTITUTION_NAME: 'fee_paymentgateway_institution_name',
-
+    FEE_AMOUNT_ENTRY_STTHOMAS: 'fee_amount_entry_stthomas',
+    ACADEMIC_DROPDOWN_FEES_STTHOMAS: 'academic_dropdown_fees_stthomas',
+    FEE_TERM_DROPDOWNDATA_REPORTS: 'fee_term_dropdowndata_reports',
     FEE_DEFAULTER_REPORT: 'fee_defaulter_report',
     FEE_GROUP_DEFAULTER: 'fee_group_defaulter_report',
     FEE_TERM_DEFAULTER: 'fee_term_defaulter_report',
@@ -239,6 +242,8 @@ export const FEES_QUERY_KEYS = {
     FEE_CONCESSION_ACADEMIC_YEAR_DROPDOWN: 'fee_concession_academic_year_dropdown',
     FEE_CONCESSION_TERM_DROPDOWN: 'fee_concession_term_dropdown',
     FEE_REFUNDABLE_LIST: 'fee_refundable_list',
+    FEE_CONCESSION_ON_LOAD: 'fee_concession_on_load',
+    FEE_STUDENT_TRANSACTIONSTTHOMAS: 'fee_student_transactionstthomas',
 
     FEE_CONCESSION_CLASS_DROPDOWN: 'fee_concession_class_dropdown',
     FEE_CONCESSION_HEAD_LIST: 'fee_concession_head_list',
@@ -473,6 +478,7 @@ export const HRMS_QUERY_KEYS = {
     LEAVE_HISTORY: 'leave_leave_history',
     APPLY_LEAVE: 'leave_apply_leave',
     LEAVE_APPROVAL: 'leave_leave_approval',
+    LEAVE_CONFIGURATION: 'leave_leave_configuration',
 
     // Master drop down
     MASTER_GROUP_TYPES: 'hrms_master_group_type',
@@ -496,9 +502,8 @@ export const HOSTEL_QUERY_KEYS = {
     MASTER_COUNTRY_DROPDOWN_LIST: 'hostel_master_country_dropdown_list',
     MASTER_STATE_DROPDOWN_LIST: 'hostel_master_state_dropdown_list',
     MASTER_FACILITY_DROPDOWN_LIST: 'hostel_master_facility_dropdown_list',
-    MASTER_PHOTO_LIST: 'hostel_master_photo_list',
-    
-}
+    MASTER_PHOTO_LIST: 'hostel_master_photo_list'
+};
 export const LIBRARY_QUERY_KEYS = {
     MASTER_LIBRARY_LIST_DATA: 'master_library_list_data',
     MASTER_VENDOR_LIST_DATA: 'master_vendor_list_data',
@@ -535,13 +540,68 @@ export const PORTAL_QUERY_KEYS = {
     COE_LIST: 'coe_list',
     STUDENT_FEE_DETAILS2: 'student_fee_details2',
     CUMULATIVE_FEE_ANALYSIS: 'Cumulative_Fee_Analysis',
-    FEE_ONLINE_PAYMENT_STUDENT_INFO:"fee_online_student_info",
-    FEE_ONLINE_PAYMENT_GROUP_LIST:"fee_online_payment_group_list"
+    FEE_ONLINE_PAYMENT_STUDENT_INFO: 'fee_online_student_info',
+    FEE_ONLINE_PAYMENT_GROUP_LIST: 'fee_online_payment_group_list',
+    FEE_ONLINE_PAYMENT_DETAILS: 'fee_online_payment_details',
+    FEE_ONLINE_PAYMENT_AMOUNT_DETAILS: 'fee_online_payment_amount_details',
+    FEE_ONLINE_PAYMENT_ORDER: 'fee_online_payment_order',
+    FEE_ONLINE_RAZORPAY_PAYMENT: 'fee_online_razorpay_payment',
+    GET_DEPARTMENT_FOR_NOTICE_BOARD: 'get_department_for_notice_board',
+    GET_DESIGNATION_FOR_NOTICE_BOARD: 'get_designation_for_notice_board',
+    GET_EMPLOYEES_FOR_NOTICE_BOARD: 'get_employees_for_notice_board',
+    GET_ROUTES_FOR_NOTICE_BOARD: 'get_routes_for_notice_board',
+    GET_GROUPS_FOR_NOTICE_BOARD: 'get_groups_for_notice_board',
+    GET_TERMS_FOR_NOTICE_BOARD: 'get_terms_for_notice_board',
+    EXAM_STUDENT_REPORT_YEAR_DROP_DOWN: 'exam_student_report_year_drop_down',
+    EXAM_STUDENT_COMPLIANTS_YEAR_DROP_DOWN: 'exam_student_compliants_year_drop_down'
+};
+
+export const STAFF_PORTAL_QUERY_KEYS = {
+    STAFF_DASHBOARD: 'staff_dashboard',
+    STAFF_NOTICE_BOARD: 'staff_notice_board',
+    STAFF_EVENTS: 'staff_events',
+    STAFF_ASSETS: 'staff_assets',
+    STAFF_MEDICAL_RECORDS: 'staff_medical_records',
+    STAFF_NOTICE_ATTACHMENTS: 'staff_notice_attachments',
+    STAFF_ATTENDANCE_ENTRY: 'staff_attendance_entry',
+    STAFF_ATTENDANCE_ENTRY_INITIAL: 'staff_attendance_entry_initial',
+
+    FEE_ACADEMIC_YEARS: 'fee_academic_years',
+    FEE_STUDENT_INFORMATION: 'fee_student_information',
+    FEE_PORTAL_STUDENT_INFORMATION: 'fee_portal_student_information',
+    FEE_DETAILS: 'fee_details',
+    FEE_PAYMENT_ORDER: 'fee_payment_order',
+    FEE_RAZORPAY_PAYMENT: 'fee_razorpay_payment',
+    FEE_PAYMENT_CHARGES: 'fee_payment_charges',
+    FEE_ONLINE_PAYMENT_STUDENT_INFO: 'fee_online_student_info',
+    FEE_ONLINE_PAYMENT_GROUP_LIST: 'fee_online_payment_group_list'
 };
 
 export const COE_QUERY_KEYS = {
-    MASTER_EVENT_COE: 'master_event_coe'
+    MASTER_EVENT_COE: 'master_event_coe',
+    MASTER_EVENT_COE_INITIAL_DATA: 'master_event_coe_initial_data',
+    EVENT_DROPDOWN: 'event_dropdown'
 };
 
-
-
+export const TRANSPORT_QUERY_KEYS = {
+    MASTER_AREA: 'master_area',
+    MASTER_DRIVER: 'master_driver',
+    MASTER_FUEL_TYPE: 'master_fuel_type',
+    MASTER_LOCATION: 'master_location',
+    MASTER_ROUTE: 'master_route',
+    MASTER_ROUTE_DROPDOWN: 'master_route_dropdown',
+    MASTER_AREA_DROPDOWN_LIST: 'master_area_dropdown_list',
+    MASTER_ROUTE_AREA: 'master_route_area',
+    MASTER_SERVICE_STATION: 'master_service_station',
+    MASTER_SESSION: 'master_session',
+    MASTER_VEHICLE_TYPE: 'master_vehicle_type',
+    EXPIRY_SETTINGS: 'expiry_settings',
+    ROUTE_LOCATION_MAPPING: 'route_location_mapping',
+    VEHICLE_DRIVER_MAPPING: 'vehicle_driver_mapping',
+    VEHICLE_ROUTE_MAPPING: 'vehicle_route_mapping',
+    VEHICLE_DROPDOWN: 'vehicle_dropdown',
+    DRIVER_DROPDOWN: 'driver_dropdown',
+    ROUTE_DROPDOWN: 'route_dropdown',
+    SESSION_DROPDOWN: 'session_dropdown',
+    VECHILE_GRID_LIST: 'vechile_grid_list'
+};
