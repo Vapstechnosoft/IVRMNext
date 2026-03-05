@@ -188,7 +188,17 @@ export const noticeBoardSchemaNew = {
                 .optional()
                 .default([]),
             createdDate: z.string().optional(),
-            displayDate: z.string().optional()
+            displayDate: z.string().optional(),
+            classlsttwo: z
+                .array(z.object({ asmcL_Id: z.number() }))
+                .optional()
+                .default([]),
+            sectionlistarray: z
+                .array(z.object({ asmS_Id: z.number() }))
+                .optional()
+                .default([]),
+
+
         })
         .refine(
             (data) => {
