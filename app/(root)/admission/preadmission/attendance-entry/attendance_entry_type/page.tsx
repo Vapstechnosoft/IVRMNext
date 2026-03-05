@@ -139,9 +139,9 @@ function EntryForm({
     const classListRaw = classDropdownResponse?.data || classDropdownResponse;
     const classOptions = Array.isArray(classListRaw)
         ? classListRaw.map((item: any) => ({
-              label: item.asmcL_ClassName,
-              value: String(item.asmcL_Id)
-          }))
+            label: item.asmcL_ClassName,
+            value: String(item.asmcL_Id)
+        }))
         : [];
 
     // Save mutation (Create)
@@ -268,7 +268,7 @@ function EntryForm({
                                             setSelectedAcademicYearId(Number(value));
                                             setSelectedClasses([]); // Reset classes when year changes
                                         }}
-                                        disabled={true}>
+                                        disabled={!!editingRecord}>
                                         <SelectTrigger className='w-full md:w-[280px]'>
                                             <SelectValue placeholder='Select Academic Year' />
                                         </SelectTrigger>
@@ -355,8 +355,8 @@ function EntryForm({
                                 ? 'UPDATING...'
                                 : 'SAVING...'
                             : editingRecord
-                              ? 'UPDATE'
-                              : 'SAVE'}
+                                ? 'UPDATE'
+                                : 'SAVE'}
                     </Button>
                     <Button
                         variant='destructive'
