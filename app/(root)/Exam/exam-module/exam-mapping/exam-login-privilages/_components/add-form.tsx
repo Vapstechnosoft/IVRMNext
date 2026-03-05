@@ -1143,7 +1143,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                     </Button>
 
                                     {editMode === 'edit' && (
-                                        <Button type='button' variant='outline' className='mt-2' onClick={handleCancelEdit}>
+                                        <Button type='button' variant='outline' className='ml-3 w-fit' onClick={handleCancelEdit}>
                                             Cancel
                                         </Button>
                                     )}

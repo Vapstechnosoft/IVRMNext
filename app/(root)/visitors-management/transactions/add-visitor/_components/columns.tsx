@@ -3,8 +3,8 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { ArrowUpDown, Edit, Trash2 } from 'lucide-react';
+import type { VisitorTransactionData } from '@/types/visitors-management/transactions';
 import { format } from 'date-fns';
-import { VisitorTransactionData } from '@/types/visitors-management/transactions';
 
 export const visitorColumns: ColumnDef<VisitorTransactionData>[] = [
     {

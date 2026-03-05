@@ -1,3 +1,5 @@
+import { ApiResponse } from "@/lib/apiService";
+
 export interface AppointmentApprovalDTO {
     VMAP_Id: number;
     VMAP_VisitorName: string;
@@ -47,6 +49,6 @@ export interface AppointmentApprovalLoadData {
     emplist: EmployeeDTO[];
 }
 
-// export interface SaveAppointmentApprovalResponse extends ApiResponse {
-//     returnVal: string;
-// }
+export interface SaveAppointmentApprovalResponse extends ApiResponse<any> {
+    returnVal: string;
+}

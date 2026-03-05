@@ -124,7 +124,7 @@ export default function AppointmentStatusForm({ onSuccess }: AppointmentStatusFo
                                     <DatePicker
                                         date={field.value}
                                         setDate={field.onChange}
-                                    // disabled
+                                        disabled
                                     />
                                 </FormControl>
                                 <FormMessage />
