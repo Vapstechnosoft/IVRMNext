@@ -65,5 +65,12 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterPeriodDetailsList }) {
         [openToggleForm]
     );
 
-    return <ActionButtons rowData={rowData} buttons={{ toggle: true }} onToggle={handleToggle} toggleConditionKey='ttmP_ActiveFlag' />;
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ toggle: false, delete: true, edit: true }}
+            onToggle={handleToggle}
+            toggleConditionKey='ttmP_ActiveFlag'
+        />
+    );
 }

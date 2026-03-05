@@ -41,6 +41,7 @@ import {
     useSpecializationDropdown,
     useTeachingTypeDropdown
 } from '@/hooks/hrms/useEmployeeRegister';
+import { useMasterPayrollStandard } from '@/hooks/hrms/useMasters';
 import { getIconByName } from '@/lib/lucide-icon-registry';
 import { cn } from '@/lib/utils';
 import { employeeRegisterSchemas } from '@/schemas/hrms/employee-register-schemas';
@@ -246,6 +247,16 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     });
 
     const { errors, isSubmitting } = formState;
+
+    // Fetch payroll standard for retirement years
+    const { data: payrollStandardResponse } = useMasterPayrollStandard();
+    const retirementYrs = useMemo(() => {
+        // Find hrC_RetirementYrs in the response data
+        // The API returns IMasterPayrollStandardList directly as the data property of ApiResponse
+        const yrs = payrollStandardResponse?.data?.hrC_RetirementYrs;
+        console.log('🔍 [DEBUG] Fetched Retirement Years:', yrs);
+        return yrs || 60; // Default to 60 if not found
+    }, [payrollStandardResponse]);
 
     // Watch for dependent dropdown values
     const selectedReligion = useWatch({ control, name: 'religion' });
@@ -513,7 +524,24 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             religions: religionDropdown || [],
             casteCategories: casteCategoryDropdown || [],
             castes: casteDropdown || [],
-            modeOfPayment: paymentModeDropdown || [],
+            modeOfPayment: (() => {
+                const modes = [...(paymentModeDropdown || [])];
+                const required = ['Cash', 'Cheque', 'Bank'];
+                required.forEach((req) => {
+                    const index = modes.findIndex(
+                        (m) =>
+                            String(m.value || m.ivrmmod_ModeOfPayment || '').toLowerCase() === req.toLowerCase()
+                    );
+                    if (index === -1) {
+                        modes.push({ key: req, value: req });
+                    } else {
+                        // If found, ensure key is also the name to satisfy watch('modeOfPayment') === 'Bank'
+                        // but only if it's one of the required ones to avoid breaking other IDs
+                        modes[index] = { ...modes[index], key: req };
+                    }
+                });
+                return modes;
+            })(),
             banks: bankDropdown || [],
             departments: departmentDropdown || [],
             countries: countryDropdown || [],
@@ -1704,15 +1732,31 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 const dob = new Date(dateOfBirth);
                 if (!Number.isNaN(dob.getTime())) {
                     const retirementDate = new Date(dob);
-                    retirementDate.setFullYear(retirementDate.getFullYear() + 60);
+                    if (retirementYrs && retirementYrs > 0) {
+                        retirementDate.setFullYear(retirementDate.getFullYear() + retirementYrs);
+                    } else {
+                        retirementDate.setFullYear(retirementDate.getFullYear() + 60);
+                    }
                     const formattedDate = format(retirementDate, 'yyyy-MM-dd');
-                    setValue('dateOfRetirement', formattedDate, { shouldValidate: true, shouldDirty: true });
+                    console.log('🔄 [ADD-FORM] Auto-calculating retirement date:', {
+                        dob: dateOfBirth,
+                        retirementYrs,
+                        calculatedRetirementDate: formattedDate
+                    });
+
+                    // Only update if it's different to avoid redundant re-renders
+                    if (getValues('dateOfRetirement') !== formattedDate) {
+                        setValue('dateOfRetirement', formattedDate, {
+                            shouldValidate: true,
+                            shouldDirty: true
+                        });
+                    }
                 }
-            } catch (_error) {
-                // Invalid date, ignore
+            } catch (error) {
+                console.error('❌ [ADD-FORM] Error auto-calculating retirement date:', error);
             }
         }
-    }, [dateOfBirth, setValue]);
+    }, [dateOfBirth, setValue, retirementYrs, getValues]);
 
     // Watch documentList for file handling
     const watchDocuments = watch('documentList');
@@ -1998,6 +2042,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                 <div className='space-y-4'>
                                                     <InputText
                                                         label='First Name'
+                                                        placeholder='Enter First Name'
                                                         required
                                                         id='firstName'
                                                         maxLength={50}
@@ -2036,6 +2081,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     />
                                                     <InputText
                                                         label='Middle Name'
+                                                        placeholder='Enter Middle Name'
                                                         id='middleName'
                                                         maxLength={50}
                                                         onKeyDown={(e) => {
@@ -2071,6 +2117,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     />
                                                     <InputText
                                                         label='Last Name'
+                                                        placeholder= 'Enter Last Name'
                                                         id='lastName'
                                                         maxLength={50}
                                                         onKeyDown={(e) => {
@@ -2106,6 +2153,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     />
                                                     <InputText
                                                         label='Employee Code'
+                                                        placeholder='Enter Employee Code'
                                                         required
                                                         id='employeeCode'
                                                         maxLength={20}
@@ -2115,7 +2163,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         error={errors.employeeCode?.message as string | undefined}
                                                     />
                                                     <InputText
-                                                        label="Father's Name *"
+                                                        label="Father's Name"
+                                                        placeholder='Enter Father Name'
+                                                        required
                                                         id='fatherName'
                                                         maxLength={50}
                                                         onKeyDown={(e) => {
@@ -2150,7 +2200,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         error={errors.fatherName?.message as string | undefined}
                                                     />
                                                     <InputText
-                                                        label="Mother's Name *"
+                                                        label="Mother's Name "
+                                                        placeholder='Enter Mother Name'
+                                                        required
                                                         id='motherName'
                                                         maxLength={50}
                                                         onKeyDown={(e) => {
@@ -2183,6 +2235,97 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         }}
                                                         {...register('motherName')}
                                                         error={errors.motherName?.message as string | undefined}
+                                                    />
+                                                    <InputText
+                                                        label='Spouse Name'
+                                                        placeholder='Enter Spouse Name'
+                                                        id='spouseName'
+                                                        maxLength={50}
+                                                        onKeyDown={(e) => {
+                                                            const allowedKeys = /^[a-zA-Z\s\-']$/;
+                                                            const controlKeys = [
+                                                                'Backspace',
+                                                                'Delete',
+                                                                'Tab',
+                                                                'Escape',
+                                                                'Enter',
+                                                                'ArrowLeft',
+                                                                'ArrowRight',
+                                                                'ArrowUp',
+                                                                'ArrowDown'
+                                                            ];
+                                                            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                return;
+                                                            }
+                                                            if (e.key === ' ' && (e.target as HTMLInputElement).value.endsWith(' ')) {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            if (e.key === ' ' && (e.target as HTMLInputElement).selectionStart === 0) {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            if (!allowedKeys.test(e.key)) {
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
+                                                        {...register('spouseName')}
+                                                        error={errors.spouseName?.message as string | undefined}
+                                                    />
+                                                    <InputText
+                                                        label='Spouse Occupation'
+                                                        placeholder='Enter Spouse Occupation'
+                                                        id='spouseOccupation'
+                                                        maxLength={50}
+                                                        {...register('spouseOccupation')}
+                                                        error={errors.spouseOccupation?.message as string | undefined}
+                                                    />
+                                                    <InputText
+                                                        label='Spouse Mobile No.'
+                                                        placeholder='Enter Spouse Mobile No.'
+                                                        id='spouseMobileNo'
+                                                        maxLength={10}
+                                                        onKeyDown={(e) => {
+                                                            const controlKeys = [
+                                                                'Backspace',
+                                                                'Delete',
+                                                                'Tab',
+                                                                'Escape',
+                                                                'Enter',
+                                                                'ArrowLeft',
+                                                                'ArrowRight',
+                                                                'ArrowUp',
+                                                                'ArrowDown'
+                                                            ];
+                                                            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                return;
+                                                            }
+                                                            if (e.key === ' ') {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            if (!/^[0-9]$/.test(e.key)) {
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
+                                                        {...register('spouseMobileNo')}
+                                                        error={errors.spouseMobileNo?.message as string | undefined}
+                                                    />
+                                                    <InputText
+                                                        label='Spouse Email Id'
+                                                        placeholder='Enter Spouse Email Id'
+                                                        id='spouseEmailId'
+                                                        maxLength={100}
+                                                        {...register('spouseEmailId')}
+                                                        error={errors.spouseEmailId?.message as string | undefined}
+                                                    />
+                                                    <InputText
+                                                        label='Spouse Address'
+                                                        placeholder='Enter Spouse Address'
+                                                        id='spouseAddress'
+                                                        maxLength={255}
+                                                        {...register('spouseAddress')}
+                                                        error={errors.spouseAddress?.message as string | undefined}
                                                     />
                                                     <Controller
                                                         name='typeOfEmployment'
@@ -2468,7 +2611,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 field={field}
                                                                 fieldState={fieldState}
                                                                 label='Date Of Confirmation'
-                                                                required
                                                                 placeholder='Pick date of confirmation'
                                                             />
                                                         )}
@@ -2754,6 +2896,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     ) : null}
                                                     <InputText
                                                         label='National SSN'
+                                                        placeholder='Enter National SSN'
                                                         id='nationalSSN'
                                                         maxLength={9}
                                                         onKeyDown={(e) => {
@@ -2920,6 +3063,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     <Controller
                                                         name='dateOfBirth'
                                                         control={control}
+                                                        rules={{ required: false }}
                                                         render={({ field, fieldState }) => (
                                                             <DateField
                                                                 field={field}
@@ -2937,7 +3081,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 field={field}
                                                                 fieldState={fieldState}
                                                                 label='Date Of Retirement'
-                                                                required
                                                                 placeholder='Pick date of retirement'
                                                             />
                                                         )}
@@ -3267,6 +3410,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             if (e.key === ' ') {
                                                                 e.preventDefault();
                                                                 return;
+                                                            }
+                                                            if (!/^[a-zA-Z0-9]$/.test(e.key)) {
+                                                                e.preventDefault();
                                                             }
                                                         }}
                                                         {...register('panCardNo')}

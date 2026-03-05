@@ -6,120 +6,115 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useEventsSponsor } from '@/hooks/sports/useEventsSponsor';
 import type { IEventSponsorMapping } from '@/types/sports/transactions/events-sponsor';
-import { Plus, X } from 'lucide-react';
-import { use } from 'react';
+import { Plus, X, Loader2 } from 'lucide-react';
 import AddEventSponsorMappingForm from './_components/add-form';
 import { eventSponsorColumns } from './_components/columns';
 import UpdateEventSponsorMappingForm from './_components/update-form';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
-export default function EventsSponsorMappingPage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useEventsSponsor(searchParams);
-
+export default function EventsSponsorMappingPage() {
     return (
         <FormProvider<IEventSponsorMapping>>
-            <EventsSponsorMappingPageContent response={response} isLoading={isLoading} error={error} />
+            <EventsSponsorMappingPageContent />
         </FormProvider>
     );
 }
 
-function EventsSponsorMappingPageContent({
-    response,
-    isLoading,
-    error
-}: {
-    response: any;
-    isLoading: boolean;
-    error: any;
-}) {
-    const { openAddForm, isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<IEventSponsorMapping>();
-    const tableProps = useDataTableProps(response);
+function EventsSponsorMappingPageContent() {
+    const { details } = useEventsSponsor();
+    const {
+        openAddForm,
+        isAddFormOpen,
+        isEditFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IEventSponsorMapping>();
+
+    const gridData = details.data?.data?.sponsormappingList || [];
+    const tableProps = useDataTableProps({ ...details.data, data: gridData });
 
     return (
-        <div className='min-h-screen'>
-            <div className='container space-y-4 p-1'>
-                {/* Header */}
-                <div className='flex justify-end'>
-                    <Button
-                        type='button'
-                        onClick={openAddForm}
-                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4' />
-                        Add Mapping
-                    </Button>
-                </div>
+        <div className='container mx-auto space-y-6 p-4'>
+            {/* Action Header */}
+            <div className='flex items-center justify-between'>
+                <h1 className='text-2xl font-bold tracking-tight'>Events Sponsor Mapping</h1>
+                <Button
+                    type='button'
+                    onClick={openAddForm}
+                    disabled={isAddFormOpen}
+                    className='shadow-md transition-all duration-200 hover:scale-105 active:scale-95'>
+                    <Plus className='mr-2 h-4 w-4' />
+                    Add New Mapping
+                </Button>
+            </div>
 
-                {/* Data Table Section */}
-                <CollapsibleSection
-                    title='Events Sponsor Mapping List'
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+            {/* Add Form Section */}
+            {isAddFormOpen && (
+                <div ref={addFormRef} className='animate-in fade-in slide-in-from-top-4 duration-300'>
+                    <Card className='border-primary/20 shadow-lg'>
+                        <CardHeader className='flex flex-row items-center justify-between bg-primary/5 pb-2'>
+                            <CardTitle className='text-lg font-semibold'>Add Events Sponsor Mapping</CardTitle>
+                            <Button
+                                type='button'
+                                onClick={closeAddForm}
+                                variant='ghost'
+                                size='sm'
+                                className='h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive'>
+                                <X className='h-4 w-4' />
+                            </Button>
+                        </CardHeader>
+                        <CardContent className='pt-6'>
+                            <AddEventSponsorMappingForm onSuccess={closeAddForm} />
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
+
+            {/* Edit Form Section */}
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef} className='animate-in fade-in slide-in-from-top-4 duration-300'>
+                    <Card className='border-primary/20 shadow-lg'>
+                        <CardHeader className='flex flex-row items-center justify-between bg-primary/5 pb-2'>
+                            <CardTitle className='text-lg font-semibold'>Edit Events Sponsor Mapping</CardTitle>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive'>
+                                <X className='h-4 w-4' />
+                            </Button>
+                        </CardHeader>
+                        <CardContent className='pt-6'>
+                            <UpdateEventSponsorMappingForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
+
+            {/* Data Table Section */}
+            <Card className='shadow-md'>
+                <CardHeader className='border-b bg-muted/30 pb-3'>
+                    <CardTitle className='text-lg font-medium'>Mapping Records</CardTitle>
+                </CardHeader>
+                <CardContent className='p-0'>
                     <GenericDataTable<IEventSponsorMapping>
                         {...tableProps}
                         columns={eventSponsorColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        //manualPagination={false}
+                        isLoading={details.isLoading}
+                        error={details.error}
                         showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading mapping details...'
-                        noDataTitle='No Mapping Found'
-                        noDataDescription='Get started by creating your first event-sponsor mapping'
-                        errorTitle='Error Loading Mapping'
+                        loadingMessage='Fetching mapping details...'
+                        noDataTitle='No Mapping records'
+                        noDataDescription='No sponsor mappings found for the events.'
+                        errorTitle='Error loading mappings'
                     />
-                </CollapsibleSection>
-
-                {/* Add Form */}
-                {isAddFormOpen && (
-                    <div ref={addFormRef}>
-                        <CollapsibleSection
-                            title='Add Events Sponsor Mapping'
-                            defaultOpen={true}
-                            variant='default'
-                            className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                            <div className='relative'>
-                                <Button
-                                    type='button'
-                                    onClick={closeAddForm}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                    <X className='h-4 w-4 text-destructive' /> Close
-                                </Button>
-                                <AddEventSponsorMappingForm onSuccess={closeAddForm} />
-                            </div>
-                        </CollapsibleSection>
-                    </div>
-                )}
-
-                {/* Edit Form */}
-                {isEditFormOpen && selectedRow && (
-                    <div ref={editFormRef}>
-                        <CollapsibleSection
-                            title='Edit Events Sponsor Mapping'
-                            defaultOpen={true}
-                            variant='default'
-                            className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                            <div className='relative'>
-                                <Button
-                                    type='button'
-                                    onClick={closeEditForm}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                    <X className='h-4 w-4 text-destructive' /> Close
-                                </Button>
-                                <UpdateEventSponsorMappingForm selectedRow={selectedRow} onSuccess={closeEditForm} />
-                            </div>
-                        </CollapsibleSection>
-                    </div>
-                )}
-            </div>
+                </CardContent>
+            </Card>
         </div>
     );
 }

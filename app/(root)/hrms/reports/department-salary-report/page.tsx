@@ -149,7 +149,7 @@ export default function DepartmentSalaryReportPage() {
     if (!isClient) return null;
 
     return (
-        <div className='min-h-screen p-4 space-y-6'>
+        <div className='container min-h-screen space-y-4 p-2'>
             <CollapsibleSection defaultOpen={true} title="Department Salary Report">
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 p-4'>
                     <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
@@ -213,7 +213,8 @@ export default function DepartmentSalaryReportPage() {
                         </div>
                         {/* Designation */}
                         <div className='space-y-2'>
-                            <Label>Designation</Label>
+                            {/* <Label>Designation</Label> */}
+                            <Label>Designation <span className='text-red-500'>*</span></Label>
                             <Controller name='designation' control={control} render={({ field }) => (
                                 <MultiSelect
                                     options={[{ label: 'All', value: 'All' }, ...(designationsData?.data || []).map((d: any) => ({ label: d.HRMDES_DesignationName || d.hrmdeS_DesignationName, value: d.HRMDES_Id?.toString() || d.hrmdeS_Id?.toString() || '' }))]}

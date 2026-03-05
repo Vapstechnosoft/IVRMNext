@@ -10,13 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useClassTeacherReport } from '@/hooks/admission/preadmission/useReports';
 import { getExcelClassTeacherReport } from '@/server/admission/preadmission/reports/month_end_report';
+import { GetClassTeacherReport } from '@/server/admission/preadmission/reports/student_yearly_attendance';
 import type { IClassTeacherReportList } from '@/types/admission/preadmission/reports';
 import { FileText, Printer, RotateCcw, X } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { toast } from 'sonner';
-import { getClassTeacherReportColumns } from './_components/columns';
 import { useReactToPrint } from 'react-to-print';
+import { toast } from 'sonner';
 import { ClassTeacherReportPrint } from './_components/class-teacher-report-print';
+import { getClassTeacherReportColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -34,6 +35,7 @@ export default function ClassTeacherReportPage(props: {
     const [showReport, setShowReport] = useState(false);
 
     const [selectedStudents, setSelectedStudents] = useState<IClassTeacherReportList[]>([]);
+    const [printData, setPrintData] = useState<IClassTeacherReportList[]>([]);
 
     const flagMapping = {
         class_teacher: 3,
@@ -59,7 +61,7 @@ export default function ClassTeacherReportPage(props: {
 
     useEffect(() => {
         if ((academicYearId ?? 0) === 0 && academicYearOptions?.data && academicYearOptions.data.length > 0) {
-            setAcademicYearId(Number(academicYearOptions.asmaY_Id));
+            setAcademicYearId(Number(academicYearOptions.data[0].asmaY_Id));
         }
     }, [academicYearOptions, academicYearId]);
 
@@ -93,8 +95,8 @@ export default function ClassTeacherReportPage(props: {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -109,8 +111,6 @@ export default function ClassTeacherReportPage(props: {
                 link.remove();
                 window.URL.revokeObjectURL(url);
             }, 100);
-
-            setShowReport(false);
 
             toast.success('Excel downloaded successfully');
         } catch (error) {
@@ -155,21 +155,43 @@ export default function ClassTeacherReportPage(props: {
         documentTitle: 'Class_Teacher_Report'
     });
 
-    const handlePrint = () => {
+    const handlePrint = async () => {
         const studentDetails = (response?.data as any)?.searchstudentDetails;
         if (!studentDetails || studentDetails.length === 0) {
             toast.error('No data available to print');
             return;
         }
 
-        const dataToPrint = selectedStudents.length > 0 ? selectedStudents : studentDetails;
+        if (selectedStudents.length > 0) {
+            setPrintData(selectedStudents);
+            toast.info(`Preparing print for ${selectedStudents.length} selected record(s)...`);
+        } else {
+            try {
+                toast.loading('Fetching all records for print...', { id: 'print-fetch' });
+                const allDataResponse = await GetClassTeacherReport(academicYearId, Number(flag), { page_size: 100000 });
+                const allData = (allDataResponse?.data as any)?.searchstudentDetails || [];
 
-        toast.info(`Preparing print for ${dataToPrint.length} record(s)...`);
+                if (allData.length === 0) {
+                    toast.dismiss('print-fetch');
+                    toast.error('Failed to fetch print data');
+                    return;
+                }
+
+                setPrintData(allData);
+                toast.dismiss('print-fetch');
+                toast.success(`Ready to print ${allData.length} records`);
+            } catch (error) {
+                console.error('Print fetch error:', error);
+                toast.dismiss('print-fetch');
+                toast.error('Error fetching print data');
+                return;
+            }
+        }
 
         // Give React time to re-render the print component with selected data
         setTimeout(() => {
             handlePrintContent();
-        }, 100);
+        }, 500);
     };
 
     return (
@@ -191,7 +213,7 @@ export default function ClassTeacherReportPage(props: {
                                 onValueChange={(value) => handleFilterChange('academic_year', Number(value))}
                                 value={academicYearId !== 0 ? academicYearId?.toString() : undefined}>
                                 <SelectTrigger id='academic-year' className='w-full'>
-                                    <SelectValue placeholder='Select Academic Year' />
+                                    <SelectValue placeholder='--Select Year--' />
                                 </SelectTrigger>
 
                                 <SelectContent>
@@ -324,14 +346,14 @@ export default function ClassTeacherReportPage(props: {
                     left: 0,
                     width: 0,
                     height: 0,
-                    overflow: 'hidden',
+                    overflow: 'visible',
                     opacity: 0,
                     pointerEvents: 'none',
                     zIndex: -1
                 }}>
                 <ClassTeacherReportPrint
                     ref={componentRef}
-                    data={selectedStudents.length > 0 ? selectedStudents : (response?.data as any)?.searchstudentDetails || []}
+                    data={printData}
                     reportType={reportType}
                 />
             </div>

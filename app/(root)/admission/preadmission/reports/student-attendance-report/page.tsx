@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Save } from 'lucide-react';
+import { CalendarIcon, FileSpreadsheet, Printer, Save } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -22,8 +22,11 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useAcademicYearDropdown, useMasterClassDropdown, useMasterSectionDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useStudentAttendanceReport, useadmissionStudentsDropdown } from '@/hooks/admission/preadmission/useReports';
 import { getExcelStudentAttendanceReport } from '@/server/admission/preadmission/reports/month_end_report';
-import type { IRigistrationReportList } from '@/types/admission/preadmission/reports';
-import { registrationColumns } from './_components/columns';
+import { getStudentAttendanceReport } from '@/server/admission/preadmission/reports/report';
+import type { IStudentAttendanceReportList } from '@/types/admission/preadmission/reports';
+import { useReactToPrint } from 'react-to-print';
+import { attendanceColumns } from './_components/columns';
+import { StudentAttendancePrint } from './_components/student-attendance-print';
 
 /* ---------------- Schema ---------------- */
 
@@ -57,10 +60,11 @@ export default function StudyCertificateReportPage() {
     } = useForm<FormFields>({
         resolver: zodResolver(schema),
         defaultValues: {
-            selectionMode: 2, // all
+            selectionMode: 1, // all
             studentStatus: 1, // Monthly
             certificateType: 'admNo',
-            monthDateWise: 0
+            monthDateWise: 0,
+            studentId: 0
         }
     });
     const tableRef = useRef<DataTableRef>(null);
@@ -92,7 +96,7 @@ export default function StudyCertificateReportPage() {
         academicYearId,
         classId,
         sectionId,
-        studentId,
+        selectionMode === 2 ? studentId : 0, // Conditional studentId handling
         month,
         monthDateWise,
         fromDate,
@@ -101,9 +105,67 @@ export default function StudyCertificateReportPage() {
         selectionMode,
         studentStatus
     );
+
+    const [allReportData, setAllReportData] = useState<any>(null);
+    const [isPrinting, setIsPrinting] = useState(false);
+
     const tableProps = useDataTableProps({
-        data: (studentsAttendance as any)?.data?.studentAttendanceList ?? []
+        ...studentsAttendance,
+        data: (studentsAttendance as any)?.data?.studentAttendanceList ?? [],
+        totalItems: (studentsAttendance as any)?.total ?? 0
     });
+
+    const printRef = useRef<HTMLDivElement>(null);
+
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: 'StudentAttendanceReport'
+    });
+
+    const handlePrintAll = async () => {
+        try {
+            if (!academicYearId || !classId || !sectionId) {
+                toast.error('Please fill all required fields!');
+                return;
+            }
+
+            setIsPrinting(true);
+            toast.loading('Preparing all records for print...', { id: 'print-all' });
+
+            const totalRecords = (studentsAttendance as any)?.total || 0;
+            const allData = await getStudentAttendanceReport(
+                academicYearId,
+                classId,
+                sectionId,
+                selectionMode === 2 ? studentId : 0,
+                month,
+                monthDateWise,
+                fromDate,
+                toDate,
+                dailyDate,
+                selectionMode,
+                studentStatus,
+                { page: 1, page_size: totalRecords || 1000 }
+            );
+
+            if (allData) {
+                setAllReportData(allData);
+                toast.success('Ready to print', { id: 'print-all' });
+                // Small delay to ensure state update and re-render
+                setTimeout(() => {
+                    handlePrint();
+                    setIsPrinting(false);
+                }, 500);
+            } else {
+                toast.error('No data found to print', { id: 'print-all' });
+                setIsPrinting(false);
+            }
+        } catch (error) {
+            console.error('Print Error:', error);
+            toast.error('Failed to prepare print view', { id: 'print-all' });
+            setIsPrinting(false);
+        }
+    };
 
     /* ---------------- Effects ---------------- */
 
@@ -118,7 +180,7 @@ export default function StudyCertificateReportPage() {
         }));
     }, [studentStatus, reset]);
     useEffect(() => {
-        if (selectionMode === 2) {
+        if (selectionMode === 1) {
             reset((prev) => ({
                 ...prev,
                 studentId: 0,
@@ -168,7 +230,7 @@ export default function StudyCertificateReportPage() {
                 academicYearId,
                 classId,
                 sectionId,
-                studentId,
+                selectionMode === 2 ? studentId : 0, // Conditional studentId handling
                 month,
                 monthDateWise,
                 fromDate,
@@ -183,8 +245,8 @@ export default function StudyCertificateReportPage() {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -219,8 +281,8 @@ export default function StudyCertificateReportPage() {
                             name='selectionMode'
                             control={control}
                             options={[
-                                { label: 'all', value: 2 },
-                                { label: 'individual', value: 1 }
+                                { label: 'all', value: 1 },
+                                { label: 'individual', value: 2 }
                             ]}
                         />
 
@@ -231,7 +293,7 @@ export default function StudyCertificateReportPage() {
                                 { label: 'admNo', value: 'admNo' },
                                 { label: 'name', value: 'name' }
                             ]}
-                            disabled={selectionMode !== 1}
+                            disabled={selectionMode !== 2}
                         />
 
                         <RadioField
@@ -285,7 +347,7 @@ export default function StudyCertificateReportPage() {
                             options={students?.data}
                             labelKey='studentName'
                             valueKey='amsT_Id'
-                            disabled={selectionMode !== 1 || !sectionId || studentsLoading}
+                            disabled={selectionMode !== 2 || !sectionId || studentsLoading}
                         />
 
                         {/* -------- Month -------- */}
@@ -298,7 +360,9 @@ export default function StudyCertificateReportPage() {
                                     render={({ field }) => (
                                         <div>
                                             <Label>Month</Label>
-                                            <Select onValueChange={(v) => field.onChange(Number(v))}>
+                                            <Select
+                                                value={field.value ? String(field.value) : undefined}
+                                                onValueChange={(v) => field.onChange(Number(v))}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Month' />
                                                 </SelectTrigger>
@@ -352,7 +416,16 @@ export default function StudyCertificateReportPage() {
                             Report
                         </Button>
                         <Button onClick={downloadExcel} className='w-fit'>
+                            <FileSpreadsheet className='mr-2 h-4 w-4' />
                             Export to Excel
+                        </Button>
+                        <Button
+                            onClick={handlePrintAll}
+                            variant='outline'
+                            className='w-fit'
+                            disabled={isPrinting || !((studentsAttendance as any)?.data?.studentAttendanceList?.length > 0)}>
+                            <Printer className='mr-2 h-4 w-4' />
+                            {isPrinting ? 'Preparing...' : 'Print'}
                         </Button>
                     </div>
                 </div>
@@ -365,10 +438,59 @@ export default function StudyCertificateReportPage() {
                     variant='outline'
                     size='md'
                     className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <GenericDataTable<IRigistrationReportList>
+                    {/* Institution Header */}
+                    {(studentsAttendance as any)?.data?.institutionDetails?.[0] && (
+                        <div className='mb-6 border-b pb-6 text-center'>
+                            <div className='flex flex-col items-center gap-4'>
+                                {(studentsAttendance as any).data.institutionDetails[0].mI_Logo && (
+                                    <img
+                                        src={(studentsAttendance as any).data.institutionDetails[0].mI_Logo}
+                                        alt='Logo'
+                                        className='h-24 w-auto object-contain'
+                                    />
+                                )}
+                                <div>
+                                    <h1 className='text-2xl font-bold uppercase'>
+                                        {(studentsAttendance as any).data.institutionDetails[0].mI_Name}
+                                    </h1>
+                                    <p className='text-sm text-muted-foreground'>
+                                        {(studentsAttendance as any).data.institutionDetails[0].mI_Address1}
+                                        {(studentsAttendance as any).data.institutionDetails[0].mI_Address2 &&
+                                            `, ${(studentsAttendance as any).data.institutionDetails[0].mI_Address2}`}
+                                        {(studentsAttendance as any).data.institutionDetails[0].mI_Address3 &&
+                                            `, ${(studentsAttendance as any).data.institutionDetails[0].mI_Address3}`}
+                                    </p>
+                                    <h2 className='mt-2 text-lg font-bold tracking-wide'>STUDENT ATTENDANCE REPORT</h2>
+                                    <div className='mt-4 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-semibold'>
+                                        {academicYearId && (
+                                            <span>
+                                                Academic Year: {academicYears?.data?.find((y: any) => y.asmaY_Id === academicYearId)?.asmaY_Year}
+                                            </span>
+                                        )}
+                                        {classId && (
+                                            <span>
+                                                Class: {classes?.data?.find((c: any) => c.asmcL_Id === classId)?.asmcL_ClassName}
+                                            </span>
+                                        )}
+                                        {sectionId && (
+                                            <span>
+                                                Section: {sections?.data?.find((s: any) => s.asmS_Id === sectionId)?.asmC_SectionName}
+                                            </span>
+                                        )}
+                                        {month && <span>Month: {monthList.find((m) => m.id === month)?.name}</span>}
+                                    </div>
+                                    <div className='mt-2 text-sm font-bold text-red-600'>
+                                        Total Records: {(studentsAttendance as any)?.total ?? 0}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <GenericDataTable<IStudentAttendanceReportList>
                         {...tableProps}
                         ref={tableRef}
-                        columns={registrationColumns}
+                        columns={attendanceColumns}
                         isLoading={isLoading}
                         error={error}
                         showViewOptions={false}
@@ -377,6 +499,17 @@ export default function StudyCertificateReportPage() {
                         noDataDescription='No Student Attendance Reports found.'
                         errorTitle='Error Loading Student Attendance Reports'
                     />
+
+                    <div className='hidden'>
+                        <StudentAttendancePrint
+                            ref={printRef}
+                            data={allReportData || studentsAttendance}
+                            academicYear={academicYears?.data?.find((y: any) => y.asmaY_Id === academicYearId)?.asmaY_Year || ''}
+                            className={classes?.data?.find((c: any) => c.asmcL_Id === classId)?.asmcL_ClassName || ''}
+                            sectionName={sections?.data?.find((s: any) => s.asmS_Id === sectionId)?.asmC_SectionName || ''}
+                            monthName={monthList.find((m) => m.id === month)?.name}
+                        />
+                    </div>
                 </CollapsibleSection>
             </div>
         </div>
@@ -416,7 +549,10 @@ function SelectField({ label, name, control, options, labelKey, valueKey, error,
                 name={name}
                 control={control}
                 render={({ field }) => (
-                    <Select disabled={disabled} onValueChange={(v) => field.onChange(Number(v))}>
+                    <Select
+                        disabled={disabled}
+                        value={field.value ? String(field.value) : undefined}
+                        onValueChange={(v) => field.onChange(Number(v))}>
                         <SelectTrigger>
                             <SelectValue placeholder={`Select ${label}`} />
                         </SelectTrigger>

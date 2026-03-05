@@ -35,6 +35,8 @@ import { MasterPagesGlobalGrid } from './_components/master-pages-global-grid';
 import { MasterPagesGrid } from './_components/master-pages-grid';
 import { MobileRolePrivilegeListGrid } from './_components/mobile-role-privilege-list-grid';
 import { PrivilegesGrid } from './_components/privileges-grid';
+import { PageHeader } from '@/components/ui/layout/page-header';
+import { SectionCard } from '@/components/ui/layout/section-card';
 import { MobileRolePrivilegesSelectionForm } from './_components/selection-form';
 
 export default function MobileRolePrivilegesPage() {
@@ -291,16 +293,11 @@ export default function MobileRolePrivilegesPage() {
 
     return (
         <div className='container mx-auto space-y-10 p-6'>
-            <div className='flex flex-col justify-between gap-4 md:flex-row md:items-end'>
-                <div className='space-y-2'>
-                    <h1 className='font-black text-4xl text-[#1E293B] tracking-tight'>
-                        Mobile Role <span className='text-[#7C3AED]'>Privileges</span>
-                    </h1>
-                    <p className='max-w-2xl font-medium text-slate-500'>
-                        Securely map institution roles to mobile application pages and define granular access levels.
-                    </p>
-                </div>
-            </div>
+            <PageHeader
+                title="Mobile Role Privileges"
+                highlightWord="Privileges"
+                description="Securely map institution roles to mobile application pages and define granular access levels."
+            />
 
             <div className='w-full'>
                 <MobileRolePrivilegesSelectionForm
@@ -312,24 +309,24 @@ export default function MobileRolePrivilegesPage() {
             </div>
 
             {availablePages.length > 0 && (
-                <div className='fade-in slide-in-from-bottom-4 animate-in duration-500'>
+                <SectionCard>
                     <MasterPagesGrid data={availablePages} onSelect={handlePageSelect} />
-                </div>
+                </SectionCard>
             )}
 
             {savedPrivileges.length > 0 && (
-                <div className='fade-in slide-in-from-bottom-4 animate-in duration-500'>
+                <SectionCard>
                     <PrivilegesGrid
                         title='Registered Role Privileges'
                         data={savedPrivileges}
                         onChange={setSavedPrivileges}
                         onDelete={handleDeleteClick}
                     />
-                </div>
+                </SectionCard>
             )}
 
             {cartPrivileges.length > 0 && (
-                <div className='fade-in slide-in-from-bottom-4 animate-in space-y-6 duration-500'>
+                <SectionCard className="space-y-6">
                     <PrivilegesGrid
                         title='Selected Master Pages'
                         data={cartPrivileges}
@@ -356,28 +353,28 @@ export default function MobileRolePrivilegesPage() {
                             Reset Selection
                         </Button>
                     </div>
-                </div>
+                </SectionCard>
             )}
 
             {selectedMI && selectedRole && (
-                <div className='fade-in slide-in-from-bottom-4 animate-in duration-700'>
+                <SectionCard delay={700}>
                     <MasterPagesGlobalGrid
                         data={masterGlobalRecords}
                         totalCount={masterGlobalTotal}
                         onSelect={handleGlobalPageSelect}
                         isLoading={isMasterGlobalLoading}
                     />
-                </div>
+                </SectionCard>
             )}
 
-            <div className='fade-in slide-in-from-bottom-4 animate-in pt-10 duration-1000'>
+            <SectionCard delay={1000} className="pt-10">
                 <MobileRolePrivilegeListGrid
                     data={gridRecords}
                     totalCount={totalRecords}
                     onDelete={handleDeleteClick}
                     isLoading={isGridLoading}
                 />
-            </div>
+            </SectionCard>
 
             {/* Delete Confirmation Dialog */}
             <AlertDialog open={!!rowToDelete} onOpenChange={(open) => !open && setRowToDelete(null)}>

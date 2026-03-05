@@ -20,6 +20,7 @@ export interface AdminOnDutyApply {
     outTime: string; // hrelapD_OutTime
     leaveId: number; // hrmL_Id
     employeeId: number; // hrmE_Id
+    isActive?: boolean; // hrelaP_ActiveFlg
 }
 
 /**
@@ -39,6 +40,7 @@ export interface AdminOnDutyApplyApiData {
     hrelaP_LeaveReason: string;
     hrelapD_InTime: string;
     hrelapD_OutTime: string;
+    hrelaP_ActiveFlg?: boolean;
 }
 
 /**
@@ -82,13 +84,16 @@ export interface EmployeeDetails {
  * API Request for saving On Duty Leave
  */
 export interface OnDutyLeaveSaveRequest {
-    HRME_Id: number;
-    HRML_LeaveType: string; // Leave Code (e.g., "OD") or Leave Id depending on backend expectations. Given example uses "OD".
-    HRELAP_FromDate: string; // YYYY-MM-DD
-    HRELAP_ToDate: string; // YYYY-MM-DD
-    HRELAP_TotalDays: number;
-    HRELAP_LeaveReason: string;
-    HRELAPD_InTime: string; // HH:mm
-    HRELAPD_OutTime: string; // HH:mm
-    HRELT_SupportingDocument?: string;
+    MI_Id?: number;
+    UserId?: number;
+    hrelaP_Id?: number;
+    hrmE_Id: number;
+    hrmL_LeaveType: string;
+    hrelaP_LeaveReason: string;
+    hrelaP_FromDate: string;
+    hrelaP_ToDate: string;
+    hrelT_SupportingDocument?: string;
+    hrelaP_TotalDays: number;
+    hrelapD_InTime: string;
+    hrelapD_OutTime: string;
 }

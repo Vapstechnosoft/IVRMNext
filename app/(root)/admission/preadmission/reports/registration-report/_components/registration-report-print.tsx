@@ -16,76 +16,117 @@ export const RegistrationReportPrint = React.forwardRef<HTMLDivElement, Registra
         const formatDate = (dateStr: string | null | undefined) => {
             if (!dateStr) return '-';
             const date = new Date(dateStr);
-            return isValid(date) ? format(date, 'dd/MM/yyyy') : '-';
+            return isValid(date) ? format(date, 'dd/MM/yyyy') : dateStr;
         };
 
-        if (!data || data.length === 0) {
-            return (
-                <div ref={ref} style={{ padding: '20px', background: 'white', color: 'black', textAlign: 'center' }}>
-                    No data selected for printing.
-                </div>
-            );
-        }
+        const reportData = Array.isArray(data) ? data : [];
 
         return (
-            <div ref={ref} className='print-preview-container' style={{ padding: '20mm', background: 'white', color: 'black', minHeight: '100%', width: '100%' }}>
-                <style
-                    dangerouslySetInnerHTML={{
-                        __html: `
-                    @media print {
-                        .print-preview-container {
-                            display: block !important;
-                            position: static !important;
-                            visibility: visible !important;
-                            opacity: 1 !important;
-                            width: 100% !important;
-                            height: auto !important;
-                            overflow: visible !important;
+            <div ref={ref} className="print-preview-container p-5 bg-white text-black min-h-full w-full">
+                <style>
+                    {`
+                        @media print {
+                            @page {
+                                margin: 0;
+                                size: A4 portrait;
+                            }
+                            body {
+                                visibility: hidden;
+                                background: white;
+                                margin: 0;
+                                padding: 0;
+                            }
+                            .print-preview-container {
+                                visibility: visible !important;
+                                position: absolute;
+                                left: 0;
+                                top: 0;
+                                width: 100%;
+                                background: white;
+                                z-index: 9999;
+                                color: black;
+                                padding: 15mm;
+                            }
+                            .print-preview-container * {
+                                visibility: visible !important;
+                            }
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                border: 1px solid #000;
+                            }
+                            th, td {
+                                border: 1px solid #000;
+                                padding: 8px;
+                                text-align: left;
+                                font-size: 12px;
+                            }
+                            th {
+                                background-color: #f3f4f6;
+                                font-weight: bold;
+                                -webkit-print-color-adjust: exact;
+                            }
+                            .header-section {
+                                text-align: center;
+                                margin-bottom: 20px;
+                                border-bottom: 2px solid black;
+                                padding-bottom: 10px;
+                            }
+                            .footer-section {
+                                margin-top: 20px;
+                                padding-top: 10px;
+                                text-align: center;
+                                font-size: 10px;
+                                color: #666;
+                                border-top: 1px solid #eee;
+                            }
                         }
-                    }
-                `
-                    }}
-                />
-                <div style={{ textAlign: 'center', marginBottom: '20px', borderBottom: '2px solid black', paddingBottom: '10px' }}>
-                    <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0', textTransform: 'uppercase' }}>
-                        {institutionName || 'VAPS TECHNOSOFT'}
+                    `}
+                </style>
+
+                <div className='header-section'>
+                    <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>
+                        {institutionName}
                     </h1>
-                    <h2 style={{ fontSize: '20px', fontWeight: 'bold', textDecoration: 'underline', marginTop: '10px' }}>
+                    <h2 style={{ margin: '5px 0 0', fontSize: '18px', fontWeight: 'bold', textDecoration: 'underline' }}>
                         REGISTRATION REPORT
                     </h2>
                 </div>
 
-                <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid black', fontSize: '10px' }}>
-                    <thead>
-                        <tr style={{ backgroundColor: '#f3f4f6' }}>
-                            <th style={{ border: '1px solid black', padding: '8px', width: '40px', textAlign: 'center' }}>SL.NO</th>
-                            <th style={{ border: '1px solid black', padding: '8px', textAlign: 'left' }}>NAME</th>
-                            <th style={{ border: '1px solid black', padding: '8px', textAlign: 'left', width: '200px' }}>EMAIL</th>
-                            <th style={{ border: '1px solid black', padding: '8px', textAlign: 'left', width: '120px' }}>MOBILE NO</th>
-                            <th style={{ border: '1px solid black', padding: '8px', textAlign: 'center', width: '100px' }}>DATE</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {data.map((row, index) => (
-                            <tr key={index}>
-                                <td style={{ border: '1px solid black', padding: '8px', textAlign: 'center' }}>{index + 1}</td>
-                                <td style={{ border: '1px solid black', padding: '8px' }}>{row.name}</td>
-                                <td style={{ border: '1px solid black', padding: '8px' }}>{row.email_Id || '-'}</td>
-                                <td style={{ border: '1px solid black', padding: '8px' }}>{row.mob_No || '-'}</td>
-                                <td style={{ border: '1px solid black', padding: '8px', textAlign: 'center' }}>
-                                    {formatDate(row.created_Date)}
-                                </td>
+                {reportData.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '20px', border: '1px dashed #ccc' }}>
+                        No records found to display.
+                    </div>
+                ) : (
+                    <table>
+                        <thead>
+                            <tr style={{ backgroundColor: '#f3f4f6' }}>
+                                <th style={{ width: '50px', textAlign: 'center' }}>SL.No</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th style={{ width: '100px', textAlign: 'center' }}>Mobile No</th>
+                                <th style={{ width: '90px', textAlign: 'center' }}>Date</th>
                             </tr>
-                        ))}
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colSpan={5} style={{ paddingTop: '15px', textAlign: 'center', fontStyle: 'italic', fontSize: '9px', opacity: 0.7 }}>
-                                Date: {currentDate} | Generated by Vaps Technosoft Pvt. Ltd.
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
+                        </thead>
+                        <tbody>
+                            {reportData.map((row, index) => (
+                                <tr key={index}>
+                                    <td style={{ textAlign: 'center' }}>{index + 1}</td>
+                                    <td>{row.name || '-'}</td>
+                                    <td>{row.email_Id || '-'}</td>
+                                    <td style={{ textAlign: 'center' }}>{row.mob_No || '-'}</td>
+                                    <td style={{ textAlign: 'center' }}>
+                                        {formatDate(row.created_Date)}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+
+                <div className='footer-section'>
+                    Printed on: {currentDate}
+                </div>
             </div>
         );
     }

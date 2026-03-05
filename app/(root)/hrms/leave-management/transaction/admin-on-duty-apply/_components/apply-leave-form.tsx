@@ -1,72 +1,157 @@
 'use client';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Form,
     FormControl,
+    FormDescription,
     FormField,
     FormItem,
     FormLabel,
     FormMessage
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useEmployeeOnDutyDetails, useSaveOnDutyLeaveRequest } from '@/hooks/hrms/leave-management/useAdminOnDutyApply';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from '@/components/ui/select';
+import { useAdminOnDutyEmployeeDropdown, useEmployeeOnDutyDetails, useSaveOnDutyLeaveRequest } from '@/hooks/hrms/leave-management/useAdminOnDutyApply';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
-import { CalendarIcon, UserIcon } from 'lucide-react';
+import { format, differenceInDays } from 'date-fns';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+    CalendarIcon,
+    UserIcon,
+    Clock,
+    CheckCircle2,
+    AlertCircle,
+    Info,
+    Briefcase,
+    Mail,
+    Phone,
+    ArrowRight,
+    FileText,
+    History
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { toast } from 'sonner';
+import { Separator } from '@/components/ui/separator';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { AdminOnDutyApply } from '@/types/hrms/leave-management/admin-on-duty-apply';
 
 const formSchema = z.object({
-    hrmE_Id: z.coerce.number().min(1, 'Employee is required'),
+    hrmE_Id: z.coerce.number().min(1, 'Employee ID is required'),
     leaveType: z.string().min(1, 'Leave type is required'),
     fromDate: z.date({ required_error: 'From date is required' }),
     toDate: z.date({ required_error: 'To date is required' }),
     totalDays: z.coerce.number().min(0.5, 'Total days must be at least 0.5'),
     leaveReason: z.string().min(1, 'Reason is required'),
-    inTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:MM)'),
-    outTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:MM)')
+    inTime: z.string().min(1, 'In time is required'),
+    outTime: z.string().min(1, 'Out time is required')
+}).refine((data) => data.toDate >= data.fromDate, {
+    message: "To Date cannot be before From Date",
+    path: ["toDate"]
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 interface ApplyLeaveFormProps {
     onSuccess?: () => void;
+    onCancel?: () => void;
+    editingRow?: AdminOnDutyApply | null;
 }
 
-export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
+export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: ApplyLeaveFormProps) {
     const { mutate: saveLeave, isPending } = useSaveOnDutyLeaveRequest();
+    const { data: employeeList, isLoading: isLoadingList } = useAdminOnDutyEmployeeDropdown();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            hrmE_Id: 0,
+            hrmE_Id: editingRow?.employeeId || 0,
             leaveType: 'OD',
-            totalDays: 1,
-            leaveReason: '',
-            inTime: '10:00',
-            outTime: '17:00'
+            fromDate: editingRow?.fromDate || undefined,
+            toDate: editingRow?.toDate || undefined,
+            totalDays: editingRow?.totalDays || 1,
+            leaveReason: editingRow?.leaveReason || '',
+            inTime: editingRow?.inTime || '10:00',
+            outTime: editingRow?.outTime || '18:00'
         }
     });
 
+    // Reset form when editingRow changes
+    useEffect(() => {
+        if (editingRow) {
+            // Ensure time format is HH:mm for the time input
+            const formatTime = (time: string) => {
+                if (!time) return '';
+                const parts = time.split(':');
+                if (parts.length >= 2) {
+                    return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+                }
+                return time;
+            };
+
+            form.reset({
+                hrmE_Id: editingRow.employeeId,
+                leaveType: 'OD',
+                fromDate: editingRow.fromDate ? new Date(editingRow.fromDate) : undefined,
+                toDate: editingRow.toDate ? new Date(editingRow.toDate) : undefined,
+                totalDays: editingRow.totalDays,
+                leaveReason: editingRow.leaveReason || '',
+                inTime: formatTime(editingRow.inTime),
+                outTime: formatTime(editingRow.outTime)
+            });
+        } else {
+            form.reset({
+                hrmE_Id: 0,
+                leaveType: 'OD',
+                totalDays: 1,
+                leaveReason: '',
+                inTime: '10:00',
+                outTime: '18:00'
+            });
+        }
+    }, [editingRow, form]);
+
     const hrmE_Id = form.watch('hrmE_Id');
-    const debouncedHrmE_Id = hrmE_Id > 0 ? hrmE_Id : null; // Simple check to avoid request for 0
-    const { data: employeeData } = useEmployeeOnDutyDetails(debouncedHrmE_Id);
+    const fromDate = form.watch('fromDate');
+    const toDate = form.watch('toDate');
+
+    // Auto-calculate total days
+    useEffect(() => {
+        if (fromDate && toDate && !editingRow) {
+            const days = differenceInDays(toDate, fromDate) + 1;
+            if (days > 0) {
+                form.setValue('totalDays', days);
+            }
+        }
+    }, [fromDate, toDate, form, editingRow]);
+
+    const { data: employeeData, isLoading: isLoadingEmp } = useEmployeeOnDutyDetails(hrmE_Id > 0 ? hrmE_Id : null);
 
     function onSubmit(values: FormValues) {
         saveLeave(
             {
-                HRME_Id: values.hrmE_Id,
-                HRML_LeaveType: values.leaveType,
-                HRELAP_FromDate: format(values.fromDate, 'yyyy-MM-dd'),
-                HRELAP_ToDate: format(values.toDate, 'yyyy-MM-dd'),
-                HRELAP_TotalDays: values.totalDays,
-                HRELAP_LeaveReason: values.leaveReason,
-                HRELAPD_InTime: values.inTime,
-                HRELAPD_OutTime: values.outTime
+                hrelaP_Id: editingRow?.id || 0,
+                hrmE_Id: values.hrmE_Id,
+                hrmL_LeaveType: values.leaveType,
+                hrelaP_FromDate: values.fromDate.toISOString(),
+                hrelaP_ToDate: values.toDate.toISOString(),
+                hrelaP_TotalDays: values.totalDays,
+                hrelaP_LeaveReason: values.leaveReason,
+                hrelapD_InTime: values.inTime.includes(':') && values.inTime.split(':').length === 2 ? `${values.inTime}:00` : values.inTime,
+                hrelapD_OutTime: values.outTime.includes(':') && values.outTime.split(':').length === 2 ? `${values.outTime}:00` : values.outTime,
+                hrelT_SupportingDocument: ''
             },
             {
                 onSuccess: () => {
@@ -78,213 +163,375 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
     }
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4 rounded-md border p-4'>
-                <div className='grid gap-4 md:grid-cols-2'>
-                    <FormField
-                        control={form.control}
-                        name='hrmE_Id'
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Employee ID</FormLabel>
-                                <FormControl>
-                                    <div className='relative'>
-                                        <UserIcon className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
-                                        <Input
-                                            type='number'
-                                            placeholder='Enter Employee ID'
-                                            className='pl-9'
-                                            {...field}
-                                            onChange={(e) => field.onChange(Number(e.target.value))}
-                                        />
-                                    </div>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name='leaveType'
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Leave Type</FormLabel>
-                                <FormControl>
-                                    <Input placeholder='OD' {...field} readOnly />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-
-                {employeeData && (
-                    <div className='rounded-lg border bg-muted/50 p-4'>
-                        <h4 className='mb-2 font-medium text-sm'>Employee Details</h4>
-                        <div className='grid gap-2 text-sm md:grid-cols-2'>
-                            <div className='flex gap-2'>
-                                <span className='text-muted-foreground'>Name:</span>
-                                <span className='font-medium'>{employeeData.employeeDetails.name}</span>
-                            </div>
-                            <div className='flex gap-2'>
-                                <span className='text-muted-foreground'>Designation:</span>
-                                <span className='font-medium'>{employeeData.employeeDetails.designation}</span>
-                            </div>
-                            <div className='flex gap-2'>
-                                <span className='text-muted-foreground'>Department:</span>
-                                <span className='font-medium'>{employeeData.employeeDetails.email}</span>
-                            </div>
-                        </div>
+        <div className='space-y-6'>
+            <Card className='border-none shadow-md bg-gradient-to-br from-background to-muted/20'>
+                <CardHeader className='pb-3'>
+                    <div className='flex items-center justify-between'>
+                        <CardTitle className='text-lg font-bold flex items-center gap-2'>
+                            <FileText className='h-5 w-5 text-primary' />
+                            On Duty Application Form
+                        </CardTitle>
+                        <Badge variant='outline' className='bg-primary/5 text-primary border-primary/20'>
+                            Admin Mode
+                        </Badge>
                     </div>
-                )}
+                    <CardDescription>Fill in the details to apply for On Duty leave on behalf of an employee.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+                            {/* Employee Selection Section */}
+                            <div className='space-y-4'>
+                                <div className='grid gap-4 md:grid-cols-2'>
+                                    <FormField
+                                        control={form.control}
+                                        name='hrmE_Id'
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className='font-semibold'>Select Employee</FormLabel>
+                                                <Select
+                                                    onValueChange={(value) => {
+                                                        const id = Number(value);
+                                                        field.onChange(id);
+                                                    }}
+                                                    value={field.value > 0 ? field.value.toString() : ''}
+                                                >
+                                                    <FormControl>
+                                                        <SelectTrigger className='h-11 border-muted-foreground/20 focus:ring-primary/30 transition-all'>
+                                                            <div className='flex items-center gap-2'>
+                                                                <UserIcon className='h-4 w-4 text-muted-foreground' />
+                                                                <SelectValue placeholder='Search/Select Employee' />
+                                                            </div>
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {isLoadingList ? (
+                                                            <div className='p-2 text-center text-sm text-muted-foreground'>
+                                                                Loading employees...
+                                                            </div>
+                                                        ) : (
+                                                            employeeList?.map((emp) => (
+                                                                <SelectItem key={emp.hrmE_Id} value={emp.hrmE_Id.toString()}>
+                                                                    {emp.employeeName} (ID: {emp.hrmE_Id})
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormDescription className='text-[11px]'>
+                                                    Select an employee to auto-fetch details.
+                                                </FormDescription>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name='leaveType'
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className='font-semibold'>Leave Type</FormLabel>
+                                                <FormControl>
+                                                    <div className='h-11 flex items-center px-4 rounded-md border border-muted-foreground/10 bg-muted/30 font-bold text-primary'>
+                                                        On Duty (OD)
+                                                    </div>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
 
-                <div className='grid gap-4 md:grid-cols-2'>
-                    <FormField
-                        control={form.control}
-                        name='fromDate'
-                        render={({ field }) => (
-                            <FormItem className='flex flex-col'>
-                                <FormLabel>From Date</FormLabel>
-                                <Popover>
-                                    <PopoverTrigger asChild>
+                                <AnimatePresence mode='wait'>
+                                    {employeeData && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10, height: 0 }}
+                                            animate={{ opacity: 1, y: 0, height: 'auto' }}
+                                            exit={{ opacity: 0, y: -10, height: 0 }}
+                                            className='overflow-hidden'
+                                        >
+                                            <div className='mt-2 rounded-xl border border-primary/20 bg-primary/5 p-5 shadow-inner'>
+                                                <div className='flex flex-col md:flex-row gap-6'>
+                                                    {/* Avatar/Photo */}
+                                                    <div className='flex-shrink-0 flex items-center justify-center'>
+                                                        <div className='h-20 w-20 rounded-full border-4 border-white shadow-md overflow-hidden bg-white'>
+                                                            {employeeData.employeeDetails.photo ? (
+                                                                <img src={employeeData.employeeDetails.photo} alt='Profile' className='h-full w-full object-cover' />
+                                                            ) : (
+                                                                <div className='h-full w-full flex items-center justify-center bg-muted'>
+                                                                    <UserIcon className='h-10 w-10 text-muted-foreground' />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Info Grid */}
+                                                    <div className='flex-grow'>
+                                                        <div className='flex flex-col md:flex-row md:items-end justify-between mb-4'>
+                                                            <div>
+                                                                <h4 className='text-xl font-bold text-primary flex items-center gap-2'>
+                                                                    {employeeData.employeeDetails.name}
+                                                                    <Badge className='bg-green-500/10 text-green-600 border-green-500/20 text-[10px] h-5'>ACTIVE</Badge>
+                                                                </h4>
+                                                                <p className='text-sm text-muted-foreground flex items-center gap-1.5'>
+                                                                    <Briefcase className='h-3.5 w-3.5' /> {employeeData.employeeDetails.designation}
+                                                                </p>
+                                                            </div>
+                                                            <div className='text-right mt-2 md:mt-0'>
+                                                                <p className='text-[10px] text-muted-foreground uppercase font-bold tracking-wider'>Join Date</p>
+                                                                <p className='text-sm font-semibold'>{format(employeeData.employeeDetails.doj, 'dd-MMM-yyyy')}</p>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-3 gap-x-6 pt-3 border-t border-primary/10'>
+                                                            <div className='flex items-center gap-2'>
+                                                                <div className='p-1.5 rounded-full bg-blue-100 text-blue-600'><Mail className='h-3.5 w-3.5' /></div>
+                                                                <span className='text-xs font-medium truncate max-w-[150px]'>{employeeData.employeeDetails.email || 'N/A'}</span>
+                                                            </div>
+                                                            <div className='flex items-center gap-2'>
+                                                                <div className='p-1.5 rounded-full bg-orange-100 text-orange-600'><Phone className='h-3.5 w-3.5' /></div>
+                                                                <span className='text-xs font-medium'>{employeeData.employeeDetails.mobile || 'N/A'}</span>
+                                                            </div>
+                                                            <div className='flex items-center gap-2'>
+                                                                <div className='p-1.5 rounded-full bg-green-100 text-green-600'><Clock className='h-3.5 w-3.5' /></div>
+                                                                <span className='text-xs font-medium'>{employeeData.employeeDetails.loginTime} - {employeeData.employeeDetails.logoutTime}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Recent Applications Sidebar/Inline */}
+                                                {employeeData.leaveDetails.length > 0 && (
+                                                    <div className='mt-5 pt-4 border-t border-primary/10'>
+                                                        <h5 className='text-[10px] font-bold text-muted-foreground uppercase mb-2 flex items-center gap-1'>
+                                                            <History className='h-3 w-3' /> Recent OD History
+                                                        </h5>
+                                                        <div className='flex gap-4 overflow-x-auto pb-2 scrollbar-hide'>
+                                                            {employeeData.leaveDetails.slice(0, 3).map((leave, i) => (
+                                                                <div key={i} className='min-w-[180px] bg-white rounded-lg p-2 shadow-sm border border-muted flex items-center gap-3'>
+                                                                    <div className='bg-orange-50 p-2 rounded text-orange-600'><CalendarIcon className='h-4 w-4' /></div>
+                                                                    <div className='flex flex-col'>
+                                                                        <span className='text-[10px] font-bold italic line-clamp-1'>{leave.leaveReason}</span>
+                                                                        <span className='text-[9px] text-muted-foreground'>{format(leave.fromDate, 'dd MMM')} - {format(leave.toDate, 'dd MMM')}</span>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+
+                            <Separator className='opacity-40' />
+
+                            {/* Date and Time Section */}
+                            <div className='grid gap-6 md:grid-cols-2'>
+                                <div className='grid gap-4 sm:grid-cols-2'>
+                                    <FormField
+                                        control={form.control}
+                                        name='fromDate'
+                                        render={({ field }) => (
+                                            <FormItem className='flex flex-col'>
+                                                <FormLabel className='font-semibold'>From Date</FormLabel>
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <FormControl>
+                                                            <Button
+                                                                variant={'outline'}
+                                                                className={cn(
+                                                                    'w-full pl-3 text-left font-normal h-11 border-muted-foreground/20 hover:border-primary/50 transition-all',
+                                                                    !field.value && 'text-muted-foreground'
+                                                                )}
+                                                            >
+                                                                {field.value ? (
+                                                                    format(field.value, 'dd MMMM yyyy')
+                                                                ) : (
+                                                                    <span>Pick a date</span>
+                                                                )}
+                                                                <CalendarIcon className='ml-auto h-4 w-4 text-primary opacity-70' />
+                                                            </Button>
+                                                        </FormControl>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className='w-auto p-0'>
+                                                        <Calendar
+                                                            mode='single'
+                                                            selected={field.value}
+                                                            onSelect={field.onChange}
+                                                            initialFocus
+                                                            className='rounded-md border'
+                                                        />
+                                                    </PopoverContent>
+                                                </Popover>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name='toDate'
+                                        render={({ field }) => (
+                                            <FormItem className='flex flex-col'>
+                                                <FormLabel className='font-semibold'>To Date</FormLabel>
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <FormControl>
+                                                            <Button
+                                                                variant={'outline'}
+                                                                className={cn(
+                                                                    'w-full pl-3 text-left font-normal h-11 border-muted-foreground/20 hover:border-primary/50 transition-all',
+                                                                    !field.value && 'text-muted-foreground'
+                                                                )}
+                                                            >
+                                                                {field.value ? (
+                                                                    format(field.value, 'dd MMMM yyyy')
+                                                                ) : (
+                                                                    <span>Pick a date</span>
+                                                                )}
+                                                                <CalendarIcon className='ml-auto h-4 w-4 text-primary opacity-70' />
+                                                            </Button>
+                                                        </FormControl>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className='w-auto p-0' >
+                                                        <Calendar
+                                                            mode='single'
+                                                            selected={field.value}
+                                                            onSelect={field.onChange}
+                                                            disabled={(date) => {
+                                                                if (!fromDate) return false;
+                                                                return date < fromDate;
+                                                            }}
+                                                            initialFocus
+                                                            className='rounded-md border'
+                                                        />
+                                                    </PopoverContent>
+                                                </Popover>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+
+                                <div className='grid gap-4 sm:grid-cols-3'>
+                                    <FormField
+                                        control={form.control}
+                                        name='totalDays'
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className='font-semibold'>Total Days</FormLabel>
+                                                <FormControl>
+                                                    <div className='relative'>
+                                                        <Input
+                                                            type='number'
+                                                            step='0.5'
+                                                            className='h-11 border-muted-foreground/20 font-bold text-center'
+                                                            {...field}
+                                                        />
+                                                        <div className='absolute inset-y-0 right-3 flex items-center text-[10px] font-bold text-muted-foreground pointer-events-none'>
+                                                            DAYS
+                                                        </div>
+                                                    </div>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name='inTime'
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className='font-semibold'>In Time</FormLabel>
+                                                <FormControl>
+                                                    <Input type='time' className='h-11 border-muted-foreground/20' {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name='outTime'
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className='font-semibold'>Out Time</FormLabel>
+                                                <FormControl>
+                                                    <Input type='time' className='h-11 border-muted-foreground/20' {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            </div>
+
+                            <FormField
+                                control={form.control}
+                                name='leaveReason'
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className='font-semibold'>Application Reason</FormLabel>
                                         <FormControl>
-                                            <Button
-                                                variant={'outline'}
-                                                className={cn(
-                                                    'w-full pl-3 text-left font-normal',
-                                                    !field.value && 'text-muted-foreground'
-                                                )}
-                                            >
-                                                {field.value ? (
-                                                    format(field.value, 'yyyy-MM-dd')
-                                                ) : (
-                                                    <span>Pick a date</span>
-                                                )}
-                                                <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
-                                            </Button>
+                                            <div className='relative'>
+                                                <Input
+                                                    placeholder='e.g. On duty for Board Meeting at Educational Summit...'
+                                                    className='h-11 border-muted-foreground/20 pr-10 focus-visible:ring-primary/30 transition-all'
+                                                    {...field}
+                                                />
+                                                <FileText className='absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-50' />
+                                            </div>
                                         </FormControl>
-                                    </PopoverTrigger>
-                                    <PopoverContent className='w-auto p-0' align='start'>
-                                        <Calendar
-                                            mode='single'
-                                            selected={field.value}
-                                            onSelect={field.onChange}
-                                            disabled={(date) =>
-                                                date < new Date('1900-01-01')
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <div className='flex justify-between items-center pt-2'>
+                                <div className='flex items-center gap-1.5 text-xs text-muted-foreground'>
+                                    <Info className='h-3.5 w-3.5 text-blue-500' />
+                                    <span>Applications will be submitted for approval automatically.</span>
+                                </div>
+                                <div className='flex gap-3'>
+                                    <Button
+                                        type='button'
+                                        variant='outline'
+                                        onClick={() => {
+                                            if (editingRow) {
+                                                onCancel?.();
+                                            } else {
+                                                form.reset();
                                             }
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name='toDate'
-                        render={({ field }) => (
-                            <FormItem className='flex flex-col'>
-                                <FormLabel>To Date</FormLabel>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <FormControl>
-                                            <Button
-                                                variant={'outline'}
-                                                className={cn(
-                                                    'w-full pl-3 text-left font-normal',
-                                                    !field.value && 'text-muted-foreground'
-                                                )}
-                                            >
-                                                {field.value ? (
-                                                    format(field.value, 'yyyy-MM-dd')
-                                                ) : (
-                                                    <span>Pick a date</span>
-                                                )}
-                                                <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
-                                            </Button>
-                                        </FormControl>
-                                    </PopoverTrigger>
-                                    <PopoverContent className='w-auto p-0' align='start'>
-                                        <Calendar
-                                            mode='single'
-                                            selected={field.value}
-                                            onSelect={field.onChange}
-                                            disabled={(date) =>
-                                                date < new Date('1900-01-01')
-                                            }
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-
-                <div className='grid gap-4 md:grid-cols-3'>
-                    <FormField
-                        control={form.control}
-                        name='totalDays'
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Total Days</FormLabel>
-                                <FormControl>
-                                    <Input type='number' step='0.5' {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name='inTime'
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>In Time</FormLabel>
-                                <FormControl>
-                                    <Input type='time' {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name='outTime'
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Out Time</FormLabel>
-                                <FormControl>
-                                    <Input type='time' {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-
-                <FormField
-                    control={form.control}
-                    name='leaveReason'
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Reason</FormLabel>
-                            <FormControl>
-                                <Input placeholder='Enter reason for leave' {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <div className='flex justify-end'>
-                    <Button type='submit' disabled={isPending}>
-                        {isPending ? 'Submitting...' : 'Apply Leave'}
-                    </Button>
-                </div>
-            </form>
-        </Form>
+                                        }}
+                                        disabled={isPending}
+                                        className='px-6 border-muted-foreground/20'
+                                    >
+                                        {editingRow ? 'Cancel' : 'Reset'}
+                                    </Button>
+                                    <Button
+                                        type='submit'
+                                        disabled={isPending || !employeeData}
+                                        className='px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95'
+                                    >
+                                        {isPending ? (
+                                            <>
+                                                <Clock className='mr-2 h-4 w-4 animate-spin' />
+                                                {editingRow ? 'Updating...' : 'Submitting...'}
+                                            </>
+                                        ) : (
+                                            <>
+                                                {editingRow ? 'Update Request' : 'Submit Request'}
+                                                <ArrowRight className='ml-2 h-4 w-4' />
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
+                            </div>
+                        </form>
+                    </Form>
+                </CardContent>
+            </Card>
+        </div>
     );
 }

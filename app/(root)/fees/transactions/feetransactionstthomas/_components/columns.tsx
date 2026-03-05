@@ -21,6 +21,12 @@ export const feeTransactionColumnsStThomas: ColumnDef<Ifeetransaction>[] = [
         enableSorting: false,
         enableHiding: false
     },
+
+    {
+        accessorKey: 'amsT_AdmNo',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Adm No.' />,
+        cell: ({ row }) => <div>{row.getValue('amsT_AdmNo')}</div>
+    },
     {
         accessorKey: 'amsT_FirstName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
@@ -42,15 +48,11 @@ export const feeTransactionColumnsStThomas: ColumnDef<Ifeetransaction>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Section Name' />,
         cell: ({ row }) => <div>{row.getValue('sectionname')}</div>
     },
+
     {
-        accessorKey: 'amsT_AdmNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Adm No.' />,
-        cell: ({ row }) => <div>{row.getValue('amsT_AdmNo')}</div>
-    },
-    {
-        accessorKey: 'fyP_Receipt_No',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Receipt No.' />,
-        cell: ({ row }) => <div>{row.getValue('fyP_Receipt_No')}</div>
+        accessorKey: 'fmT_Name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Paid Month' />,
+        cell: ({ row }) => <div>{row.getValue('fmT_Name')}</div>
     },
     {
         accessorKey: 'fyP_Date',
@@ -70,6 +72,7 @@ export const feeTransactionColumnsStThomas: ColumnDef<Ifeetransaction>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Paid Amount' />,
         cell: ({ row }) => <div style={{ textAlign: 'center' }}>{row.getValue('fyP_Tot_Amount')}</div>
     },
+
     {
         accessorKey: 'fyP_Bank_Or_Cash',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Mode of Payment' />,
@@ -78,7 +81,7 @@ export const feeTransactionColumnsStThomas: ColumnDef<Ifeetransaction>[] = [
     {
         accessorKey: 'Status',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-        cell: ({ row }) => <div>{}</div>
+        cell: () => <div>{<Eye className='h-4 w-4 text-blue-600' />}</div>
     },
 
     {

@@ -651,7 +651,7 @@ export default function AddPromotionalSettingForm({
                     <div className='space-y-4'>
                         {/* Academic Year */}
                         <div>
-                            <Label>Academic Year *</Label>
+                            <Label>Academic Year <span className='text-red-500'>*</span></Label>
                             <Select
                                 key={selectedYear}
                                 value={selectedYear !== 0 ? String(selectedYear) : undefined}
@@ -680,7 +680,7 @@ export default function AddPromotionalSettingForm({
 
                         {/* Category */}
                         <div>
-                            <Label>Category *</Label>
+                            <Label>Category <span className='text-red-500'>*</span></Label>
                             <Select
                                 key={selectedCategory}
                                 value={selectedCategory ? String(selectedCategory) : '__none'}
@@ -703,7 +703,7 @@ export default function AddPromotionalSettingForm({
 
                         {/* Grade */}
                         <div>
-                            <Label>Grade *</Label>
+                            <Label>Grade <span className='text-red-500'>*</span></Label>
                             <Select
                                 key={selectedGrade}
                                 value={selectedGrade || '__none'}
@@ -729,7 +729,7 @@ export default function AddPromotionalSettingForm({
                     <div className='space-y-6'>
                         {/* Radio buttons for promotion type */}
                         <div className='rounded-lg border p-4'>
-                            <div className='mb-2 font-medium text-sm'>Promotion Type *</div>
+                            <div className='mb-2 font-medium text-sm'>Promotion Type <span className='text-red-500'>*</span></div>
                             <div className='flex flex-wrap gap-4'>
                                 <label className='flex items-center space-x-2'>
                                     <input

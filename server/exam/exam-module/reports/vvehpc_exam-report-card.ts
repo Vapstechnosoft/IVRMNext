@@ -80,9 +80,7 @@ export async function getSubjectDropDownByYearCategorySubjectGroupList(asmaY_Id:
     return response.data || [];
 }
 
-export async function getMasterInstitution(data: any) {
+export async function getMasterInstitution() {
     const url = '/baldwin_elective_report/master_institution_details';
-    console.info('url', url);
-    console.info('data', data);
-    return await api.get<IMasterInstitution>('exam', url, data);
+    return await api.get<IMasterInstitution>('exam', url);
 }

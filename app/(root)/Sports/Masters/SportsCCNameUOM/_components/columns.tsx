@@ -23,11 +23,11 @@ export const MasterSportsCCNameUOMColumns: ColumnDef<IMasterSportsCCNameUOM>[] =
         enableSorting: true
     },
     {
-        accessorKey: 'SPCCMSCCUOM_ActiveFlag',
+        accessorKey: 'spccmsccuoM_ActiveFlag',
         header: 'Status',
         cell: ({ row }) => (
-            <Badge variant={row.original.SPCCMSCCUOM_ActiveFlag ? 'success' : 'destructive'}>
-                {row.original.SPCCMSCCUOM_ActiveFlag ? 'Active' : 'Deactive'}
+            <Badge variant={row.original.spccmsccuoM_ActiveFlag ? 'success' : 'destructive'}>
+                {row.original.spccmsccuoM_ActiveFlag ? 'Active' : 'Deactive'}
             </Badge>
         )
     },
@@ -51,11 +51,11 @@ export const MasterSportsCCNameUOMColumns: ColumnDef<IMasterSportsCCNameUOM>[] =
                     <Button
                         variant="ghost"
                         size="icon"
-                        className={row.original.SPCCMSCCUOM_ActiveFlag ? "h-8 w-8 text-destructive" : "h-8 w-8 text-green-600"}
+                        className={row.original.spccmsccuoM_ActiveFlag ? "h-8 w-8 text-destructive" : "h-8 w-8 text-green-600"}
                         onClick={() => openToggleForm(row.original)}
-                        title={row.original.SPCCMSCCUOM_ActiveFlag ? "Deactivate" : "Activate"}
+                        title={row.original.spccmsccuoM_ActiveFlag ? "Deactivate" : "Activate"}
                     >
-                        {row.original.SPCCMSCCUOM_ActiveFlag ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+                        {row.original.spccmsccuoM_ActiveFlag ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
                     </Button>
                 </div>
             );

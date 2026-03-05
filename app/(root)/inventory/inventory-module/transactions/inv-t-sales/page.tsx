@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, ShoppingCart, PlusCircle, Pencil } from 'lucide-react';
 import { useInvTSales } from '@/hooks/inventory/transactions/use-inv-t-sales';
 import type { IInvTSales } from '@/types/inventory/transactions/inv-t-sales';
 import AddSalesForm from './_components/add-form';
@@ -19,9 +19,34 @@ import { ViewReceiptItemModal } from './_components/view-receipt-item-modal';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
+
 export default function InvTSalesPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useInvTSales(searchParams);
+
+    // Pagination & Search State synced with URL
+    const [currentPage] = useQueryState(
+        tableSearchVariables.page,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
+    );
+    const [pageSize] = useQueryState(
+        tableSearchVariables.page_size,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
+    );
+    const [searchQuery] = useQueryState(
+        tableSearchVariables.search,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+
+    const queryParams = {
+        ...searchParams,
+        page: currentPage,
+        page_size: pageSize,
+        search_query: searchQuery
+    };
+
+    const { data: response, isLoading, error } = useInvTSales(queryParams);
 
     return (
         <FormProvider<IInvTSales>>
@@ -101,13 +126,15 @@ function InvTSalesPageContent({
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg'>
+                    className='shadow-lg'
+                    icon={<ShoppingCart className='h-5 w-5' />}>
                     <GenericDataTable<IInvTSales>
                         {...tableProps}
                         data={response?.data?.get_Sale || []}
                         columns={columns}
                         isLoading={isLoading}
                         error={error}
+                        isSearchRequired={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading Sales records...'
                         noDataTitle='No Sales Found'
@@ -159,7 +186,8 @@ function FormSections() {
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6'>
+                        className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6'
+                        icon={<PlusCircle className='h-5 w-5' />}>
                         <div className='relative'>
                             <Button
                                 type='button'
@@ -182,7 +210,8 @@ function FormSections() {
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6 border-primary/20'>
+                        className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6 border-primary/20'
+                        icon={<Pencil className='h-5 w-5' />}>
                         <div className='relative'>
                             <Button
                                 type='button'

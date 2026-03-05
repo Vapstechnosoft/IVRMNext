@@ -1,6 +1,4 @@
 'use client';
-
-import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { type FixingDayStaffSchema, fixingDayStaffSchema } from '@/schemas/timetable/constraints/fixing';
@@ -17,7 +15,9 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { type IFixingDayStaffList, dayStaffColumns } from './columns';
+
+import type { TTDayStaffGridData } from '@/types/timetable/constraints/fixing';
+import { dayStaffColumns } from './columns';
 
 interface DayStaffTabProps {
     initialData: any;
@@ -29,8 +29,8 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
     const [academicList] = useState<any[]>(initialData?.yearlist || []);
     const [dayList] = useState<any[]>(initialData?.daylist || []);
     const [staffList, setStaffList] = useState<any[]>(initialData?.stafflist || []);
-    const [gridData, setGridData] = useState<IFixingDayStaffList[]>(initialData?.fix_day_staff_list || []);
-
+    const [gridData, setGridData] = useState<TTDayStaffGridData[]>(initialData?.fix_day_staff_list || []);
+    //const [gridData, setGridData] = useState<[]>(initialData?.fix_day_staff_list || []);
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subSubjectList, setSubSubjectList] = useState<any[]>([]);
@@ -39,18 +39,18 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
     const form = useForm<FixingDayStaffSchema>({
         resolver: zodResolver(fixingDayStaffSchema),
         defaultValues: {
-            TTFDS_Id: 0,
-            ASMAY_Id: undefined,
-            TTMD_Id: undefined,
-            HRME_Id: undefined,
-            TTFDS_SUbSelcFlag: false,
-            TempararyArrayList: []
+            ttfdS_Id: 0,
+            asmaY_Id: undefined,
+            ttmD_Id: undefined,
+            hrmE_Id: undefined,
+            ttfdS_SUbSelcFlag: false,
+            tempararyArrayList: []
         }
     });
 
     const { reset, setValue, watch, handleSubmit, control } = form;
-    const ASMAY_Id = watch('ASMAY_Id');
-    const TTFDS_SUbSelcFlag = watch('TTFDS_SUbSelcFlag');
+    const asmaY_Id = watch('asmaY_Id');
+    const ttfdS_SUbSelcFlag = watch('ttfdS_SUbSelcFlag');
 
     const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
     const [selectedClass, setSelectedClass] = useState<number | undefined>();
@@ -60,7 +60,7 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
 
     const { fields, append, remove } = useFieldArray({
         control,
-        name: 'TempararyArrayList'
+        name: 'tempararyArrayList'
     });
 
     // Effect to populate form on Edit
@@ -87,9 +87,9 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
         setSectionList([]);
         setSubSubjectList([]);
 
-        if (ASMAY_Id && categoryId) {
+        if (asmaY_Id && categoryId) {
             try {
-                const res = await getClassByCategory({ ASMAY_Id, TTMC_Id: categoryId });
+                const res = await getClassByCategory({ ASMAY_Id: asmaY_Id, TTMC_Id: categoryId });
                 if (Array.isArray(res) && res && res.classbycategory) {
                     setClassList(res.classbycategory as any[]);
                 }
@@ -107,10 +107,10 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
         setSectionList([]);
         setSubSubjectList([]);
 
-        if (ASMAY_Id && selectedCategory && classId) {
+        if (asmaY_Id && selectedCategory && classId) {
             try {
                 const res = await getSectionByClass({
-                    ASMAY_Id,
+                    ASMAY_Id: asmaY_Id,
                     ASMCL_Id: classId,
                     TTMC_Id: selectedCategory
                 });
@@ -128,15 +128,16 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
         setSelectedSection(sectionId);
         setSelectedSubject(undefined);
         setSubSubjectList([]);
-        const HRME_Id = watch('HRME_Id');
+        const hrmE_Id = watch('hrmE_Id');
 
-        if (ASMAY_Id && selectedClass && sectionId && HRME_Id) {
+        if (asmaY_Id && selectedCategory && selectedClass && sectionId && hrmE_Id) {
             try {
                 const res = await getSubjectByStaff({
-                    ASMAY_Id,
+                    ASMAY_Id: asmaY_Id,
+                    TTMC_Id: selectedCategory,
                     ASMCL_Id: selectedClass,
                     ASMS_Id: sectionId,
-                    HRME_Id
+                    HRME_Id: hrmE_Id
                 });
                 if (Array.isArray(res) && res && res.subjectbystaff) {
                     setSubSubjectList(res.subjectbystaff as any[]);
@@ -160,7 +161,7 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
 
         // Check duplicate
         const exists = fields.some(
-            (f: any) => f.ASMCL_Id === selectedClass && f.ASMS_Id === selectedSection && f.ISMS_Id === selectedSubject
+            (f: any) => f.asmcL_Id === selectedClass && f.asmS_Id === selectedSection && f.ismS_Id === selectedSubject
         );
 
         if (exists) {
@@ -169,10 +170,10 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
         }
 
         append({
-            ASMCL_Id: selectedClass,
-            ASMS_Id: selectedSection,
-            ISMS_Id: selectedSubject,
-            NOP: Number(nop),
+            asmcL_Id: selectedClass,
+            asmS_Id: selectedSection,
+            ismS_Id: selectedSubject,
+            nop: Number(nop),
             clsDisplay: clsObj?.asmcL_ClassName,
             sectDisplay: secObj?.asmC_SectionName || secObj?.asmS_SectionName,
             subDisplay: subObj?.ismS_SubjectName || subObj?.subjectName
@@ -197,18 +198,18 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
                 header: 'Subject'
             },
             {
-                accessorKey: 'NOP',
+                accessorKey: 'nop',
                 header: 'No Of Periods'
-            },
-            {
-                id: 'actions',
-                header: 'Actions',
-                cell: ({ row }) => (
-                    <Button type='button' variant='ghost' size='sm' onClick={() => remove(row.index)}>
-                        <span className='text-red-500'>Delete</span>
-                    </Button>
-                )
             }
+            // {
+            //     id: 'actions',
+            //     header: 'Actions',
+            //     // cell: ({ row }) => (
+            //     //     <Button type='button' variant='ghost' size='sm' onClick={() => remove(row.index)}>
+            //     //         <span className='text-red-500'>Delete</span>
+            //     //     </Button>
+            //     // )
+            // }
         ],
         [remove]
     );
@@ -220,21 +221,21 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
                 const d = (res.fix_day_staff_edit as any[])[0];
 
                 reset({
-                    TTFDS_Id: d.ttfdS_Id,
-                    ASMAY_Id: d.asmaY_Id,
-                    TTMD_Id: d.ttmD_Id,
-                    HRME_Id: d.hrmE_Id,
-                    TTFDS_SUbSelcFlag: d.ttfdS_SUbSelcFlag,
-                    TempararyArrayList: []
+                    ttfdS_Id: d.ttfdS_Id,
+                    asmaY_Id: d.asmaY_Id,
+                    ttmD_Id: d.ttmD_Id,
+                    hrmE_Id: d.hrmE_Id,
+                    ttfdS_SUbSelcFlag: d.ttfdS_SUbSelcFlag,
+                    tempararyArrayList: []
                 });
 
                 if (d.ttfdS_SUbSelcFlag && res.fix_day_staff__classecedit) {
                     (res.fix_day_staff__classecedit as any[]).forEach((sub: any) => {
                         append({
-                            ASMCL_Id: sub.asmcL_Id,
-                            ASMS_Id: sub.asmS_Id,
-                            ISMS_Id: sub.ismS_Id,
-                            NOP: sub.ttfdscC_Periods || sub.ttscC_Periods,
+                            asmcL_Id: sub.asmcL_Id,
+                            asmS_Id: sub.asmS_Id,
+                            ismS_Id: sub.ismS_Id,
+                            nop: sub.ttfdscC_Periods || sub.ttscC_Periods,
                             clsDisplay: sub.asmcL_ClassName,
                             sectDisplay: sub.asmC_SectionName,
                             subDisplay: sub.ismS_SubjectName
@@ -254,7 +255,7 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
                 TTFDS_Id: item.ttfdS_Id,
                 TTFDS_ActiveFlag: !item.ttfdS_ActiveFlag
             };
-            const res = await deactivateFixingDayStaff(payload);
+            const res = await deactivateFixingDayStaff(item.ttfdS_Id);
             if (res?.returnval === true) {
                 toast.success('Status Updated');
                 window.location.reload();
@@ -269,10 +270,10 @@ function DayStaffTabContent({ initialData }: DayStaffTabProps) {
 
     const onSubmit = async (data: FixingDayStaffSchema) => {
         try {
-            if (!data.TTFDS_SUbSelcFlag) {
-                data.TempararyArrayList = [];
+            if (!data.ttfdS_SUbSelcFlag) {
+                data.tempararyArrayList = [];
             } else {
-                if (!data.TempararyArrayList || data.TempararyArrayList.length === 0) {
+                if (!data.tempararyArrayList || data.tempararyArrayList.length === 0) {
                     toast.warning('Please add at least one Class-Section details');
                     return;
                 }

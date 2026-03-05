@@ -32,6 +32,8 @@ export type UserResponseData = {
     roleId?: number;
     designation: string;
     user_image: string | null;
+    amst_id: number;
+    user_id: number;
     [key: string]: any;
 };
 
@@ -43,6 +45,8 @@ export type ApiSearchparams = {
     sort_column?: string;
     sort_direction?: string;
     search_columns?: string;
+    ASMAY_Id?: number;
+    [key: string]: any;
 };
 
 export interface IDropdown {

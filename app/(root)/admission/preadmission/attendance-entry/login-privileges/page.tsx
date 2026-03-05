@@ -111,6 +111,7 @@ interface PrivilegeFormProps {
 
 function PrivilegeForm({ createPrivilege, refetch, isSearching, onSearchSuccess }: PrivilegeFormProps) {
     const { selectedRow, isDeleteFormOpen, closeDeleteForm } = useFormContext<ILoginPrivilege>();
+    const { fetchDataByType } = useLoginPrivileges();
 
     // ... existing state ...
     const [role, setRole] = useState<string>('2'); // Default to Class Teacher (value 2)
@@ -139,8 +140,8 @@ function PrivilegeForm({ createPrivilege, refetch, isSearching, onSearchSuccess 
     const staffList = Array.isArray((staffData as any)?.employeeList)
         ? (staffData as any)?.employeeList
         : Array.isArray((staffData as any)?.data?.employeeList)
-          ? (staffData as any)?.data?.employeeList
-          : [];
+            ? (staffData as any)?.data?.employeeList
+            : [];
 
     // Removed unused classes/sections derivations if strictly relying on search results
 
@@ -182,19 +183,17 @@ function PrivilegeForm({ createPrivilege, refetch, isSearching, onSearchSuccess 
 
         setIsSearchLoading(true);
         try {
-            // Map Role to ASALU_EntryTypeFlag
-            // Map Role to ASALU_EntryTypeFlag: 1=Subject Teacher, 2=Class Teacher, 3=Others (as per user request "value wise 1 2 3")
-
             const entryTypeFlag = Number(role);
-
-            // Call new API
-            const result = await getStaffWiseGrid(Number(selectedYearId), entryTypeFlag, Number(selectedStaffId));
+            const result: any = await fetchDataByType({
+                ASMAY_Id: Number(selectedYearId),
+                ASALU_EntryTypeFlag: entryTypeFlag,
+                HRME_Id: Number(selectedStaffId)
+            });
 
             if (result) {
-                // 1. Populate Available Class-Sections from classsectionList
+                // Populate Available Class-Sections
                 const classSecListRaw = result.classsectionList || [];
                 let csList: any[] = [];
-
                 if (Array.isArray(classSecListRaw)) {
                     const seenIds = new Set();
                     csList = classSecListRaw.reduce((acc: any[], item: any) => {
@@ -205,32 +204,24 @@ function PrivilegeForm({ createPrivilege, refetch, isSearching, onSearchSuccess 
                                 id: uniqueId,
                                 label: item.name || `${item.asmcL_ClassName || ''} : ${item.asmC_SectionName || ''}`,
                                 classId: item.asmcL_Id,
-                                sectionId: item.asmC_Id,
-                                nameRaw: item.name
+                                sectionId: item.asmC_Id
                             });
                         }
                         return acc;
                     }, []);
                     setMappingClassSections(csList);
-                } else {
-                    setMappingClassSections([]);
                 }
 
-                // 2. Populate Available Subjects
+                // Populate Available Subjects
                 if (Array.isArray(result.subjectList)) {
                     setMappingSubjects(result.subjectList);
                 } else if (Array.isArray(result.data?.subjectList)) {
                     setMappingSubjects(result.data.subjectList);
-                } else {
-                    setMappingSubjects([]);
                 }
 
-                // 3. Populate Grid Table with loginPData
+                // Populate Grid Table
                 const privileges = result.loginPData || [];
                 onSearchSuccess(privileges);
-
-                // 4. Reset selections
-                setSelectedClassSections([]);
 
                 toast.success('Data fetched successfully');
                 setShowMapping(true);
@@ -428,14 +419,62 @@ function PrivilegeForm({ createPrivilege, refetch, isSearching, onSearchSuccess 
                         </Label>
                         <RadioGroup
                             value={role}
-                            onValueChange={(val) => {
+                            onValueChange={async (val) => {
                                 setRole(val);
+                                // Reset selections and mapping visibility
                                 setShowMapping(false);
                                 setTempList([]);
                                 setSelectedClassSections([]);
                                 setSelectedSubjects([]);
                                 setMappingClassSections([]);
                                 setMappingSubjects([]);
+
+                                // Only fetch if Year and Staff are selected
+                                if (selectedYearId && selectedStaffId) {
+                                    try {
+                                        const entryTypeFlag = Number(val);
+                                        const result: any = await fetchDataByType({
+                                            ASMAY_Id: Number(selectedYearId),
+                                            ASALU_EntryTypeFlag: entryTypeFlag,
+                                            HRME_Id: Number(selectedStaffId)
+                                        });
+
+                                        if (result) {
+                                            // Populate Mapping Class Sections
+                                            const classSecListRaw = result.classsectionList || [];
+                                            let csList: any[] = [];
+                                            if (Array.isArray(classSecListRaw)) {
+                                                const seenIds = new Set();
+                                                csList = classSecListRaw.reduce((acc: any[], item: any) => {
+                                                    const uniqueId = `${item.asmcL_Id}-${item.asmC_Id}`;
+                                                    if (!seenIds.has(uniqueId)) {
+                                                        seenIds.add(uniqueId);
+                                                        acc.push({
+                                                            id: uniqueId,
+                                                            label: item.name || `${item.asmcL_ClassName || ''} : ${item.asmC_SectionName || ''}`,
+                                                            classId: item.asmcL_Id,
+                                                            sectionId: item.asmC_Id
+                                                        });
+                                                    }
+                                                    return acc;
+                                                }, []);
+                                                setMappingClassSections(csList);
+                                            }
+
+                                            // Populate Mapping Subjects
+                                            if (Array.isArray(result.subjectList)) {
+                                                setMappingSubjects(result.subjectList);
+                                            } else if (Array.isArray(result.data?.subjectList)) {
+                                                setMappingSubjects(result.data.subjectList);
+                                            }
+
+                                            setShowMapping(true);
+                                        }
+                                    } catch (error) {
+                                        console.error('Error fetching data on role change:', error);
+                                        toast.error('Failed to fetch details for selected type');
+                                    }
+                                }
                             }}
                             className='flex flex-wrap items-center gap-6'>
                             <div className='flex items-center space-x-2'>

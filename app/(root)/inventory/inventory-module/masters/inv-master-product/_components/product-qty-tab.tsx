@@ -8,8 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useInvMasterProduct } from '@/hooks/inventory/masters/use-inv-master-product';
+import { getInvMasterProductList, getInvMasterItemList } from '@/server/inventory/masters/inv-master-product';
 import { Edit, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { ColumnDef } from '@tanstack/react-table';
+import { Badge } from '@/components/ui/badge';
+import { parseAsInteger, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
 
 const formSchema = z.object({
     invmpI_Id: z.number().optional(),
@@ -19,40 +25,55 @@ const formSchema = z.object({
 });
 
 export default function ProductQtyTab() {
-    const { loadData, saveProductQtyMutation, deactiveProductQtyMutation, getProductListMutation, getItemListMutation, getProductItemListMutation } = useInvMasterProduct();
-    const [productList, setProductList] = useState<any[]>([]);
-    const [itemList, setItemList] = useState<any[]>([]);
-    const [productItemList, setProductItemList] = useState<any[]>([]);
+    console.log("ProductQtyTab - MOUNTED/RENDERED");
+    // Pagination State
+    const [currentPage] = useQueryState(
+        tableSearchVariables.page,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
+    );
+    const [pageSize] = useQueryState(
+        tableSearchVariables.page_size,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
+    );
 
-    const fetchProductItemList = () => {
-        getProductItemListMutation.mutate(undefined, {
-            onSuccess: (res: any) => {
-                if (res.success && res.data) {
-                    setProductItemList(res.data);
-                }
-            }
-        });
-    };
+    const itemSearchParams = { page: currentPage, page_size: pageSize };
+
+    const {
+        productItemData,
+        isProductItemLoading,
+        saveProductQtyMutation,
+        deactiveProductQtyMutation,
+        refetchProductItemData
+    } = useInvMasterProduct(undefined, itemSearchParams);
+
+    const [products, setProducts] = useState<any[]>([]);
+    const [items, setItems] = useState<any[]>([]);
 
     useEffect(() => {
-        getProductListMutation.mutate(undefined, {
-            onSuccess: (res: any) => {
-                if (res.success && res.data) {
-                    setProductList(res.data);
+        let isMounted = true;
+        const fetchData = async () => {
+            try {
+                const productRes = await getInvMasterProductList();
+                const pRes = productRes as any;
+                if (isMounted && pRes?.success && Array.isArray(pRes.data)) {
+                    setProducts(pRes.data);
                 }
-            }
-        });
 
-        getItemListMutation.mutate(undefined, {
-            onSuccess: (res: any) => {
-                if (res.success && res.data) {
-                    setItemList(res.data);
+                const itemRes = await getInvMasterItemList();
+                const iRes = itemRes as any;
+                if (isMounted && iRes?.success && Array.isArray(iRes.data)) {
+                    setItems(iRes.data);
                 }
+            } catch (error) {
+                console.error("ProductQtyTab: Failed to fetch dropdown data", error);
             }
-        });
+        };
+        fetchData();
+        return () => { isMounted = false; };
+    }, [productItemData]);
 
-        fetchProductItemList();
-    }, []);
+    const data = (productItemData as any)?.get_product_item || (productItemData as any)?.data || [];
+    const tableProps = useDataTableProps({ ...((productItemData || {}) as any), data });
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -75,7 +96,7 @@ export default function ProductQtyTab() {
             onSuccess: (res: any) => {
                 if (res.success) {
                     onCancel();
-                    fetchProductItemList();
+                    refetchProductItemData();
                 }
             }
         });
@@ -104,6 +125,44 @@ export default function ProductQtyTab() {
         });
     };
 
+    const columns: ColumnDef<any>[] = [
+        {
+            accessorKey: 'index',
+            header: 'SL NO',
+            cell: ({ row, table }) => (table.getState().pagination.pageIndex * table.getState().pagination.pageSize) + row.index + 1,
+        },
+        {
+            accessorKey: 'invmP_ProductName',
+            header: 'Product Name',
+        },
+        {
+            accessorKey: 'invmI_ItemName',
+            header: 'Item Name',
+        },
+        {
+            accessorKey: 'invmpI_ItemQty',
+            header: 'Quantity',
+        },
+        {
+            id: 'actions',
+            header: 'Action',
+            cell: ({ row }) => (
+                <div className="flex items-center space-x-2">
+                    <Button variant="ghost" size="icon" onClick={() => onEdit(row.original)}>
+                        <Edit className="h-4 w-4 text-blue-500" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => onDeactive(row.original)}>
+                        {row.original.invmpI_ActiveFlg ? (
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                        ) : (
+                            <Badge variant="outline" className="text-green-500 cursor-pointer">Activate</Badge>
+                        )}
+                    </Button>
+                </div>
+            )
+        }
+    ];
+
     return (
         <div className="space-y-4">
             <Form {...form}>
@@ -119,7 +178,7 @@ export default function ProductQtyTab() {
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {productList.map((item: any) => (
+                                        {products.map((item: any) => (
                                             <SelectItem key={item.invmP_Id} value={item.invmP_Id.toString()}>
                                                 {item.invmP_ProductName}
                                             </SelectItem>
@@ -140,7 +199,7 @@ export default function ProductQtyTab() {
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {itemList.map((item: any) => (
+                                        {items.map((item: any) => (
                                             <SelectItem key={item.invmI_Id} value={item.invmI_Id.toString()}>
                                                 {item.invmI_ItemName}
                                             </SelectItem>
@@ -168,43 +227,12 @@ export default function ProductQtyTab() {
             </Form>
 
             <div className="mt-8">
-                <div className="rounded-md border">
-                    <table className="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SL NO</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Name</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {productItemList.map((row: any, index: number) => (
-                                <tr key={index}>
-                                    <td className="px-6 py-4 whitespace-nowrap">{index + 1}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{row.invmP_ProductName}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{row.invmI_ItemName}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{row.invmpI_ItemQty}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                                        <div className="flex items-center justify-center space-x-2">
-                                            <Button variant="ghost" size="icon" onClick={() => onEdit(row)}>
-                                                <Edit className="h-4 w-4 text-blue-500" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => onDeactive(row)}>
-                                                {row.invmpI_ActiveFlg ? (
-                                                    <Trash2 className="h-4 w-4 text-red-500" />
-                                                ) : (
-                                                    <span className="text-green-500 font-bold text-xs border border-green-500 px-2 py-1 rounded cursor-pointer">Activate</span>
-                                                )}
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                <GenericDataTable
+                    {...tableProps}
+                    data={data}
+                    columns={columns}
+                    isLoading={isProductItemLoading}
+                />
             </div>
         </div>
     );

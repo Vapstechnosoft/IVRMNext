@@ -10,13 +10,21 @@ export interface LeaveTransactionManual {
     id: number; // hreltD_Id
     employeeName: string; // hrmE_EmployeeFirstName
     leaveName: string; // hrmL_LeaveName
-    fromDate: Date; // hreltD_FromDate
-    toDate: Date; // hreltD_ToDate
+    fromDate: string | Date; // hreltD_FromDate
+    toDate: string | Date; // hreltD_ToDate
     totalDays: number; // hreltD_TotDays
     transactionId: number; // hrelT_Id
     isActive: boolean; // hrelT_ActiveFlag
     employeeId: number; // hrmE_Id
     createdAt: Date;
+    hrmL_LeaveType?: string;
+    hrmlY_Id?: number;
+    // raw names for sorting
+    hrmE_EmployeeFirstName?: string;
+    hrmL_LeaveName?: string;
+    hreltD_FromDate?: string | Date;
+    hreltD_ToDate?: string | Date;
+    hreltD_TotDays?: number;
 }
 
 /**
@@ -32,6 +40,8 @@ export interface LeaveTransactionManualApiData {
     hrelT_Id: number;
     hrelT_ActiveFlag: boolean;
     hrmE_Id: number;
+    hrmL_LeaveType?: string;
+    hrmlY_Id?: number;
 }
 
 /**
@@ -43,8 +53,8 @@ export interface LeaveTransactionManualSaveRequest {
     hrelT_Id: number;
     hreltD_Id: number;
     hrmE_Id: number;
-    hrmL_LeaveType?: string;
-    hrmlY_Id?: number;
+    hrmL_LeaveType: string;
+    hrmlY_Id: number;
     hrelT_FromDate: string;
     hrelT_ToDate: string;
     hrelT_TotDays: number;
@@ -57,4 +67,3 @@ export interface LeaveTransactionManualDeleteRequest {
     HRELTD_Id: number;
     HRELT_Id: number;
 }
-

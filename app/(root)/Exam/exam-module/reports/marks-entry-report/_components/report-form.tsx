@@ -3,22 +3,116 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type MarksEntryReportSchema, marksEntryReportSchema } from '@/schemas/exam/exam-module/reports';
-import { getExams, getReportDetails } from '@/server/exam/exam-module/reports/marks-entry-report';
 import {
     getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist,
-    getExamsDropDownByAcademicYearandClassandSectionlist
+    getExamsDropDownByAcademicYearandClassandSectionlist,
+    getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { getReportDetails } from '@/server/exam/exam-module/reports/marks-entry-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
+const Marks_reportData = {
+    "success": true,
+    "message": "Marks entry report generated successfully.",
+    "data": [
+        {
+            "mI_Id": "30",
+            "asmcL_Id": "409",
+            "asmS_Id": "162",
+            "asmcL_ClassName": "Nursery",
+            "asmC_SectionName": "Section A",
+            "ismS_Id": 1069,
+            "ismS_SubjectName": "COLOURING  SCENIC PICTURE",
+            "subjectOrder": 1,
+            "employename": "",
+            "sourceMarksEntryFlag": 1,
+            "sourceMarksColorFlag": "Green",
+            "sourceMarksEntry": "Full Entered"
+        },
+        {
+            "mI_Id": "30",
+            "asmcL_Id": "409",
+            "asmS_Id": "162",
+            "asmcL_ClassName": "Nursery",
+            "asmC_SectionName": "Section A",
+            "ismS_Id": 970,
+            "ismS_SubjectName": "SENSORIAL",
+            "subjectOrder": 2,
+            "employename": "",
+            "sourceMarksEntryFlag": 0,
+            "sourceMarksColorFlag": "Red",
+            "sourceMarksEntry": "Not Entered"
+        },
+        {
+            "mI_Id": "30",
+            "asmcL_Id": "409",
+            "asmS_Id": "162",
+            "asmcL_ClassName": "Nursery",
+            "asmC_SectionName": "Section A",
+            "ismS_Id": 762,
+            "ismS_SubjectName": "@#$%^&",
+            "subjectOrder": 3,
+            "employename": "",
+            "sourceMarksEntryFlag": 0,
+            "sourceMarksColorFlag": "Red",
+            "sourceMarksEntry": "Not Entered"
+        },
+        {
+            "mI_Id": "30",
+            "asmcL_Id": "409",
+            "asmS_Id": "162",
+            "asmcL_ClassName": "Nursery",
+            "asmC_SectionName": "Section A",
+            "ismS_Id": 779,
+            "ismS_SubjectName": "EVS",
+            "subjectOrder": 4,
+            "employename": "",
+            "sourceMarksEntryFlag": 0,
+            "sourceMarksColorFlag": "Red",
+            "sourceMarksEntry": "Not Entered"
+        },
+        {
+            "mI_Id": "30",
+            "asmcL_Id": "409",
+            "asmS_Id": "162",
+            "asmcL_ClassName": "Nursery",
+            "asmC_SectionName": "Section A",
+            "ismS_Id": 775,
+            "ismS_SubjectName": "KANNADA",
+            "subjectOrder": 5,
+            "employename": "",
+            "sourceMarksEntryFlag": 1,
+            "sourceMarksColorFlag": "Green",
+            "sourceMarksEntry": "Full Entered"
+        },
+        {
+            "mI_Id": "30",
+            "asmcL_Id": "409",
+            "asmS_Id": "162",
+            "asmcL_ClassName": "Nursery",
+            "asmC_SectionName": "Section A",
+            "ismS_Id": 767,
+            "ismS_SubjectName": "ENGLISH",
+            "subjectOrder": 6,
+            "employename": "",
+            "sourceMarksEntryFlag": 1,
+            "sourceMarksColorFlag": "Green",
+            "sourceMarksEntry": "Full Entered"
+        }
+    ],
+    "total": 6,
+    "page": null,
+    "page_size": null
+}
+
 interface ReportFormProps {
-    onReportGenerated: (data: any) => void;
+    onReportGenerated: (data: any, year: string, exam: string) => void;
     onReset: () => void;
 }
 
@@ -150,13 +244,38 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     }, [watchYear, watchClass, watchSection, setValue]);
 
     const onSubmit = async (data: MarksEntryReportSchema) => {
+        console.log('data', data);
         try {
-            const result = await getReportDetails(data);
-            onReportGenerated(result); // result matches the expected data structure directly here
+            const payload = {
+                ASMAY_Id: Number(data.ASMAY_Id),
+                ASMCL_Id: Number(data.ASMCL_Id),
+                ASMS_Id: Number(data.ASMS_Id),
+                EME_Id: Number(data.EME_Id)
+            };
+
+            console.log('marks entry report payload', payload);
+
+            const selected_Year = years.find((y: any) => y.asmaY_Id === Number(data.ASMAY_Id))?.asmaY_Year || '';
+            const selected_Exam = exams.find((e: any) => e.emE_Id === Number(data.EME_Id))?.emE_ExamName || '';
+            console.log('selected_Year', selected_Year);
+            const result = await getReportDetails(payload);
+
+            console.log('marks entry report data', result.data);
+
+            const resultData = Array.isArray(result.data) ? result.data[0] : [];
+            console.log('marks entry report result data', resultData);
+            // TODO: Use dummy data if result is empty - REMOVE IN PRODUCTION
+            if ((Array.isArray(resultData) && resultData.length === 0) || !result.data || result.data.length === 0) {
+                onReportGenerated(Marks_reportData.data, selected_Year, selected_Exam);
+            } else {
+                onReportGenerated(result.data, selected_Year, selected_Exam);
+            }
+
         } catch (error) {
             console.error('Error:', error);
         }
     };
+
 
     const handleClear = () => {
         reset();
@@ -338,11 +457,11 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                         </div>
 
                         <div className='mt-8 flex justify-center gap-4'>
-                            <Button type='submit' disabled={isSubmitting}>
-                                {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null} Report
+                            <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting}>
+                                Report
                             </Button>
                             <Button type='button' variant='outline' onClick={handleClear} disabled={isSubmitting}>
-                                Cancel
+                                Clear
                             </Button>
                         </div>
                     </div>

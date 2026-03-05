@@ -1,12 +1,14 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
+import { ApiSearchparams } from '@/types';
 import type {
     Category,
     Class,
     Section,
     Staff,
     StaffReplacementExistingToNewMasters,
+    StaffReplacementGridData,
     Subject
 } from '@/types/timetable/Transaction/staff-replacement-existing-to-new';
 
@@ -42,9 +44,32 @@ export async function getSectionsByClass(asmcL_Id: number): Promise<Section[]> {
 }
 
 /**
- * Fetches timetable data for staff replacement
- * Based on category, staff, class, section, and subject filters
+ * Fetches initial grid data for staff replacement existing to new
  */
+// export async function getStaffReplacementGridData(): Promise<StaffReplacementGridData[]> {
+//     try {
+//         const response = await api.get<any>('timetable', '/StaffReplacementForClassSectionFacade/GetstaffreplacementfromexistingtonewGrid');
+
+//         // Check for specific response structure provided by user
+//         if (response?.data && Array.isArray(response.data)) {
+//             return response.data;
+//         }
+
+//         return [];
+//     } catch (error) {
+//         console.error('Error fetching staff replacement grid data:', error);
+//         return [];
+//     }
+// }
+
+
+export async function getStaffReplacementGridData(searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ttmD_DayName,ttmD_DayCode');
+    const url = `/StaffReplacementForClassSectionFacade/GetstaffreplacementfromexistingtonewGrid?${urlParams}`;
+    console.info('MasterDayFacade', url);
+    return await api.get<StaffReplacementGridData[]>('timetable', url);
+}
+
 export async function getTimetableData(payload: {
     ttmC_Id: string;
     hrmE_Id_From: string;

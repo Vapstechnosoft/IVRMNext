@@ -1,33 +1,23 @@
 'use client';
 
-import { useState } from 'react';
-import { useStaffDashboard } from '@/hooks/staff-portal/useStaffDashboard';
-import { DashboardWidget } from '@/app/(root)/StudentPortal/student-dashboard/_components/dashboard-widget';
-import {
-    User,
-    Bell,
-    Calendar,
-    Box,
-    ShoppingCart,
-    Clock,
-    Users,
-    Book,
-    FileText,
-    Camera
-} from 'lucide-react';
-import {
-    ProfileModal,
-    NoticeBoardModal,
-    EventsModal,
-    AssetListModal,
-    PurchaseListModal,
-    BookListModal,
-    MedicalRecordModal,
-    TimeTableModal,
-    PhotoUploadModal
-} from './_components/dashboard-modals';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useStaffDashboard } from '@/hooks/staff-portal/useStaffDashboard';
+import { Bell, Book, Box, Calendar, Camera, Clock, FileText, ShoppingCart, User, Users } from 'lucide-react';
+import { useState } from 'react';
+import { CalendarWidget } from './_components/calendar-widget';
+import {
+    AssetListModal,
+    BookListModal,
+    EventsModal,
+    MedicalRecordModal,
+    NoticeBoardModal,
+    PhotoUploadModal,
+    ProfileModal,
+    PurchaseListModal,
+    TimeTableModal
+} from './_components/dashboard-modals';
+import { StaffDashboardWidget } from './_components/staff-dashboard-widget';
 
 export default function StaffDashboardPage() {
     const { data: dashboard, isLoading } = useStaffDashboard();
@@ -44,14 +34,14 @@ export default function StaffDashboardPage() {
     });
 
     const toggleModal = (key: keyof typeof modals, val: boolean) => {
-        setModals(prev => ({ ...prev, [key]: val }));
+        setModals((prev) => ({ ...prev, [key]: val }));
     };
 
     if (isLoading) {
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
+            <div className='grid grid-cols-1 gap-8 p-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
                 {Array.from({ length: 9 }).map((_, i) => (
-                    <Skeleton key={i} className="h-[200px] w-full rounded-lg" />
+                    <Skeleton key={i} className='h-[200px] w-full rounded-[2.5rem] shadow-sm' />
                 ))}
             </div>
         );
@@ -62,133 +52,157 @@ export default function StaffDashboardPage() {
     const isTeaching = dashboard?.hrmE_TechNonTeachingFlg === 'Teaching';
 
     return (
-        <div className="p-6">
-            <h1 className="text-2xl font-bold mb-8 text-primary uppercase tracking-tight">Staff Portal Dashboard</h1>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-
-                {/* 1. Employee Profile */}
-                <DashboardWidget
-                    title="Profile"
-                    icon={<User />}
-                    colorClass="bg-[#00c0ef]"
-                    footerText="View Full Profile"
-                    onViewClick={() => toggleModal('profile', true)}
-                >
-                    <div className="flex flex-col items-end">
-                        <span className="text-sm font-medium">{basicDetails?.hrmE_EmployeeFirstName}</span>
-                        <span className="text-xs text-muted-foreground">{basicDetails?.hrmdeS_DesignationName}</span>
-                        <Button
-                            variant="ghost"
-                            size="xs"
-                            className="mt-2 h-7 px-2 text-[10px] gap-1 hover:bg-white/20"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                toggleModal('upload', true);
-                            }}
-                        >
-                            <Camera className="h-3 w-3" /> Change Photo
-                        </Button>
+        <div className='min-h-screen bg-slate-50/50 p-8 dark:bg-zinc-950/50'>
+            <div className='mx-auto max-w-[1600px]'>
+                <header className='mb-12 flex flex-col justify-between gap-4 md:flex-row md:items-end'>
+                    <div>
+                        <h1 className='mb-2 font-black text-3xl text-slate-900 uppercase tracking-tight dark:text-white'>
+                            EMPLOYEE <span className='text-primary italic'>DASHBOARD</span>
+                        </h1>
+                        <p className='font-medium text-slate-500 dark:text-slate-400'>
+                            Welcome back,{' '}
+                            <span className='font-bold text-slate-900 dark:text-slate-100'>{basicDetails?.hrmE_EmployeeFirstName}</span>!
+                            Here's what's happening today.
+                        </p>
                     </div>
-                </DashboardWidget>
+                </header>
 
-                {/* 2. Notice Board */}
-                <DashboardWidget
-                    title="Notice Board"
-                    icon={<Bell />}
-                    colorClass="bg-[#605ca8]"
-                    footerText="View Notices"
-                    onViewClick={() => toggleModal('notice', true)}
-                >
-                    <div className="text-3xl font-bold">{dashboard?.noticeboard?.length || 0}</div>
-                    <div className="text-xs text-muted-foreground">Total Notices</div>
-                </DashboardWidget>
+                <div className='grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
+                    {/* 1. Employee Profile */}
+                    <StaffDashboardWidget
+                        title='Profile'
+                        icon={<User />}
+                        colorClass='bg-gradient-to-br from-[#00c0ef] to-[#0073b7]'
+                        footerText='View Full Profile'
+                        onViewClick={() => toggleModal('profile', true)}>
+                        <div className='flex flex-col items-start gap-1'>
+                            <span className='w-full truncate'>{basicDetails?.hrmE_EmployeeFirstName}</span>
+                            <span className='font-bold text-slate-400 text-xs uppercase tracking-widest'>
+                                {basicDetails?.hrmdeS_DesignationName}
+                            </span>
+                            <Button
+                                variant='outline'
+                                size='xs'
+                                className='mt-3 h-8 gap-2 rounded-full border-slate-200 px-3 text-[10px] hover:border-primary/50'
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleModal('upload', true);
+                                }}>
+                                <Camera className='h-3 w-3' /> Update Photo
+                            </Button>
+                        </div>
+                    </StaffDashboardWidget>
 
-                {/* 3. Calendar of Events */}
-                <DashboardWidget
-                    title="Events"
-                    icon={<Calendar />}
-                    colorClass="bg-[#00a65a]"
-                    footerText="View All Events"
-                    onViewClick={() => toggleModal('events', true)}
-                >
-                    <div className="text-3xl font-bold">{dashboard?.calenderlist?.length || 0}</div>
-                    <div className="text-xs text-muted-foreground">Upcoming Events</div>
-                </DashboardWidget>
+                    {/* 2. Notice Board */}
+                    <StaffDashboardWidget
+                        title='Notice Board'
+                        icon={<Bell />}
+                        colorClass='bg-gradient-to-br from-[#605ca8] to-[#4b4789]'
+                        footerText='View Notices'
+                        onViewClick={() => toggleModal('notice', true)}>
+                        <div className='flex items-baseline gap-2'>
+                            <span>{dashboard?.noticeboard?.length || 0}</span>
+                            <span className='font-medium text-slate-400 text-sm'>Notices</span>
+                        </div>
+                    </StaffDashboardWidget>
 
-                {/* 4. Asset List */}
-                <DashboardWidget
-                    title="Asset List"
-                    icon={<Box />}
-                    colorClass="bg-[#f39c12]"
-                    footerText="View Asset Details"
-                    onViewClick={() => toggleModal('assets', true)}
-                >
-                    <div className="text-3xl font-bold">{dashboard?.assetcount || 0}</div>
-                    <div className="text-xs text-muted-foreground">Assets Issued</div>
-                </DashboardWidget>
+                    {/* 3. Calendar of Events */}
+                    <StaffDashboardWidget
+                        title='Events'
+                        icon={<Calendar />}
+                        colorClass='bg-gradient-to-br from-[#00a65a] to-[#00733e]'
+                        footerText='View All Events'
+                        onViewClick={() => toggleModal('events', true)}>
+                        <div className='flex items-baseline gap-2'>
+                            <span>{dashboard?.calenderlist?.length || 0}</span>
+                            <span className='font-medium text-slate-400 text-sm'>Events</span>
+                        </div>
+                    </StaffDashboardWidget>
 
-                {/* 5. Purchase List */}
-                <DashboardWidget
-                    title="Purchase List"
-                    icon={<ShoppingCart />}
-                    colorClass="bg-[#ff851b]"
-                    footerText="View Purchase History"
-                    onViewClick={() => toggleModal('purchase', true)}
-                >
-                    <div className="text-3xl font-bold">{dashboard?.purchasecount || 0}</div>
-                    <div className="text-xs text-muted-foreground">Total Purchases</div>
-                </DashboardWidget>
+                    {/* 4. Asset List */}
+                    <StaffDashboardWidget
+                        title='Asset List'
+                        icon={<Box />}
+                        colorClass='bg-gradient-to-br from-[#f39c12] to-[#db8b0b]'
+                        footerText='View Asset Details'
+                        onViewClick={() => toggleModal('assets', true)}>
+                        <div className='flex items-baseline gap-2'>
+                            <span>{dashboard?.assetcount || 0}</span>
+                            <span className='font-medium text-slate-400 text-sm'>Assets</span>
+                        </div>
+                    </StaffDashboardWidget>
 
-                {/* 6. Time Table */}
-                <DashboardWidget
-                    title="Time Table"
-                    icon={<Clock />}
-                    colorClass="bg-[#dd4b39]"
-                    footerText="View Full Time Table"
-                    onViewClick={() => toggleModal('timetable', true)}
-                >
-                    <div className="text-3xl font-bold">{dashboard?.tT_final_generation?.length || 0}</div>
-                    <div className="text-xs text-muted-foreground">Classes Scheduled</div>
-                </DashboardWidget>
+                    {/* 5. Purchase List */}
+                    <StaffDashboardWidget
+                        title='Purchase List'
+                        icon={<ShoppingCart />}
+                        colorClass='bg-gradient-to-br from-[#ff851b] to-[#e67000]'
+                        footerText='View Purchase History'
+                        onViewClick={() => toggleModal('purchase', true)}>
+                        <div className='flex items-baseline gap-2'>
+                            <span>{dashboard?.purchasecount || 0}</span>
+                            <span className='font-medium text-slate-400 text-sm'>Purchases</span>
+                        </div>
+                    </StaffDashboardWidget>
 
-                {/* 7. Student Count (Conditional) */}
-                {isTeaching && (
-                    <DashboardWidget
-                        title="Student Count"
-                        icon={<Users />}
-                        colorClass="bg-[#00c0ef]"
-                        footerText="View Student List"
-                    >
-                        <div className="text-3xl font-bold">{dashboard?.studentcount || 0}</div>
-                        <div className="text-xs text-muted-foreground">Assigned Students</div>
-                    </DashboardWidget>
-                )}
+                    {/* 6. Time Table */}
+                    <StaffDashboardWidget
+                        title='Time Table'
+                        icon={<Clock />}
+                        colorClass='bg-gradient-to-br from-[#dd4b39] to-[#c23321]'
+                        footerText='View Full Time Table'
+                        onViewClick={() => toggleModal('timetable', true)}>
+                        <div className='flex items-baseline gap-2'>
+                            <span>{dashboard?.tT_final_generation?.length || 0}</span>
+                            <span className='font-medium text-slate-400 text-sm'>Sessions</span>
+                        </div>
+                    </StaffDashboardWidget>
 
-                {/* 8. Book List */}
-                <DashboardWidget
-                    title="Book List"
-                    icon={<Book />}
-                    colorClass="bg-[#605ca8]"
-                    footerText="View Library Books"
-                    onViewClick={() => toggleModal('books', true)}
-                >
-                    <div className="text-3xl font-bold">{dashboard?.bookcount || 0}</div>
-                    <div className="text-xs text-muted-foreground">Total Books</div>
-                </DashboardWidget>
+                    {/* 7. Student Count (Conditional) */}
+                    {isTeaching && (
+                        <StaffDashboardWidget
+                            title='Student Count'
+                            icon={<Users />}
+                            colorClass='bg-gradient-to-br from-[#00c0ef] to-[#0073b7]'
+                            footerText='View Student List'>
+                            <div className='flex items-baseline gap-2'>
+                                <span>{dashboard?.studentcount || 0}</span>
+                                <span className='font-medium text-slate-400 text-sm'>Students</span>
+                            </div>
+                        </StaffDashboardWidget>
+                    )}
 
-                {/* 9. Medical PDF List */}
-                <DashboardWidget
-                    title="Medical Record"
-                    icon={<FileText />}
-                    colorClass="bg-[#001f3f]"
-                    footerText="View Medical Records"
-                    onViewClick={() => toggleModal('medical', true)}
-                >
-                    <div className="text-3xl font-bold">PDF</div>
-                    <div className="text-xs text-muted-foreground">Click to View</div>
-                </DashboardWidget>
+                    {/* 8. Book List */}
+                    <StaffDashboardWidget
+                        title='Book List'
+                        icon={<Book />}
+                        colorClass='bg-gradient-to-br from-[#605ca8] to-[#4b4789]'
+                        footerText='View Library Books'
+                        onViewClick={() => toggleModal('books', true)}>
+                        <div className='flex items-baseline gap-2'>
+                            <span>{dashboard?.bookcount || 0}</span>
+                            <span className='font-medium text-slate-400 text-sm'>Books</span>
+                        </div>
+                    </StaffDashboardWidget>
 
+                    {/* 9. Medical PDF List */}
+                    <StaffDashboardWidget
+                        title='Medical Record'
+                        icon={<FileText />}
+                        colorClass='bg-gradient-to-br from-[#001f3f] to-[#000e1f]'
+                        footerText='View Medical Records'
+                        onViewClick={() => toggleModal('medical', true)}>
+                        <div className='flex items-baseline gap-2'>
+                            <span>Records</span>
+                            <span className='font-medium text-slate-400 text-sm'>(PDF)</span>
+                        </div>
+                    </StaffDashboardWidget>
+                </div>
+
+                {/* Calendar of Events Section */}
+                <div className='mt-10'>
+                    <CalendarWidget events={dashboard?.calenderlist || []} />
+                </div>
             </div>
 
             {/* Modals */}
@@ -206,26 +220,13 @@ export default function StaffDashboardPage() {
                 initialYear={dashboard?.asmaY_Id || 0}
             />
 
-            <EventsModal
-                open={modals.events}
-                onOpenChange={(v) => toggleModal('events', v)}
-            />
+            <EventsModal open={modals.events} onOpenChange={(v) => toggleModal('events', v)} />
 
-            <AssetListModal
-                open={modals.assets}
-                onOpenChange={(v) => toggleModal('assets', v)}
-            />
+            <AssetListModal open={modals.assets} onOpenChange={(v) => toggleModal('assets', v)} />
 
-            <PurchaseListModal
-                open={modals.purchase}
-                onOpenChange={(v) => toggleModal('purchase', v)}
-            />
+            <PurchaseListModal open={modals.purchase} onOpenChange={(v) => toggleModal('purchase', v)} />
 
-            <BookListModal
-                open={modals.books}
-                onOpenChange={(v) => toggleModal('books', v)}
-                books={dashboard?.booklist || []}
-            />
+            <BookListModal open={modals.books} onOpenChange={(v) => toggleModal('books', v)} books={dashboard?.booklist || []} />
 
             <MedicalRecordModal
                 open={modals.medical}
@@ -245,7 +246,6 @@ export default function StaffDashboardPage() {
                 onOpenChange={(v) => toggleModal('upload', v)}
                 empId={profileStatus?.hrmE_Id || basicDetails?.hrmE_Id || 0}
             />
-
         </div>
     );
 }

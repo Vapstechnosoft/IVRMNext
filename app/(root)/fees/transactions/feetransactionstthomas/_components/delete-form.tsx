@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { useFeeTransactionList } from '@/hooks/fees/useTrasactions';
+import { useFeeTransactionListStThomas } from '@/hooks/fees/useTrasactions';
 import { deletefeeTransaction } from '@/server/fees/trasactions/fee_student_transaction';
 import type { Ifeetransaction } from '@/types/fees/transactions/transactions';
 import { useState } from 'react';
@@ -18,7 +18,7 @@ interface DeleteFeeTransactionProps {
 }
 
 export default function DeleteFeeTransactionFormStThomas({ rowData, onClose, onSuccess, asmayId }: DeleteFeeTransactionProps) {
-    const { refetchAll } = useFeeTransactionList(Number(asmayId));
+    const { refetchAll } = useFeeTransactionListStThomas(Number(asmayId));
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [remark, setRemark] = useState('');
 

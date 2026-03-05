@@ -1,13 +1,13 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { usebifurcationGrid } from '@/hooks/timetable/constraints/bifurcationconstraints';
 import { Plus, X } from 'lucide-react';
-import BifurcationConstraintsForm from './bifurcation-constraints-form';
-import { type IBifurcationConstraintList, columns } from './columns';
-import ToggleBifurcationConstraints from './toggle-form';
+import type { IBifurcationConstraintList } from './columns';
+import BifurcationViewModal from './view-modal';
 
 interface BifurcationConstraintsProps {
     initialData: any; // Result from getBifurcationConstraintsDetails
@@ -25,21 +25,14 @@ function BifurcationConstraintsContent({ initialData }: BifurcationConstraintsPr
     const { isAddFormOpen, isEditFormOpen, selectedRow, openAddForm, closeAddForm, closeEditForm, addFormRef, editFormRef } =
         useFormContext<IBifurcationConstraintList>();
 
-    // Refresh function or data handling.
-    // GenericDataTable usually takes data. If we need to refresh data after save,
-    // we should use a query hook or revalidate server path.
-    // For now assuming static initialData unless we use useQuery.
-    // Standard here seems to be hybrid. `page.tsx` fetches initialData.
-    // Ideally we should use `useQuery` or `useRouter().refresh()` in onSuccess.
-    // `initialData` works for initial load.
-    // I will use `dataList` derived from props.
-    // Note: If using `useRouter().refresh()`, the prop `initialData` updates.
+    // Fetch grid data using the hook
+    const { data: gridData, isLoading, refetchAll } = usebifurcationGrid();
 
-    // Legacy: detailslist contains the grid data.
-    //const dataList = initialData?.detailslist || [];
+    // Use fetched data if available, fallback to initialData
+    const data = gridData || initialData;
 
     // tableProps handles pagination object if provided by API, else defaults.
-    const tableProps = useDataTableProps(initialData);
+    const tableProps = useDataTableProps(data);
 
     return (
         <div className='min-h-screen'>
@@ -56,42 +49,49 @@ function BifurcationConstraintsContent({ initialData }: BifurcationConstraintsPr
                     )}
                 </div>
 
-                <CollapsibleSection
+                {/* <CollapsibleSection
                     defaultOpen={true}
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IBifurcationConstraintList>
-                        isLoading={false}
+                        isLoading={isLoading}
                         {...tableProps}
                         //data={dataList}
-                        columns={columns}
+                        // columns={columns}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading constraints...'
                         noDataTitle='No Bifurcation Constraints Found'
                         noDataDescription='Add a new constraint to get started'
                     />
-                </CollapsibleSection>
+                </CollapsibleSection> */}
 
-                <FormSections initialData={initialData} />
+                <FormSections initialData={initialData} refetchAll={refetchAll} />
             </div>
         </div>
     );
 }
 
-function FormSections({ initialData }: { initialData: any }) {
-    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<IBifurcationConstraintList>();
+function FormSections({ initialData, refetchAll }: { initialData: any; refetchAll: () => void }) {
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isToggleFormOpen,
+        isDetailsViewOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        closeDetailsView,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IBifurcationConstraintList>();
 
     const handleSuccess = () => {
         closeAddForm();
         closeEditForm();
-        // Trigger server refresh
-        // In a real app we'd call router.refresh() or similar.
-        // Assuming user will navigate or implicit refresh happens via parent.
-        // I'll add window.location.reload() or standard revalidation call if I had the hook.
-        // Using window.location for now as simplest fallback or prefer standard router refresh if imported.
-        window.location.reload();
+        // Trigger refetch using the hook
+        refetchAll();
     };
 
     return (
@@ -114,7 +114,7 @@ function FormSections({ initialData }: { initialData: any }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <BifurcationConstraintsForm initialData={initialData} onSuccess={handleSuccess} onCancel={closeAddForm} />
+                            {/* <BifurcationConstraintsForm initialData={initialData} onSuccess={handleSuccess} onCancel={closeAddForm} /> */}
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -137,25 +137,24 @@ function FormSections({ initialData }: { initialData: any }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <BifurcationConstraintsForm
+                            {/* <BifurcationConstraintsForm
                                 initialData={initialData}
                                 editData={selectedRow}
                                 onSuccess={handleSuccess}
                                 onCancel={closeEditForm}
-                            />
+                            /> */}
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
 
             {/* Toggle Form (Alert Dialog) */}
-            {useFormContext().isToggleFormOpen && useFormContext().selectedRow && (
-                <ToggleBifurcationConstraints
-                    rowData={useFormContext().selectedRow}
-                    onClose={useFormContext().closeToggleForm}
-                    onSuccess={handleSuccess}
-                />
-            )}
+            {/* {isToggleFormOpen && selectedRow && (
+                <ToggleBifurcationConstraints rowData={selectedRow} onClose={closeToggleForm} onSuccess={handleSuccess} />
+            )} */}
+
+            {/* View Details Modal */}
+            {isDetailsViewOpen && selectedRow && <BifurcationViewModal rowData={selectedRow} onClose={closeDetailsView} />}
         </>
     );
 }

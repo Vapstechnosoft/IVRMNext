@@ -114,7 +114,7 @@ function FormSections() {
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                         </div>
-                        <AddExamLoginPrivileges />
+                        <AddExamLoginPrivileges onSuccess={closeAddForm} />
                     </CollapsibleSection>
                 </div>
             )}
@@ -138,7 +138,7 @@ function FormSections() {
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                         </div>
-                        <AddExamLoginPrivileges rowData={selectedRow} />
+                        <AddExamLoginPrivileges rowData={selectedRow} onSuccess={closeEditForm} />
                     </CollapsibleSection>
                 </div>
             )}

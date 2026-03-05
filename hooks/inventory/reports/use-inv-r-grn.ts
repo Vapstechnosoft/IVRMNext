@@ -28,3 +28,14 @@ export const useInvRGRNReport = () => {
         }
     });
 };
+
+export const useInvRGRNReportQuery = (payload: IInvRGRNPayload | null, searchParams: any) => {
+    return useQuery({
+        queryKey: ['invRGRNReport', payload, searchParams],
+        queryFn: () => {
+            if (!payload) return { success: true, data: { get_grnreport: [], get_grn_item_supplier: [] }, total: 0, message: '' };
+            return getInvRGRNReport(payload, searchParams);
+        },
+        enabled: !!payload
+    });
+};

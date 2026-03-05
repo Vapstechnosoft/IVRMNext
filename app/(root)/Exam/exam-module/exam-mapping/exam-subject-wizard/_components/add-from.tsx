@@ -29,7 +29,7 @@ import {
 import type { IExamSubjectWizard, IExamSubjectWizardDetails } from '@/types/exam/exam-module/exam-mapping';
 import type { ICategory, IMasterGrade, IMasterSubExam, IMasterSubSubject } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
@@ -82,10 +82,11 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const [exams, setExams] = useState<{ EME_Id: number; EME_ExamName: string; checked?: boolean }[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
     const [gradeList, setGradeList] = useState<IMasterGrade[]>([]);
-    const [isEditFormLoading, setIsEditFormLoading] = useState(false);
+    const [isEditFormLoading, setIsEditFormLoading] = useState(!!rowData);
     const validateSubjectsRef = useRef<(() => boolean) | null>(null);
     const [subSubjects, setSubSubjects] = useState<any[]>([]);
     const [subExams, setSubExams] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const watchYear = watch('ASMAY_Id');
@@ -208,10 +209,10 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
                 const mappedExams = Array.isArray(ex)
                     ? ex.map((e: any) => ({
-                        EME_Id: e.emE_Id ?? e.EME_Id,
-                        EME_ExamName: e.emE_ExamName ?? e.EME_ExamName,
-                        checked: rowData?.emE_Id === (e.emE_Id ?? e.EME_Id)
-                    }))
+                          EME_Id: e.emE_Id ?? e.EME_Id,
+                          EME_ExamName: e.emE_ExamName ?? e.EME_ExamName,
+                          checked: rowData?.emE_Id === (e.emE_Id ?? e.EME_Id)
+                      }))
                     : [];
 
                 // If rowData exists, merge it into mappedExams
@@ -297,27 +298,27 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 console.info('category based subjects', subj);
                 const formattedSubjects = Array.isArray(subj)
                     ? subj.map((s: any) => ({
-                        ismS_Id: s.ismS_Id,
-                        ismS_SubjectName: s.ismS_SubjectName,
-                        ismS_SubjectCode: s.ismS_SubjectCode,
-                        ismS_Max_Marks: s.ismS_Max_Marks,
-                        ismS_Min_Marks: s.ismS_Min_Marks,
-                        ismS_OrderFlag: s.ismS_OrderFlag,
-                        eyceS_MarksEntryMax: 0,
-                        emgr_Id: watchGrade ?? 0,
-                        eyceS_Id: s.eyceS_Id ?? s.EYCES_d,
-                        eyceS_SubExamFlg: false,
-                        eyceS_SubSubjectFlg: false,
-                        eyceS_ActiveFlg: true,
-                        eyceS_MarksGradeEntryFlg: 'M',
-                        eyceS_MarksDisplayFlg: false,
-                        eyceS_GradeDisplayFlg: false,
-                        eyceS_AplResultFlg: false,
-                        subExamConfig: [],
-                        subSubjectConfig: [],
-                        subSubjectSubExamConfig: [],
-                        exam_Subject_PT_GradeList: []
-                    }))
+                          ismS_Id: s.ismS_Id,
+                          ismS_SubjectName: s.ismS_SubjectName,
+                          ismS_SubjectCode: s.ismS_SubjectCode,
+                          ismS_Max_Marks: s.ismS_Max_Marks,
+                          ismS_Min_Marks: s.ismS_Min_Marks,
+                          ismS_OrderFlag: s.ismS_OrderFlag,
+                          eyceS_MarksEntryMax: 0,
+                          emgr_Id: watchGrade ?? 0,
+                          eyceS_Id: s.eyceS_Id ?? s.EYCES_d,
+                          eyceS_SubExamFlg: false,
+                          eyceS_SubSubjectFlg: false,
+                          eyceS_ActiveFlg: true,
+                          eyceS_MarksGradeEntryFlg: 'M',
+                          eyceS_MarksDisplayFlg: false,
+                          eyceS_GradeDisplayFlg: false,
+                          eyceS_AplResultFlg: false,
+                          subExamConfig: [],
+                          subSubjectConfig: [],
+                          subSubjectSubExamConfig: [],
+                          exam_Subject_PT_GradeList: []
+                      }))
                     : [];
 
                 setSubjects(formattedSubjects);
@@ -458,14 +459,10 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         try {
             setSubExamModalState({ open: true });
 
-            const configList = Array.isArray(subject.subExamConfig)
-                ? subject.subExamConfig
-                : [];
+            const configList = Array.isArray(subject.subExamConfig) ? subject.subExamConfig : [];
 
             const updatedList = subExams.map((item: any) => {
-                const cfg = configList.find(
-                    (c: any) => Number(c.emsE_Id) === Number(item.emsE_Id)
-                );
+                const cfg = configList.find((c: any) => Number(c.emsE_Id) === Number(item.emsE_Id));
 
                 if (!cfg) {
                     return {
@@ -482,9 +479,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 };
             });
 
-            const sortedList = [...updatedList].sort(
-                (a, b) => (a.emsE_SubExamOrder ?? 0) - (b.emsE_SubExamOrder ?? 0)
-            );
+            const sortedList = [...updatedList].sort((a, b) => (a.emsE_SubExamOrder ?? 0) - (b.emsE_SubExamOrder ?? 0));
             console.log('sortedList', sortedList);
 
             setSubExamModalState({
@@ -606,9 +601,9 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             prev.map((s) =>
                 s.ismS_Id === subjectId
                     ? {
-                        ...s,
-                        EYCES_SubExamFlg: s.subExamConfig && s.subExamConfig.length > 0
-                    }
+                          ...s,
+                          EYCES_SubExamFlg: s.subExamConfig && s.subExamConfig.length > 0
+                      }
                     : s
             )
         );
@@ -628,10 +623,10 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
                 return matched
                     ? {
-                        ...sub,
-                        emsS_Order: Number(matched.eycessS_SubSubjectOrder ?? 0),
-                        EMSS_Order: Number(matched.eycessS_SubSubjectOrder ?? 0)
-                    }
+                          ...sub,
+                          emsS_Order: Number(matched.eycessS_SubSubjectOrder ?? 0),
+                          EMSS_Order: Number(matched.eycessS_SubSubjectOrder ?? 0)
+                      }
                     : sub;
             })
         );
@@ -644,10 +639,10 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             prev.map((s) =>
                 s.ismS_Id === subjectId
                     ? {
-                        ...s,
-                        subExamConfig: selectedList,
-                        EYCES_SubExamFlg: selectedList.length > 0
-                    }
+                          ...s,
+                          subExamConfig: selectedList,
+                          EYCES_SubExamFlg: selectedList.length > 0
+                      }
                     : s
             )
         );
@@ -662,10 +657,10 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
                 return matched
                     ? {
-                        ...exam,
-                        emsE_SubExamOrder: Number(matched.emsE_SubExamOrder ?? 0),
-                        EMSE_SubExamOrder: Number(matched.EMSE_SubExamOrder ?? matched.emsE_SubExamOrder ?? 0)
-                    }
+                          ...exam,
+                          emsE_SubExamOrder: Number(matched.emsE_SubExamOrder ?? 0),
+                          EMSE_SubExamOrder: Number(matched.EMSE_SubExamOrder ?? matched.emsE_SubExamOrder ?? 0)
+                      }
                     : exam;
             })
         );
@@ -822,7 +817,8 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 ASMAY_Id: Number(values.ASMAY_Id) ?? 0,
                 ASMAY_Year: '',
                 EYCE_BestOfApplicableFlg: values.EYCE_BestOfApplicableFlg ?? true,
-                EYCE_BestOf: values.EYCE_BestOf ?? 0,
+                //EYCE_BestOf: values.EYCE_BestOf ?? 0,
+                EYCE_BestOf: (values.EYCE_BestOfApplicableFlg ?? true) ? (values.EYCE_BestOf ?? 0) : 0,
                 EYCE_AttendanceFromDate: toBackendDate(values.EYCE_AttendanceFromDate),
                 EYCE_AttendanceToDate: toBackendDate(values.EYCE_AttendanceToDate),
                 exams_list,
@@ -832,6 +828,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 exm_subject_subsubjects_subexam,
                 Temp_Subject_Order: values.Temp_Subject_Order ?? []
             };
+            console.log('FINAL PAYLOAD:', finalPayload);
             const res = await addOrUpdateExamSubjectWizard(finalPayload);
             if (res.success) toast.success('Exam Subject Wizard saved successfully');
             else toast.error(res.message);
@@ -840,6 +837,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             refetchAll();
             router.refresh();
             window.location.reload();
+            console.log('FINAL PAYLOAD:', finalPayload);
         } catch (err: any) {
             console.error(err);
             toast.error(err?.message ?? 'Failed to save Exam Subject Wizard');
@@ -874,274 +872,286 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         <FormProvider {...methods}>
             <form onSubmit={handleSubmit(onSubmit)}>
                 <CollapsibleSection defaultOpen>
-                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-                        {/* Left */}
-                        <div className='space-y-4'>
-                            <Controller
-                                control={control}
-                                name='ASMAY_Id'
-                                render={({ field, fieldState }) => (
+                    {isEditFormLoading ? (
+                        <div className='flex h-64 items-center justify-center'>
+                            <div className='text-center'>
+                                <RefreshCw className='mx-auto h-8 w-8 animate-spin text-secondary' />
+                                <p className='mt-2 text-gray-600 text-sm'>Loading data...</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                                {/* Left */}
+                                <div className='space-y-4'>
+                                    <Controller
+                                        control={control}
+                                        name='ASMAY_Id'
+                                        render={({ field, fieldState }) => (
+                                            <div>
+                                                <Label>
+                                                    Academic Year <span className='text-red-500'>*</span>
+                                                </Label>
+                                                <Select
+                                                    key={field.value} // <— forces remount when value changes
+                                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                                    onValueChange={(val) => field.onChange(Number(val))}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='Select Academic Year' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {academicYearLoading ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading Academic Year...
+                                                            </SelectItem>
+                                                        ) : academicYearError ? (
+                                                            <SelectItem value='error' disabled>
+                                                                Error loading Academic Year
+                                                            </SelectItem>
+                                                        ) : (
+                                                            academicYear?.data?.map((item) => (
+                                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                    {item.asmaY_Year}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            </div>
+                                        )}
+                                    />
+
                                     <div>
-                                        <Label>
-                                            Academic Year <span className='text-red-500'>*</span>
-                                        </Label>
+                                        <Label>Category <span className='text-red-500'>*</span></Label>
                                         <Select
-                                            key={field.value} // <— forces remount when value changes
-                                            value={field.value && field.value !== 0 ? String(field.value) : undefined}
-                                            onValueChange={(val) => field.onChange(Number(val))}>
+                                            value={watchCategory?.toString() ?? ''}
+                                            onValueChange={(val) => {
+                                                const selectedCategory = categories.find((c) => c.eyC_Id.toString() === val);
+                                                if (selectedCategory) {
+                                                    setValue('EYC_Id', Number(selectedCategory.eyC_Id));
+                                                    setValue('EMCA_Id', Number(selectedCategory.emcA_Id)); // store EMCA_Id for exam fetch
+                                                }
+                                            }}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder='Select Academic Year' />
+                                                <SelectValue placeholder='Select Category' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {academicYearLoading ? (
+                                                {categoriesLoading ? (
                                                     <SelectItem value='loading' disabled>
-                                                        Loading Academic Year...
+                                                        Loading Categories...
                                                     </SelectItem>
-                                                ) : academicYearError ? (
+                                                ) : categories.length === 0 ? (
                                                     <SelectItem value='error' disabled>
-                                                        Error loading Academic Year
+                                                        No Categories Found
                                                     </SelectItem>
                                                 ) : (
-                                                    academicYear?.data?.map((item) => (
-                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                            {item.asmaY_Year}
+                                                    categories.map((c) => (
+                                                        <SelectItem key={c.eyC_Id} value={c.eyC_Id.toString()}>
+                                                            {c.emcA_CategoryName}
                                                         </SelectItem>
                                                     ))
                                                 )}
                                             </SelectContent>
                                         </Select>
-                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+
+                                        {errors.EYC_Id && <FormError>{errors.EYC_Id.message}</FormError>}
                                     </div>
-                                )}
-                            />
 
-                            <div>
-                                <Label>Category *</Label>
-                                <Select
-                                    value={watchCategory?.toString() ?? ''}
-                                    onValueChange={(val) => {
-                                        const selectedCategory = categories.find((c) => c.eyC_Id.toString() === val);
-                                        if (selectedCategory) {
-                                            setValue('EYC_Id', Number(selectedCategory.eyC_Id));
-                                            setValue('EMCA_Id', Number(selectedCategory.emcA_Id)); // store EMCA_Id for exam fetch
-                                        }
-                                    }}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder='Select Category' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {categoriesLoading ? (
-                                            <SelectItem value='loading' disabled>
-                                                Loading Categories...
-                                            </SelectItem>
-                                        ) : categories.length === 0 ? (
-                                            <SelectItem value='error' disabled>
-                                                No Categories Found
-                                            </SelectItem>
-                                        ) : (
-                                            categories.map((c) => (
-                                                <SelectItem key={c.eyC_Id} value={c.eyC_Id.toString()}>
-                                                    {c.emcA_CategoryName}
-                                                </SelectItem>
-                                            ))
-                                        )}
-                                    </SelectContent>
-                                </Select>
-
-                                {errors.EYC_Id && <FormError>{errors.EYC_Id.message}</FormError>}
-                            </div>
-
-                            <div>
-                                <CustomMultiSelectBox
-                                    label='Exam *'
-                                    options={exams.map((ex) => ({
-                                        label: ex.EME_ExamName,
-                                        value: ex.EME_Id.toString()
-                                    }))}
-                                    value={exams.filter((ex) => ex.checked).map((ex) => ex.EME_Id.toString())}
-                                    onChange={(selectedValues) => {
-                                        const updatedExams = exams.map((ex) => ({
-                                            ...ex,
-                                            checked: selectedValues.includes(ex.EME_Id.toString())
-                                        }));
-                                        setExams(updatedExams);
-                                    }}
-                                    isSearchRequired={true}
-                                    height='220px'
-                                />
-                            </div>
-                        </div>
-
-                        {/* Right */}
-                        <div className='space-y-4'>
-                            <Controller
-                                control={control}
-                                name='EMGR_Id'
-                                render={({ field, fieldState }) => (
                                     <div>
-                                        <Label>
-                                            Grade <span className='text-red-500'>*</span>
-                                        </Label>
-
-                                        <Select
-                                            key={field.value} // force remount to correctly display selected value
-                                            value={field.value && field.value !== 0 ? String(field.value) : undefined}
-                                            onValueChange={(val) => field.onChange(Number(val))}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select Grade' />
-                                            </SelectTrigger>
-
-                                            <SelectContent>
-                                                {gradeList.map((g) => (
-                                                    <SelectItem key={g.emgR_Id} value={String(g.emgR_Id)}>
-                                                        {g.emgR_GradeName}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-
-                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                        <Label>Exams <span className='text-red-500'>*</span></Label>
+                                        <CustomMultiSelectBox
+                                            
+                                            options={exams.map((ex) => ({
+                                                label: ex.EME_ExamName,
+                                                value: ex.EME_Id.toString()
+                                            }))}
+                                            value={exams.filter((ex) => ex.checked).map((ex) => ex.EME_Id.toString())}
+                                            onChange={(selectedValues) => {
+                                                const updatedExams = exams.map((ex) => ({
+                                                    ...ex,
+                                                    checked: selectedValues.includes(ex.EME_Id.toString())
+                                                }));
+                                                setExams(updatedExams);
+                                            }}
+                                            isSearchRequired={true}
+                                            height='220px'
+                                        />
                                     </div>
-                                )}
-                            />
-
-                            <div className='grid grid-cols-2 gap-4'>
-                                <Controller
-                                    control={methods.control}
-                                    name='EYCE_AttendanceFromDate'
-                                    render={({ field, fieldState }) => (
-                                        <DateField
-                                            field={field}
-                                            fieldState={fieldState}
-                                            label='Attendance From'
-                                            placeholder='Select Attendance From Date'
-                                            //fromDate={today}
-                                            toDate={watch('EYCE_AttendanceToDate') ? new Date(watch('EYCE_AttendanceToDate')) : undefined}
-                                            restricted_tofieldName='Attendence To-Date'
-                                            restricted_fromfieldName='Attendence From-Date'
-                                        />
-                                    )}
-                                />
-
-                                <Controller
-                                    control={methods.control}
-                                    name='EYCE_AttendanceToDate'
-                                    render={({ field, fieldState }) => (
-                                        <DateField
-                                            field={field}
-                                            fieldState={fieldState}
-                                            label='Attendance To'
-                                            placeholder='Select Attendance To Date'
-                                            fromDate={
-                                                watch('EYCE_AttendanceFromDate') ? new Date(watch('EYCE_AttendanceFromDate')) : undefined
-                                            }
-                                        />
-                                    )}
-                                />
-                            </div>
-                            {/* BEST APPLICABLE + BEST OFF INPUT */}
-                            <div className='mt-3 flex items-center gap-6'>
-                                {/* Checkbox -> EYCE_BestOfApplicableFlg */}
-                                <div className='flex items-center gap-2'>
-                                    <Checkbox
-                                        id='bestApplicableCheckbox'
-                                        checked={watch('EYCE_BestOfApplicableFlg')}
-                                        onCheckedChange={(value) => setValue('EYCE_BestOfApplicableFlg', Boolean(value))}
-                                    />
-                                    <label htmlFor='bestApplicableCheckbox' className='font-medium text-sm'>
-                                        Best Applicable
-                                    </label>
                                 </div>
 
-                                {/* BEST OFF NUMBER FIELD */}
-                                <div className='w-32'>
+                                {/* Right */}
+                                <div className='space-y-4'>
                                     <Controller
                                         control={control}
-                                        name='EYCE_BestOf'
+                                        name='EMGR_Id'
                                         render={({ field, fieldState }) => (
-                                            <div className='flex items-center gap-3'>
-                                                {/* Label beside input */}
-                                                <Label className='whitespace-nowrap'>
-                                                    Best Off {watch('EYCE_BestOfApplicableFlg') && <span className='text-red-500'>*</span>}
+                                            <div>
+                                                <Label>
+                                                    Grade <span className='text-red-500'>*</span>
                                                 </Label>
 
-                                                <InputNumber
-                                                    minValue={1}
-                                                    isDisabled={!watch('EYCE_BestOfApplicableFlg')} // Enable only when checked
-                                                    value={field.value}
-                                                    onChange={field.onChange}
-                                                    className='w-24' // adjust width if needed
-                                                />
+                                                <Select
+                                                    key={field.value} // force remount to correctly display selected value
+                                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                                    onValueChange={(val) => field.onChange(Number(val))}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='Select Grade' />
+                                                    </SelectTrigger>
+
+                                                    <SelectContent>
+                                                        {gradeList.map((g) => (
+                                                            <SelectItem key={g.emgR_Id} value={String(g.emgR_Id)}>
+                                                                {g.emgR_GradeName}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
 
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>
                                         )}
                                     />
-                                    {errors.EYCE_BestOf && <FormError>{errors.EYCE_BestOf.message}</FormError>}
+
+                                    <div className='grid grid-cols-2 gap-4'>
+                                        <Controller
+                                            control={methods.control}
+                                            name='EYCE_AttendanceFromDate'
+                                            render={({ field, fieldState }) => (
+                                                <DateField
+                                                    field={field}
+                                                    fieldState={fieldState}
+                                                    label='Attendance From'
+                                                    placeholder='Select Attendance From Date'
+                                                    //fromDate={today}
+                                                    toDate={
+                                                        watch('EYCE_AttendanceToDate')
+                                                            ? new Date(watch('EYCE_AttendanceToDate'))
+                                                            : undefined
+                                                    }
+                                                    restricted_tofieldName='Attendence To-Date'
+                                                    restricted_fromfieldName='Attendence From-Date'
+                                                />
+                                            )}
+                                        />
+
+                                        <Controller
+                                            control={methods.control}
+                                            name='EYCE_AttendanceToDate'
+                                            render={({ field, fieldState }) => (
+                                                <DateField
+                                                    field={field}
+                                                    fieldState={fieldState}
+                                                    label='Attendance To'
+                                                    placeholder='Select Attendance To Date'
+                                                    fromDate={
+                                                        watch('EYCE_AttendanceFromDate')
+                                                            ? new Date(watch('EYCE_AttendanceFromDate'))
+                                                            : undefined
+                                                    }
+                                                />
+                                            )}
+                                        />
+                                    </div>
+                                    {/* BEST APPLICABLE + BEST OFF INPUT */}
+                                    <div className='mt-3 flex items-center gap-6'>
+                                        {/* Checkbox -> EYCE_BestOfApplicableFlg */}
+                                        <div className='flex items-center gap-2'>
+                                            <Checkbox
+                                                id='bestApplicableCheckbox'
+                                                checked={watch('EYCE_BestOfApplicableFlg')}
+                                                onCheckedChange={(value) => setValue('EYCE_BestOfApplicableFlg', Boolean(value))}
+                                            />
+                                            <label htmlFor='bestApplicableCheckbox' className='font-medium text-sm'>
+                                                Best Applicable
+                                            </label>
+                                        </div>
+
+                                        {/* BEST OFF NUMBER FIELD */}
+                                        <div className='w-32'>
+                                            <Controller
+                                                control={control}
+                                                name='EYCE_BestOf'
+                                                render={({ field, fieldState }) => (
+                                                    <div className='flex items-center gap-3'>
+                                                        {/* Label beside input */}
+                                                        <Label className='whitespace-nowrap'>
+                                                            Best Off{' '}
+                                                            {watch('EYCE_BestOfApplicableFlg') && <span className='text-red-500'>*</span>}
+                                                        </Label>
+
+                                                        <InputNumber
+                                                            minValue={1}
+                                                            isDisabled={!watch('EYCE_BestOfApplicableFlg')} // Enable only when checked
+                                                            value={field.value}
+                                                            onChange={field.onChange}
+                                                            className='w-24' // adjust width if needed
+                                                        />
+
+                                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                    </div>
+                                                )}
+                                            />
+                                            {errors.EYCE_BestOf && <FormError>{errors.EYCE_BestOf.message}</FormError>}
+                                        </div>
+                                    </div>
+
+                                    <div className='mt-2 flex items-center gap-4'>
+                                        <div className='flex items-center gap-2'>
+                                            <Checkbox
+                                                id='subExamCheckbox'
+                                                checked={watchSubExam}
+                                                onCheckedChange={(v) => setValue('EYCE_SubExamFlg', Boolean(v))}
+                                                disabled={!isTopFieldsFilled}
+                                            />
+                                            <label htmlFor='subExamCheckbox' className='font-medium text-sm'>
+                                                Sub Exam Applicable
+                                            </label>
+                                        </div>
+
+                                        <div className='flex items-center gap-2'>
+                                            <Checkbox
+                                                id='subSubjectCheckbox'
+                                                checked={watchSubSubject}
+                                                onCheckedChange={(v) => setValue('EYCE_SubSubjectFlg', Boolean(v))}
+                                                disabled={!isTopFieldsFilled}
+                                            />
+                                            <label htmlFor='subSubjectCheckbox' className='font-medium text-sm'>
+                                                Sub Subject Applicable
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className='mt-2 flex items-center gap-4'>
-                                <div className='flex items-center gap-2'>
-                                    <Checkbox
-                                        id='subExamCheckbox'
-                                        checked={watchSubExam}
-                                        onCheckedChange={(v) => setValue('EYCE_SubExamFlg', Boolean(v))}
-                                        disabled={!isTopFieldsFilled}
-                                    />
-                                    <label htmlFor='subExamCheckbox' className='font-medium text-sm'>
-                                        Sub Exam Applicable
-                                    </label>
-                                </div>
+                            {/* Subject Table */}
+                            <div className='mt-6'>
+                                <SubjectTable
+                                    initialSubjects={subjects}
+                                    setParentSubjects={setSubjects}
+                                    showSubExamColumn={watchSubExam ?? false}
+                                    showSubSubjectColumn={watchSubSubject ?? false}
+                                    onOpenSubExamModal={onOpenSubExamModal}
+                                    onOpenSubSubjectModal={onOpenSubSubjectModal}
+                                    onOpenSubSubjectSubExamModal={onOpenSubSubjectSubExamModal}
+                                    gradeList={gradeList}
+                                    selectedGrade={watchGrade}
+                                    onRegisterValidate={(fn) => {
+                                        validateSubjectsRef.current = fn;
+                                    }}
+                                />
+                            </div>
 
-                                <div className='flex items-center gap-2'>
-                                    <Checkbox
-                                        id='subSubjectCheckbox'
-                                        checked={watchSubSubject}
-                                        onCheckedChange={(v) => setValue('EYCE_SubSubjectFlg', Boolean(v))}
-                                        disabled={!isTopFieldsFilled}
-                                    />
-                                    <label htmlFor='subSubjectCheckbox' className='font-medium text-sm'>
-                                        Sub Subject Applicable
-                                    </label>
-                                </div>
+                            <div className='mt-6 flex w-fit gap-4'>
+                                <Button type='button' variant='outline' onClick={handleReset}>
+                                    Reset
+                                </Button>
+                                <Button type='submit' disabled={isSubmitting}>
+                                    {isSubmitting ? 'Saving...' : 'Save'}
+                                </Button>
                             </div>
-                        </div>
-                    </div>
-                    {isEditFormLoading && (
-                        <div className='flex h-64 items-center justify-center'>
-                            <div className='text-center'>
-                                <Loader2 className='mx-auto h-8 w-8 animate-spin text-primary' />
-                                <p className='mt-2 text-gray-600 text-sm'>Loading data...</p>
-                            </div>
-                        </div>
+                        </>
                     )}
-                    {/* Subject Table */}
-                    <div className='mt-6'>
-                        <SubjectTable
-                            initialSubjects={subjects}
-                            setParentSubjects={setSubjects}
-                            showSubExamColumn={watchSubExam ?? false}
-                            showSubSubjectColumn={watchSubSubject ?? false}
-                            onOpenSubExamModal={onOpenSubExamModal}
-                            onOpenSubSubjectModal={onOpenSubSubjectModal}
-                            onOpenSubSubjectSubExamModal={onOpenSubSubjectSubExamModal}
-                            gradeList={gradeList}
-                            selectedGrade={watchGrade}
-                            onRegisterValidate={(fn) => {
-                                validateSubjectsRef.current = fn;
-                            }}
-                        />
-                    </div>
-
-                    <div className='mt-6 flex w-fit gap-4'>
-                        <Button type='button' variant='outline' onClick={handleReset}>
-                            Reset
-                        </Button>
-                        <Button type='submit' disabled={isSubmitting}>
-                            {isSubmitting ? 'Saving...' : 'Save'}
-                        </Button>
-                    </div>
                 </CollapsibleSection>
 
                 {!isEditFormLoading && (

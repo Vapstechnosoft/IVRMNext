@@ -1,20 +1,19 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { BaseEntity } from '@/lib/localdb';
+import type { LeaveTransactionManual } from '@/types/hrms/leave-management/leave-transaction-manual';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
-import type { LeaveTransactionManual } from '@/types/hrms/leave-management/leave-transaction-manual';
+import { Switch } from '@/components/ui/switch';
 export type LeaveCreditTransaction = LeaveTransactionManual;
+
 interface LeaveCreditTransactionColumnsProps {
     onEdit: (row: LeaveCreditTransaction) => void;
-    onDelete: (id: number) => void;
-    onToggle: (id: number) => void;
+    onToggle: (row: LeaveCreditTransaction) => void;
 }
+
 export const getLeaveCreditTransactionColumns = ({
     onEdit,
-    onDelete,
     onToggle
 }: LeaveCreditTransactionColumnsProps): ColumnDef<LeaveCreditTransaction>[] => [
         {
@@ -30,75 +29,56 @@ export const getLeaveCreditTransactionColumns = ({
             size: 50
         },
         {
-            accessorKey: 'employeeName',
+            accessorKey: 'hrmE_EmployeeFirstName',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-            cell: ({ row }) => <div className='font-medium'>{row.getValue('employeeName') || '-'}</div>
+            cell: ({ row }) => <div className='font-medium'>{row.getValue('hrmE_EmployeeFirstName') || '-'}</div>
         },
         {
-            accessorKey: 'leaveName',
+            accessorKey: 'hrmL_LeaveName',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Name' />,
-            cell: ({ row }) => <div>{row.getValue('leaveName')}</div>
+            cell: ({ row }) => <div>{row.getValue('hrmL_LeaveName')}</div>
         },
         {
-            accessorKey: 'fromDate',
+            accessorKey: 'hreltD_FromDate',
             header: ({ column }) => <DataTableColumnHeader column={column} title='From Date' />,
             cell: ({ row }) => {
-                const date = row.getValue('fromDate') as Date;
-                if (!date) return <div>-</div>;
+                const value = row.getValue('hreltD_FromDate');
+                if (!value) return <div>-</div>;
+                const date = typeof value === 'string' ? new Date(value) : (value as Date);
                 return <div>{date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>;
             }
         },
         {
-            accessorKey: 'toDate',
+            accessorKey: 'hreltD_ToDate',
             header: ({ column }) => <DataTableColumnHeader column={column} title='To Date' />,
             cell: ({ row }) => {
-                const date = row.getValue('toDate') as Date;
-                if (!date) return <div>-</div>;
+                const value = row.getValue('hreltD_ToDate');
+                if (!value) return <div>-</div>;
+                const date = typeof value === 'string' ? new Date(value) : (value as Date);
                 return <div>{date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>;
             }
         },
         {
-            accessorKey: 'totalDays',
+            accessorKey: 'hreltD_TotDays',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Total Days' />,
-            cell: ({ row }) => <div className='text-center'>{row.getValue('totalDays')}</div>
+            cell: ({ row }) => <div className='text-center'>{row.getValue('hreltD_TotDays')}</div>
         },
         {
             accessorKey: 'isActive',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='ACTIONS' />,
             cell: ({ row }) => {
                 const isActive = row.getValue('isActive') as boolean;
-                const id = row.original.transactionId;
-                return (
-                    <div onClick={() => onToggle(id)} className='cursor-pointer'>
-                        {isActive ? (
-                            <span className='rounded-full bg-green-100 px-2.5 py-0.5 font-medium text-green-800 text-xs dark:bg-green-900/30 dark:text-green-400'>
-                                Active
-                            </span>
-                        ) : (
-                            <span className='rounded-full bg-red-100 px-2.5 py-0.5 font-medium text-red-800 text-xs dark:bg-red-900/30 dark:text-red-400'>
-                                Deactive
-                            </span>
-                        )}
-                    </div>
-                );
-            }
-        },
-        {
-            id: 'actions',
-            header: 'Actions',
-            cell: ({ row }) => {
                 const entity = row.original;
                 return (
-                    <div className='flex gap-2'>
-                        <Button variant='outline' size='sm' onClick={() => onEdit(entity)}>
-                            <Edit className='h-4 w-4 text-blue-500' />
-                        </Button>
-                        <Button variant='outline' size='sm' onClick={() => onDelete(entity.id)}>
-                            <Trash2 className='h-4 w-4 text-red-500' />
-                        </Button>
+                    <div className='flex items-center justify-center'>
+                        <Switch
+                            checked={isActive}
+                            onCheckedChange={() => onToggle(entity)}
+                            className='data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500'
+                        />
                     </div>
                 );
-            }
-        }
+            },
+            enableSorting: false
+        },
     ];
-
