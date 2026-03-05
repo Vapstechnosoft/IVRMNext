@@ -2,7 +2,6 @@
 //staffReplacementExistingToNew
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RotateCcw, Search } from 'lucide-react';
-import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -17,11 +16,10 @@ import {
 } from '@/schemas/timetable/transactions/staff-replacement-existing-to-new';
 
 import {
+    useSaveStaffReplacementExistingToNew,
     useSectionsByClass,
     useStaffReplacementExistingToNewMasters
 } from '@/hooks/timetable/transaction/useStaff-replacement-existing-to-new';
-import { getStaffReplacementExistingToNewMasters } from '@/server/timetable/transactions/staff-replacement-existing-to-new';
-
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -31,7 +29,9 @@ interface StaffReplacementFormProps {
 
 export default function StaffReplacementExistingToNewForm({ onFetch }: StaffReplacementFormProps) {
     const { data: masters } = useStaffReplacementExistingToNewMasters();
-    const [saving, setSaving] = useState(false);
+    console.log('masters', masters);
+    const { mutate: saveReplacement, isPending: saving } = useSaveStaffReplacementExistingToNew();
+    console.log('masters', saveReplacement);
 
     const {
         control,
@@ -55,18 +55,19 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
     const { data: sections, isLoading: sectionsLoading } = useSectionsByClass(Number(watchClass || 0));
 
     const onSubmit = async (data: StaffReplacementExistingToNewValues) => {
-        if (saving) return;
-        setSaving(true);
-        try {
-            // Usually we might call a save/process endpoint here
-            // But following the current onFetch pattern
-            toast.success('Details loaded');
-            onFetch(data);
-        } catch {
-            toast.error('Unable to load details');
-        } finally {
-            setSaving(false);
+        if (data.hrmE_Id_From === data.hrmE_Id_To) {
+            toast.warning('Same staff Name.. Please choose a different staff Name !');
+            return;
         }
+
+        saveReplacement(data, {
+            onSuccess: (res) => {
+                if (res.returnval) {
+                    reset();
+                    onFetch(data);
+                }
+            }
+        });
     };
 
     const handleReset = () => {
@@ -75,7 +76,7 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
 
     const FormSelect = ({ label, name, control, options, valueKey, labelKey, placeholder, error, isLoading }: any) => (
         <div className='space-y-2'>
-            <Label className='text-sm font-medium'>
+            <Label className='font-medium text-sm'>
                 {label} {label.includes('*') ? '' : ''}
             </Label>
             <Controller
@@ -108,7 +109,7 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
 
     return (
         <CollapsibleSection title='Staff Replacement Existing To New' defaultOpen>
-            <div className='rounded-lg bg-white p-6 shadow-sm border'>
+            <div className='rounded-lg border bg-white p-6 shadow-sm'>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-8'>
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                         <FormSelect
@@ -179,8 +180,8 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
                         />
                     </div>
 
-                    <div className='flex justify-center items-center gap-4 pt-4 border-t'>
-                        <Button type='submit' className='min-w-[120px] font-semibold flex items-center gap-2'>
+                    <div className='flex items-center justify-center gap-4 border-t pt-4'>
+                        <Button type='submit' className='flex min-w-[120px] items-center gap-2 font-semibold'>
                             <Search className='h-4 w-4' />
                             Update
                         </Button>
