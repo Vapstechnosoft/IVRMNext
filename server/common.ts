@@ -6774,6 +6774,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 }
+
             ]
         };
     } else {

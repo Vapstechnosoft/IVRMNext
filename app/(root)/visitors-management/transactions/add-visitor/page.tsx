@@ -8,7 +8,7 @@ import { useAddVisitor } from '@/hooks/visitors-management/transactions/useAddVi
 import { Plus, X } from 'lucide-react';
 import { visitorColumns } from './_components/columns';
 import VisitorForm from './_components/visitor-form';
-import { VisitorTransactionData } from '@/types/visitors-management/transactions';
+import type { VisitorTransactionData } from '@/types/visitors-management/transactions';
 
 // Type for the list data
 
@@ -57,7 +57,7 @@ function AddVisitorPageContent({
                 </div>
 
                 {/* Grid Section */}
-                <CollapsibleSection
+                {/* <CollapsibleSection
                     defaultOpen={true}
                     variant='default'
                     size='lg'
@@ -73,7 +73,7 @@ function AddVisitorPageContent({
                         noDataDescription='Get started by adding a new visitor'
                         errorTitle='Error Loading Visitors'
                     />
-                </CollapsibleSection>
+                </CollapsibleSection> */}
 
                 {/* Form Section */}
                 {isAddFormOpen && (

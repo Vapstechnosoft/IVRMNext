@@ -39,7 +39,7 @@ export const useAddVisitor = () => {
             toast.error(response.message);
             return [];
         }
-        return response.data || [];
+        return response.data;
     };
 
     const searchAppointment = async (query: string) => {
@@ -48,7 +48,7 @@ export const useAddVisitor = () => {
              toast.error(response.message);
              return [];
         }
-        return response.data || [];
+        return response.data;
     }
 
     return {
