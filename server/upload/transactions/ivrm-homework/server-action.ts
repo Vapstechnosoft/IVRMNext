@@ -27,10 +27,6 @@ const homeWorkData: any[] = [
         filesCount: 0
     }
 ];
-export async function toggleUploadHomeWork(id: number) {
-    const url = `/employee_student_home_work/active_deactive_home_work/${id}`;
-    return await api.put('portal', url);
-}
 
 export async function fetchInitialData() {
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -79,27 +75,11 @@ export async function fetchSubjects(classId: number, yearId: number, sectionList
     return { subjectlist: subjects };
 }
 
-export async function saveHomeWork(data: IHomeWork) {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    try {
-        if (data.ihW_Id) {
-            const index = homeWorkData.findIndex((t) => t.ihW_Id === data.ihW_Id);
-            if (index !== -1) {
-                homeWorkData[index] = { ...homeWorkData[index], ...data };
-                revalidatePath('/upload/transactions/ivrm-homework');
-                return { success: true, message: 'Homework updated successfully', dulicate: false };
-            }
-            return { success: false, message: 'Record not found', dulicate: false };
-        } else {
-            const newId = (homeWorkData.length > 0 ? Math.max(...homeWorkData.map((t) => t.ihW_Id || 0)) : 0) + 1;
-            homeWorkData.push({ ...data, ihW_Id: newId, ihW_ActiveFlag: true, filesCount: data.ihW_FilePath_Array?.length || 0 });
-            revalidatePath('/upload/transactions/ivrm-homework');
-            return { success: true, message: 'Homework saved successfully', dulicate: false };
-        }
-    } catch (error) {
-        return { success: false, message: 'Failed to save homework', dulicate: false };
-    }
-}
+
+
+
+
+
 
 export async function deleteHomeWork(id: number) {
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -129,23 +109,18 @@ export async function fetchHomeWorkMarksList(params: IHomeWorkMarksSearch) {
         studentUploads:
             i % 3 === 0
                 ? [
-                      {
-                          ihwupl_Id: 700 + i,
-                          ihwupl_FileName: 'hw_solution.png',
-                          ihwupl_Attachment: 'https://example.com/hw_solution.png',
-                          ihwupl_Date: '2023-10-26'
-                      }
-                  ]
+                    {
+                        ihwupl_Id: 700 + i,
+                        ihwupl_FileName: 'hw_solution.png',
+                        ihwupl_Attachment: 'https://example.com/hw_solution.png',
+                        ihwupl_Date: '2023-10-26'
+                    }
+                ]
                 : []
     }));
     return { gethomework_list: students };
 }
 
-export async function saveHomeWorkMarks(data: any) {
-    console.log('Saving HomeWork Marks:', data);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    return { success: true, message: 'Marks saved successfully' };
-}
 
 export async function fetchStudentUploads(AMST_Id: number, ihW_Id: number, IHWUPL_Id: number) {
     await new Promise((resolve) => setTimeout(resolve, 300));
@@ -165,4 +140,16 @@ export async function fetchStudentUploads(AMST_Id: number, ihW_Id: number, IHWUP
             }
         ]
     };
+}
+
+
+export async function saveHomeWork(payload: any) {
+    const url = '/employee_student_home_work/upload_homework';
+    return await api.post<any>('portal', url, payload);
+}
+
+
+export async function toggleUploadHomeWork(id: number) {
+    const url = `/employee_student_home_work/active_deactive_home_work/${id}`;
+    return await api.put('portal', url);
 }
