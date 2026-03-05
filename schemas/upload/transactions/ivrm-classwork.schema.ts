@@ -119,11 +119,31 @@ export const classWorkSchema = {
         icW_ToDate: z.date({
             required_error: 'End Date is required',
             invalid_type_error: 'End Date is required'
-        })
+        }),
+
+        // Attachments (Files)
+        icW_FilePath_Array: z
+            .array(
+                z.object({
+                    icW_FilePath: z.string().optional(),
+                    fileName: z.string().optional()
+                })
+            )
+            .optional(),
+
+        // Attachments (URLs)
+        icW_Attachment_Array: z
+            .array(
+                z.object({
+                    icW_FilePath: z.string().optional(),
+                    fileName: z.string().optional()
+                })
+            )
+            .optional()
     }),
     delete: z.object({
-            icW_Id: deleteIdSchema('icW_Id')
-        })
+        icW_Id: deleteIdSchema('icW_Id')
+    })
 };
 
 export const studentMarksSchema = z.object({

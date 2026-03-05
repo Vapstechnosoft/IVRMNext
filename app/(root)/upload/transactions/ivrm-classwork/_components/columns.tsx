@@ -105,7 +105,7 @@ function ActionButtonsCell({ rowData }: { rowData: IClassWorkDetails }) {
             </button>
             <ActionButtons
                 rowData={rowData}
-                buttons={{ edit: true, toggle: true, delete: false }}
+                buttons={{ edit: false, toggle: true, delete: false }}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onToggle={handleToggle}
