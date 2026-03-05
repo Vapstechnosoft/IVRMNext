@@ -52,9 +52,17 @@ export interface ExamReportPayload {
     ASMAY_Id?: number;
     EME_Id?: number;
     ISMS_Id?: number;
+    AMST_Id?: number;
 }
 
 export interface ExamReportLoadData {
     studetiallist: AcademicYear[];
+    examlist?: Exam[];
     rcode: string | number;
+}
+
+export interface ExamReportLoadPayload {
+    amsT_Id: number;
+    asmaY_Id: number;
+    asmcL_Id: string;
 }

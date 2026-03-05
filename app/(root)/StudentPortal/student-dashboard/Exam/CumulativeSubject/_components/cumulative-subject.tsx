@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getSubjectsData, getExamDetails } from "../actions"; // Import actions
+import { getSubjectDataforCumulatiSubject, getExamDetails } from "./cumulativesubject"; // Import actions
 import { AcademicYear, Subject, ExamGrade, CumulativeSubjectLoadData } from "../types";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { Loader2 } from "lucide-react";
@@ -50,60 +50,90 @@ export default function CumulativeSubjectClient({ initialData }: CumulativeSubje
         }
     }, [initialData]);
 
-    const handleYearChange = async (yearId: string) => {
+    const handleYearChange = (yearId: string) => {
         setSelectedYear(yearId);
-        setSelectedSubject(""); // Reset subject
-        setExamData([]);
-        setShowExamData(false);
-
-        // Update Class/Section based on selected year
-        const selectedYearData = academicYears.find((y: any) => y.asmaY_Id.toString() === yearId) as any;
-        if (selectedYearData) {
-            setCurrentClass(selectedYearData.asmcL_ClassName);
-            setCurrentSection(selectedYearData.asmC_SectionName);
-        }
-
-        try {
-            const response = await getSubjectsData({ ASMAY_Id: parseInt(yearId) });
-            if (response && response.subjectlist) {
-                setSubjects(response.subjectlist);
-            } else {
-                setSubjects([]);
-                toast.info("No subjects found for this academic year.");
-            }
-        } catch (error) {
-            console.error(error);
-            setSubjects([]);
-        }
     };
 
-    const handleSubjectChange = async (subjectId: string) => {
-        setSelectedSubject(subjectId);
+    // Fetch subjects when academic year changes
+    useEffect(() => {
         if (!selectedYear) {
-            toast.error("Please select an Academic Year first.");
+            setSubjects([]);
+            setSelectedSubject("");
+            setExamData([]);
+            setShowExamData(false);
+            setCurrentClass("");
+            setCurrentSection("");
             return;
         }
 
-        setIsLoadingExams(true);
+        const fetchSubjects = async () => {
+            // Update Class/Section based on selected year
+            const selectedYearData = academicYears.find((y: any) => y.asmaY_Id.toString() === selectedYear) as any;
+            if (selectedYearData) {
+                setCurrentClass(selectedYearData.asmcL_ClassName);
+                setCurrentSection(selectedYearData.asmC_SectionName);
+            }
+
+            try {
+                // User requested to use specific amst_Id (17064)
+                const response = await getSubjectDataforCumulatiSubject(parseInt(selectedYear));
+
+                if (response && response.subjectlist) {
+                    setSubjects(response.subjectlist);
+                } else {
+                    setSubjects([]);
+                    toast.info("No subjects found for this academic year.");
+                }
+            } catch (error) {
+                console.error(error);
+                setSubjects([]);
+            }
+        };
+
+        // Reset dependent states
+        setSelectedSubject("");
+        setExamData([]);
         setShowExamData(false);
 
-        try {
-            const response = await getExamDetails({ ASMAY_Id: parseInt(selectedYear), ISMS_Id: parseInt(subjectId) });
+        fetchSubjects();
+    }, [selectedYear, academicYears]);
 
-            if (response && response.examgradelist && response.examgradelist.length > 0) {
-                setExamData(response.examgradelist);
-                setShowExamData(true);
-            } else {
-                setExamData([]);
-                toast.info("No exam details found.", { description: "Try selecting a different subject." });
-            }
-        } catch (error) {
-            console.error(error);
-            toast.error("Failed to fetch exam details.");
-        } finally {
-            setIsLoadingExams(false);
-        }
+    const handleSubjectChange = (subjectId: string) => {
+        setSelectedSubject(subjectId);
     };
+
+    // Fetch exam details when subject changes
+    useEffect(() => {
+        if (!selectedSubject || !selectedYear) {
+            setExamData([]);
+            setShowExamData(false);
+            return;
+        }
+
+        const fetchExams = async () => {
+            setIsLoadingExams(true);
+            setShowExamData(false);
+
+            try {
+                const response = await getExamDetails(parseInt(selectedYear), parseInt(selectedSubject));
+
+                if (response && response.examgradelist && response.examgradelist.length > 0) {
+                    setExamData(response.examgradelist);
+                    setShowExamData(true);
+                } else {
+                    setExamData([]);
+                    toast.info("No exam details found.", { description: "Try selecting a different subject." });
+                }
+            } catch (error) {
+                console.error(error);
+                toast.error("Failed to fetch exam details.");
+            } finally {
+                setIsLoadingExams(false);
+            }
+        };
+
+        fetchExams();
+    }, [selectedSubject, selectedYear]);
 
     const handleSort = (key: keyof ExamGrade) => {
         let direction: "asc" | "desc" = "asc";

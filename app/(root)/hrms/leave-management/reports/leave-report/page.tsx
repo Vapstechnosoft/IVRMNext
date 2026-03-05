@@ -10,6 +10,7 @@ import {
     useReportDesignations,
     usePeriodLeaveReportEmployees
 } from '@/hooks/hrms/useReports';
+import { useMasterLeaveDropdown } from '@/hooks/hrms/useMasters';
 
 export default function LeaveReportPage() {
     const [rows, setRows] = useState<LeaveReportRow[]>([]);
@@ -19,7 +20,7 @@ export default function LeaveReportPage() {
         selectedDesignations: [],
         isIndividual: false,
         selectedEmployeeId: null,
-        leave: 'All',
+        leave: '',
         fromDate: '',
         toDate: '',
         showEmployeeLeaveBalance: false
@@ -31,6 +32,7 @@ export default function LeaveReportPage() {
     const { data: departmentsData } = useReportDepartments(groupTypeIds);
     const deptIds = filters.selectedDepartments.join(',');
     const { data: designationsData } = useReportDesignations(groupTypeIds, deptIds);
+    const { data: leavesData } = useMasterLeaveDropdown();
 
     // Fetch employees based on selected departments and designations
     // NOTE: Using PeriodLeaveReportEmployees API which is specifically designed for leave reports
@@ -55,6 +57,15 @@ export default function LeaveReportPage() {
             })) || []
         );
     }, [groupTypesData]);
+
+    const leavesDataTransformed = useMemo(() => {
+        return (
+            leavesData?.data?.map((lv: any) => ({
+                id: lv.hrmL_Id || lv.key || lv.id,
+                name: lv.hrmL_LeaveName || lv.value || lv.name
+            })) || []
+        ).filter((lv: any) => lv.id != null);
+    }, [leavesData]);
 
     const departmentsDataTransformed = useMemo(() => {
         console.log('🔍 [DEBUG] Raw departmentsData:', departmentsData);
@@ -146,7 +157,7 @@ export default function LeaveReportPage() {
             selectedDesignations: [],
             isIndividual: false,
             selectedEmployeeId: null,
-            leave: 'All',
+            leave: '',
             fromDate: '',
             toDate: '',
             showEmployeeLeaveBalance: false
@@ -163,6 +174,7 @@ export default function LeaveReportPage() {
                     departments={departmentsDataTransformed}
                     designations={designationsDataTransformed}
                     employees={employeesDataTransformed}
+                    leaves={leavesDataTransformed}
                     isLoadingTypes={false}
                     isLoadingDepartments={false}
                     isLoadingDesignations={false}

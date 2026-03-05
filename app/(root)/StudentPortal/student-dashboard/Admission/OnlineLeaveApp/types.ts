@@ -1,4 +1,5 @@
 
+
 export interface OnlineLeaveApp_DTO {
     aslA_Id?: number;
     asmS_Id?: number;
@@ -12,10 +13,20 @@ export interface OnlineLeaveApp_DTO {
     trans_id?: number;
     returnval?: boolean;
     studentdetails?: StudentDetails[];
+    student_s_list?: StudentDetails[]; // API variation
     leave_name?: string;
     user_id?: number;
     roleId?: number;
     allstuddata?: LeaveApplication[];
+    student_leave_list?: LeaveApplication[]; // API variation
+    yearlist?: any[];
+    studentdivlist?: any[];
+    section_s_list?: any[];
+    class_s_list?: any[];
+    student_id_list?: any[];
+    editlist?: any[];
+    pendingleave?: LeaveApplication[];
+    roletype?: string;
 }
 
 export interface StudentDetails {
@@ -45,6 +56,12 @@ export interface LeaveApplication {
     asmcL_ClassName?: string;
     asmC_SectionName?: string;
     aslA_LeaveName?: string;
+    aslaP_Id?: number;
+    aslaP_AppRejDate?: string;
+    aslaP_AppFromDate?: string;
+    aslaP_AppToDate?: string;
+    aslaP_LeaveStatus?: string;
+    asalP_RejectReason?: string;
 }
 
 export interface LeaveLoadData {
@@ -52,14 +69,20 @@ export interface LeaveLoadData {
     studentdetails: StudentDetails[];
     allstuddata: LeaveApplication[];
     pendingleave?: LeaveApplication[];
+    yearlist?: any[];
+    mi_Id?: number;
+    asmaY_Id?: number;
 }
 
 export interface LeaveApplyPayload {
-    ASLA_Id: number;
-    ASLA_ApplyDate: string;
-    ASLA_FromDate: string;
-    ASLA_ToDate: string;
-    ASLA_Flag: string;
-    ASLA_LeaveId?: number;
-    ASLA_Reason: string;
+    aslA_Id: number;
+    mi_Id: number;
+    amsT_Id: number;
+    asmaY_Id: number;
+    aslA_LeaveId?: number;
+    aslA_Reason: string;
+    aslA_ApplyDate: string;
+    aslA_FromDate: string;
+    aslA_ToDate: string;
+    aslA_Flag: string;
 }
