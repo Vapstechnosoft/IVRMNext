@@ -74,6 +74,7 @@ import { getMasterSpecialization, getMasterSpecializationById } from '@/server/h
 import type { ApiSearchparams } from '@/types';
 import type { MasterEarningsDeductionsInput } from '@/types/hrms/master-earnings-deductions';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { getLeave } from '@/server/hrms/master-dropdown';
 // ============================================================================
 // DEPARTMENT
 // ============================================================================
@@ -937,4 +938,26 @@ export function useGroupTypeSetOrder() {
             });
         }
     };
+}
+
+// ============================================================================
+// LEAVE
+// ============================================================================
+export function useMasterLeaveDropdown() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['MASTER_LEAVE', 'dropdown'],
+        queryFn: async () => getLeave(),
+        staleTime: 1000 * 60 * 5
+    });
+
+    return useMemo(() => ({
+        ...query,
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: ['MASTER_LEAVE', 'dropdown']
+            });
+        }
+    }), [query, queryClient]);
 }
