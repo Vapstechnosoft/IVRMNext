@@ -1589,57 +1589,55 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/stella_marks_entry_report',
                                             title: 'Stella Marks Entry Report',
                                             description: 'Manage Stella Marks Entry Report Details'
-
                                         },
                                         {
                                             id: 92,
-                                            name: "Vidyaniketan Performance Ananlysis Report",
+                                            name: 'Vidyaniketan Performance Ananlysis Report',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/vidyaniketan-performance-analysis-report',
-                                            title: "Vidyaniketan Performance Ananlysis Report",
-                                            description: "Manage Vidyaniketan Performance Ananlysis Report Details"
+                                            title: 'Vidyaniketan Performance Ananlysis Report',
+                                            description: 'Manage Vidyaniketan Performance Ananlysis Report Details'
                                         },
                                         {
                                             id: 93,
-                                            name: "Vidyaniketan Progress Card Report",
+                                            name: 'Vidyaniketan Progress Card Report',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/vidyaniketan-progress-card-report',
-                                            title: "Vidyaniketan Progress Card Report",
-                                            description: "Manage Vidyaniketan Progress Card Report Details"
+                                            title: 'Vidyaniketan Progress Card Report',
+                                            description: 'Manage Vidyaniketan Progress Card Report Details'
                                         },
                                         {
                                             id: 94,
-                                            name: "Vidyaniketan I-VIII Card Report",
+                                            name: 'Vidyaniketan I-VIII Card Report',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/vidyaniketan-report-card-I-VIII',
-                                            title: "Vidyaniketan I-VIII Card Report",
-                                            description: "Manage Vidyaniketan I-VIII Card Report Details"
+                                            title: 'Vidyaniketan I-VIII Card Report',
+                                            description: 'Manage Vidyaniketan I-VIII Card Report Details'
                                         },
                                         {
                                             id: 95,
-                                            name: "Sophia IX-X Card Report",
-                                            icon: "BookOpen",
-                                            url: "/Exam/exam-module/reports/sophia-report-card-IX-X",
-                                            title: "Sophia IX-X Card Report",
-                                            description: "Manage Sophia IX-X Card Report Details"
+                                            name: 'Sophia IX-X Card Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/sophia-report-card-IX-X',
+                                            title: 'Sophia IX-X Card Report',
+                                            description: 'Manage Sophia IX-X Card Report Details'
                                         },
                                         {
                                             id: 96,
-                                            name: "Sophia Pre-II Card Report",
-                                            icon: "BookOpen",
-                                            url: "/Exam/exam-module/reports/sophia-report-card-pre-II",
-                                            title: "Sophia Pre-II Card Report",
-                                            description: "Manage Sophia Pre-II Card Report Details"
+                                            name: 'Sophia Pre-II Card Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/sophia-report-card-pre-II',
+                                            title: 'Sophia Pre-II Card Report',
+                                            description: 'Manage Sophia Pre-II Card Report Details'
                                         },
                                         {
                                             id: 97,
-                                            name: "Sophia Topper List Report",
-                                            icon: "BookOpen",
-                                            url: "/Exam/exam-module/reports/sophia-topper-list-report",
-                                            title: "Sophia Topper List Report",
-                                            description: "Manage Sophia Topper List Report Details"
+                                            name: 'Sophia Topper List Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/sophia-topper-list-report',
+                                            title: 'Sophia Topper List Report',
+                                            description: 'Manage Sophia Topper List Report Details'
                                         }
-
                                     ]
                                 }
                             ]
@@ -1906,9 +1904,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Cumulative Salary Analysis'
                                         },
 
-
                                         {
-
                                             id: 23,
 
                                             name: 'Employee Details Report',
@@ -1920,9 +1916,7 @@ export async function getUserAccessibleModules() {
                                             title: 'Employee Details Report',
 
                                             description: 'Detailed Employee Information Report'
-
                                         },
-
 
                                         //,
                                         // {
@@ -2576,7 +2570,6 @@ export async function getUserAccessibleModules() {
                         //     ]
                         // }
 
-
                         {
                             id: 4,
                             name: 'Leave Management',
@@ -2640,7 +2633,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/leave-management/apply-leave',
                                             title: 'Apply Leave',
                                             description: 'Submit Leave Application'
-                                        },
+                                        }
                                         // {
                                         //     id: 2,
                                         //     name: 'Leave Approval',
@@ -3063,7 +3056,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-                 {
+                {
                     id: 9001,
                     name: 'Visual Insights',
                     icon: 'bar-chart-3',
@@ -3094,7 +3087,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Statistical Analysis',
                                             description: 'Analyze data and generate statistical insights'
                                         }
-                                       
                                     ]
                                 }
                             ]
@@ -5744,7 +5736,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Attendance Details'
                                         },
 
-
                                         {
                                             id: 40003,
                                             name: 'Online Leave Apply',
@@ -5906,6 +5897,51 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/transactions/student-password-creation',
                                             title: 'Student Password Creation',
                                             description: 'Student Credentials Management'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 5,
+                    name: 'AI Edge',
+                    icon: 'Sparkles',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'AI Edge',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'AI Tools',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Question Paper Generator',
+                                            icon: 'FileText',
+                                            url: '/iframe/ai-question-paper-generator',
+                                            title: 'AI Question Paper Generator',
+                                            description: 'Generate question papers from textbooks using AI'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'AI Notemaker',
+                                            icon: 'FileText',
+                                            url: '/iframe/ai-notemaker',
+                                            title: 'AI Notemaker',
+                                            description: 'Summarize and create structured notes from textbooks using AI'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'AI Performance Analysis',
+                                            icon: 'BarChart',
+                                            url: '/Exam/exam-module/ai-performance-analysis',
+                                            title: 'AI Performance Analysis',
+                                            description: 'Analyze performance metrics and AI-driven insights'
                                         }
                                     ]
                                 }
