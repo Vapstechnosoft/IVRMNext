@@ -13,6 +13,7 @@ export interface IDaySubjectList {
     ismS_SubjectName: string;
     ttrdsU_ActiveFlag: boolean;
     ttrdsU_SUbSelcFlag: boolean; // Added from your backend data
+    asmaY_Id: number;
 }
 
 export const columns: ColumnDef<IDaySubjectList>[] = [

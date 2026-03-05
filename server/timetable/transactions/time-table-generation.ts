@@ -69,3 +69,24 @@ export async function getGenerationDetails(asmaY_Id: number, ttmC_Id: number): P
         };
     }
 }
+export async function generateTT(payload: { asmaY_Id: number; ttmc_idslist: { ttmC_Id: number }[] }) {
+    const url = '/TimeTableGenerationFacade/GenerateTT';
+    try {
+        const response = await api.post<any>('timetable', url, payload);
+        return response.data || response;
+    } catch (error) {
+        console.error('Error generating timetable:', error);
+        throw error;
+    }
+}
+
+export async function resetTT(payload: { asmaY_Id: number }) {
+    const url = '/TimeTableGenerationFacade/ResetTT';
+    try {
+        const response = await api.post<any>('timetable', url, payload);
+        return response.data || response;
+    } catch (error) {
+        console.error('Error resetting timetable:', error);
+        throw error;
+    }
+}

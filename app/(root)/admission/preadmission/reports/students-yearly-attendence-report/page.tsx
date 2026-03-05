@@ -107,6 +107,7 @@ export default function StudentsYearlyAttendenceReport(props: {
 
     const [selectedStudents, setSelectedStudents] = useState<IStudentYearlyAttendenceReportList[]>([]);
     const [printData, setPrintData] = useState<any[]>([]);
+    const [printMonthList, setPrintMonthList] = useState<any[]>([]);
     const [isAllRecordsSelected, setIsAllRecordsSelected] = useState(false);
 
     const {
@@ -352,12 +353,12 @@ export default function StudentsYearlyAttendenceReport(props: {
         try {
             toast.loading('Fetching all records for print...', { id: 'print-fetch' });
 
-            // Fetch all data with text search params intact
+            // Fetch all data with text search params intact, but force page: 1
             const allDataResponse = await GetStudentYearlyAttendance(
                 (academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0,
                 classId,
                 sectionId ?? 0,
-                { ...searchParams, page_size: 100000 }
+                { ...searchParams, page_size: 100000, page: 1 }
             );
 
             const attendanceData = (allDataResponse?.data as any);
@@ -371,6 +372,7 @@ export default function StudentsYearlyAttendenceReport(props: {
             const studentList = attendanceData.studentAttendanceList || attendanceData.StudentAttendanceList || [];
             const monthList = attendanceData.monthList || attendanceData.MonthList || [];
 
+            setPrintMonthList(monthList); // Save month list for print headers
             const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
 
             const studentMap = new Map<number, any>();
@@ -395,14 +397,22 @@ export default function StudentsYearlyAttendenceReport(props: {
                 student.totalAbsent = student.totalWorkingDays - student.totalPresent;
             });
 
-            const finalData = Array.from(studentMap.values()).map((student: any) => ({
+            let finalData = Array.from(studentMap.values()).map((student: any) => ({
                 ...student,
                 percentage: totalWorkingDays > 0 ? ((student.totalPresent / totalWorkingDays) * 100).toFixed(2) : '0.00'
             }));
 
+            // If students were selected in the table, only print those
+            if (selectedStudents.length > 0) {
+                const selectedIds = new Set(selectedStudents.map((s) => s.RowNo));
+                finalData = finalData.filter((student) => selectedIds.has(student.RowNo));
+                toast.success(`Ready to print ${finalData.length} selected records`);
+            } else {
+                toast.success(`Ready to print ${finalData.length} records`);
+            }
+
             setPrintData(finalData);
             toast.dismiss('print-fetch');
-            toast.success(`Ready to print ${finalData.length} records`);
 
             setTimeout(() => {
                 handlePrintContent();
@@ -610,7 +620,7 @@ export default function StudentsYearlyAttendenceReport(props: {
                     <StudentYearlyReportPrint
                         ref={printRef}
                         data={printData}
-                        monthList={((response?.data as any)?.monthList || (response?.data as any)?.MonthList || [])}
+                        monthList={printMonthList}
                     />
                 </div>
             </div>

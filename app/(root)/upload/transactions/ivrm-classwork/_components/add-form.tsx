@@ -23,8 +23,9 @@ import {
 } from '@/server/upload/transactions/ivrm-classwork/server-action';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Save } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { CalendarIcon, Eye, Loader2, Minus, Plus, Save, Upload, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { uploadDocument } from '@/server/fees/trasactions/waived_off';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -51,12 +52,11 @@ export default function AddClassWorkForm({ onSuccess, classList }: AddClassWorkF
     } = useForm<FormFields>({
         resolver: zodResolver(classWorkSchema.addOrUpdate),
         mode: 'onChange',
-        defaultValues: {}
+        defaultValues: {
+            icW_FilePath_Array: [{ icW_FilePath: '', fileName: '' }],
+            icW_Attachment_Array: [{ icW_FilePath: '', fileName: '' }]
+        }
     });
-    const payload = {
-        asmaY_Id: 176
-    };
-    const { refetchAll } = ClassWorkUploadedList(payload);
     const { data: academicResponse } = useAcademicYearDropdown();
     const { data: classData } = useClassDropdownDropdown();
     const { data: sectionListResponse } = useFeeSectionListDefaulterreport();
@@ -128,50 +128,122 @@ export default function AddClassWorkForm({ onSuccess, classList }: AddClassWorkF
         };
     }, [selectedYear, selectedClass, selectedSections, setValue]);
 
+    const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
+    const [isViewing, setIsViewing] = useState(false);
+    const [viewingImage, setViewingImage] = useState<string | null>(null);
+
+    const {
+        fields: fileFields,
+        append: appendFile,
+        remove: removeFile,
+        update: updateFile
+    } = useFieldArray({
+        control,
+        name: 'icW_FilePath_Array'
+    });
+
+    const {
+        fields: urlFields,
+        append: appendUrl,
+        remove: removeUrl
+    } = useFieldArray({
+        control,
+        name: 'icW_Attachment_Array'
+    });
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file
+        const allowedTypes = [
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-powerpoint',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'video/mp4',
+            'audio/mpeg'
+        ];
+
+        // if (!allowedTypes.includes(file.type)) {
+        //     toast.error('Invalid file type');
+        //     return;
+        // }
+
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error('File size should not exceed 5MB');
+            return;
+        }
+
+        try {
+            const previewUrl = URL.createObjectURL(file);
+            updateFile(index, {
+                icW_FilePath: previewUrl,
+                fileName: file.name,
+                // @ts-ignore
+                isUploading: true
+            });
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('FileName', file.name);
+            formData.append('ContentType', file.type);
+            formData.append('subContainerName', 'ivrm_classwork');
+
+            const response = await uploadDocument(formData);
+
+            if (response.success && response.data) {
+                updateFile(index, {
+                    icW_FilePath: response.data,
+                    fileName: file.name,
+                    // @ts-ignore
+                    isUploading: false
+                });
+                toast.success('File uploaded successfully');
+            } else {
+                throw new Error(response.message || 'Upload failed');
+            }
+        } catch (error: any) {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
+            updateFile(index, {
+                icW_FilePath: '',
+                fileName: '',
+                // @ts-ignore
+                isUploading: false
+            });
+            toast.error(`Failed to upload: ${errorMessage}`);
+        } finally {
+            if (fileInputRefs.current[index]) {
+                fileInputRefs.current[index].value = '';
+            }
+        }
+    };
+
+    const handleViewImage = (imageUrl: string) => {
+        setViewingImage(imageUrl);
+        setIsViewing(true);
+    };
+
     const handleUrlCheckboxChange = (checked: boolean) => {
         setShowUrlSection(checked);
-        // if (checked && urlFields.length === 0) {
-        //     appendUrl({ ICW_FilePath: '', FileName: '' });
-        // } else if (!checked) {
-        //     setValue('ICW_Attachment_Array', []);
-        // }
+        if (checked && urlFields.length === 0) {
+            appendUrl({ icW_FilePath: '', fileName: '' });
+        } else if (!checked) {
+            // Optional: clear fields if unchecked
+            // create a copy of fields to remove
+            //  urlFields.forEach((_, index) => removeUrl(index));
+        }
     };
 
     const onSubmit = async (data: FormFields) => {
         try {
-            const payload2 = {
-                icW_Id: 0,
-                mI_Id: 0,
-                icW_Topic: data.icW_Topic,
-                icW_SubTopic: data.icW_SubTopic,
-                icW_Content: data.icW_Content,
-                icW_TeachingAid: 0,
-                icW_FromDate: data.icW_FromDate,
-                icW_ToDate: data.icW_ToDate,
-                icW_Evaluation: '',
-                icW_Attachment: '',
-                icwatT_Attachment: '',
-                icwatT_FileName: '',
-                asmaY_Id: data.asmaY_Id,
-                login_Id: 0,
-                asmcL_Id: data.asmcL_Id,
-                ismS_Id: data.ismS_Id,
-                amsT_MobileNo: 0,
-                amsT_AppDownloadedDeviceId: '',
-                icW_Assignment: '',
-                asmS_Id: 0,
-                asmC_SectionName: '',
-                asmC_Order: 0,
-                ismS_SubjectCode: '',
-                ismS_SubjectName: '',
-                amsT_Id: 0,
-                asmcL_ClassName: '',
-                asmcL_Order: 0,
-                ismS_order: 0,
-                hm_section_list: data.hm_section_list,
-                icW_FilePath_Array: [],
-                devicelist12: []
-            };
+
             const payload = {
                 icW_Id: 0,
                 mI_Id: 0,
@@ -190,23 +262,26 @@ export default function AddClassWorkForm({ onSuccess, classList }: AddClassWorkF
                 asmcL_Id: data.asmcL_Id,
                 ismS_Id: data.ismS_Id,
                 icW_Assignment: '',
-                asmS_Id: selectedSections,
+                asmS_Id: 0,
                 hm_section_list: data.hm_section_list,
-                icW_FilePath_Array: [
-                    {
-                        icW_FilePath: 'string',
-                        fileName: 'string'
-                    }
-                ],
-                devicelist12: ['string']
+                icW_FilePath_Array: data.icW_FilePath_Array?.map(f => ({
+                    icW_FilePath: f.icW_FilePath,
+                    fileName: f.fileName
+                })) || [],
+                icW_Attachment_Array: data.icW_Attachment_Array?.map(f => ({
+                    icW_FilePath: f.icW_FilePath,
+                    fileName: f.fileName
+                })) || [],
+                devicelist12: []
             };
-            const response = await uploadClassWork(payload2);
-            console.log('payload', payload2);
+            console.log('payload class work', payload);
+            const response = await uploadClassWork(payload);
+            console.log('response class work', response);
             if (response?.success) {
                 toast.success(response.message || 'Saved successfully');
                 handleReset();
+
                 onSuccess?.();
-                refetchAll();
             } else {
                 toast.error(response?.message || 'Save failed');
             }
@@ -486,90 +561,163 @@ export default function AddClassWorkForm({ onSuccess, classList }: AddClassWorkF
                             </div>
                         )}
                     />
-                    l
+
                 </div>
 
                 {/* File Upload Section */}
-                {/* <div className='space-y-4 rounded-md border p-4'>
-                        <h3 className='text-lg font-semibold'>Attachments</h3>
-                        <div className='overflow-x-auto'>
-                            <table className='w-full table-auto border-collaspe border text-left text-sm'>
-                                <thead>
-                                    <tr className='bg-muted'>
-                                        <th className='border p-2 text-center'>SL NO</th>
-                                        <th className='border p-2'>Upload File</th>
-                                        <th className='border p-2'>File Name</th>
-                                        <th className='border p-2 text-center'>View</th>
-                                        <th className='border p-2 text-center'>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {fileFields.map((field, index) => (
-                                        <tr key={field.id}>
-                                            <td className='border p-2 text-center'>{index + 1}</td>
-                                            <td className='border p-2'>
-                                                <Input
+                {/* File Upload Section */}
+                <div className='space-y-4 rounded-md border p-4'>
+                    <h3 className='font-semibold text-lg'>Attachments</h3>
+                    <div className='overflow-x-auto'>
+                        <table className='w-full table-auto border-collapse border text-left text-sm'>
+                            <thead className='bg-muted'>
+                                <tr>
+                                    <th className='w-12 border p-2 text-center'>SL. NO</th>
+                                    <th className='border p-2 text-center'>Upload File</th>
+                                    <th className='border p-2 text-center'>File Name</th>
+                                    <th className='w-16 border p-2 text-center'>View</th>
+                                    <th className='w-16 border p-2 text-center'>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {fileFields.map((item, index) => (
+                                    <tr key={item.id} className='border-b'>
+                                        <td className='border p-2 text-center'>{index + 1}</td>
+                                        <td className='border p-2'>
+                                            <div className='flex justify-center'>
+                                                <input
+                                                    ref={(el) => {
+                                                        fileInputRefs.current[index] = el;
+                                                    }}
                                                     type='file'
-                                                    onChange={(e) => handleFileChange(index, e)}
+                                                    className='hidden'
+                                                    onChange={(e) => handleFileUpload(e, index)}
                                                 />
-                                            </td>
-                                            <td className='border p-2'>
-                                                <Controller
-                                                    control={control}
-                                                    name={`ICW_FilePath_Array.${index}.FileName`}
-                                                    render={({ field }) => (
-                                                        <Input {...field} disabled />
-                                                    )}
-                                                />
-                                            </td>
-                                            <td className='border p-2 text-center'>
                                                 <Button
                                                     type='button'
-                                                    variant='ghost'
+                                                    variant='outline'
                                                     size='sm'
-                                                    className='text-primary'
-                                                    onClick={() => {
-                                                        const filePath = control._getWatch(`ICW_FilePath_Array.${index}.icW_FilePath`);
-                                                        if (filePath) window.open(filePath, '_blank');
-                                                        else toast.error("No file uploaded to view");
-                                                    }}
-                                                >
-                                                    View
+                                                    onClick={() => fileInputRefs.current[index]?.click()}
+                                                    className='h-8'
+                                                    // @ts-ignore
+                                                    disabled={item.isUploading}>
+                                                    {/* @ts-ignore */}
+                                                    {item.isUploading ? (
+                                                        <>
+                                                            <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                                            Uploading...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Upload className='mr-2 h-4 w-4' />
+                                                            Choose File
+                                                        </>
+                                                    )}
                                                 </Button>
-                                            </td>
-                                            <td className='border p-2 text-center'>
-                                                <div className='flex items-center justify-center gap-2'>
-                                                    {index === fileFields.length - 1 && (
-                                                        <Button
-                                                            type='button'
-                                                            variant='outline'
-                                                            size='icon'
-                                                            onClick={() => appendFile({ icW_FilePath: '', FileName: '' })}
-                                                        >
-                                                            <PlusIcon className='h-4 w-4' />
-                                                        </Button>
-                                                    )}
-                                                    {fileFields.length > 1 && (
-                                                        <Button
-                                                            type='button'
-                                                            variant='destructive'
-                                                            size='icon'
-                                                            onClick={() => removeFile(index)}
-                                                        >
-                                                            <MinusIcon className='h-4 w-4' />
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                        <p className='text-sm text-green-700'>
+                                            </div>
+                                        </td>
+                                        <td className='border p-2'>
+                                            <Controller
+                                                control={control}
+                                                name={`icW_FilePath_Array.${index}.fileName`}
+                                                render={({ field }) => (
+                                                    <Input
+                                                        {...field}
+                                                        readOnly
+                                                        disabled
+                                                        placeholder='No file chosen'
+                                                        className='h-9 bg-muted text-xs'
+                                                        value={field.value || ''}
+                                                    />
+                                                )}
+                                            />
+                                        </td>
+                                        <td className='border p-2 text-center'>
+                                            <Controller
+                                                control={control}
+                                                name={`icW_FilePath_Array.${index}.icW_FilePath`}
+                                                render={({ field }) => (
+                                                    <Button
+                                                        type='button'
+                                                        variant='ghost'
+                                                        size='sm'
+                                                        onClick={() => field.value && handleViewImage(field.value)}
+                                                        // @ts-ignore
+                                                        disabled={!field.value || item.isUploading}
+                                                        className={!field.value ? 'cursor-not-allowed opacity-50' : ''}>
+                                                        {/* @ts-ignore */}
+                                                        {item.isUploading ? (
+                                                            <Loader2 className='h-4 w-4 animate-spin text-gray-400' />
+                                                        ) : (
+                                                            <Eye className='h-4 w-4 text-blue-600' />
+                                                        )}
+                                                    </Button>
+                                                )}
+                                            />
+                                        </td>
+                                        <td className='border p-2 text-center'>
+                                            <div className='flex justify-center gap-1'>
+                                                {fileFields.length > 1 && (
+                                                    <Button
+                                                        type='button'
+                                                        size='icon'
+                                                        variant='destructive'
+                                                        className='h-8 w-8'
+                                                        onClick={() => removeFile(index)}
+                                                        // @ts-ignore
+                                                        disabled={item.isUploading}>
+                                                        <Minus className='h-4 w-4' />
+                                                    </Button>
+                                                )}
+                                                {index === fileFields.length - 1 && (
+                                                    <Button
+                                                        type='button'
+                                                        size='icon'
+                                                        variant='outline'
+                                                        className='h-8 w-8'
+                                                        onClick={() =>
+                                                            appendFile({
+                                                                icW_FilePath: '',
+                                                                fileName: '',
+                                                                // @ts-ignore
+                                                                isUploading: false
+                                                            })
+                                                        }>
+                                                        <Plus className='h-4 w-4' />
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+
+                        {isViewing && viewingImage && (
+                            <div
+                                onClick={() => {
+                                    setIsViewing(false);
+                                    setViewingImage(null);
+                                }}
+                                className='fixed inset-0 z-50 flex items-center justify-center bg-black/80'>
+                                <img src={viewingImage} alt='preview' className='max-h-[90%] max-w-[90%] rounded-lg shadow-lg' />
+                                <Button
+                                    onClick={() => {
+                                        setIsViewing(false);
+                                        setViewingImage(null);
+                                    }}
+                                    className='absolute top-4 right-4'
+                                    variant='destructive'
+                                    size='icon'>
+                                    <X className='h-4 w-4' />
+                                </Button>
+                            </div>
+                        )}
+                        <p className='mt-2 text-sm text-green-700'>
                             <span className='font-bold text-red-500'>Accept File:</span> jpg, jpeg, png, doc, ppt, excel, mp3, mp4, wmv, pdf
                         </p>
-                    </div> */}
+                    </div>
+                </div>
 
                 {/* URL Section */}
                 <div className='flex items-center space-x-2'>
@@ -581,123 +729,83 @@ export default function AddClassWorkForm({ onSuccess, classList }: AddClassWorkF
                     <Label htmlFor='checklink'>If URL</Label>
                 </div>
 
-                {/* {showUrlSection && (
-                        <div className='space-y-4 rounded-md border p-4'>
-                            <h3 className='text-lg font-semibold'>URL Details</h3>
-                            <div className='overflow-x-auto'>
-                                <table className='w-full table-auto border-collaspe border text-left text-sm'>
-                                    <thead>
-                                        <tr className='bg-muted'>
-                                            <th className='border p-2 text-center'>SL NO</th>
-                                            <th className='border p-2'>URL</th>
-                                            <th className='border p-2 text-center'>View</th>
-                                            <th className='border p-2 text-center'>Action</th>
+                {showUrlSection && (
+                    <div className='space-y-4 rounded-md border p-4'>
+                        <h3 className='font-semibold text-lg'>URL Details</h3>
+                        <div className='overflow-x-auto'>
+                            <table className='w-full table-auto border-collapse border text-left text-sm'>
+                                <thead className='bg-muted'>
+                                    <tr>
+                                        <th className='w-12 border p-2 text-center'>SL NO</th>
+                                        <th className='border p-2 text-center'>URL</th>
+                                        <th className='w-16 border p-2 text-center'>View</th>
+                                        <th className='w-16 border p-2 text-center'>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {urlFields.map((item, index) => (
+                                        <tr key={item.id} className='border-b'>
+                                            <td className='border p-2 text-center'>{index + 1}</td>
+                                            <td className='border p-2'>
+                                                <Controller
+                                                    control={control}
+                                                    name={`icW_Attachment_Array.${index}.icW_FilePath`}
+                                                    render={({ field }) => (
+                                                        <Input {...field} placeholder='Enter URL' className='h-9' />
+                                                    )}
+                                                />
+                                            </td>
+                                            <td className='border p-2 text-center'>
+                                                <Controller
+                                                    control={control}
+                                                    name={`icW_Attachment_Array.${index}.icW_FilePath`}
+                                                    render={({ field }) => (
+                                                        <Button
+                                                            type='button'
+                                                            variant='ghost'
+                                                            size='sm'
+                                                            onClick={() => {
+                                                                field.value?.startsWith('http')
+                                                                    ? window.open(field.value, '_blank')
+                                                                    : toast.error('Invalid URL');
+                                                            }}>
+                                                            <Eye className='h-4 w-4 text-blue-600' />
+                                                        </Button>
+                                                    )}
+                                                />
+                                            </td>
+                                            <td className='border p-2 text-center'>
+                                                <div className='flex justify-center gap-1'>
+                                                    {index === urlFields.length - 1 && (
+                                                        <Button
+                                                            type='button'
+                                                            size='icon'
+                                                            variant='outline'
+                                                            className='h-8 w-8'
+                                                            onClick={() => appendUrl({ icW_FilePath: '', fileName: '' })}>
+                                                            <Plus className='h-4 w-4' />
+                                                        </Button>
+                                                    )}
+                                                    {urlFields.length > 1 && (
+                                                        <Button
+                                                            type='button'
+                                                            size='icon'
+                                                            variant='destructive'
+                                                            className='h-8 w-8'
+                                                            onClick={() => removeUrl(index)}
+                                                            disabled={urlFields.length === 1}>
+                                                            <Minus className='h-4 w-4' />
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {urlFields.map((field, index) => (
-                                            <tr key={field.id}>
-                                                <td className='border p-2 text-center'>{index + 1}</td>
-                                                <td className='border p-2'>
-                                                    <Controller
-                                                        control={control}
-                                                        name={`ICW_Attachment_Array.${index}.ICW_FilePath`}
-                                                        render={({ field }) => (
-                                                            <Input {...field} placeholder='Enter URL' />
-                                                        )}
-                                                    />
-                                                </td>
-                                                <td className='border p-2 text-center'>
-                                                    <Button
-                                                        type='button'
-                                                        variant='ghost'
-                                                        size='sm'
-                                                        className='text-primary'
-                                                        onClick={() => {
-                                                            //const url = methods.getValues(`ICW_Attachment_Array.${index}.ICW_FilePath`);
-
-                                                             const url = watch(`ICW_Attachment_Array.${index}.ICW_FilePath`);
-                                                            if (url) window.open(url, '_blank');
-                                                            else toast.error("No URL provided");
-                                                        }}
-                                                    >
-                                                        View
-                                                    </Button>
-                                                </td>
-                                                <td className='border p-2 text-center'>
-                                                    <div className='flex items-center justify-center gap-2'>
-                                                        {index === urlFields.length - 1 && (
-                                                            <Button
-                                                                type='button'
-                                                                variant='outline'
-                                                                size='icon'
-                                                                onClick={() => appendUrl({ ICW_FilePath: '', FileName: '' })}
-                                                            >
-                                                                <PlusIcon className='h-4 w-4' />
-                                                            </Button>
-                                                        )}
-                                                        {urlFields.length > 1 && (
-                                                            <Button
-                                                                type='button'
-                                                                variant='destructive'
-                                                                size='icon'
-                                                                onClick={() => removeUrl(index)}
-                                                            >
-                                                                <MinusIcon className='h-4 w-4' />
-                                                            </Button>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
-                    )} */}
-
-                {/* Checkboxes */}
-                {/* <div className='flex flex-wrap gap-6'>
-                        <Controller
-                            control={control}
-                            name='icW_Assignment'
-                            render={({ field }) => (
-                                <div className='flex items-center space-x-2'>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                    <Label className='font-normal'>Assignment</Label>
-                                </div>
-                            )}
-                        />
-                        <Controller
-                            control={control}
-                            name='icW_Evaluation'
-                            render={({ field }) => (
-                                <div className='flex items-center space-x-2'>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                    <Label className='font-normal'>Evaluation</Label>
-                                </div>
-                            )}
-                        />
-                        <Controller
-                            control={control}
-                            name='icW_TeachingAid'
-                            render={({ field }) => (
-                                <div className='flex items-center space-x-2'>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                    <Label className='font-normal'>Teaching Aid</Label>
-                                </div>
-                            )}
-                        />
-                    </div> */}
+                    </div>
+                )}
 
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button

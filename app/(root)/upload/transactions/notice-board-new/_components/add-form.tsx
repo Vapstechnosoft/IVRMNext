@@ -130,6 +130,7 @@ export default function AddUploadNoticeBoardForm({ onSuccess }: AddNoticeBoardFo
 
     const { data: termdata, isLoading: termloading } = useTermForNoticeBoard();
 
+
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -264,6 +265,7 @@ export default function AddUploadNoticeBoardForm({ onSuccess }: AddNoticeBoardFo
                             </div>
                         )}
                     />
+
                     <Controller
                         control={control}
                         name='check_staff'

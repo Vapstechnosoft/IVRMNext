@@ -8,5 +8,5 @@ export const getSubjectWiseDetails = async (data: any) => {
 };
 
 export const getSubjectWiseReport = async (data: any) => {
-    return await api.post<any>('timetable', 'Subjectwise/savedetail', data);
+    return await api.post<any>('timetable', 'SubjectwiseFacade/SubjectfWiseTTreport', data);
 };

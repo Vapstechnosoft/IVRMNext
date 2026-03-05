@@ -272,7 +272,7 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
             setSubMerchantIdOptions(
                 masterSubMerchant.data.map((c: any) => ({
                     value: c.fpgD_Id.toString(),
-                    label: c.fpgD_MerchantId
+                    label: c.fpgD_SubMerchantId
                 }))
             );
         } else {
@@ -375,7 +375,7 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
             fti_id: installmentId
             // user_id: 1001
         };
-
+        console.log('payload', payload);
         try {
             const response = await addMasterOnlinePaymentHeadGroup(payload);
             if (response.success) {

@@ -154,6 +154,6 @@ export async function getTermforNoticeBoard() {
 }
 
 export async function saveNoticeBoard(payload: any) {
-    const url = '/FeesCommon/fee-term-details';
+    const url = '/notice_board/add_or_update_notice_board';
     return await api.post<any[]>('portal', url, payload);
 }

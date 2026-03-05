@@ -14,6 +14,15 @@ export const BirthCertificatePrint = React.forwardRef<HTMLDivElement, BirthCerti
     ({ students, purpose, masterCompany, principalSign }, ref) => {
         const currentDate = format(new Date(), 'dd/MM/yyyy');
 
+        if (!students || students.length === 0) {
+            return (
+                <div ref={ref} className='p-10 text-center bg-white text-black font-sans'>
+                    <p className='text-lg font-bold'>No data available for printing.</p>
+                    <p className='text-sm text-gray-500'>Please generate the report first.</p>
+                </div>
+            );
+        }
+
         // Fallbacks
         const firstStudent = students?.[0];
         const mI_Logo = masterCompany?.[0]?.mI_Logo || firstStudent?.MI_Logo || '';
@@ -21,7 +30,6 @@ export const BirthCertificatePrint = React.forwardRef<HTMLDivElement, BirthCerti
         const schoolAddress = `${masterCompany?.[0]?.mI_Address1 || ''} ${masterCompany?.[0]?.mI_Address2 || ''} ${masterCompany?.[0]?.mI_Address3 || ''}`.trim();
         const pincode = masterCompany?.[0]?.mI_Pincode || '';
 
-        const signImg = principalSign?.[0]?.ivrmgC_PrincipalSign || principalSign?.[0]?.IVRMSIG_Signature || '';
         const ivrmmctName = firstStudent?.IVRMMCT_Name || 'BANGALORE';
 
         const formatDate = (dateString: string) => {
@@ -41,34 +49,39 @@ export const BirthCertificatePrint = React.forwardRef<HTMLDivElement, BirthCerti
                     {`
                         @page {
                             size: A4 portrait;
-                            margin: 0;
+                            margin: 10mm;
                         }
-                        * {
-                            -webkit-print-color-adjust: exact !important;
-                            print-color-adjust: exact !important;
-                        }
-                        body {
-                            margin: 0;
-                            padding: 0;
-                            background: white !important;
-                        }
-                        .dob-a4-page {
-                            page-break-after: always;
-                        }
-                        .dob-a4-page:last-child {
-                            page-break-after: auto;
+                        @media print {
+                            body {
+                                visibility: hidden !important;
+                                -webkit-print-color-adjust: exact !important;
+                                print-color-adjust: exact !important;
+                            }
+                            .dob-print-container {
+                                visibility: visible !important;
+                                position: absolute !important;
+                                left: 0 !important;
+                                top: 0 !important;
+                                width: 100% !important;
+                            }
+                            .dob-print-container * {
+                                visibility: visible !important;
+                            }
+                            .dob-a4-page {
+                                page-break-after: always !important;
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                border: none !important;
+                            }
                         }
                         .dob-a4-container {
                             display: flex !important;
                             flex-direction: column !important;
-                            width: 210mm !important;
-                            height: 297mm !important;
-                            padding: 15mm !important;
-                            margin: 0 !important;
-                            border: 2px solid black !important;
-                            box-shadow: none !important;
+                            width: 190mm !important;
+                            padding: 10mm !important;
+                            margin: 0 auto !important;
+                            border: 1px solid black !important;
                             position: relative !important;
-                            overflow: hidden !important;
                             background: white !important;
                             font-family: 'Times New Roman', Times, serif !important;
                         }
@@ -85,7 +98,6 @@ export const BirthCertificatePrint = React.forwardRef<HTMLDivElement, BirthCerti
                             z-index: 0;
                             pointer-events: none;
                             display: block !important;
-                            visibility: visible !important;
                         }
                         .dob-content-wrapper {
                             position: relative;
@@ -97,12 +109,13 @@ export const BirthCertificatePrint = React.forwardRef<HTMLDivElement, BirthCerti
                         }
                     `}
                 </style>
-                {students.map((student, index) => (
-                    <div key={index} className='dob-a4-page mb-8 print:mb-0 bg-gray-50 print:bg-white flex justify-center'>
-                        <div className='dob-a4-container dob-bg-watermark bg-white'>
-                            <div className='dob-content-wrapper flex flex-col h-full'>
-                                {/* Header */}
-                                <div className='flex items-center justify-between mb-8 border-b-2 border-black pb-4'>
+                <div className='dob-print-container'>
+                    {students.map((student, index) => (
+                        <div key={index} className='dob-a4-page mb-8 print:mb-0 flex justify-center bg-white'>
+                            <div className='dob-a4-container dob-bg-watermark'>
+                                <div className='dob-content-wrapper flex flex-col h-full'>
+                                    {/* Header */}
+                                    {/* <div className='flex items-center justify-between mb-8 border-b-2 border-black pb-4'>
                                     {mI_Logo && (
                                         <div className='w-[100px] h-[100px] flex-shrink-0'>
                                             <img src={mI_Logo} alt='Logo' className='w-full h-full object-contain' />
@@ -113,100 +126,80 @@ export const BirthCertificatePrint = React.forwardRef<HTMLDivElement, BirthCerti
                                         <p className='text-sm mt-1'>{schoolAddress} - {pincode}</p>
                                     </div>
                                     <div className='w-[100px]'>
-                                        {/* Placeholder for balance */}
                                     </div>
-                                </div>
+                                </div> */}
 
-                                <div className='text-center mb-12'>
-                                    <h2 className='text-3xl font-bold underline decoration-2 uppercase'>BIRTH CERTIFICATE</h2>
-                                </div>
-
-                                {/* Content */}
-                                <div className='flex-1 px-8'>
-                                    <div className='flex justify-between items-start mb-12'>
-                                        <div className='w-32 h-40 border border-gray-300 flex items-center justify-center bg-gray-50'>
-                                            {(student.stuPhoto || student.stuphoto) ? (
-                                                <img
-                                                    src={student.stuPhoto || student.stuphoto}
-                                                    alt='Student'
-                                                    className='w-full h-full object-cover'
-                                                />
-                                            ) : (
-                                                <span className='text-xs text-gray-400 text-center p-2'>Photo</span>
-                                            )}
-                                        </div>
-                                        <div className='text-lg font-bold'>
-                                            Date: {currentDate}
-                                        </div>
+                                    <div className='text-center mb-8'>
+                                        <h2 className='text-2xl font-bold underline decoration-1 uppercase'>BIRTH CERTIFICATE</h2>
+                                        <p className='text-xl font-bold uppercase mt-4'>TO WHOMSOEVER IT MAY CONCERN</p>
                                     </div>
 
-                                    <div className='space-y-8 text-[20px] leading-[2.2]'>
-                                        <p className='text-justify'>
-                                            This is to Certify that Kumar/Kumari
-                                            <span className='font-bold uppercase mx-2 px-2 border-b border-dotted border-black'>
-                                                {student.stuFN || student.stufn || ''} {student.stuMN || student.stumn || ''} {student.stuLN || student.stuln || ''}
-                                            </span>
-                                            {(student.fatherName || student.fathername) && (
-                                                <>
-                                                    Child of Sri.
-                                                    <span className='font-bold uppercase mx-2 px-2 border-b border-dotted border-black'>
-                                                        {student.fatherName || student.fathername}
-                                                    </span>
-                                                </>
-                                            )}
-                                            is/was a Student of this Institution studying in Class
-                                            <span className='font-bold uppercase mx-2 px-2 border-b border-dotted border-black'>
-                                                {student.class || student.className || 'N/A'}
-                                            </span>
-                                            during the academic year
-                                            <span className='font-bold mx-2 px-2 border-b border-dotted border-black'>
-                                                {student.acadamicyear || 'N/A'}
-                                            </span>.
-                                        </p>
+                                    {/* Content */}
+                                    <div className='flex-1 px-12'>
+                                        <div className='flex flex-col items-end mb-8'>
+                                            <div className='text-lg font-bold mb-4'>
+                                                <span className='border-b border-black pb-0.5'>Date: {currentDate}</span>
+                                            </div>
+                                            <div className='w-28 h-32 border border-gray-400 flex items-center justify-center bg-white shadow-sm'>
+                                                {(student.stuPhoto || student.stuphoto) ? (
+                                                    <img
+                                                        src={student.stuPhoto || student.stuphoto}
+                                                        alt='Student'
+                                                        className='w-full h-full object-cover'
+                                                    />
+                                                ) : (
+                                                    <span className='text-[10px] text-gray-400 text-center p-2'>Student Photo</span>
+                                                )}
+                                            </div>
+                                        </div>
 
-                                        <p className='text-justify'>
-                                            His/Her Date of Birth according to our Admission Register is
-                                            <span className='font-bold mx-2 px-2 border-b border-dotted border-black'>
-                                                {formatDate(student.dob)}
-                                            </span>
-                                            <br />
-                                            (in words)
-                                            <span className='font-bold uppercase mx-2 px-2 border-b border-dotted border-black'>
-                                                {student.dobWord || student.dobword || 'Not Available'}
-                                            </span>.
-                                        </p>
-
-                                        {purpose && (
-                                            <p className='mt-8'>
-                                                This Certificate is issued for the purpose of
-                                                <span className='font-bold italic mx-2 px-2 border-b border-dotted border-black'>
-                                                    &quot;{purpose}&quot;
+                                        <div className='space-y-10 text-[18.5px] leading-[2.2] text-black'>
+                                            <p className='text-justify'>
+                                                This is to Certify that Kumar/Kumari
+                                                <span className='font-bold uppercase mx-1'>
+                                                    {student.stuFN || student.stufn || ''} {student.stuMN || student.stumn || ''} {student.stuLN || student.stuln || ''}
+                                                </span>
+                                                Child of Sri.
+                                                <span className='font-bold uppercase mx-1'>
+                                                    {student.fatherName || student.fathername || 'N/A'}
+                                                </span>
+                                                is/was a Student of the Institution Studying in
+                                                <span className='font-bold uppercase mx-1'>
+                                                    {student.class || student.className || 'N/A'}
+                                                </span>,
+                                                <span className='font-bold mx-1'>
+                                                    {student.acadamicyear || 'N/A'}
                                                 </span>.
                                             </p>
-                                        )}
-                                    </div>
-                                </div>
 
-                                {/* Footer */}
-                                <div className='mt-auto mb-12 px-8 grid grid-cols-2 gap-8'>
-                                    <div className='self-end'>
-                                        <p className='font-bold'>Place: {ivrmmctName}</p>
-                                        <p className='font-bold mt-2'>Date: {currentDate}</p>
-                                    </div>
-                                    <div className='flex flex-col items-end'>
-                                        <div className='h-16 w-32 mb-2 flex items-end justify-end'>
-                                            {signImg && <img src={signImg} alt='Signature' className='max-w-full max-h-full object-contain' />}
+                                            <p className='text-justify'>
+                                                His/Her Date of Birth According to Our School Admission Record is
+                                                <span className='font-bold mx-1'>
+                                                    {formatDate(student.dob)}
+                                                </span>
+                                                during the Academic Year
+                                                <span className='font-bold mx-1'>
+                                                    {student.acadamicyear || 'N/A'}
+                                                </span>
+                                                and Date of Birth in Words is
+                                                <span className='font-bold uppercase mx-1'>
+                                                    {student.dobWord || student.dobword || 'Not Available'}
+                                                </span>.
+                                            </p>
                                         </div>
-                                        <div className='text-center border-t border-black w-48 pt-2'>
-                                            <p className='font-bold text-lg'>Principal</p>
-                                            <p className='text-sm'>(Signature & Seal)</p>
+                                    </div>
+
+                                    {/* Footer */}
+                                    <div className='mt-8 mb-4 px-12 flex justify-end'>
+                                        <div className='text-right'>
+                                            <p className='font-bold text-lg'>Principal's Signature</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
         );
     }

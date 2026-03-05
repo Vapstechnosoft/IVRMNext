@@ -28,6 +28,13 @@ export interface TTDaySubjectGridData {
     ttmD_DayName: string;
     ttfdsU_SUbSelcFlag: boolean;
     ttfdsU_ActiveFlag: boolean;
+
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+    asmS_Id: number;
+    asmC_SectionName: string;
+    hrmE_Id: number;
+    staffName: string;
 }
 
 export interface TTPeriodStaffGridData {
@@ -40,11 +47,11 @@ export interface TTPeriodStaffGridData {
 }
 
 export interface TTPeriodSubjectGridData {
-    ttrpsU_Id: number; //id-TTRPSU_Id 
-    asmaY_Year: string; //academic year-ASMAY_Year 
-    ismS_SubjectName: string; //subject- ISMS_SubjectName 
-    ttmP_Id: number;  //id-TTMP_Id 
-    ttmP_PeriodName: string; //period-TTMP_PeriodName 
-    ttrpsU_SUbSelcFlag: boolean; //toggle button-TTRPSU_SUbSelcFlag 
-    ttrpsU_ActiveFlag: boolean;  //toggle button-TTRPSU_ActiveFlag 
+    ttfpsU_Id: number; //id-TTRPSU_Id
+    asmaY_Year: string; //academic year-ASMAY_Year
+    ismS_SubjectName: string; //subject- ISMS_SubjectName
+    ttmP_Id: number; //id-TTMP_Id
+    ttmP_PeriodName: string; //period-TTMP_PeriodName
+    ttfpsU_SUbSelcFlag: boolean; //toggle button-TTRPSU_SUbSelcFlag
+    ttfpsU_ActiveFlag: boolean; //toggle button-TTRPSU_ActiveFlag
 }

@@ -22,11 +22,13 @@ import {
 } from '@/hooks/hrms/useReports';
 import { exportToExcel } from '@/lib/export-to-file';
 import { Download, Loader2, Search as SearchIcon, X } from 'lucide-react';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { z } from 'zod'; // If needed for validation, but strictly using manual validation for now to match legacy flexibility
+import { report } from 'node:process';
+import { table } from 'node:console';
 
 // Fixed Header List from Legacy
 const HEADER_LIST = [
@@ -36,8 +38,8 @@ const HEADER_LIST = [
     { id: 'HRME_MobileNo', value: 'Mobile No.' },
     { id: 'HRME_EmailId', value: 'Email Id' },
     { id: 'HRME_DOB', value: 'Date Of Birth' },
-    { id: 'EmergencyContect', value: 'Emergency Contact Number' },
-    { id: 'DateofConfromation', value: 'Date Of Confirmation' },
+    // { id: 'EmergencyContect', value: 'Emergency Contact Number' },
+    // { id: 'DateofConfromation', value: 'Date Of Confirmation' },
     { id: 'HRMET_Id', value: 'Employee Type' },
     { id: 'HRMGT_Id', value: 'Group Type' },
     { id: 'HRMD_Id', value: 'Department' },
@@ -58,7 +60,7 @@ const HEADER_LIST = [
     { id: 'HRME_BloodGroup', value: 'Blood Group' },
     { id: 'HRME_PANCardNo', value: 'PAN Card No.' },
     { id: 'HRME_AadharCardNo', value: 'Aadhar Card No.' },
-    { id: 'HRMBD_BankName', value: 'Bank Name' },
+    // { id: 'HRMBD_BankName', value: 'Bank Name' },
     { id: 'HRMEB_AccountNo', value: 'Account No.' },
     { id: 'HREED_Amount', value: 'Basic Amount' }
 ];
@@ -94,6 +96,8 @@ function EmployeeDetailsReportContent() {
     const [reportData, setReportData] = useState<any>(null);
     const [filteredEmployeeDropdown, setFilteredEmployeeDropdown] = useState<any[]>([]);
     const [filteredEmployeeTypeDropdown, setFilteredEmployeeTypeDropdown] = useState<any[]>([]);
+
+    const tableRef = useRef<HTMLTableElement>(null);
 
     const { control, handleSubmit, watch, setValue, reset } = useForm<FilterFormValues>({
         defaultValues: {
@@ -134,6 +138,14 @@ function EmployeeDetailsReportContent() {
     const { mutate: searchReport, isPending: isSearching } = useSearchEmployeeDetailsReport();
     const { mutate: filterEmployees } = useFilterEmployeeDetails();
     const { mutate: getEmployeeAndType } = useEmployeeAndEmployeeType();
+
+    // Scroll to Grid View smoothly
+    useEffect(() => {
+        if (reportData && tableRef.current) {
+            tableRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+
+    }, [reportData]);
 
     // Effect to fetch Employee/Type based on dynamic payload
     useEffect(() => {
@@ -294,6 +306,7 @@ function EmployeeDetailsReportContent() {
             toast.error('Kindly select Headers To display');
             return;
         }
+        console.log('data', data);
 
         const payload: EmployeeDetailsReportRequest = {
             mI_Id: 0,
@@ -342,19 +355,23 @@ function EmployeeDetailsReportContent() {
 
         searchReport(payload, {
             onSuccess: (res: any) => {
+                console.log("🔥 Raw API Response:", res);
+
                 // Check if API returned success: false
                 if (!res.success) {
                     setReportData(null);
                     toast.error(res.message || 'Failed to fetch report');
                     return;
                 }
-
+                console.log("API Response:", res);
                 // API success: true, check data
                 if (res.data && res.data.employeeDetails && res.data.employeeDetails.length > 0) {
                     setReportData(res.data);
+                    console.log("Report Data:", res.data);
                     toast.success('Report generated successfully');
                 } else {
                     setReportData(null);
+                    console.log("Report Data:", res.data);
                     toast.error('No Record found to display .. !');
                 }
             }
@@ -415,7 +432,12 @@ function EmployeeDetailsReportContent() {
                         // Date formatting if needed? Legacy just shows `row[column.columnID]`.
                         // Some keys like 'HRME_DOB' might need formatting.
                         if (headerId.includes('Date') || headerId.includes('DOB') || headerId.includes('DOJ') || headerId.includes('DOL')) {
-                            if (val) return format(new Date(val), 'dd/MM/yyyy');
+                            if (val) {
+                                const date = new Date(val);
+                                if (!isNaN(date.getTime())) {
+                                    return format(date, 'dd/MM/yyyy');
+                                }
+                            }
                         }
                         return val;
                     }
@@ -752,7 +774,7 @@ function EmployeeDetailsReportContent() {
                         </Button>
                     }
                 >
-                    <div className='h-[500px] overflow-y-auto'>
+                    <div ref={tableRef} className='h-[500px] overflow-y-auto'>
                         <GenericDataTable
                             data={processedGridData}
                             columns={columns}

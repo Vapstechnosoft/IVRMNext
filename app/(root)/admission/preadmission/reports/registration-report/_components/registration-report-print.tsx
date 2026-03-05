@@ -27,12 +27,14 @@ export const RegistrationReportPrint = React.forwardRef<HTMLDivElement, Registra
                     {`
                         @media print {
                             @page {
-                                margin: 20mm;
+                                margin: 0;
                                 size: A4 portrait;
                             }
                             body {
                                 visibility: hidden;
                                 background: white;
+                                margin: 0;
+                                padding: 0;
                             }
                             .print-preview-container {
                                 visibility: visible !important;
@@ -43,6 +45,7 @@ export const RegistrationReportPrint = React.forwardRef<HTMLDivElement, Registra
                                 background: white;
                                 z-index: 9999;
                                 color: black;
+                                padding: 15mm;
                             }
                             .print-preview-container * {
                                 visibility: visible !important;

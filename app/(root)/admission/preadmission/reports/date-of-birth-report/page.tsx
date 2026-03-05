@@ -18,8 +18,11 @@ import { usePathname, useRouter } from 'next/navigation';
 import React, { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-import { useDateOfBirth, useadmissionStudentsDropdown } from '@/hooks/admission/preadmission/useReports';
 import { getExcelDOBReport } from '@/server/admission/preadmission/reports/month_end_report';
+import { GetDateOfBirth } from '@/server/admission/preadmission/reports/student_yearly_attendance';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { birthCertificateColumns } from './_components/columns';
+import { useadmissionStudentsDropdown, useDateOfBirth } from '@/hooks/admission/preadmission/useReports';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -33,6 +36,8 @@ export default function BirthCertificatePageReport(props: {
     const printRef = useRef<HTMLDivElement>(null);
 
     const [showReport, setShowReport] = useState(false);
+    const [allReportData, setAllReportData] = useState<any>(null);
+    const [isPrinting, setIsPrinting] = useState(false);
 
     const handleFilterChange = (filterType: 'class' | 'section' | 'academic_year' | 'student', value: number) => {
         if (filterType === 'class') {
@@ -106,10 +111,10 @@ export default function BirthCertificatePageReport(props: {
     const handleClear = () => {
         setAcademicYearId(0);
         setClassId(0);
-        setSectionId(0);
         setStudentId(0);
         setPurpose('');
         setShowReport(false);
+        setAllReportData(null);
 
         router.replace(pathname);
 
@@ -117,8 +122,48 @@ export default function BirthCertificatePageReport(props: {
     };
 
     const handlePrint = useReactToPrint({
-        contentRef: printRef
+        contentRef: printRef,
+        documentTitle: 'DateOfBirthReport'
     });
+
+    const handlePrintAll = async () => {
+        try {
+            if (!academicYearId || !classId || !sectionId) {
+                toast.error('Please fill all required fields!');
+                return;
+            }
+
+            setIsPrinting(true);
+            toast.loading('Preparing data for print...', { id: 'print-all' });
+
+            // In tabular mode, we might want to fetch all if paginated, 
+            // but GetDateOfBirth return all students based on studentId (0 = all)
+            const response = await GetDateOfBirth(
+                academicYearId,
+                classId,
+                sectionId,
+                studentId,
+                0,
+                { page: 1, page_size: 10000 }
+            );
+
+            if (response) {
+                setAllReportData(response);
+                toast.success('Ready to print', { id: 'print-all' });
+                setTimeout(() => {
+                    handlePrint();
+                    setIsPrinting(false);
+                }, 500);
+            } else {
+                setIsPrinting(false);
+                toast.error('No data found to print', { id: 'print-all' });
+            }
+        } catch (error) {
+            console.error('Print error:', error);
+            setIsPrinting(false);
+            toast.error('Failed to prepare print');
+        }
+    };
 
     const downloadExcel = async () => {
         try {
@@ -172,6 +217,11 @@ export default function BirthCertificatePageReport(props: {
 
         if (!sectionId || sectionId === 0) {
             toast.error('Please select Section');
+            return;
+        }
+
+        if (studentId === undefined || studentId === null) {
+            toast.error('please select student');
             return;
         }
 
@@ -304,16 +354,21 @@ export default function BirthCertificatePageReport(props: {
                                                 <SelectItem value='error' disabled>
                                                     Error loading
                                                 </SelectItem>
-                                            ) : admissionStudents?.data?.length === 0 ? (
-                                                <SelectItem value='no-data' disabled>
-                                                    No students found
-                                                </SelectItem>
                                             ) : (
-                                                admissionStudents?.data?.map((item: any, index: number) => (
-                                                    <SelectItem key={`${item.amsT_Id}-${index}`} value={item.amsT_Id.toString()}>
-                                                        {item.studentName || item.stuname}
-                                                    </SelectItem>
-                                                ))
+                                                <>
+                                                    <SelectItem value='0'>All Students</SelectItem>
+                                                    {admissionStudents?.data?.length === 0 ? (
+                                                        <SelectItem value='no-data' disabled>
+                                                            No students found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        admissionStudents?.data?.map((item: any, index: number) => (
+                                                            <SelectItem key={`${item.amsT_Id}-${index}`} value={item.amsT_Id.toString()}>
+                                                                {item.studentName || item.stuname}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </>
                                             )}
                                         </SelectContent>
                                     </Select>
@@ -352,9 +407,9 @@ export default function BirthCertificatePageReport(props: {
                                 <X className='mr-2 h-4 w-4' />
                                 Clear
                             </Button>
-                            <Button onClick={downloadExcel} className='w-fit'>
+                            {/* <Button onClick={downloadExcel} className='w-fit'>
                                 Export to Excel
-                            </Button>
+                            </Button> */}
 
                             {showReport && transformedData && transformedData.length > 0 && (
                                 <Button
@@ -388,18 +443,16 @@ export default function BirthCertificatePageReport(props: {
                     </div>
                 )}
 
-                {showReport && transformedData && transformedData.length > 0 && (
-                    <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '210mm' }}>
-                        <BirthCertificatePrint
-                            ref={printRef}
-                            students={transformedData}
-                            purpose={purpose}
-                            masterCompany={(response?.data as any)?.masterCompany}
-                            principalSign={(response?.data as any)?.principalSign}
-                        />
-                    </div>
-                )}
+                <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '210mm' }}>
+                    <BirthCertificatePrint
+                        ref={printRef}
+                        students={allReportData?.data?.studentList || transformedData}
+                        purpose={purpose}
+                        masterCompany={(allReportData?.data || response?.data as any)?.masterCompany}
+                        principalSign={(allReportData?.data || response?.data as any)?.principalSign}
+                    />
+                </div>
             </div>
-        </div>
+        </div >
     );
 }

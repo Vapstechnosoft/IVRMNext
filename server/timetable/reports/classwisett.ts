@@ -8,9 +8,14 @@ export const getClassWiseReportDetails = async (data: any) => {
     return await api.get<any>('timetable', 'ClassWiseTT/getdetails');
 };
 
-export const getClassWiseReport = async (data: any) => {
-    return await api.post<any>('timetable', 'ClassWiseTT/getrpt', data);
-};
+// export const getClassWiseReport = async (data: any) => {
+//     return await api.post<any>('timetable', 'ClassWiseTTFacade/ClassWiseTTreport', data);
+// };
+
+export async function getClassWiseReport(data: any) {
+    const url = '/ClassWiseTTFacade/ClassWiseTTreport';
+    return await api.post<any>('timetable', url, data);
+}
 
 export const getClassByCategory = async (data: any) => {
     return await api.post<any>('timetable', 'ClassWiseTT/getclass_catg', data);

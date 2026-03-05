@@ -12,8 +12,13 @@ export async function getSubjectRestrictionDetails() {
     return await api.get<any>('timetable', url);
 }
 
+export async function getSubjectRestrictionDetailsRestrictions() {
+    const url = '/RestrictionFacade/getdetailsRestrictions';
+    return await api.get<any>('timetable', url);
+}
+
 export async function saveDayPeriodDetail(data: any) {
-    const url = '/Restriction/savedetail1';
+    const url = '/RestrictionFacade/TTRestrictionDayPeriodSave';
     return await api.post<any>('timetable', url, data);
 }
 
@@ -22,23 +27,18 @@ export async function getDayPeriodEditDetails(id: number) {
     return await api.get<any>('timetable', url);
 }
 
-export async function deactivateDayPeriod(data: any) {
-    const url = '/Restriction/deactivate1';
-    return await api.post<any>('timetable', url, data);
-}
-
 // --- Tab 1: Day Period ---
 
 //academic Year
 export async function getAcademicYearSubject() {
     const url = '/TimeTableCommon/GetAcademicYearData';
-    const response = await api.get<any[]>('timetable', url);
+    const response = await api.get<any>('timetable', url);
     return response.data;
 }
 //Category
 export async function getCategorySubject() {
     const url = '/TimeTableCommon/GetCategoryDetails';
-    const response = await api.get<any[]>('timetable', url);
+    const response = await api.get<any>('timetable', url);
     return response.data;
 }
 
@@ -47,23 +47,22 @@ export async function ToggleSubjectDayPeriod(ttrdP_Id: number) {
     return await api.put<any>('timetable', url);
 }
 
-
 // --- Tab 2: Day Staff ---
 //for daystaff and period staff and period subject
 export async function getAcademicYearDayStaff() {
     const url = '/TimeTableCommon/GetAcademicYearData';
-    const response = await api.get<any[]>('timetable', url);
+    const response = await api.get<any>('timetable', url);
     return response.data;
 }
 //staff and for period staff also
 export async function getStaffDropDownDayStaff() {
     const url = '/TimeTableCommon/GetStaffDetails';
-    const response = await api.get<any[]>('timetable', url);
+    const response = await api.get<any>('timetable', url);
     return response.data;
 }
 //button
 export async function saveDayStaffDetail(data: any) {
-    const url = '/Restriction/savedetail2';
+    const url = '/RestrictionFacade/TTRestrictionDayStaffSave';
     return await api.post<any>('timetable', url, data);
 }
 
@@ -72,21 +71,21 @@ export async function getDayStaffEditDetails(id: number) {
     return await api.get<any>('timetable', url);
 }
 
-export async function ToggleSubjectDayStaff(ttrdsU_Id: number) {
-    const url = `/RestrictionFacade/SubjectRestrictionDayStaffActivateDeactivate/${ttrdsU_Id}`;
+export async function ToggleSubjectDayStaff(ttrdS_Id: number) {
+    const url = `/RestrictionFacade/SubjectRestrictionDayStaffActivateDeactivate/${ttrdS_Id}`;
     return await api.put<any>('timetable', url);
 }
 // --- Tab 3: Day Subject ---
 //subject and period subject
 export async function getSubjectDaySubject() {
     const url = '/TimeTableCommon/subject-details';
-    const response = await api.get<any[]>('timetable', url);
+    const response = await api.get<any>('timetable', url);
     return response.data;
 }
 
 //Button
 export async function saveDaySubjectDetail(data: any) {
-    const url = '/Restriction/savedetail3';
+    const url = '/RestrictionFacade/TTRestrictionDaySubjectSave';
     return await api.post<any>('timetable', url, data);
 }
 
@@ -101,7 +100,7 @@ export async function ToggleSubjectDaySubject(ttrdsU_Id: number) {
 }
 // --- Tab 4: Period Staff ---
 export async function savePeriodStaffDetail(data: any) {
-    const url = '/Restriction/savedetail4';
+    const url = '/RestrictionFacade/TTRestrictionDayPeriodStaffSave';
     return await api.post<any>('timetable', url, data);
 }
 export async function getPeriodStaffEditDetails(id: number) {
@@ -116,7 +115,7 @@ export async function ToggleSubjectPeriodStaff(ttrpS_Id: number) {
 
 // --- Tab 5: Period Subject ---
 export async function savePeriodSubjectDetail(data: any) {
-    const url = '/Restriction/savedetail5';
+    const url = '/RestrictionFacade/TTRestrictionDayPeriodSubjectSave';
     return await api.post<any>('timetable', url, data);
 }
 export async function getPeriodSubjectEditDetails(id: number) {
