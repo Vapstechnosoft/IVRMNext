@@ -103,7 +103,7 @@ export default function HallTicketGeneratedDetailsPage({ rowData, onClose }: Pro
 
                         <Button
                             onClick={handleUpdate}
-                            className="text-white px-6 py-2"
+                            className="text-white px-6 py-2 w-fit"
                         >
                             {isSubmitting ? 'Updating...' : 'Update'}
                         </Button>
@@ -111,7 +111,7 @@ export default function HallTicketGeneratedDetailsPage({ rowData, onClose }: Pro
                         <Button
                             variant="outline"
                             onClick={onClose}
-                            className="px-6 py-2"
+                            className="px-6 py-2 w-fit"
                         >
                             CLOSE
                         </Button>

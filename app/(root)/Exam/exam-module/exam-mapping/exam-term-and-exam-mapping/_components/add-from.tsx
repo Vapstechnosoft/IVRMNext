@@ -745,10 +745,10 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
 
                     {/* Buttons */}
                     <div className='mt-6 flex w-fit gap-4'>
-                        <Button type='submit' disabled={isSubmitting || addedRows.length === 0}>
+                        <Button type='submit' disabled={isSubmitting || addedRows.length === 0} className='w-fit'>
                             {isSubmitting ? 'Saving...' : 'Save'}
                         </Button>
-                        <Button type='button' variant='outline' onClick={() => handleReset()}>
+                        <Button type='button' variant='outline' onClick={() => handleReset()} className='w-fit'>
                             Reset
                         </Button>
                     </div>

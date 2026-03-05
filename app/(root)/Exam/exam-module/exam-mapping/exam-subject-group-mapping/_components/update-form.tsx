@@ -541,11 +541,11 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                         </TabsContent>
                     </Tabs>
 
-                    <div className='mt-6 flex gap-3'>
-                        <Button type='submit' disabled={isSubmitting}>
+                    <div className='mt-6 flex w-fit gap-3'>
+                        <Button type='submit' disabled={isSubmitting} className='w-fit'>
                             {isSubmitting ? 'Saving...' : 'Update Group'}
                         </Button>
-                        <Button type='button' variant='outline' onClick={() => reset()}>
+                        <Button type='button' variant='outline' onClick={() => reset()} className='w-fit'>
                             Reset
                         </Button>
                     </div>

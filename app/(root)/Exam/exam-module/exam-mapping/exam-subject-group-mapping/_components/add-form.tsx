@@ -553,10 +553,10 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                     </Tabs>
 
                     <div className='mt-4 flex w-fit justify-start gap-4'>
-                        <Button type='submit' disabled={isSubmitting}>
+                        <Button type='submit' disabled={isSubmitting} className='w-fit'>
                             {isSubmitting ? 'Saving...' : 'Save'}
                         </Button>
-                        <Button type='button' variant='outline' onClick={() => handleReset()}>
+                        <Button type='button' variant='outline' onClick={() => handleReset()} className='w-fit'>
                             Reset
                         </Button>
                     </div>

@@ -67,10 +67,10 @@ export default function ToggleCoScholasticActivityAreaForm({ rowData, onClose }:
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>
-                    <Button variant='secondary' onClick={closeDialog} type='button'>
+                    <Button variant='secondary' onClick={closeDialog} type='button' className='w-fit'>
                         Cancel
                     </Button>
-                    <Button type='submit' isLoading={isSubmitting} variant={isActive ? 'destructive' : 'default'}>
+                    <Button type='submit' isLoading={isSubmitting} variant={isActive ? 'destructive' : 'default'} className='w-fit'>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>
                 </AdaptiveFooter>

@@ -636,10 +636,11 @@ function StudentSubjectMappingContent() {
                                     setClasses([]);
                                     setCategories([]);
                                     setSections([]);
-                                }}>
+                                }}
+                                className='w-fit'>
                                 CANCEL
                             </Button>
-                            <Button type='button' className='px-8 py-2 shadow-lg' onClick={handleSearch} disabled={isLoading}>
+                            <Button type='button' className='w-fit px-8 py-2 shadow-lg' onClick={handleSearch} disabled={isLoading}>
                                 {isLoading ? 'Searching...' : 'Search'}
                             </Button>
                         </div>
@@ -668,10 +669,10 @@ function StudentSubjectMappingContent() {
                             />
 
                             <div className='flex w-fit justify-end gap-3 border-t p-4'>
-                                <Button variant='outline' onClick={() => tableRef.current?.reset()}>
+                                <Button variant='outline' onClick={() => tableRef.current?.reset()} className='w-fit'>
                                     Cancel
                                 </Button>
-                                <Button type='submit' onClick={handleSave}>
+                                <Button type='submit' onClick={handleSave} className='w-fit'>
                                     Save Mapping
                                 </Button>
                             </div>

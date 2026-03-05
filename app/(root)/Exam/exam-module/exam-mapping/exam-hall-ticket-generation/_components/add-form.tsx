@@ -597,7 +597,7 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                                 setClasses([]);
                                 setExams([]);
                             }}
-                            className='min-w-[120px]'>
+                            className='min-w-[120px] w-fit'>
                             CANCEL
                         </Button>
 

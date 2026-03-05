@@ -4786,6 +4786,90 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
+                },
+                  {
+                    id: 15,
+                    name: 'Visitor Management',
+                    icon: 'Users',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Transactions',
+                            icon: 'FileText',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Transactions',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Add Visitor',
+                                            icon: 'UserPlus',
+                                            url: '/visitors-management/transactions/add-visitor',
+                                            title: 'Add Visitor',
+                                            description: 'Add New Visitor Transaction'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Visitor Appointment',
+                                            icon: 'CalendarDays',
+                                            url: '/visitors-management/transactions/visitor-appointment',
+                                            title: 'Visitor Appointment',
+                                            description: 'Schedule Visitor Appointment' 
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Inward Entry',
+                                            icon: 'ArrowDownLeft',
+                                            url: '/visitors-management/transactions/inward',
+                                            title: 'Inward Entry',
+                                            description: 'Manage Inward Entries'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Outward Entry',
+                                            icon: 'ArrowUpRight',
+                                            url: '/visitors-management/transactions/outward',
+                                            title: 'Outward Entry',
+                                            description: 'Manage Outward Entries'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Gate Pass',
+                                            icon: 'Ticket',
+                                            url: '/visitors-management/transactions/gate-pass',
+                                            title: 'Gate Pass',
+                                            description: 'Generate Gate Pass'
+                                        }
+
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 2,
+                            name: 'Masters',
+                            icon: 'Database',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Masters',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Location',
+                                            icon: 'MapPin',
+                                            url: '/visitors-management/masters/location',
+                                            title: 'Master Location',
+                                            description: 'Manage Visitor Locations'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
                 }
 
                 // {
@@ -5246,6 +5330,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 }
+              
             ]
         };
     } else {

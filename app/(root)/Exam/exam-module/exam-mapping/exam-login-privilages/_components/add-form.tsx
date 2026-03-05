@@ -389,8 +389,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
             Array.isArray(v.classList) && v.classList.length
                 ? v.classList
                 : v.asmcL_Id
-                  ? classes.filter((c) => c.asmcL_Id === v.asmcL_Id)
-                  : [];
+                    ? classes.filter((c) => c.asmcL_Id === v.asmcL_Id)
+                    : [];
 
         if (rawClasses.length === 0) {
             toast.error('No classes selected');
@@ -411,9 +411,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         // FIXED: Use emsS_Id instead of issS_Id
         const selectedSSubjects: any[] = Array.isArray(v.subSubjectList)
             ? v.subSubjectList.map((ss: any) => ({
-                  emsS_Id: ss.emsS_Id,
-                  emsS_SubSubjectName: ss.emsS_SubSubjectName || ''
-              }))
+                emsS_Id: ss.emsS_Id,
+                emsS_SubSubjectName: ss.emsS_SubSubjectName || ''
+            }))
             : [];
 
         const rows: DetailRow[] = [];
@@ -1058,16 +1058,16 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                             <div className='flex w-fit justify-center gap-3'>
                                 {editingId ? (
                                     <>
-                                        <Button type='button' onClick={handleUpdateRow}>
+                                        <Button type='button' onClick={handleUpdateRow} className='w-fit'>
                                             Update Row
                                         </Button>
-                                        <Button type='button' variant='outline' onClick={cancelEdit}>
+                                        <Button type='button' variant='outline' onClick={cancelEdit} className='w-fit'>
                                             Cancel Edit
                                         </Button>
                                     </>
                                 ) : (
                                     <>
-                                        <Button type='button' onClick={handleAddRows}>
+                                        <Button type='button' onClick={handleAddRows} className='w-fit'>
                                             + ADD
                                         </Button>
                                         <Button
@@ -1097,7 +1097,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 setActiveTab(0);
                                                 setDisableClassSection(false);
                                                 setEditingId(null);
-                                            }}>
+                                            }}
+                                            className='w-fit'>
                                             Reset
                                         </Button>
                                     </>
@@ -1119,18 +1120,18 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                             <div className='overflow-x-auto'>{detailsTable}</div>
                             <div className='mt-5 flex w-full justify-center'>
                                 <div className='w-fit'>
-                                    <Button type='button' disabled={isSubmitting} onClick={() => onSubmit(getValues())}>
+                                    <Button type='button' disabled={isSubmitting} onClick={() => onSubmit(getValues())} className='w-fit'>
                                         {isSubmitting
                                             ? editMode === 'edit'
                                                 ? 'Updating...'
                                                 : 'Saving...'
                                             : editMode === 'edit'
-                                              ? 'Update'
-                                              : 'Save'}
+                                                ? 'Update'
+                                                : 'Save'}
                                     </Button>
 
                                     {editMode === 'edit' && (
-                                        <Button type='button' variant='outline' className='ml-3' onClick={handleCancelEdit}>
+                                        <Button type='button' variant='outline' className='ml-3 w-fit' onClick={handleCancelEdit}>
                                             Cancel
                                         </Button>
                                     )}
@@ -1152,7 +1153,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                 onClick={() => {
                                     setConfirmOpen(false);
                                     setDeleteIndex(null);
-                                }}>
+                                }}
+                                className='w-fit'>
                                 Cancel
                             </Button>
                             <Button
@@ -1161,7 +1163,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                     handleDeleteRowByIndex(deleteIndex);
                                     setConfirmOpen(false);
                                     setDeleteIndex(null);
-                                }}>
+                                }}
+                                className='w-fit'>
                                 Yes, Delete
                             </Button>
                         </div>
