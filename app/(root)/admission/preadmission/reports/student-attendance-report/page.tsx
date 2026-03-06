@@ -21,9 +21,9 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useAcademicYearDropdown, useMasterClassDropdown, useMasterSectionDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useStudentAttendanceReport, useadmissionStudentsDropdown } from '@/hooks/admission/preadmission/useReports';
-import { getExcelStudentAttendanceReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { getStudentAttendanceReport } from '@/server/admission/preadmission/reports/report';
 import type { IStudentAttendanceReportList } from '@/types/admission/preadmission/reports';
+import * as XLSX from 'xlsx';
 import { useReactToPrint } from 'react-to-print';
 import { attendanceColumns } from './_components/columns';
 import { StudentAttendancePrint } from './_components/student-attendance-print';
@@ -226,46 +226,110 @@ export default function StudyCertificateReportPage() {
                 return;
             }
 
-            const response = await getExcelStudentAttendanceReport(
+            toast.loading('Preparing Excel export...', { id: 'excel-download' });
+
+            const studentsReportData: any = studentsAttendance;
+            const totalRecordsCount = studentsReportData?.total || studentsReportData?.data?.total || 0;
+
+            const allDataResponse = await getStudentAttendanceReport(
                 academicYearId,
                 classId,
                 sectionId,
-                selectionMode === 2 ? studentId : 0, // Conditional studentId handling
+                selectionMode === 2 ? studentId : 0,
                 month,
                 monthDateWise,
                 fromDate,
                 toDate,
                 dailyDate,
                 selectionMode,
-                studentStatus
+                studentStatus,
+                { page: 1, page_size: totalRecordsCount || 1000 }
             );
 
-            // Ensure we have a Blob
-            const blob =
-                response instanceof Blob
-                    ? response
-                    : new Blob([new Uint8Array(response)], {
-                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    });
+            // Robust data extraction
+            const getListData = (resp: any): any[] => {
+                if (!resp) return [];
+                // Case 1: Standard ApiResponse wrapper
+                const payload = resp.data;
+                if (payload) {
+                    if (Array.isArray(payload.studentAttendanceList)) return payload.studentAttendanceList;
+                    if (Array.isArray(payload)) return payload;
+                    // Case 1b: Double nested data (some APIs do this)
+                    if (payload.data && Array.isArray(payload.data.studentAttendanceList)) return payload.data.studentAttendanceList;
+                    if (Array.isArray(payload.data)) return payload.data;
+                }
+                // Case 2: Naked response (no ApiResponse wrapper)
+                if (Array.isArray(resp.studentAttendanceList)) return resp.studentAttendanceList;
+                if (Array.isArray(resp)) return resp;
+                return [];
+            };
 
-            // Create download link
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'StudentAttendanceReport.xlsx';
-            document.body.appendChild(link);
-            link.click();
+            let allData = getListData(allDataResponse);
 
-            // Cleanup
-            setTimeout(() => {
-                link.remove();
-                window.URL.revokeObjectURL(url);
-            }, 100);
+            // Fallback to currently displayed data if fetch failed or returned nothing
+            if (allData.length === 0 && studentsReportData) {
+                allData = getListData(studentsReportData);
+            }
 
+            if (!allData || allData.length === 0) {
+                toast.dismiss('excel-download');
+                toast.error('No records found to export');
+                return;
+            }
+
+            const activeYear = academicYears?.data?.find((y: any) => y.asmaY_Id === academicYearId)?.asmaY_Year;
+            const activeClass = classes?.data?.find((c: any) => c.asmcL_Id === classId)?.asmcL_ClassName;
+            const activeSection = sections?.data?.find((s: any) => s.asmS_Id === sectionId)?.asmC_SectionName;
+            const activeMonth = monthList.find((m) => m.id === month)?.name;
+
+            // Prepare headers
+            const reportHeaders = [
+                ['STUDENT ATTENDANCE REPORT'],
+                [`Academic Year: ${activeYear || 'N/A'}`],
+                [`Class: ${activeClass || 'N/A'}`, `Section: ${activeSection || 'N/A'}`],
+                [activeMonth ? `Month: ${activeMonth}` : ''],
+                [] // Empty row
+            ];
+
+            // Define table headers based on attendanceColumns
+            const tableHeaders = ['Sl.No', 'Student Name', 'Admission No', 'Roll No', 'Class Held', 'Class Attended', 'Percentage'];
+
+            // Prepare table data
+            const tableData = allData.map((row: any) => [
+                row.RowNo,
+                row.name,
+                row.AMST_AdmNo,
+                row.AMAY_RollNo,
+                row.ASA_ClassHeld,
+                row.ASA_Class_Attended,
+                `${Number(row.Percentage || 0).toFixed(2)}%`
+            ]);
+
+            // Add Total Records row
+            const totalRecordsRow = [
+                'TOTAL RECORDS',
+                '',
+                '',
+                '',
+                '',
+                '',
+                allData.length
+            ];
+
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet([...reportHeaders, tableHeaders, ...tableData, [], totalRecordsRow]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'AttendanceReport');
+
+            // Download file
+            XLSX.writeFile(wb, `StudentAttendanceReport_${activeYear || 'Report'}_${format(new Date(), 'ddMMyyyy_HHmmss')}.xlsx`);
+
+            toast.dismiss('excel-download');
             toast.success('Excel downloaded successfully');
         } catch (error) {
             console.error('Download error:', error);
-            toast.error('Failed to download Excel');
+            toast.dismiss('excel-download');
+            toast.error('Failed to prepare Excel export');
         }
     };
 

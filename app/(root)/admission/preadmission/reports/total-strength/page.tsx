@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import { useReactToPrint } from 'react-to-print';
 import type { z } from 'zod';
 import { TotalStrengthPrint } from './_components/total-strength-print';
+import * as XLSX from 'xlsx';
 
 type FormFields = z.infer<typeof TotalStrengthSchema>;
 
@@ -85,7 +86,7 @@ export default function TotalStrengthPage() {
         defaultValues: {
             reportType: 'All',
             status: 'Present',
-            withTc: true,
+            withTc: false,
             withDeactive: false,
             academicYear: 0,
             class: '',
@@ -178,35 +179,56 @@ export default function TotalStrengthPage() {
 
     const downloadExcel = async () => {
         try {
-            if (!reportParams) {
-                toast.error('Please fill all required fields!');
+            const data = groupedData();
+            if (Object.keys(data).length === 0) {
+                toast.error('No data available to export');
                 return;
             }
 
-            const response = await getExcelTotalStrengthReport(reportParams);
+            const excelData: any[] = [];
+            let grandTotal = 0;
 
-            // Ensure we have a Blob
-            const blob =
-                response instanceof Blob
-                    ? response
-                    : new Blob([new Uint8Array(response)], {
-                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            Object.entries(data)
+                .sort(([a], [b]) => Number(a) - Number(b))
+                .forEach(([rowNumber, sections], index) => {
+                    sections.forEach((item: any, sectionIndex) => {
+                        excelData.push({
+                            'Sl.No': sectionIndex === 0 ? index + 1 : '',
+                            'Class': sectionIndex === 0 ? item.classname : '',
+                            'Section': item.sectionname,
+                            'Boys': item.boys,
+                            'Girls': item.girls,
+                            'Total': item.totalstudents
+                        });
                     });
 
-            // Create download link
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'TotalStrengthReport.xlsx';
-            document.body.appendChild(link);
-            link.click();
+                    const classTotal = calculateClassTotal(Number(rowNumber));
+                    grandTotal += classTotal;
 
-            // Cleanup
-            setTimeout(() => {
-                link.remove();
-                window.URL.revokeObjectURL(url);
-            }, 100);
+                    excelData.push({
+                        'Sl.No': '',
+                        'Class': 'Total',
+                        'Section': '',
+                        'Boys': '',
+                        'Girls': '',
+                        'Total': classTotal
+                    });
+                });
 
+            excelData.push({
+                'Sl.No': '',
+                'Class': 'Grand Total',
+                'Section': '',
+                'Boys': '',
+                'Girls': '',
+                'Total': grandTotal
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Total Strength Report');
+
+            XLSX.writeFile(workbook, 'TotalStrengthReport.xlsx');
             toast.success('Excel downloaded successfully');
         } catch (error) {
             console.error('Download error:', error);
