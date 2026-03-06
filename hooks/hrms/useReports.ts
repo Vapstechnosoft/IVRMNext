@@ -10,6 +10,7 @@ import {
     getDepartmentsByGroupType,
     getDesignationsByGroupAndDept,
     getEmployeesByDeptAndDesignation,
+    getEmployeesByGroupTypeDeptAndDesignation,
     getGroupTypes,
     type CumulativeSalaryReportRequest
 } from '@/server/hrms/reports/cumulative-salary-report';
@@ -43,6 +44,10 @@ import {
     getEmployeeStrengthReportOnload,
     searchEmployeeStrengthReport,
 } from '@/server/hrms/hrmsConfig/reports/employee-strength-report';
+import {
+    searchEmployeeProfileDetails,
+} from '@/server/hrms/hrmsConfig/reports/employee-profile-report';
+import type { EmployeeProfileReportSearchRequest } from '@/types/hrms/reports/employee-profile-report';
 import {
     getEmployeesByFilter,
     getEmployeeLetterDetails
@@ -146,6 +151,19 @@ export function useReportEmployeesByDeptAndDesignation(deptIds: string, desigIds
     });
 }
 
+// Get EMployees by Group Type, Department and Designation
+
+export function useReportEmployeesByGroupTypeDeptAndDesignation( groupTypeIds: number[],
+    deptIds: number[],
+    desigIds: number[]) {
+    console.log('📡 [HOOK] Fetching employees with:', { groupTypeIds, deptIds, desigIds });
+    return useQuery({
+        queryKey: ['report-employees', groupTypeIds, deptIds, desigIds],
+        queryFn: () => getEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds),
+        enabled: !!groupTypeIds && !!deptIds && !!desigIds,
+        staleTime: 1000 * 60 * 5
+    });
+}
 
 export function useDepartmentSalaryReport() {
     return useMutation({
@@ -575,6 +593,15 @@ export function useLeaveStatusReport() {
         mutationFn: (data: LeaveStatusReportRequest) => getLeaveStatusReport(data),
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to fetch Leave Status Report');
+        }
+    });
+}
+
+export function useEmployeeProfileReport() {
+    return useMutation({
+        mutationFn: (data: EmployeeProfileReportSearchRequest) => searchEmployeeProfileDetails(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch Employee Profile Report');
         }
     });
 }

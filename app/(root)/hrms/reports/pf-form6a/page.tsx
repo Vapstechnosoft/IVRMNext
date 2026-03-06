@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider } from '@/components/ui/form/form-provider';
@@ -10,8 +10,11 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { exportToExcel } from '@/lib/export-to-file';
 import { usePFForm6A } from '@/hooks/hrms/useReports';
-import { Loader2, Search, Download } from 'lucide-react';
+import { Loader2, Search, Printer } from 'lucide-react';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
+import { printPFForm6A } from './_components/pf-form6a-print';
 
 interface FilterFormValues {
     fromDate: Date | undefined;
@@ -28,6 +31,24 @@ export default function PFForm6APage() {
 
 function PFForm6AContent() {
     const [reportData, setReportData] = useState<any[] | null>(null);
+    const [fullReportData, setFullReportData] = useState<any>(null);
+    const [institution, setInstitution] = useState<any>(null);
+    const [fromDateStr, setFromDateStr] = useState('');
+    const [toDateStr, setToDateStr] = useState('');
+
+    useEffect(() => {
+        const fetchInstitution = async () => {
+            try {
+                const res = await getMasterInstitution();
+                if (res?.data) {
+                    setInstitution(Array.isArray(res.data) ? res.data[0] : res.data);
+                }
+            } catch (error) {
+                console.error('Error fetching institution:', error);
+            }
+        };
+        fetchInstitution();
+    }, []);
     const { control, handleSubmit } = useForm<FilterFormValues>({
         defaultValues: {
             fromDate: undefined,
@@ -44,13 +65,16 @@ function PFForm6AContent() {
         }
 
         generateReport({
-            fromDate: data.fromDate.toISOString(),
-            toDate: data.toDate.toISOString()
+            fromDate: data.fromDate!.toISOString(),
+            toDate: data.toDate!.toISOString()
         }, {
             onSuccess: (res) => {
                 if (res.success && res.data) {
-                    const data = Array.isArray(res.data) ? res.data : (res.data.alldata || res.data.list || []);
-                    setReportData(data);
+                    const mappedData = Array.isArray(res.data) ? res.data : (res.data.alldata || res.data.list || []);
+                    setReportData(mappedData);
+                    setFullReportData(res.data);
+                    setFromDateStr(format(data.fromDate!, 'dd-MM-yyyy'));
+                    setToDateStr(format(data.toDate!, 'dd-MM-yyyy'));
                     toast.success('Report generated successfully');
                 } else {
                     toast.error(res.message || 'No data found');
@@ -59,32 +83,13 @@ function PFForm6AContent() {
         });
     };
 
-    const handleExport = () => {
+    const handlePrint = () => {
         if (!reportData || reportData.length === 0) {
-            toast.error('No data to export');
+            toast.error('No data to print');
             return;
         }
 
-        const exportColumns = [
-            { label: 'PF Account No', value: 'hrmE_PFAccNo' },
-            { label: 'UAN No', value: 'hrmE_PFuAN' },
-            { label: 'Employee Name', value: 'empName' },
-            { label: 'Wages', value: 'amountofWages' },
-            { label: 'Basic', value: 'basicvalue' },
-            { label: 'DA', value: 'davalue' },
-            { label: 'EPF', value: 'hreS_EPF' },
-            { label: 'FPF', value: 'hreS_FPF' },
-            { label: 'Ac 21', value: 'hreS_Ac21' },
-            { label: 'Ac 22', value: 'hreS_Ac22' },
-            { label: 'Ac 5', value: 'hreS_Ac5' }
-        ];
-
-        const processedContent = reportData.map((row: any) => ({
-            ...row,
-            empName: `${row.hrmE_EmployeeFirstName || ''} ${row.hrmE_EmployeeMiddleName || ''} ${row.hrmE_EmployeeLastName || ''}`.trim()
-        }));
-
-        exportToExcel('PF_Form_6A', JSON.stringify(exportColumns), JSON.stringify(processedContent));
+        printPFForm6A(reportData, fullReportData, institution, fromDateStr, toDateStr);
     };
 
     const columns = [
@@ -195,21 +200,107 @@ function PFForm6AContent() {
                 <CollapsibleSection title="Report Details" defaultOpen={true} className='shadow-md border'
                     rightElement={
                         <div className='flex gap-2'>
-                            <Button variant='outline' size='sm' onClick={handleExport} className='gap-2'>
-                                <Download className='h-4 w-4' />
-                                Export
+                            <Button variant='outline' size='sm' onClick={handlePrint} className='gap-2'>
+                                <Printer className='h-4 w-4' />
+                                Print
                             </Button>
                         </div>
                     }
                 >
-                    <GenericDataTable
-                        data={reportData}
-                        columns={columns}
-                        totalItems={reportData.length}
-                        isPaginationRequired={false}
-                        isSearchRequired={false}
-                        isLoading={isPending}
-                    />
+                    <div className="text-right">
+                        <h4 className="font-semibold text-lg">Form 6A</h4>
+                    </div>
+                    <div className="text-center space-y-1">
+                        <h4 className="font-semibold text-lg">THE EMPLOYEES&apos; PROVIDENT FUND SCHEME, 1952(PARAGRAPH 43)</h4>
+                        <h6 className="font-medium"> AND</h6>
+                        <h4 className="font-semibold text-lg">THE EMPLOYEE&apos;S PENSION SCHEME, 1995( PARAGRAPH 20 (4))</h4>
+                        <h6 className="font-medium">Annual Statement OF Contribution for the currency period from <span className="border-b font-semibold">{fromDateStr}</span> to <span className="border-b font-semibold">{toDateStr}</span></h6>
+                    </div>
+                    <hr className="my-4" />
+                    <div className="mt-5 mb-2.5">
+                        <div className="grid grid-cols-12 gap-4 mt-4">
+                            <div className="col-span-8">
+                                <table className="table mt-2.5 w-full">
+                                    <tbody>
+                                        <tr>
+                                            <td className="w-1/3 py-1 font-medium">Name of Establishment :</td>
+                                            <td className="border-b text-left py-1">{institution?.mI_Name}</td>
+                                        </tr>
+                                        <tr>
+                                            <td className="w-1/3 py-1 font-medium"> Address of the Factory/ Establishment :</td>
+                                            <td className="border-b text-left py-1">
+                                                {fullReportData?.currentInstuteAddress || institution?.mI_Address1}, {institution?.ivrmmcT_Name} - {institution?.mI_Pincode}.
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="w-1/3 py-1 font-medium">Code No. of Factory/ Establishment :</td>
+                                            <td className="border-b text-left py-1">
+                                                {fullReportData?.payrollStandard?.[0]?.hrC_PFAccNoPrefix || fullReportData?.payrollstandard?.[0]?.hrC_PFAccNoPrefix || 'PF'}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                            </div>
+                            <div className="col-span-4">
+                                <table className="table mt-2.5 w-full">
+                                    <tbody>
+                                        <tr>
+                                            <td className="py-1 font-medium">Stat. Rate of Contribution :</td>
+                                            <td className="border-b text-left py-1">
+                                                {((parseFloat(fullReportData?.payrollStandard?.[0]?.hrC_EPFPer || fullReportData?.payrollstandard?.[0]?.hrC_EPFPer || '0') + parseFloat(fullReportData?.payrollStandard?.[0]?.hrC_FPFPer || fullReportData?.payrollstandard?.[0]?.hrC_FPFPer || '0')) || 0).toFixed(2)}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="py-1 font-medium">No. of member voluntarily Contribution at a higher rate :</td>
+                                            <td className="border-b text-left py-1"></td>
+                                        </tr>
+                                        <tr>
+                                            <td className="py-1"></td>
+                                            <td className="py-1"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-8">
+                        <GenericDataTable
+                            data={reportData}
+                            columns={columns}
+                            totalItems={reportData.length}
+                            isPaginationRequired={false}
+                            isSearchRequired={false}
+                            isLoading={isPending}
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-12 gap-4 mt-8">
+                        <div className="col-span-12">
+                            <div className="mt-10 mb-4">
+                                <p className="font-medium">
+                                    Reconsilation of Remittance
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="col-span-12">
+                            <div className="mt-2 space-y-4 text-sm leading-relaxed text-gray-700">
+                                <p>
+                                    (1) Certified that the difference between the figures of total contribution and Administration charges remitted during the currency period and those shown under columns (5) to (7) above is shown due to the rounding of the amounts to the nearest rupee under the rates.
+                                </p>
+                                <p>
+                                    (2) Certified the Form 3-A duly completed of all the members listed in this statement are enclosed except those already sent during the course of currency period for the final settlement of the concerned members account vide Remarks furnished against the names of respective members above.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="col-span-12 flex justify-end">
+                            <div className="mt-12 text-center">
+                                <label className="clearfix border-t border-black pt-2 px-8 font-medium">Signature of the employer with Official Seal</label>
+                            </div>
+                        </div>
+                    </div>
                 </CollapsibleSection>
             )}
         </div>

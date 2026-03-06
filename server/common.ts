@@ -1656,6 +1656,21 @@ export async function getUserAccessibleModules() {
                             sub_menu: [
                                 {
                                     id: 1,
+                                    name: 'HRMS Config',
+                                    icon: 'Users',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Numbering',
+                                            icon: 'CheckSquare',
+                                            url: '/hrms/config/numbering',
+                                            title: 'Numbering',
+                                            description: 'Manage numbering Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 1,
                                     name: 'Masters',
                                     icon: 'Database',
                                     pages: [
@@ -2039,6 +2054,7 @@ export async function getUserAccessibleModules() {
                                             title: 'PF Form6A',
                                             description: 'Provident Fund Form 6A'
                                         },
+                                        
                                         // {
                                         //     id: 17,
                                         //     name: 'PF Form3A',
@@ -2087,7 +2103,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/employee-offer-letter',
                                             title: 'Employee offer letter',
                                             description: 'Generate Offer Letters'
-                                        }
+                                        },
                                         //,
                                         // {
                                         //     id: 23,
@@ -2097,6 +2113,14 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Loan Report',
                                         //     description: 'Employee Loan Report'
                                         // }
+                                        {
+                                            id:24,
+                                            name: 'Employee Profile Report',
+                                            icon: 'FileSearch',
+                                            url: '/hrms/reports/employee-profile-report',
+                                            title: 'Employee Profile Report',
+                                            description: 'Employee Profile Report'
+                                        },
                                     ]
                                 }
                             ]
@@ -2735,7 +2759,9 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/leave-management/reports/leave-status-report',
                                             title: 'Leave Status Report',
                                             description: 'Leave Status Report'
-                                        }
+                                        },
+                                        
+                                    
                                         // {
                                         //     id: 2,
                                         //     name: 'Overall Report',
