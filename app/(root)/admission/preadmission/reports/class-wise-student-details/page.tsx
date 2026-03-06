@@ -32,10 +32,13 @@ import { classwiseStudentDetailsSchema } from '@/schemas/admission/preadmission/
 
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
-import { getExcelClassWiseStudentReport } from '@/server/admission/preadmission/reports/month_end_report';
+import * as XLSX from 'xlsx';
+import { getclasswiseStudentDetails } from '@/server/admission/preadmission/reports/report';
 /* ---------------- Columns ---------------- */
 import { getMasterAdmissionReportColumns } from './_components/columns';
 import { ColumnValue } from './_components/columnvalue';
+import { KendoFormat } from './_components/kendo-format';
+import { exportToPdf } from '@/lib/export-to-file';
 
 /* -------------------------------------------------------------------------- */
 /* Types */
@@ -288,57 +291,90 @@ export default function AdmissionReportPage(props: {
     const downloadExcel = async () => {
         try {
             const payload = getValidatedPayload();
-            if (!payload) {
+            if (!payload) return;
+
+            toast.loading('Preparing Excel export...', { id: 'excel-download' });
+
+            // Fetch all data for export
+            const allDataResponse: any = await getclasswiseStudentDetails(
+                watchedYear,
+                watchedStudentCategory ?? 0,
+                scopeMap[studentScope],
+                payload,
+                { page_size: 100000, page: 1 }
+            );
+
+            const allData = allDataResponse?.data?.printdatatable || [];
+
+            if (!allData || allData.length === 0) {
+                toast.dismiss('excel-download');
+                toast.error('No data available to export');
                 return;
             }
 
-            toast.loading('Downloading Excel...', { id: 'excel-download' });
+            const activeFields = ColumnValue.filter((f) => selectedFields.includes(f.columnID));
+            const yearObj = academicYear?.data?.find((y) => y.asmaY_Id === watchedYear);
 
-            console.log(' Excel Export Parameters Debug:', {
-                watchedYear,
-                studentScope,
-                scopeMapValue: scopeMap[studentScope],
-                watchedStudentCategory,
-                'Concession_Id should be': scopeMap[studentScope],
-                'flag should be': watchedStudentCategory
+            // Prepare report headers
+            const reportHeaders = [
+                ['CLASS WISE STUDENT DETAILS'],
+                [`Academic Year: ${yearObj?.asmaY_Year || 'N/A'}`],
+                [`Classes: ${selectedClassItems.map(c => c.asmcL_ClassName).join(', ')}`],
+                [`Sections: ${selectedSectionItems.map(s => s.asmcL_SectionName).join(', ')}`],
+                [] // Empty row
+            ];
+
+            // Prepare table data
+            const tableHeaders = ['Sl.No', ...activeFields.map(f => f.columnName)];
+            const tableData = allData.map((row: any, index: number) => {
+                const rowData = [index + 1];
+                activeFields.forEach(field => {
+                    rowData.push(row[field.columnID] || '-');
+                });
+                return rowData;
             });
 
-            const response = await getExcelClassWiseStudentReport(
-                watchedYear,
-                scopeMap[studentScope], // This should be 0 (Concession_Id)
-                watchedStudentCategory ?? 0, // This should be 2 (flag)
-                payload,
-                resolvedSearchParams
-            );
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet([...reportHeaders, tableHeaders, ...tableData]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'ClassWiseStudentReport');
 
-            // Ensure we have a Blob
-            const blob =
-                response instanceof Blob
-                    ? response
-                    : new Blob([new Uint8Array(response)], {
-                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    });
-
-            // Create download link
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'ClassWiseStudentReport.xlsx';
-            document.body.appendChild(link);
-            link.click();
-
-            // Cleanup
-            setTimeout(() => {
-                link.remove();
-                window.URL.revokeObjectURL(url);
-            }, 100);
+            // Download file
+            XLSX.writeFile(wb, `ClassWiseStudentReport_${yearObj?.asmaY_Year || 'Report'}.xlsx`);
 
             toast.dismiss('excel-download');
             toast.success('Excel downloaded successfully');
         } catch (error) {
             console.error('Download error:', error);
             toast.dismiss('excel-download');
-            toast.error('Failed to download Excel');
+            toast.error('Failed to prepare Excel export');
+        }
+    };
+
+    const downloadPdf = async () => {
+        try {
+            const payload = getValidatedPayload();
+            if (!payload || !transformedResponse?.data) {
+                toast.error('No data available to export');
+                return;
+            }
+
+            toast.loading('Preparing PDF...', { id: 'pdf-download' });
+
+            const activeFields = ColumnValue.filter((f) => selectedFields.includes(f.columnID));
+            const pdfColumns = activeFields.map((f) => f.columnName);
+            const pdfData = (transformedResponse.data as any[]).map((row) =>
+                activeFields.map((f) => String(row[f.columnID] || ''))
+            );
+
+            exportToPdf('Class Wise Student Report', pdfColumns, pdfData);
+
+            toast.dismiss('pdf-download');
+            toast.success('PDF downloaded successfully');
+        } catch (error) {
+            console.error('PDF error:', error);
+            toast.dismiss('pdf-download');
+            toast.error('Failed to download PDF');
         }
     };
 
@@ -554,17 +590,27 @@ export default function AdmissionReportPage(props: {
             {/* Report */}
             {showReport && (
                 <CollapsibleSection title='Class Wise Student Report' defaultOpen>
-                    <GenericDataTable
-                        {...tableProps}
-                        ref={tableRef}
-                        columns={columns}
-                        isLoading={isFetching}
-                        error={error}
-                        showViewOptions={false}
-                        isPaginationRequired
-                        loadingMessage='Loading Admission Report...'
-                        noDataTitle='No Records Found'
-                    />
+                    {studentStatus === 'Kformate' ? (
+                        <KendoFormat
+                            data={transformedResponse?.data || []}
+                            selectedFields={selectedFields}
+                            onExportExcel={downloadExcel}
+                            onExportPdf={downloadPdf}
+                            isLoading={isFetching}
+                        />
+                    ) : (
+                        <GenericDataTable
+                            {...tableProps}
+                            ref={tableRef}
+                            columns={columns}
+                            isLoading={isFetching}
+                            error={error}
+                            showViewOptions={false}
+                            isPaginationRequired
+                            loadingMessage='Loading Admission Report...'
+                            noDataTitle='No Records Found'
+                        />
+                    )}
                 </CollapsibleSection>
             )}
         </div>

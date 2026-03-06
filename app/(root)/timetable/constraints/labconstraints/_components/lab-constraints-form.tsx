@@ -4,16 +4,14 @@ import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { type LabConstraintsSchema, labConstraintsSchema } from '@/schemas/timetable/constraints/labconstraints';
 import {
-    getAcademicYearDropDown,
-    getCategoryDropDown,
-    getClassDetails,
-    getLabConstraintsEditDetails,
-    getLabDetails,
-    getSectionDetails,
-    saveLabConstraintsDetail
-} from '@/server/timetable/constraints/labconstraints';
+    useAcademicYearDropDownMasterDayClasswise,
+    useCategtoryDropDownMasterDayClasswise,
+    useClassDropDownMasterDayClasswise,
+    useSectionDropDownMasterDayClasswise
+} from '@/hooks/timetable/constraints/labconstraints';
+import { type LabConstraintsSchema, labConstraintsSchema } from '@/schemas/timetable/constraints/labconstraints';
+import { getLabConstraintsEditDetails, getLabDetails, saveLabConstraintsDetail } from '@/server/timetable/constraints/labconstraints';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -41,7 +39,6 @@ const extractList = (data: any, preferredKey?: string) => {
         'lablist',
         'yearlist',
         'categorylist',
-        'sectionlist',
         'classList',
         'sectionList',
         'categoryList'
@@ -61,25 +58,31 @@ interface LabConstraintsFormProps {
 }
 
 export default function LabConstraintsForm({ initialData, editData, onSuccess, onCancel }: LabConstraintsFormProps) {
-    // Dropdown options
-    const [academicList, setAcademicList] = useState<any[]>(extractList(initialData, 'yearlist'));
-    const [categoryList, setCategoryList] = useState<any[]>(extractList(initialData, 'categorylist'));
-    const [labList, setLabList] = useState<any[]>(extractList(initialData, 'lablist'));
+    // Dropdown hooks
+    const { data: academicData, isLoading: academicLoading } = useAcademicYearDropDownMasterDayClasswise();
+    const academicList = extractList(academicData, 'yearlist');
 
-    // Local state for dropdowns
-    const [classList, setClassList] = useState<any[]>(extractList(initialData, 'classlist'));
-    const [sectionList, setSectionList] = useState<any[]>(extractList(initialData, 'sectionlist'));
+    const { data: categoryData, isLoading: categoryLoading } = useCategtoryDropDownMasterDayClasswise();
+    const categoryList = extractList(categoryData, 'categorylist');
+
+    const { data: classData, isLoading: classLoading } = useClassDropDownMasterDayClasswise();
+    const classList = extractList(classData, 'classlist');
+
+    const { data: sectionData, isLoading: sectionLoading } = useSectionDropDownMasterDayClasswise();
+    const sectionList = extractList(sectionData, 'sectionlist');
+
+    const [labList, setLabList] = useState<any[]>(extractList(initialData, 'lablist'));
 
     const form = useForm<LabConstraintsSchema>({
         resolver: zodResolver(labConstraintsSchema),
         mode: 'onChange',
         defaultValues: {
             TTLAB_Id: 0,
-            ASMAY_Id: 0,
-            TTMC_Id: 0,
-            ASMCL_Id: 0,
-            ASMS_Id: 0,
-            TTLAB_LABLibId: 0
+            ASMAY_Id: undefined,
+            TTMC_Id: undefined,
+            ASMCL_Id: undefined,
+            ASMS_Id: undefined,
+            TTLAB_LABLibId: undefined
         }
     });
 
@@ -97,33 +100,6 @@ export default function LabConstraintsForm({ initialData, editData, onSuccess, o
     const watchedCategory = watch('TTMC_Id');
     const watchedClass = watch('ASMCL_Id');
     const watchedSection = watch('ASMS_Id');
-
-    // Initial Loading of lists if missing
-    useEffect(() => {
-        const loadInitialData = async () => {
-            try {
-                if (academicList.length === 0) {
-                    const res = await getAcademicYearDropDown();
-                    setAcademicList(extractList(res, 'yearlist'));
-                }
-                if (categoryList.length === 0) {
-                    const res = await getCategoryDropDown();
-                    setCategoryList(extractList(res, 'categorylist'));
-                }
-                if (classList.length === 0) {
-                    const res = await getClassDetails();
-                    setClassList(extractList(res, 'classlist'));
-                }
-                if (sectionList.length === 0) {
-                    const res = await getSectionDetails();
-                    setSectionList(extractList(res, 'sectionlist'));
-                }
-            } catch (error) {
-                console.error('Failed to load initial dropdowns', error);
-            }
-        };
-        loadInitialData();
-    }, []);
 
     // Fetch Edit Details
     useEffect(() => {
@@ -208,15 +184,21 @@ export default function LabConstraintsForm({ initialData, editData, onSuccess, o
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {academicList.map((item: any) => {
-                                        const id = item.asmaY_Id || item.ASMAY_Id || item.id;
-                                        const year = item.asmaY_Year || item.asmay_Year || item.year;
-                                        return (
-                                            <SelectItem key={id} value={id?.toString()}>
-                                                {year}
-                                            </SelectItem>
-                                        );
-                                    })}
+                                    {academicLoading ? (
+                                        <SelectItem value='loading' disabled>
+                                            Loading Years...
+                                        </SelectItem>
+                                    ) : (
+                                        academicList.map((item: any) => {
+                                            const id = item.asmaY_Id || item.ASMAY_Id || item.id;
+                                            const year = item.asmaY_Year || item.asmay_Year || item.year;
+                                            return (
+                                                <SelectItem key={id} value={id?.toString()}>
+                                                    {year}
+                                                </SelectItem>
+                                            );
+                                        })
+                                    )}
                                 </SelectContent>
                             </Select>
                         )}
@@ -237,15 +219,21 @@ export default function LabConstraintsForm({ initialData, editData, onSuccess, o
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {categoryList.map((item: any) => {
-                                        const id = item.ttmC_Id || item.TTMC_Id || item.id;
-                                        const name = item.ttmC_CategoryName || item.categoryName || item.ttmC_CategoryName;
-                                        return (
-                                            <SelectItem key={id} value={id?.toString()}>
-                                                {name}
-                                            </SelectItem>
-                                        );
-                                    })}
+                                    {categoryLoading ? (
+                                        <SelectItem value='loading' disabled>
+                                            Loading Categories...
+                                        </SelectItem>
+                                    ) : (
+                                        categoryList.map((item: any) => {
+                                            const id = item.ttmC_Id || item.TTMC_Id || item.id;
+                                            const name = item.ttmC_CategoryName || item.categoryName || item.ttmC_CategoryName;
+                                            return (
+                                                <SelectItem key={id} value={id?.toString()}>
+                                                    {name}
+                                                </SelectItem>
+                                            );
+                                        })
+                                    )}
                                 </SelectContent>
                             </Select>
                         )}
@@ -266,15 +254,21 @@ export default function LabConstraintsForm({ initialData, editData, onSuccess, o
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {classList.map((item: any) => {
-                                        const id = item.asmcL_Id || item.ASMCL_Id || item.asmcL_Id;
-                                        const name = item.asmcL_ClassName || item.className || item.asmcL_ClassName;
-                                        return (
-                                            <SelectItem key={id} value={id?.toString()}>
-                                                {name}
-                                            </SelectItem>
-                                        );
-                                    })}
+                                    {classLoading ? (
+                                        <SelectItem value='loading' disabled>
+                                            Loading Classes...
+                                        </SelectItem>
+                                    ) : (
+                                        classList.map((item: any) => {
+                                            const id = item.asmcL_Id || item.ASMCL_Id || item.asmcL_Id;
+                                            const name = item.asmcL_ClassName || item.className || item.asmcL_ClassName;
+                                            return (
+                                                <SelectItem key={id} value={id?.toString()}>
+                                                    {name}
+                                                </SelectItem>
+                                            );
+                                        })
+                                    )}
                                 </SelectContent>
                             </Select>
                         )}
@@ -295,15 +289,21 @@ export default function LabConstraintsForm({ initialData, editData, onSuccess, o
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {sectionList.map((item: any) => {
-                                        const id = item.asmS_Id || item.ASMS_Id || item.asms_Id;
-                                        const name = item.asmC_SectionName || item.asmS_SectionName || item.sectionName;
-                                        return (
-                                            <SelectItem key={id} value={id?.toString()}>
-                                                {name}
-                                            </SelectItem>
-                                        );
-                                    })}
+                                    {sectionLoading ? (
+                                        <SelectItem value='loading' disabled>
+                                            Loading Sections...
+                                        </SelectItem>
+                                    ) : (
+                                        sectionList.map((item: any) => {
+                                            const id = item.asmS_Id || item.ASMS_Id || item.asms_Id;
+                                            const name = item.asmC_SectionName || item.asmS_SectionName || item.sectionName;
+                                            return (
+                                                <SelectItem key={id} value={id?.toString()}>
+                                                    {name}
+                                                </SelectItem>
+                                            );
+                                        })
+                                    )}
                                 </SelectContent>
                             </Select>
                         )}

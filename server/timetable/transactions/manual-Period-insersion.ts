@@ -5,6 +5,7 @@ import type {
     AcademicYear,
     Category,
     Class,
+    ClassDropdownDatamanualPeriodInsertion,
     ManualPeriodInsertionMasters,
     Section,
     Staff,
@@ -43,4 +44,9 @@ export async function getSectionsByClass(asmcL_Id: number): Promise<Section[]> {
         console.error('Error fetching sections:', error);
         return [];
     }
+}
+
+export async function getClassDetailsByacademicyrandcategoty(asmay_id: number, TTMC_Id: number) {
+    const url = `/MasterDayFacade/ClassDataByAcademicyrandCategory/${asmay_id}/${TTMC_Id}`;
+    return await api.get<ClassDropdownDatamanualPeriodInsertion[]>('timetable', url);
 }

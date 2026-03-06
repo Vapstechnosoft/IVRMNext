@@ -75,3 +75,16 @@ export async function getDesignationsByGroupAndDept(groupTypeIds: string, deptId
         return { success: false, data: [] };
     }
 }
+
+export async function getEmployeesByDeptAndDesignation(deptIds: string, desigIds: string) {
+    const url = `/api/MasterDropDown/employees_drop_down_by_dept_and_designation/${deptIds}/${desigIds}`;
+    try {
+        const response = await api.get<any>('hrms', url);
+        if (response.success) {
+            return { success: true, data: response.data };
+        }
+        return { success: false, data: [] };
+    } catch (error) {
+        return { success: false, data: [] };
+    }
+}

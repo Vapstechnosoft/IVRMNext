@@ -67,9 +67,7 @@ export default function StaffReplacementGrid({ onFetch }: StaffReplacementGridPr
                                     control={control}
                                     render={({ field }) => (
                                         <Select
-                                            // onValueChange={field.onChange}
-                                            //  value={field.value}
-                                            key={field.value || 'empty'}
+                                            key={field.value}
                                             onValueChange={(value) => {
                                                 field.onChange(value || '');
                                             }}

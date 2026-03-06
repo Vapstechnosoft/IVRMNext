@@ -35,6 +35,13 @@ export const TIMETABLE_QUERY_KEYS = {
     MASTER_BUILDING_DROP_DOWN: 'master_building_dropdown',
     MASTER_CLASS_DROP_DOWN: 'master_class_dropdown',
     MASTER_SECTION_DROP_DOWN: 'master_section_dropdown',
+    MASTER_PERIOD_DROPDOWN: 'master_period_dropdown',
+
+    MASTER_BIFURCATION_CONSTRAINTS: 'master_bifurcation_constraints',
+    MASTER_STAFF_DROPDOWN_BIFURCATION_CONSTRAINTS: 'master_staff_dropdown_bifurcation_constraints',
+    MASTER_SUBJECT_DROPDOWN_BIFURCATION_CONSTRAINTS: 'master_subject_dropdown_bifurcation_constraints',
+    MASTER_SECTION_DROPDOWN_BIFURCATION_CONSTRAINTS: 'master_section_dropdown_bifurcation_constraints',
+    MASTER_CONSECUTIVE_CONSTRAINTS: 'master_consecutive_constraints',
 
     STAFF_REPLACEMENT_MASTERS: 'staff_replacement_masters',
     STAFF_REPLACEMENT_SECTIONS: 'staff_replacement_sections',
@@ -75,5 +82,9 @@ export const TIMETABLE_QUERY_KEYS = {
     MASTER_PERIOD_DISTRUBUTION_CLASS: 'master_period_distrubution_class',
     MASTER_PERIOD_DISTRUBUTION_SECTION: 'master_period_distrubution_section',
     MASTER_PERIOD_DISTRUBUTION_STAFF: 'master_period_distrubution_staff',
-    MASTER_PERIOD_DISTRUBUTION_SUBJECT: 'master_period_distrubution_subject'
+    MASTER_PERIOD_DISTRUBUTION_SUBJECT: 'master_period_distrubution_subject',
+
+    CONSECUTIVE_CONSTRAINTS: 'consecutive_constraints',
+    STAFF_DROPDOWN_MASTERDAYCLASSWISE: 'staff_dropdown_masterdayclasswise',
+    STAFF_REPLACEMENT_IN_UNALLOCATED_PERIOD_REPORT: 'staff_replacement_in_unallocated_period_report'
 };

@@ -5,14 +5,14 @@ import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-    useMasterBuilding,
+    useMasterBuildingClasssection,
     useMasterBuildingDropDown,
     useMasterClassDropDown,
     useMasterSectionDropDown
 } from '@/hooks/timetable/useMasters';
 import { cn } from '@/lib/utils';
 import { masterBuildingClassSectionSchema } from '@/schemas/timetable/masters';
-import { addOrUpdateMasterBuilding } from '@/server/timetable/masters/masterbuilding';
+import { addOrUpdateMasterBuildingclasssection } from '@/server/timetable/masters/masterbuilding';
 import type { ClassDropDownDataTT, IMasterBuildClassSectionGrid } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, RefreshCw, Save, Square } from 'lucide-react';
@@ -30,7 +30,7 @@ interface UpdateMasterBuildingFormProps {
 }
 
 export default function UpdateMasterBuildingForm({ onSuccess, masterbuilding = '', selectedRow: row }: UpdateMasterBuildingFormProps) {
-    const { refetchAll } = useMasterBuilding();
+    const { refetchAll } = useMasterBuildingClasssection();
 
     const {
         handleSubmit,
@@ -193,7 +193,7 @@ export default function UpdateMasterBuildingForm({ onSuccess, masterbuilding = '
                 ttmbcS_Id: row.ttmbcS_Id,
                 ttmB_Id: data.ttmB_Id
             };
-            const response = await addOrUpdateMasterBuilding(payload);
+            const response = await addOrUpdateMasterBuildingclasssection(payload);
             if (response.success) {
                 toast.success(response.message);
                 reset();

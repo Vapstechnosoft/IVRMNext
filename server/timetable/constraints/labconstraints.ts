@@ -1,6 +1,8 @@
 'use server';
 
 import { api } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
+import type { labConstraints } from '@/types/timetable/constraints/labconstraints';
 
 // Load initial data (Grid and Dropdowns)
 export async function getLabConstraintsDetails() {
@@ -46,18 +48,16 @@ export async function deleteLabConstraintsDetail(id: number) {
 
 //form pages
 
-//academic Year
-export async function getAcademicYearDropDown() {
-    const url = '/TimeTableCommon/GetAcademicYearData';
-    const response = await api.get<any[]>('timetable', url);
-    return response.data;
+export async function getTimeTableCategoryDropDownDetails(searchParams: ApiSearchparams | undefined) {
+    const url = '/TimeTableCommon/GetCategoryDetails';
+    console.info('LabConstraints', url);
+    return await api.get<labConstraints[]>('timetable', url);
 }
 
-//Category
-export async function getCategoryDropDown() {
-    const url = '/TimeTableCommon/GetCategoryDetails';
-    const response = await api.get<any[]>('timetable', url);
-    return response.data;
+export async function getAcademicYear(searchParams: ApiSearchparams | undefined) {
+    const url = '/TimeTableCommon/GetAcademicYearData';
+    console.info('BifurcationConstratins-AcademicYear', url);
+    return await api.get<labConstraints[]>('timetable', url);
 }
 
 //class

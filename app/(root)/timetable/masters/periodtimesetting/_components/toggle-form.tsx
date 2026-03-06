@@ -1,64 +1,77 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
+import { FormError } from '@/components/ui/extension/field';
+import { usePeriodTimeSettingDetails } from '@/hooks/timetable/useMasters';
+import { periodTimeSettingSchema } from '@/schemas/timetable/masters';
 import { deactivatePeriodTimeSetting } from '@/server/timetable/masters/periodtimesetting';
 import type { IPeriodTimeSettingData } from '@/types/timetable/masters/masters';
-import { useMutation } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import type { z } from 'zod';
 
-interface ToggleFormProps {
+type FormFields = z.infer<typeof periodTimeSettingSchema.delete>;
+
+interface TogglePeriodTimeSettingFormProps {
     rowData: IPeriodTimeSettingData;
     onClose: () => void;
 }
 
-export default function TogglePeriodTimeSettingForm({ rowData, onClose }: ToggleFormProps) {
-    const mutation = useMutation({
-        mutationFn: deactivatePeriodTimeSetting,
-        onSuccess: (response) => {
-            if (response.returnval) {
-                toast.success('Record Status Updated Successfully');
-            } else {
-                toast.error('Failed to Update Status');
-            }
-            onClose();
-        },
-        onError: (error: any) => {
-            toast.error(error.message || 'An error occurred');
-        }
+export default function TogglePeriodTimeSettingForm({ rowData, onClose }: TogglePeriodTimeSettingFormProps) {
+    const { refetchAll } = usePeriodTimeSettingDetails();
+    const isActive = rowData.ttmdpT_ActiveFlag;
+
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors, isSubmitting }
+    } = useForm<FormFields>({
+        resolver: zodResolver(periodTimeSettingSchema.delete),
+        mode: 'onChange'
     });
 
-    const handleConfirm = () => {
-        mutation.mutate({
-            ttmdpT_Id: rowData.ttmdpT_Id,
-            ttmdpT_ActiveFlag: rowData.ttmdpT_ActiveFlag
-        });
+    function closeDialog() {
+        onClose();
+        reset();
+    }
+
+    const onSubmit: SubmitHandler<FormFields | any> = async () => {
+        try {
+            const response = await deactivatePeriodTimeSetting(Number(rowData.ttmdpT_Id));
+
+            if (response.success) {
+                toast.success(response.message);
+                refetchAll();
+                closeDialog();
+            } else {
+                toast.error(response.message);
+            }
+        } catch (error: any) {
+            toast.error(error.message);
+        }
     };
 
     return (
-        <Dialog open={true} onOpenChange={onClose}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{rowData.ttmdpT_ActiveFlag ? 'Deactivate' : 'Activate'} Period Time Setting</DialogTitle>
-                    <DialogDescription>
-                        Are you sure you want to {rowData.ttmdpT_ActiveFlag ? 'deactivate' : 'activate'} the time setting for Period{' '}
-                        <strong>{rowData.ttmP_PeriodName}</strong> on <strong>{rowData.ttmD_DayName}</strong>?
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                    <Button variant='outline' onClick={onClose} disabled={mutation.isPending}>
+        <AdaptiveDialog title='Toggle Period Time Setting' isOpen={true} onClose={closeDialog}>
+            <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
+                <AdaptiveBody className='flex flex-col gap-5'>
+                    <input type='hidden' {...register('ttmdpT_Id')} defaultValue={rowData.ttmdpT_Id} />
+                    <p>Are you sure you want to {isActive ? 'deactivate' : 'activate'} this period time setting?</p>
+                    <FormError>{errors.ttmdpT_Id?.message}</FormError>
+                    <FormError>{errors.root?.message}</FormError>
+                </AdaptiveBody>
+                <AdaptiveFooter>
+                    <Button variant='secondary' onClick={closeDialog} type='button'>
                         Cancel
                     </Button>
-                    <Button
-                        variant={rowData.ttmdpT_ActiveFlag ? 'destructive' : 'default'}
-                        onClick={handleConfirm}
-                        disabled={mutation.isPending}>
-                        {mutation.isPending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
-                        {rowData.ttmdpT_ActiveFlag ? 'Deactivate' : 'Activate'}
+                    <Button type='submit' isLoading={isSubmitting} variant={isActive ? 'destructive' : 'default'}>
+                        {isActive ? 'Deactivate' : 'Activate'}
                     </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </AdaptiveFooter>
+            </form>
+        </AdaptiveDialog>
     );
 }
