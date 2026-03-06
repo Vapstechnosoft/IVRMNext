@@ -8,12 +8,7 @@ import { AuthError } from 'next-auth';
 import { revalidatePath } from 'next/cache';
 import type { z } from 'zod';
 
-export async function getUserByEmail(username: string, password: string) {
-    const url = `/configuration/login?username=${username}&password=${password}`;
 
-    //Send payload to login API to validate login and get user details & token
-    return await api.post<UserResponseData>('preadmission', url);
-}
 
 interface LoginSceham {
     values: z.infer<typeof loginSchema>;

@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown, FileText, ImageIcon, File as FileIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { StudentComplaint } from "../types"
+import { StudentComplaint } from "../../../../../../../../constants/types"
 
 export const columns: ColumnDef<StudentComplaint>[] = [
     {
@@ -62,8 +62,9 @@ export const columns: ColumnDef<StudentComplaint>[] = [
             const complaint = row.original
             if (!complaint.ASCOMP_FilePath) return null
 
-            const fileType = complaint.filetype?.toLowerCase()
             const fileName = complaint.ASCOMP_FileName || "File"
+            const fileExtension = fileName.split('.').pop()?.toLowerCase() || ""
+            const fileType = complaint.filetype?.toLowerCase() || fileExtension
             const filePath = complaint.ASCOMP_FilePath
             const docPath = complaint.document_Pathnew || filePath
 

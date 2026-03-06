@@ -6,13 +6,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-export const HomeWorkUploadedList = (payload: any, searchParams?: ApiSearchparams) => {
+export const HomeWorkUploadedList = (asmay_id: number, searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [PORTAL_QUERY_KEYS.HOME_WORK_UPLOADED, searchParams ?? {}],
-            queryFn: async () => GetHomeWorkUploadedList(payload, searchParams),
+            queryKey: [PORTAL_QUERY_KEYS.HOME_WORK_UPLOADED, asmay_id, searchParams ?? {}],
+            queryFn: async () => GetHomeWorkUploadedList(asmay_id, searchParams),
             staleTime: 0
         }),
         refetchAll: () => {
