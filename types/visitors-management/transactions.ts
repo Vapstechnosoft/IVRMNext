@@ -195,3 +195,31 @@ export interface StaffGatePassInitialData {
     filldesignation: { hrmdeS_Id: number; hrmdeS_DesignationName: string }[];
     alldata: StaffGatePassData[];
 }
+
+export interface StudentGatePassData {
+    gphS_Id: number;
+    studentname: string;
+    amsT_AdmNo: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    amsT_MobileNo: string;
+    gphS_GatePassNo: string;
+    gphS_ReceiverName: string;
+    gphS_ReceiverPhoneNo: string;
+    gphS_ReceiverIdProof: string;
+    gphS_ReceiverIdProofNo: string;
+    gphS_IDCardNo: string;
+    gphS_DateTime: string; // ISO
+    gphS_Remarks: string;
+    gphS_ActiveFlg: boolean;
+    asmaY_Id: number;
+    asmcL_Id: number;
+    asmS_Id: number;
+    amsT_Id: number;
+    amsT_Photoname?: string;
+}
+
+export interface StudentGatePassInitialData {
+    yearlist: { asmaY_Id: number; asmaY_Year: string; Selected?: boolean }[];
+    alldata: StudentGatePassData[];
+}
