@@ -1637,6 +1637,22 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/sophia-topper-list-report',
                                             title: 'Sophia Topper List Report',
                                             description: 'Manage Sophia Topper List Report Details'
+                                        },
+                                        {
+                                            id: 98,
+                                            name: 'St.James Consolidation Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/st-james-consolidation-report',
+                                            title: 'St.James Consolidation Report',
+                                            description: 'Manage St.James Consolidation Report Details'
+                                        },
+                                        {
+                                            id: 99,
+                                            name: 'St.James IX_X Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/st-james-ix-x-report',
+                                            title: 'St.James IX_X Report',
+                                            description: 'Manage St.James IX_X Report Details'
                                         }
                                     ]
                                 }
