@@ -597,6 +597,7 @@ export function useLeaveStatusReport() {
     });
 }
 
+// Get employees based on the hrmE_IdList
 export function useEmployeeProfileReport() {
     return useMutation({
         mutationFn: (data: EmployeeProfileReportSearchRequest) => searchEmployeeProfileDetails(data),

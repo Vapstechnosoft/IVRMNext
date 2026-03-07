@@ -1,17 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Send } from 'lucide-react';
-import { getInteractionDetails, saveInteraction, getSection, getStudent } from '../actions';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Card, CardContent } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import { getInteractionDetails, getSection, getStudent, saveInteraction } from '../actions';
 
 interface ComposeTabProps {
     roleFlg: string;
@@ -89,11 +88,13 @@ export function ComposeTab({ roleFlg, configFlag, userHrmIds, onSuccess, isGroup
             const response = await getInteractionDetails(data);
 
             let dataList = [];
-            if (response && response.getdetails) {
+            if (response?.getdetails) {
                 dataList = response.getdetails;
-            } else if (response && response.studentList) {
+            } else if (response?.filterData) {
+                dataList = response.filterData;
+            } else if (response?.studentList) {
                 dataList = response.studentList;
-            } else if (response && response.staffList) {
+            } else if (response?.staffList) {
                 dataList = response.staffList;
             } else if (Array.isArray(response)) {
                 dataList = response;
@@ -101,7 +102,7 @@ export function ComposeTab({ roleFlg, configFlag, userHrmIds, onSuccess, isGroup
 
             setRecipients(dataList);
         } catch (error) {
-            console.error("Error fetching details", error);
+            console.error('Error fetching details', error);
             setRecipients([]);
         }
     };
@@ -120,7 +121,6 @@ export function ComposeTab({ roleFlg, configFlag, userHrmIds, onSuccess, isGroup
         }
     }, [selectedSection, isStudent, userFlag]);
 
-
     const fetchSections = async () => {
         try {
             const payload = {
@@ -129,13 +129,13 @@ export function ComposeTab({ roleFlg, configFlag, userHrmIds, onSuccess, isGroup
                 roleflg: roleFlg
             };
             const response = await getSection(payload);
-            if (response && response.sectionList) {
+            if (response?.sectionList) {
                 setSectionList(response.sectionList);
             } else {
                 setSectionList([]);
             }
         } catch (err) {
-            console.error("Error fetching sections", err);
+            console.error('Error fetching sections', err);
             setSectionList([]);
         }
     };
@@ -149,22 +149,22 @@ export function ComposeTab({ roleFlg, configFlag, userHrmIds, onSuccess, isGroup
                 roleflg: roleFlg
             };
             const response = await getStudent(payload);
-            if (response && response.studentList) {
+            if (response?.studentList) {
                 setStudentList(response.studentList);
-            } else if (response && response.get_student) {
+            } else if (response?.get_student) {
                 setStudentList(response.get_student);
             } else {
                 setStudentList([]);
             }
         } catch (err) {
-            console.error("Error fetching students", err);
+            console.error('Error fetching students', err);
             setStudentList([]);
         }
     };
 
     const handleSend = async () => {
         if (!subject.trim() || !message.trim()) {
-            toast.error("Validation Error", { description: "Please enter subject and message." });
+            toast.error('Validation Error', { description: 'Please enter subject and message.' });
             return;
         }
 
@@ -176,22 +176,25 @@ export function ComposeTab({ roleFlg, configFlag, userHrmIds, onSuccess, isGroup
             if (isStudent || (!isStudent && userFlag !== 'Student')) {
                 // Using Generic Recipient List (Staff->Teacher/HOD/Principal or Student->Staff)
                 if (!selectedRecipient) {
-                    toast.error("Validation Error", { description: "Please select a recipient." });
+                    toast.error('Validation Error', { description: 'Please select a recipient.' });
                     setIsSending(false);
                     return;
                 }
 
                 // Determine if we are sending to a student or a staff based on the selected object
-                const selectedRec = recipients.find(r => (r.HRME_Id || r.hrMe_Id || r.amsT_Id || r.AMST_Id)?.toString() === selectedRecipient);
+                const selectedBaseId = selectedRecipient.split('_')[0];
+                const selectedRec = recipients.find(
+                    (r) => (r.HRME_Id || r.hrMe_Id || r.amsT_Id || r.AMST_Id || r.out_hrme_id)?.toString() === selectedBaseId
+                );
                 if (selectedRec && (selectedRec.amsT_Id || selectedRec.AMST_Id)) {
-                    recipientPayload.push({ amst_Id: Number.parseInt(selectedRecipient) });
+                    recipientPayload.push({ amst_Id: Number.parseInt(selectedBaseId) });
                 } else {
-                    recipientPayload.push({ hrme_Id: Number.parseInt(selectedRecipient) });
+                    recipientPayload.push({ hrme_Id: Number.parseInt(selectedBaseId) });
                 }
             } else {
                 // Staff -> Student Logic
                 if (isGroup) {
-                    recipientPayload = selectedRecipients.map(id => ({ amst_Id: Number.parseInt(id) }));
+                    recipientPayload = selectedRecipients.map((id) => ({ amst_Id: Number.parseInt(id) }));
                 } else {
                     if (selectedRecipient) {
                         recipientPayload.push({ amst_Id: Number.parseInt(selectedRecipient) });
@@ -199,7 +202,7 @@ export function ComposeTab({ roleFlg, configFlag, userHrmIds, onSuccess, isGroup
                 }
 
                 if (recipientPayload.length === 0) {
-                    toast.error("Validation Error", { description: "Please select at least one recipient." });
+                    toast.error('Validation Error', { description: 'Please select at least one recipient.' });
                     setIsSending(false);
                     return;
                 }
@@ -219,74 +222,88 @@ export function ComposeTab({ roleFlg, configFlag, userHrmIds, onSuccess, isGroup
 
             // Adjust payload for Student -> Staff (legacy specific field)
             if (isStudent) {
-                payload.ISTINT_ToId = Number.parseInt(selectedRecipient);
+                payload.ISTINT_ToId = Number.parseInt(selectedRecipient.split('_')[0]);
             }
 
             const response = await saveInteraction(payload);
 
             if (response && response.returnval === true) {
-                toast.success("Success", { description: "Message sent successfully!" });
+                toast.success('Success', { description: 'Message sent successfully!' });
                 setSubject('');
                 setMessage('');
                 setSelectedRecipients([]);
                 setSelectedRecipient('');
                 onSuccess();
             } else {
-                toast.error("Error", { description: "Failed to send message." });
+                toast.error('Error', { description: 'Failed to send message.' });
             }
-
         } catch (error) {
             console.error('Error sending message:', error);
-            toast.error("Error", { description: "Failed to send message." });
+            toast.error('Error', { description: 'Failed to send message.' });
         } finally {
             setIsSending(false);
         }
     };
 
     return (
-        <Card className="border-t-4 border-t-primary shadow-md">
-            <CardContent className="space-y-6 pt-6">
-
+        <Card className='border-t-4 border-t-primary shadow-md'>
+            <CardContent className='space-y-6 pt-6'>
                 {/* Role Selection Radio Group */}
-                <div className="p-4 bg-slate-50 border rounded-md">
-                    <Label className="mb-3 block text-base font-semibold">Select Recipient Type:</Label>
-                    <RadioGroup value={userFlag} onValueChange={setUserFlag} className="flex flex-wrap gap-6">
+                <div className='rounded-md border bg-slate-50 p-4'>
+                    <Label className='mb-3 block font-semibold text-base'>Select Recipient Type:</Label>
+                    <RadioGroup value={userFlag} onValueChange={setUserFlag} className='flex flex-wrap gap-6'>
                         {isStudent ? (
                             <>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="SubjectTeacher" id="r-st" />
-                                    <Label htmlFor="r-st" className="cursor-pointer">Subject Teacher</Label>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='SubjectTeacher' id='r-st' />
+                                    <Label htmlFor='r-st' className='cursor-pointer'>
+                                        Subject Teacher
+                                    </Label>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="ClassTeacher" id="r-ct" />
-                                    <Label htmlFor="r-ct" className="cursor-pointer">Class Teacher</Label>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='ClassTeacher' id='r-ct' />
+                                    <Label htmlFor='r-ct' className='cursor-pointer'>
+                                        Class Teacher
+                                    </Label>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="HOD" id="r-hod" />
-                                    <Label htmlFor="r-hod" className="cursor-pointer">HOD</Label>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='HOD' id='r-hod' />
+                                    <Label htmlFor='r-hod' className='cursor-pointer'>
+                                        HOD
+                                    </Label>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="Principal" id="r-pri" />
-                                    <Label htmlFor="r-pri" className="cursor-pointer">Principal</Label>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='Principal' id='r-pri' />
+                                    <Label htmlFor='r-pri' className='cursor-pointer'>
+                                        Principal
+                                    </Label>
                                 </div>
                             </>
                         ) : (
                             <>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="Student" id="r-std" />
-                                    <Label htmlFor="r-std" className="cursor-pointer">Student</Label>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='Student' id='r-std' />
+                                    <Label htmlFor='r-std' className='cursor-pointer'>
+                                        Student
+                                    </Label>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="Teachers" id="r-tch" />
-                                    <Label htmlFor="r-tch" className="cursor-pointer">Teachers</Label>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='Teachers' id='r-tch' />
+                                    <Label htmlFor='r-tch' className='cursor-pointer'>
+                                        Teachers
+                                    </Label>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="HOD" id="r-hod-s" />
-                                    <Label htmlFor="r-hod-s" className="cursor-pointer">HOD</Label>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='HOD' id='r-hod-s' />
+                                    <Label htmlFor='r-hod-s' className='cursor-pointer'>
+                                        HOD
+                                    </Label>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="Principal" id="r-pri-s" />
-                                    <Label htmlFor="r-pri-s" className="cursor-pointer">Principal</Label>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='Principal' id='r-pri-s' />
+                                    <Label htmlFor='r-pri-s' className='cursor-pointer'>
+                                        Principal
+                                    </Label>
                                 </div>
                             </>
                         )}
@@ -295,12 +312,14 @@ export function ComposeTab({ roleFlg, configFlag, userHrmIds, onSuccess, isGroup
 
                 {/* Staff -> Student Dropdowns (Only when Staff selects Student) */}
                 {!isStudent && userFlag === 'Student' && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border p-4 rounded-md bg-white">
-                        <div className="space-y-2">
-                            <Label>Academic Year <span className="text-red-500">*</span></Label>
+                    <div className='grid grid-cols-1 gap-4 rounded-md border bg-white p-4 md:grid-cols-3'>
+                        <div className='space-y-2'>
+                            <Label>
+                                Academic Year <span className='text-red-500'>*</span>
+                            </Label>
                             <Select value={selectedYear} onValueChange={setSelectedYear}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select Year" />
+                                    <SelectValue placeholder='Select Year' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {academicYears.map((year: any) => (
@@ -311,11 +330,13 @@ export function ComposeTab({ roleFlg, configFlag, userHrmIds, onSuccess, isGroup
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="space-y-2">
-                            <Label>Class <span className="text-red-500">*</span></Label>
+                        <div className='space-y-2'>
+                            <Label>
+                                Class <span className='text-red-500'>*</span>
+                            </Label>
                             <Select value={selectedClass} onValueChange={setSelectedClass}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select Class" />
+                                    <SelectValue placeholder='Select Class' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {classList.map((cls: any) => (
@@ -326,11 +347,13 @@ export function ComposeTab({ roleFlg, configFlag, userHrmIds, onSuccess, isGroup
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="space-y-2">
-                            <Label>Section <span className="text-red-500">*</span></Label>
+                        <div className='space-y-2'>
+                            <Label>
+                                Section <span className='text-red-500'>*</span>
+                            </Label>
                             <Select value={selectedSection} onValueChange={setSelectedSection}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select Section" />
+                                    <SelectValue placeholder='Select Section' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {sectionList.map((sec: any) => (
@@ -345,11 +368,16 @@ export function ComposeTab({ roleFlg, configFlag, userHrmIds, onSuccess, isGroup
                 )}
 
                 {/* Recipient Selection */}
-                <div className="space-y-2">
-                    <Label className="text-lg font-semibold">
-                        {isStudent ? 'Select Recipient' : (
-                            userFlag === 'Student' ? (isGroup ? 'Select Students (Group)' : 'Select Student') : `Select ${userFlag}`
-                        )} <span className="text-red-500">*</span>
+                <div className='space-y-2'>
+                    <Label className='font-semibold text-lg'>
+                        {isStudent
+                            ? 'Select Recipient'
+                            : userFlag === 'Student'
+                                ? isGroup
+                                    ? 'Select Students (Group)'
+                                    : 'Select Student'
+                                : `Select ${userFlag}`}{' '}
+                        <span className='text-red-500'>*</span>
                     </Label>
 
                     {/* If Logic: 
@@ -360,93 +388,98 @@ export function ComposeTab({ roleFlg, configFlag, userHrmIds, onSuccess, isGroup
 
                     {!isStudent && userFlag === 'Student' && isGroup ? (
                         // Multi-select for Group (Staff -> Student)
-                        <div className="border rounded-md p-2 h-48 overflow-y-auto bg-white">
+                        <div className='h-48 overflow-y-auto rounded-md border bg-white p-2'>
                             {studentList.length > 0 ? (
                                 studentList.map((student: any) => (
-                                    <div key={student.amsT_Id} className="flex items-center space-x-2 mb-2 p-1 hover:bg-slate-50 rounded">
+                                    <div key={student.amsT_Id} className='mb-2 flex items-center space-x-2 rounded p-1 hover:bg-slate-50'>
                                         <input
-                                            type="checkbox"
+                                            type='checkbox'
                                             id={`st-${student.amsT_Id}`}
                                             checked={selectedRecipients.includes(student.amsT_Id.toString())}
                                             onChange={(e) => {
                                                 if (e.target.checked) {
                                                     setSelectedRecipients([...selectedRecipients, student.amsT_Id.toString()]);
                                                 } else {
-                                                    setSelectedRecipients(selectedRecipients.filter(id => id !== student.amsT_Id.toString()));
+                                                    setSelectedRecipients(
+                                                        selectedRecipients.filter((id) => id !== student.amsT_Id.toString())
+                                                    );
                                                 }
                                             }}
-                                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                            className='h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary'
                                         />
-                                        <label htmlFor={`st-${student.amsT_Id}`} className="text-sm cursor-pointer flex-1">
-                                            {student.studentName} <span className="text-xs text-muted-foreground">({student.amsT_AdmNo || ''})</span>
+                                        <label htmlFor={`st-${student.amsT_Id}`} className='flex-1 cursor-pointer text-sm'>
+                                            {student.studentName}{' '}
+                                            <span className='text-muted-foreground text-xs'>({student.amsT_AdmNo || ''})</span>
                                         </label>
                                     </div>
                                 ))
                             ) : (
-                                <div className="text-center text-muted-foreground text-sm py-10 flex flex-col items-center">
-                                    <span className="mb-2">No students found.</span>
-                                    {(!selectedClass || !selectedSection) && <span className="text-xs">Please select Class & Section first.</span>}
+                                <div className='flex flex-col items-center py-10 text-center text-muted-foreground text-sm'>
+                                    <span className='mb-2'>No students found.</span>
+                                    {(!selectedClass || !selectedSection) && (
+                                        <span className='text-xs'>Please select Class & Section first.</span>
+                                    )}
                                 </div>
                             )}
                         </div>
-                    ) : (isStudent || userFlag !== 'Student' || (!isGroup && !isStudent)) ? (
+                    ) : isStudent || userFlag !== 'Student' || (!isGroup && !isStudent) ? (
                         // Dropdown for Individual (Student or Staff->User)
                         <Select value={selectedRecipient} onValueChange={setSelectedRecipient}>
                             <SelectTrigger>
                                 <SelectValue placeholder={`Select ${userFlag}`} />
                             </SelectTrigger>
                             <SelectContent>
-                                {(!isStudent && userFlag === 'Student') ? (
-                                    // Staff -> Student Individual List
+                                {!isStudent && userFlag === 'Student'
+                                    ? // Staff -> Student Individual List
                                     studentList.map((student: any) => (
                                         <SelectItem key={student.amsT_Id} value={student.amsT_Id.toString()}>
                                             {student.studentName}
                                         </SelectItem>
                                     ))
-                                ) : (
-                                    // Generic Recipients List
-                                    recipients.map((rec: any) => {
-                                        const id = rec.HRME_Id || rec.hrMe_Id || rec.amsT_Id || rec.AMST_Id;
-                                        const name = rec.EmpName || rec.empName || rec.studentName || rec.AMST_FirstName;
+                                    : // Generic Recipients List
+                                    recipients.map((rec: any, index: number) => {
+                                        const baseId = rec.HRME_Id || rec.hrMe_Id || rec.amsT_Id || rec.AMST_Id || rec.out_hrme_id;
+                                        const uniqueId = `${baseId}_${index}`;
+                                        const name =
+                                            rec.EmpName || rec.empName || rec.studentName || rec.AMST_FirstName || rec.out_empname;
+                                        const subjectName = rec.ISMS_SubjectName || rec.out_isms_subjectname;
                                         return (
-                                            <SelectItem key={id} value={id?.toString() || ""}>
+                                            <SelectItem key={uniqueId} value={uniqueId}>
                                                 {name}
-                                                {rec.ISMS_SubjectName ? ` - ${rec.ISMS_SubjectName}` : ''}
+                                                {subjectName ? ` - ${subjectName}` : ''}
                                             </SelectItem>
                                         );
-                                    })
-                                )}
+                                    })}
                             </SelectContent>
                         </Select>
                     ) : null}
                 </div>
 
-                <div className="space-y-2">
-                    <Label className="font-bold">Subject <span className="text-red-500">*</span></Label>
-                    <Input
-                        placeholder="Enter subject"
-                        value={subject}
-                        onChange={(e) => setSubject(e.target.value)}
-                        className="bg-white"
-                    />
+                <div className='space-y-2'>
+                    <Label className='font-bold'>
+                        Subject <span className='text-red-500'>*</span>
+                    </Label>
+                    <Input placeholder='Enter subject' value={subject} onChange={(e) => setSubject(e.target.value)} className='bg-white' />
                 </div>
 
-                <div className="space-y-2">
-                    <Label className="font-bold">Message <span className="text-red-500">*</span></Label>
+                <div className='space-y-2'>
+                    <Label className='font-bold'>
+                        Message <span className='text-red-500'>*</span>
+                    </Label>
                     <Textarea
-                        placeholder="Type your message here..."
+                        placeholder='Type your message here...'
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
-                        className="min-h-[150px] bg-white resize-y"
+                        className='min-h-[150px] resize-y bg-white'
                     />
                 </div>
 
-                <div className="flex justify-center md:justify-end gap-3 pt-4 border-t">
-                    <Button variant="destructive" onClick={onSuccess}>
-                        <i className="fa fa-times mr-2" /> Cancel
+                <div className='flex justify-center gap-3 border-t pt-4 md:justify-end'>
+                    <Button variant='destructive' onClick={onSuccess}>
+                        <i className='fa fa-times mr-2' /> Cancel
                     </Button>
-                    <Button onClick={handleSend} disabled={isSending} className="min-w-[120px]">
-                        {isSending ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Send className="h-4 w-4 mr-2" />}
+                    <Button onClick={handleSend} disabled={isSending} className='min-w-[120px]'>
+                        {isSending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Send className='mr-2 h-4 w-4' />}
                         Send
                     </Button>
                 </div>
