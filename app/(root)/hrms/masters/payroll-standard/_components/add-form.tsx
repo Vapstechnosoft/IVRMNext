@@ -11,7 +11,8 @@ import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
 import type { IMasterPayrollStandardList, IMonthDropdown } from '@/types/hrms/hrms-config/master';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { error } from 'node:console';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -216,8 +217,10 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
             }
         });
     };
+    const [resetKey, setResetKey] = useState(0);
     const handleReset = () => {
         reset(defaultFormValues);
+        setResetKey(prev => prev + 1);
     };
     // Add debug logging for form state changes
     const _formValues = watch();
@@ -281,7 +284,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                             required
                                             id='HRC_PFMaxAmt'
                                             value={field.value}
-                                            onChange={(value) => {
+                                            onChange={(value: any) => {
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
                                                 field.onChange(numValue);
                                                 setValue('HRC_PFMaxAmt', numValue, { shouldDirty: true, shouldValidate: true });
@@ -1284,6 +1287,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 </Label>
                             </div>
                         </div>
+                        {errors.HRC_ArrearSalaryReport && <FormError>{(errors.HRC_ArrearSalaryReport as any).message}</FormError>}
                     </div>
                     {/* Conditional Arrear Required Section - Only shown when "Separate" is selected */}
                     {arrearSalaryReport === 'Separate' && (
@@ -1442,6 +1446,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                                 />
                                             )}
                                         />
+
                                         {tooltipText ? (
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
@@ -1458,10 +1463,13 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                                 Method {method}
                                             </Label>
                                         )}
+
                                     </div>
+
                                 );
                             })}
                         </div>
+                        {errors.HRC_PaymentMethod && <p className='text-red-500'>{errors.HRC_PaymentMethod.message}</p>}
                     </TooltipProvider>
                 </div>
                 {/* Increment Process Section */}
@@ -1594,7 +1602,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 name='HRC_IncrementMonth'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select key={resetKey} onValueChange={field.onChange} value={field.value}>
                                         <SelectTrigger
                                             id='HRC_IncrementMonth'
                                             className='transition-colors focus:ring-2 focus:ring-primary/20'>
@@ -1739,8 +1747,9 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 control={control}
                                 render={({ field }) => (
                                     <Select
-                                        onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value !== undefined && field.value !== null ? String(field.value) : ''}>
+                                        key={resetKey}
+                                        onValueChange={(value) => field.onChange(value)}
+                                        value={field.value ? String(field.value) : undefined}>
                                         <SelectTrigger
                                             id='HRC_SalaryFromDay'
                                             className='transition-colors focus:ring-2 focus:ring-primary/20'>
@@ -1767,8 +1776,9 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 control={control}
                                 render={({ field }) => (
                                     <Select
-                                        onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value !== undefined && field.value !== null ? String(field.value) : ''}>
+                                        key={resetKey}
+                                        onValueChange={(value) => field.onChange(value)}
+                                        value={field.value ? String(field.value) : undefined}>
                                         <SelectTrigger
                                             id='HRC_SalaryToDay'
                                             className='transition-colors focus:ring-2 focus:ring-primary/20'>
