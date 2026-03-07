@@ -68,8 +68,11 @@ export default function AddStudentFeedbackForm({ onSuccess, className = '' }: Ad
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 sm:grid-cols-1'>
+                        <p className='text-center font-medium text-muted-foreground text-sm'>
+                            <b>Please complete this form to report the feedback and Issues</b>
+                        </p>
                         <InputTextarea
-                            label='Please complete this form to report the feedback and Issues to SchoolSuggestions for Improvement'
+                            label='Suggestions for Improvement'
                             required
                             id='asgfE_Id'
                             placeholder='Enter Feedback'

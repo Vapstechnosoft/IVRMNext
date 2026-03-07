@@ -203,8 +203,20 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
 
     const onSubmit = async (data: PromotionDetailsReportSchema) => {
         try {
-            const result = await getReportDetails(data);
-            onReportGenerated(result, data.superAverage);
+            // Include student names for backend mock data generation
+            const selectedStudentNames = data.selectedStudents.map((id) => {
+                const student = students.find((s) => String(s.amsT_Id) === id);
+                return student ? student.studentName : `Unknown Student ${id}`;
+            });
+
+            const payloadToSubmit = {
+                ...data,
+                selectedStudentNames
+            };
+
+            console.log('tabulation payload data', payloadToSubmit);
+            const result = await getReportDetails(payloadToSubmit);
+            onReportGenerated(result, payloadToSubmit.superAverage);
         } catch (error) {
             console.error('Error:', error);
         }
@@ -468,7 +480,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
 
                         <div className='mt-8 flex justify-center gap-4'>
                             <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting}>
-                                 Report
+                                Report
                             </Button>
                             <Button type='button' variant='outline' onClick={handleClear} disabled={isSubmitting}>
                                 Clear
