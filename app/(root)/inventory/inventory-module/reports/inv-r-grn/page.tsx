@@ -81,7 +81,7 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
         if (total === 0) {
             toast.error("No record found");
         }
-        
+
         // Seed the query cache with the data we just got from the form submit
         // This prevents the hook from needing to immediately re-fetch
         queryClient.setQueryData(['invRGRNReport', payload, { ...searchParams, page: 1, page_size: pageSize, search_query: '' }], {
@@ -123,11 +123,11 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
         if (!currentPayload) return [];
         try {
             toast.loading(`Fetching all records for ${action}...`, { id: 'fetch-all' });
-            
+
             const response = await getInvRGRNReport(currentPayload, { ...searchParams, page: 1, page_size: 100000, search_query: searchQuery || '' });
-            
+
             const allData = response?.data?.get_grnreport || [];
-            
+
             if (allData.length === 0) {
                 toast.dismiss('fetch-all');
                 toast.error(`Failed to fetch ${action} data`);
@@ -136,10 +136,10 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
             toast.dismiss('fetch-all');
             return allData;
         } catch (error) {
-             console.error(`${action} fetch error:`, error);
-             toast.dismiss('fetch-all');
-             toast.error(`Error fetching ${action} data`);
-             return [];
+            console.error(`${action} fetch error:`, error);
+            toast.dismiss('fetch-all');
+            toast.error(`Error fetching ${action} data`);
+            return [];
         }
     };
 
@@ -192,7 +192,7 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
                         "Amount": Number((row.grnAmount ?? row.grnamount) || 0).toFixed(2),
                     }));
                 } else if (optionflag === 'Supplier') {
-                     dataToExport = allData.map((row: any, index: number) => ({
+                    dataToExport = allData.map((row: any, index: number) => ({
                         "SL.No": index + 1,
                         "Supplier Name": row.invms_suppliername || row.invmS_SupplierName || '',
                         "Code": row.invmS_SupplierCode || '',
