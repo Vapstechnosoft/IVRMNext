@@ -1567,14 +1567,6 @@ export async function getUserAccessibleModules() {
                                             description: 'Report Card_X'
                                         },
                                         {
-                                            id: 89,
-                                            name: 'AI Performance Analysis',
-                                            icon: 'Sparkles',
-                                            url: '/Exam/exam-module/ai-performance-analysis',
-                                            title: 'AI Performance Analysis',
-                                            description: 'AI-driven student performance analysis and insights'
-                                        },
-                                        {
                                             id: 90,
                                             name: 'Stella Progress Report',
                                             icon: 'BookOpen',
@@ -1637,6 +1629,22 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/sophia-topper-list-report',
                                             title: 'Sophia Topper List Report',
                                             description: 'Manage Sophia Topper List Report Details'
+                                        },
+                                        {
+                                            id: 98,
+                                            name: 'St.James Consolidation Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/st-james-consolidation-report',
+                                            title: 'St.James Consolidation Report',
+                                            description: 'Manage St.James Consolidation Report Details'
+                                        },
+                                        {
+                                            id: 99,
+                                            name: 'St.James IX_X Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/st-james-ix-x-report',
+                                            title: 'St.James IX_X Report',
+                                            description: 'Manage St.James IX_X Report Details'
                                         }
                                     ]
                                 }
@@ -1654,6 +1662,21 @@ export async function getUserAccessibleModules() {
                             name: 'HRMS Config',
                             icon: 'Settings',
                             sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'HRMS Config',
+                                    icon: 'Users',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Numbering',
+                                            icon: 'CheckSquare',
+                                            url: '/hrms/config/numbering',
+                                            title: 'Numbering',
+                                            description: 'Manage numbering Details'
+                                        }
+                                    ]
+                                },
                                 {
                                     id: 1,
                                     name: 'Masters',
@@ -2039,6 +2062,7 @@ export async function getUserAccessibleModules() {
                                             title: 'PF Form6A',
                                             description: 'Provident Fund Form 6A'
                                         },
+                                        
                                         // {
                                         //     id: 17,
                                         //     name: 'PF Form3A',
@@ -2087,7 +2111,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/employee-offer-letter',
                                             title: 'Employee offer letter',
                                             description: 'Generate Offer Letters'
-                                        }
+                                        },
                                         //,
                                         // {
                                         //     id: 23,
@@ -2097,6 +2121,14 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Loan Report',
                                         //     description: 'Employee Loan Report'
                                         // }
+                                        {
+                                            id:24,
+                                            name: 'Employee Profile Report',
+                                            icon: 'FileSearch',
+                                            url: '/hrms/reports/employee-profile-report',
+                                            title: 'Employee Profile Report',
+                                            description: 'Employee Profile Report'
+                                        },
                                     ]
                                 }
                             ]
@@ -2621,6 +2653,29 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
+                                {
+                                    id: 2,
+                                    name: 'Apply Leave',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Apply Leave',
+                                            icon: 'FilePlus',
+                                            url: '/hrms/leave-management/apply-leave',
+                                            title: 'Apply Leave',
+                                            description: 'Submit Leave Application'
+                                        }
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Leave Approval',
+                                        //     icon: 'CheckCircle',
+                                        //     url: '/hrms/leave-management/leave-approval',
+                                        //     title: 'Leave Approval',
+                                        //     description: 'Approve or Reject Leave Requests'
+                                        // }
+                                    ]
+                                },
                                 // {
                                 //     id: 2,
                                 //     name: 'Apply Leave',
@@ -2735,7 +2790,9 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/leave-management/reports/leave-status-report',
                                             title: 'Leave Status Report',
                                             description: 'Leave Status Report'
-                                        }
+                                        },
+                                        
+                                    
                                         // {
                                         //     id: 2,
                                         //     name: 'Overall Report',
@@ -6037,6 +6094,51 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/transactions/student-password-creation',
                                             title: 'Student Password Creation',
                                             description: 'Student Credentials Management'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 5,
+                    name: 'AI Edge',
+                    icon: 'Sparkles',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'AI Edge',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'AI Tools',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Question Paper Generator',
+                                            icon: 'FileText',
+                                            url: '/iframe/ai-question-paper-generator',
+                                            title: 'AI Question Paper Generator',
+                                            description: 'Generate question papers from textbooks using AI'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'AI Notemaker',
+                                            icon: 'FileText',
+                                            url: '/iframe/ai-notemaker',
+                                            title: 'AI Notemaker',
+                                            description: 'Summarize and create structured notes from textbooks using AI'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'AI Performance Analysis',
+                                            icon: 'BarChart',
+                                            url: '/Exam/exam-module/ai-performance-analysis',
+                                            title: 'AI Performance Analysis',
+                                            description: 'Analyze performance metrics and AI-driven insights'
                                         }
                                     ]
                                 }

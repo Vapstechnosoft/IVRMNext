@@ -17,12 +17,7 @@ export interface EmployeeProfileReportOnloadRequest {
 }
 
 export interface EmployeeProfileReportSearchRequest {
-    MI_Id: number;
-    groupTypeIds: number[];
-    departmentIds: number[];
-    designationIds: number[];
-    employeeIds: number[];
-    roleId: number;
+    hrmE_IdList: number[];
 }
 
 export interface EmployeeProfileReportFilterRequest {
@@ -111,23 +106,23 @@ export interface EmployeeProfileDetailResponse {
 }
 
 export interface EmployeeProfileDetail {
-    EmployeeCode: string;
-    EmployeeName: string;
-    Designation: string;
-    InstitutionName: string;
-    ContactDetails: string[];
-    EmailId: string;
-    JoinDate: string;
-    LeftDate: string;
-    TotalServiceDays: number;
-    BloodGroup: string;
-    Address: string;
-    Age: number;
-    Religion: string;
-    DOB: string;
-    AadharCardNumber: string;
-    FatherName: string;
-    ProfilePhoto?: string;
+    employeeCode: string;
+    employeeName: string;
+    designation: string;
+    institutionName: string;
+    contactDetails: string[];
+    emailId: string;
+    joinDate: string;
+    leftDate: string;
+    totalService: string;
+    bloodGroup: string;
+    address: string;
+    age: number;
+    religion: string;
+    dob: string;
+    aadharCardNumber: string;
+    fatherName: string;
+    hrmE_Photo?:string;
 }
 
 // Type exports

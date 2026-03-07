@@ -40,12 +40,13 @@ export default function SelectionForm({
 
     const filterData = watch('filterData');
     const roleType = watch('roleType');
-
+    console.log('filterData', filterData);
     const selectedRole = roleTypes.find(r => String(r.ivrmrT_Id) === roleType);
     const roleName = selectedRole?.ivrmrT_Role || '';
     const roleFlag = selectedRole?.flag || '';
     const isAdmin = roleName.toUpperCase() === 'ADMIN' || roleName.toUpperCase() === 'SUPER ADMIN';
     const showStaffSelection = roleFlag ? roleFlag.toUpperCase() === 'S' : true;
+
 
     const filteredStaff = staffList.filter(s =>
         s.stafname.toLowerCase().includes(staffSearch.toLowerCase()) ||
@@ -259,7 +260,7 @@ export default function SelectionForm({
                                         </SelectTrigger>
                                         <SelectContent className="rounded-2xl shadow-2xl border-slate-200/60">
                                             {staffList.map((staff) => (
-                                                <SelectItem key={staff.hrmE_Id} value={String(staff.hrmE_Id)} className="rounded-xl my-1 p-3">
+                                                <SelectItem key={staff.hrmE_Id} value={String(staff.hrmE_Id)} textValue={`${staff.stafname} ${staff.hrmE_EmployeeCode}`} className="rounded-xl my-1 p-3">
                                                     <div className="flex flex-col">
                                                         <span className="font-bold text-slate-700">{staff.stafname}</span>
                                                         <span className="text-[10px] text-slate-400 uppercase tracking-tighter">{staff.hrmE_EmployeeCode}</span>
