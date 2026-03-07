@@ -51,15 +51,20 @@ export function DataTableToolbar<TData, TValue>({
         isUserInputRef.current = false;
     }, [searchQuery]);
 
+    const searchQueryRef = useRef(searchQuery);
+    useEffect(() => {
+        searchQueryRef.current = searchQuery;
+    }, [searchQuery]);
+
     // Apply search to URL + table
     useEffect(() => {
-        if (debouncedSearchQuery !== searchQuery) {
+        if (debouncedSearchQuery !== (searchQueryRef.current || '')) {
             isUserInputRef.current = true;
             setSearchQuery(debouncedSearchQuery || null);
             table.setGlobalFilter(debouncedSearchQuery);
             table.setPageIndex(0);
         }
-    }, [debouncedSearchQuery, searchQuery, table, setSearchQuery]);
+    }, [debouncedSearchQuery, table, setSearchQuery]);
 
     const handleSearch = (term: string) => {
         isUserInputRef.current = true;

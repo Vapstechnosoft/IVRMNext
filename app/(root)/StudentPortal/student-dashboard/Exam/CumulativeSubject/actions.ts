@@ -22,10 +22,10 @@ export async function getExamDataforExamReport(asmay_Id: number, type: string) {
 
 export async function getSubjectDataforExamReport(asmay_Id: number) {
     const session = await auth();
-    const amst_Id = (session as any)?.amst_id || 18828;
+    const amst_Id = (session as any)?.user?.amst_id || (session as any)?.amst_id || 18828;
     const payload = {
-        "amsT_Id": amst_Id,
-        "asmaY_Id": asmay_Id
+        "AMST_Id": amst_Id,
+        "ASMAY_Id": asmay_Id
     };
     const url = 'ExamReport/get-Subjects';
     return await api.post<any>('portal', url, payload);

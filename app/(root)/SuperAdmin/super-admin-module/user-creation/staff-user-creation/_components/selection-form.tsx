@@ -40,12 +40,13 @@ export default function SelectionForm({
 
     const filterData = watch('filterData');
     const roleType = watch('roleType');
-
+    console.log('filterData', filterData);
     const selectedRole = roleTypes.find(r => String(r.ivrmrT_Id) === roleType);
     const roleName = selectedRole?.ivrmrT_Role || '';
     const roleFlag = selectedRole?.flag || '';
     const isAdmin = roleName.toUpperCase() === 'ADMIN' || roleName.toUpperCase() === 'SUPER ADMIN';
     const showStaffSelection = roleFlag ? roleFlag.toUpperCase() === 'S' : true;
+
 
     const filteredStaff = staffList.filter(s =>
         s.stafname.toLowerCase().includes(staffSearch.toLowerCase()) ||

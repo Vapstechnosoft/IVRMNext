@@ -35,11 +35,11 @@ interface DataTableProps<TData, TValue> {
     columnPinning?: ColumnPinningState | undefined;
     isSearchRequired?: boolean;
     isPaginationRequired?: boolean;
-    // ✅ updated
     maxSelectableRows?: number;
     onRowSelectionChange?: (selectedRows: TData[]) => void;
     showSearchColumns?: boolean;
     manualPagination?: boolean;
+    manualFiltering?: boolean;
     scrollable?: boolean;
     maxHeight?: string;
 }
@@ -64,6 +64,7 @@ function DataTableInner<TData, TValue>(
         onRowSelectionChange,
         showSearchColumns = false,
         manualPagination = true,
+        manualFiltering = true,
         scrollable = false,
         maxHeight = '600px'
     }: DataTableProps<TData, TValue>,
@@ -157,7 +158,7 @@ function DataTableInner<TData, TValue>(
         getFilteredRowModel: getFilteredRowModel(),
         manualPagination: manualPagination,
         manualSorting: true,
-        manualFiltering: true,
+        manualFiltering: manualFiltering,
         initialState: {
             columnPinning: columnPinning || { right: ['actions'] }
         }
