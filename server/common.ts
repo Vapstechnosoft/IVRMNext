@@ -1565,87 +1565,87 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Report_Card_X',
                                             title: 'Report Card_X',
                                             description: 'Report Card_X'
-                                        },
-                                        {
-                                            id: 90,
-                                            name: 'Stella Progress Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/stella_prograss_report',
-                                            title: 'Stella Progress Report',
-                                            description: 'Manage Stella Progress Card Report Details'
-                                        },
-                                        {
-                                            id: 91,
-                                            name: 'Stella Marks Entry Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/stella_marks_entry_report',
-                                            title: 'Stella Marks Entry Report',
-                                            description: 'Manage Stella Marks Entry Report Details'
-                                        },
-                                        {
-                                            id: 92,
-                                            name: 'Vidyaniketan Performance Ananlysis Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/vidyaniketan-performance-analysis-report',
-                                            title: 'Vidyaniketan Performance Ananlysis Report',
-                                            description: 'Manage Vidyaniketan Performance Ananlysis Report Details'
-                                        },
-                                        {
-                                            id: 93,
-                                            name: 'Vidyaniketan Progress Card Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/vidyaniketan-progress-card-report',
-                                            title: 'Vidyaniketan Progress Card Report',
-                                            description: 'Manage Vidyaniketan Progress Card Report Details'
-                                        },
-                                        {
-                                            id: 94,
-                                            name: 'Vidyaniketan I-VIII Card Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/vidyaniketan-report-card-I-VIII',
-                                            title: 'Vidyaniketan I-VIII Card Report',
-                                            description: 'Manage Vidyaniketan I-VIII Card Report Details'
-                                        },
-                                        {
-                                            id: 95,
-                                            name: 'Sophia IX-X Card Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/sophia-report-card-IX-X',
-                                            title: 'Sophia IX-X Card Report',
-                                            description: 'Manage Sophia IX-X Card Report Details'
-                                        },
-                                        {
-                                            id: 96,
-                                            name: 'Sophia Pre-II Card Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/sophia-report-card-pre-II',
-                                            title: 'Sophia Pre-II Card Report',
-                                            description: 'Manage Sophia Pre-II Card Report Details'
-                                        },
-                                        {
-                                            id: 97,
-                                            name: 'Sophia Topper List Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/sophia-topper-list-report',
-                                            title: 'Sophia Topper List Report',
-                                            description: 'Manage Sophia Topper List Report Details'
-                                        },
-                                        {
-                                            id: 98,
-                                            name: 'St.James Consolidation Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/st-james-consolidation-report',
-                                            title: 'St.James Consolidation Report',
-                                            description: 'Manage St.James Consolidation Report Details'
-                                        },
-                                        {
-                                            id: 99,
-                                            name: 'St.James IX_X Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/st-james-ix-x-report',
-                                            title: 'St.James IX_X Report',
-                                            description: 'Manage St.James IX_X Report Details'
                                         }
+                                        // {
+                                        //     id: 90,
+                                        //     name: 'Stella Progress Report',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/stella_prograss_report',
+                                        //     title: 'Stella Progress Report',
+                                        //     description: 'Manage Stella Progress Card Report Details'
+                                        // },
+                                        // {
+                                        //     id: 91,
+                                        //     name: 'Stella Marks Entry Report',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/stella_marks_entry_report',
+                                        //     title: 'Stella Marks Entry Report',
+                                        //     description: 'Manage Stella Marks Entry Report Details'
+                                        // },
+                                        // {
+                                        //     id: 92,
+                                        //     name: 'Vidyaniketan Performance Ananlysis Report',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/vidyaniketan-performance-analysis-report',
+                                        //     title: 'Vidyaniketan Performance Ananlysis Report',
+                                        //     description: 'Manage Vidyaniketan Performance Ananlysis Report Details'
+                                        // },
+                                        // {
+                                        //     id: 93,
+                                        //     name: 'Vidyaniketan Progress Card Report',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/vidyaniketan-progress-card-report',
+                                        //     title: 'Vidyaniketan Progress Card Report',
+                                        //     description: 'Manage Vidyaniketan Progress Card Report Details'
+                                        // },
+                                        // {
+                                        //     id: 94,
+                                        //     name: 'Vidyaniketan I-VIII Card Report',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/vidyaniketan-report-card-I-VIII',
+                                        //     title: 'Vidyaniketan I-VIII Card Report',
+                                        //     description: 'Manage Vidyaniketan I-VIII Card Report Details'
+                                        // },
+                                        // {
+                                        //     id: 95,
+                                        //     name: 'Sophia IX-X Card Report',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/sophia-report-card-IX-X',
+                                        //     title: 'Sophia IX-X Card Report',
+                                        //     description: 'Manage Sophia IX-X Card Report Details'
+                                        // },
+                                        // {
+                                        //     id: 96,
+                                        //     name: 'Sophia Pre-II Card Report',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/sophia-report-card-pre-II',
+                                        //     title: 'Sophia Pre-II Card Report',
+                                        //     description: 'Manage Sophia Pre-II Card Report Details'
+                                        // },
+                                        // {
+                                        //     id: 97,
+                                        //     name: 'Sophia Topper List Report',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/sophia-topper-list-report',
+                                        //     title: 'Sophia Topper List Report',
+                                        //     description: 'Manage Sophia Topper List Report Details'
+                                        // },
+                                        // {
+                                        //     id: 98,
+                                        //     name: 'St.James Consolidation Report',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/st-james-consolidation-report',
+                                        //     title: 'St.James Consolidation Report',
+                                        //     description: 'Manage St.James Consolidation Report Details'
+                                        // },
+                                        // {
+                                        //     id: 99,
+                                        //     name: 'St.James IX_X Report',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/st-james-ix-x-report',
+                                        //     title: 'St.James IX_X Report',
+                                        //     description: 'Manage St.James IX_X Report Details'
+                                        // }
                                     ]
                                 }
                             ]
@@ -2062,7 +2062,7 @@ export async function getUserAccessibleModules() {
                                             title: 'PF Form6A',
                                             description: 'Provident Fund Form 6A'
                                         },
-                                        
+
                                         // {
                                         //     id: 17,
                                         //     name: 'PF Form3A',
@@ -2122,13 +2122,13 @@ export async function getUserAccessibleModules() {
                                         //     description: 'Employee Loan Report'
                                         // }
                                         {
-                                            id:24,
+                                            id: 24,
                                             name: 'Employee Profile Report',
                                             icon: 'FileSearch',
                                             url: '/hrms/reports/employee-profile-report',
                                             title: 'Employee Profile Report',
                                             description: 'Employee Profile Report'
-                                        },
+                                        }
                                     ]
                                 }
                             ]
@@ -2790,9 +2790,8 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/leave-management/reports/leave-status-report',
                                             title: 'Leave Status Report',
                                             description: 'Leave Status Report'
-                                        },
-                                        
-                                    
+                                        }
+
                                         // {
                                         //     id: 2,
                                         //     name: 'Overall Report',
