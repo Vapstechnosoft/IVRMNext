@@ -54,6 +54,11 @@ export async function getReceiptDetails(yearId: number, fypId: number) {
 
         let data = response?.data;
 
+        // If data is wrapped in a generic standard response { success, data }
+        if (data && typeof data === 'object' && 'success' in data && data.data) {
+            data = data.data;
+        }
+
         // Normalize data for frontend if the new API response structure is used
         if (data) {
             data.fillstudentviewdetails = data.studentDetailsData ?? data.fillstudentviewdetails ?? [];
