@@ -4020,286 +4020,286 @@ export async function getUserAccessibleModules() {
                 //         }
                 //     ]
                 // },
-                {
-                    id: 7,
-                    name: 'Library',
-                    icon: 'BookOpen',
-                    menu: [
-                        {
-                            id: 1,
-                            name: 'Library',
-                            icon: 'BookOpen',
-                            sub_menu: [
-                                {
-                                    id: 3000,
-                                    name: 'masters',
-                                    icon: 'Database',
-                                    pages: [
-                                        {
-                                            id: 30001,
-                                            name: 'Master Library',
-                                            icon: 'BookOpen',
-                                            url: '/library/masters/masterlibrary',
-                                            title: 'Master Library',
-                                            description: 'Master Library  Details'
-                                        },
-                                        {
-                                            id: 30002,
-                                            name: 'Master Vendor',
-                                            icon: 'BookOpen',
-                                            url: '/library/masters/libraryvendor',
-                                            title: 'Master Library Vendor',
-                                            description: 'Library Vendor Details'
-                                        },
-                                        {
-                                            id: 30003,
-                                            name: 'Master Publisher',
-                                            icon: 'BookOpen',
-                                            url: '/library/masters/librarypublisher',
-                                            title: 'Master Library Publisher',
-                                            description: 'Library Master Publisher Details'
-                                        },
-                                        {
-                                            id: 30004,
-                                            name: 'Master Author',
-                                            icon: 'BookOpen',
-                                            url: '/library/masters/masterauthor',
-                                            title: 'Master Author',
-                                            description: 'Library Master Author Details'
-                                        },
+                // {
+                //     id: 7,
+                //     name: 'Library',
+                //     icon: 'BookOpen',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'Library',
+                //             icon: 'BookOpen',
+                //             sub_menu: [
+                //                 {
+                //                     id: 3000,
+                //                     name: 'masters',
+                //                     icon: 'Database',
+                //                     pages: [
+                //                         {
+                //                             id: 30001,
+                //                             name: 'Master Library',
+                //                             icon: 'BookOpen',
+                //                             url: '/library/masters/masterlibrary',
+                //                             title: 'Master Library',
+                //                             description: 'Master Library  Details'
+                //                         },
+                //                         {
+                //                             id: 30002,
+                //                             name: 'Master Vendor',
+                //                             icon: 'BookOpen',
+                //                             url: '/library/masters/libraryvendor',
+                //                             title: 'Master Library Vendor',
+                //                             description: 'Library Vendor Details'
+                //                         },
+                //                         {
+                //                             id: 30003,
+                //                             name: 'Master Publisher',
+                //                             icon: 'BookOpen',
+                //                             url: '/library/masters/librarypublisher',
+                //                             title: 'Master Library Publisher',
+                //                             description: 'Library Master Publisher Details'
+                //                         },
+                //                         {
+                //                             id: 30004,
+                //                             name: 'Master Author',
+                //                             icon: 'BookOpen',
+                //                             url: '/library/masters/masterauthor',
+                //                             title: 'Master Author',
+                //                             description: 'Library Master Author Details'
+                //                         },
 
-                                        {
-                                            id: 30005,
-                                            name: 'Master Subject',
-                                            icon: 'BookOpen',
-                                            url: '/library/masters/mastersubject',
-                                            title: 'Add Master Subject',
-                                            description: 'Add Master Subject'
-                                        },
+                //                         {
+                //                             id: 30005,
+                //                             name: 'Master Subject',
+                //                             icon: 'BookOpen',
+                //                             url: '/library/masters/mastersubject',
+                //                             title: 'Add Master Subject',
+                //                             description: 'Add Master Subject'
+                //                         },
 
-                                        {
-                                            id: 30010,
-                                            name: 'MASTER BOOKS CATEGORY ',
-                                            icon: 'BookOpen',
-                                            url: '/library/masters/mastercategory',
-                                            title: 'MASTER BOOKS CATEGORY ',
-                                            description: 'MASTER BOOKS CATEGORY '
-                                        },
+                //                         {
+                //                             id: 30010,
+                //                             name: 'MASTER BOOKS CATEGORY ',
+                //                             icon: 'BookOpen',
+                //                             url: '/library/masters/mastercategory',
+                //                             title: 'MASTER BOOKS CATEGORY ',
+                //                             description: 'MASTER BOOKS CATEGORY '
+                //                         },
 
-                                        {
-                                            id: 30006,
-                                            name: 'Master Language',
-                                            icon: 'BookOpen',
-                                            url: '/library/masters/masterlanguage',
-                                            title: 'Master Language',
-                                            description: 'Library Master Language Details'
-                                        },
+                //                         {
+                //                             id: 30006,
+                //                             name: 'Master Language',
+                //                             icon: 'BookOpen',
+                //                             url: '/library/masters/masterlanguage',
+                //                             title: 'Master Language',
+                //                             description: 'Library Master Language Details'
+                //                         },
 
-                                        {
-                                            id: 30007,
-                                            name: 'Master Accessories',
-                                            icon: 'BookOpen',
-                                            url: '/library/masters/accessories-master',
-                                            title: 'Master Accessories',
-                                            description: 'Master Accessories Details'
-                                        },
-                                        {
-                                            id: 30008,
-                                            name: 'Master Class Category',
-                                            icon: 'BookOpen',
-                                            url: '/library/masters/master-class-category',
-                                            title: 'Master Class Category',
-                                            description: 'Master Class Category Entry'
-                                        },
+                //                         {
+                //                             id: 30007,
+                //                             name: 'Master Accessories',
+                //                             icon: 'BookOpen',
+                //                             url: '/library/masters/accessories-master',
+                //                             title: 'Master Accessories',
+                //                             description: 'Master Accessories Details'
+                //                         },
+                //                         {
+                //                             id: 30008,
+                //                             name: 'Master Class Category',
+                //                             icon: 'BookOpen',
+                //                             url: '/library/masters/master-class-category',
+                //                             title: 'Master Class Category',
+                //                             description: 'Master Class Category Entry'
+                //                         },
 
-                                        {
-                                            id: 30009,
-                                            name: 'Master Book Category',
-                                            icon: 'BookOpen',
-                                            url: '/library/masters/mastercategory',
-                                            title: 'Master Book Category',
-                                            description: 'Master Book Category Details'
-                                        },
+                //                         {
+                //                             id: 30009,
+                //                             name: 'Master Book Category',
+                //                             icon: 'BookOpen',
+                //                             url: '/library/masters/mastercategory',
+                //                             title: 'Master Book Category',
+                //                             description: 'Master Book Category Details'
+                //                         },
 
-                                        {
-                                            id: 30010,
-                                            name: 'Master Department',
-                                            icon: 'BookOpen',
-                                            url: '/library/masters/department-master',
-                                            title: 'Master Department',
-                                            description: 'Master Department Details'
-                                        },
+                //                         {
+                //                             id: 30010,
+                //                             name: 'Master Department',
+                //                             icon: 'BookOpen',
+                //                             url: '/library/masters/department-master',
+                //                             title: 'Master Department',
+                //                             description: 'Master Department Details'
+                //                         },
 
-                                        {
-                                            id: 30011,
-                                            name: 'Master Rack Details',
-                                            icon: 'BookOpen',
-                                            url: '/library/masters/master-rack-details',
-                                            title: 'Master Rack Details',
-                                            description: 'Master Rack Details Entry'
-                                        },
-                                        {
-                                            id: 30012,
-                                            name: 'Master Time Slab',
-                                            icon: 'Clock',
-                                            url: '/library/masters/master-time-slab',
-                                            title: 'Master Time Slab',
-                                            description: 'Master Time Slab Details'
-                                        }
-                                        // ,
+                //                         {
+                //                             id: 30011,
+                //                             name: 'Master Rack Details',
+                //                             icon: 'BookOpen',
+                //                             url: '/library/masters/master-rack-details',
+                //                             title: 'Master Rack Details',
+                //                             description: 'Master Rack Details Entry'
+                //                         },
+                //                         {
+                //                             id: 30012,
+                //                             name: 'Master Time Slab',
+                //                             icon: 'Clock',
+                //                             url: '/library/masters/master-time-slab',
+                //                             title: 'Master Time Slab',
+                //                             description: 'Master Time Slab Details'
+                //                         }
+                //                         // ,
 
-                                        // {
-                                        //     id: 30010,
-                                        //     name: 'Master Category',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/library/masters/category',
-                                        //     title: 'Library Category',
-                                        //     description: 'Library Category Details'
-                                        // }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Transactions',
-                                    icon: 'BookOpen',
+                //                         // {
+                //                         //     id: 30010,
+                //                         //     name: 'Master Category',
+                //                         //     icon: 'BookOpen',
+                //                         //     url: '/library/masters/category',
+                //                         //     title: 'Library Category',
+                //                         //     description: 'Library Category Details'
+                //                         // }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Transactions',
+                //                     icon: 'BookOpen',
 
-                                    pages: [
-                                        {
-                                            id: 30013,
-                                            name: 'Book Register',
-                                            icon: 'BookOpen',
-                                            url: '/library/transactions/book-register',
-                                            title: 'Book Register',
-                                            description: 'Book Register Details'
-                                        },
+                //                     pages: [
+                //                         {
+                //                             id: 30013,
+                //                             name: 'Book Register',
+                //                             icon: 'BookOpen',
+                //                             url: '/library/transactions/book-register',
+                //                             title: 'Book Register',
+                //                             description: 'Book Register Details'
+                //                         },
 
-                                        {
-                                            id: 30014,
-                                            name: 'Book Return',
-                                            icon: 'BookOpen',
-                                            url: '/library/transactions/book-return',
-                                            title: 'Book Return',
-                                            description: 'Book Return Transaction Details'
-                                        },
-                                        {
-                                            id: 30015,
-                                            name: 'Circulation Parameter',
-                                            icon: 'Settings',
-                                            url: '/library/transactions/circulation-parameter',
-                                            title: 'Circulation Parameter',
-                                            description: 'Manage Circulation Parameters'
-                                        },
+                //                         {
+                //                             id: 30014,
+                //                             name: 'Book Return',
+                //                             icon: 'BookOpen',
+                //                             url: '/library/transactions/book-return',
+                //                             title: 'Book Return',
+                //                             description: 'Book Return Transaction Details'
+                //                         },
+                //                         {
+                //                             id: 30015,
+                //                             name: 'Circulation Parameter',
+                //                             icon: 'Settings',
+                //                             url: '/library/transactions/circulation-parameter',
+                //                             title: 'Circulation Parameter',
+                //                             description: 'Manage Circulation Parameters'
+                //                         },
 
-                                        {
-                                            id: 30016,
-                                            name: 'Book Transaction',
-                                            icon: 'BookOpen',
-                                            url: '/library/transactions/lib-book-transaction',
-                                            title: 'Book Transaction',
-                                            description: 'Lib Book Transaction Details'
-                                        },
-                                        {
-                                            id: 30017,
-                                            name: 'LOST BOOK',
-                                            icon: 'BookOpen',
-                                            url: '/library/transactions/lostbook',
-                                            title: 'LOST BOOK',
-                                            description: 'LOST BOOK Details'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 3,
-                                    name: 'Reports',
-                                    icon: 'BookOpen',
+                //                         {
+                //                             id: 30016,
+                //                             name: 'Book Transaction',
+                //                             icon: 'BookOpen',
+                //                             url: '/library/transactions/lib-book-transaction',
+                //                             title: 'Book Transaction',
+                //                             description: 'Lib Book Transaction Details'
+                //                         },
+                //                         {
+                //                             id: 30017,
+                //                             name: 'LOST BOOK',
+                //                             icon: 'BookOpen',
+                //                             url: '/library/transactions/lostbook',
+                //                             title: 'LOST BOOK',
+                //                             description: 'LOST BOOK Details'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 3,
+                //                     name: 'Reports',
+                //                     icon: 'BookOpen',
 
-                                    pages: [
-                                        {
-                                            id: 30018,
-                                            name: 'Available Books Report',
-                                            icon: 'FileText',
-                                            url: '/library/reports/available-books-report',
-                                            title: 'Available Books Report',
-                                            description: 'View Available Books Report'
-                                        },
-                                        {
-                                            id: 30019,
-                                            name: 'Book Arrival Report',
-                                            icon: 'FileText',
-                                            url: '/library/reports/book-arrival-report',
-                                            title: 'Book Arrival Report',
-                                            description: 'View Book Arrival Report'
-                                        },
-                                        {
-                                            id: 30020,
-                                            name: 'Rack Report',
-                                            icon: 'FileText',
-                                            url: '/library/reports/rack-report',
-                                            title: 'Rack Report',
-                                            description: 'View Rack Report'
-                                        },
-                                        {
-                                            id: 30021,
-                                            name: 'Book Circulation Report',
-                                            icon: 'FileText',
-                                            url: '/library/reports/book-circulation-report',
-                                            title: 'Book Circulation Report',
-                                            description: 'View Book Circulation Report'
-                                        },
-                                        {
-                                            id: 30022,
-                                            name: 'Purchase/Donate/New Arrival Report',
-                                            icon: 'FileText',
-                                            url: '/library/reports/purchase-donate-report',
-                                            title: 'Purchase/Donate/New Arrival Report',
-                                            description: 'View Purchase Donate Report'
-                                        },
-                                        {
-                                            id: 30023,
-                                            name: 'Transaction Count Report',
-                                            icon: 'FileText',
-                                            url: '/library/reports/lib-transaction-report',
-                                            title: 'Transaction Count Report',
-                                            description: 'View Lib Transaction Report'
-                                        },
-                                        {
-                                            id: 30024,
-                                            name: 'Lost Book Report',
-                                            icon: 'FileText',
-                                            url: '/library/reports/lib-lost-book-report',
-                                            title: 'Lost Book Report',
-                                            description: 'View Lost Book Report'
-                                        },
-                                        {
-                                            id: 30025,
-                                            name: 'Student Transaction Count Report',
-                                            icon: 'FileText',
-                                            url: '/library/reports/clg-transaction-count-report',
-                                            title: 'Student Transaction Count Report',
-                                            description: 'View Student Transaction Count Report'
-                                        },
-                                        {
-                                            id: 30026,
-                                            name: 'Book Register Report',
-                                            icon: 'FileText',
-                                            url: '/library/reports/book-register-report',
-                                            title: 'Book Register Report',
-                                            description: 'View Book Register Report'
-                                        },
-                                        {
-                                            id: 30027,
-                                            name: 'Library Month End Report',
-                                            icon: 'FileText',
-                                            url: '/library/reports/library-month-end-report',
-                                            title: 'Library Month End Report',
-                                            description: 'View Library Month End Report'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
+                //                     pages: [
+                //                         {
+                //                             id: 30018,
+                //                             name: 'Available Books Report',
+                //                             icon: 'FileText',
+                //                             url: '/library/reports/available-books-report',
+                //                             title: 'Available Books Report',
+                //                             description: 'View Available Books Report'
+                //                         },
+                //                         {
+                //                             id: 30019,
+                //                             name: 'Book Arrival Report',
+                //                             icon: 'FileText',
+                //                             url: '/library/reports/book-arrival-report',
+                //                             title: 'Book Arrival Report',
+                //                             description: 'View Book Arrival Report'
+                //                         },
+                //                         {
+                //                             id: 30020,
+                //                             name: 'Rack Report',
+                //                             icon: 'FileText',
+                //                             url: '/library/reports/rack-report',
+                //                             title: 'Rack Report',
+                //                             description: 'View Rack Report'
+                //                         },
+                //                         {
+                //                             id: 30021,
+                //                             name: 'Book Circulation Report',
+                //                             icon: 'FileText',
+                //                             url: '/library/reports/book-circulation-report',
+                //                             title: 'Book Circulation Report',
+                //                             description: 'View Book Circulation Report'
+                //                         },
+                //                         {
+                //                             id: 30022,
+                //                             name: 'Purchase/Donate/New Arrival Report',
+                //                             icon: 'FileText',
+                //                             url: '/library/reports/purchase-donate-report',
+                //                             title: 'Purchase/Donate/New Arrival Report',
+                //                             description: 'View Purchase Donate Report'
+                //                         },
+                //                         {
+                //                             id: 30023,
+                //                             name: 'Transaction Count Report',
+                //                             icon: 'FileText',
+                //                             url: '/library/reports/lib-transaction-report',
+                //                             title: 'Transaction Count Report',
+                //                             description: 'View Lib Transaction Report'
+                //                         },
+                //                         {
+                //                             id: 30024,
+                //                             name: 'Lost Book Report',
+                //                             icon: 'FileText',
+                //                             url: '/library/reports/lib-lost-book-report',
+                //                             title: 'Lost Book Report',
+                //                             description: 'View Lost Book Report'
+                //                         },
+                //                         {
+                //                             id: 30025,
+                //                             name: 'Student Transaction Count Report',
+                //                             icon: 'FileText',
+                //                             url: '/library/reports/clg-transaction-count-report',
+                //                             title: 'Student Transaction Count Report',
+                //                             description: 'View Student Transaction Count Report'
+                //                         },
+                //                         {
+                //                             id: 30026,
+                //                             name: 'Book Register Report',
+                //                             icon: 'FileText',
+                //                             url: '/library/reports/book-register-report',
+                //                             title: 'Book Register Report',
+                //                             description: 'View Book Register Report'
+                //                         },
+                //                         {
+                //                             id: 30027,
+                //                             name: 'Library Month End Report',
+                //                             icon: 'FileText',
+                //                             url: '/library/reports/library-month-end-report',
+                //                             title: 'Library Month End Report',
+                //                             description: 'View Library Month End Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
 
                 // {
                 //     id: 25,
@@ -4360,7 +4360,8 @@ export async function getUserAccessibleModules() {
                 //             ]
                 //         }
                 //     ]
-                // }
+                // },
+
                 {
                     id: 10,
                     name: 'Inventory Management',
@@ -5327,388 +5328,306 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-                {
-                    id: 8,
-                    name: 'Hostel Management',
-                    icon: 'Home',
-                    menu: [
-                        {
-                            id: 1,
-                            name: 'Master',
-                            icon: 'Settings',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Masters',
-                                    icon: 'Database',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Master Facility',
-                                            icon: 'Wifi',
-                                            url: '/hostel/hostel-management/masters/master-facility',
-                                            title: 'Master Facility',
-                                            description: 'Manage Hostel Facilities'
-                                        },
-                                        {
-                                            id: 7,
-                                            name: 'Master Mess',
-                                            icon: 'Home',
-                                            url: '/hostel/hostel-management/masters/master-mess',
-                                            title: 'Master Mess',
-                                            description: 'Manage Mess Details'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Master Mess Category',
-                                            icon: 'Home',
-                                            url: '/hostel/hostel-management/masters/master-mess-category',
-                                            title: 'Master Mess Category',
-                                            description: 'Manage Mess Category Mapping'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Master Hostel',
-                                            icon: 'Building',
-                                            url: '/hostel/hostel-management/masters/master-hostel',
-                                            title: 'Master Hostel',
-                                            description: 'Manage Hostel Details'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Master Floor',
-                                            icon: 'Layers',
-                                            url: '/hostel/hostel-management/masters/master-floor',
-                                            title: 'Master Floor',
-                                            description: 'Manage Floor Details'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Master Room',
-                                            icon: 'Home',
-                                            url: '/hostel/hostel-management/masters/master-room',
-                                            title: 'Master Room',
-                                            description: 'Manage Room Details'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Master Bed',
-                                            icon: 'Home',
-                                            url: '/hostel/hostel-management/masters/master-bed',
-                                            title: 'Master Bed',
-                                            description: 'Manage Bed Details'
-                                        },
-                                        {
-                                            id: 8,
-                                            name: 'Mess Menu',
-                                            icon: 'Home',
-                                            url: '/hostel/hostel-management/masters/mess-menu',
-                                            title: 'Mess Menu',
-                                            description: 'Manage Mess Menu Details'
-                                        },
-                                        {
-                                            id: 9,
-                                            name: 'Room Category',
-                                            icon: 'Home',
-                                            url: '/hostel/hostel-management/masters/room-category',
-                                            title: 'Room Category',
-                                            description: 'Manage Room Categories'
-                                        },
-                                        {
-                                            id: 10,
-                                            name: 'Room Tariff',
-                                            icon: 'Home',
-                                            url: '/hostel/hostel-management/masters/room-tariff',
-                                            title: 'Room Tariff',
-                                            description: 'Manage Room Tariffs'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Transactions',
-                                    icon: 'Repeat',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Student Request',
-                                            icon: 'FileText',
-                                            url: '/hostel/hostel-management/transactions/student-request',
-                                            title: 'Student Request',
-                                            description: 'Student Hostel Request'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Student Request Confirm',
-                                            icon: 'Home',
-                                            url: '/hostel/hostel-management/transactions/student-request-confirm',
-                                            title: 'Student Request Confirm',
-                                            description: 'Confirm Student Requests'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Hostel Allotment For Student',
-                                            icon: 'Home',
-                                            url: '/hostel/hostel-management/transactions/student-allotment',
-                                            title: 'Hostel Allotment For Student',
-                                            description: 'Allot Hostel for Student'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Hostel Vacate',
-                                            icon: 'LogOut',
-                                            url: '/hostel/hostel-management/transactions/vacate-room',
-                                            title: 'Hostel Vacate',
-                                            description: 'Vacate Hostel Room'
-                                        },
-                                        {
-                                            id: 8,
-                                            name: 'Staff Request',
-                                            icon: 'FileText',
-                                            url: '/hostel/hostel-management/transactions/staff-request',
-                                            title: 'Staff Request',
-                                            description: 'Staff Hostel Request'
-                                        },
-                                        {
-                                            id: 10,
-                                            name: 'Hostel Allotment For Staff',
-                                            icon: 'User',
-                                            url: '/hostel/hostel-management/transactions/staff-allotment',
-                                            title: 'Hostel Allotment For Staff',
-                                            description: 'Allot Hostel for Staff'
-                                        },
-                                        {
-                                            id: 11,
-                                            name: 'Hostel Allotment For Guest',
-                                            icon: 'UserPlus',
-                                            url: '/hostel/hostel-management/transactions/guest-allotment',
-                                            title: 'Hostel Allotment For Guest',
-                                            description: 'Allot Hostel for Guest'
-                                        },
-                                        {
-                                            id: 12,
-                                            name: 'Room Transfer',
-                                            icon: 'Home',
-                                            url: '/hostel/hostel-management/transactions/room-transfer',
-                                            title: 'Room Transfer',
-                                            description: 'Transfer Room'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 3,
-                                    name: 'Reports',
-                                    icon: 'BarChart',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Hostel Allotment Report',
-                                            icon: 'FileText',
-                                            url: '/hostel/hostel-management/reports/allotment-report',
-                                            title: 'Hostel Allotment Report',
-                                            description: 'View Alotment Report'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Hostel Confirm Report',
-                                            icon: 'FileText',
-                                            url: '/hostel/hostel-management/reports/confirm-report',
-                                            title: 'Hostel Confirm Report',
-                                            description: 'View Confirm Report'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Hostel Request Report',
-                                            icon: 'FileText',
-                                            url: '/hostel/hostel-management/reports/request-report',
-                                            title: 'Hostel Request Report',
-                                            description: 'View Request Report'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Hostel Vacate Report',
-                                            icon: 'FileText',
-                                            url: '/hostel/hostel-management/reports/vacate-report',
-                                            title: 'Hostel Vacate Report',
-                                            description: 'View Vacate Report'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Student Gatepass Report',
-                                            icon: 'FileText',
-                                            url: '/hostel/hostel-management/reports/student-gatepass-report',
-                                            title: 'Student Gatepass Report',
-                                            description: 'View Student Gatepass Report'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Student Attendance Report',
-                                            icon: 'FileText',
-                                            url: '/hostel/hostel-management/reports/student-attendance-report',
-                                            title: 'Student Attendance Report',
-                                            description: 'View Student Attendance Report'
-                                        },
-                                        {
-                                            id: 7,
-                                            name: 'Food Conveyance Report',
-                                            icon: 'FileText',
-                                            url: '/hostel/hostel-management/reports/food-conveyance-report',
-                                            title: 'Food Conveyance Report',
-                                            description: 'View Food Conveyance Report'
-                                        },
-                                        {
-                                            id: 8,
-                                            name: 'College Allotment Report',
-                                            icon: 'FileText',
-                                            url: '/hostel/hostel-management/reports/college-allotment-report',
-                                            title: 'College Allotment Report',
-                                            description: 'View College Allotment Report'
-                                        },
-                                        {
-                                            id: 9,
-                                            name: 'College Confirm Report',
-                                            icon: 'FileText',
-                                            url: '/hostel/hostel-management/reports/college-confirm-report',
-                                            title: 'College Confirm Report',
-                                            description: 'View College Confirm Report'
-                                        },
-                                        {
-                                            id: 10,
-                                            name: 'College Request Report',
-                                            icon: 'FileText',
-                                            url: '/hostel/hostel-management/reports/college-request-report',
-                                            title: 'College Request Report',
-                                            description: 'View College Request Report'
-                                        },
-                                        {
-                                            id: 11,
-                                            name: 'College Vacate Report',
-                                            icon: 'FileText',
-                                            url: '/hostel/hostel-management/reports/college-vacate-report',
-                                            title: 'College Vacate Report',
-                                            description: 'View College Vacate Report'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    id: 15,
-                    name: 'Visitor Management',
-                    icon: 'Users',
-                    menu: [
-                        {
-                            id: 1,
-                            name: 'Transactions',
-                            icon: 'FileText',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Visitor Transactions',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Add Visitor',
-                                            icon: 'UserPlus',
-                                            url: '/visitors-management/transactions/add-visitor',
-                                            title: 'Add Visitor',
-                                            description: 'Add New Visitor'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Visitor Appointment',
-                                            icon: 'CalendarDays',
-                                            url: '/visitors-management/transactions/visitor-appointment',
-                                            title: 'Visitor Appointment',
-                                            description: 'Schedule Visitor Appointment'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Inward Entry',
-                                            icon: 'ArrowDownLeft',
-                                            url: '/visitors-management/transactions/inward',
-                                            title: 'Inward Entry',
-                                            description: 'Manage Visitor Inward Entry'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Outward Entry',
-                                            icon: 'ArrowUpRight',
-                                            url: '/visitors-management/transactions/outward',
-                                            title: 'Outward Entry',
-                                            description: 'Manage Visitor Outward Entry'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Gate Pass',
-                                            icon: 'Ticket',
-                                            url: '/visitors-management/transactions/gate-pass',
-                                            title: 'Gate Pass',
-                                            description: 'Generate Visitor Gate Pass'
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
+                // {
+                //     id: 8,
+                //     name: 'Hostel Management',
+                //     icon: 'Home',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'Master',
+                //             icon: 'Settings',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Masters',
+                //                     icon: 'Database',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'Master Facility',
+                //                             icon: 'Wifi',
+                //                             url: '/hostel/hostel-management/masters/master-facility',
+                //                             title: 'Master Facility',
+                //                             description: 'Manage Hostel Facilities'
+                //                         },
+                //                         {
+                //                             id: 7,
+                //                             name: 'Master Mess',
+                //                             icon: 'Home',
+                //                             url: '/hostel/hostel-management/masters/master-mess',
+                //                             title: 'Master Mess',
+                //                             description: 'Manage Mess Details'
+                //                         },
+                //                         {
+                //                             id: 3,
+                //                             name: 'Master Mess Category',
+                //                             icon: 'Home',
+                //                             url: '/hostel/hostel-management/masters/master-mess-category',
+                //                             title: 'Master Mess Category',
+                //                             description: 'Manage Mess Category Mapping'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'Master Hostel',
+                //                             icon: 'Building',
+                //                             url: '/hostel/hostel-management/masters/master-hostel',
+                //                             title: 'Master Hostel',
+                //                             description: 'Manage Hostel Details'
+                //                         },
+                //                         {
+                //                             id: 4,
+                //                             name: 'Master Floor',
+                //                             icon: 'Layers',
+                //                             url: '/hostel/hostel-management/masters/master-floor',
+                //                             title: 'Master Floor',
+                //                             description: 'Manage Floor Details'
+                //                         },
+                //                         {
+                //                             id: 5,
+                //                             name: 'Master Room',
+                //                             icon: 'Home',
+                //                             url: '/hostel/hostel-management/masters/master-room',
+                //                             title: 'Master Room',
+                //                             description: 'Manage Room Details'
+                //                         },
+                //                         {
+                //                             id: 6,
+                //                             name: 'Master Bed',
+                //                             icon: 'Home',
+                //                             url: '/hostel/hostel-management/masters/master-bed',
+                //                             title: 'Master Bed',
+                //                             description: 'Manage Bed Details'
+                //                         },
 
-                        {
-                            id: 2,
-                            name: 'Masters',
-                            icon: 'Database',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Visitor Masters',
-                                    icon: 'Database',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Master Location',
-                                            icon: 'MapPin',
-                                            url: '/visitors-management/masters/location',
-                                            title: 'Master Location',
-                                            description: 'Manage Visitor Locations'
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-
-                        {
-                            id: 3,
-                            name: 'Reports',
-                            icon: 'BarChart3',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Visitor Reports',
-                                    icon: 'BarChart3',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Visitor Report',
-                                            icon: 'FileBarChart',
-                                            url: '/visitors-management/reports/visitor-report',
-                                            title: 'Visitor Report',
-                                            description: 'View Visitor Reports'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Gate Pass Report',
-                                            icon: 'FileText',
-                                            url: '/visitors-management/reports/gate-pass-report',
-                                            title: 'Gate Pass Report',
-                                            description: 'View Gate Pass Reports'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                }
+                //                         {
+                //                             id: 8,
+                //                             name: 'Mess Menu',
+                //                             icon: 'Home',
+                //                             url: '/hostel/hostel-management/masters/mess-menu',
+                //                             title: 'Mess Menu',
+                //                             description: 'Manage Mess Menu Details'
+                //                         },
+                //                         {
+                //                             id: 9,
+                //                             name: 'Room Category',
+                //                             icon: 'Home',
+                //                             url: '/hostel/hostel-management/masters/room-category',
+                //                             title: 'Room Category',
+                //                             description: 'Manage Room Categories'
+                //                         },
+                //                         {
+                //                             id: 10,
+                //                             name: 'Room Tariff',
+                //                             icon: 'Home',
+                //                             url: '/hostel/hostel-management/masters/room-tariff',
+                //                             title: 'Room Tariff',
+                //                             description: 'Manage Room Tariffs'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Transactions',
+                //                     icon: 'Repeat',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'Student Request',
+                //                             icon: 'FileText',
+                //                             url: '/hostel/hostel-management/transactions/student-request',
+                //                             title: 'Student Request',
+                //                             description: 'Student Hostel Request'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'Student Request Confirm',
+                //                             icon: 'Home',
+                //                             url: '/hostel/hostel-management/transactions/student-request-confirm',
+                //                             title: 'Student Request Confirm',
+                //                             description: 'Confirm Student Requests'
+                //                         },
+                //                         {
+                //                             id: 3,
+                //                             name: 'Hostel Allotment For Student',
+                //                             icon: 'Home',
+                //                             url: '/hostel/hostel-management/transactions/student-allotment',
+                //                             title: 'Hostel Allotment For Student',
+                //                             description: 'Allot Hostel for Student'
+                //                         },
+                //                         {
+                //                             id: 4,
+                //                             name: 'Hostel Vacate',
+                //                             icon: 'LogOut',
+                //                             url: '/hostel/hostel-management/transactions/vacate-room',
+                //                             title: 'Hostel Vacate',
+                //                             description: 'Vacate Hostel Room'
+                //                         },
+                //                         // {
+                //                         //     id: 5,
+                //                         //     name: 'College Hostel Allotment',
+                //                         //     icon: 'Building',
+                //                         //     url: '/hostel/hostel-management/transactions/college-student-allotment',
+                //                         //     title: 'College Hostel Allotment',
+                //                         //     description: 'Allot Hostel for College Student'
+                //                         // },
+                //                         // {
+                //                         //     id: 6,
+                //                         //     name: 'College Hostel Vacate',
+                //                         //     icon: 'LogOut',
+                //                         //     url: '/hostel/hostel-management/transactions/college-vacate-room',
+                //                         //     title: 'College Hostel Vacate',
+                //                         //     description: 'Vacate College Hostel Room'
+                //                         // },
+                //                         // {
+                //                         //     id: 7,
+                //                         //     name: 'College Gate Pass',
+                //                         //     icon: 'CreditCard',
+                //                         //     url: '/hostel/hostel-management/transactions/college-gatepass',
+                //                         //     title: 'College Gate Pass',
+                //                         //     description: 'Manage College Gate Pass'
+                //                         // },
+                //                         {
+                //                             id: 8,
+                //                             name: 'Staff Request',
+                //                             icon: 'FileText',
+                //                             url: '/hostel/hostel-management/transactions/staff-request',
+                //                             title: 'Staff Request',
+                //                             description: 'Staff Hostel Request'
+                //                         },
+                //                         // {
+                //                         //     id: 9,
+                //                         //     name: 'Staff Request Confirm',
+                //                         //     icon: 'CheckSquare',
+                //                         //     url: '/hostel/hostel-management/transactions/staff-request-confirm',
+                //                         //     title: 'Staff Request Confirm',
+                //                         //     description: 'Confirm Staff Requests'
+                //                         // },
+                //                         {
+                //                             id: 10,
+                //                             name: 'Hostel Allotment For Staff',
+                //                             icon: 'User',
+                //                             url: '/hostel/hostel-management/transactions/staff-allotment',
+                //                             title: 'Hostel Allotment For Staff',
+                //                             description: 'Allot Hostel for Staff'
+                //                         },
+                //                         {
+                //                             id: 11,
+                //                             name: 'Hostel Allotment For Guest',
+                //                             icon: 'UserPlus',
+                //                             url: '/hostel/hostel-management/transactions/guest-allotment',
+                //                             title: 'Hostel Allotment For Guest',
+                //                             description: 'Allot Hostel for Guest'
+                //                         },
+                //                         {
+                //                             id: 12,
+                //                             name: 'Room Transfer',
+                //                             icon: 'Home',
+                //                             url: '/hostel/hostel-management/transactions/room-transfer',
+                //                             title: 'Room Transfer',
+                //                             description: 'Transfer Room'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 3,
+                //                     name: 'Reports',
+                //                     icon: 'BarChart',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'Hostel Allotment Report',
+                //                             icon: 'FileText',
+                //                             url: '/hostel/hostel-management/reports/allotment-report',
+                //                             title: 'Hostel Allotment Report',
+                //                             description: 'View Alotment Report'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'Hostel Confirm Report',
+                //                             icon: 'FileText',
+                //                             url: '/hostel/hostel-management/reports/confirm-report',
+                //                             title: 'Hostel Confirm Report',
+                //                             description: 'View Confirm Report'
+                //                         },
+                //                         {
+                //                             id: 3,
+                //                             name: 'Hostel Request Report',
+                //                             icon: 'FileText',
+                //                             url: '/hostel/hostel-management/reports/request-report',
+                //                             title: 'Hostel Request Report',
+                //                             description: 'View Request Report'
+                //                         },
+                //                         {
+                //                             id: 4,
+                //                             name: 'Hostel Vacate Report',
+                //                             icon: 'FileText',
+                //                             url: '/hostel/hostel-management/reports/vacate-report',
+                //                             title: 'Hostel Vacate Report',
+                //                             description: 'View Vacate Report'
+                //                         },
+                //                         {
+                //                             id: 5,
+                //                             name: 'Student Gatepass Report',
+                //                             icon: 'FileText',
+                //                             url: '/hostel/hostel-management/reports/student-gatepass-report',
+                //                             title: 'Student Gatepass Report',
+                //                             description: 'View Student Gatepass Report'
+                //                         },
+                //                         {
+                //                             id: 6,
+                //                             name: 'Student Attendance Report',
+                //                             icon: 'FileText',
+                //                             url: '/hostel/hostel-management/reports/student-attendance-report',
+                //                             title: 'Student Attendance Report',
+                //                             description: 'View Student Attendance Report'
+                //                         },
+                //                         {
+                //                             id: 7,
+                //                             name: 'Food Conveyance Report',
+                //                             icon: 'FileText',
+                //                             url: '/hostel/hostel-management/reports/food-conveyance-report',
+                //                             title: 'Food Conveyance Report',
+                //                             description: 'View Food Conveyance Report'
+                //                         },
+                //                         {
+                //                             id: 8,
+                //                             name: 'College Allotment Report',
+                //                             icon: 'FileText',
+                //                             url: '/hostel/hostel-management/reports/college-allotment-report',
+                //                             title: 'College Allotment Report',
+                //                             description: 'View College Allotment Report'
+                //                         },
+                //                         {
+                //                             id: 9,
+                //                             name: 'College Confirm Report',
+                //                             icon: 'FileText',
+                //                             url: '/hostel/hostel-management/reports/college-confirm-report',
+                //                             title: 'College Confirm Report',
+                //                             description: 'View College Confirm Report'
+                //                         },
+                //                         {
+                //                             id: 10,
+                //                             name: 'College Request Report',
+                //                             icon: 'FileText',
+                //                             url: '/hostel/hostel-management/reports/college-request-report',
+                //                             title: 'College Request Report',
+                //                             description: 'View College Request Report'
+                //                         },
+                //                         {
+                //                             id: 11,
+                //                             name: 'College Vacate Report',
+                //                             icon: 'FileText',
+                //                             url: '/hostel/hostel-management/reports/college-vacate-report',
+                //                             title: 'College Vacate Report',
+                //                             description: 'View College Vacate Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // }
 
                 //         //    ,
                 //         //        {
