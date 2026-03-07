@@ -423,7 +423,7 @@ function SalaryUpdationPageContent({
                                     render={({ field }) => (
                                         <MultiSelect
                                             options={[
-                                                { label: 'All', value: 'All' },
+                                               
                                                 ...groupTypes.map((gt: any) => ({
                                                     label: gt.HRMGT_EmployeeGroupType,
                                                     value: gt.HRMGT_Id?.toString() || ''
@@ -449,7 +449,7 @@ function SalaryUpdationPageContent({
                                     render={({ field }) => (
                                         <MultiSelect
                                             options={[
-                                                { label: 'All', value: 'All' },
+                                                
                                                 ...departments.map((d: any) => ({
                                                     label: d.HRMD_DepartmentName,
                                                     value: d.HRMD_Id?.toString() || ''
@@ -475,7 +475,7 @@ function SalaryUpdationPageContent({
                                     render={({ field }) => (
                                         <MultiSelect
                                             options={[
-                                                { label: 'All', value: 'All' },
+                                                
                                                 ...designations.map((d: any) => ({
                                                     label: d.HRMDES_DesignationName,
                                                     value: d.HRMDES_Id?.toString() || ''

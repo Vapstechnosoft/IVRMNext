@@ -71,7 +71,24 @@ const Select = ({ children, searchable = true, onOpenChange, ...props }: SelectP
 
             if (child.type === SelectItem) {
                 const value = child.props.value;
-                const textContent = React.isValidElement(child.props.children) ? '' : String(child.props.children);
+                // Favor an explicit search prop first, otherwise fallback to extracting text from children, otherwise just stringify
+                let textContent = '';
+
+                if (child.props.textValue) {
+                    textContent = child.props.textValue;
+                } else if (child.props.searchableText) {
+                    textContent = child.props.searchableText;
+                } else {
+                    // Try to recursively extract text if children is not a simple string or number
+                    const extractText = (node: React.ReactNode): string => {
+                        if (typeof node === 'string' || typeof node === 'number') return String(node);
+                        if (!node) return '';
+                        if (Array.isArray(node)) return node.map(extractText).join(' ');
+                        if (React.isValidElement(node)) return extractText(node.props.children);
+                        return '';
+                    };
+                    textContent = extractText(child.props.children);
+                }
 
                 if (value) values.push(`${value}:::${textContent}`);
             }
@@ -337,7 +354,7 @@ const SelectContent = React.forwardRef<
     React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
 >(({ className, children, position = 'popper', ...props }, ref) => {
     const { searchable, searchQuery, filteredItems } = React.useContext(SelectSearchContext);
-
+    console.log('searchable', searchable, 'searchQuery', searchQuery, 'filteredItems', filteredItems);
     // Check if we should show "No Data Found" - only when actively searching and no matches
     const showNoResults = !!searchQuery && filteredItems.size === 0;
 
