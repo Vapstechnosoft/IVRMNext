@@ -27,15 +27,15 @@ export async function getPaymentDetails(data: {
     ALMST_Id: number;
 }) {
     const session = await auth();
-    const mi_id = data.mI_Id || (session as any)?.mi_id || 0;
+    const mi_id = data.mI_Id || (session as any)?.mi_id;
     const url = `/AlumniDonation/getpayment_details?MI_Id=${mi_id}&fpgD_PGName=${data.fpgD_PGName}&ALMDON_Amount=${data.ALMDON_Amount}&ALMST_FirstName=${data.ALMST_FirstName}&ALMST_Id=${data.ALMST_Id}`;
     return await api.get<IPaymentGatewayDetails>('alumni', url);
 }
 
 export async function saveDonationPayment(data: any) {
     const session = await auth();
-    const mi_id = data.MI_Id || (session as any)?.mi_id || 0;
-    const url = '/AlumniDonation/paymentsave'; // Legacy endpoint
+    const mi_id = data.MI_Id || (session as any)?.mi_id;
+    const url = '/AlumniDonation/paymentsave';
     return await api.post<any>('alumni', url, { ...data, MI_Id: mi_id });
 }
 
