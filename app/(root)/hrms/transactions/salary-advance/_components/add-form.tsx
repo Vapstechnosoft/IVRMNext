@@ -27,6 +27,7 @@ interface AddFormProps {
     className?: string;
 }
 
+
 export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, className = '' }: AddFormProps) {
     const { mutate: saveAdvance, isPending } = useSaveSalaryAdvance();
 

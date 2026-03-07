@@ -612,26 +612,25 @@ export default function StaffUserCreationPage() {
 
     return (
         <div className='container mx-auto p-6'>
-            <Card className='card-bento border-none'>
-                <CardHeader className="bento-header">
-                    <div className="neon-glow-blue" />
-                    <div className='flex items-center justify-between w-full relative z-10'>
+            <Card className='w-full'>
+                <CardHeader>
+                    <div className='flex items-center justify-between'>
                         <div className='flex-1' />
-                        <CardTitle className='bento-title text-2xl'>Institution Staff User Creation</CardTitle>
+                        <CardTitle className='text-center font-bold text-2xl text-primary'>Institution Staff User Creation</CardTitle>
                         <div className='flex-1 flex justify-end'>
                             <button
                                 type="button"
                                 onClick={handleReload}
-                                className="flex items-center gap-2 rounded-full bg-slate-100 dark:bg-slate-800 px-5 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 shadow-sm transition-all hover:bg-slate-200 dark:hover:bg-slate-700"
+                                className="flex items-center gap-2 rounded-full bg-[#2669bc] px-4 py-1.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-blue-700"
                                 title="Reload Settings"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /><path d="M3 21v-5h5" /></svg>
-                                RELOAD
+                                Reload
                             </button>
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent className="px-8 pb-10">
+                <CardContent>
                     <FormProvider {...methods}>
                         <form onSubmit={methods.handleSubmit(onSubmit)} className='space-y-8'>
                             <SelectionForm

@@ -18,7 +18,9 @@ import {
     useMasterDesignations,
     useReportGroupTypes,
     useEmployeeAndEmployeeType,
-    type EmployeeDetailsReportRequest
+    type EmployeeDetailsReportRequest,
+    useReportDesignations,
+    useReportDepartments
 } from '@/hooks/hrms/useReports';
 import { exportToExcel } from '@/lib/export-to-file';
 import { Download, Loader2, Search as SearchIcon, X } from 'lucide-react';
@@ -229,9 +231,10 @@ function EmployeeDetailsReportContent() {
         }
     }, [onloadData]);
     // Cascading Dropdowns for Format 2
-    const groupTypeIdsArray = watchedGroupType?.map(Number) || [];
-    const { data: departmentsData } = useLoginBasedDepartments(groupTypeIdsArray);
-    const { data: designationsData } = useMasterDesignations();
+    const groupTypeIdsArray = watchedGroupType?.join(',') || '';
+    const { data: departmentsData } = useReportDepartments(groupTypeIdsArray);
+    const groupDepartmentIdsArray = watchedDepartment?.join(',') || '';
+    const { data: designationsData } = useReportDesignations(groupTypeIdsArray, groupDepartmentIdsArray);
 
     // Filter Employees when Working/Left changes (Legacy: GetEmployeeListByWorkingSelection)
     useEffect(() => {
@@ -649,7 +652,7 @@ function EmployeeDetailsReportContent() {
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 {filteredEmployeeTypeDropdown.map((item: any) => (
-                                                                    <SelectItem key={item.hrmeT_Id} value={item.hrmeT_Id.toString()}>
+                                                                    <SelectItem key={item.hrmeT_Id} value={item.hrmeT_Id?.toString() ?? ''}>
                                                                         {item.hrmeT_EmployeeType}
                                                                     </SelectItem>
                                                                 ))}
@@ -672,7 +675,7 @@ function EmployeeDetailsReportContent() {
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 {filteredEmployeeDropdown.map((item: any) => (
-                                                                    <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
+                                                                    <SelectItem key={item.hrmE_Id} value={item.hrmE_Id?.toString() ?? ''}>
                                                                         {item.employeeFullName}
                                                                     </SelectItem>
                                                                 ))}
@@ -699,8 +702,8 @@ function EmployeeDetailsReportContent() {
                                     render={({ field }) => (
                                         <MultiSelect
                                             options={groupTypesData?.data?.map((item: any) => ({
-                                                label: item.value,
-                                                value: item.key.toString()
+                                                label: item.value || item.hrmgT_EmployeeGroupType,
+                                                value: (item.key ?? item.hrmgT_Id)?.toString() ?? ''
                                             })) || []}
                                             defaultValue={field.value}
                                             onValueChange={field.onChange}
@@ -717,8 +720,8 @@ function EmployeeDetailsReportContent() {
                                     render={({ field }) => (
                                         <MultiSelect
                                             options={departmentsData?.data?.map((item: any) => ({
-                                                label: item.hrmD_DepartmentName,
-                                                value: item.hrmD_Id.toString()
+                                                label: item.hrmD_DepartmentName || item.value,
+                                                value: (item.hrmD_Id ?? item.key)?.toString() ?? ''
                                             })) || []}
                                             defaultValue={field.value}
                                             onValueChange={field.onChange}
@@ -735,8 +738,8 @@ function EmployeeDetailsReportContent() {
                                     render={({ field }) => (
                                         <MultiSelect
                                             options={designationsData?.data?.map((item: any) => ({
-                                                label: item.value,
-                                                value: item.key.toString()
+                                                label: item.value || item.hrmdeS_DesignationName,
+                                                value: (item.key ?? item.hrmdeS_Id)?.toString() ?? ''
                                             })) || []}
                                             defaultValue={field.value}
                                             onValueChange={field.onChange}
