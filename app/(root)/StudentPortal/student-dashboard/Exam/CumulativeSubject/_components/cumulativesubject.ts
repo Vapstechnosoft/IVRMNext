@@ -55,7 +55,7 @@ export async function getCumulativeSubjectLoadData() {
 
 export async function getSubjectDataforCumulatiSubject(asmay_Id: number) {
     const session = await auth();
-    const amst_Id = (session as any)?.amst_id || 17064;
+    const amst_Id = (session as any)?.user?.amst_id || (session as any)?.amst_id || 17064;
     const url = `/CumulativeSubject/getSubjectsdata`;
     const payload = {
         "ASMAY_Id": asmay_Id,
@@ -118,7 +118,7 @@ export async function getSubjectDataforCumulatiSubject(asmay_Id: number) {
 
 export async function getExamDetails(asmaY_Id: number, ismS_Id: number) {
     const session = await auth();
-    const amst_Id = (session as any)?.amst_id || 17064;
+    const amst_Id = (session as any)?.user?.amst_id || (session as any)?.amst_id || 17064;
     const url = `/CumulativeSubject/get_exam_details`;
     const payload = {
         "ASMAY_Id": asmaY_Id,
