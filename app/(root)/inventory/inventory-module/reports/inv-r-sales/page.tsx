@@ -7,7 +7,7 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Printer } from 'lucide-react';
+import { Printer, FileSpreadsheet } from 'lucide-react';
 import ReportForm from './_components/report-form';
 import { getColumns } from './_components/columns';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +15,11 @@ import { useQueryState, parseAsInteger, parseAsString } from 'nuqs';
 import { InvRSalesSchema } from '@/schemas/inventory/reports/inv-r-sales';
 import { tableSearchVariables } from '@/lib/data-table.config';
 import { useInvRSalesReportQuery } from '@/hooks/inventory/reports/use-inv-r-sales';
+import { getInvRSalesReport } from '@/server/inventory/reports/inv-r-sales';
+import { toast } from 'sonner';
+import { InvRSalesPrint } from './_components/inv-r-sales-print';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 interface ReportTotals {
     amount: number;
@@ -52,6 +57,7 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
     );
 
     const [currentPayload, setCurrentPayload] = useState<InvRSalesSchema | null>(null);
+    const [printData, setPrintData] = useState<any[]>([]);
 
     const payloadForHook = currentPayload ? {
         ...currentPayload,
@@ -95,19 +101,111 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
     const totals = calculateReportTotals(reportData);
 
     const componentRef = useRef<HTMLDivElement>(null);
-    const handlePrint = useReactToPrint({
+    const handlePrintContent = useReactToPrint({
         contentRef: componentRef,
-        documentTitle: `Sales Report - ${new Date().toISOString().split('T')[0]}`,
-        pageStyle: `
-            @page { size: auto; margin: 10mm; }
-            @media print {
-                body { -webkit-print-color-adjust: exact; }
-                .overflow-hidden { overflow: visible !important; }
-                .overflow-auto { overflow: visible !important; }
-                .h-full { height: auto !important; }
+        documentTitle: `Sales Report - ${new Date().toISOString().split('T')[0]}`
+    });
+
+    const fetchAllData = async (action: 'print' | 'excel') => {
+        if (!currentPayload) return [];
+        try {
+            toast.loading(`Fetching all records for ${action}...`, { id: 'fetch-all' });
+            
+            const p: any = {
+                ...currentPayload,
+                startdate: currentPayload.startdate instanceof Date ? currentPayload.startdate.toISOString() : currentPayload.startdate,
+                enddate: currentPayload.enddate instanceof Date ? currentPayload.enddate.toISOString() : currentPayload.enddate,
+            };
+
+            const response = await getInvRSalesReport(p, { ...searchParams, page: 1, page_size: 100000, search_query: searchQuery || '' });
+            
+            const allData = response?.data?.get_SalesReport || [];
+            
+            if (allData.length === 0) {
+                toast.dismiss('fetch-all');
+                toast.error(`Failed to fetch ${action} data`);
+                return [];
             }
-        `
-    } as any);
+            toast.dismiss('fetch-all');
+            return allData;
+        } catch (error) {
+             console.error(`${action} fetch error:`, error);
+             toast.dismiss('fetch-all');
+             toast.error(`Error fetching ${action} data`);
+             return [];
+        }
+    };
+
+    const handlePrint = async () => {
+        const allData = await fetchAllData('print');
+        if (allData.length > 0) {
+            setPrintData(allData);
+            toast.success(`Ready to print ${allData.length} records`);
+            setTimeout(() => {
+                handlePrintContent();
+            }, 500);
+        }
+    };
+
+    const handleExportExcel = async () => {
+        const allData = await fetchAllData('excel');
+        if (allData.length > 0) {
+            let dataToExport: any[] = [];
+            const typeflag = currentPayload?.typeflag || 'All';
+            const optionflag = currentPayload?.optionflag;
+            const showTax = currentPayload?.showTax || false;
+            const showDiscount = currentPayload?.showDiscount || false;
+
+            dataToExport = allData.map((row: any, index: number) => {
+                const base: any = {
+                    "SL.No": index + 1
+                };
+
+                const saleDate = row.sales_Date || row.invmsL_SalesDate || row.invmsl_SalesDate;
+
+                if (typeflag === 'All') {
+                    base["Item"] = row.item_Name || row.invmI_ItemName || row.invmi_ItemName || '';
+                    base["Sale No"] = row.invmsL_SalesNo || row.invmsl_SalesNo || row.Invmsl_SalesNo || '';
+                    base["Sale Date"] = saleDate ? saleDate.split('T')[0] : '';
+                } else if (typeflag === 'Detailed') {
+                    base["Sale No"] = row.invmsL_SalesNo || row.invmsl_SalesNo || row.Invmsl_SalesNo || '';
+                    base["Sale Date"] = saleDate ? saleDate.split('T')[0] : '';
+                    base["Item"] = row.item_Name || row.invmI_ItemName || row.invmi_ItemName || '';
+                    
+                    if (['Student', 'Staff', 'Customer', 'Saleno'].includes(optionflag || '')) {
+                        base["Name"] = row.membername || row.memberName || '';
+                    }
+                } else if (typeflag === 'Overall') {
+                    if (optionflag === 'Item') {
+                        base["Item"] = row.item_Name || row.invmI_ItemName || row.invmi_ItemName || '';
+                    } else if (['Student', 'Staff', 'Customer'].includes(optionflag || '')) {
+                         base["Name"] = row.membername || row.memberName || '';
+                    }
+                }
+
+                base["Quantity"] = Number(row.sales_Qty ?? row.invtsL_SalesQty ?? row.saleQty ?? row.invtsl_SalesQty ?? 0).toFixed(2);
+                base["Price"] = Number(row.sales_Price ?? row.invtsL_SalesPrice ?? row.salePrice ?? row.invtsl_SalesPrice ?? 0).toFixed(2);
+                base["Amount"] = Number(row.total_Amount ?? row.invtsL_Amount ?? row.saleAmount ?? row.invtsl_Amount ?? 0).toFixed(2);
+
+                if (showTax) {
+                     base["Tax"] = Number(row.tax_Amt ?? row.invtsL_TaxAmt ?? row.saleTax ?? row.invtsl_TaxAmt ?? 0).toFixed(2);
+                }
+                if (showDiscount) {
+                     base["Discount"] = Number(row.discount_Amt ?? row.invtsL_DiscountAmt ?? row.saleDiscount ?? row.invtsl_DiscountAmt ?? 0).toFixed(2);
+                }
+
+                return base;
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Sales Report");
+            const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+            const data = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8" });
+            saveAs(data, "Sales_Report.xlsx");
+            toast.success('Excel downloaded successfully');
+        }
+    };
 
     const tableProps = useDataTableProps({
         enablePagination: true,
@@ -133,17 +231,17 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
                                 <span className="font-semibold text-sm">Total Records:</span>
                                 <Badge variant="secondary">{totalRecords}</Badge>
                             </div>
-                            <Button variant="outline" size="sm" onClick={() => handlePrint()}>
-                                <Printer className="mr-2 h-4 w-4" /> Print
-                            </Button>
+                            <div className="flex gap-2 items-center">
+                                <Button variant="outline" size="sm" onClick={handleExportExcel}>
+                                    <FileSpreadsheet className="mr-2 h-4 w-4" /> Export Excel
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={handlePrint}>
+                                    <Printer className="mr-2 h-4 w-4" /> Print
+                                </Button>
+                            </div>
                         </div>
 
-                        <div ref={componentRef} className="print:p-4">
-                            {/* Print Header */}
-                            <div className="hidden print:block text-center mb-6">
-                                <h1 className="text-2xl font-bold">Sales Report</h1>
-                                <p className="text-sm text-gray-500">Generated on: {new Date().toLocaleDateString()}</p>
-                            </div>
+                        <div>
 
                             <GenericDataTable
                                 {...tableProps}
@@ -185,6 +283,22 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
                     </div>
                 </CollapsibleSection>
             )}
+
+            {/* Hidden Print Component */}
+            <div
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: 0,
+                    height: 0,
+                    overflow: 'visible',
+                    opacity: 0,
+                    pointerEvents: 'none',
+                    zIndex: -1
+                }}>
+                <InvRSalesPrint ref={componentRef} data={printData} payload={currentPayload} />
+            </div>
         </div>
     );
 }

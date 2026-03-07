@@ -27,8 +27,14 @@ import { overallColumns, vendorDetailsColumns, vendorPaymentColumns } from "./_c
 import VendorPaymentReportForm from "./_components/vendor-payment-report-form";
 import { CollapsibleSection } from "@/components/ui/form/collapsible-section";
 import { Badge } from "@/components/ui/badge";
-import { Printer } from "lucide-react";
+import { Printer, FileSpreadsheet } from "lucide-react";
 import { useInvVendorDetails, useInvVendorPaymentReportQuery } from "@/hooks/inventory/reports/use-inv-r-vendor-payment";
+import { getInvVendorPaymentReport } from '@/server/inventory/reports/inv-r-vendor-payment';
+import { useRef } from "react";
+import { useReactToPrint } from "react-to-print";
+import { InvVendorPaymentPrint } from "./_components/inv-r-vendor-payment-print";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 export default function VendorPaymentReportPage(props: { searchParams: Promise<any> }) {
     const searchParams = use(props.searchParams);
@@ -39,6 +45,8 @@ export default function VendorPaymentReportPage(props: { searchParams: Promise<a
     const [detailsData, setDetailsData] = useState<IInvVendorPaymentDetails[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedVendorName, setSelectedVendorName] = useState("");
+    const [printData, setPrintData] = useState<any[]>([]);
+    const componentRef = useRef<HTMLDivElement>(null);
 
     // Pagination & Search State synced with URL
     const [currentPage, setCurrentPage] = useQueryState(
@@ -156,6 +164,88 @@ export default function VendorPaymentReportPage(props: { searchParams: Promise<a
         isSearchRequired: true,
     });
 
+    const handlePrintContent = useReactToPrint({
+        contentRef: componentRef,
+        documentTitle: `Vendor Payment Report - ${new Date().toISOString().split('T')[0]}`
+    });
+
+    const fetchAllData = async (action: 'print' | 'excel') => {
+        if (!currentPayload) return [];
+        try {
+            toast.loading(`Fetching all records for ${action}...`, { id: 'fetch-all' });
+            
+            const p: any = {
+                ...currentPayload,
+            };
+
+            const response = await getInvVendorPaymentReport(p, { ...searchParams, page: 1, page_size: 100000, search_query: searchQuery || '' });
+            
+            const allData = response?.data || [];
+            
+            if (allData.length === 0) {
+                toast.dismiss('fetch-all');
+                toast.error(`Failed to fetch ${action} data`);
+                return [];
+            }
+            toast.dismiss('fetch-all');
+            return allData;
+        } catch (error) {
+             console.error(`${action} fetch error:`, error);
+             toast.dismiss('fetch-all');
+             toast.error(`Error fetching ${action} data`);
+             return [];
+        }
+    };
+
+    const handlePrint = async () => {
+        const allData = await fetchAllData('print');
+        if (allData.length > 0) {
+            setPrintData(allData);
+            toast.success(`Ready to print ${allData.length} records`);
+            setTimeout(() => {
+                handlePrintContent();
+            }, 500);
+        }
+    };
+
+    const handleExportExcel = async () => {
+        const allData = await fetchAllData('excel');
+        if (allData.length > 0) {
+            let dataToExport: any[] = [];
+            const rType = currentPayload?.reporttype || 'Overall';
+
+            dataToExport = allData.map((row: any, index: number) => {
+                const base: any = {
+                    "SL.No": index + 1
+                };
+
+                if (rType === 'Overall') {
+                    base["Supplier"] = row.invmS_SupplierName || '';
+                    base["Payment Date"] = row.invspT_PaymentDate ? format(new Date(row.invspT_PaymentDate), 'dd-MM-yyyy') : '';
+                    base["Mode Of Payment"] = row.invspT_ModeOfPayment || '';
+                    base["Amount"] = Number(row.invmgrN_TotalPaid || 0).toFixed(2);
+                    base["Remarks"] = row.invspT_Remarks || '';
+                } else if (rType === 'Vendor') {
+                    base["Vendor Name"] = row.vendorName || '';
+                    base["GST No"] = row.gstNo || '';
+                    base["Amount"] = Number(row.totalAmount || 0).toFixed(2);
+                    base["Paid Amount"] = Number(row.totalPaidAmount || 0).toFixed(2);
+                    base["Balance Amount"] = Number(row.balanceAmount || 0).toFixed(2);
+                }
+
+                return base;
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "VP Report");
+            const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+            const data = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8" });
+            saveAs(data, "Vendor_Payment_Report.xlsx");
+            toast.success('Excel downloaded successfully');
+        }
+    };
+
     return (
         <div className="space-y-6">
             <Heading
@@ -176,9 +266,14 @@ export default function VendorPaymentReportPage(props: { searchParams: Promise<a
                                 <span className="font-semibold text-sm">Total Records:</span>
                                 <Badge variant="secondary">{totalRecords}</Badge>
                             </div>
-                            <Button variant="outline" size="sm" onClick={() => window.print()}>
-                                <Printer className="mr-2 h-4 w-4" /> Print
-                            </Button>
+                            <div className="flex gap-2 items-center">
+                                <Button variant="outline" size="sm" onClick={handleExportExcel}>
+                                    <FileSpreadsheet className="mr-2 h-4 w-4" /> Export Excel
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={handlePrint}>
+                                    <Printer className="mr-2 h-4 w-4" /> Print
+                                </Button>
+                            </div>
                         </div>
 
                         <div className="relative">
@@ -275,6 +370,21 @@ export default function VendorPaymentReportPage(props: { searchParams: Promise<a
                     </div>
                 </DialogContent>
             </Dialog>
+            {/* Hidden Print Component */}
+            <div
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: 0,
+                    height: 0,
+                    overflow: 'visible',
+                    opacity: 0,
+                    pointerEvents: 'none',
+                    zIndex: -1
+                }}>
+                <InvVendorPaymentPrint ref={componentRef} data={printData} payload={currentPayload} />
+            </div>
         </div>
     );
 }
