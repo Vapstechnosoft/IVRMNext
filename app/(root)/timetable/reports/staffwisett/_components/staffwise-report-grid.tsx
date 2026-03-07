@@ -67,16 +67,6 @@ export default function StaffWiseReportGrid({ reportData, onPrint }: StaffWiseRe
                         <h3 className='mb-4 text-center font-bold text-green-700 text-xl tracking-tight'>
                             Staff Name : {table.header}
                         </h3>
-                        {table.subHeader && (
-                            <p className='mb-1 text-center font-semibold text-green-700 text-sm italic'>
-                                {table.subHeader}
-                            </p>
-                        )}
-                        {table.stfHeader && (
-                            <p className='mb-4 text-center font-medium text-gray-600 text-xs italic border-b pb-2'>
-                                {table.stfHeader}
-                            </p>
-                        )}
                         <table className='w-full border-collapse border-2 border-purple-700'>
                             <thead>
                                 <tr className='bg-purple-700 text-white'>

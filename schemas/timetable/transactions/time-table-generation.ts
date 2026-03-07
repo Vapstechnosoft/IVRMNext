@@ -4,8 +4,8 @@ import { z } from 'zod';
 export const timeTableGenerationSchema = z.object({
     asmaY_Id: z.string().min(1, 'Academic Year is required'),
     ttmC_Id: z.string().min(1, 'Category Name is required'),
-    hrmE_Id: z.string().min(1, 'Total No Of period Not allotted'),
-    asmcL_Id: z.string().min(1, 'Total Number of Periods'),
+    hrmE_Id: z.string().optional(),
+    asmcL_Id: z.string().optional(),
     asms_Id: z.string().optional(),
     notConfirmedPeriods: z.string().optional(),
 });

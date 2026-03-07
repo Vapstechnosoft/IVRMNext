@@ -72,16 +72,14 @@ export async function filterEmployeesBySelection(request: EmployeeProfileReportF
 }
 /**
  * Search employee profile details
- * POST /api/EmployeeProfileReportFacade/getEmployeedetailsBySelectionNew
- * Request: { MI_Id: number, hrmE_multiId: number[] }
- * Note: hrmE_multiId should be [0] when empty, not []
+ * POST /api/ReportEmployeeProfile/report_employee_profile_report
+ * Request: { hrmE_IdList: number[] }
  */
 export async function searchEmployeeProfileDetails(request: EmployeeProfileReportSearchRequest): Promise<ApiResponse<EmployeeProfileReportSearchResponse>> {
     const requestBody = {
-        MI_Id: request.MI_Id,
-        hrmE_multiId: request.employeeIds.length > 0 ? request.employeeIds : [0]
+        hrmE_IdList: request.hrmE_IdList.length > 0 ? request.hrmE_IdList : [0]
     };
-    const response = await api.post<any>('hrms', '/api/EmployeeProfileReportFacade/getEmployeedetailsBySelectionNew', requestBody);
+    const response = await api.post<any>('hrms', '/api/ReportEmployeeProfile/report_employee_profile_report', requestBody);
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {

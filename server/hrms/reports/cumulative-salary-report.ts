@@ -88,3 +88,25 @@ export async function getEmployeesByDeptAndDesignation(deptIds: string, desigIds
         return { success: false, data: [] };
     }
 }
+
+// API call for Getting employees based on GroupType, Department and Designation IDs
+
+export async function getEmployeesByGroupTypeDeptAndDesignation( groupTypeIds: number[],
+    deptIds: number[],
+    desigIds: number[]) {
+    const requestBody = {
+        hrmgT_IdList: groupTypeIds,
+        hrmD_IdList: deptIds,
+        hrmdeS_IdList: desigIds
+    };
+    const url = '/api/ReportEmployeeProfile/report_employee_profile_get_employee_names';
+    try {
+        const response = await api.post<any>('hrms', url, requestBody);
+        if (response.success) {
+            return { success: true, data: response.data };
+        }
+        return { success: false, data: [] };
+    } catch (error) {
+        return { success: false, data: [] };
+    }
+}

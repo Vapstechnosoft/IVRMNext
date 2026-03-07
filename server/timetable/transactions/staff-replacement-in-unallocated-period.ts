@@ -47,3 +47,15 @@ export async function getTimetableData(payload: {
         return [];
     }
 }
+
+
+export async function TTStaffReplacementInUnallocatedPeriodReport(hrmE_Id: number) {
+    const url = `/StaffReplacementInUnallocatedPeriodFacade/TTStaffReplacementInUnallocatedPeriodReport/${hrmE_Id}`;
+    return await api.get<any>('timetable', url);
+}
+
+export async function saveStaffReplacementInUnallocatedPeriod(payload: any) {
+    // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
+    const url = `/StaffReplacementInUnallocatedPeriodFacade/TTStaffReplacementInUnallocatedPeriodSave`;
+    return await api.post<any>('timetable', url, payload);
+}
