@@ -4005,6 +4005,22 @@ export async function getUserAccessibleModules() {
                 //                             title: 'Master Class Category',
                 //                             description: 'Master Class Category Entry'
                 //                         },
+                //                         {
+                //                             id: 30007,
+                //                             name: 'Master Accessories',
+                //                             icon: 'BookOpen',
+                //                             url: '/library/masters/accessories-master',
+                //                             title: 'Master Accessories',
+                //                             description: 'Master Accessories Details'
+                //                         },
+                //                         {
+                //                             id: 30008,
+                //                             name: 'Master Class Category',
+                //                             icon: 'BookOpen',
+                //                             url: '/library/masters/master-class-category',
+                //                             title: 'Master Class Category',
+                //                             description: 'Master Class Category Entry'
+                //                         },
 
                 //                         {
                 //                             id: 30009,
@@ -4806,107 +4822,106 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                }
-                // {
-                //     id: 14,
-                //     name: 'Lesson Planner',
-                //     icon: 'GraduationCap',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Lesson Planner Module',
-                //             icon: 'FileStack',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Master',
-                //                     icon: 'Database',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Master School Topic',
-                //                             icon: 'BookOpenText',
-                //                             url: '/lesson-planner/lesson-planner-module/master/master-school-topic',
-                //                             title: 'Master School Topic',
-                //                             description: 'Manage Master School Topic'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Master School Unit',
-                //                             icon: 'BookOpenText',
-                //                             url: '/lesson-planner/lesson-planner-module/master/master-school-unit',
-                //                             title: 'Master School Unit',
-                //                             description: 'Manage Master School Unit'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 2,
-                //                     name: 'Transactions',
-                //                     icon: 'Database',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'School Staff Period Mapping',
-                //                             icon: 'BookOpenText',
-                //                             url: '/lesson-planner/lesson-planner-module/transactions/school-staff-period-mapping',
-                //                             title: 'School Staff Period Mapping',
-                //                             description: 'School Staff Period Mapping'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'School Master Unit Topic Mapping',
-                //                             icon: 'BookOpenText',
-                //                             url: '/lesson-planner/lesson-planner-module/transactions/school-master-unit-topic-mapping',
-                //                             title: 'School Master Unit Topic Mapping',
-                //                             description: 'School Master Unit Topic Mapping'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'School Subject Master Topic Mapping',
-                //                             icon: 'BookOpenText',
-                //                             url: '/lesson-planner/lesson-planner-module/transactions/school-subject-master-topic-mapping',
-                //                             title: 'School Subject Master Topic Mapping',
-                //                             description: 'School Subject Master Topic Mapping'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'School Staff Period Transaction',
-                //                             icon: 'BookOpenText',
-                //                             url: '/lesson-planner/lesson-planner-module/transactions/school-staff-period-transaction',
-                //                             title: 'School Staff Period Transaction',
-                //                             description: 'School Staff Period Transaction'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 3,
-                //                     name: 'Reports',
-                //                     icon: 'Database',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'School Staff Period Transaction Deviation Report',
-                //                             icon: 'BookOpenText',
-                //                             url: '/lesson-planner/lesson-planner-module/reports/school-staff-period-transaction-deviation-report',
-                //                             title: 'School Staff Period Transaction Deviation Report',
-                //                             description: 'School Staff Period Transaction Deviation Report'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'School Staff Period Transaction Report',
-                //                             icon: 'BookOpenText',
-                //                             url: '/lesson-planner/lesson-planner-module/reports/school-staff-period-transaction-report',
-                //                             title: 'School Staff Period Transaction Report',
-                //                             description: 'School Staff Period Transaction Report'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                //}
-                ,
+                },
+                {
+                    id: 14,
+                    name: 'Lesson Planner',
+                    icon: 'GraduationCap',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Lesson Planner Module',
+                            icon: 'FileStack',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Master',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master School Topic',
+                                            icon: 'BookOpenText',
+                                            url: '/lesson-planner/lesson-planner-module/master/master-school-topic',
+                                            title: 'Master School Topic',
+                                            description: 'Manage Master School Topic'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Master School Unit',
+                                            icon: 'BookOpenText',
+                                            url: '/lesson-planner/lesson-planner-module/master/master-school-unit',
+                                            title: 'Master School Unit',
+                                            description: 'Manage Master School Unit'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Transactions',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'School Staff Period Mapping',
+                                            icon: 'BookOpenText',
+                                            url: '/lesson-planner/lesson-planner-module/transactions/school-staff-period-mapping',
+                                            title: 'School Staff Period Mapping',
+                                            description: 'School Staff Period Mapping'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'School Master Unit Topic Mapping',
+                                            icon: 'BookOpenText',
+                                            url: '/lesson-planner/lesson-planner-module/transactions/school-master-unit-topic-mapping',
+                                            title: 'School Master Unit Topic Mapping',
+                                            description: 'School Master Unit Topic Mapping'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'School Subject Master Topic Mapping',
+                                            icon: 'BookOpenText',
+                                            url: '/lesson-planner/lesson-planner-module/transactions/school-subject-master-topic-mapping',
+                                            title: 'School Subject Master Topic Mapping',
+                                            description: 'School Subject Master Topic Mapping'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'School Staff Period Transaction',
+                                            icon: 'BookOpenText',
+                                            url: '/lesson-planner/lesson-planner-module/transactions/school-staff-period-transaction',
+                                            title: 'School Staff Period Transaction',
+                                            description: 'School Staff Period Transaction'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Reports',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'School Staff Period Transaction Deviation Report',
+                                            icon: 'BookOpenText',
+                                            url: '/lesson-planner/lesson-planner-module/reports/school-staff-period-transaction-deviation-report',
+                                            title: 'School Staff Period Transaction Deviation Report',
+                                            description: 'School Staff Period Transaction Deviation Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'School Staff Period Transaction Report',
+                                            icon: 'BookOpenText',
+                                            url: '/lesson-planner/lesson-planner-module/reports/school-staff-period-transaction-report',
+                                            title: 'School Staff Period Transaction Report',
+                                            description: 'School Staff Period Transaction Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
                 {
                     id: 11,
                     name: 'Sports Management',
@@ -5522,91 +5537,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
-                  {
-                    id: 15,
-                    name: 'Visitor Management',
-                    icon: 'Users',
-                    menu: [
-                        {
-                            id: 1,
-                            name: 'Transactions',
-                            icon: 'FileText',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Transactions',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Add Visitor',
-                                            icon: 'UserPlus',
-                                            url: '/visitors-management/transactions/add-visitor',
-                                            title: 'Add Visitor',
-                                            description: 'Add New Visitor Transaction'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Visitor Appointment',
-                                            icon: 'CalendarDays',
-                                            url: '/visitors-management/transactions/visitor-appointment',
-                                            title: 'Visitor Appointment',
-                                            description: 'Schedule Visitor Appointment' 
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Inward Entry',
-                                            icon: 'ArrowDownLeft',
-                                            url: '/visitors-management/transactions/inward',
-                                            title: 'Inward Entry',
-                                            description: 'Manage Inward Entries'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Outward Entry',
-                                            icon: 'ArrowUpRight',
-                                            url: '/visitors-management/transactions/outward',
-                                            title: 'Outward Entry',
-                                            description: 'Manage Outward Entries'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Gate Pass',
-                                            icon: 'Ticket',
-                                            url: '/visitors-management/transactions/gate-pass',
-                                            title: 'Gate Pass',
-                                            description: 'Generate Gate Pass'
-                                        }
-
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            id: 2,
-                            name: 'Masters',
-                            icon: 'Database',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Masters',
-                                    icon: 'Database',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Master Location',
-                                            icon: 'MapPin',
-                                            url: '/visitors-management/masters/location',
-                                            title: 'Master Location',
-                                            description: 'Manage Visitor Locations'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                  }
+                }
 
                 //         //    ,
                 //         //        {
