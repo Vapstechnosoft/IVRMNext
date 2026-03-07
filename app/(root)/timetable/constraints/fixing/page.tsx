@@ -1,9 +1,9 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import DayPeriodTab from './_components/day-period-tab';
-import DayStaffTab from './_components/day-staff-tab';
-import DaySubjectTab from './_components/day-subject-tab';
-import PeriodStaffTab from './_components/period-staff-tab';
-import PeriodSubjectTab from './_components/period-subject-tab';
+import DayPeriodTab from './_components/dayperiod/dayperiodTab';
+import DayStaffTab from './_components/daystaff/daystaffTab';
+import DaySubjectTab from './_components/daysubject/daysubjectTab';
+import PeriodStaffTab from './_components/periodstaff/periodstaffTab';
+import PeriodSubjectTab from './_components/periodsubject/periodsubjectTab';
 
 import { getdetailsAllFixing } from '@/server/timetable/constraints/fixing';
 import { use } from 'react';
