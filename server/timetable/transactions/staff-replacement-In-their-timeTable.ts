@@ -1,7 +1,11 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { Staff, StaffReplacementInTheirTimeTableMasters } from '@/types/timetable/Transaction/staff-replacement-In-their-timeTable';
+import type {
+    Staff,
+    StaffReplacementInTheirTimeTableMasters,
+    StaffReplacementReportResponse
+} from '@/types/timetable/Transaction/staff-replacement-In-their-timeTable';
 
 export async function getStaffReplacementExistingToNewMasters(): Promise<StaffReplacementInTheirTimeTableMasters> {
     try {
@@ -15,35 +19,43 @@ export async function getStaffReplacementExistingToNewMasters(): Promise<StaffRe
         return { staff: [] };
     }
 }
+
+export async function getStaffReplacementReport(payload: { hrmE_Id: string }): Promise<StaffReplacementReportResponse> {
+    const url = '/StaffReplacementInTheirTTFacade/TTStaffReplacementInTheirTTReport';
+    const response = await api.post<StaffReplacementReportResponse>('timetable', url, payload);
+    return (response.data ?? response) as unknown as StaffReplacementReportResponse;
+}
+
 /**
- * Fetches timetable data for staff replacement
- * Based on category, staff, class, section, and subject filters
+ * Saves staff replacement data
  */
-export async function getTimetableData(payload: {
-    hrmE_Id: string;
-}) {
+export async function saveStaffReplacement(payload: any): Promise<{ returnval: boolean }> {
     try {
-        const { hrmE_Id } = payload;
-
-        // Construct URL with optional parameters
-        // Adjust this endpoint based on your actual API
-        const url = `StaffReplacementFacade/GetTimetableData/${hrmE_Id}| 0}`;
-
-        const response = await api.get<any>('timetable', url);
-
-        // Handle different response structures
-        if (response.data && response.data && Array.isArray(response.data)) {
-            return response.data;
-        }
-
-        if (response.data && response.data && Array.isArray(response.data.data)) {
-            return response.data.data;
-        }
-
-        // Return empty array if no data
-        return [];
+        const response = await api.post<any>('timetable', '/StaffReplacementInTheirTTFacade/savedetail', payload);
+        return (response.data ?? response) as unknown as { returnval: boolean };
     } catch (error) {
-        console.error('Error fetching timetable data:', error);
-        return [];
+        console.error('Error saving staff replacement:', error);
+        return { returnval: false };
+    }
+}
+
+/**
+ * Fetches possible periods for replacement
+ */
+export async function getPossiblePeriods(payload: any): Promise<{ data_lst: any[] }> {
+    try {
+        const response = await api.post<any>('timetable', '/StaffReplacementInTheirTTFacade/getpossiblePeriod', payload);
+        const data = response.data ?? response;
+        console.log(data);
+
+        let data_lst = data?.data_lst;
+        if (data_lst?.$values) {
+            data_lst = data_lst.$values;
+        }
+
+        return { data_lst: Array.isArray(data_lst) ? data_lst : [] };
+    } catch (error) {
+        console.error('Error fetching possible periods:', error);
+        return { data_lst: [] };
     }
 }

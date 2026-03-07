@@ -351,7 +351,8 @@ export const promotionDetailsReportSchema = z
         ASMS_Id: z.string().min(1, 'Section is required'),
         EMPG_GroupName: z.string().optional(), // Term
         superAverage: z.boolean().default(false),
-        selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+        selectedStudents: z.array(z.string()).min(1, 'Select at least one student'),
+        selectedStudentNames: z.array(z.string()).optional()
     })
     .refine(
         (data) => {

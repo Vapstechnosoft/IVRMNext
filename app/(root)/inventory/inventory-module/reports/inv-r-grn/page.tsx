@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, use } from 'react';
+import { useState, use, useRef } from 'react';
 import { Heading } from '@/components/layout/heading';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Printer } from 'lucide-react';
+import { Printer, FileSpreadsheet } from 'lucide-react';
 import ReportForm from './_components/report-form';
 import { getColumns } from './_components/columns';
 import { IInvRGRNPayload, IInvRGRNReportData } from '@/types/inventory/reports/inv-r-grn';
@@ -17,6 +17,10 @@ import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { tableSearchVariables } from '@/lib/data-table.config';
 import { useInvRGRNReportQuery } from '@/hooks/inventory/reports/use-inv-r-grn';
 import { useQueryClient } from '@tanstack/react-query';
+import { useReactToPrint } from 'react-to-print';
+import { InvRGRNPrint } from './_components/inv-r-grn-print';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 interface ReportTotals {
     basic: number;
@@ -64,6 +68,9 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
         parseAsString.withOptions({ shallow: false }).withDefault('')
     );
 
+    const [printData, setPrintData] = useState<IInvRGRNReportData[]>([]);
+    const componentRef = useRef<HTMLDivElement>(null);
+
     const { data: reportResult, isFetching } = useInvRGRNReportQuery(currentPayload, { ...searchParams, page: currentPage, page_size: pageSize, search_query: searchQuery });
 
     const reportData = reportResult?.data?.get_grnreport || [];
@@ -96,6 +103,111 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
     // Validate if Final approx Basic + Tax - Discount. Use API 'amount' as truth, or calculated if 0.
     const displayFinal = totals.final > 0 ? totals.final : (totals.basic + totals.tax - totals.discount);
 
+    const handlePrintContent = useReactToPrint({
+        contentRef: componentRef,
+        documentTitle: 'GRN_Report'
+    });
+
+    const fetchAllData = async (action: 'print' | 'excel') => {
+        if (!currentPayload) return [];
+        try {
+            toast.loading(`Fetching all records for ${action}...`, { id: 'fetch-all' });
+            
+            const response = await getInvRGRNReport(currentPayload, { ...searchParams, page: 1, page_size: 100000, search_query: searchQuery || '' });
+            
+            const allData = response?.data?.get_grnreport || [];
+            
+            if (allData.length === 0) {
+                toast.dismiss('fetch-all');
+                toast.error(`Failed to fetch ${action} data`);
+                return [];
+            }
+            toast.dismiss('fetch-all');
+            return allData;
+        } catch (error) {
+             console.error(`${action} fetch error:`, error);
+             toast.dismiss('fetch-all');
+             toast.error(`Error fetching ${action} data`);
+             return [];
+        }
+    };
+
+    const handlePrint = async () => {
+        const allData = await fetchAllData('print');
+        if (allData.length > 0) {
+            setPrintData(allData);
+            toast.success(`Ready to print ${allData.length} records`);
+            setTimeout(() => {
+                handlePrintContent();
+            }, 500);
+        }
+    };
+
+    const handleExportExcel = async () => {
+        const allData = await fetchAllData('excel');
+        if (allData.length > 0) {
+            let dataToExport: any[] = [];
+            const typeflag = currentPayload?.typeflag || 'All';
+            const optionflag = currentPayload?.optionflag;
+
+            if (typeflag === 'All' || typeflag === 'Detailed') {
+                dataToExport = allData.map((row: any, index: number) => ({
+                    "SL.No": index + 1,
+                    "GRN No": row.invmgrn_grnno || '',
+                    "Purchase Date": row.invmgrn_purchasedate ? row.invmgrn_purchasedate.split('T')[0] : '',
+                    "Supplier": row.invms_suppliername || '',
+                    "Item": row.invmi_itemname || '',
+                    "UOM": row.invmuom_uomname || '',
+                    "Quantity": Number(row.invtgrn_qty || 0).toFixed(2),
+                    "Rate": Number(row.invtgrn_purchaserate || 0).toFixed(2),
+                    "MRP": Number(row.invtgrn_mrp || 0).toFixed(2),
+                    "Sale Price": Number(row.invtgrn_salesprice || 0).toFixed(2),
+                    "Discount": Number(row.invtgrn_discountamt || 0).toFixed(2),
+                    "Tax": Number(row.invtgrn_taxamt || 0).toFixed(2),
+                    "Total Amount": Number(row.invtgrn_amount || 0).toFixed(2),
+                }));
+            } else if (typeflag === 'Overall') {
+                if (optionflag === 'Item_1') {
+                    dataToExport = allData.map((row: any, index: number) => ({
+                        "SL.No": index + 1,
+                        "Item": row.invmi_itemname || row.invmI_ItemName || '',
+                        "Item Code": row.invmi_itemcode || row.invmI_ItemCode || '',
+                        "Quantity": Number((row.grnQuantity ?? row.grnquantity) || 0).toFixed(2),
+                        "Rate": Number((row.grnRate ?? row.grnrate) || 0).toFixed(2),
+                        "MRP": Number((row.grnMRP ?? row.grnmrp) || 0).toFixed(2),
+                        "Sale Price": Number((row.grnSalePrice ?? row.grnsaleprice) || 0).toFixed(2),
+                        "Discount": Number((row.grnDiscount ?? row.grndiscount) || 0).toFixed(2),
+                        "Tax": Number((row.grnTax ?? row.grntax) || 0).toFixed(2),
+                        "Amount": Number((row.grnAmount ?? row.grnamount) || 0).toFixed(2),
+                    }));
+                } else if (optionflag === 'Supplier') {
+                     dataToExport = allData.map((row: any, index: number) => ({
+                        "SL.No": index + 1,
+                        "Supplier Name": row.invms_suppliername || row.invmS_SupplierName || '',
+                        "Code": row.invmS_SupplierCode || '',
+                        "Contact No.": row.invms_supplierconatctno || row.invmS_SupplierConatctNo || '',
+                        "Email ID": row.invms_emailid || row.invmS_EmailId || '',
+                        "Quantity": Number((row.grnQuantity ?? row.grnquantity) || 0).toFixed(2),
+                        "Rate": Number((row.grnRate ?? row.grnrate) || 0).toFixed(2),
+                        "MRP": Number((row.grnMRP ?? row.grnmrp) || 0).toFixed(2),
+                        "Sale Price": Number((row.grnSalePrice ?? row.grnsaleprice) || 0).toFixed(2),
+                        "Discount": Number((row.grnDiscount ?? row.grndiscount) || 0).toFixed(2),
+                        "Tax": Number((row.grnTax ?? row.grntax) || 0).toFixed(2),
+                        "Amount": Number((row.grnAmount ?? row.grnamount) || 0).toFixed(2),
+                    }));
+                }
+            }
+
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "GRN Report");
+            const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+            const data = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8" });
+            saveAs(data, "GRN_Report.xlsx");
+            toast.success('Excel downloaded successfully');
+        }
+    };
+
     return (
         <div className="space-y-6">
             <Heading
@@ -116,9 +228,14 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
                                 <span className="font-semibold text-sm">Total Records:</span>
                                 <Badge variant="secondary">{totalRecords}</Badge>
                             </div>
-                            <Button variant="outline" size="sm" onClick={() => window.print()}>
-                                <Printer className="mr-2 h-4 w-4" /> Print
-                            </Button>
+                            <div className="flex gap-2 items-center">
+                                <Button variant="outline" size="sm" onClick={handleExportExcel}>
+                                    <FileSpreadsheet className="mr-2 h-4 w-4" /> Export Excel
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={handlePrint}>
+                                    <Printer className="mr-2 h-4 w-4" /> Print
+                                </Button>
+                            </div>
                         </div>
 
                         <GenericDataTable
@@ -162,6 +279,22 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
                     </div>
                 </CollapsibleSection>
             )}
+
+            {/* Hidden Print Component */}
+            <div
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: 0,
+                    height: 0,
+                    overflow: 'visible',
+                    opacity: 0,
+                    pointerEvents: 'none',
+                    zIndex: -1
+                }}>
+                <InvRGRNPrint ref={componentRef} data={printData} payload={currentPayload} />
+            </div>
         </div>
     );
 }

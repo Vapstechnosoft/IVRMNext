@@ -102,7 +102,7 @@
         "date-fns": "^3.6.0",
         "file-saver": "^2.0.5",
         "framer-motion": "^11.15.0",
-        "fs": "0.0.1-security",
+        "fs": "^0.0.1-security",
         "fs-extra": "^11.3.3",
         "groq-sdk": "^0.37.0",
         "html2canvas": "^1.4.1",

@@ -26,5 +26,6 @@ export async function ToggleStaffAbbreviation(ttmsaB_Id: number) {
 
 export async function getStaffDropDown() {
     const url = '/TimeTableCommon/GetStaffDetails';
+    console.log(url);
     return await api.get<IStaffDropdownList[]>('timetable', url);
 }
