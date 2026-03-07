@@ -63,14 +63,14 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
     const { isSubmitting, errors } = formState;
 
     // Watchers
-    const watchType = useWatch({ control, name: 'type' });
-    const watchYear = useWatch({ control, name: 'ASMAY_Id' });
-    const watchClass = useWatch({ control, name: 'ASMCL_Id' });
-    const watchSection = useWatch({ control, name: 'ASMS_Id' });
-    const watchExam = useWatch({ control, name: 'EME_Id' });
-    const watchSubjectwise = useWatch({ control, name: 'subjectwise' });
-    const watchSubject = useWatch({ control, name: 'ISMS_Id' });
-    const watchTopper = useWatch({ control, name: 'topper' });
+    const watchType = useWatch({ control, name: 'type', defaultValue: '1' });
+    const watchYear = useWatch({ control, name: 'ASMAY_Id', defaultValue: '' });
+    const watchClass = useWatch({ control, name: 'ASMCL_Id', defaultValue: '' });
+    const watchSection = useWatch({ control, name: 'ASMS_Id', defaultValue: '0' });
+    const watchExam = useWatch({ control, name: 'EME_Id', defaultValue: '' });
+    const watchSubjectwise = useWatch({ control, name: 'subjectwise', defaultValue: false });
+    const watchSubject = useWatch({ control, name: 'ISMS_Id', defaultValue: '' });
+    const watchTopper = useWatch({ control, name: 'topper', defaultValue: '10' });
 
     // Initial Data - Academic Years
     useEffect(() => {
@@ -339,7 +339,6 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                     name='ASMAY_Id'
                                     render={({ field }) => (
                                         <Select
-                                            key={field.value}
                                             onValueChange={(val) => {
                                                 field.onChange(val);
                                                 // Trigger validation when changed
@@ -383,14 +382,13 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                     name='ASMCL_Id'
                                     render={({ field }) => (
                                         <Select
-                                            key={field.value}
                                             onValueChange={(val) => {
                                                 field.onChange(val);
                                                 // Trigger validation when changed
                                                 trigger('ASMCL_Id');
                                             }}
                                             value={field.value}
-                                            disabled={watchType === '1' || !watchYear}>
+                                        >
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Class' />
                                             </SelectTrigger>
@@ -427,14 +425,13 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                     name='ASMS_Id'
                                     render={({ field }) => (
                                         <Select
-                                            key={field.value}
                                             onValueChange={(val) => {
                                                 field.onChange(val);
                                                 // Trigger validation when changed
                                                 trigger('ASMS_Id');
                                             }}
                                             value={field.value || ''}
-                                            disabled={watchType === '1' || !watchClass}>
+                                            disabled={watchType === '1' ? true : undefined}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Section' />
                                             </SelectTrigger>
@@ -462,14 +459,13 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                     name='EME_Id'
                                     render={({ field }) => (
                                         <Select
-                                            key={field.value}
                                             onValueChange={(val) => {
                                                 field.onChange(val);
                                                 // Trigger validation when changed
                                                 trigger('EME_Id');
                                             }}
                                             value={field.value}
-                                            disabled={!watchSection}>
+                                            disabled={!watchSection ? true : undefined}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Exam' />
                                             </SelectTrigger>
@@ -559,14 +555,13 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                         name='ISMS_Id'
                                         render={({ field }) => (
                                             <Select
-                                                key={field.value}
                                                 onValueChange={(val) => {
                                                     field.onChange(val);
                                                     // Trigger validation when changed
                                                     trigger('ISMS_Id');
                                                 }}
                                                 value={field.value || ''}
-                                                disabled={!watchSubjectwise || !watchExam}>
+                                                disabled={!watchSubjectwise || !watchExam ? true : undefined}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Subject' />
                                                 </SelectTrigger>

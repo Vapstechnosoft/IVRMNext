@@ -34,7 +34,7 @@ export default function AlumnusMembershipPage() {
 
     const fetchInitial = useCallback(async () => {
         setInitialLoading(true);
-        const res = await getAlumniMembershipInitialData(30, true);
+        const res = await getAlumniMembershipInitialData(true);
         if (res.success) {
             const data = Array.isArray((res as any).data) ? (res as any).data[0] : (res as any).data;
             setYears(data.fillyear || []);

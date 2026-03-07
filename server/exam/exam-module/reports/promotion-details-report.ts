@@ -57,6 +57,7 @@ export async function getTermsAndStudents(sectionId: any) {
 
 export async function getReportDetails(data: any) {
     await new Promise((resolve) => setTimeout(resolve, 500));
+    console.log('tabulation payload data', data);
 
     const isSuperAverage = data.superAverage === true || data.superAverage === 'true';
 
@@ -67,21 +68,26 @@ export async function getReportDetails(data: any) {
         empG_GroupName: isSuperAverage ? 'Super Average' : data.EMPG_GroupName || 'Term 1'
     };
 
+    const studentsFromPayload = data.selectedStudents || [];
+    const studentNamesFromPayload = data.selectedStudentNames || [];
+
     if (isSuperAverage) {
         // Structure for Super Average table
         return {
             ...common,
             getstudentwisesubjectlist: [{ ISMS_SubjectName: 'English' }, { ISMS_SubjectName: 'Maths' }],
-            getstudentmarksdetails_temp: [
-                {
-                    AMST_AdmNo: 'A001',
-                    studentname: 'John Doe',
-                    AMST_Id: 1,
-                    English: 85,
-                    Maths: 90
-                }
-            ],
-            St_ThomosTotal: [{ AMST_Id: 1, ESTMPPSG_GroupObtMarks: 175, TotalPercentage: 87.5 }]
+            getstudentmarksdetails_temp: studentsFromPayload.map((idStr: string, i: number) => ({
+                AMST_AdmNo: `A00${i + 1}`,
+                studentname: studentNamesFromPayload[i].split(':')[0] || `Mock Student ${idStr}`,
+                AMST_Id: Number.parseInt(idStr) || i + 1,
+                English: 85,
+                Maths: 90
+            })),
+            St_ThomosTotal: studentsFromPayload.map((idStr: string, i: number) => ({
+                AMST_Id: Number.parseInt(idStr) || i + 1,
+                ESTMPPSG_GroupObtMarks: 175,
+                TotalPercentage: 87.5
+            }))
         };
     } else {
         // Structure for Normal Report
@@ -92,18 +98,20 @@ export async function getReportDetails(data: any) {
                 { ISMS_SubjectName: 'Maths (100)', SubjectName: 'Maths', Flag: 0, ISMS_Id: 2 }
             ],
             getskill: [{ ECACT_SkillName: 'Discipline' }],
-            getstudentmarksdetails_temp: [
-                {
-                    AMST_AdmNo: 'A001',
-                    studentname: 'John Doe',
-                    AMST_Id: 1,
-                    English: 85,
-                    Maths: 90,
-                    TotalMarks: 175,
-                    TotalPercentage: 87.5
-                }
-            ],
-            getallgrade: [{ AMST_Id: 1, ECACT_SkillName: 'Discipline', EMGD_Name: 'A' }]
+            getstudentmarksdetails_temp: studentsFromPayload.map((idStr: string, i: number) => ({
+                AMST_AdmNo: `A00${i + 1}`,
+                studentname: studentNamesFromPayload[i].split(':')[0] || `Mock Student ${idStr}`,
+                AMST_Id: Number.parseInt(idStr) || i + 1,
+                English: 85,
+                Maths: 90,
+                TotalMarks: 175,
+                TotalPercentage: 87.5
+            })),
+            getallgrade: studentsFromPayload.map((idStr: string, i: number) => ({
+                AMST_Id: Number.parseInt(idStr) || i + 1,
+                ECACT_SkillName: 'Discipline',
+                EMGD_Name: 'A'
+            }))
         };
     }
 }

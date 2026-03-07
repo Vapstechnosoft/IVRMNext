@@ -455,8 +455,8 @@ export const courseMasterSchema = z.object({
 export const payrollStandardSchema = z.object({
     HRC_Id: z.number().optional(),
     // Provident Fund
-    HRC_PFAccPrefix: z.string().optional(),
-    HRC_PFMaxAmt: z.number().min(0, 'Cannot be negative').optional().or(z.literal(undefined)),
+    HRC_PFAccPrefix: z.string().min(1, 'Account Prefix is required'),
+    HRC_PFMaxAmt: z.number({required_error: 'PF Max Amount is required'}).min(0, 'Cannot be negative'),
     HRC_FPFPer: z.number().min(0).max(100).refine(val => !val || Number.isInteger(val * 100), 'Max 2 decimal places allowed').optional().or(z.literal(undefined)),
     HRC_EPFPer: z.number().min(0).max(100).refine(val => !val || Number.isInteger(val * 100), 'Max 2 decimal places allowed').optional().or(z.literal(undefined)),
     HRC_EPFPerAfterRetirement: z.number().min(0).max(100).optional(),
@@ -473,12 +473,12 @@ export const payrollStandardSchema = z.object({
     HRC_AsPerEmployee: z.boolean().optional(),
     HRC_RetirementYrs: z.number().min(1).max(99),
     // ESI
-    HRC_ESIAccPrefix: z.string().optional(),
+    HRC_ESIAccPrefix: z.string().min(1, 'ESI Account Prefix Required'),
     HRC_ESIMax: z.number().min(0, 'Must be at least 0').max(100, 'Cannot exceed 100').refine(val => !val || Number.isInteger(val * 100), 'Max 2 decimal places allowed').optional().or(z.literal(undefined)),
     HRC_ESIMaxAmount: z.number().min(0).optional().or(z.literal(undefined)),
     HRC_ESIEmplrCont: z.number().min(0).max(100).optional().or(z.literal(undefined)),
     // Arrear Details
-    HRC_ArrearSalaryReport: z.enum(['Separate', 'OnlyArrearHead']).optional(),
+    HRC_ArrearSalaryReport: z.enum(['Separate', 'OnlyArrearHead'], {required_error: 'Arrear Salary Report is required'}),
     HRC_ArrearRequired: z.enum(['Cumulative', 'Monthwise']).optional(),
     // Approval Process
     HRC_SalaryApproval: z.boolean().optional(),
@@ -488,17 +488,17 @@ export const payrollStandardSchema = z.object({
     HRC_Increment: z.boolean().optional(),
     HRC_Probation: z.boolean().optional(),
     // Payment Method
-    HRC_PaymentMethod: z.number().min(1).max(6).optional(),
+    HRC_PaymentMethod: z.number({required_error: 'Payment Method is required'}).min(1).max(6),
     // Increment Process
     HRC_OptionalHolidays: z.number().min(0).optional(),
     HRC_ApplicableFlag: z.boolean().optional(),
     HRC_MinimumPeriods: z.number().min(0).optional(),
-    HRC_IncrementMonth: z.string().optional(),
+    HRC_IncrementMonth: z.string({message: 'Increment Month is required'}).min(1, 'Increment Month is required'),
     HRC_IncrementOnceInMonths: z.number().min(0).optional(),
     HRC_AlertDays: z.number().min(0).optional(),
     // Salary Days
-    HRC_SalaryFromDay: z.number().min(1).max(31),
-    HRC_SalaryToDay: z.number().min(1).max(31),
+    HRC_SalaryFromDay: z.coerce.number({required_error: 'Salary From Day is required'}).min(1, 'Salary From Day is required').max(31),
+    HRC_SalaryToDay: z.coerce.number({required_error: 'Salary To Day is required'}).min(1, 'Salary To Day is required').max(31),
     HRC_ActiveFlag: z.boolean()
 });
 
