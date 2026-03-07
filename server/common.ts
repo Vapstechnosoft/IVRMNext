@@ -55,7 +55,7 @@ export async function getUserAccessibleModules() {
             data: [
                 {
                     id: 1,
-                    name: 'Admission',
+                    name: 'Preadmission',
                     icon: 'UserRoundPlus',
                     menu: [
                         {
@@ -65,201 +65,11 @@ export async function getUserAccessibleModules() {
                             sub_menu: [
                                 {
                                     id: 1,
-                                    name: 'Masters',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Master Class',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/masters/class',
-                                            title: 'Master Class',
-                                            description: 'Manage Master Class Details'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Master Category',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/masters/category',
-                                            title: 'Master Category',
-                                            description: 'Manage Master Category Details'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Master Section',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/masters/section',
-                                            title: 'Master Section',
-                                            description: 'Manage Master Section Details'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Master Class Category',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/masters/class-category',
-                                            title: 'Master Class Category',
-                                            description: 'Manage Master Class Category Details'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Master Religion',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/masters/religion',
-                                            title: 'Master Religion',
-                                            description: 'Manage Master Religion Details'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Master Caste Category',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/masters/caste-category',
-                                            title: 'Master Caste Category',
-                                            description: 'Manage Master Caste Category Details'
-                                        },
-                                        {
-                                            id: 7,
-                                            name: 'Master Caste',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/masters/caste',
-                                            title: 'Master Caste',
-                                            description: 'Manage Master Caste Details'
-                                        },
-                                        {
-                                            id: 8,
-                                            name: 'Master Document',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/masters/document',
-                                            title: 'Master Document',
-                                            description: 'Manage Master Document Details'
-                                        },
-                                        {
-                                            id: 9,
-                                            name: 'Master Reference',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/masters/reference',
-                                            title: 'Master Reference',
-                                            description: 'Manage Master Reference Details'
-                                        },
-                                        {
-                                            id: 10,
-                                            name: 'Master Source',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/masters/source',
-                                            title: 'Master Source',
-                                            description: 'Manage Master Source Details'
-                                        },
-                                        {
-                                            id: 11,
-                                            name: 'Master Religion Caste Category',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/masters/religion-caste-category',
-                                            title: 'Master Religion Caste Category',
-                                            description: 'Manage Master Religion Caste Category Details'
-                                        },
-                                        {
-                                            id: 1290,
-                                            name: 'Master Class Teacher',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/masters/class-teacher',
-                                            title: 'Master Class Teacher',
-                                            description: 'Manage Master Class Teacher Details'
-                                        },
-                                        {
-                                            id: 13,
-                                            name: 'Master Class Held',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/masters/class-held',
-                                            title: 'Master Class Held',
-                                            description: 'Manage Master Class Held '
-                                        },
-                                        {
-                                            id: 88,
-                                            name: 'Active Deactive Students',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/masters/active-deactive-students',
-                                            title: 'Active Deactive Students',
-                                            description: 'Active Deactive Students'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Transactions',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 1211,
-                                            name: 'Preadmission Form',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/transactions/application-form',
-                                            title: 'Preadmission Form',
-                                            description: 'Apply for Preadmission'
-                                        },
-                                        {
-                                            id: 13,
-                                            name: 'Transfer Application Status',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/transactions/transfer-application-status',
-                                            title: 'Transfer Application Status',
-                                            description: 'Manage Transfer Application Status Details'
-                                        },
-                                        {
-                                            id: 14,
-                                            name: 'Transfer Admission Status',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/transactions/transfer-admission-status',
-                                            title: 'Transfer Admission Status',
-                                            description: 'Manage Transfer Admission Status Details'
-                                        },
-                                        {
-                                            id: 15,
-                                            name: 'Transfer to Admission',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/transactions/export-preadmission-to-admission',
-                                            title: 'Transfer to Admission',
-                                            description: 'Transfer confirmed preadmission applications to admission'
-                                        },
-                                        {
-                                            id: 16,
-                                            name: 'Document View',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/transactions/document-view',
-                                            title: 'Document View',
-                                            description: ' Document View'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 3,
                                     name: 'Configuration',
                                     icon: 'Settings',
                                     pages: [
                                         {
-                                            id: 17,
-                                            name: 'Master Academic Year',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/configuration/academic-year',
-                                            title: 'Master Academic Year ',
-                                            description: 'Master Academic Year '
-                                        },
-                                        {
-                                            id: 18,
-                                            name: 'Master Configuration',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/configuration/master-configuration',
-                                            title: 'Master Configuration',
-                                            description: 'Master Configuration'
-                                        },
-                                        {
-                                            id: 19,
-                                            name: 'Registration Numbering',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/configuration/registration-numbering',
-                                            title: 'Registration Numbering',
-                                            description: 'Registration Numbering'
-                                        },
-                                        {
-                                            id: 20,
+                                            id: 1,
                                             name: 'Pre-Registration Numbering',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/configuration/pre-registration-numbering',
@@ -270,12 +80,273 @@ export async function getUserAccessibleModules() {
                                 },
 
                                 {
+                                    id: 2,
+                                    name: 'Transactions',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 2,
+                                            name: 'Preadmission Form',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/transactions/application-form',
+                                            title: 'Preadmission Form',
+                                            description: 'Apply for Preadmission'
+                                        },
+
+                                        {
+                                            id: 3,
+                                            name: 'Transfer Application Status',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/transactions/transfer-application-status',
+                                            title: 'Transfer Application Status',
+                                            description: 'Manage Transfer Application Status Details'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Transfer Admission Status',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/transactions/transfer-admission-status',
+                                            title: 'Transfer Admission Status',
+                                            description: 'Manage Transfer Admission Status Details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Transfer to Admission',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/transactions/export-preadmission-to-admission',
+                                            title: 'Transfer to Admission',
+                                            description: 'Transfer confirmed preadmission applications to admission'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Document View',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/transactions/document-view',
+                                            title: 'Document View',
+                                            description: ' Document View'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+
+                        {
+                            id: 3,
+                            name: 'Reports',
+                            icon: 'Settings',
+                            sub_menu: [
+                                {
+                                    id: 3,
+                                    name: 'Reports',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 7,
+                                            name: 'student Count Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/student-count-report',
+                                            title: 'student Count Report',
+                                            description: 'student Count Report'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Registration Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/registration-report',
+                                            title: 'Registration Report',
+                                            description: 'Registration Report'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'EMAIL SMS Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/email-sms',
+                                            title: 'EMAIL SMS Report',
+                                            description: 'EMAIL SMS Report'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'PreAdmission Month End Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/preadmission-month-end-report',
+                                            title: 'PreAdmission Month End Report',
+                                            description: 'PreAdmission Month End Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+
+                {
+                    id: 900,
+                    name: 'Admission',
+                    icon: 'UserRoundPlus',
+                    menu: [
+                        {
+                            id: 2,
+                            name: 'Admission',
+                            icon: 'UserCog',
+                            sub_menu: [
+                                {
+                                    id: 3,
+                                    name: 'Configuration',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 11,
+                                            name: 'Master Configuration',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/configuration/master-configuration',
+                                            title: 'Master Configuration',
+                                            description: 'Master Configuration'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Registration Numbering',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/configuration/registration-numbering',
+                                            title: 'Registration Numbering',
+                                            description: 'Registration Numbering'
+                                        }
+                                    ]
+                                },
+                                {
                                     id: 4,
+                                    name: 'Masters',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 13,
+                                            name: 'Master Academic Year',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/configuration/academic-year',
+                                            title: 'Master Academic Year ',
+                                            description: 'Master Academic Year '
+                                        },
+                                        {
+                                            id: 14,
+                                            name: 'Master Class',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/class',
+                                            title: 'Master Class',
+                                            description: 'Manage Master Class Details'
+                                        },
+                                        {
+                                            id: 15,
+                                            name: 'Master Category',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/category',
+                                            title: 'Master Category',
+                                            description: 'Manage Master Category Details'
+                                        },
+                                        {
+                                            id: 16,
+                                            name: 'Master Section',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/section',
+                                            title: 'Master Section',
+                                            description: 'Manage Master Section Details'
+                                        },
+                                        {
+                                            id: 17,
+                                            name: 'Master Class Category',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/class-category',
+                                            title: 'Master Class Category',
+                                            description: 'Manage Master Class Category Details'
+                                        },
+                                        {
+                                            id: 18,
+                                            name: 'Master Religion',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/religion',
+                                            title: 'Master Religion',
+                                            description: 'Manage Master Religion Details'
+                                        },
+                                        {
+                                            id: 19,
+                                            name: 'Master Caste Category',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/caste-category',
+                                            title: 'Master Caste Category',
+                                            description: 'Manage Master Caste Category Details'
+                                        },
+                                        {
+                                            id: 20,
+                                            name: 'Master Caste',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/caste',
+                                            title: 'Master Caste',
+                                            description: 'Manage Master Caste Details'
+                                        },
+                                        {
+                                            id: 21,
+                                            name: 'Master Document',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/document',
+                                            title: 'Master Document',
+                                            description: 'Manage Master Document Details'
+                                        },
+                                        {
+                                            id: 22,
+                                            name: 'Master Reference',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/reference',
+                                            title: 'Master Reference',
+                                            description: 'Manage Master Reference Details'
+                                        },
+                                        {
+                                            id: 23,
+                                            name: 'Master Source',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/source',
+                                            title: 'Master Source',
+                                            description: 'Manage Master Source Details'
+                                        },
+                                        {
+                                            id: 24,
+                                            name: 'Master Religion Caste Category',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/religion-caste-category',
+                                            title: 'Master Religion Caste Category',
+                                            description: 'Manage Master Religion Caste Category Details'
+                                        },
+                                        {
+                                            id: 25,
+                                            name: 'Master Class Teacher',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/class-teacher',
+                                            title: 'Master Class Teacher',
+                                            description: 'Manage Master Class Teacher Details'
+                                        },
+                                        {
+                                            id: 26,
+                                            name: 'Master Class Held',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/class-held',
+                                            title: 'Master Class Held',
+                                            description: 'Manage Master Class Held '
+                                        },
+                                        {
+                                            id: 27,
+                                            name: 'Active Deactive Students',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/active-deactive-students',
+                                            title: 'Active Deactive Students',
+                                            description: 'Active Deactive Students'
+                                        }
+                                    ]
+                                },
+
+                                {
+                                    id: 6,
                                     name: 'Section Allotment',
                                     icon: 'Settings',
                                     pages: [
                                         {
-                                            id: 21,
+                                            id: 29,
                                             name: 'New Section',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/section/new-section',
@@ -283,7 +354,7 @@ export async function getUserAccessibleModules() {
                                             description: 'New Section'
                                         },
                                         {
-                                            id: 22,
+                                            id: 30,
                                             name: 'Change Section',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/section/change-section',
@@ -291,7 +362,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Change Section'
                                         },
                                         {
-                                            id: 23,
+                                            id: 31,
                                             name: 'Delete Student Section',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/section/delete-student-section',
@@ -299,7 +370,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Delete Student Section'
                                         },
                                         {
-                                            id: 24,
+                                            id: 32,
                                             name: 'Promotion Section',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/section/promotion-section',
@@ -307,7 +378,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Promotion Section'
                                         },
                                         {
-                                            id: 25,
+                                            id: 33,
                                             name: 'Year Loss Section',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/section/year-loss-section',
@@ -315,7 +386,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Year Loss Section'
                                         },
                                         {
-                                            id: 26,
+                                            id: 34,
                                             name: 'Update Roll Number',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/section/update-roll-number',
@@ -323,7 +394,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Update Roll Number'
                                         },
                                         {
-                                            id: 27,
+                                            id: 35,
                                             name: 'Change Class',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/section/change-class',
@@ -332,53 +403,13 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-
                                 {
-                                    id: 5,
-                                    name: 'Reports',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'student Count Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/student-count-report',
-                                            title: 'student Count Report',
-                                            description: 'student Count Report'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Registration Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/registration-report',
-                                            title: 'Registration Report',
-                                            description: 'Registration Report'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'EMAIL SMS Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/email-sms',
-                                            title: 'EMAIL SMS Report',
-                                            description: 'EMAIL SMS Report'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'PreAdmission Month End Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/preadmission-month-end-report',
-                                            title: 'PreAdmission Month End Report',
-                                            description: 'PreAdmission Month End Report'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 6,
+                                    id: 7,
                                     name: 'Attendance Entry',
                                     icon: 'Settings',
                                     pages: [
                                         {
-                                            id: 1,
+                                            id: 36,
                                             name: 'Entry Type',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/attendance-entry/attendance_entry_type',
@@ -386,7 +417,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage attendance entry types'
                                         },
                                         {
-                                            id: 2,
+                                            id: 37,
                                             name: 'Login Privileges',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/attendance-entry/login-privileges',
@@ -394,7 +425,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage attendance login privileges'
                                         },
                                         {
-                                            id: 3,
+                                            id: 38,
                                             name: 'Student Attendance',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/attendance-entry/student-attendance',
@@ -404,12 +435,12 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 7,
+                                    id: 8,
                                     name: 'Student TC',
                                     icon: 'Settings',
                                     pages: [
                                         {
-                                            id: 1,
+                                            id: 39,
                                             name: 'Apply TC',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/student-transfer-certificate/apply',
@@ -417,7 +448,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Apply for Student Transfer Certificate'
                                         },
                                         {
-                                            id: 2,
+                                            id: 40,
                                             name: 'Cancel TC',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/student-transfer-certificate/cancel',
@@ -429,17 +460,17 @@ export async function getUserAccessibleModules() {
                             ]
                         },
                         {
-                            id: 2,
-                            name: 'Admission',
-                            icon: 'UserCog',
+                            id: 5,
+                            name: 'Form and Reports',
+                            icon: 'Settings',
                             sub_menu: [
                                 {
-                                    id: 1,
+                                    id: 5,
                                     name: 'Application',
                                     icon: 'Settings',
                                     pages: [
                                         {
-                                            id: 1,
+                                            id: 28,
                                             name: 'Admission Form',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/admission-form',
@@ -449,12 +480,12 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 2,
+                                    id: 9,
                                     name: 'Reports',
                                     icon: 'Settings',
                                     pages: [
                                         {
-                                            id: 1,
+                                            id: 41,
                                             name: 'Class Teacher Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/class-teacher-report',
@@ -462,7 +493,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Class Teacher Report'
                                         },
                                         {
-                                            id: 2,
+                                            id: 42,
                                             name: 'Student Yearly Attendance Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/students-yearly-attendence-report',
@@ -470,7 +501,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Student Yearly Attendance Report'
                                         },
                                         {
-                                            id: 3,
+                                            id: 43,
                                             name: 'Student TC Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/student-tc-report',
@@ -478,7 +509,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Student TC Report'
                                         },
                                         {
-                                            id: 4,
+                                            id: 44,
                                             name: 'class-wise student details',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/class-wise-student-details',
@@ -487,7 +518,7 @@ export async function getUserAccessibleModules() {
                                         },
 
                                         {
-                                            id: 5,
+                                            id: 45,
                                             name: 'Total Strength Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/total-strength',
@@ -495,7 +526,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Total Strength Report'
                                         },
                                         {
-                                            id: 6,
+                                            id: 46,
                                             name: 'Admission Register Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/admission-register',
@@ -503,7 +534,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Admission Register Report '
                                         },
                                         {
-                                            id: 7,
+                                            id: 47,
                                             name: 'Attendance Absentees Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/attendance-absent-sms',
@@ -511,7 +542,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Attendance Absentees Report'
                                         },
                                         {
-                                            id: 8,
+                                            id: 48,
                                             name: 'Student Search',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/student-search',
@@ -519,7 +550,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Student Search'
                                         },
                                         {
-                                            id: 9,
+                                            id: 49,
                                             name: 'Month End Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/month-end-report',
@@ -528,7 +559,7 @@ export async function getUserAccessibleModules() {
                                         },
 
                                         {
-                                            id: 10,
+                                            id: 50,
                                             name: 'Study Certificate Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/study-certificate-report',
@@ -536,7 +567,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Study Certificate Report'
                                         },
                                         {
-                                            id: 11,
+                                            id: 51,
                                             name: 'Date Of Birth Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/date-of-birth-report',
@@ -552,7 +583,7 @@ export async function getUserAccessibleModules() {
                                         //     description: 'Overall Daily Attendance Report'
                                         // },
                                         {
-                                            id: 13,
+                                            id: 52,
                                             name: 'Student Attendance Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/student-attendance-report',
@@ -565,6 +596,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
+
                 {
                     id: 2,
                     name: 'Fees Management',
@@ -2054,7 +2086,7 @@ export async function getUserAccessibleModules() {
                                             title: 'PF Form6A',
                                             description: 'Provident Fund Form 6A'
                                         },
-                                        
+
                                         // {
                                         //     id: 17,
                                         //     name: 'PF Form3A',
@@ -2114,13 +2146,13 @@ export async function getUserAccessibleModules() {
                                         //     description: 'Employee Loan Report'
                                         // }
                                         {
-                                            id:24,
+                                            id: 24,
                                             name: 'Employee Profile Report',
                                             icon: 'FileSearch',
                                             url: '/hrms/reports/employee-profile-report',
                                             title: 'Employee Profile Report',
                                             description: 'Employee Profile Report'
-                                        },
+                                        }
                                     ]
                                 }
                             ]
@@ -2759,9 +2791,8 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/leave-management/reports/leave-status-report',
                                             title: 'Leave Status Report',
                                             description: 'Leave Status Report'
-                                        },
-                                        
-                                    
+                                        }
+
                                         // {
                                         //     id: 2,
                                         //     name: 'Overall Report',
