@@ -250,7 +250,6 @@ export async function deactivateEventsStudentSRKVS(data: { id: number, activeFla
     await new Promise(resolve => setTimeout(resolve, 500));
     return { success: true, message: `Record ${data.activeFlag ? 'Activated' : 'Deactivated'} Successfully`, data: null };
 }
-<<<<<<< HEAD
 
 // Update Record
 export async function updateEventsStudentSRKVS(data: any): Promise<ApiResponse<any>> {
@@ -270,5 +269,3 @@ export async function updateEventsStudentSRKVS(data: any): Promise<ApiResponse<a
         return { success: false, message: 'An error occurred while updating', data: null };
     }
 }
-=======
->>>>>>> 11c31108 (merged sports)
