@@ -40,7 +40,7 @@ export default function ElectiveReportGridView({
             </div>
 
             {/* Table with ORANGE headers */}
-            <div className=" rounded-lg border-2 shadow-sm ">
+            <div className=" rounded-lg border-2 shadow-sm overflow-x-auto">
                 <table className="w-full border-collapse text-sm ">
                     <thead>
                         <tr className=" bg-gray-200  text-black font-bold">

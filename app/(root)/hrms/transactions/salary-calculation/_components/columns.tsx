@@ -33,22 +33,36 @@ export function getSalaryCalculationColumns({
     return [
         {
             id: 'select',
+            size: 40,
             header: () => (
+                 <div className="flex justify-center">
                 <Checkbox
                     checked={employees.length > 0 && selectedEmployees.length === employees.length}
                     onCheckedChange={(value) => onSelectAll(!!value)}
                     aria-label='Select all'
                 />
+                </div>
             ),
             cell: ({ row }) => (
+                <div className="flex justify-center">
                 <Checkbox
                     checked={selectedEmployees.includes(row.original.HRME_Id)}
                     onCheckedChange={(value) => onEmployeeSelect(row.original.HRME_Id, !!value)}
                     aria-label='Select row'
                 />
+                </div>
             ),
             enableSorting: false,
             enableHiding: false
+        },
+        {
+            accessorKey: 'SL.NO',
+            size: 60,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
+            cell: ({ row, table }) => {
+                const index = table.getSortedRowModel().rows.findIndex((r) => r.id === row.id);
+                return <div >{index + 1}</div>;
+            }
         },
         {
             accessorKey: 'HRME_EmployeeCode',
