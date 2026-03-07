@@ -11,7 +11,6 @@ import type { PageDTO, MobilePageDTO, SavedMobilePageDTO, SavedPageDTO } from '@
 import type { ApiSearchparams } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
 
 interface PageMappingGridsProps {
     webPages: PageDTO[];
@@ -234,99 +233,54 @@ export default function PageMappingGrids({
     };
 
     // Pagination Component Helper
-    const PaginationControls = ({ total, params, setParams, totalPages, isLoading }: { total: number, params: ApiSearchparams, setParams: (p: ApiSearchparams | ((prev: ApiSearchparams) => ApiSearchparams)) => void, totalPages: number, isLoading: boolean }) => {
-        const currentPage = params.page || 1;
-
-        const getRange = () => {
-            if (totalPages <= 7) {
-                return Array.from({ length: totalPages }, (_, i) => i + 1);
-            }
-
-            // Complex range logic
-            if (currentPage <= 3) {
-                return [1, 2, 3, 4, '...', totalPages - 2, totalPages - 1, totalPages];
-            } else if (currentPage >= totalPages - 2) {
-                return [1, 2, 3, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-            } else {
-                return [1, 2, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages - 1, totalPages];
-            }
-        };
-
-        if (totalPages <= 1) return null;
-
-        return (
-            <div className="bg-slate-50/10 backdrop-blur-md px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-white/20 gap-4">
-                <div className="text-[10px] font-black uppercase text-slate-400 tracking-widest order-2 sm:order-1">
-                    Showing <span className="text-slate-600">{(currentPage - 1) * (params.page_size || 10) + 1}</span>
-                    - <span className="text-slate-600">{Math.min(currentPage * (params.page_size || 10), total)}</span>
-                    / <span className="text-slate-600">{total}</span>
-                </div>
-                <div className="flex items-center space-x-1.5 order-1 sm:order-2">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-xl bg-white/20 hover:bg-white/60 text-slate-500 border border-white/40"
-                        onClick={() => setParams((prev) => ({ ...prev, page: 1 }))}
-                        disabled={currentPage === 1 || isLoading}
-                    >
-                        <ChevronsLeft className="h-4 w-4" />
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-xl bg-white/20 hover:bg-white/60 text-slate-500 border border-white/40"
-                        onClick={() => setParams((prev) => ({ ...prev, page: currentPage - 1 }))}
-                        disabled={currentPage === 1 || isLoading}
-                    >
-                        <ChevronLeft className="h-4 w-4" />
-                    </Button>
-
-                    <div className="flex items-center gap-1.5 px-2">
-                        {getRange().map((page, i) => {
-                            if (page === '...') {
-                                return <span key={`dots-${i}`} className="text-[10px] text-slate-400 font-bold">...</span>;
-                            }
-                            const pageNum = page as number;
-                            return (
-                                <button
-                                    key={pageNum}
-                                    onClick={() => setParams((prev) => ({ ...prev, page: pageNum }))}
-                                    className={cn(
-                                        'h-8 min-w-[32px] rounded-xl text-[10px] font-black transition-all border',
-                                        currentPage === pageNum
-                                            ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20'
-                                            : 'bg-white/20 text-slate-500 border-white/40 hover:bg-white/60'
-                                    )}
-                                    disabled={isLoading}
-                                >
-                                    {pageNum}
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-xl bg-white/20 hover:bg-white/60 text-slate-500 border border-white/40"
-                        onClick={() => setParams((prev) => ({ ...prev, page: currentPage + 1 }))}
-                        disabled={currentPage === totalPages || totalPages === 0 || isLoading}
-                    >
-                        <ChevronRight className="h-4 w-4" />
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-xl bg-white/20 hover:bg-white/60 text-slate-500 border border-white/40"
-                        onClick={() => setParams((prev) => ({ ...prev, page: totalPages }))}
-                        disabled={currentPage === totalPages || totalPages === 0 || isLoading}
-                    >
-                        <ChevronsRight className="h-4 w-4" />
-                    </Button>
-                </div>
+    const PaginationControls = ({ total, params, setParams, totalPages, isLoading }: { total: number, params: ApiSearchparams, setParams: (p: ApiSearchparams | ((prev: ApiSearchparams) => ApiSearchparams)) => void, totalPages: number, isLoading: boolean }) => (
+        <div className="bg-gray-50 px-4 py-2 flex items-center justify-between border-t border-blue-100">
+            <div className="text-xs text-gray-500 font-medium">
+                Showing {Math.min((params.page! - 1) * params.page_size! + 1, total)} to {Math.min(params.page! * params.page_size!, total)} of {total} entries
             </div>
-        );
-    };
+            <div className="flex items-center space-x-1">
+                <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => setParams({ ...params, page: 1 })}
+                    disabled={params.page === 1 || isLoading}
+                >
+                    <ChevronsLeft className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => setParams({ ...params, page: params.page! - 1 })}
+                    disabled={params.page === 1 || isLoading}
+                >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                </Button>
+                <div className="flex items-center justify-center h-7 px-3 bg-white border border-gray-200 rounded text-xs font-bold text-blue-600">
+                    {params.page} / {totalPages || 1}
+                </div>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => setParams({ ...params, page: params.page! + 1 })}
+                    disabled={params.page === totalPages || totalPages === 0 || isLoading}
+                >
+                    <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => setParams({ ...params, page: totalPages })}
+                    disabled={params.page === totalPages || totalPages === 0 || isLoading}
+                >
+                    <ChevronsRight className="h-3.5 w-3.5" />
+                </Button>
+            </div>
+        </div>
+    );
 
     // For webPages, we use server-side search, others use client-side search (searchParams)
     // but the mobile master grid and saved grid are also server-side in this implementation
@@ -347,26 +301,24 @@ export default function PageMappingGrids({
     if (!isMounted) return null;
 
     return (
-        <div className="space-y-8">
-            <div className="glass-pane p-1.5 bg-slate-100/50 max-w-sm mx-auto">
-                <TabsList className="grid w-full grid-cols-2 bg-transparent p-0 h-11">
-                    <TabsTrigger value="web" className="rounded-2xl h-full data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all font-black uppercase text-[10px] tracking-widest">Web Engine</TabsTrigger>
-                    <TabsTrigger value="mobile" className="rounded-2xl h-full data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all font-black uppercase text-[10px] tracking-widest">Mobile App</TabsTrigger>
-                </TabsList>
-            </div>
+        <div className="space-y-6">
             <Tabs defaultValue="web" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 bg-gray-100">
+                    <TabsTrigger value="web" className="data-[state=active]:bg-primary data-[state=active]:text-white transition-all font-bold">Web Mapping</TabsTrigger>
+                    <TabsTrigger value="mobile" className="data-[state=active]:bg-primary data-[state=active]:text-white transition-all font-bold">Mobile Mapping</TabsTrigger>
+                </TabsList>
+
                 {/* Web Mapping Tab */}
-                <TabsContent value="web" className="space-y-10 pt-4 outline-none">
+                <TabsContent value="web" className="space-y-6 pt-4">
                     {/* Master Page List */}
-                    <div className="card-bento relative group">
-                        <div className="neon-glow-blue" />
-                        <div className="bento-header p-6">
-                            <h3 className="bento-title">Available Pages to Map</h3>
-                            <div className="relative w-64 z-10">
-                                <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                    <div className="rounded-xl border border-blue-100 bg-white overflow-hidden shadow-sm">
+                        <div className="bg-blue-600 px-4 py-2 flex justify-between items-center text-white">
+                            <h3 className="font-bold text-sm">Master Page List</h3>
+                            <div className="relative w-48">
+                                <Search className="absolute left-2 top-1.5 h-3 w-3 text-white/70" />
                                 <Input
-                                    placeholder="SCANNING PAGES..."
-                                    className="h-10 pl-10 text-[10px] font-black tracking-widest bg-white/60 border-slate-200/60 rounded-full focus:ring-blue-500/20 transition-all placeholder:text-slate-300"
+                                    placeholder="Search.."
+                                    className="h-7 pl-8 bg-white/10 border-none text-white placeholder:text-white/50 text-xs focus-visible:ring-1 focus-visible:ring-white/30"
                                     value={searchWeb}
                                     onChange={(e) => setSearchWeb(e.target.value)}
                                 />
@@ -381,55 +333,55 @@ export default function PageMappingGrids({
                                 </div>
                             ) : (
                                 <Table>
-                                    <TableHeader className="bg-slate-50/50 border-b border-slate-100">
-                                        <TableRow className="hover:bg-transparent border-none">
-                                            <TableHead className="w-16 text-center text-[10px] font-black uppercase text-slate-400 tracking-tighter">Ref#</TableHead>
+                                    <TableHeader className="bg-gray-50/50">
+                                        <TableRow>
+                                            <TableHead className="w-12 text-center text-[10px] font-bold uppercase">SL.NO</TableHead>
                                             {showInstitution && (
-                                                <TableHead className="text-[10px] font-black uppercase text-slate-400 cursor-pointer hover:text-slate-600 transition-colors" onClick={() => handleSort('institutionName', 'web')}>
+                                                <TableHead className="text-[10px] font-bold uppercase cursor-pointer hover:bg-gray-100" onClick={() => handleSort('institutionName', 'web')}>
                                                     Institution {currentWebPageParams.sort_column === 'institutionName' && (currentWebPageParams.sort_direction === 'asc' ? '▲' : '▼')}
                                                 </TableHead>
                                             )}
-                                            <TableHead className="text-[10px] font-black uppercase text-slate-400 cursor-pointer hover:text-slate-600 transition-colors" onClick={() => handleSort('moduleName', 'web')}>
+                                            <TableHead className="text-[10px] font-bold uppercase cursor-pointer hover:bg-gray-100" onClick={() => handleSort('moduleName', 'web')}>
                                                 Module {currentWebPageParams.sort_column === 'moduleName' && (currentWebPageParams.sort_direction === 'asc' ? '▲' : '▼')}
                                             </TableHead>
-                                            <TableHead className="text-[10px] font-black uppercase text-slate-400 cursor-pointer hover:text-slate-600 transition-colors" onClick={() => handleSort('pageName', 'web')}>
-                                                Page Descriptor {currentWebPageParams.sort_column === 'pageName' && (currentWebPageParams.sort_direction === 'asc' ? '▲' : '▼')}
+                                            <TableHead className="text-[10px] font-bold uppercase cursor-pointer hover:bg-gray-100" onClick={() => handleSort('pageName', 'web')}>
+                                                Page Name {currentWebPageParams.sort_column === 'pageName' && (currentWebPageParams.sort_direction === 'asc' ? '▲' : '▼')}
                                             </TableHead>
-                                            <TableHead className="w-20 text-center">
-                                                <div className="flex flex-col items-center gap-1.5"><span className="text-[9px] font-black text-slate-400 uppercase">ADD</span><Checkbox className="rounded-md" onCheckedChange={(v) => handleToggleAll('addFlag', !!v)} /></div>
+                                            <TableHead className="w-16 text-center text-[10px] font-bold uppercase whitespace-nowrap">
+                                                <div className="flex flex-col items-center gap-1">Add <Checkbox onCheckedChange={(v) => handleToggleAll('addFlag', !!v)} /></div>
                                             </TableHead>
-                                            <TableHead className="w-20 text-center">
-                                                <div className="flex flex-col items-center gap-1.5"><span className="text-[9px] font-black text-slate-400 uppercase">DEL</span><Checkbox className="rounded-md" onCheckedChange={(v) => handleToggleAll('deleteFlag', !!v)} /></div>
+                                            <TableHead className="w-16 text-center text-[10px] font-bold uppercase whitespace-nowrap">
+                                                <div className="flex flex-col items-center gap-1">Del <Checkbox onCheckedChange={(v) => handleToggleAll('deleteFlag', !!v)} /></div>
                                             </TableHead>
-                                            <TableHead className="w-20 text-center">
-                                                <div className="flex flex-col items-center gap-1.5"><span className="text-[9px] font-black text-slate-400 uppercase">UPD</span><Checkbox className="rounded-md" onCheckedChange={(v) => handleToggleAll('updateFlag', !!v)} /></div>
+                                            <TableHead className="w-16 text-center text-[10px] font-bold uppercase whitespace-nowrap">
+                                                <div className="flex flex-col items-center gap-1">Upd <Checkbox onCheckedChange={(v) => handleToggleAll('updateFlag', !!v)} /></div>
                                             </TableHead>
-                                            <TableHead className="w-20 text-center">
-                                                <div className="flex flex-col items-center gap-1.5"><span className="text-[9px] font-black text-slate-400 uppercase">PRC</span><Checkbox className="rounded-md" onCheckedChange={(v) => handleToggleAll('processFlag', !!v)} /></div>
+                                            <TableHead className="w-16 text-center text-[10px] font-bold uppercase whitespace-nowrap">
+                                                <div className="flex flex-col items-center gap-1">Proc <Checkbox onCheckedChange={(v) => handleToggleAll('processFlag', !!v)} /></div>
                                             </TableHead>
-                                            <TableHead className="w-20 text-center">
-                                                <div className="flex flex-col items-center gap-1.5"><span className="text-[9px] font-black text-slate-400 uppercase">REP</span><Checkbox className="rounded-md" onCheckedChange={(v) => handleToggleAll('reportFlag', !!v)} /></div>
+                                            <TableHead className="w-16 text-center text-[10px] font-bold uppercase whitespace-nowrap">
+                                                <div className="flex flex-col items-center gap-1">Rep <Checkbox onCheckedChange={(v) => handleToggleAll('reportFlag', !!v)} /></div>
                                             </TableHead>
-                                            <TableHead className="w-20 text-center">
-                                                <div className="flex flex-col items-center gap-1.5"><span className="text-[9px] font-black text-blue-600 uppercase">MAP</span><Checkbox className="rounded-md border-blue-400 data-[state=checked]:bg-blue-600" onCheckedChange={(v) => handleToggleAll('checked', !!v)} /></div>
+                                            <TableHead className="w-16 text-center text-[10px] font-bold uppercase whitespace-nowrap">
+                                                <div className="flex flex-col items-center gap-1">Select <Checkbox onCheckedChange={(v) => handleToggleAll('checked', !!v)} /></div>
                                             </TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {filteredWeb.map((page, idx) => (
-                                            <TableRow key={page.pageMappingId} className="hover:bg-blue-50/10 border-slate-50 transition-colors group">
-                                                <TableCell className="text-center font-bold text-[10px] text-slate-300 group-hover:text-blue-500 transition-colors">
+                                            <TableRow key={page.pageMappingId} className="hover:bg-blue-50/30 transition-colors">
+                                                <TableCell className="text-center text-xs py-2">
                                                     {(currentWebPageParams.page! - 1) * currentWebPageParams.page_size! + idx + 1}
                                                 </TableCell>
-                                                {showInstitution && <TableCell className="text-xs py-4 font-semibold text-slate-500 tracking-tight">{page.institutionName}</TableCell>}
-                                                <TableCell className="text-[11px] py-4 text-slate-400 font-medium">{page.moduleName}</TableCell>
-                                                <TableCell className="text-xs py-4 font-black text-slate-700 tracking-tight uppercase">{page.pageName}</TableCell>
-                                                <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="h-5 w-5 rounded-md" checked={page.addFlag} onCheckedChange={(v) => handleWebCheck(idx, 'addFlag', !!v)} /></div></TableCell>
-                                                <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="h-5 w-5 rounded-md" checked={page.deleteFlag} onCheckedChange={(v) => handleWebCheck(idx, 'deleteFlag', !!v)} /></div></TableCell>
-                                                <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="h-5 w-5 rounded-md" checked={page.updateFlag} onCheckedChange={(v) => handleWebCheck(idx, 'updateFlag', !!v)} /></div></TableCell>
-                                                <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="h-5 w-5 rounded-md" checked={page.processFlag} onCheckedChange={(v) => handleWebCheck(idx, 'processFlag', !!v)} /></div></TableCell>
-                                                <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="h-5 w-5 rounded-md" checked={page.reportFlag} onCheckedChange={(v) => handleWebCheck(idx, 'reportFlag', !!v)} /></div></TableCell>
-                                                <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="h-6 w-6 rounded-lg border-blue-200 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 shadow-sm" checked={page.checked} onCheckedChange={(v) => handleWebCheck(idx, 'checked', !!v)} /></div></TableCell>
+                                                {showInstitution && <TableCell className="text-xs py-2">{page.institutionName}</TableCell>}
+                                                <TableCell className="text-xs py-2">{page.moduleName}</TableCell>
+                                                <TableCell className="text-xs py-2 font-medium">{page.pageName}</TableCell>
+                                                <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.addFlag} onCheckedChange={(v) => handleWebCheck(idx, 'addFlag', !!v)} /></div></TableCell>
+                                                <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.deleteFlag} onCheckedChange={(v) => handleWebCheck(idx, 'deleteFlag', !!v)} /></div></TableCell>
+                                                <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.updateFlag} onCheckedChange={(v) => handleWebCheck(idx, 'updateFlag', !!v)} /></div></TableCell>
+                                                <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.processFlag} onCheckedChange={(v) => handleWebCheck(idx, 'processFlag', !!v)} /></div></TableCell>
+                                                <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.reportFlag} onCheckedChange={(v) => handleWebCheck(idx, 'reportFlag', !!v)} /></div></TableCell>
+                                                <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.checked} onCheckedChange={(v) => handleWebCheck(idx, 'checked', !!v)} className="border-blue-500 data-[state=checked]:bg-blue-500" /></div></TableCell>
                                             </TableRow>
                                         ))}
                                         {filteredWeb.length === 0 && (
@@ -452,15 +404,14 @@ export default function PageMappingGrids({
 
                     {/* Add New Pages Grid (staged) */}
                     {stagedWebPages.length > 0 && (
-                        <div className="card-bento relative group">
-                            <div className="neon-glow-orange" />
-                            <div className="bento-header p-6">
-                                <h3 className="bento-title text-orange-600">Staged Pages (Pending Persistence)</h3>
-                                <div className="relative w-64 z-10">
-                                    <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                        <div className="rounded-xl border border-orange-100 bg-white overflow-hidden shadow-sm mt-6">
+                            <div className="bg-orange-600 px-4 py-2 flex justify-between items-center text-white">
+                                <h3 className="font-bold text-sm">Add New Pages</h3>
+                                <div className="relative w-48">
+                                    <Search className="absolute left-2 top-1.5 h-3 w-3 text-white/70" />
                                     <Input
-                                        placeholder="FILTER STAGED..."
-                                        className="h-10 pl-10 text-[10px] font-black tracking-widest bg-white/60 border-slate-200/60 rounded-full focus:ring-orange-500/20 transition-all placeholder:text-slate-300"
+                                        placeholder="Search staged..."
+                                        className="h-7 pl-8 bg-white/10 border-none text-white placeholder:text-white/50 text-xs focus-visible:ring-1 focus-visible:ring-white/30"
                                         value={searchStaged}
                                         onChange={(e) => { setSearchStaged(e.target.value); setStagedPage(1); }}
                                     />
@@ -468,42 +419,42 @@ export default function PageMappingGrids({
                             </div>
                             <ScrollArea className="h-64">
                                 {filteredStaged.length === 0 ? (
-                                    <div className="p-12 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">No matching staged entities found.</div>
+                                    <div className="p-4 text-center text-gray-500">No staged pages match your search.</div>
                                 ) : (
                                     <Table>
-                                        <TableHeader className="bg-slate-50/50 border-b border-slate-100">
-                                            <TableRow className="hover:bg-transparent border-none">
-                                                <TableHead className="w-16 text-center text-[10px] font-black uppercase text-slate-400 tracking-tighter">IDX</TableHead>
+                                        <TableHeader className="bg-gray-50/50">
+                                            <TableRow>
+                                                <TableHead className="w-12 text-center text-[10px] font-bold uppercase">SNO</TableHead>
                                                 {showInstitution && (
-                                                    <TableHead className="text-[10px] font-black uppercase text-slate-400">Institution</TableHead>
+                                                    <TableHead className="text-[10px] font-bold uppercase px-4">Institution</TableHead>
                                                 )}
-                                                <TableHead className="text-[10px] font-black uppercase text-slate-400">Module</TableHead>
-                                                <TableHead className="text-[10px] font-black uppercase text-slate-400">Descriptor</TableHead>
-                                                <TableHead className="w-16 text-center text-[9px] font-black text-slate-400">ADD</TableHead>
-                                                <TableHead className="w-16 text-center text-[9px] font-black text-slate-400">DEL</TableHead>
-                                                <TableHead className="w-16 text-center text-[9px] font-black text-slate-400">UPD</TableHead>
-                                                <TableHead className="w-16 text-center text-[9px] font-black text-slate-400">PRC</TableHead>
-                                                <TableHead className="w-16 text-center text-[9px] font-black text-slate-400">REP</TableHead>
-                                                <TableHead className="w-16 text-center text-[9px] font-black text-red-500 uppercase">Drop</TableHead>
+                                                <TableHead className="text-[10px] font-bold uppercase px-4">Module</TableHead>
+                                                <TableHead className="text-[10px] font-bold uppercase px-4">Page Name</TableHead>
+                                                <TableHead className="w-16 text-center text-[10px] font-bold uppercase">Add</TableHead>
+                                                <TableHead className="w-16 text-center text-[10px] font-bold uppercase">Delete</TableHead>
+                                                <TableHead className="w-16 text-center text-[10px] font-bold uppercase">Update</TableHead>
+                                                <TableHead className="w-16 text-center text-[10px] font-bold uppercase">Process</TableHead>
+                                                <TableHead className="w-16 text-center text-[10px] font-bold uppercase">Report</TableHead>
+                                                <TableHead className="w-16 text-center text-[10px] font-bold uppercase text-red-600">Action</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             {paginatedStaged.map((page, idx) => (
-                                                <TableRow key={page.pageMappingId} className="hover:bg-orange-50/10 border-slate-50 transition-colors group">
-                                                    <TableCell className="text-center font-bold text-[10px] text-slate-300 group-hover:text-orange-500 transition-colors">
+                                                <TableRow key={page.pageMappingId} className="hover:bg-orange-50/30 transition-colors">
+                                                    <TableCell className="text-center text-xs py-2">
                                                         {(stagedPage - 1) * stagedPageSize + idx + 1}
                                                     </TableCell>
-                                                    {showInstitution && <TableCell className="text-xs py-4 font-semibold text-slate-400/80 italic tracking-tight">{page.institutionName}</TableCell>}
-                                                    <TableCell className="text-[11px] py-4 text-slate-400 font-medium">{page.moduleName}</TableCell>
-                                                    <TableCell className="text-xs py-4 font-black text-slate-700 tracking-tight uppercase">{page.pageName}</TableCell>
-                                                    <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="h-4 w-4 rounded" checked={page.addFlag} onCheckedChange={(v) => handleStagedCheck(idx, 'addFlag', !!v)} /></div></TableCell>
-                                                    <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="h-4 w-4 rounded" checked={page.deleteFlag} onCheckedChange={(v) => handleStagedCheck(idx, 'deleteFlag', !!v)} /></div></TableCell>
-                                                    <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="h-4 w-4 rounded" checked={page.updateFlag} onCheckedChange={(v) => handleStagedCheck(idx, 'updateFlag', !!v)} /></div></TableCell>
-                                                    <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="h-4 w-4 rounded" checked={page.processFlag} onCheckedChange={(v) => handleStagedCheck(idx, 'processFlag', !!v)} /></div></TableCell>
-                                                    <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="h-4 w-4 rounded" checked={page.reportFlag} onCheckedChange={(v) => handleStagedCheck(idx, 'reportFlag', !!v)} /></div></TableCell>
-                                                    <TableCell className="text-center">
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all" onClick={() => handleRemoveStaged(page.pageMappingId)}>
-                                                            <Trash2 className="h-4 w-4" />
+                                                    {showInstitution && <TableCell className="text-xs py-2 px-4 italic text-gray-400">{page.institutionName}</TableCell>}
+                                                    <TableCell className="text-xs py-2 px-4">{page.moduleName}</TableCell>
+                                                    <TableCell className="text-xs py-2 px-4 font-medium">{page.pageName}</TableCell>
+                                                    <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.addFlag} onCheckedChange={(v) => handleStagedCheck(idx, 'addFlag', !!v)} /></div></TableCell>
+                                                    <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.deleteFlag} onCheckedChange={(v) => handleStagedCheck(idx, 'deleteFlag', !!v)} /></div></TableCell>
+                                                    <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.updateFlag} onCheckedChange={(v) => handleStagedCheck(idx, 'updateFlag', !!v)} /></div></TableCell>
+                                                    <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.processFlag} onCheckedChange={(v) => handleStagedCheck(idx, 'processFlag', !!v)} /></div></TableCell>
+                                                    <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.reportFlag} onCheckedChange={(v) => handleStagedCheck(idx, 'reportFlag', !!v)} /></div></TableCell>
+                                                    <TableCell className="text-center py-2">
+                                                        <Button variant="ghost" size="icon" className="h-6 w-6 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => handleRemoveStaged(page.pageMappingId)}>
+                                                            <Trash2 className="h-3.5 w-3.5" />
                                                         </Button>
                                                     </TableCell>
                                                 </TableRow>
@@ -523,15 +474,14 @@ export default function PageMappingGrids({
                     )}
 
                     {/* Saved List */}
-                    <div className="card-bento relative group">
-                        <div className="neon-glow-green" />
-                        <div className="bento-header p-6">
-                            <h3 className="bento-title text-green-600">Active Persistence Layer</h3>
-                            <div className="relative w-64 z-10">
-                                <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                    <div className="rounded-xl border border-green-100 bg-white overflow-hidden shadow-sm">
+                        <div className="bg-green-600 px-4 py-2 flex justify-between items-center text-white">
+                            <h3 className="font-bold text-sm">Saved List (Existing Privileges)</h3>
+                            <div className="relative w-48">
+                                <Search className="absolute left-2 top-1.5 h-3 w-3 text-white/70" />
                                 <Input
-                                    placeholder="ARCHIVE SEARCH..."
-                                    className="h-10 pl-10 text-[10px] font-black tracking-widest bg-white/60 border-slate-200/60 rounded-full focus:ring-green-500/20 transition-all placeholder:text-slate-300"
+                                    placeholder="Search.."
+                                    className="h-7 pl-8 bg-white/10 border-none text-white placeholder:text-white/50 text-xs focus-visible:ring-1 focus-visible:ring-white/30"
                                     value={searchSavedWeb}
                                     onChange={(e) => setSearchSavedWeb(e.target.value)}
                                 />
@@ -539,50 +489,50 @@ export default function PageMappingGrids({
                         </div>
                         <ScrollArea className="h-64">
                             {isSavedGridLoading ? (
-                                <div className="p-8 space-y-4">
+                                <div className="p-4 space-y-2">
                                     {[...Array(5)].map((_, i) => (
-                                        <Skeleton key={i} className="h-12 w-full rounded-2xl" />
+                                        <Skeleton key={i} className="h-8 w-full" />
                                     ))}
                                 </div>
                             ) : (
                                 <Table>
-                                    <TableHeader className="bg-slate-50/50 border-b border-slate-100">
-                                        <TableRow className="hover:bg-transparent border-none">
-                                            <TableHead className="w-16 text-center text-[10px] font-black uppercase text-slate-400 tracking-tighter">REF</TableHead>
+                                    <TableHeader className="bg-gray-50/50">
+                                        <TableRow>
+                                            <TableHead className="w-12 text-center text-[10px] font-bold uppercase">SL.NO</TableHead>
                                             {showInstitution && (
-                                                <TableHead className="text-[10px] font-black uppercase text-slate-400 cursor-pointer hover:text-slate-600" onClick={() => handleSort('institution', 'saved')}>
+                                                <TableHead className="text-[10px] font-bold uppercase px-4 cursor-pointer hover:bg-gray-100" onClick={() => handleSort('institution', 'saved')}>
                                                     Institution {currentSavedGridParams.sort_column === 'institution' && (currentSavedGridParams.sort_direction === 'asc' ? '▲' : '▼')}
                                                 </TableHead>
                                             )}
-                                            <TableHead className="text-[10px] font-black uppercase text-slate-400 cursor-pointer hover:text-slate-600" onClick={() => handleSort('module', 'saved')}>
+                                            <TableHead className="text-[10px] font-bold uppercase px-4 cursor-pointer hover:bg-gray-100" onClick={() => handleSort('module', 'saved')}>
                                                 Module {currentSavedGridParams.sort_column === 'module' && (currentSavedGridParams.sort_direction === 'asc' ? '▲' : '▼')}
                                             </TableHead>
-                                            <TableHead className="text-[10px] font-black uppercase text-slate-400 cursor-pointer hover:text-slate-600" onClick={() => handleSort('pageName', 'saved')}>
-                                                Descriptor {currentSavedGridParams.sort_column === 'pageName' && (currentSavedGridParams.sort_direction === 'asc' ? '▲' : '▼')}
+                                            <TableHead className="text-[10px] font-bold uppercase px-4 cursor-pointer hover:bg-gray-100" onClick={() => handleSort('pageName', 'saved')}>
+                                                Page Name {currentSavedGridParams.sort_column === 'pageName' && (currentSavedGridParams.sort_direction === 'asc' ? '▲' : '▼')}
                                             </TableHead>
-                                            <TableHead className="w-16 text-center text-[9px] font-black text-slate-400">ADD</TableHead>
-                                            <TableHead className="w-16 text-center text-[9px] font-black text-slate-400">DEL</TableHead>
-                                            <TableHead className="w-16 text-center text-[9px] font-black text-slate-400">UPD</TableHead>
-                                            <TableHead className="w-16 text-center text-[9px] font-black text-slate-400">PRC</TableHead>
-                                            <TableHead className="w-16 text-center text-[9px] font-black text-slate-400">REP</TableHead>
-                                            <TableHead className="w-16 text-center text-[9px] font-black text-red-500 uppercase">OFF</TableHead>
+                                            <TableHead className="w-16 text-center text-[10px] font-bold uppercase">Add</TableHead>
+                                            <TableHead className="w-16 text-center text-[10px] font-bold uppercase">Del</TableHead>
+                                            <TableHead className="w-16 text-center text-[10px] font-bold uppercase">Upd</TableHead>
+                                            <TableHead className="w-16 text-center text-[10px] font-bold uppercase">Proc</TableHead>
+                                            <TableHead className="w-16 text-center text-[10px] font-bold uppercase">Rep</TableHead>
+                                            <TableHead className="w-16 text-center text-[10px] font-bold uppercase text-red-600">Rem</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {savedGrid.map((page, idx) => (
-                                            <TableRow key={page.ivrmstauP_Id} className="hover:bg-green-50/10 border-slate-50 transition-colors group">
-                                                <TableCell className="text-center font-bold text-[10px] text-slate-300 group-hover:text-green-500 transition-colors">
+                                            <TableRow key={page.ivrmstauP_Id} className="hover:bg-green-50/30 transition-colors">
+                                                <TableCell className="text-center text-xs py-2">
                                                     {(currentSavedGridParams.page! - 1) * currentSavedGridParams.page_size! + idx + 1}
                                                 </TableCell>
-                                                {showInstitution && <TableCell className="text-xs py-4 px-4"></TableCell>}
-                                                <TableCell className="text-xs py-4 px-4"></TableCell>
-                                                <TableCell className="text-xs py-4 px-4 font-black text-slate-700 tracking-tight uppercase">{page.ivrmmP_PageName}</TableCell>
-                                                <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="rounded" checked={page.ivrmrP_AddFlag} onCheckedChange={(v) => handleSavedCheck(idx, 'ivrmrP_AddFlag', !!v)} /></div></TableCell>
-                                                <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="rounded" checked={page.ivrmrP_DeleteFlag} onCheckedChange={(v) => handleSavedCheck(idx, 'ivrmrP_DeleteFlag', !!v)} /></div></TableCell>
-                                                <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="rounded" checked={page.ivrmrP_UpdateFlag} onCheckedChange={(v) => handleSavedCheck(idx, 'ivrmrP_UpdateFlag', !!v)} /></div></TableCell>
-                                                <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="rounded" checked={page.ivrmrP_ProcessFlag} onCheckedChange={(v) => handleSavedCheck(idx, 'ivrmrP_ProcessFlag', !!v)} /></div></TableCell>
-                                                <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="rounded" checked={page.ivrmrP_ReportFlag} onCheckedChange={(v) => handleSavedCheck(idx, 'ivrmrP_ReportFlag', !!v)} /></div></TableCell>
-                                                <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="h-5 w-5 rounded-md border-red-200 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500" checked={page.checked} onCheckedChange={(v) => handleSavedCheck(idx, 'checked', !!v)} /></div></TableCell>
+                                                {showInstitution && <TableCell className="text-xs py-2 px-4"></TableCell>}
+                                                <TableCell className="text-xs py-2 px-4"></TableCell>
+                                                <TableCell className="text-xs py-2 px-4 font-medium">{page.ivrmmP_PageName}</TableCell>
+                                                <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.ivrmrP_AddFlag} onCheckedChange={(v) => handleSavedCheck(idx, 'ivrmrP_AddFlag', !!v)} /></div></TableCell>
+                                                <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.ivrmrP_DeleteFlag} onCheckedChange={(v) => handleSavedCheck(idx, 'ivrmrP_DeleteFlag', !!v)} /></div></TableCell>
+                                                <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.ivrmrP_UpdateFlag} onCheckedChange={(v) => handleSavedCheck(idx, 'ivrmrP_UpdateFlag', !!v)} /></div></TableCell>
+                                                <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.ivrmrP_ProcessFlag} onCheckedChange={(v) => handleSavedCheck(idx, 'ivrmrP_ProcessFlag', !!v)} /></div></TableCell>
+                                                <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.ivrmrP_ReportFlag} onCheckedChange={(v) => handleSavedCheck(idx, 'ivrmrP_ReportFlag', !!v)} /></div></TableCell>
+                                                <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.checked} onCheckedChange={(v) => handleSavedCheck(idx, 'checked', !!v)} className="border-red-500 data-[state=checked]:bg-red-500" /></div></TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
@@ -600,17 +550,16 @@ export default function PageMappingGrids({
                 </TabsContent>
 
                 {/* Mobile Mapping Tab */}
-                <TabsContent value="mobile" className="space-y-10 pt-4 outline-none">
+                <TabsContent value="mobile" className="space-y-6 pt-4">
                     {/* Mobile Master List */}
-                    <div className="card-bento relative group">
-                        <div className="neon-glow-purple" />
-                        <div className="bento-header p-6">
-                            <h3 className="bento-title text-purple-600">Mobile Ecosystem Pages</h3>
-                            <div className="relative w-64 z-10">
-                                <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                    <div className="rounded-xl border border-purple-100 bg-white overflow-hidden shadow-sm">
+                        <div className="bg-purple-600 px-4 py-2 flex justify-between items-center text-white">
+                            <h3 className="font-bold text-sm">Mobile App Master Page List</h3>
+                            <div className="relative w-48">
+                                <Search className="absolute left-2 top-1.5 h-3 w-3 text-white/70" />
                                 <Input
-                                    placeholder="APP SCAN..."
-                                    className="h-10 pl-10 text-[10px] font-black tracking-widest bg-white/60 border-slate-200/60 rounded-full focus:ring-purple-500/20 transition-all placeholder:text-slate-300"
+                                    placeholder="Search.."
+                                    className="h-7 pl-8 bg-white/10 border-none text-white placeholder:text-white/50 text-xs focus-visible:ring-1 focus-visible:ring-white/30"
                                     value={searchMobile}
                                     onChange={(e) => setSearchMobile(e.target.value)}
                                 />
@@ -618,45 +567,45 @@ export default function PageMappingGrids({
                         </div>
                         <ScrollArea className="h-64">
                             {isMobilePageLoading ? (
-                                <div className="p-8 space-y-4">
+                                <div className="p-4 space-y-2">
                                     {[...Array(5)].map((_, i) => (
-                                        <Skeleton key={i} className="h-12 w-full rounded-2xl" />
+                                        <Skeleton key={i} className="h-8 w-full" />
                                     ))}
                                 </div>
                             ) : (
                                 <Table>
-                                    <TableHeader className="bg-slate-50/50 border-b border-slate-100">
-                                        <TableRow className="hover:bg-transparent border-none">
-                                            <TableHead className="w-16 text-center text-[10px] font-black uppercase text-slate-400 tracking-tighter">IDX</TableHead>
-                                            <TableHead className="text-[10px] font-black uppercase text-slate-400 cursor-pointer hover:text-slate-600 transition-colors" onClick={() => handleSort('pageName', 'mobile')}>
-                                                Interface Name {currentMobilePageParams.sort_column === 'pageName' && (currentMobilePageParams.sort_direction === 'asc' ? '▲' : '▼')}
+                                    <TableHeader className="bg-gray-50/50">
+                                        <TableRow>
+                                            <TableHead className="w-12 text-center text-[10px] font-bold uppercase">SL.NO</TableHead>
+                                            <TableHead className="text-[10px] font-bold uppercase px-4 cursor-pointer hover:bg-gray-100" onClick={() => handleSort('pageName', 'mobile')}>
+                                                Page Name {currentMobilePageParams.sort_column === 'pageName' && (currentMobilePageParams.sort_direction === 'asc' ? '▲' : '▼')}
                                             </TableHead>
-                                            <TableHead className="w-20 text-center">
-                                                <div className="flex flex-col items-center gap-1.5"><span className="text-[9px] font-black text-slate-400 uppercase">ADD</span><Checkbox className="rounded-md" onCheckedChange={(v) => handleMobileToggleAll('ivrmmaP_AddFlg', !!v)} /></div>
+                                            <TableHead className="w-16 text-center text-[10px] font-bold uppercase">
+                                                <div className="flex flex-col items-center gap-1">Add <Checkbox onCheckedChange={(v) => handleMobileToggleAll('ivrmmaP_AddFlg', !!v)} /></div>
                                             </TableHead>
-                                            <TableHead className="w-20 text-center">
-                                                <div className="flex flex-col items-center gap-1.5"><span className="text-[9px] font-black text-slate-400 uppercase">UPD</span><Checkbox className="rounded-md" onCheckedChange={(v) => handleMobileToggleAll('ivrmmaP_UpdateFlg', !!v)} /></div>
+                                            <TableHead className="w-16 text-center text-[10px] font-bold uppercase">
+                                                <div className="flex flex-col items-center gap-1">Upd <Checkbox onCheckedChange={(v) => handleMobileToggleAll('ivrmmaP_UpdateFlg', !!v)} /></div>
                                             </TableHead>
-                                            <TableHead className="w-20 text-center">
-                                                <div className="flex flex-col items-center gap-1.5"><span className="text-[9px] font-black text-slate-400 uppercase">DEL</span><Checkbox className="rounded-md" onCheckedChange={(v) => handleMobileToggleAll('ivrmmaP_DeleteFlg', !!v)} /></div>
+                                            <TableHead className="w-16 text-center text-[10px] font-bold uppercase">
+                                                <div className="flex flex-col items-center gap-1">Del <Checkbox onCheckedChange={(v) => handleMobileToggleAll('ivrmmaP_DeleteFlg', !!v)} /></div>
                                             </TableHead>
-                                            <TableHead className="w-20 text-center">
-                                                <div className="flex flex-col items-center gap-1.5"><span className="text-[9px] font-black text-purple-600 uppercase">MAP</span><Checkbox className="rounded-md border-purple-400 data-[state=checked]:bg-purple-600" onCheckedChange={(v) => handleMobileToggleAll('checked', !!v)} /></div>
+                                            <TableHead className="w-16 text-center text-[10px] font-bold uppercase">
+                                                <div className="flex flex-col items-center gap-1">Select <Checkbox onCheckedChange={(v) => handleMobileToggleAll('checked', !!v)} /></div>
                                             </TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {mobilePages.map((page, idx) => (
-                                            <TableRow key={page.ivrmmaP_Id} className="hover:bg-purple-50/10 border-slate-50 transition-colors group">
-                                                <TableCell className="text-center font-bold text-[10px] text-slate-300 group-hover:text-purple-500 transition-colors">
+                                            <TableRow key={page.ivrmmaP_Id} className="hover:bg-purple-50/30 transition-colors">
+                                                <TableCell className="text-center text-xs py-2">
                                                     {(currentMobilePageParams.page! - 1) * currentMobilePageParams.page_size! + idx + 1}
                                                 </TableCell>
-                                                <TableCell className="text-xs py-4 font-black text-slate-700 tracking-tight uppercase px-4">{page.ivrmmaP_AppPageName}</TableCell>
-                                                <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="h-5 w-5 rounded-md" checked={page.ivrmmaP_AddFlg} onCheckedChange={(v) => handleMobileCheck(idx, 'ivrmmaP_AddFlg', !!v)} /></div></TableCell>
-                                                <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="h-5 w-5 rounded-md" checked={page.ivrmmaP_UpdateFlg} onCheckedChange={(v) => handleMobileCheck(idx, 'ivrmmaP_UpdateFlg', !!v)} /></div></TableCell>
-                                                <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="h-5 w-5 rounded-md" checked={page.ivrmmaP_DeleteFlg} onCheckedChange={(v) => handleMobileCheck(idx, 'ivrmmaP_DeleteFlg', !!v)} /></div></TableCell>
-                                                <TableCell className="text-center">
-                                                    <div className="flex justify-center"><Checkbox className="h-6 w-6 rounded-lg border-purple-200 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 shadow-sm" checked={page.checked} onCheckedChange={(v) => handleMobileCheck(idx, 'checked', !!v)} /></div>
+                                                <TableCell className="text-xs py-2 px-4 font-medium">{page.ivrmmaP_AppPageName}</TableCell>
+                                                <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.ivrmmaP_AddFlg} onCheckedChange={(v) => handleMobileCheck(idx, 'ivrmmaP_AddFlg', !!v)} /></div></TableCell>
+                                                <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.ivrmmaP_UpdateFlg} onCheckedChange={(v) => handleMobileCheck(idx, 'ivrmmaP_UpdateFlg', !!v)} /></div></TableCell>
+                                                <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.ivrmmaP_DeleteFlg} onCheckedChange={(v) => handleMobileCheck(idx, 'ivrmmaP_DeleteFlg', !!v)} /></div></TableCell>
+                                                <TableCell className="text-center py-2">
+                                                    <div className="flex justify-center"><Checkbox checked={page.checked} onCheckedChange={(v) => handleMobileCheck(idx, 'checked', !!v)} className="border-purple-500 data-[state=checked]:bg-purple-500" /></div>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -674,15 +623,14 @@ export default function PageMappingGrids({
                     </div>
 
                     {/* Saved Mobile List */}
-                    <div className="card-bento relative group">
-                        <div className="neon-glow-orange" />
-                        <div className="bento-header p-6">
-                            <h3 className="bento-title text-orange-600">Archived Mobile Nodes</h3>
-                            <div className="relative w-64 z-10">
-                                <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                    <div className="rounded-xl border border-orange-100 bg-white overflow-hidden shadow-sm">
+                        <div className="bg-orange-600 px-4 py-2 flex justify-between items-center text-white">
+                            <h3 className="font-bold text-sm">Saved Mobile App Page List</h3>
+                            <div className="relative w-48">
+                                <Search className="absolute left-2 top-1.5 h-3 w-3 text-white/70" />
                                 <Input
-                                    placeholder="NODE QUERY..."
-                                    className="h-10 pl-10 text-[10px] font-black tracking-widest bg-white/60 border-slate-200/60 rounded-full focus:ring-orange-600/20 transition-all placeholder:text-slate-300"
+                                    placeholder="Search.."
+                                    className="h-7 pl-8 bg-white/10 border-none text-white placeholder:text-white/50 text-xs focus-visible:ring-1 focus-visible:ring-white/30"
                                     value={searchSavedMobile}
                                     onChange={(e) => setSearchSavedMobile(e.target.value)}
                                 />
@@ -690,36 +638,36 @@ export default function PageMappingGrids({
                         </div>
                         <ScrollArea className="h-64">
                             {isSavedMobilePageLoading ? (
-                                <div className="p-8 space-y-4">
+                                <div className="p-4 space-y-2">
                                     {[...Array(5)].map((_, i) => (
-                                        <Skeleton key={i} className="h-12 w-full rounded-2xl" />
+                                        <Skeleton key={i} className="h-8 w-full" />
                                     ))}
                                 </div>
                             ) : (
                                 <Table>
-                                    <TableHeader className="bg-slate-50/50 border-b border-slate-100">
-                                        <TableRow className="hover:bg-transparent border-none">
-                                            <TableHead className="w-16 text-center text-[10px] font-black uppercase text-slate-400 tracking-tighter">IDX</TableHead>
-                                            <TableHead className="text-[10px] font-black uppercase text-slate-400 cursor-pointer hover:text-slate-600 transition-colors" onClick={() => handleSort('pageName', 'savedMobile')}>
-                                                Interface Locator {currentSavedMobilePageParams.sort_column === 'pageName' && (currentSavedMobilePageParams.sort_direction === 'asc' ? '▲' : '▼')}
+                                    <TableHeader className="bg-gray-50/50">
+                                        <TableRow>
+                                            <TableHead className="w-12 text-center text-[10px] font-bold uppercase">SL.NO</TableHead>
+                                            <TableHead className="text-[10px] font-bold uppercase px-4 cursor-pointer hover:bg-gray-100" onClick={() => handleSort('pageName', 'savedMobile')}>
+                                                Page Name {currentSavedMobilePageParams.sort_column === 'pageName' && (currentSavedMobilePageParams.sort_direction === 'asc' ? '▲' : '▼')}
                                             </TableHead>
-                                            <TableHead className="w-20 text-center text-[9px] font-black text-slate-400">ADD</TableHead>
-                                            <TableHead className="w-20 text-center text-[9px] font-black text-slate-400">DEL</TableHead>
-                                            <TableHead className="w-20 text-center text-[9px] font-black text-slate-400">UPD</TableHead>
-                                            <TableHead className="w-20 text-center text-[9px] font-black text-red-500 uppercase">OFF</TableHead>
+                                            <TableHead className="w-16 text-center text-[10px] font-bold uppercase">Add</TableHead>
+                                            <TableHead className="w-16 text-center text-[10px] font-bold uppercase">Del</TableHead>
+                                            <TableHead className="w-16 text-center text-[10px] font-bold uppercase">Upd</TableHead>
+                                            <TableHead className="w-16 text-center text-[10px] font-bold uppercase text-red-600">Rem</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {savedMobilePages.map((page, idx) => (
-                                            <TableRow key={page.ivrmumalP_Id} className="hover:bg-orange-50/10 border-slate-50 transition-colors group">
-                                                <TableCell className="text-center font-bold text-[10px] text-slate-300 group-hover:text-orange-500 transition-colors">
+                                            <TableRow key={page.ivrmumalP_Id} className="hover:bg-orange-50/30 transition-colors">
+                                                <TableCell className="text-center text-xs py-2">
                                                     {(currentSavedMobilePageParams.page! - 1) * currentSavedMobilePageParams.page_size! + idx + 1}
                                                 </TableCell>
-                                                <TableCell className="text-xs py-4 font-black text-slate-700 tracking-tight uppercase px-4">{page.ivrmmaP_AppPageName}</TableCell>
-                                                <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="rounded" checked={!!page.ivrmumalP_AddFlg} onCheckedChange={(v) => handleSavedMobileCheck(idx, 'ivrmumalP_AddFlg', !!v)} /></div></TableCell>
-                                                <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="rounded" checked={!!page.ivrmumalP_DeleteFlg} onCheckedChange={(v) => handleSavedMobileCheck(idx, 'ivrmumalP_DeleteFlg', !!v)} /></div></TableCell>
-                                                <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="rounded" checked={!!page.ivrmumalP_UpdateFlg} onCheckedChange={(v) => handleSavedMobileCheck(idx, 'ivrmumalP_UpdateFlg', !!v)} /></div></TableCell>
-                                                <TableCell className="text-center"><div className="flex justify-center"><Checkbox className="h-5 w-5 rounded-md border-red-200 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500" checked={page.checked} onCheckedChange={(v) => handleSavedMobileCheck(idx, 'checked', !!v)} /></div></TableCell>
+                                                <TableCell className="text-xs py-2 px-4 font-medium">{page.ivrmmaP_AppPageName}</TableCell>
+                                                <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={!!page.ivrmumalP_AddFlg} onCheckedChange={(v) => handleSavedMobileCheck(idx, 'ivrmumalP_AddFlg', !!v)} /></div></TableCell>
+                                                <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={!!page.ivrmumalP_DeleteFlg} onCheckedChange={(v) => handleSavedMobileCheck(idx, 'ivrmumalP_DeleteFlg', !!v)} /></div></TableCell>
+                                                <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={!!page.ivrmumalP_UpdateFlg} onCheckedChange={(v) => handleSavedMobileCheck(idx, 'ivrmumalP_UpdateFlg', !!v)} /></div></TableCell>
+                                                <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.checked} onCheckedChange={(v) => handleSavedMobileCheck(idx, 'checked', !!v)} className="border-red-500 data-[state=checked]:bg-red-500" /></div></TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>

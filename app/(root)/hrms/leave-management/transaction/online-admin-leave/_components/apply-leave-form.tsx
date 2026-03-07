@@ -30,12 +30,13 @@ import {
     FileText,
     ArrowRight,
 } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Separator } from '@/components/ui/separator';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { toast } from 'sonner';
 import type { OnlineAdminLeaveApplication } from '@/types/hrms/leave-management/online-admin-leave';
+import { saveLeaveRequestDocument } from '@/server/hrms/leave-management/transaction/online-leave-application';
 
 const formSchema = z.object({
     hrmE_Id: z.coerce.number().min(1, 'Employee is required'),
@@ -46,7 +47,7 @@ const formSchema = z.object({
     leaveReason: z.string().min(1, 'Reason is required'),
     reportingDate: z.date({ required_error: 'Reporting date is required' }),
     supportingDocument: z.string().optional(),
-    contactNoOnLeave: z.string().min(10, 'Valid contact number is required')
+    contactNoOnLeave: z.string().regex(/^\d{10}$/, 'Must be exactly 10 digits')
 }).refine((data) => data.toDate >= data.fromDate, {
     message: "To Date cannot be before From Date",
     path: ["toDate"]
@@ -141,6 +142,7 @@ export default function ApplyLeaveForm({
     }, [editingRow, form, selectedEmployeeId]);
 
     function onSubmit(values: FormValues) {
+        console.log("values", values);
         saveLeave(
             {
                 HRME_Id: values.hrmE_Id,
@@ -180,6 +182,50 @@ export default function ApplyLeaveForm({
         );
     }
 
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+
+    // Reset uploaded file name if the form is reset or successful
+    useEffect(() => {
+        if (!form.watch('supportingDocument')) {
+            setUploadedFileName(null);
+        }
+    }, [form.watch('supportingDocument')]);
+
+    const handleFileUrl = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        const hrmeId = form.getValues('hrmE_Id');
+
+        if (!hrmeId || hrmeId === 0) {
+            toast.error('Please select an employee first');
+            return;
+        }
+
+        if (file) {
+            try {
+                setIsUploading(true);
+                const formData = new FormData();
+
+                // The swagger UI specifically expects the key 'leave_document'
+                formData.append('leave_document', file);
+                const response = await saveLeaveRequestDocument(hrmeId, formData);
+                console.log("Upload API response:", response);
+
+                if (response.success && response.data) {
+                    form.setValue('supportingDocument', response.data);
+                    setUploadedFileName(file.name);
+                    toast.success('Document uploaded successfully');
+                } else {
+                    toast.error(response.message || 'Failed to upload document');
+                }
+            } catch (error: any) {
+                toast.error(error.message || 'Error uploading document');
+            } finally {
+                setIsUploading(false);
+            }
+        }
+    };
+
     return (
         <div className='p-6 pt-0 space-y-8 animate-in slide-in-from-top-2 duration-300'>
             <Form {...form}>
@@ -212,7 +258,16 @@ export default function ApplyLeaveForm({
                                         <FormLabel className='text-[10px] font-black text-slate-500 uppercase tracking-wider'>Contact Number While on Leave: <span className='text-red-500'>*</span></FormLabel>
                                     </div>
                                     <FormControl>
-                                        <Input className='h-7 border-sky-100 focus:ring-sky-100 rounded-xl bg-white shadow-sm' {...field} />
+                                        <Input
+                                            className='h-7 border-sky-100 focus:ring-sky-100 rounded-xl bg-white shadow-sm'
+                                            type="text"
+                                            maxLength={10}
+                                            {...field}
+                                            onChange={(e) => {
+                                                const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                                field.onChange(value);
+                                            }}
+                                        />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -249,23 +304,20 @@ export default function ApplyLeaveForm({
                                     <Input
                                         type='file'
                                         className='absolute inset-0 opacity-0 cursor-pointer z-10'
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            if (file) {
-                                                form.setValue('supportingDocument', file.name);
-                                            }
-                                        }}
+                                        onChange={handleFileUrl}
+                                        disabled={isUploading}
                                     />
                                     <Button
                                         type='button'
                                         variant='outline'
+                                        disabled={isUploading}
                                         className='w-full h-11 bg-amber-400 hover:bg-amber-500 text-slate-900 border-none font-bold flex items-center justify-center gap-2 rounded-xl shadow-sm uppercase text-[10px]'
                                     >
-                                        <FileText className='h-4 w-4' /> Choose File
+                                        <FileText className='h-4 w-4' /> {isUploading ? 'Uploading...' : 'Choose File'}
                                     </Button>
-                                    {form.watch('supportingDocument') && (
-                                        <span className='absolute -bottom-5 left-0 text-[10px] text-slate-400 italic truncate w-full'>
-                                            {form.watch('supportingDocument')}
+                                    {uploadedFileName && (
+                                        <span className='absolute -bottom-5 left-0 text-[10px] text-slate-400 italic truncate w-full' title={uploadedFileName}>
+                                            {uploadedFileName}
                                         </span>
                                     )}
                                 </div>

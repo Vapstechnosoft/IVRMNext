@@ -26,6 +26,7 @@ interface LeaveReportFiltersProps {
     departments: Array<{ id: number; name: string }>;
     designations: Array<{ id: number; name: string }>;
     employees: Array<{ id: number; employeeCode: string; employeeName: string; designation?: string; department?: string }>;
+    leaves: Array<{ id: number; name: string }>;
     isLoadingTypes?: boolean;
     isLoadingDepartments?: boolean;
     isLoadingDesignations?: boolean;
@@ -40,6 +41,7 @@ export function LeaveReportFilters({
     departments,
     designations,
     employees,
+    leaves,
     isLoadingTypes = false,
     isLoadingDepartments = false,
     isLoadingDesignations = false,
@@ -218,9 +220,10 @@ export function LeaveReportFilters({
                                 <SelectValue placeholder='--Select--' />
                             </SelectTrigger>
                             <SelectContent>
-                                {['All', 'Casual Leave', 'Sick Leave', 'Privilege Leave', 'Comp Off', 'Optional Leave'].map((l) => (
-                                    <SelectItem key={l} value={l}>
-                                        {l}
+                                {/* <SelectItem value='All'>All</SelectItem> */}
+                                {(leaves || []).map((l) => (
+                                    <SelectItem key={l.id} value={String(l.id)}>
+                                        {l.name}
                                     </SelectItem>
                                 ))}
                             </SelectContent>

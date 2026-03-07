@@ -4,27 +4,61 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { useacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
 import { ClassWorkUploadedList } from '@/hooks/upload/transactions/useClassWork';
-
 import type { IClassWorkDetails } from '@/types/upload/reports/classwork-upload-report';
 import { Plus, X } from 'lucide-react';
-import { use } from 'react';
+import { use, useEffect, useState } from 'react';
 import AddClassWorkForm from './_components/add-form';
 import { classWorkColumns } from './_components/columns';
 import ToggleClassWorkForm from './_components/toggle-form';
 import UpdateClassWorkForm from './_components/update-form';
+
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
 export default function ClassWorkPage(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = use(props.searchParams);
+    const [selectedYear, setSelectedYear] = useState<number>(0);
+
+    const { data: academicYears, isLoading: academicYearLoading, error: academicYearError } = useacademicyerdropdowndatafee();
+
+
     const payload = {
-        asmaY_Id: 176
+        asmaY_Id: selectedYear
     };
-    const { data: response, isLoading, error } = ClassWorkUploadedList(payload, searchParams ?? {});
+
+    const { data: response, isLoading, error, refetchAll } = ClassWorkUploadedList(payload, searchParams ?? {});
+
+
+    useEffect(() => {
+        if (academicYears?.data && academicYears.data.length > 0 && !selectedYear) {
+            setSelectedYear(academicYears.data[0].asmaY_Id);
+        }
+    }, [academicYears, selectedYear]);
+
+
     return (
         <FormProvider<IClassWorkDetails>>
-            <ClassWorkContent data={response} isLoading={isLoading} error={error} />
+            <ClassWorkContent
+                data={response}
+                isLoading={isLoading}
+                error={error}
+                selectedYear={selectedYear}
+                setSelectedYear={setSelectedYear}
+                academicYears={academicYears?.data || []}
+                academicYearLoading={academicYearLoading}
+                refetchAll={refetchAll}
+            />
         </FormProvider>
     );
 }
@@ -32,11 +66,21 @@ export default function ClassWorkPage(props: {
 function ClassWorkContent({
     data,
     isLoading,
-    error
+    error,
+    selectedYear,
+    setSelectedYear,
+    academicYears,
+    academicYearLoading,
+    refetchAll
 }: {
     data: any;
     isLoading: boolean;
     error: any;
+    selectedYear: number;
+    setSelectedYear: (year: number) => void;
+    academicYears: any[];
+    academicYearLoading: boolean;
+    refetchAll: () => void;
 }) {
     const { openAddForm } = useFormContext<any>();
 
@@ -46,7 +90,37 @@ function ClassWorkContent({
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
+                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+                    <div className='flex items-center gap-4 rounded-lg border bg-white px-5 py-4 shadow-sm'>
+                        <Label className='whitespace-nowrap font-semibold'>
+                            Academic Year <span className='text-red-600'>*</span>
+                        </Label>
+                        <Select
+                            value={String(selectedYear)}
+                            onValueChange={(value) => setSelectedYear(Number(value))}
+                            disabled={academicYearLoading}>
+                            <SelectTrigger className='w-64'>
+                                <SelectValue placeholder='Select Academic Year' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {academicYearLoading ? (
+                                    <SelectItem value='loading' disabled>
+                                        Loading...
+                                    </SelectItem>
+                                ) : academicYears.length > 0 ? (
+                                    academicYears.map((year: any) => (
+                                        <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
+                                            {year.asmaY_Year}
+                                        </SelectItem>
+                                    ))
+                                ) : (
+                                    <SelectItem value='no-data' disabled>
+                                        No years found
+                                    </SelectItem>
+                                )}
+                            </SelectContent>
+                        </Select>
+                    </div>
                     <Button
                         type='button'
                         onClick={openAddForm}
@@ -77,7 +151,7 @@ function ClassWorkContent({
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections yearList={data?.yearlist || []} classList={data?.classlist || []} onSuccess={() => {}} />
+                <FormSections yearList={data?.yearlist || []} classList={data?.classlist || []} onSuccess={refetchAll} />
             </div>
         </div>
     );
@@ -96,7 +170,6 @@ function FormSections({
         isAddFormOpen,
         isEditFormOpen,
         isToggleFormOpen,
-        isDetailsViewOpen,
         selectedRow,
         closeAddForm,
         closeEditForm,

@@ -11,7 +11,8 @@ import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
 import type { IMasterPayrollStandardList, IMonthDropdown } from '@/types/hrms/hrms-config/master';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { error } from 'node:console';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -21,6 +22,50 @@ interface PayrollStandardFormProps {
     existingData?: IMasterPayrollStandardList;
     className?: string;
 }
+const defaultFormValues: any = {
+    HRC_Id: 0,
+    HRC_PFAccPrefix: '',
+    HRC_PFMaxAmt: '',
+    HRC_FPFPer: '',
+    HRC_EPFPer: '',
+    HRC_EPFPerAfterRetirement: '',
+    HRC_EPFPerAfterRetirement2: '',
+    HRC_AccNo2Per: '',
+    HRC_AccNo21Per: '',
+    HRC_AccNo22Per: '',
+    HRC_AC2MinAmt: '',
+    HRC_AC21MinAmt: '',
+    HRC_AC22MinAmt: '',
+    HRC_EducationCess: '',
+    HRC_PartAMaxLimit: '',
+    HRC_PartBMaxLimit: '',
+    HRC_AsPerEmployee: false,
+    HRC_RetirementYrs: '',
+    HRC_ESIAccPrefix: '',
+    HRC_ESIMax: '',
+    HRC_ESIMaxAmount: '',
+    HRC_ESIEmplrCont: '',
+    HRC_ArrearSalaryReport: undefined,
+    HRC_ArrearRequired: undefined,
+    HRC_SalaryApproval: false,
+    HRC_SalaryAdvance: false,
+    HRC_Loan: false,
+    HRC_Leave: false,
+    HRC_Increment: false,
+    HRC_Probation: false,
+    HRC_PaymentMethod: undefined,
+    HRC_OptionalHolidays: '',
+    HRC_ApplicableFlag: false,
+    HRC_MinimumPeriods: '',
+    HRC_IncrementMonth: '',
+    HRC_IncrementOnceInMonths: '',
+    HRC_AlertDays: '',
+    HRC_SalaryFromDay: '',
+    HRC_SalaryToDay: '',
+    HRC_ActiveFlag: true
+};
+
+
 export default function PayrollStandardForm({ existingData, className = '' }: PayrollStandardFormProps) {
     const { saveMutation } = useMasterPayrollStandard();
     const { mutate: savePayrollStandard, isPending } = saveMutation;
@@ -34,7 +79,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
         formState: { errors, isSubmitting, isDirty }
     } = useForm<FormFields>({
         resolver: zodResolver(hrmsMasterSchemas.payrollStandard.add),
-        mode: 'onBlur' // Changed from 'onChange' to prevent validation before data loads
+        mode: 'onBlur', // Changed from 'onChange' to prevent validation before data loads
+        defaultValues: defaultFormValues
     });
     // Watch for Arrear Salary Report changes
     const arrearSalaryReport = watch('HRC_ArrearSalaryReport');
@@ -171,8 +217,10 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
             }
         });
     };
+    const [resetKey, setResetKey] = useState(0);
     const handleReset = () => {
-        reset();
+        reset(defaultFormValues);
+        setResetKey(prev => prev + 1);
     };
     // Add debug logging for form state changes
     const _formValues = watch();
@@ -191,6 +239,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
                         <InputText
                             label='PF Account Prefix'
+                            required
                             id='HRC_PFAccPrefix'
                             {...register('HRC_PFAccPrefix')}
                             error={errors.HRC_PFAccPrefix?.message}
@@ -235,7 +284,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                             required
                                             id='HRC_PFMaxAmt'
                                             value={field.value}
-                                            onChange={(value) => {
+                                            onChange={(value: any) => {
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
                                                 field.onChange(numValue);
                                                 setValue('HRC_PFMaxAmt', numValue, { shouldDirty: true, shouldValidate: true });
@@ -395,6 +444,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     <div ref={containerRefCallback}>
                                         <InputNumber
                                             label='EPF % After Retirement'
+                                            required
                                             id='HRC_EPFPerAfterRetirement'
                                             step={0.01}
                                             formatOptions={{ minimumFractionDigits: 0, maximumFractionDigits: 2 }}
@@ -454,6 +504,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     <div ref={containerRefCallback}>
                                         <InputNumber
                                             label='EPF % After Retirement (2)'
+                                            required
                                             id='HRC_EPFPerAfterRetirement2'
                                             step={0.01}
                                             formatOptions={{ minimumFractionDigits: 0, maximumFractionDigits: 2 }}
@@ -510,6 +561,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     <div ref={containerRefCallback}>
                                         <InputNumber
                                             label='Acc No. 2 %'
+                                            required
                                             id='HRC_AccNo2Per'
                                             step={0.01}
                                             formatOptions={{ minimumFractionDigits: 0, maximumFractionDigits: 2 }}
@@ -563,6 +615,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     <div ref={containerRefCallback}>
                                         <InputNumber
                                             label='A/C2 Min Amount'
+                                            required
                                             id='HRC_AC2MinAmt'
                                             value={field.value}
                                             onChange={(value) => {
@@ -614,6 +667,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     <div ref={containerRefCallback}>
                                         <InputNumber
                                             label='Acc No. 21 %'
+                                            required
                                             id='HRC_AccNo21Per'
                                             step={0.01}
                                             value={field.value}
@@ -666,6 +720,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     <div ref={containerRefCallback}>
                                         <InputNumber
                                             label='A/C21 Min Amount'
+                                            required
                                             id='HRC_AC21MinAmt'
                                             value={field.value}
                                             onChange={(value) => {
@@ -717,6 +772,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     <div ref={containerRefCallback}>
                                         <InputNumber
                                             label='Acc No. 22 %'
+                                            required
                                             id='HRC_AccNo22Per'
                                             step={0.01}
                                             value={field.value}
@@ -769,6 +825,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     <div ref={containerRefCallback}>
                                         <InputNumber
                                             label='A/C22 Min Amount'
+                                            required
                                             id='HRC_AC22MinAmt'
                                             value={field.value}
                                             onChange={(value) => {
@@ -820,6 +877,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     <div ref={containerRefCallback}>
                                         <InputNumber
                                             label='Education Cess'
+                                            required
                                             id='HRC_EducationCess'
                                             value={field.value}
                                             onChange={(value) => {
@@ -871,6 +929,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     <div ref={containerRefCallback}>
                                         <InputNumber
                                             label='Part A Max Limit'
+                                            required
                                             id='HRC_PartAMaxLimit'
                                             value={field.value}
                                             onChange={(value) => {
@@ -922,6 +981,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     <div ref={containerRefCallback}>
                                         <InputNumber
                                             label='Part B Max Limit'
+                                            required
                                             id='HRC_PartBMaxLimit'
                                             value={field.value}
                                             onChange={(value) => {
@@ -987,6 +1047,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                             label='Retirement Years'
                                             required
                                             id='HRC_RetirementYrs'
+                                            maxDigits={2}
                                             value={field.value}
                                             onChange={(value) => {
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
@@ -1011,6 +1072,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
                         <InputText
                             label='ESI Account Prefix'
+                            required
                             id='HRC_ESIAccPrefix'
                             {...register('HRC_ESIAccPrefix')}
                             error={errors.HRC_ESIAccPrefix?.message}
@@ -1106,6 +1168,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     <div ref={containerRefCallback}>
                                         <InputNumber
                                             label='ESI Max Amount'
+                                            required
                                             id='HRC_ESIMaxAmount'
                                             value={field.value}
                                             onChange={(value) => {
@@ -1224,6 +1287,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 </Label>
                             </div>
                         </div>
+                        {errors.HRC_ArrearSalaryReport && <FormError>{(errors.HRC_ArrearSalaryReport as any).message}</FormError>}
                     </div>
                     {/* Conditional Arrear Required Section - Only shown when "Separate" is selected */}
                     {arrearSalaryReport === 'Separate' && (
@@ -1362,7 +1426,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     3: '(Earning - Deduction) Here Basic and every other heads will change.',
                                     4: '(Earning - Deduction) Here Basic and all Percentage heads will change.',
                                     5: '(Only Earning Heads are revised When LOP Applies)',
-                                    6: ''
+                                    6: 'Your description for method 6 goes here'
                                 };
                                 const tooltipText = methodTooltips[method];
 
@@ -1382,6 +1446,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                                 />
                                             )}
                                         />
+
                                         {tooltipText ? (
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
@@ -1398,10 +1463,13 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                                 Method {method}
                                             </Label>
                                         )}
+
                                     </div>
+
                                 );
                             })}
                         </div>
+                        {errors.HRC_PaymentMethod && <p className='text-red-500'>{errors.HRC_PaymentMethod.message}</p>}
                     </TooltipProvider>
                 </div>
                 {/* Increment Process Section */}
@@ -1446,6 +1514,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     <div ref={containerRefCallback}>
                                         <InputNumber
                                             label='Optional Holidays'
+                                            required
                                             id='HRC_OptionalHolidays'
                                             value={field.value}
                                             onChange={(value) => {
@@ -1509,6 +1578,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     <div ref={containerRefCallback}>
                                         <InputNumber
                                             label='Minimum Periods'
+                                            required
                                             id='HRC_MinimumPeriods'
                                             value={field.value}
                                             onChange={(value) => {
@@ -1525,12 +1595,14 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             }}
                         />
                         <div className='group flex flex-col gap-1.5'>
-                            <Label htmlFor='HRC_IncrementMonth'>Increment Month</Label>
+                            <Label htmlFor='HRC_IncrementMonth'>
+                                Increment Month<span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='HRC_IncrementMonth'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select key={resetKey} onValueChange={field.onChange} value={field.value}>
                                         <SelectTrigger
                                             id='HRC_IncrementMonth'
                                             className='transition-colors focus:ring-2 focus:ring-primary/20'>
@@ -1587,6 +1659,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     <div ref={containerRefCallback}>
                                         <InputNumber
                                             label='Increment Once In Months'
+                                            required
                                             id='HRC_IncrementOnceInMonths'
                                             value={field.value}
                                             onChange={(value) => {
@@ -1641,6 +1714,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     <div ref={containerRefCallback}>
                                         <InputNumber
                                             label='Alert Days'
+                                            required
                                             id='HRC_AlertDays'
                                             value={field.value}
                                             onChange={(value) => {
@@ -1665,14 +1739,17 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <div className='group flex flex-col gap-1.5'>
-                            <Label htmlFor='HRC_SalaryFromDay'>From Day</Label>
+                            <Label htmlFor='HRC_SalaryFromDay'>
+                                From Day<span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='HRC_SalaryFromDay'
                                 control={control}
                                 render={({ field }) => (
                                     <Select
-                                        onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value !== undefined && field.value !== null ? String(field.value) : ''}>
+                                        key={resetKey}
+                                        onValueChange={(value) => field.onChange(value)}
+                                        value={field.value ? String(field.value) : undefined}>
                                         <SelectTrigger
                                             id='HRC_SalaryFromDay'
                                             className='transition-colors focus:ring-2 focus:ring-primary/20'>
@@ -1691,14 +1768,17 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             {errors.HRC_SalaryFromDay && <FormError>{errors.HRC_SalaryFromDay.message}</FormError>}
                         </div>
                         <div className='group flex flex-col gap-1.5'>
-                            <Label htmlFor='HRC_SalaryToDay'>To Day</Label>
+                            <Label htmlFor='HRC_SalaryToDay'>
+                                To Day<span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='HRC_SalaryToDay'
                                 control={control}
                                 render={({ field }) => (
                                     <Select
-                                        onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value !== undefined && field.value !== null ? String(field.value) : ''}>
+                                        key={resetKey}
+                                        onValueChange={(value) => field.onChange(value)}
+                                        value={field.value ? String(field.value) : undefined}>
                                         <SelectTrigger
                                             id='HRC_SalaryToDay'
                                             className='transition-colors focus:ring-2 focus:ring-primary/20'>

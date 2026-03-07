@@ -113,7 +113,7 @@ export default function PaymentDialog({ cell }: { cell: any }) {
                                                 <CreditCard className='h-6 w-6 text-primary' />
                                             </div>
                                             <div>
-                                                <h3 className='font-semibold text-lg'>Payment Details</h3>
+                                                <h3 className='font-bold text-lg'>Payment Details</h3>
                                                 <p className='text-muted-foreground text-sm'>Complete your application fee payment</p>
                                             </div>
                                         </div>
@@ -132,7 +132,7 @@ export default function PaymentDialog({ cell }: { cell: any }) {
 
                                 {/* Transaction Info */}
                                 <div className='rounded-lg border bg-card p-6'>
-                                    <h4 className='mb-4 font-semibold text-base'>Transaction Information</h4>
+                                    <h4 className='mb-4 font-bold text-base'>Transaction Information</h4>
                                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                         <div className='flex items-start gap-3'>
                                             <div className='mt-0.5 rounded-md bg-muted p-2'>

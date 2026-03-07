@@ -45,7 +45,7 @@ export interface PaymentDetails {
     fyP_DD_Cheque_No?: string;
     fyP_DD_Cheque_Date?: string;
     fyP_Bank_Name?: string;
-    FYP_Date?: string;
+    fyP_Date?: string;
     fyP_Remarks?: string;
 }
 

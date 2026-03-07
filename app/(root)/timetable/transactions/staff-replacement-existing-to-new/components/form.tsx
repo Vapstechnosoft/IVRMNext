@@ -42,12 +42,12 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
     } = useForm<StaffReplacementExistingToNewValues>({
         resolver: zodResolver(StaffRepacementExistingToNewSchema),
         defaultValues: {
-            ttmC_Id: undefined,
-            asmcL_Id: undefined,
-            asms_Id: undefined,
-            hrmE_Id_From: undefined,
-            hrmE_Id_To: undefined,
-            ismS_Id: undefined
+            ttmC_Id: '',
+            asmcL_Id: '',
+            asms_Id: '',
+            hrmE_Id_From: '',
+            hrmE_Id_To: '',
+            ismS_Id: ''
         }
     });
 
@@ -58,7 +58,8 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
         if (saving) return;
         setSaving(true);
         try {
-            await getStaffReplacementExistingToNewMasters();
+            // Usually we might call a save/process endpoint here
+            // But following the current onFetch pattern
             toast.success('Details loaded');
             onFetch(data);
         } catch {
@@ -73,14 +74,16 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
     };
 
     const FormSelect = ({ label, name, control, options, valueKey, labelKey, placeholder, error, isLoading }: any) => (
-        <div className='space-y-1.5'>
-            <Label className='font-semibold text-purple-900 text-xs'>{label}</Label>
+        <div className='space-y-2'>
+            <Label className='text-sm font-medium'>
+                {label} {label.includes('*') ? '' : ''}
+            </Label>
             <Controller
                 name={name}
                 control={control}
                 render={({ field }) => (
                     <Select key={field.value || 'empty'} value={field.value || undefined} onValueChange={(v) => field.onChange(v || '')}>
-                        <SelectTrigger className='h-9 border-purple-100 text-sm'>
+                        <SelectTrigger className='w-full'>
                             <SelectValue placeholder={placeholder} />
                         </SelectTrigger>
                         <SelectContent>
@@ -99,19 +102,15 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
                     </Select>
                 )}
             />
-            {error && <p className='text-red-500 text-xs'>{error}</p>}
+            {error && <p className='text-red-500 text-xs italic'>{error}</p>}
         </div>
     );
 
     return (
-        <CollapsibleSection 
-            title='Staff Replacement Existing To New' 
-            className='font-bold text-purple-900 text-xl'
-            defaultOpen >
-            <div className='bg-white p-6'>
-                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                    {/* Form Grid - 3 columns */}
-                    <div className='grid max-w-6xl grid-cols-1 gap-4 md:grid-cols-3'>
+        <CollapsibleSection title='Staff Replacement Existing To New' defaultOpen>
+            <div className='rounded-lg bg-white p-6 shadow-sm border'>
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-8'>
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                         <FormSelect
                             label='Category Name *'
                             name='ttmC_Id'
@@ -147,13 +146,14 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
 
                         <FormSelect
                             label='Section'
-                            name='asmcL_Id'
+                            name='asms_Id'
                             placeholder='-- Select Section --'
                             control={control}
-                            options={masters?.classes}
-                            valueKey='asmcL_Id'
-                            labelKey='asmcL_ClassName'
-                            error={errors.asmcL_Id?.message}
+                            options={sections}
+                            valueKey='asms_Id'
+                            labelKey='asms_SectionName'
+                            isLoading={sectionsLoading}
+                            error={errors.asms_Id?.message}
                         />
 
                         <FormSelect
@@ -179,13 +179,13 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
                         />
                     </div>
 
-                    {/* ACTIONS */}
-                    <div className='flex gap-3 border-t pt-4'>
-                        <Button type='submit' className='h-9 bg-orange-500 px-6 font-semibold text-xs hover:bg-orange-600'>
+                    <div className='flex justify-center items-center gap-4 pt-4 border-t'>
+                        <Button type='submit' className='min-w-[120px] font-semibold flex items-center gap-2'>
+                            <Search className='h-4 w-4' />
                             Update
                         </Button>
 
-                        <Button type='button' variant='outline' onClick={handleReset} className='h-9'>
+                        <Button type='button' variant='outline' onClick={handleReset} className='min-w-[120px]'>
                             <RotateCcw className='mr-2 h-4 w-4' />
                             Reset
                         </Button>

@@ -2042,6 +2042,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                 <div className='space-y-4'>
                                                     <InputText
                                                         label='First Name'
+                                                        placeholder='Enter First Name'
                                                         required
                                                         id='firstName'
                                                         maxLength={50}
@@ -2080,6 +2081,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     />
                                                     <InputText
                                                         label='Middle Name'
+                                                        placeholder='Enter Middle Name'
                                                         id='middleName'
                                                         maxLength={50}
                                                         onKeyDown={(e) => {
@@ -2115,6 +2117,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     />
                                                     <InputText
                                                         label='Last Name'
+                                                        placeholder= 'Enter Last Name'
                                                         id='lastName'
                                                         maxLength={50}
                                                         onKeyDown={(e) => {
@@ -2150,6 +2153,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     />
                                                     <InputText
                                                         label='Employee Code'
+                                                        placeholder='Enter Employee Code'
                                                         required
                                                         id='employeeCode'
                                                         maxLength={20}
@@ -2160,6 +2164,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     />
                                                     <InputText
                                                         label="Father's Name"
+                                                        placeholder='Enter Father Name'
                                                         required
                                                         id='fatherName'
                                                         maxLength={50}
@@ -2196,6 +2201,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     />
                                                     <InputText
                                                         label="Mother's Name "
+                                                        placeholder='Enter Mother Name'
                                                         required
                                                         id='motherName'
                                                         maxLength={50}
@@ -2232,6 +2238,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     />
                                                     <InputText
                                                         label='Spouse Name'
+                                                        placeholder='Enter Spouse Name'
                                                         id='spouseName'
                                                         maxLength={50}
                                                         onKeyDown={(e) => {
@@ -2267,6 +2274,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     />
                                                     <InputText
                                                         label='Spouse Occupation'
+                                                        placeholder='Enter Spouse Occupation'
                                                         id='spouseOccupation'
                                                         maxLength={50}
                                                         {...register('spouseOccupation')}
@@ -2274,6 +2282,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     />
                                                     <InputText
                                                         label='Spouse Mobile No.'
+                                                        placeholder='Enter Spouse Mobile No.'
                                                         id='spouseMobileNo'
                                                         maxLength={10}
                                                         onKeyDown={(e) => {
@@ -2304,6 +2313,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     />
                                                     <InputText
                                                         label='Spouse Email Id'
+                                                        placeholder='Enter Spouse Email Id'
                                                         id='spouseEmailId'
                                                         maxLength={100}
                                                         {...register('spouseEmailId')}
@@ -2311,6 +2321,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     />
                                                     <InputText
                                                         label='Spouse Address'
+                                                        placeholder='Enter Spouse Address'
                                                         id='spouseAddress'
                                                         maxLength={255}
                                                         {...register('spouseAddress')}
@@ -2885,6 +2896,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     ) : null}
                                                     <InputText
                                                         label='National SSN'
+                                                        placeholder='Enter National SSN'
                                                         id='nationalSSN'
                                                         maxLength={9}
                                                         onKeyDown={(e) => {
