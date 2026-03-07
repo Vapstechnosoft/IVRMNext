@@ -82,6 +82,8 @@ function ActionButtonsCell({ rowData }: { rowData: IHomeWorkDetails }) {
         openDetailsView(rowData);
     }, [openDetailsView, rowData]);
 
+
+
     return (
         <div style={{ display: 'flex', justifyContent: 'center' }}>
             <button type='button' onClick={handleView} className='rounded-md p-2 transition hover:bg-muted' title='View  Details'>
@@ -89,7 +91,7 @@ function ActionButtonsCell({ rowData }: { rowData: IHomeWorkDetails }) {
             </button>
             <ActionButtons
                 rowData={rowData}
-                buttons={{ edit: true, toggle: true, delete: false }}
+                buttons={{ edit: false, toggle: true, delete: false }}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onToggle={handleToggle}

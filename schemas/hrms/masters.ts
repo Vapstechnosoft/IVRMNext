@@ -471,7 +471,7 @@ export const payrollStandardSchema = z.object({
     HRC_PartAMaxLimit: z.number().min(0).optional(),
     HRC_PartBMaxLimit: z.number().min(0).optional(),
     HRC_AsPerEmployee: z.boolean().optional(),
-    HRC_RetirementYrs: z.number().min(1).max(100),
+    HRC_RetirementYrs: z.number().min(1).max(99),
     // ESI
     HRC_ESIAccPrefix: z.string().optional(),
     HRC_ESIMax: z.number().min(0, 'Must be at least 0').max(100, 'Cannot exceed 100').refine(val => !val || Number.isInteger(val * 100), 'Max 2 decimal places allowed').optional().or(z.literal(undefined)),

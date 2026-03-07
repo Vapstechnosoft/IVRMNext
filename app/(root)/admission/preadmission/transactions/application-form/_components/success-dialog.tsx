@@ -55,7 +55,7 @@ export default function ApplicationFormSuccessDialog({
                                                 <Clock className='h-4 w-4 text-white' />
                                             </div>
                                             <div className='flex-1 text-left'>
-                                                <h3 className='mb-1 font-semibold text-slate-900 text-sm'>Fee Required</h3>
+                                                <h3 className='mb-1 font-bold text-slate-900 text-sm'>Fee Required</h3>
                                                 <p className='text-slate-600 text-xs leading-relaxed'>
                                                     Please make payment to complete your application. You can access the payment link from
                                                     your application list.
@@ -71,7 +71,7 @@ export default function ApplicationFormSuccessDialog({
                                                 <FileText className='h-4 w-4 text-white' />
                                             </div>
                                             <div className='flex-1 text-left'>
-                                                <h3 className='mb-1 font-semibold text-slate-900 text-sm'>Track Your Application</h3>
+                                                <h3 className='mb-1 font-bold text-slate-900 text-sm'>Track Your Application</h3>
                                                 <p className='text-slate-600 text-xs leading-relaxed'>
                                                     Monitor your application status in your dashboard
                                                 </p>
@@ -86,7 +86,7 @@ export default function ApplicationFormSuccessDialog({
                                             <Bell className='h-4 w-4 text-white' />
                                         </div>
                                         <div className='flex-1 text-left'>
-                                            <h3 className='mb-1 font-semibold text-slate-900 text-sm'>Email Confirmation Sent</h3>
+                                            <h3 className='mb-1 font-bold text-slate-900 text-sm'>Email Confirmation Sent</h3>
                                             <p className='text-slate-600 text-xs leading-relaxed'>
                                                 Check your inbox for confirmation details
                                             </p>
