@@ -6157,18 +6157,10 @@ export async function getUserAccessibleModules() {
                                     icon: 'Database',
                                     pages: [
                                         {
-                                            id: 1,
-                                            name: 'Question Paper Generator',
-                                            icon: 'FileText',
-                                            url: '/iframe/ai-question-paper-generator',
-                                            title: 'AI Question Paper Generator',
-                                            description: 'Generate question papers from textbooks using AI'
-                                        },
-                                        {
                                             id: 2,
                                             name: 'AI Notemaker',
                                             icon: 'FileText',
-                                            url: '/iframe/ai-notemaker',
+                                            url: '/StudentPortal/ai-notemaker',
                                             title: 'AI Notemaker',
                                             description: 'Summarize and create structured notes from textbooks using AI'
                                         },
@@ -6176,7 +6168,7 @@ export async function getUserAccessibleModules() {
                                             id: 3,
                                             name: 'AI Performance Analysis',
                                             icon: 'BarChart',
-                                            url: '/Exam/exam-module/ai-performance-analysis',
+                                            url: '/StudentPortal/ai-performance-analysis',
                                             title: 'AI Performance Analysis',
                                             description: 'Analyze performance metrics and AI-driven insights'
                                         }
