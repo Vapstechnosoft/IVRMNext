@@ -79,7 +79,11 @@ export default function SalarySlipPage() {
     const handleFilterChange = (newFilters: SalarySlipFiltersType) => {
         setFilters(newFilters);
 
-        if (newFilters.year && newFilters.month) {
+        if (
+            newFilters.groupType.length > 0 &&
+            newFilters.department.length > 0 &&
+            newFilters.designation.length > 0
+        ) {
             filterEmployees({
                 MI_Id: 30,
                 LogInUserId: 0,
@@ -108,6 +112,8 @@ export default function SalarySlipPage() {
                     }
                 }
             });
+        } else {
+            setEmployees([]);
         }
     };
 
@@ -140,13 +146,22 @@ export default function SalarySlipPage() {
     };
 
     const handleOptionChange = (option: keyof SalarySlipFiltersType['options'], checked: boolean) => {
-        setFilters(prev => ({
+        setFilters((prev: SalarySlipFiltersType) => ({
             ...prev,
             options: { ...prev.options, [option]: checked }
         }));
     };
 
     const handleGenerateSlip = () => {
+        if (
+            filters.groupType.length === 0 ||
+            filters.department.length === 0 ||
+            filters.designation.length === 0
+        ) {
+            toast.error('Please select all required filters');
+            return;
+        }
+
         const selectedEmpIds = employees.filter(e => e.isSelected).map(e => e.HRME_Id);
         if (selectedEmpIds.length === 0) {
             toast.error('Please select at least one employee');
@@ -248,6 +263,26 @@ export default function SalarySlipPage() {
         );
     }
 
+    const handleReset = () => {
+        setFilters({
+            groupType: [],
+            department: [],
+            designation: [],
+            month: '',
+            year: '',
+            slipPerPage: '1',
+            options: {
+                lopDays: false,
+                leaveDetails: false,
+                panCardNo: false,
+                bankDetails: false,
+            }
+        });
+        setEmployees([]);
+        setSearchTerm('');
+        toast.info('Filters have been reset');
+    };
+
     return (
         <div className="container mx-auto p-4 space-y-6">
             <div className="flex items-center justify-between">
@@ -274,6 +309,7 @@ export default function SalarySlipPage() {
                     onSelectEmployee={handleSelectEmployee}
                     onGenerateSlip={handleGenerateSlip}
                     onCancel={() => { }}
+                    onReset={handleReset}
                 />
             ) : (
                 <div className="space-y-6">

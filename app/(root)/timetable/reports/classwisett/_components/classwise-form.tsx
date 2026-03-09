@@ -12,15 +12,16 @@ import { Loader2, Search, X } from 'lucide-react';
 import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
+import { getClassWiseReport } from '@/server/timetable/reports/classwisett';
+
 type FormFields = z.infer<typeof classWiseReportSchema.search>;
 
 interface ClassWiseFormProps {
-    initialData: any;
-    onSubmit: (data: any) => void;
+    onReportGenerated: (response: any, payload: any) => void;
     onCancel: () => void;
 }
 
-export default function ClassWiseForm({ initialData, onSubmit, onCancel }: ClassWiseFormProps) {
+export default function ClassWiseForm({ onReportGenerated, onCancel }: ClassWiseFormProps) {
     const {
         data: academicyeardata,
     } = useTimeTableAcademicYear();
@@ -56,18 +57,27 @@ export default function ClassWiseForm({ initialData, onSubmit, onCancel }: Class
         }
     });
 
-    const onFormSubmit = (data: FormFields) => {
+    const onFormSubmit = async (data: FormFields) => {
         // Construct payload
         const selectedClasses = classList.filter((c: any) => data.classId?.includes(c.asmcL_Id));
         const selectedSections = sectionList.filter((s: any) => data.sectionId?.includes(s.asmS_Id));
 
         const payload = {
-            ASMAY_Id: data.asmaY_Id,
-            TTMC_Id: data.ttmC_Id,
+            asmaY_Id: data.asmaY_Id,
+            ttmC_Id: data.ttmC_Id,
             classarray: selectedClasses,
             sectionarray: selectedSections
         };
-        onSubmit(payload);
+
+        try {
+            console.log("class wise tt payload", JSON.stringify(payload));
+            const response = await getClassWiseReport(payload);
+            console.log("class wise tt response", response);
+            onReportGenerated(response, payload);
+        } catch (error: any) {
+            console.error('Error generating class wise report:', error);
+            throw error;
+        }
     };
 
     return (

@@ -4,9 +4,13 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useManualPeriodMasters, useSectionsByClass } from '@/hooks/timetable/transaction/useManualPeriodInsertion';
+import { useSectionDropdownBifurcationConstraints } from '@/hooks/timetable/useMasters';
 import { ManualPeriodInsertionSchema, type ManualPeriodInsertionValues } from '@/schemas/timetable/transactions/manualPeriodInsertion';
+import { getClassDetailsByacademicyrandcategoty } from '@/server/timetable/transactions/manual-Period-insersion';
+import type { ClassDropdownDatamanualPeriodInsertion } from '@/types/timetable/Transaction/manual-Period-insersion';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, RotateCcw, Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 interface ManualPeriodInsertionFormProps {
@@ -16,11 +20,20 @@ interface ManualPeriodInsertionFormProps {
 export default function ManualPeriodInsertionForm({ onFetch }: ManualPeriodInsertionFormProps) {
     const { data: masters, isLoading: mastersLoading } = useManualPeriodMasters();
 
+    const [classList, setClassList] = useState<ClassDropdownDatamanualPeriodInsertion[]>([]);
+    const {
+        data: sectionList,
+        isLoading: sectiondataloading,
+        error: sectiondataError,
+        refetchAll: sectiondataRefetch
+    } = useSectionDropdownBifurcationConstraints();
+
     const {
         control,
         handleSubmit,
         watch,
         reset,
+        setValue,
         formState: { errors }
     } = useForm<ManualPeriodInsertionValues>({
         resolver: zodResolver(ManualPeriodInsertionSchema),
@@ -34,6 +47,32 @@ export default function ManualPeriodInsertionForm({ onFetch }: ManualPeriodInser
 
     const watchClass = watch('asmcL_Id');
     const { data: sections, isLoading: sectionsLoading } = useSectionsByClass(Number(watchClass));
+
+    const watchedAcademicYear = watch('asmaY_Id');
+    const watchedCategory = watch('ttmC_Id');
+
+    // Fetch Classes on Year/Category Change
+    useEffect(() => {
+        const fetchClassesHelper = async () => {
+            if (watchedAcademicYear && watchedCategory) {
+                console.log('watchedCategory', watchedCategory);
+                try {
+                    const res = await getClassDetailsByacademicyrandcategoty(Number(watchedAcademicYear), Number(watchedCategory));
+
+                    if (res.success) {
+                        setClassList(res.data || []);
+                    } else {
+                        setClassList([]);
+                    }
+                } catch (error) {
+                    console.error(error);
+                }
+            } else {
+                setClassList([]);
+            }
+        };
+        fetchClassesHelper();
+    }, [watchedAcademicYear, watchedCategory, setValue]);
 
     const onSubmit = (values: ManualPeriodInsertionValues) => {
         console.log('Fetching Report:', values);
@@ -128,7 +167,7 @@ export default function ManualPeriodInsertionForm({ onFetch }: ManualPeriodInser
                                             <SelectValue placeholder='-- Select Class --' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {masters?.classes?.map((cls) => (
+                                            {classList?.map((cls) => (
                                                 <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
                                                     {cls.asmcL_ClassName}
                                                 </SelectItem>
@@ -157,15 +196,16 @@ export default function ManualPeriodInsertionForm({ onFetch }: ManualPeriodInser
                                             <SelectValue placeholder={sectionsLoading ? 'Loading...' : '-- Select Section --'} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {sections?.map((sec) => (
-                                                <SelectItem key={sec.asms_Id} value={sec.asms_Id.toString()}>
-                                                    {sec.asms_SectionName}
+                                            {sectiondataloading ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading...
                                                 </SelectItem>
-                                            ))}
-                                            {(!sections || sections.length === 0) && !sectionsLoading && (
-                                                <SelectItem key='none' value='0' disabled>
-                                                    No sections found
-                                                </SelectItem>
+                                            ) : (
+                                                sectionList?.data?.map((item: any) => (
+                                                    <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
+                                                        {item.asmC_SectionName}
+                                                    </SelectItem>
+                                                ))
                                             )}
                                         </SelectContent>
                                     </Select>

@@ -16,53 +16,40 @@ import { Loader2, Search, X } from 'lucide-react';
 import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
+import { getStaffWiseReportUsingFacade } from '@/server/timetable/reports/staffwisett';
+
 type FormFields = z.infer<typeof staffWiseReportSchema.search>;
 
 interface StaffWiseFormProps {
-    initialData: any;
-    onSubmit: (data: any) => void;
+    onReportGenerated: (response: any, payload: any) => void;
     onCancel: () => void;
-    onSuccess?: () => void;
 }
 
-export default function StaffWiseForm({ initialData, onSubmit, onSuccess, onCancel }: StaffWiseFormProps) {
+export default function StaffWiseForm({ onReportGenerated, onCancel }: StaffWiseFormProps) {
     const {
         data: academicyeardata,
         isLoading: academicyearloading,
-        error: academicyearerror,
-        refetchAll: refetchAllAcademicYear
     } = useTimeTableAcademicYear();
 
     const {
         data: staffdata,
-        isLoading: staffdropdowndatattstaffreportloading,
-        error: staffdropdowndatattstaffreporterror,
-        refetchAll: refetchAllstaffdropdowndatattstaffreport
     } = staffdropdowndatattstaffreport();
 
     const academicList = Array.isArray(academicyeardata) ? academicyeardata : (academicyeardata as any)?.data || [];
-
-    // Use initialData for these lists
     const staffList = Array.isArray(staffdata) ? staffdata : (staffdata as any)?.data || [];
-    const periodList = initialData?.periodslst || [];
-    const daysList = initialData?.dayslst_fix || [];
 
     const staffOptions = useMemo(() => {
         let dataArray: any[] = [];
-        // handle various response structures
         if (Array.isArray(staffList)) {
             dataArray = staffList;
         } else if (Array.isArray((staffList as any)?.data)) {
             dataArray = (staffList as any).data;
-        } else if (Array.isArray((staffList as any)?.data?.$values)) {
-            dataArray = (staffList as any).data.$values;
         }
 
         if (!dataArray || dataArray.length === 0) return [];
 
         const uniqueMap = new Map();
         dataArray.forEach((s: any) => {
-            // Fallback for ID and Name properties
             const id = s.hrmE_Id || s.HRME_Id;
             if (id && !uniqueMap.has(id)) {
                 uniqueMap.set(id, s);
@@ -87,27 +74,28 @@ export default function StaffWiseForm({ initialData, onSubmit, onSuccess, onCanc
         }
     });
 
-    const onFormSubmit = (data: FormFields) => {
-        // We need to pass the full staff objects for selected IDs
-
-        // Re-derive staff array for filtering
-        let dataArray: any[] = [];
-        if (Array.isArray(staffList)) {
-            dataArray = staffList;
-        } else if (Array.isArray((staffList as any)?.data)) {
-            dataArray = (staffList as any).data;
-        } else if (Array.isArray((staffList as any)?.data?.$values)) {
-            dataArray = (staffList as any).data.$values;
-        }
-
-        const selectedStaff = dataArray.filter((s: any) => data.staffId?.includes(s.hrmE_Id || s.HRME_Id));
-
+    const onFormSubmit = async (data: FormFields) => {
+        // Construct payload exactly as requested by user
         const payload = {
-            ASMAY_Id: data.asmaY_Id,
-            staffarray: selectedStaff,
-            rpttyp: data.rpttyp
+            asmaY_Id: data.asmaY_Id,
+            staffarray: data.staffId?.map(id => ({ hrmE_Id: id })) || [],
         };
-        onSubmit(payload);
+        console.log("staff data payload", JSON.stringify(payload));
+
+        try {
+            const response = await getStaffWiseReportUsingFacade(payload);
+            console.log("staff data response", response);
+            const selectedStaffObjects = data.staffId?.map(id => {
+                const s = staffOptions.find(opt => opt.value === id.toString());
+                return { hrmE_Id: id, staffName: s?.label || '' };
+            }) || [];
+
+            // Pass the rpttyp along for processing purposes, even if not in API payload
+            onReportGenerated(response, { ...payload, staffarray: selectedStaffObjects, rpttyp: data.rpttyp });
+        } catch (error: any) {
+            console.error('Error fetching staff wise report:', error);
+            throw error;
+        }
     };
 
     return (

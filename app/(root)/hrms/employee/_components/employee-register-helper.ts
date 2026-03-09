@@ -599,8 +599,8 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
 
         // Try in order: extracted data, raw apiData, apiData.data, apiData.data[0]
         // biome-ignore lint/suspicious/noConsoleLog: <explanation>
-                // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
-                                // console.log(`🔍 [DEBUG] Searching for arrays in data keys:`, data ? Object.keys(data) : 'null');
+        // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
+        // console.log(`🔍 [DEBUG] Searching for arrays in data keys:`, data ? Object.keys(data) : 'null');
         const fromData = searchIn(data);
         if (fromData) {
             // console.log(`✅ [HELPER] Found array in extracted data, length:`, fromData.length);
@@ -1189,6 +1189,50 @@ function findDataRoot(obj: any, visited = new WeakSet(), targetId?: number): any
 }
 
 /**
+ * Helper to extract list data from various VAPS response formats
+ */
+export function extractListData(response: any): any[] {
+    if (!response) return [];
+
+    // 1. If response is already an array
+    if (Array.isArray(response)) return response;
+
+    // 2. If 'data' property is an array
+    if (response.data && Array.isArray(response.data)) return response.data;
+
+    // 3. Check for common VAPS grid data keys
+    const commonKeys = [
+        'griddata',
+        'gridData',
+        'employeeList',
+        'employeelist',
+        'employeeListDTO',
+        'employeedetailList',
+        'employeedetails',
+        'employeelists',
+        'employeeList_dto'
+    ];
+
+    for (const key of commonKeys) {
+        // Direct match
+        if (Array.isArray(response[key])) return response[key];
+
+        // Case-insensitive match
+        const foundKey = Object.keys(response).find(k => k.toLowerCase() === key.toLowerCase());
+        if (foundKey && Array.isArray(response[foundKey])) return response[foundKey];
+
+        // Check inside 'data' property
+        if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
+            if (Array.isArray(response.data[key])) return response.data[key];
+            const foundDataKey = Object.keys(response.data).find(k => k.toLowerCase() === key.toLowerCase());
+            if (foundDataKey && Array.isArray(response.data[foundDataKey])) return response.data[foundDataKey];
+        }
+    }
+
+    return [];
+}
+
+/**
  * Helper to extract the actual data object using recursive search
  */
 function extractDataObject(apiData: any, targetId?: number): any {
@@ -1200,11 +1244,7 @@ function extractDataObject(apiData: any, targetId?: number): any {
         return found;
     }
 
-    // Fallback: If no ID found, maybe it's the root object itself or first element if array
-
-    // If targetId was requested but not found via findDataRoot, strict filtering failed.
-    // If targetId is NOT provided (e.g. Add mode), basic extraction is fine.
-
+    // Fallback logic
     if (Array.isArray(apiData) && apiData.length > 0) return apiData[0];
     if (apiData.data && typeof apiData.data === 'object') {
         if (Array.isArray(apiData.data) && apiData.data.length > 0) return apiData.data[0];
@@ -1214,39 +1254,45 @@ function extractDataObject(apiData: any, targetId?: number): any {
     return apiData;
 }
 
+
 /**
  * Helper to safely get value from data object with case-insensitive fallback
  */
 export function getValue(data: any, key: string): any {
-    if (!data) return undefined;
+    if (!data || typeof data !== 'object') return undefined;
 
     // 1. Try exact match
     if (data[key] !== undefined) return data[key];
 
-    // 2. Try PascalCase variation (common in VAPS: hrmE_ -> HRME_)
-    if (key.startsWith('hrmE_')) {
-        const pascalKey = 'HRME_' + key.substring(5);
-        if (data[pascalKey] !== undefined) return data[pascalKey];
-    }
-
-    // 3. Try another common variation (hrm -> HRM)
-    if (key.startsWith('hrm')) {
-        const pascalKey = 'HRM' + key.substring(3);
-        if (data[pascalKey] !== undefined) return data[pascalKey];
-    }
-
-    // 4. Try lowercase match (expensive but safe)
+    // 2. Try common VAPS case variations (hrmE_ -> HRME_)
     const lowerKey = key.toLowerCase();
-    const foundKey = Object.keys(data).find((k) => k.toLowerCase() === lowerKey);
+
+    // Check if key is already in our variations list
+    const variations = [
+        key,
+        key.toLowerCase(),
+        key.startsWith('hrmE_') ? 'HRME_' + key.substring(5) : null,
+        key.startsWith('hrm') ? 'HRM' + key.substring(3) : null,
+        key.toUpperCase()
+    ].filter(Boolean) as string[];
+
+    for (const v of variations) {
+        if (data[v] !== undefined) return data[v];
+    }
+
+    // 3. Fallback: Search all keys case-insensitively
+    const keys = Object.keys(data);
+    const foundKey = keys.find(k => k.toLowerCase() === lowerKey);
     if (foundKey) return data[foundKey];
 
-    // 5. Try removing underscores from data keys (e.g. qualification_details -> qualificationdetails)
-    const normalizedKey = lowerKey.replace(/_/g, '');
-    const foundNormalizedKey = Object.keys(data).find((k) => k.toLowerCase().replace(/_/g, '') === normalizedKey);
-    if (foundNormalizedKey) return data[foundNormalizedKey];
+    // 4. Normalized search (remove underscores and case-insensitive)
+    const normalizedTarget = lowerKey.replace(/_/g, '');
+    const matchedNormalized = keys.find(k => k.toLowerCase().replace(/_/g, '') === normalizedTarget);
+    if (matchedNormalized) return data[matchedNormalized];
 
     return undefined;
 }
+
 
 /**
  * Map API response to form fields for Tab 1 (Employee Information) only
@@ -1886,9 +1932,49 @@ export function mapFormDataToPascalCaseApiFormat(data: FormFields, employeeId: n
         hrmE_RetiredFlg: !!data.stopPension,
         hrmE_PensionStoppedDate: data.dateOfStopPension ? new Date(data.dateOfStopPension).toISOString() : new Date().toISOString(),
         hrmE_FPFNotApplicableFlg: !data.ppf,
-        hrmE_EPFNotApplicableFlg: !data.epf,
         hrmE_AllowSoftwareAccessFlg: true
     };
 
     return payload;
 }
+
+/**
+ * Normalize a single employee record for GenericDataTable display
+ * Ensures keys match those expected by columns.tsx (accessorKey)
+ */
+export function normalizeEmployeeData(data: any): any {
+    if (!data || typeof data !== 'object') return data;
+
+    const result = { ...data };
+
+    // List of critical display fields used in columns.tsx accessorKey
+    const fields = [
+        'hrmE_EmployeeFirstName',
+        'hrmE_EmployeeMiddleName',
+        'hrmE_EmployeeLastName',
+        'hrmE_EmployeeCode',
+        'hrmE_Photo',
+        'hrmE_Id',
+        'hrmE_EmployeeOrder',
+        'hrmE_ActiveFlag'
+    ];
+
+    for (const field of fields) {
+        const val = getValue(data, field);
+        if (val !== undefined) {
+            result[field] = val;
+        }
+    }
+
+    return result;
+}
+
+/**
+ * Normalize a list of employee records
+ */
+export function normalizeEmployeeList(list: any[] | null | undefined): any[] {
+    if (!list || !Array.isArray(list)) return [];
+    return list.map((item) => normalizeEmployeeData(item));
+}
+
+

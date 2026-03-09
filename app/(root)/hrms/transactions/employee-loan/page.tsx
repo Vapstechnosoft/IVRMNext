@@ -245,22 +245,6 @@ function EmployeeLoanTable({
             enableHiding: true
         },
         {
-            id: 'status',
-            accessorKey: 'HREL_LoanStatus',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-            cell: ({ row }) => {
-                const loan = row.original;
-                const isActive = loan.HREL_ActiveFlag === true;
-                return (
-                    <Badge variant={isActive ? 'success' : 'destructive'} className='text-xs'>
-                        {isActive ? 'Active' : 'Inactive'}
-                    </Badge>
-                );
-            },
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
             id: 'totalPending',
             accessorKey: 'HREL_TotalPending',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Total Pending' />,

@@ -1,14 +1,20 @@
-import { TIMETABLE_QUERY_KEYS } from "@/constants/Timetable-query-keys";
-import { getFixingDayPeriodGridData, getFixingDaySubjectGridData, getFixingPeriodSubjectGridData, getFixingPeriodStaffGridData, getFixingDayStaffGridData } from "@/server/timetable/constraints/fixing";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
+import {
+    getFixingDayPeriodGridData,
+    getFixingDayStaffGridData,
+    getFixingDaySubjectGridData,
+    getFixingPeriodStaffGridData,
+    getFixingPeriodSubjectGridData
+} from '@/server/timetable/constraints/fixing';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-export const useDayStaffGridData = () => {
+export const useDayStaffGridData = (searchParams?: any) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [TIMETABLE_QUERY_KEYS.FIXING_DAY_STAFF_GRID, 'grid'],
-            queryFn: async () => getFixingDayStaffGridData(),
+            queryKey: [TIMETABLE_QUERY_KEYS.FIXING_DAY_STAFF_GRID, 'grid', searchParams],
+            queryFn: async () => getFixingDayStaffGridData(searchParams),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -36,14 +42,13 @@ export const useFixingDayPeriodGridData = (searchParams?: any) => {
     };
 };
 
-
-export const useDaySubjectGridData = () => {
+export const useDaySubjectGridData = (searchParams?: any) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [TIMETABLE_QUERY_KEYS.FIXING_DAY_SUBJECT_GRID, 'grid'],
-            queryFn: async () => getFixingDaySubjectGridData(),
+            queryKey: [TIMETABLE_QUERY_KEYS.FIXING_DAY_SUBJECT_GRID, 'grid', searchParams],
+            queryFn: async () => getFixingDaySubjectGridData(searchParams),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -54,13 +59,13 @@ export const useDaySubjectGridData = () => {
     };
 };
 
-export const usePeriodSubjectGridData = () => {
+export const usePeriodSubjectGridData = (searchParams?: any) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [TIMETABLE_QUERY_KEYS.FIXING_PERIOD_SUBJECT_GRID, 'grid'],
-            queryFn: async () => getFixingPeriodSubjectGridData(),
+            queryKey: [TIMETABLE_QUERY_KEYS.FIXING_PERIOD_SUBJECT_GRID, 'grid', searchParams],
+            queryFn: async () => getFixingPeriodSubjectGridData(searchParams),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -71,13 +76,13 @@ export const usePeriodSubjectGridData = () => {
     };
 };
 
-export const usePeriodStaffGridData = () => {
+export const usePeriodStaffGridData = (searchParams?: any) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [TIMETABLE_QUERY_KEYS.FIXING_PERIOD_STAFF_GRID, 'grid'],
-            queryFn: async () => getFixingPeriodStaffGridData(),
+            queryKey: [TIMETABLE_QUERY_KEYS.FIXING_PERIOD_STAFF_GRID, 'grid', searchParams],
+            queryFn: async () => getFixingPeriodStaffGridData(searchParams),
             staleTime: 0
         }),
         refetchAll: () => {

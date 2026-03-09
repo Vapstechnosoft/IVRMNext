@@ -61,9 +61,9 @@ const ClassWiseReportPrintable = forwardRef<HTMLDivElement, ClassWiseReportPrint
                     <table>
                         <thead>
                             <tr>
-                                <th>Day / Period</th>
+
                                 {table.periodList.map((p: any, pIdx: number) => (
-                                    <th key={pIdx}>{p.is_break ? 'Break' : `Period ${p.ped_name}`}</th>
+                                    <th key={pIdx}>Period {p.ped_name}</th>
                                 ))}
                             </tr>
                         </thead>

@@ -102,7 +102,7 @@ export const BirthCertificatePrint = React.forwardRef<HTMLDivElement, BirthCerti
                         <div className='dob-a4-container dob-bg-watermark bg-white'>
                             <div className='dob-content-wrapper flex flex-col h-full'>
                                 {/* Header */}
-                                <div className='flex items-center justify-between mb-8 border-b-2 border-black pb-4'>
+                                {/* <div className='flex items-center justify-between mb-8 border-b-2 border-black pb-4'>
                                     {mI_Logo && (
                                         <div className='w-[100px] h-[100px] flex-shrink-0'>
                                             <img src={mI_Logo} alt='Logo' className='w-full h-full object-contain' />
@@ -113,12 +113,14 @@ export const BirthCertificatePrint = React.forwardRef<HTMLDivElement, BirthCerti
                                         <p className='text-sm mt-1'>{schoolAddress} - {pincode}</p>
                                     </div>
                                     <div className='w-[100px]'>
-                                        {/* Placeholder for balance */}
                                     </div>
-                                </div>
+                                </div> */}
 
-                                <div className='text-center mb-12'>
+                                <div className='text-center mb-12' >
                                     <h2 className='text-3xl font-bold underline decoration-2 uppercase'>BIRTH CERTIFICATE</h2>
+                                </div>
+                                <div className='text-center mb-12' style={{ marginTop: '-40px' }}>
+                                    <p className='text-3xl  uppercase'>TO WHOMSOEVER IT MAY CONCERN</p>
                                 </div>
 
                                 {/* Content */}

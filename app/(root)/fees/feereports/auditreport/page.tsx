@@ -343,6 +343,7 @@ export default function FeeAuditReport() {
                                                     }))
                                                 }
                                                 className='rounded border px-3 py-1'
+                                                onKeyDown={(e) => e.preventDefault()}
                                             />
                                         </div>
 
@@ -361,6 +362,7 @@ export default function FeeAuditReport() {
                                                     }))
                                                 }
                                                 className='rounded border px-3 py-1'
+                                                onKeyDown={(e) => e.preventDefault()}
                                             />
                                         </div>
                                     </div>

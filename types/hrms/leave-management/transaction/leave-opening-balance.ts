@@ -17,7 +17,9 @@ export interface SaveLeaveOpeningBalancePayload {
     }[];
 }
 
-export interface LeaveOpeningBalanceSearch {
+import type { ApiSearchparams } from '@/types';
+
+export interface LeaveOpeningBalanceSearch extends ApiSearchparams {
     hrmE_Id?: number;
     hrmL_Id?: number;
 }

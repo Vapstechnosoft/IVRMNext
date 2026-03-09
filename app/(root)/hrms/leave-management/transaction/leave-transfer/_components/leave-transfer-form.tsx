@@ -373,7 +373,7 @@ export function LeaveTransferForm({
 
             {/* Employee Grid - Visible only after filters are selected */}
             {(selectedTypes.length > 0 && selectedDepartments.length > 0 && selectedDesignations.length > 0) ? (
-                <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500 max-w-4xl mx-auto">
                     <div className="flex items-center justify-between px-1">
                         <h3 className="text-sm font-bold text-primary uppercase tracking-wider">Employee List</h3>
                         <div className="relative w-full max-w-xs">
@@ -393,7 +393,7 @@ export function LeaveTransferForm({
                     <div className="overflow-hidden rounded-xl border border-gray-200 shadow-sm transition-shadow hover:shadow-md">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+                                <tr className="bg-gradient-to-r from-purple-600 to-indigo-700 text-white">
                                     <th className="p-3 text-left w-12">
                                         <div className="flex items-center justify-center">
                                             <input
@@ -490,7 +490,7 @@ export function LeaveTransferForm({
                 </div>
             ) : (
                 <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-100 p-12 text-center bg-gray-50/50">
-                    <div className="mb-3 rounded-full bg-blue-50 p-3 text-blue-500">
+                    <div className="mb-3 rounded-full bg-purple-50 p-3 text-purple-500">
                         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>

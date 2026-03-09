@@ -20,7 +20,7 @@ export async function getLeaveConfiguration(): Promise<ApiResponse<LeaveConfigur
 
     try {
         // CHANGED: api.post -> api.get based on user request "GET /api/LeaveConfig/get_leave_configuartion"
-        const response = await api.post<LeaveConfigurationGetResponse>('hmslms', url);
+        const response = await api.get<LeaveConfigurationGetResponse>('hmslms', url);
         console.log('🔵 [SERVER] GET Response:', JSON.stringify(response, null, 2));
 
         const res = response as any;
@@ -69,34 +69,33 @@ export async function saveLeaveConfiguration(data: LeaveConfigurationSaveRequest
     // CHANGED: URL updated to /api/LeaveConfig/add_or_update_leave_configuration
     const url = '/api/LeaveConfig/add_or_update_leave_configuration';
 
-    // CHANGED: Request body mapped to PascalCase to match user provided example
+    // CHANGED: Request body mapped to hrlpC_ style to match user provided example and backend expectations
     const requestBody = {
-        HRLPC_Id: data.HRLPC_Id || 0,
-        MI_Id: data.MI_Id || HRMS_MI_ID,
-        HRLPC_SpOrGenFlg: data.HRLPC_SpOrGenFlg || "G", // Default to "G" if missing/null?
-        HRLPC_PunchGAPTime: data.HRLPC_PunchGAPTime,
-        HRLPC_AbsentFlag: data.HRLPC_AbsentFlag,
-        HRLPC_LateInEarlyOutFlag: data.HRLPC_LateInEarlyOutFlag,
-        HRLPC_LateInRelaxFlag: !!data.HRLPC_LateInRelaxFlag,
-        HRLPC_LateInEarlyOut: data.HRLPC_LateInEarlyOut,
-        HRLPC_LateInTime: data.HRLPC_LateInTime,
-        HRLPC_EarlyOutRelaxFlag: !!data.HRLPC_EarlyOutRelaxFlag,
-        HRLPC_EarlyOutTime: data.HRLPC_EarlyOutTime,
-        HRLPC_CummulativeTimeFlag: !!data.HRLPC_CummulativeTimeFlag,
-        HRLPC_CummulativeTime: Number(data.HRLPC_CummulativeTime),
-        HRLPC_AfterCummulativeTime: data.HRLPC_AfterCummulativeTime,
-        HRLPC_NoOfLatesFlag: !!data.HRLPC_NoOfLatesFlag,
-        HRLPC_NoofMonthlyLateInExempted: Number(data.HRLPC_NoofMonthlyLateInExempted),
-        HRLPC_NoOfLates: Number(data.HRLPC_NoOfLates),
-        HRLPC_NoOfLatesCFFlag: !!data.HRLPC_NoOfLatesCFFlag,
-        HRLPC_LeavePrefixSuffixFlag: !!data.HRLPC_LeavePrefixSuffixFlag,
-        HRLPC_IncludeHolidayFlag: !!data.HRLPC_IncludeHolidayFlag,
-        HRLPC_ActiveFlag: data.HRLPC_ActiveFlag !== undefined ? !!data.HRLPC_ActiveFlag : true,
-        // Dates handled by backend or keep null if new
-        HRLPC_CreeatedDate: data.HRLPC_CreeatedDate || null,
-        HRLPC_UpdatedDate: data.HRLPC_UpdatedDate || null,
-        HRLPC_CreatedBy: data.HRLPC_CreatedBy || 0,
-        HRLPC_UpdatedBy: data.HRLPC_UpdatedBy || 0
+        hrlpC_Id: data.hrlpC_Id || 0,
+        mI_Id: data.mI_Id || HRMS_MI_ID,
+        hrlpC_SpOrGenFlg: data.hrlpC_SpOrGenFlg || "G",
+        hrlpC_PunchGAPTime: data.hrlpC_PunchGAPTime,
+        hrlpC_AbsentFlag: data.hrlpC_AbsentFlag,
+        hrlpC_LateInEarlyOutFlag: data.hrlpC_LateInEarlyOutFlag,
+        hrlpC_LateInRelaxFlag: !!data.hrlpC_LateInRelaxFlag,
+        hrlpC_LateInEarlyOut: data.hrlpC_LateInEarlyOut,
+        hrlpC_LateInTime: data.hrlpC_LateInTime,
+        hrlpC_EarlyOutRelaxFlag: !!data.hrlpC_EarlyOutRelaxFlag,
+        hrlpC_EarlyOutTime: data.hrlpC_EarlyOutTime,
+        hrlpC_CummulativeTimeFlag: !!data.hrlpC_CummulativeTimeFlag,
+        hrlpC_CummulativeTime: Number(data.hrlpC_CummulativeTime),
+        hrlpC_AfterCummulativeTime: data.hrlpC_AfterCummulativeTime,
+        hrlpC_NoOfLatesFlag: !!data.hrlpC_NoOfLatesFlag,
+        hrlpC_NoofMonthlyLateInExempted: Number(data.hrlpC_NoofMonthlyLateInExempted),
+        hrlpC_NoOfLates: Number(data.hrlpC_NoOfLates),
+        hrlpC_NoOfLatesCFFlag: !!data.hrlpC_NoOfLatesCFFlag,
+        hrlpC_LeavePrefixSuffixFlag: !!data.hrlpC_LeavePrefixSuffixFlag,
+        hrlpC_IncludeHolidayFlag: !!data.hrlpC_IncludeHolidayFlag,
+        hrlpC_ActiveFlag: data.hrlpC_ActiveFlag !== undefined ? !!data.hrlpC_ActiveFlag : true,
+        hrlpC_CreeatedDate: data.hrlpC_CreeatedDate || null,
+        hrlpC_UpdatedDate: data.hrlpC_UpdatedDate || null,
+        hrlpC_CreatedBy: data.hrlpC_CreatedBy || 0,
+        hrlpC_UpdatedBy: data.hrlpC_UpdatedBy || 0
     };
 
     console.log('🟠 [SERVER] POST Request URL:', url);

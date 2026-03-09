@@ -232,6 +232,7 @@ export default function StudyCertificateReportPage(props: {
                                             <CalendarYear
                                                 mode='single'
                                                 selected={field.value ? new Date(field.value) : undefined}
+                                                disabled={(date) => !isSameLocalDate(date, new Date())}
                                                 onSelect={(date) => {
                                                     if (!date) return;
                                                     if (!isSameLocalDate(date, new Date())) {

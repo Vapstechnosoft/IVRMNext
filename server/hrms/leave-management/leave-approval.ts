@@ -36,35 +36,29 @@ import type {
  * POST /api/LeaveApprovalFacade/GetApprovalStatus
  */
 export async function getApprovalStatus(request: GetApprovalStatusRequest): Promise<ApiResponse<GetApprovalStatusResponseData>> {
-    const url = '/api/LeaveApprovalFacade/get_approval_status';
+    const url = '/api/LeaveApproval/get_approval_status';
     const requestBody: GetApprovalStatusRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID
     };
 
     console.log('🔵 [SERVER] POST Request URL:', url);
     try {
-        const response = await api.post<GetApprovalStatusResponseData>('hmslms', url, requestBody);
+        const response = await api.post<any>('hmslms', url, requestBody);
         console.log('🔵 [SERVER] POST Response:', JSON.stringify(response, null, 2));
 
-        // Handle the response structure
-        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-            return response as ApiResponse<GetApprovalStatusResponseData>;
-        }
-
-        // Wrap raw response data
-        const responseData = response as any;
+        const res = response as any;
         return {
-            success: responseData?.success ?? true,
-            message: responseData?.message || responseData?.retrunMsg || 'Leave approval status fetched successfully',
-            data: response as unknown as GetApprovalStatusResponseData
+            success: res?.success ?? true,
+            message: res?.message || res?.retrunMsg || 'Leave approval status fetched successfully',
+            data: res as unknown as GetApprovalStatusResponseData
         };
     } catch (error: any) {
-        console.error('🔴 [SERVER] GetApprovalStatus Error:', error);
-        const errorMessage = error?.response?.data?.message ||
-            error?.response?.data?.retrunMsg ||
-            error?.message ||
-            'Failed to fetch leave approval status';
-        throw new Error(errorMessage);
+        console.warn('⚠️ [SERVER] GetApprovalStatus failed:', error.message);
+        return {
+            success: false,
+            message: error?.message || 'Failed to fetch leave approval status',
+            data: {} as GetApprovalStatusResponseData
+        };
     }
 }
 
@@ -196,7 +190,7 @@ export async function getEmployeeOnDutyDetails(hrmeId: number): Promise<ApiRespo
  * POST /api/LeaveApprovalFacade/GetStatusAsync
  */
 export async function getStatusAsync(request: GetStatusAsyncRequest): Promise<ApiResponse<GetStatusAsyncResponseData>> {
-    const url = '/api/LeaveApprovalFacade/get_status_async';
+    const url = '/api/LeaveApproval/get_status_async';
     const requestBody: GetStatusAsyncRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID,
         retrunMsg: request.retrunMsg || '',
@@ -210,16 +204,20 @@ export async function getStatusAsync(request: GetStatusAsyncRequest): Promise<Ap
     };
 
     try {
-        const response = await api.post<GetStatusAsyncResponseData>('hmslms', url, requestBody);
-        const responseData = response as any;
+        const response = await api.post<any>('hmslms', url, requestBody);
+        const res = response as any;
         return {
-            success: responseData?.success ?? true,
-            message: responseData?.message || responseData?.retrunMsg || 'Leave status fetched successfully',
-            data: response as unknown as GetStatusAsyncResponseData
+            success: res?.success ?? true,
+            message: res?.message || res?.retrunMsg || 'Leave status fetched successfully',
+            data: res as unknown as GetStatusAsyncResponseData
         };
     } catch (error: any) {
-        const errorMessage = error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch leave status';
-        throw new Error(errorMessage);
+        console.warn('⚠️ [SERVER] getStatusAsync failed:', error.message);
+        return {
+            success: false,
+            message: error?.message || 'Failed to fetch leave status',
+            data: {} as GetStatusAsyncResponseData
+        };
     }
 }
 
@@ -228,7 +226,7 @@ export async function getStatusAsync(request: GetStatusAsyncRequest): Promise<Ap
  * POST /api/LeaveApprovalFacade/RejectStatusAsync
  */
 export async function rejectStatusAsync(request: RejectStatusAsyncRequest): Promise<ApiResponse<RejectStatusAsyncResponseData>> {
-    const url = '/api/LeaveApprovalFacade/reject_status_async';
+    const url = '/api/LeaveApproval/reject_status_async';
     const requestBody: RejectStatusAsyncRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID,
         LoginId: request.LoginId || 0,
@@ -237,44 +235,73 @@ export async function rejectStatusAsync(request: RejectStatusAsyncRequest): Prom
     };
 
     try {
-        const response = await api.post<RejectStatusAsyncResponseData>('hmslms', url, requestBody);
-        const responseData = response as any;
-        const retrunMsg = responseData?.retrunMsg || responseData?.message || '';
-        const isSuccess = responseData?.returnval === true || responseData?.returnval_Update === true || retrunMsg.toLowerCase().includes('success');
+        const response = await api.post<any>('hmslms', url, requestBody);
+        const res = response as any;
+        const retrunMsg = res?.retrunMsg || res?.message || '';
+        const isSuccess = res?.returnval === true || res?.returnval_Update === true || retrunMsg.toLowerCase().includes('success');
 
         return {
             success: isSuccess,
             message: retrunMsg || (isSuccess ? 'Leave rejected successfully' : 'Failed to reject leave'),
-            data: responseData?.data || null
+            data: res?.data || null
         };
     } catch (error: any) {
-        const errorMessage = error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to reject leave';
-        throw new Error(errorMessage);
+        console.warn('⚠️ [SERVER] rejectStatusAsync failed:', error.message);
+        return {
+            success: false,
+            message: error?.message || 'Failed to reject leave',
+            data: null
+        };
     }
 }
 
 /**
  * Get approved leave
- * POST /api/LeaveApprovalFacade/GetApprovedLeave
+ * POST /api/LeaveApproval/get_approved_leave (updated from Facade which return 404)
  */
 export async function getApprovedLeave(request: GetApprovedLeaveRequest): Promise<ApiResponse<GetApprovedLeaveResponseData>> {
-    const url = '/api/LeaveApprovalFacade/get_approved_leave';
+    const url = '/api/LeaveApproval/get_approved_leave';
     const requestBody: GetApprovedLeaveRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID,
         LoginId: request.LoginId || 0
     };
 
     try {
-        const response = await api.post<GetApprovedLeaveResponseData>('hmslms', url, requestBody);
-        const responseData = response as any;
+        console.log('🔵 [SERVER] POST Request URL:', url);
+        const response = await api.post<any>('hmslms', url, requestBody);
+
+        // Handle response gracefully
+        const res = response as any;
+
+        // If the API returns a direct array or different structure
+        let approvedData: any[] = [];
+        if (Array.isArray(res)) {
+            approvedData = res;
+        } else if (res?.data && Array.isArray(res.data)) {
+            approvedData = res.data;
+        } else if (res?.approvedLeaves && Array.isArray(res.approvedLeaves)) {
+            approvedData = res.approvedLeaves;
+        } else if (res?.GridviewDetails && Array.isArray(res.GridviewDetails)) {
+            approvedData = res.GridviewDetails;
+        }
+
         return {
-            success: responseData?.success ?? true,
-            message: responseData?.message || responseData?.retrunMsg || 'Approved leave fetched successfully',
-            data: response as unknown as GetApprovedLeaveResponseData
+            success: true,
+            message: res?.message || 'Approved leave fetched successfully',
+            data: {
+                approvedLeaves: approvedData
+            } as unknown as GetApprovedLeaveResponseData
         };
     } catch (error: any) {
-        const errorMessage = error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch approved leave';
-        throw new Error(errorMessage);
+        console.warn('⚠️ [SERVER] getApprovedLeave failed (possible expected 404):', error.message);
+        // Return empty data instead of throwing to prevent page crash
+        return {
+            success: false,
+            message: 'Note: Approved leave history might not be available.',
+            data: {
+                approvedLeaves: []
+            } as unknown as GetApprovedLeaveResponseData
+        };
     }
 }
 
@@ -283,47 +310,55 @@ export async function getApprovedLeave(request: GetApprovedLeaveRequest): Promis
  * POST /api/LeaveApprovalFacade/ViewLeaveBalanceHistory
  */
 export async function viewLeaveBalanceHistory(request: ViewLeaveBalanceHistoryRequest): Promise<ApiResponse<ViewLeaveBalanceHistoryResponseData>> {
-    const url = '/api/LeaveApprovalFacade/view_leave_balance_history';
+    const url = '/api/LeaveApproval/view_leave_balance_history';
     const requestBody: ViewLeaveBalanceHistoryRequest = {
         HRME_Id: request.HRME_Id || 0
     };
 
     try {
-        const response = await api.post<ViewLeaveBalanceHistoryResponseData>('hmslms', url, requestBody);
-        const responseData = response as any;
+        const response = await api.post<any>('hmslms', url, requestBody);
+        const res = response as any;
         return {
-            success: responseData?.success ?? true,
-            message: responseData?.message || responseData?.retrunMsg || 'Leave balance history fetched successfully',
-            data: response as unknown as ViewLeaveBalanceHistoryResponseData
+            success: res?.success ?? true,
+            message: res?.message || res?.retrunMsg || 'Leave balance history fetched successfully',
+            data: res as unknown as ViewLeaveBalanceHistoryResponseData
         };
     } catch (error: any) {
-        const errorMessage = error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch leave balance history';
-        throw new Error(errorMessage);
+        console.warn('⚠️ [SERVER] viewLeaveBalanceHistory failed:', error.message);
+        return {
+            success: false,
+            message: error?.message || 'Failed to fetch leave balance history',
+            data: {} as ViewLeaveBalanceHistoryResponseData
+        };
     }
 }
 
 /**
  * Get request status
- * POST /api/LeaveApprovalFacade/GetRequestStatus
+ * POST /api/LeaveApproval/getRequestStatus (updated from Facade)
  */
 export async function getRequestStatus(request: GetRequestStatusRequest): Promise<ApiResponse<GetRequestStatusResponseData>> {
-    const url = '/api/LeaveApprovalFacade/get_request_status';
+    const url = '/api/LeaveApproval/get_request_status';
     const requestBody: GetRequestStatusRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID,
         LoginId: request.LoginId || 0
     };
 
     try {
-        const response = await api.post<GetRequestStatusResponseData>('hmslms', url, requestBody);
-        const responseData = response as any;
+        const response = await api.post<any>('hmslms', url, requestBody);
+        const res = response as any;
         return {
-            success: responseData?.success ?? true,
-            message: responseData?.message || responseData?.retrunMsg || 'Request status fetched successfully',
-            data: response as unknown as GetRequestStatusResponseData
+            success: res?.success ?? true,
+            message: res?.message || res?.retrunMsg || 'Request status fetched successfully',
+            data: res as unknown as GetRequestStatusResponseData
         };
     } catch (error: any) {
-        const errorMessage = error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch request status';
-        throw new Error(errorMessage);
+        console.warn('⚠️ [SERVER] getRequestStatus failed:', error.message);
+        return {
+            success: false,
+            message: error?.message || 'Failed to fetch request status',
+            data: {} as GetRequestStatusResponseData
+        };
     }
 }
 
@@ -332,7 +367,7 @@ export async function getRequestStatus(request: GetRequestStatusRequest): Promis
  * POST /api/LeaveApprovalFacade/GetApproveStatusAsync
  */
 export async function getApproveStatusAsync(request: GetApproveStatusAsyncRequest): Promise<ApiResponse<GetApproveStatusAsyncResponseData>> {
-    const url = '/api/LeaveApprovalFacade/get_approve_status_async';
+    const url = '/api/LeaveApproval/get_approve_status_async';
     const requestBody: GetApproveStatusAsyncRequest = {
         LoginId: request.LoginId || 0,
         MI_Id: request.MI_Id || HRMS_MI_ID,
@@ -340,53 +375,61 @@ export async function getApproveStatusAsync(request: GetApproveStatusAsyncReques
     };
 
     try {
-        const response = await api.post<GetApproveStatusAsyncResponseData>('hmslms', url, requestBody);
-        const responseData = response as any;
-        const retrunMsg = responseData?.retrunMsg || responseData?.message || '';
-        const isSuccess = responseData?.returnval === true || responseData?.returnval_Update === true || retrunMsg.toLowerCase().includes('success');
+        const response = await api.post<any>('hmslms', url, requestBody);
+        const res = response as any;
+        const retrunMsg = res?.retrunMsg || res?.message || '';
+        const isSuccess = res?.returnval === true || res?.returnval_Update === true || retrunMsg.toLowerCase().includes('success');
 
         return {
             success: isSuccess,
             message: retrunMsg || (isSuccess ? 'Leave approved successfully' : 'Failed to approve leave'),
-            data: response as unknown as GetApproveStatusAsyncResponseData
+            data: res as unknown as GetApproveStatusAsyncResponseData
         };
     } catch (error: any) {
-        const errorMessage = error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to approve leave';
-        throw new Error(errorMessage);
+        console.warn('⚠️ [SERVER] getApproveStatusAsync failed:', error.message);
+        return {
+            success: false,
+            message: error?.message || 'Failed to approve leave',
+            data: {} as GetApproveStatusAsyncResponseData
+        };
     }
 }
 
 /**
  * Get period approval status
- * POST /api/LeaveApprovalFacade/GetPeriodApprovalStatus
+ * POST /api/LeaveApproval/get_period_approval_status
  */
 export async function getPeriodApprovalStatus(request: GetPeriodApprovalStatusRequest): Promise<ApiResponse<GetPeriodApprovalStatusResponseData>> {
-    const url = '/api/LeaveApprovalFacade/get_period_approval_status';
+    const url = '/api/LeaveApproval/get_period_approval_status';
     const requestBody: GetPeriodApprovalStatusRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID,
         LoginId: request.LoginId || 0
     };
 
     try {
-        const response = await api.post<GetPeriodApprovalStatusResponseData>('hmslms', url, requestBody);
-        const responseData = response as any;
+        const response = await api.post<any>('hmslms', url, requestBody);
+        const res = response as any;
         return {
-            success: responseData?.success ?? true,
-            message: responseData?.message || responseData?.retrunMsg || 'Period approval status fetched successfully',
-            data: response as unknown as GetPeriodApprovalStatusResponseData
+            success: res?.success ?? true,
+            message: res?.message || res?.retrunMsg || 'Period approval status fetched successfully',
+            data: res as unknown as GetPeriodApprovalStatusResponseData
         };
     } catch (error: any) {
-        const errorMessage = error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch period approval status';
-        throw new Error(errorMessage);
+        console.warn('⚠️ [SERVER] getPeriodApprovalStatus failed:', error.message);
+        return {
+            success: false,
+            message: error?.message || 'Failed to fetch period approval status',
+            data: {} as GetPeriodApprovalStatusResponseData
+        };
     }
 }
 
 /**
  * Process period leave status
- * POST /api/LeaveApprovalFacade/PeriodLeaveStatus
+ * POST /api/LeaveApproval/period_leave_status
  */
 export async function periodLeaveStatus(request: PeriodLeaveStatusRequest): Promise<ApiResponse<PeriodLeaveStatusResponseData>> {
-    const url = '/api/LeaveApprovalFacade/period_leave_status';
+    const url = '/api/LeaveApproval/period_leave_status';
     const requestBody: PeriodLeaveStatusRequest = {
         HRELAPDD_ApprovalFlg: request.HRELAPDD_ApprovalFlg || '',
         HRELAPDD_Remarks: request.HRELAPDD_Remarks || '',
@@ -395,19 +438,23 @@ export async function periodLeaveStatus(request: PeriodLeaveStatusRequest): Prom
     };
 
     try {
-        const response = await api.post<PeriodLeaveStatusResponseData>('hmslms', url, requestBody);
-        const responseData = response as any;
-        const retrunMsg = responseData?.retrunMsg || responseData?.message || '';
-        const isSuccess = responseData?.returnval === true || responseData?.returnval_Update === true || retrunMsg.toLowerCase().includes('success');
+        const response = await api.post<any>('hmslms', url, requestBody);
+        const res = response as any;
+        const retrunMsg = res?.retrunMsg || res?.message || '';
+        const isSuccess = res?.returnval === true || res?.returnval_Update === true || retrunMsg.toLowerCase().includes('success');
 
         return {
             success: isSuccess,
             message: retrunMsg || (isSuccess ? 'Period leave status processed successfully' : 'Failed to process period leave status'),
-            data: responseData?.data || null
+            data: res?.data || null
         };
     } catch (error: any) {
-        const errorMessage = error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to process period leave status';
-        throw new Error(errorMessage);
+        console.warn('⚠️ [SERVER] periodLeaveStatus failed:', error.message);
+        return {
+            success: false,
+            message: error?.message || 'Failed to process period leave status',
+            data: null
+        };
     }
 }
 
