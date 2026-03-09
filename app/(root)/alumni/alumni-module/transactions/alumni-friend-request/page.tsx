@@ -12,12 +12,15 @@ export default function AlumniFriendRequestPage() {
     const [searchResult, setSearchResult] = useState<IAlumniFriendRequest[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
+    const [totalItems, setTotalItems] = useState(0);
+    const [apiParams, setApiParams] = useState<any>({ page: 1, page_size: 10 });
 
-    const loadInitialData = useCallback(async () => {
+    const loadInitialData = useCallback(async (params = apiParams) => {
         setIsLoading(true);
         try {
-            const res = await getAlumniFriendRequestData({});
+            const res = await getAlumniFriendRequestData(params);
             if (res.success && res.data) {
+                setTotalItems(res.total || 0);
                 const dataArray = Array.isArray(res.data) ? res.data : res.data.searchResult || [];
                 const list = dataArray.map((item: any) => {
                     const requestDate = item.alsfrnD_RequestDate || item.ALSFRND_RequestDate || item.alsfrnd_requestdate;
@@ -44,6 +47,11 @@ export default function AlumniFriendRequestPage() {
     useEffect(() => {
         loadInitialData();
     }, [loadInitialData]);
+
+    const handleSearchParamsChange = (newParams: any) => {
+        setApiParams(newParams);
+        loadInitialData(newParams);
+    };
 
     const handleSearch = async (values: any) => {
         setIsSearching(true);
@@ -94,7 +102,14 @@ export default function AlumniFriendRequestPage() {
             </CollapsibleSection>
 
             <CollapsibleSection title='Alumni Search Results' defaultOpen={true} variant='outline'>
-                <RequestList data={searchResult} isLoading={isLoading || isSearching} onRefresh={loadInitialData} />
+                <RequestList
+                    data={searchResult}
+                    isLoading={isLoading || isSearching}
+                    onRefresh={loadInitialData}
+                    totalItems={totalItems}
+                    currentApiParams={apiParams}
+                    onSearchParamsChange={handleSearchParamsChange}
+                />
             </CollapsibleSection>
         </div>
     );
