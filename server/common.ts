@@ -3765,20 +3765,28 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Hostel Facilities'
                                         },
                                         {
-                                            id: 2,
-                                            name: 'Master Hostel',
-                                            icon: 'Building',
-                                            url: '/hostel/hostel-management/masters/master-hostel',
-                                            title: 'Master Hostel',
-                                            description: 'Manage Hostel Details'
+                                            id: 7,
+                                            name: 'Master Mess',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/master-mess',
+                                            title: 'Master Mess',
+                                            description: 'Manage Mess Details'
                                         },
-                                        {
+                                          {
                                             id: 3,
                                             name: 'Master Mess Category',
                                             icon: 'Home',
                                             url: '/hostel/hostel-management/masters/master-mess-category',
                                             title: 'Master Mess Category',
                                             description: 'Manage Mess Category Mapping'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Master Hostel',
+                                            icon: 'Building',
+                                            url: '/hostel/hostel-management/masters/master-hostel',
+                                            title: 'Master Hostel',
+                                            description: 'Manage Hostel Details'
                                         },
                                         {
                                             id: 4,
@@ -3804,14 +3812,7 @@ export async function getUserAccessibleModules() {
                                             title: 'Master Bed',
                                             description: 'Manage Bed Details'
                                         },
-                                        {
-                                            id: 7,
-                                            name: 'Master Mess',
-                                            icon: 'Home',
-                                            url: '/hostel/hostel-management/masters/master-mess',
-                                            title: 'Master Mess',
-                                            description: 'Manage Mess Details'
-                                        },
+                                        
                                         {
                                             id: 8,
                                             name: 'Mess Menu',
