@@ -291,8 +291,10 @@ export default function DailyFeeCollectionReportForm() {
         // }
         if (rpttyp === 'Individual') {
             if (enableAllClasses === true) {
-                toast.error('Please select Class');
-                return;
+                if (asmcL_Id === 0 || asmcL_Id === null || asmcL_Id === undefined) {
+                    toast.error('Please select Class');
+                    return;
+                }
             }
         }
 
