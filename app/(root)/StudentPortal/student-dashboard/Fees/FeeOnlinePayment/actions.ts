@@ -10,6 +10,7 @@ const MOCK_INITIAL_DATA = {
     academicyrlist: [
         { asmaY_Id: 1, asmaY_Year: "2023-2024" },
         { asmaY_Id: 2, asmaY_Year: "2024-2025" }
+        
     ],
     customgrplist: [
         { fmgG_Id: 101, fmgG_GroupName: "Tuition Fee" },

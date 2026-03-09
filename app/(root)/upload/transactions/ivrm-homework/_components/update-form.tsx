@@ -31,7 +31,7 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
     const [isUrlMode, setIsUrlMode] = useState(false);
 
     const methods = useForm<IHomeWork>({
-        resolver: zodResolver(homeWorkSchema),
+        resolver: zodResolver(homeWorkSchema.addOrUpdate),
         defaultValues: {
             ...selectedRow,
             ihW_Date: selectedRow.ihW_Date ? (typeof selectedRow.ihW_Date === 'string' ? parseISO(selectedRow.ihW_Date) : selectedRow.ihW_Date) : new Date(),

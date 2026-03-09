@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Search, UserCheck, Layers, ClipboardList, Info, FileText } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { ColumnDef } from '@tanstack/react-table';
 import { OnlineAdminLeaveBalance } from '@/types/hrms/leave-management/online-admin-leave';
 import { cn } from '@/lib/utils';
@@ -62,11 +63,19 @@ export default function OnlineAdminLeavePage() {
 
     // Unified History Data (Favor dedicated API, fallback to batch data from balance API)
     const effectiveHistory = useMemo(() => {
-        if (leaveHistoryBatch && leaveHistoryBatch.length > 0) return leaveHistoryBatch;
-        return leaveBalanceData?.get_leave_details || [];
+        if (Array.isArray(leaveHistoryBatch) && leaveHistoryBatch.length > 0) {
+            return leaveHistoryBatch;
+        }
+        if (leaveHistoryBatch && !Array.isArray(leaveHistoryBatch) && Array.isArray((leaveHistoryBatch as any).get_leave_details) && (leaveHistoryBatch as any).get_leave_details.length > 0) {
+            return (leaveHistoryBatch as any).get_leave_details;
+        }
+        if (leaveBalanceData?.get_leave_details && Array.isArray(leaveBalanceData.get_leave_details)) {
+            return leaveBalanceData.get_leave_details;
+        }
+        return [];
     }, [leaveHistoryBatch, leaveBalanceData]);
 
-    const isHistoryLoading = isLoadingHistory && effectiveHistory.length === 0;
+    const isHistoryLoading = isLoadingHistory;
 
     // Filtered History Data
     const filteredHistoryData = useMemo(() => {
@@ -75,7 +84,7 @@ export default function OnlineAdminLeavePage() {
 
         const lowerSearch = searchQuery.toLowerCase();
 
-        return effectiveHistory.filter(item => {
+        return effectiveHistory.filter((item: any) => {
             const leaveName = (item.hrmL_LeaveName || '').toLowerCase();
             const reason = (item.hrelaP_LeaveReason || '').toLowerCase();
             const status = (item.hrelaP_ApplicationStatus || '').toLowerCase();
@@ -93,8 +102,8 @@ export default function OnlineAdminLeavePage() {
         return leaveBalanceData.employeeLeaves.map(balance => {
             // Find the most recent history record for this leave type
             const latestHistory = effectiveHistory
-                ?.filter(h => h.hrmL_Id === balance.hrmL_Id)
-                .sort((a, b) => new Date(b.hrelaP_FromDate).getTime() - new Date(a.hrelaP_FromDate).getTime())[0];
+                ?.filter((h: any) => h.hrmL_Id === balance.hrmL_Id)
+                .sort((a: any, b: any) => new Date(b.hrelaP_FromDate).getTime() - new Date(a.hrelaP_FromDate).getTime())[0];
 
             return {
                 ...balance,
@@ -108,6 +117,7 @@ export default function OnlineAdminLeavePage() {
     const [selectedLeave, setSelectedLeave] = useState<any>(null);
     const [selectedFromDate, setSelectedFromDate] = useState<Date | undefined>(undefined);
     const [selectedToDate, setSelectedToDate] = useState<Date | undefined>(undefined);
+    const [isHalfDay, setIsHalfDay] = useState<boolean>(false);
 
     // Grid 1 Columns (Balance with Dates)
     const balanceColumns: ColumnDef<any>[] = [
@@ -119,8 +129,11 @@ export default function OnlineAdminLeavePage() {
                     className='flex items-center justify-center p-1 cursor-pointer'
                     onClick={() => {
                         setSelectedLeave(row.original);
-                        if (row.original.latestFromDate) setSelectedFromDate(new Date(row.original.latestFromDate));
-                        if (row.original.latestToDate) setSelectedToDate(new Date(row.original.latestToDate));
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        setSelectedFromDate(today);
+                        setSelectedToDate(today);
+                        setIsHalfDay(false);
                     }}
                 >
                     <div className={cn(
@@ -141,8 +154,11 @@ export default function OnlineAdminLeavePage() {
                     className='font-mono text-xs cursor-pointer'
                     onClick={() => {
                         setSelectedLeave(row.original);
-                        if (row.original.latestFromDate) setSelectedFromDate(new Date(row.original.latestFromDate));
-                        if (row.original.latestToDate) setSelectedToDate(new Date(row.original.latestToDate));
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        setSelectedFromDate(today);
+                        setSelectedToDate(today);
+                        setIsHalfDay(false);
                     }}
                 >
                     {row.index + 1}
@@ -157,8 +173,11 @@ export default function OnlineAdminLeavePage() {
                     className='font-bold text-slate-700 cursor-pointer hover:text-primary transition-colors'
                     onClick={() => {
                         setSelectedLeave(row.original);
-                        if (row.original.latestFromDate) setSelectedFromDate(new Date(row.original.latestFromDate));
-                        if (row.original.latestToDate) setSelectedToDate(new Date(row.original.latestToDate));
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        setSelectedFromDate(today);
+                        setSelectedToDate(today);
+                        setIsHalfDay(false);
                     }}
                 >
                     {row.getValue('hrmL_LeaveName')}
@@ -180,10 +199,10 @@ export default function OnlineAdminLeavePage() {
             header: 'FROM DATE',
             cell: ({ row }) => {
                 const isSelected = selectedLeave?.hrmL_Id === row.original.hrmL_Id;
-                const activeDate = isSelected ? selectedFromDate : (row.original.latestFromDate ? new Date(row.original.latestFromDate) : undefined);
+                const activeDate = isSelected ? selectedFromDate : undefined;
 
                 return (
-                    <div className='flex items-center gap-2'>
+                    <div className='flex items-center gap-2 w-max'>
                         <span className={cn('font-medium text-[11px]', isSelected ? 'text-primary font-black' : 'text-slate-600')}>
                             {activeDate ? format(activeDate, 'dd-MM-yyyy') : '-- -- ----'}
                         </span>
@@ -193,13 +212,27 @@ export default function OnlineAdminLeavePage() {
                                     <CalendarIcon className='h-3 w-3' />
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent className='w-auto p-0' align='end' side='top'>
+                            <PopoverContent className='w-auto p-0' align='start' side='bottom'>
                                 <Calendar
                                     mode='single'
                                     selected={activeDate}
                                     onSelect={(date) => {
                                         setSelectedLeave(row.original);
                                         setSelectedFromDate(date);
+                                        // Reset toDate if it's before the new fromDate
+                                        if (selectedToDate && date && date > selectedToDate) {
+                                            setSelectedToDate(date);
+                                        }
+                                        setIsHalfDay(false);
+                                    }}
+                                    disabled={(date) => {
+                                        const today = new Date();
+                                        today.setHours(0, 0, 0, 0);
+                                        const balance = Number(row.original.hrelS_CBLeaves) || 0;
+                                        const maxDate = new Date(today);
+                                        maxDate.setDate(today.getDate() + Math.max(0, Math.ceil(balance) - 1));
+
+                                        return date < today || date > maxDate;
                                     }}
                                     initialFocus
                                 />
@@ -214,10 +247,10 @@ export default function OnlineAdminLeavePage() {
             header: 'TO DATE',
             cell: ({ row }) => {
                 const isSelected = selectedLeave?.hrmL_Id === row.original.hrmL_Id;
-                const activeDate = isSelected ? selectedToDate : (row.original.latestToDate ? new Date(row.original.latestToDate) : undefined);
+                const activeDate = isSelected ? selectedToDate : undefined;
 
                 return (
-                    <div className='flex items-center gap-2'>
+                    <div className='flex items-center gap-2 w-max'>
                         <span className={cn('font-medium text-[11px]', isSelected ? 'text-primary font-black' : 'text-slate-600')}>
                             {activeDate ? format(activeDate, 'dd-MM-yyyy') : '-- -- ----'}
                         </span>
@@ -227,13 +260,27 @@ export default function OnlineAdminLeavePage() {
                                     <CalendarIcon className='h-3 w-3' />
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent className='w-auto p-0' align='end' side='top'>
+                            <PopoverContent className='w-auto p-0' align='start' side='bottom'>
                                 <Calendar
                                     mode='single'
                                     selected={activeDate}
                                     onSelect={(date) => {
                                         setSelectedLeave(row.original);
                                         setSelectedToDate(date);
+                                        setIsHalfDay(false);
+                                    }}
+                                    disabled={(date) => {
+                                        const today = new Date();
+                                        today.setHours(0, 0, 0, 0);
+                                        const balance = Number(row.original.hrelS_CBLeaves) || 0;
+                                        const maxDate = new Date(today);
+                                        maxDate.setDate(today.getDate() + Math.max(0, Math.ceil(balance) - 1));
+
+                                        // ToDate cannot be before selected FromDate (or Today if not selected)
+                                        const minDate = (isSelected && selectedFromDate) ? new Date(selectedFromDate) : today;
+                                        minDate.setHours(0, 0, 0, 0);
+
+                                        return date < minDate || date > maxDate;
                                     }}
                                     initialFocus
                                 />
@@ -245,24 +292,44 @@ export default function OnlineAdminLeavePage() {
         },
         {
             accessorKey: 'latestTotDays',
-            header: 'NO OF DAYS',
+            header: 'TOTAL DAYS',
             cell: ({ row }) => {
                 const isSelected = selectedLeave?.hrmL_Id === row.original.hrmL_Id;
-                let days = row.getValue('latestTotDays');
 
-                if (isSelected && selectedFromDate && selectedToDate) {
+                if (!isSelected) {
+                    return <span className='text-slate-300'>---</span>;
+                }
+
+                let days = 0;
+                if (selectedFromDate && selectedToDate) {
                     days = differenceInDays(selectedToDate, selectedFromDate) + 1;
                 }
 
-                return days !== null ? (
-                    <div className={cn(
-                        'font-black px-2 py-0.5 rounded w-fit text-[10px]',
-                        isSelected ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
-                    )}>
-                        {String(days)}
+                const isSingleDay = days === 1;
+                const displayDays = (isSingleDay && isHalfDay) ? 0.5 : days;
+
+                return (
+                    <div className="flex items-center gap-3 w-max">
+                        <Input
+                            readOnly
+                            value={displayDays || ''}
+                            className="w-16 h-8 text-xs font-bold text-center bg-white"
+                        />
+                        <div className="flex items-center space-x-1.5">
+                            <Checkbox
+                                id={`half-day-${row.original.hrmL_Id}`}
+                                disabled={!isSingleDay}
+                                checked={isSingleDay && isHalfDay}
+                                onCheckedChange={(checked) => setIsHalfDay(checked === true)}
+                            />
+                            <label
+                                htmlFor={`half-day-${row.original.hrmL_Id}`}
+                                className={cn("text-xs font-medium cursor-pointer whitespace-nowrap", !isSingleDay ? "opacity-50 cursor-not-allowed" : "text-slate-700")}
+                            >
+                                Half day
+                            </label>
+                        </div>
                     </div>
-                ) : (
-                    <span className='text-slate-300'>---</span>
                 );
             }
         }
@@ -282,10 +349,14 @@ export default function OnlineAdminLeavePage() {
     // Calculate current selection total days for form
     const currentTotalDays = useMemo(() => {
         if (selectedFromDate && selectedToDate) {
-            return differenceInDays(selectedToDate, selectedFromDate) + 1;
+            const days = differenceInDays(selectedToDate, selectedFromDate) + 1;
+            if (days === 1 && isHalfDay) {
+                return 0.5;
+            }
+            return days;
         }
         return undefined;
-    }, [selectedFromDate, selectedToDate]);
+    }, [selectedFromDate, selectedToDate, isHalfDay]);
 
     return (
         <div className='min-h-screen bg-slate-50/50 p-4 md:p-6'>

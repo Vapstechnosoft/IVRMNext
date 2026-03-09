@@ -44,15 +44,24 @@ export async function getEmployeesDropDown(): Promise<ApiResponse<EmployeeDropDo
  * GET /api/OnlineLeaveApplication/get_leave_details_grid_by_employee_id?hrme_id={hrme_id}
  */
 export async function getLeaveDetailsGridByEmployeeId(hrmeId: number): Promise<ApiResponse<OnlineAdminLeaveApplication[]>> {
-    console.log(hrmeId);
     const url = `/api/OnlineLeaveApplication/get_leave_details_grid_by_employee_id?hrme_id=${hrmeId}`;
     try {
         const response = await api.get<any>('hmslms', url);
         const res = response as any;
+
+        let dataToSet: any[] = [];
+        if (Array.isArray(res.data)) {
+            dataToSet = res.data;
+        } else if (res.data && Array.isArray(res.data.get_leave_details)) {
+            dataToSet = res.data.get_leave_details;
+        } else if (res.data && Array.isArray(res.data.$values)) {
+            dataToSet = res.data.$values;
+        }
+
         return {
             success: res.success === true || String(res.success) === 'true',
             message: res.message || 'Employee Leave details fetched successfully',
-            data: res.data || []
+            data: dataToSet
         };
     } catch (error: any) {
         throw new Error(error?.message || 'Failed to fetch employee leave details');

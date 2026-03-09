@@ -65,12 +65,15 @@ export default function StaffWiseForm({ onReportGenerated, onCancel }: StaffWise
     const {
         control,
         handleSubmit,
+        reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(staffWiseReportSchema.search),
         defaultValues: {
             staffId: [],
-            rpttyp: 'SAWC'
+            asmaY_Id: undefined,
+            rpttyp: 'SAWC',
+
         }
     });
 
@@ -98,25 +101,37 @@ export default function StaffWiseForm({ onReportGenerated, onCancel }: StaffWise
         }
     };
 
+    const handleCancelClick = () => {
+        reset();
+        onCancel();
+    };
+
     return (
         <form onSubmit={handleSubmit(onFormSubmit)} className='space-y-6 rounded-lg border bg-white p-6 shadow-sm'>
             <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                 {/* Academic Year */}
                 <div className='space-y-2'>
-                    <Label>
+                    <Label htmlFor='asmaY_Id'>
                         Academic Year <span className='text-red-500'>*</span>
                     </Label>
                     <Controller
                         control={control}
-                        name='asmaY_Id'
+                        name="asmaY_Id"
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='--Select--' />
+                            <Select
+                                key={field.value ?? 'empty'}
+                                value={field.value ? field.value.toString() : undefined}
+                                onValueChange={(val) => field.onChange(Number(val))}
+                            >
+                                <SelectTrigger id="asmaY_Id">
+                                    <SelectValue placeholder="--Select--" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {academicList?.map((item: any) => (
-                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id?.toString() || ''}>
+                                        <SelectItem
+                                            key={item.asmaY_Id}
+                                            value={item.asmaY_Id.toString()}
+                                        >
                                             {item.asmaY_Year}
                                         </SelectItem>
                                     ))}
@@ -129,7 +144,7 @@ export default function StaffWiseForm({ onReportGenerated, onCancel }: StaffWise
 
                 {/* Staff */}
                 <div className='space-y-2'>
-                    <Label>
+                    <Label htmlFor='staffId'>
                         Staff Name <span className='text-red-500'>*</span>
                     </Label>
                     <Controller
@@ -155,7 +170,7 @@ export default function StaffWiseForm({ onReportGenerated, onCancel }: StaffWise
                     control={control}
                     name='rpttyp'
                     render={({ field }) => (
-                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex flex-row space-x-4'>
+                        <RadioGroup onValueChange={field.onChange} value={field.value} className='flex flex-row space-x-4'>
                             <div className='flex items-center space-x-2'>
                                 <RadioGroupItem value='SAWC' id='SAWC' />
                                 <Label htmlFor='SAWC'>Subject Along With Class</Label>
@@ -169,13 +184,13 @@ export default function StaffWiseForm({ onReportGenerated, onCancel }: StaffWise
                 />
             </div>
 
-            <div className='flex justify-center space-x-2'>
-                <Button type='submit' disabled={isSubmitting}>
+            <div className='flex justify-center space-x-4'>
+                <Button type='submit' disabled={isSubmitting} className='min-w-[120px]'>
                     {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                     <Search className='mr-2 h-4 w-4' />
                     Report
                 </Button>
-                <Button type='button' variant='outline' onClick={onCancel}>
+                <Button type='button' variant='outline' onClick={handleCancelClick} className='min-w-[120px]' >
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>

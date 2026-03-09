@@ -14,6 +14,7 @@ declare module 'next-auth' {
         designation: string;
         user_image: string | null;
         expires: string;
+        amst_id?: number;
     }
 
     interface User {
@@ -25,7 +26,8 @@ declare module 'next-auth' {
         roleId?: number;
         designation: string;
         user_image: string | null;
+        amst_id?: number;
     }
 
-    interface JWT extends User {}
+    interface JWT extends User { }
 }

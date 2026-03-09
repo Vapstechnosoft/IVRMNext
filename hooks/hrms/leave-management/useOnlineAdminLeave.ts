@@ -69,26 +69,28 @@ export function useLeaveBalanceByEmployeeId(hrmeId: number | null) {
     });
 }
 
-/**
- * Hook to save admin employee leave application
- */
 export function useSaveAdminEmployeeLeaveApplication() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (data: SaveAdminEmployeeLeaveApplicationRequest) => {
+            console.log("🔵 [MUTATION_FN] Executing saveAdminEmployeeLeaveApplication with data:", data);
             const response = await saveAdminEmployeeLeaveApplication(data);
+            console.log("🔵 [MUTATION_FN] Response received:", response);
             if (!response.success) {
+                console.warn("🔵 [MUTATION_FN] Response success is false, throwing error:", response.message);
                 throw new Error(response.message);
             }
             return response;
         },
         onSuccess: (data, variables) => {
+            console.log("✅ [MUTATION_ON_SUCCESS] Success callback triggered! Showing toast for:", data.message);
             toast.success(data.message);
             // Invalidate queries for the specific employee
             queryClient.invalidateQueries({ queryKey: ONLINE_ADMIN_LEAVE_KEYS.LEAVE_HISTORY(variables.HRME_Id) });
             queryClient.invalidateQueries({ queryKey: ONLINE_ADMIN_LEAVE_KEYS.LEAVE_BALANCE(variables.HRME_Id) });
         },
         onError: (error: Error) => {
+            console.error("❌ [MUTATION_ON_ERROR] Error callback triggered! Showing toast for error:", error.message);
             toast.error(error.message);
         }
     });

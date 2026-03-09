@@ -18,9 +18,7 @@ export default function AlumniFriendRequestPage() {
         try {
             const res = await getAlumniFriendRequestData({});
             if (res.success && res.data) {
-                // Backend returns data array directly (not data.searchResult)
                 const dataArray = Array.isArray(res.data) ? res.data : res.data.searchResult || [];
-                // Map backend fields (lowercase) to frontend fields (PascalCase)
                 const list = dataArray.map((item: any) => {
                     const requestDate = item.alsfrnD_RequestDate || item.ALSFRND_RequestDate || item.alsfrnd_requestdate;
                     return {
@@ -36,7 +34,6 @@ export default function AlumniFriendRequestPage() {
                 });
                 setSearchResult(list);
             }
-            // biome-ignore lint/correctness/noUnusedVariables: <explanation>
         } catch (error) {
             toast.error('Failed to load alumni data');
         } finally {

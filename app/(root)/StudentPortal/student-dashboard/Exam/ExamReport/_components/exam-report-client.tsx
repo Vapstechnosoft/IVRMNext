@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -8,38 +8,58 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { AcademicYear, Exam, Subject, ExamReportData, ExamReportPayload } from '../types';
-import { getExamData, getSubjects, getStudentExamDetails } from '../actions';
-import { Loader2, Search } from 'lucide-react';
+import { AcademicYear, Exam, Subject, ExamReportData, ExamReportPayload } from '@/types/exam/reports';
+import { useSubjects, useStudentExamDetails, useExamData } from '@/hooks/exam/exammodule/reports';
+import { Loader2 } from 'lucide-react';
+import { useAcademicYearExamReport } from '@/hooks/student-portal/useCumulative';
+import {
+    getExamDataforExamReport,
+    getSubjectDataforExamReport,
+    getExamReportLoadData,
+    getExamReportDataforExamReport,
+    getAcademicYearList
+} from '@/server/exam/exam-module/reports/StudentportalExamReport';
 
 interface ExamReportClientProps {
     initialYears: AcademicYear[];
+    initialExams: Exam[];
     rcode: string | number;
 }
 
-export default function ExamReportClient({ initialYears, rcode }: ExamReportClientProps) {
+export default function ExamReportClient() {
     // State
-    const [years, setYears] = useState<AcademicYear[]>(initialYears || []);
-
-    useEffect(() => {
-        console.log('Exam Report Loaded', { rcode });
-    }, [rcode]);
-
     const [detailsrdo, setDetailsrdo] = useState<'EWAS' | 'SWAE' | 'ESW' | 'OVERALL'>('EWAS');
 
     // Selections
+    const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
     const [selectedYear, setSelectedYear] = useState<string>('');
     const [selectedExam, setSelectedExam] = useState<string>('');
     const [selectedSubject, setSelectedSubject] = useState<string>('');
+    const [subjectDataDropDown, setSubjectDataDropDown] = useState<any[]>([]);
+    const [examDataDropDown, setExamDataDropDown] = useState<any[]>([]);
+    const [isExamDropDownLoading, setIsExamDropDownLoading] = useState<boolean>(false);
+    const [isSubjectDropDownLoading, setIsSubjectDropDownLoading] = useState<boolean>(false);
 
-    // Lists
-    const [exams, setExams] = useState<Exam[]>([]);
-    const [subjects, setSubjects] = useState<Subject[]>([]);
+    // Report Data State
     const [reportData, setReportData] = useState<ExamReportData[]>([]);
-
-    // Loading & Flags
-    const [isLoading, setIsLoading] = useState(false);
     const [isReportGenerated, setIsReportGenerated] = useState(false);
+    const [isReportLoading, setIsReportLoading] = useState(false);
+
+    // Initial Data Load
+    useEffect(() => {
+        const fetchLoadData = async () => {
+            try {
+                const response = await getAcademicYearList();
+                console.log("Load Data Response:", response);
+                // Handle response if it's directly an array or wrapped in data property
+                const data = Array.isArray(response) ? response : (response as any)?.data || [];
+                setAcademicYears(data);
+            } catch (error) {
+                console.error('Failed to fetch load data:', error);
+            }
+        };
+        fetchLoadData();
+    }, []);
 
     // Filter Logic
     const handleRadioChange = (value: 'EWAS' | 'SWAE' | 'ESW' | 'OVERALL') => {
@@ -47,49 +67,100 @@ export default function ExamReportClient({ initialYears, rcode }: ExamReportClie
         setSelectedYear('');
         setSelectedExam('');
         setSelectedSubject('');
-        setExams([]);
-        setSubjects([]);
         setReportData([]);
         setIsReportGenerated(false);
     };
 
-    const handleYearChange = async (yearId: string) => {
-        setSelectedYear(yearId);
-        if (detailsrdo !== 'OVERALL') {
-            const data = await getExamData({ Type: detailsrdo, ASMAY_Id: Number(yearId) });
-            setExams(data.examlist || []);
-            setSubjects(data.subjectlist || []);
+    useEffect(() => {
+        if (!selectedYear) {
+            setExamDataDropDown([]);
+            return;
         }
-    };
 
-    const handleExamChange = async (examId: string) => {
-        setSelectedExam(examId);
-        if (detailsrdo === 'SWAE' || detailsrdo === 'ESW') {
-            if (selectedYear) {
-                const data = await getSubjects({ Type: detailsrdo, ASMAY_Id: Number(selectedYear), EME_Id: Number(examId) });
-                setSubjects(data.subjectlist || []);
+        const fetchExam = async () => {
+            setIsExamDropDownLoading(true);
+            try {
+                const response = await getExamDataforExamReport(Number(selectedYear), detailsrdo);
+                const data = Array.isArray(response) ? response : (response as any)?.data || [];
+                setExamDataDropDown(data);
+            } catch (error) {
+                console.error('Failed to fetch exam data:', error);
+                setExamDataDropDown([]);
+            } finally {
+                setIsExamDropDownLoading(false);
             }
+        };
+
+        fetchExam();
+    }, [selectedYear]);
+
+    useEffect(() => {
+        if (!selectedYear) {
+            setSubjectDataDropDown([]);
+            return;
         }
-    };
+
+        const fetchSubject = async () => {
+            setIsSubjectDropDownLoading(true);
+            try {
+                const response = await getSubjectDataforExamReport(Number(selectedYear));
+                console.log("Subject API Response:", response);
+                const data = Array.isArray(response) ? response : (response as any)?.data || [];
+                console.log("Parsed Subject Data:", data);
+                setSubjectDataDropDown(data);
+            } catch (error) {
+                console.error('Failed to fetch subject data:', error);
+                setSubjectDataDropDown([]);
+            } finally {
+                setIsSubjectDropDownLoading(false);
+            }
+        };
+
+        fetchSubject();
+    }, [selectedYear]);
 
     const handleGenerateReport = async () => {
-        setIsLoading(true);
+        if (!selectedYear) return;
+
+        setIsReportLoading(true);
+        setIsReportGenerated(false);
+        setReportData([]);
+
         try {
-            const payload: ExamReportPayload = {
-                Type: detailsrdo,
-                ASMAY_Id: Number(selectedYear) || undefined,
-                EME_Id: Number(selectedExam) || undefined,
-                ISMS_Id: Number(selectedSubject) || undefined
+            const payload = {
+                "Type": detailsrdo,
+                "ASMAY_Id": Number(selectedYear),
+                "EME_Id": selectedExam ? Number(selectedExam) : 0,
+                "ISMS_Id": selectedSubject ? Number(selectedSubject) : 0
             };
 
-            const response = await getStudentExamDetails(payload);
-            setReportData(response.examReportList || []);
-            setIsReportGenerated(true);
+            console.log("Generating Report with payload:", payload);
+            const response = await getExamReportDataforExamReport(payload);
+            console.log("Report Response:", response);
 
+            let reportList = [];
+            if (Array.isArray(response)) {
+                reportList = response;
+            } else if (response && (response as any).data) {
+                // Handle nested data structures
+                const responseData = (response as any).data;
+                reportList = Array.isArray(responseData) ? responseData : responseData.examReportList || [];
+            } else {
+                reportList = [];
+            }
+
+            if (reportList.length > 0) {
+                setReportData(reportList);
+                setIsReportGenerated(true);
+            } else {
+                setReportData([]);
+                setIsReportGenerated(true); // Show "No Records Found"
+            }
         } catch (error) {
-            console.error("Error generating report", error);
+            console.error("Failed to generate report:", error);
+            setReportData([]);
         } finally {
-            setIsLoading(false);
+            setIsReportLoading(false);
         }
     };
 
@@ -154,28 +225,35 @@ export default function ExamReportClient({ initialYears, rcode }: ExamReportClie
                         {detailsrdo !== 'OVERALL' && (
                             <div className="space-y-2">
                                 <Label>Academic Year <span className="text-red-500">*</span></Label>
-                                <Select value={selectedYear} onValueChange={handleYearChange}>
+                                <Select value={selectedYear} onValueChange={setSelectedYear}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select Year" />
                                     </SelectTrigger>
+
                                     <SelectContent>
-                                        {years.map(y => (
-                                            <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>{y.asmaY_Year}</SelectItem>
+                                        {academicYears && academicYears.length > 0 && academicYears.map((y: any) => (
+                                            <SelectItem
+                                                key={y.asmaY_Id || y.ASMAY_Id}
+                                                value={String(y.asmaY_Id || y.ASMAY_Id)}
+                                            >
+                                                {y.asmaY_Year || y.ASMAY_Year}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
+
                             </div>
                         )}
 
                         {(detailsrdo === 'EWAS' || detailsrdo === 'ESW') && (
                             <div className="space-y-2">
                                 <Label>Exam <span className="text-red-500">*</span></Label>
-                                <Select value={selectedExam} onValueChange={handleExamChange}>
+                                <Select value={selectedExam} onValueChange={setSelectedExam} disabled={isExamDropDownLoading || !selectedYear}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select Exam" />
+                                        <SelectValue placeholder={isExamDropDownLoading ? "Loading..." : "Select Exam"} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {exams.map(e => (
+                                        {examDataDropDown?.map((e: any) => (
                                             <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>{e.emE_ExamName}</SelectItem>
                                         ))}
                                     </SelectContent>
@@ -186,12 +264,12 @@ export default function ExamReportClient({ initialYears, rcode }: ExamReportClie
                         {(detailsrdo === 'SWAE' || detailsrdo === 'ESW') && (
                             <div className="space-y-2">
                                 <Label>Subject <span className="text-red-500">*</span></Label>
-                                <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                                <Select value={selectedSubject} onValueChange={setSelectedSubject} disabled={isSubjectDropDownLoading}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select Subject" />
+                                        <SelectValue placeholder={isSubjectDropDownLoading ? "Loading..." : "Select Subject"} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {subjects.map(s => (
+                                        {subjectDataDropDown.map(s => (
                                             <SelectItem key={s.ismS_Id} value={String(s.ismS_Id)}>{s.ismS_SubjectName}</SelectItem>
                                         ))}
                                     </SelectContent>
@@ -203,9 +281,9 @@ export default function ExamReportClient({ initialYears, rcode }: ExamReportClie
                     <div className="flex justify-center space-x-4 pt-4">
                         <Button
                             onClick={handleGenerateReport}
-                            disabled={isLoading}
+                            disabled={isReportLoading}
                         >
-                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {isReportLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Report
                         </Button>
                         <Button variant="destructive" onClick={() => handleRadioChange('EWAS')}>
@@ -390,7 +468,7 @@ export default function ExamReportClient({ initialYears, rcode }: ExamReportClie
                 </div>
             )}
 
-            {isReportGenerated && reportData.length === 0 && !isLoading && (
+            {isReportGenerated && reportData.length === 0 && !isReportLoading && (
                 <div className="text-center p-8 text-muted-foreground border rounded-lg bg-muted/10">
                     No Records Found
                 </div>

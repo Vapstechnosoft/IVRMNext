@@ -15,6 +15,8 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { columns } from './_components/columns';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 
 export default function InvRMonthEndReportPage() {
     const [reportData, setReportData] = useState<IInvRMonthEndReportData | null>(null);
@@ -37,8 +39,14 @@ export default function InvRMonthEndReportPage() {
         setIsLoading(false);
     };
 
+    const componentRef = useRef<HTMLDivElement>(null);
+    const handlePrintContent = useReactToPrint({
+        contentRef: componentRef,
+        documentTitle: `Month End Report - ${new Date().toISOString().split('T')[0]}`
+    });
+
     const handlePrint = () => {
-        window.print();
+        handlePrintContent();
     };
 
     const getTableData = (): IInvRMonthEndReportTableRow[] => {
@@ -111,7 +119,16 @@ export default function InvRMonthEndReportPage() {
 
             {showReport && reportData && currentPayload && (
                 <CollapsibleSection title="Report Result" defaultOpen={true}>
-                    <div className="p-6 space-y-8 bg-white text-slate-900 rounded-lg shadow-sm border border-slate-200" id="printable-area">
+                    <div className="p-6 space-y-8 bg-white text-slate-900 rounded-lg shadow-sm border border-slate-200" ref={componentRef}>
+                        <style dangerouslySetInnerHTML={{
+                            __html: `
+                                @media print {
+                                    @page { size: auto; margin: 10mm; }
+                                    .print\\:hidden { display: none !important; }
+                                    .recharts-responsive-container { display: none !important; }
+                                }
+                            `
+                        }} />
                         {/* Header Section */}
                         <div className="flex flex-col items-center justify-center space-y-3 mb-8 border-b border-slate-200 pb-6">
                             <h3 className="text-3xl font-bold uppercase tracking-tight text-slate-800 text-center">

@@ -138,7 +138,7 @@ export async function getStudentInformation(academicYearId: number): Promise<{
 
 export async function getStudentPortalInformation() {
     const url = '/OnlinePayment/getStudentportalInformation';
-    return await api.post<any>('portal', url);
+    return await api.post<any>('portal', url, {});
 }
 
 export async function getFeeDetails(

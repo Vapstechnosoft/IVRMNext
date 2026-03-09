@@ -212,7 +212,7 @@ export default function CumulativeReportPage() {
                                     data={reportData}
                                     noDataTitle='No results.'
                                     noDataDescription='No student data matches the selected criteria.'
-                                    showPagination={true}
+                                    showPagination={false}
                                     onSearchQueryChange={handleApiSearchParms}
                                     currentApiParams={searchParams}
                                 />

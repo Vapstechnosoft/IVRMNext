@@ -83,6 +83,7 @@ export async function whatsAppCall(data: ChatgptDTO): Promise<string> {
     const endpoint = "https://graph.facebook.com/v17.0/177948302058854/messages";
 
     let templateName = "";
+    // biome-ignore lint/style/useConst: <explanation>
     let languageCode = "en";
     let bodyParameters: { type: string; text: string | undefined }[] = [];
 
@@ -193,6 +194,7 @@ export async function languageTranslator(data: TranslatorDTO): Promise<Translato
 
         if (response.ok) {
             const resultText = await response.text();
+            // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
             let jsonResponse;
             try {
                 jsonResponse = JSON.parse(resultText);

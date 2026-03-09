@@ -2,9 +2,15 @@
 
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
+    getLeaveStatusReport,
+    type LeaveStatusReportRequest
+} from '@/server/hrms/reports/leave-status-report';
+import {
     getCumulativeSalaryReport,
     getDepartmentsByGroupType,
     getDesignationsByGroupAndDept,
+    getEmployeesByDeptAndDesignation,
+    getEmployeesByGroupTypeDeptAndDesignation,
     getGroupTypes,
     type CumulativeSalaryReportRequest
 } from '@/server/hrms/reports/cumulative-salary-report';
@@ -38,6 +44,10 @@ import {
     getEmployeeStrengthReportOnload,
     searchEmployeeStrengthReport,
 } from '@/server/hrms/hrmsConfig/reports/employee-strength-report';
+import {
+    searchEmployeeProfileDetails,
+} from '@/server/hrms/hrmsConfig/reports/employee-profile-report';
+import type { EmployeeProfileReportSearchRequest } from '@/types/hrms/reports/employee-profile-report';
 import {
     getEmployeesByFilter,
     getEmployeeLetterDetails
@@ -131,6 +141,29 @@ export function useReportDesignations(groupTypeIds: string, deptIds: string) {
     });
 }
 
+export function useReportEmployeesByDeptAndDesignation(deptIds: string, desigIds: string) {
+    console.log('📡 [HOOK] Fetching employees with:', { deptIds, desigIds });
+    return useQuery({
+        queryKey: ['report-employees', deptIds, desigIds],
+        queryFn: () => getEmployeesByDeptAndDesignation(deptIds, desigIds),
+        enabled: !!deptIds && !!desigIds,
+        staleTime: 1000 * 60 * 5
+    });
+}
+
+// Get EMployees by Group Type, Department and Designation
+
+export function useReportEmployeesByGroupTypeDeptAndDesignation( groupTypeIds: number[],
+    deptIds: number[],
+    desigIds: number[]) {
+    console.log('📡 [HOOK] Fetching employees with:', { groupTypeIds, deptIds, desigIds });
+    return useQuery({
+        queryKey: ['report-employees', groupTypeIds, deptIds, desigIds],
+        queryFn: () => getEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds),
+        enabled: !!groupTypeIds && !!deptIds && !!desigIds,
+        staleTime: 1000 * 60 * 5
+    });
+}
 
 export function useDepartmentSalaryReport() {
     return useMutation({
@@ -552,5 +585,24 @@ export function usePeriodLeaveReportEmployees(departmentIds: number[], designati
         },
         enabled: !!departmentIds && departmentIds.length > 0 && !!designationIds && designationIds.length > 0,
         staleTime: 1000 * 60 * 5
+    });
+}
+
+export function useLeaveStatusReport() {
+    return useMutation({
+        mutationFn: (data: LeaveStatusReportRequest) => getLeaveStatusReport(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch Leave Status Report');
+        }
+    });
+}
+
+// Get employees based on the hrmE_IdList
+export function useEmployeeProfileReport() {
+    return useMutation({
+        mutationFn: (data: EmployeeProfileReportSearchRequest) => searchEmployeeProfileDetails(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch Employee Profile Report');
+        }
     });
 }

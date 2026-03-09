@@ -17,14 +17,33 @@ export async function getLeaveLoadData(): Promise<LeaveLoadData> {
         const data = response.data;
 
         // Handle case sensitivity issues by checking for variations
-        const studentdetails = data?.studentdetails || data?.studentDetails || data?.StudentDetails || [];
-        const allstuddata = data?.allstuddata || data?.allStudData || data?.Allstuddata || data?.AllStudData || [];
+        // Also check for alternative field names like student_s_list
+        let studentdetails = data?.studentdetails || data?.studentDetails || data?.StudentDetails || [];
+        if (!studentdetails || studentdetails.length === 0) {
+            studentdetails = data?.student_s_list || [];
+        }
+
+        let allstuddata = data?.allstuddata || data?.allStudData || data?.Allstuddata || data?.AllStudData || [];
+        if (!allstuddata || allstuddata.length === 0) {
+            allstuddata = data?.student_leave_list || [];
+        }
+
         const roletype = data?.roletype || data?.roleType || data?.RoleType || "";
+        const pendingleave = data?.pendingleave || [];
+        const yearlist = data?.yearlist || [];
+
+        // Extract context IDs
+        const mi_Id = data?.mI_Id || 0;
+        const asmaY_Id = data?.asmaY_Id || 0;
 
         return {
             roletype: roletype,
             studentdetails: studentdetails,
-            allstuddata: allstuddata
+            allstuddata: allstuddata,
+            pendingleave: pendingleave,
+            yearlist: yearlist,
+            mi_Id: mi_Id,
+            asmaY_Id: asmaY_Id
         };
     } catch (error) {
         console.error("Error fetching Leave load data:", error);
@@ -32,27 +51,32 @@ export async function getLeaveLoadData(): Promise<LeaveLoadData> {
         return {
             roletype: "",
             studentdetails: [],
-            allstuddata: []
+            allstuddata: [],
+            pendingleave: [],
+            yearlist: []
         };
     }
 }
 
 export async function applyLeave(data: LeaveApplyPayload) {
     try {
-        const payload: OnlineLeaveApp_DTO = {
-            aslA_Id: data.ASLA_Id,
-            aslA_ApplyDate: data.ASLA_ApplyDate,
-            aslA_FromDate: data.ASLA_FromDate,
-            aslA_ToDate: data.ASLA_ToDate,
-            aslA_Flag: data.ASLA_Flag,
-            aslA_LeaveId: data.ASLA_LeaveId,
-            aslA_Reason: data.ASLA_Reason
+        // Payload structure matches user request
+        const payload = {
+            aslA_Id: data.aslA_Id,
+            mi_Id: data.mi_Id,
+            amsT_Id: data.amsT_Id,
+            asmaY_Id: data.asmaY_Id,
+            aslA_LeaveId: data.aslA_LeaveId,
+            aslA_Reason: data.aslA_Reason,
+            aslA_ApplyDate: data.aslA_ApplyDate,
+            aslA_FromDate: data.aslA_FromDate,
+            aslA_ToDate: data.aslA_ToDate,
+            aslA_Flag: data.aslA_Flag
         };
 
         const response = await api.post<OnlineLeaveApp_DTO>('portal', `/${CONTROLLER}/get-leave-apply-details`, payload);
         return {
             returnval: response.data?.returnval ?? false,
-            // duplicate: false // API doesn't seem to return duplicate flag in DTO, assuming returnval handles success
         };
     } catch (error) {
         console.error("Error applying Leave:", error);
