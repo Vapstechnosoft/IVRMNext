@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { IAcademicYear, IClassDetails } from '@/types/alumni/alumni-letters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Printer, X } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 interface FilterFormProps {
@@ -35,6 +35,8 @@ export default function FilterForm({ years, classes, onShowReport, onClear, onPr
             asmcL_Id: ''
         }
     });
+
+    const [resetKey, setResetKey] = useState(0);
 
     const {
         control,
@@ -60,7 +62,14 @@ export default function FilterForm({ years, classes, onShowReport, onClear, onPr
     }, [asmcL_Id, onShowReport]); // Trigger ONLY on class change
 
     const handleClear = () => {
-        reset();
+        reset({
+            reporttype: 'Alumni',
+            letter_list: '',
+            display_DateandTime: '',
+            asmaY_Id: '',
+            asmcL_Id: ''
+        });
+        setResetKey((prev) => prev + 1);
         onClear();
     };
 
@@ -108,7 +117,7 @@ export default function FilterForm({ years, classes, onShowReport, onClear, onPr
                         name='asmaY_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select key={resetKey} onValueChange={field.onChange} value={field.value || undefined}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
@@ -133,7 +142,7 @@ export default function FilterForm({ years, classes, onShowReport, onClear, onPr
                         name='asmcL_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select key={resetKey} onValueChange={field.onChange} value={field.value || undefined}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
@@ -157,7 +166,7 @@ export default function FilterForm({ years, classes, onShowReport, onClear, onPr
                         name='letter_list'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select key={resetKey} onValueChange={field.onChange} value={field.value || undefined}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>

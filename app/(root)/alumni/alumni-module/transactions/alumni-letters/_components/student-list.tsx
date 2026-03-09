@@ -32,15 +32,15 @@ export default function StudentList({ students, selectedIds, onToggleAll, onTogg
                             <TableHead className='w-[50px] text-center'>
                                 <Checkbox checked={allSelected} onCheckedChange={(checked) => onToggleAll(!!checked)} />
                             </TableHead>
-                            <TableHead className='w-[60px] text-center'>SLNO</TableHead>
-                            <TableHead>Reg No</TableHead>
-                            <TableHead>Adm No</TableHead>
-                            <TableHead>Student Name</TableHead>
-                            <TableHead>Admission Date</TableHead>
-                            <TableHead>DOB</TableHead>
-                            <TableHead>Class</TableHead>
-                            <TableHead>Mobile</TableHead>
-                            <TableHead>Email</TableHead>
+                            <TableHead className='w-[60px] text-center font-bold text-black'>SLNO</TableHead>
+                            <TableHead className='text-center font-bold text-black' >Reg No</TableHead>
+                            <TableHead className='text-center font-bold text-black' >Adm No</TableHead>
+                            <TableHead className='text-center font-bold text-black' >Student Name</TableHead>
+                            <TableHead className='text-center font-bold text-black' >Admission Date</TableHead>
+                            <TableHead className='text-center font-bold text-black' >DOB</TableHead>
+                            <TableHead className='text-center font-bold text-black' >Class</TableHead>
+                            <TableHead className='text-center font-bold text-black' >Mobile</TableHead>
+                            <TableHead className='text-center font-bold text-black' >Email</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -53,7 +53,7 @@ export default function StudentList({ students, selectedIds, onToggleAll, onTogg
                         ) : (
                             students.map((student, index) => (
                                 <TableRow key={student.amsT_Id} className={selectedIds.includes(student.amsT_Id) ? 'bg-primary/5' : ''}>
-                                    <TableCell className='text-center'>
+                                    <TableCell className='text-center font-bold text-black' >
                                         <Checkbox
                                             checked={selectedIds.includes(student.amsT_Id)}
                                             onCheckedChange={(checked) => onToggleStudent(student.amsT_Id, !!checked)}

@@ -121,7 +121,13 @@ export default function StudentsYearlyAttendenceReport(props: {
         isLoading,
         error,
         refetch: refetchAdmissionStudents
-    } = useStudentYearlyAttendance((academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0, classId, sectionId, searchParams, showReport);
+    } = useStudentYearlyAttendance(
+        (academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0,
+        classId,
+        sectionId,
+        { ...searchParams, page_size: 100000, page: 1 },
+        showReport
+    );
 
     const transformedData = useMemo(() => {
         if (!response?.data || !showReport) {
@@ -144,12 +150,13 @@ export default function StudentsYearlyAttendenceReport(props: {
 
         const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
 
-        const studentMap = new Map<number, IStudentYearlyAttendenceReportList>();
+        const studentMap = new Map<string, IStudentYearlyAttendenceReportList>();
 
         studentAttendanceList.forEach((record: any) => {
-            if (!studentMap.has(record.RowNo)) {
-                studentMap.set(record.RowNo, {
-                    RowNo: record.RowNo,
+            const studentKey = record.AMST_AdmNo;
+            if (!studentMap.has(studentKey)) {
+                studentMap.set(studentKey, {
+                    RowNo: studentMap.size + 1,
                     name: record.name,
                     AMST_AdmNo: record.AMST_AdmNo,
                     AMST_RegistrationNo: record.AMST_RegistrationNo,
@@ -163,7 +170,7 @@ export default function StudentsYearlyAttendenceReport(props: {
                 });
             }
 
-            const student = studentMap.get(record.RowNo)!;
+            const student = studentMap.get(studentKey)!;
             const monthKey = `${record.yearidname}-${record.monthidname}`;
 
             student.monthlyAttendance[monthKey] = record.TOTAL_PRESENT;
@@ -177,10 +184,19 @@ export default function StudentsYearlyAttendenceReport(props: {
         }));
     }, [response?.data, showReport]);
 
+    const page = Number((searchParams as any)?.page) || 1;
+    const pageSize = Number((searchParams as any)?.page_size) || 10;
+
+    const paginatedData = useMemo(() => {
+        const start = (page - 1) * pageSize;
+        const end = start + pageSize;
+        return transformedData.slice(start, end);
+    }, [transformedData, page, pageSize]);
+
     const tableProps = useDataTableProps({
         ...response,
-        data: transformedData,
-        totalItems: (response as any)?.total || 0,
+        data: paginatedData,
+        total: transformedData.length,
     });
 
     const columns = useMemo(() => {
@@ -226,12 +242,13 @@ export default function StudentsYearlyAttendenceReport(props: {
             const monthList = attendanceData.monthList || attendanceData.MonthList || [];
 
             const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
-            const studentMap = new Map<number, IStudentYearlyAttendenceReportList>();
+            const studentMap = new Map<string, IStudentYearlyAttendenceReportList>();
 
             studentList.forEach((record: any) => {
-                if (!studentMap.has(record.RowNo)) {
-                    studentMap.set(record.RowNo, {
-                        RowNo: record.RowNo,
+                const studentKey = record.AMST_AdmNo;
+                if (!studentMap.has(studentKey)) {
+                    studentMap.set(studentKey, {
+                        RowNo: studentMap.size + 1,
                         name: record.name,
                         AMST_AdmNo: record.AMST_AdmNo,
                         AMST_RegistrationNo: record.AMST_RegistrationNo,
@@ -245,7 +262,7 @@ export default function StudentsYearlyAttendenceReport(props: {
                     });
                 }
 
-                const student = studentMap.get(record.RowNo)!;
+                const student = studentMap.get(studentKey)!;
                 const monthKey = `${record.yearidname}-${record.monthidname}`;
 
                 student.monthlyAttendance[monthKey] = record.TOTAL_PRESENT;
@@ -375,12 +392,14 @@ export default function StudentsYearlyAttendenceReport(props: {
             setPrintMonthList(monthList); // Save month list for print headers
             const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
 
-            const studentMap = new Map<number, any>();
+            const studentMap = new Map<string, any>();
 
             studentList.forEach((record: any) => {
-                if (!studentMap.has(record.RowNo)) {
-                    studentMap.set(record.RowNo, {
+                const studentKey = record.AMST_AdmNo;
+                if (!studentMap.has(studentKey)) {
+                    studentMap.set(studentKey, {
                         ...record,
+                        RowNo: studentMap.size + 1,
                         monthlyAttendance: {},
                         totalPresent: 0,
                         totalWorkingDays: totalWorkingDays,
@@ -389,7 +408,7 @@ export default function StudentsYearlyAttendenceReport(props: {
                     });
                 }
 
-                const student = studentMap.get(record.RowNo)!;
+                const student = studentMap.get(studentKey)!;
                 const monthKey = `${record.yearidname}-${record.monthidname}`;
 
                 student.monthlyAttendance[monthKey] = record.TOTAL_PRESENT;
@@ -531,9 +550,9 @@ export default function StudentsYearlyAttendenceReport(props: {
                                         <SelectValue placeholder='Select Section' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem key={0} value={'0'}>
+                                        {/* <SelectItem key={0} value={'0'}>
                                             All
-                                        </SelectItem>
+                                        </SelectItem> */}
                                         {admissionSectionLoading ? (
                                             <SelectItem value='loading' disabled>
                                                 Loading...
