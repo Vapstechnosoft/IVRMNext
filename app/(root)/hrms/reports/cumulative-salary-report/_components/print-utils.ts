@@ -5,10 +5,23 @@ export const printCumulativeSalaryReport = (reportData: any, month: string, year
         return;
     }
 
-    const records = reportData.cumulativeSalaryReport || [];
-    const earnings = reportData.earningDetails || [];
-    const deductions = reportData.dectuionDetails || [];
+    const records = Array.isArray(reportData) ? reportData : [];
     const currentDate = new Date();
+
+    const uniqueEarnings = new Map();
+    const uniqueDeductions = new Map();
+
+    records.forEach((row: any) => {
+        (row.earningresult || []).forEach((e: any) => {
+            if (!uniqueEarnings.has(e.hrmeD_Id)) uniqueEarnings.set(e.hrmeD_Id, e);
+        });
+        (row.deductionresult || []).forEach((d: any) => {
+            if (!uniqueDeductions.has(d.hrmeD_Id)) uniqueDeductions.set(d.hrmeD_Id, d);
+        });
+    });
+
+    const earnings = Array.from(uniqueEarnings.values()).sort((a: any, b: any) => a.hrmeD_Order - b.hrmeD_Order);
+    const deductions = Array.from(uniqueDeductions.values()).sort((a: any, b: any) => a.hrmeD_Order - b.hrmeD_Order);
 
     const earningHeaders = earnings.map((head: any) =>
         `<th class="text-right">${head.hrmeD_Name}</th>`
@@ -19,35 +32,29 @@ export const printCumulativeSalaryReport = (reportData: any, month: string, year
     ).join('');
 
     const tableRows = records.map((record: any, index: number) => {
-        // Calculate totals for this row
-        const gross = earnings.reduce((sum: number, h: any) => sum + (Number(record[h.hrmeD_Name]) || 0), 0);
-        const totalDed = deductions.reduce((sum: number, h: any) => sum + (Number(record[h.hrmeD_Name]) || 0), 0);
-        const netPay = gross - totalDed;
+        const earningCells = earnings.map((head: any) => {
+            const val = (record.earningresult || []).find((e: any) => e.hrmeD_Id === head.hrmeD_Id);
+            return `<td class="text-right">${val ? val.hresD_Amount : 0}</td>`;
+        }).join('');
 
-        const earningCells = earnings.map((head: any) =>
-            `<td class="text-right">${Number(record[head.hrmeD_Name] || 0)}</td>`
-        ).join('');
-
-        const deductionCells = deductions.map((head: any) =>
-            `<td class="text-right">${Number(record[head.hrmeD_Name] || 0)}</td>`
-        ).join('');
+        const deductionCells = deductions.map((head: any) => {
+            const val = (record.deductionresult || []).find((d: any) => d.hrmeD_Id === head.hrmeD_Id);
+            return `<td class="text-right">${val ? val.hresD_Amount : 0}</td>`;
+        }).join('');
 
         return `
             <tr>
                 <td class="text-center">${index + 1}</td>
-                <td>${record.hrme_employeecode || ''}</td>
-                <td>
-                    ${record.hrme_employeefirstname || ''} 
-                    ${record.hrme_employeemiddlename || ''} 
-                    ${record.hrme_employeelastname || ''}
-                </td>
-                <td>${record.hrmdes_designationname || ''}</td>
-                <td class="text-center">${record.hres_workingdays || 0}</td>
+                <td>${record.hrmE_EmployeeCode || ''}</td>
+                <td>${record.hrmE_EmployeeFirstName || ''}</td>
+                <td>${record.hrmdeS_DesignationName || ''}</td>
+                <td class="text-center">${record.hreS_WorkingDays || 0}</td>
+                <td class="text-right">${record.empGrossSal || 0}</td>
                 ${earningCells}
-                <td class="text-right font-bold">${gross.toFixed(2)}</td>
+                <td class="text-right font-bold">${record.grossEarning || 0}</td>
                 ${deductionCells}
-                <td class="text-right font-bold">${totalDed.toFixed(2)}</td>
-                <td class="text-right font-bold">${netPay.toFixed(2)}</td>
+                <td class="text-right font-bold">${record.grossDeduction || 0}</td>
+                <td class="text-right font-bold">${record.netSalary || 0}</td>
             </tr>
         `;
     }).join('');
@@ -182,10 +189,11 @@ export const printCumulativeSalaryReport = (reportData: any, month: string, year
                         <th class="text-left">Employee Name</th>
                         <th class="text-left">Designation</th>
                         <th class="text-center">Working Days</th>
+                        <th class="text-right">Gross Salary</th>
                         ${earningHeaders}
-                        <th class="text-right">Gross Pay</th>
+                        <th class="text-right">Gross Earning</th>
                         ${deductionHeaders}
-                        <th class="text-right">Total Ded</th>
+                        <th class="text-right">Total Deductions</th>
                         <th class="text-right">Net Pay</th>
                     </tr>
                 </thead>
