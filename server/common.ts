@@ -4798,7 +4798,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                 },
+                }
                 // {
                 //     id: 14,
                 //     name: 'Lesson Planner',
@@ -5589,7 +5589,8 @@ export async function getUserAccessibleModules() {
                                             id: 8001,
                                             name: 'Attendance Entry',
                                             icon: 'UserCheck',
-                                            url: '/StaffPortal/attendance/attendance-entry',
+                                            // url: '/StaffPortal/attendance/attendance-entry',
+                                            url: '/admission/preadmission/attendance-entry/student-attendance',
                                             title: 'Attendance Entry',
                                             description: 'Daily Student Attendance'
                                         }
@@ -5600,19 +5601,21 @@ export async function getUserAccessibleModules() {
                                     name: 'Report',
                                     icon: 'CalendarCheck',
                                     pages: [
-                                        {
-                                            id: 8002,
-                                            name: '100% Attendance Report',
-                                            icon: 'UserCheck',
-                                            url: '/StaffPortal/attendance/100_attendance-entry',
-                                            title: '100% Attendance Report ',
-                                            description: '100% Attendance Report '
-                                        },
+                                        // {
+                                        //     id: 8002,
+                                        //     name: '100% Attendance Report',
+                                        //     icon: 'UserCheck',
+                                        //     //url: '/StaffPortal/attendance/100_attendance-entry',
+                                        //     url: '/admission/preadmission/reports/student-attendance-report',
+                                        //     title: '100% Attendance Report ',
+                                        //     description: '100% Attendance Report '
+                                        // },
                                         {
                                             id: 8003,
                                             name: 'Student Attendance Report ',
                                             icon: 'FilePieChart',
-                                            url: '/StaffPortal/attendance/student-attendance-report',
+                                            //url: '/StaffPortal/attendance/student-attendance-report',
+                                            url: '/admission/preadmission/reports/student-attendance-report',
                                             title: 'Student Attendance Report',
                                             description: 'View Attendance History'
                                         }
@@ -5635,7 +5638,8 @@ export async function getUserAccessibleModules() {
                                             id: 8004,
                                             name: 'Marks Entry',
                                             icon: 'PenSquare',
-                                            url: '/StaffPortal/exam/marks-entry',
+                                            //url: '/StaffPortal/exam/marks-entry',
+                                            url: '/Exam/exam-module/marks-entry/exam-marks-entry',
                                             title: 'Marks Entry',
                                             description: 'Direct Marks Entry'
                                         },
@@ -5643,7 +5647,8 @@ export async function getUserAccessibleModules() {
                                             id: 8005,
                                             name: 'Promotion Remarks',
                                             icon: 'Layers',
-                                            url: '/StaffPortal/exam/promotion-remarks',
+                                            //url: '/StaffPortal/exam/promotion-remarks',
+                                            url: '/Exam/exam-module/exam-mapping/promotion-setting',
                                             title: 'Promotion Remarks',
                                             description: 'Promotion Remarks'
                                         }
@@ -5658,7 +5663,8 @@ export async function getUserAccessibleModules() {
                                             id: 8006,
                                             name: 'Student Transaction',
                                             icon: 'Layers',
-                                            url: '/StaffPortal/exam/student-transaction-cce',
+                                            //url: '/StaffPortal/exam/student-transaction-cce',
+                                            url: '/Exam/exam-module/exam-mapping/student-transactioncce',
                                             title: 'Student Transaction CCE',
                                             description: 'CCE Transaction Entry'
                                         }
@@ -5674,7 +5680,8 @@ export async function getUserAccessibleModules() {
                                             id: 8007,
                                             name: 'Exam Student Wise Remarks Entry',
                                             icon: 'Layers',
-                                            url: '/StaffPortal/exam/transaction/examwise-student-remarks',
+                                            //url: '/StaffPortal/exam/transaction/examwise-student-remarks',
+                                            url: '/Exam/exam-module/marks-entry/exam-wise-student-remarks-entry',
                                             title: 'Exam Student Wise Remarks Entry',
                                             description: 'Exam Student Wise Remarks Entry'
                                         }
@@ -5689,7 +5696,8 @@ export async function getUserAccessibleModules() {
                                             id: 8008,
                                             name: 'Cumulative Report',
                                             icon: 'Layers',
-                                            url: '/StaffPortal/exam/report/cumulative-report',
+                                            //url: '/StaffPortal/exam/report/cumulative-report',
+                                            url: '/Exam/exam-module/reports/cumulative-report',
                                             title: 'Cumulative Report',
                                             description: 'Cumulative Report BB'
                                         }
@@ -5869,7 +5877,8 @@ export async function getUserAccessibleModules() {
                                             id: 80018,
                                             name: 'Defaulter Report',
                                             icon: 'UserX',
-                                            url: '/StaffPortal/fees/staff-fee-defaulter-report',
+                                            // url: '/StaffPortal/fees/staff-fee-defaulter-report',
+                                            url: '/fees/feereports/feedefaulterreport',
                                             title: 'Fee Defaulter Report',
                                             description: 'Monitor Fee Defaulters'
                                         }
