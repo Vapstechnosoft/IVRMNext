@@ -21,6 +21,7 @@ export default function UserPasswordCreationPage() {
     const [isCreating, setIsCreating] = useState(false);
     const [selectedStudents, setSelectedStudents] = useState<IStudent[]>([]);
     const [filterData, setFilterData] = useState<string>('');
+    const [totalItems, setTotalItems] = useState<number>(0);
 
     const fetchInitialData = useCallback(async () => {
         setIsLoading(true);
@@ -42,15 +43,17 @@ export default function UserPasswordCreationPage() {
         fetchInitialData();
     }, [fetchInitialData]);
 
-    const handleFilterSuccess = (studentList: IStudent[], filterdata: string) => {
+    const handleFilterSuccess = (studentList: IStudent[], filterdata: string, total?: number) => {
         setStudents(studentList);
         setFilterData(filterdata);
+        setTotalItems(total ?? studentList.length);
     };
 
     const handleReset = () => {
         setStudents([]);
         setSelectedStudents([]);
         setFilterData('');
+        setTotalItems(0);
     };
 
     const handleCreateUsername = async () => {
@@ -109,8 +112,8 @@ export default function UserPasswordCreationPage() {
                             isLoading={isTableLoading}
                             showExportOptions={true}
                             onRowSelectionChange={setSelectedStudents}
-                            totalItems={students.length}
-                            //manualPagination={false}
+                            totalItems={totalItems}
+                        //manualPagination={false}
                         />
 
                         {selectedStudents.length > 0 && (

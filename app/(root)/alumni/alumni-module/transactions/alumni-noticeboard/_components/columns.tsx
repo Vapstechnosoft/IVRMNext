@@ -12,30 +12,30 @@ import { useCallback } from 'react';
 export const AlumniNoticeBoardColumns: ColumnDef<IAlumniNoticeBoard>[] = [
     {
         accessorKey: 'slNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='text-center font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div>{continuousIndex}</div>;
+            return <div className='text-center'>{continuousIndex}</div>;
         },
         enableHiding: true,
         enableSorting: false
     },
     {
         accessorKey: 'alntB_Title',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Notice Title' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Notice Title' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('alntB_Title')}</div>,
         enableSorting: true
     },
     {
         accessorKey: 'alntB_Description',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('alntB_Description')}</div>
     },
     {
         accessorKey: 'alntB_StartDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Start Date' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Start Date' className='font-bold text-black' />,
         cell: ({ row }) => {
             const date = row.getValue('alntB_StartDate') as string | Date;
             return <div>{date ? format(new Date(date), 'dd/MM/yyyy') : ''}</div>;
@@ -43,7 +43,7 @@ export const AlumniNoticeBoardColumns: ColumnDef<IAlumniNoticeBoard>[] = [
     },
     {
         accessorKey: 'alntB_EndDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='End Date' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='End Date' className='font-bold text-black' />,
         cell: ({ row }) => {
             const date = row.getValue('alntB_EndDate') as string | Date;
             return <div>{date ? format(new Date(date), 'dd/MM/yyyy') : ''}</div>;
@@ -51,12 +51,12 @@ export const AlumniNoticeBoardColumns: ColumnDef<IAlumniNoticeBoard>[] = [
     },
     {
         id: 'view',
-        header: 'View Attachment',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='View Attachment' className='font-bold text-black' />,
         cell: ({ row }) => <ViewAttachmentButton row={row.original} />
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
