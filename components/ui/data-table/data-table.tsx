@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { cn } from '@/lib/utils';
 import { getCommonPinningStyles, tableSearchVariables } from '@/lib/data-table.config';
 import { DoubleArrowLeftIcon, DoubleArrowRightIcon } from '@radix-ui/react-icons';
 import {
@@ -34,11 +35,11 @@ interface DataTableProps<TData, TValue> {
     columnPinning?: ColumnPinningState | undefined;
     isSearchRequired?: boolean;
     isPaginationRequired?: boolean;
-    // ✅ updated
     maxSelectableRows?: number;
     onRowSelectionChange?: (selectedRows: TData[]) => void;
     showSearchColumns?: boolean;
     manualPagination?: boolean;
+    manualFiltering?: boolean;
     scrollable?: boolean;
     maxHeight?: string;
 }
@@ -63,6 +64,7 @@ function DataTableInner<TData, TValue>(
         onRowSelectionChange,
         showSearchColumns = false,
         manualPagination = true,
+        manualFiltering = true,
         scrollable = false,
         maxHeight = '600px'
     }: DataTableProps<TData, TValue>,
@@ -156,7 +158,7 @@ function DataTableInner<TData, TValue>(
         getFilteredRowModel: getFilteredRowModel(),
         manualPagination: manualPagination,
         manualSorting: true,
-        manualFiltering: true,
+        manualFiltering: manualFiltering,
         initialState: {
             columnPinning: columnPinning || { right: ['actions'] }
         }
@@ -205,14 +207,14 @@ function DataTableInner<TData, TValue>(
                                 : undefined
                         }>
                         <Table>
-                            <TableHeader className={scrollable ? 'sticky top-0 bg-background z-10' : undefined}>
+                            <TableHeader className='grid-header-row'>
                                 {table.getHeaderGroups().map((headerGroup) => (
-                                    <TableRow key={headerGroup.id}>
+                                    <TableRow key={headerGroup.id} className=" hover:bg-transparent">
                                         {headerGroup.headers.map((header) => (
                                             <TableHead
                                                 key={header.id}
                                                 colSpan={header.colSpan}
-                                                className='w-fit'
+                                                className='grid-header-cell sticky top-0 z-10'
                                                 style={{ ...getCommonPinningStyles({ column: header.column }) }}>
                                                 {header.isPlaceholder
                                                     ? null
@@ -265,31 +267,34 @@ function DataTableInner<TData, TValue>(
                                         row(s) selected.
                                     </div>
                                 ) : (
-                                    <div className='flex-1 whitespace-nowrap text-muted-foreground text-sm'>
-                                        {totalItems > 0
-                                            ? `Showing ${paginationState.pageIndex * paginationState.pageSize + 1} to ${Math.min(
-                                                (paginationState.pageIndex + 1) * paginationState.pageSize,
-                                                totalItems
-                                            )} of ${totalItems} entries`
-                                            : 'No entries found'}
+                                    <div className='pagination-info'>
+                                        {totalItems > 0 ? (
+                                            <>
+                                                Showing <span className="pagination-number">{paginationState.pageIndex * paginationState.pageSize + 1}</span>
+                                                to <span className="pagination-number">{Math.min((paginationState.pageIndex + 1) * paginationState.pageSize, totalItems)}</span>
+                                                of <span className="pagination-number">{totalItems}</span> entries
+                                            </>
+                                        ) : (
+                                            'No entries found'
+                                        )}
                                     </div>
                                 )}
 
                                 {/* Rows per page */}
-                                <div className='flex items-center space-x-2'>
-                                    <p className='whitespace-nowrap font-medium text-sm'>Rows per page</p>
+                                <div className='pagination-size-container'>
+                                    <p className='whitespace-nowrap font-semibold text-[11px] text-slate-500 uppercase tracking-wider'>Rows per page</p>
                                     <Select
                                         value={`${paginationState.pageSize}`}
                                         onValueChange={(value) => {
                                             table.setPageSize(Number(value));
                                         }}
                                         searchable={false}>
-                                        <SelectTrigger className='h-8 w-[70px]'>
+                                        <SelectTrigger className='h-7 w-[70px] rounded-full border-none bg-white/50 shadow-none focus:ring-0'>
                                             <SelectValue placeholder={paginationState.pageSize} />
                                         </SelectTrigger>
-                                        <SelectContent side='top'>
+                                        <SelectContent side='top' className="rounded-xl border-slate-100 shadow-xl">
                                             {pageSizeOptions.map((pageSize) => (
-                                                <SelectItem key={pageSize} value={`${pageSize}`}>
+                                                <SelectItem key={pageSize} value={`${pageSize}`} className="rounded-lg">
                                                     {pageSize}
                                                 </SelectItem>
                                             ))}
@@ -299,38 +304,91 @@ function DataTableInner<TData, TValue>(
 
                                 {/* Pagination Controls */}
                                 <div className='flex items-center space-x-2'>
-                                    <Button
-                                        aria-label='Go to first page'
-                                        variant='outline'
-                                        className='hidden h-8 w-8 p-0 lg:flex'
-                                        onClick={() => table.setPageIndex(0)}
-                                        disabled={!table.getCanPreviousPage()}>
-                                        <DoubleArrowLeftIcon className='h-4 w-4' />
-                                    </Button>
-                                    <Button
-                                        aria-label='Go to previous page'
-                                        variant='outline'
-                                        className='h-8 w-8 p-0'
-                                        onClick={() => table.previousPage()}
-                                        disabled={!table.getCanPreviousPage()}>
-                                        <ChevronLeftIcon className='h-4 w-4' />
-                                    </Button>
-                                    <Button
-                                        aria-label='Go to next page'
-                                        variant='outline'
-                                        className='h-8 w-8 p-0'
-                                        onClick={() => table.nextPage()}
-                                        disabled={!table.getCanNextPage()}>
-                                        <ChevronRightIcon className='h-4 w-4' />
-                                    </Button>
-                                    <Button
-                                        aria-label='Go to last page'
-                                        variant='outline'
-                                        className='hidden h-8 w-8 p-0 lg:flex'
-                                        onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                                        disabled={!table.getCanNextPage()}>
-                                        <DoubleArrowRightIcon className='h-4 w-4' />
-                                    </Button>
+                                    <div className='pagination-bar'>
+                                        <Button
+                                            aria-label='Go to first page'
+                                            variant='ghost'
+                                            size='icon'
+                                            className='h-8 w-8 rounded-full p-0'
+                                            onClick={() => table.setPageIndex(0)}
+                                            disabled={!table.getCanPreviousPage()}>
+                                            <DoubleArrowLeftIcon className='h-4 w-4' />
+                                        </Button>
+                                        <Button
+                                            aria-label='Go to previous page'
+                                            variant='ghost'
+                                            size='icon'
+                                            className='h-8 w-8 rounded-full p-0'
+                                            onClick={() => table.previousPage()}
+                                            disabled={!table.getCanPreviousPage()}>
+                                            <ChevronLeftIcon className='h-4 w-4' />
+                                        </Button>
+
+                                        {(() => {
+                                            const currentPage = table.getState().pagination.pageIndex + 1;
+                                            const totalPages = table.getPageCount();
+
+                                            if (totalPages <= 1) return null;
+
+                                            const getRange = () => {
+                                                if (totalPages <= 7) {
+                                                    return Array.from({ length: totalPages }, (_, i) => i + 1);
+                                                }
+
+                                                // Complex range logic
+                                                if (currentPage <= 3) {
+                                                    return [1, 2, 3, 4, '...', totalPages - 2, totalPages - 1, totalPages];
+                                                } else if (currentPage >= totalPages - 2) {
+                                                    return [1, 2, 3, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+                                                } else {
+                                                    return [1, 2, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages - 1, totalPages];
+                                                }
+                                            };
+
+                                            return getRange().map((page, i) => {
+                                                if (page === '...') {
+                                                    return (
+                                                        <span key={`dots-${i}`} className="px-2 text-slate-400">
+                                                            ...
+                                                        </span>
+                                                    );
+                                                }
+
+                                                const pageNum = page as number;
+                                                return (
+                                                    <button
+                                                        key={pageNum}
+                                                        onClick={() => table.setPageIndex(pageNum - 1)}
+                                                        className={cn(
+                                                            'pagination-item',
+                                                            currentPage === pageNum && 'pagination-item-active'
+                                                        )}
+                                                    >
+                                                        {pageNum}
+                                                    </button>
+                                                );
+                                            });
+                                        })()}
+
+                                        <Button
+                                            aria-label='Go to next page'
+                                            variant='ghost'
+                                            size='icon'
+                                            className='h-8 w-8 rounded-full p-0'
+                                            onClick={() => table.nextPage()}
+                                            disabled={!table.getCanNextPage()}>
+                                            <ChevronRightIcon className='h-4 w-4' />
+                                        </Button>
+                                        <Button
+                                            aria-label='Go to last page'
+                                            variant='ghost'
+                                            size='icon'
+                                            className='h-8 w-8 rounded-full p-0'
+                                            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                                            disabled={!table.getCanNextPage()}>
+                                            <DoubleArrowRightIcon className='h-4 w-4' />
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

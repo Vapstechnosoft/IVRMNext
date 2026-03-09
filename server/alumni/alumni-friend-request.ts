@@ -8,12 +8,9 @@ import type { IAlumniFriendRequest, IAlumniFriendRequestLoadResponse, IAlumniPro
 export async function getAlumniFriendRequestData(searchParams?: ApiSearchparams) {
     const session = await auth();
     const roleFlag = (searchParams as any)?.Role_flag || (session as any)?.role || 'Alumni';
-    const ivrmrtId = (searchParams as any)?.IVRMRT_Id || (session as any)?.ivrmrT_Id || 30;
-    const almstId = (session as any)?.almsT_Id || 0;
-    const asmayId = (session as any)?.asmaY_Id || 0;
 
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'searchParams');
-    const url = `/Alumni_Student_FriendRequest/getdata?IVRMRT_Id=${ivrmrtId}&ALMST_Id=${almstId}&ASMAY_Id=${asmayId}&Role_flag=${roleFlag}&${urlParams}`;
+    const url = `/Alumni_Student_FriendRequest/getdata?Role_flag=${roleFlag}&${urlParams}`;
 
     return await api.get<IAlumniFriendRequestLoadResponse>('alumni', url);
 }

@@ -89,6 +89,24 @@ export async function fetchInvMasterGroupData(searchParams?: ApiSearchparams): P
             api.post<any>('inventory', mainGroupDropdownUrl, {})
         ]);
 
+        if (mainGroupResponse.success === false && mainGroupResponse.total === 0) {
+            return {
+                success: true,
+                data: {
+                    success: true,
+                    get_maingroup: [],
+                    get_maingroupdd: [],
+                    get_usergroup: [],
+                    get_itemgroup: [],
+                    get_usergp: [],
+                    maingroupTotal: 0,
+                    usergroupTotal: 0,
+                    itemgroupTotal: 0,
+                },
+                message: mainGroupResponse.message
+            };
+        }
+
         const extractData = (res: any): any[] => {
             if (!res) return [];
             if (Array.isArray(res)) return res;

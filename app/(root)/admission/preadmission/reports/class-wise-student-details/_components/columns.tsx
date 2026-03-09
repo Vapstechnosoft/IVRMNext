@@ -24,6 +24,8 @@ const FIELD_CONFIG: Record<string, { label: string; isDate?: boolean }> = {
     AMST_Sex: { label: 'Gender' },
     AMST_BloodGroup: { label: 'Blood Group' },
     AMST_MotherTongue: { label: 'Mother Tongue' },
+    //joinedyearname: { label: 'JoinedYear' },
+    //joinedclassname: { label: 'JoinedClass' },
     AMST_MobileNo: { label: 'Phone No.' },
     AMST_emailId: { label: 'Email ID' },
     AMST_PerAdd3: { label: 'Permanent Address' },
@@ -134,7 +136,9 @@ export const getMasterAdmissionReportColumns = (selectedFields: string[]): Colum
     const columns: ColumnDef<any>[] = [serialNumberColumn, studentPhotoColumn];
 
     selectedFields.forEach((fieldId) => {
-        columns.push(createDynamicColumn(fieldId));
+        if (fieldId !== 'AMST_Photoname') {
+            columns.push(createDynamicColumn(fieldId));
+        }
     });
 
     return columns;

@@ -1,44 +1,28 @@
-// app/(root)/fees/feereports/feedefaulterreport/page.tsx
 'use client';
-
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import {
-    useFeeClassListDefaulterreport,
-    useFeeCustomGroupDefaulterreport,
-    useFeeGroupDefaulterreport,
-    useFeeSectionListDefaulterreport,
-    useFeeTermDefaulterreport
-} from '@/hooks/fees/useReports';
-
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox as BaseCheckbox } from '@/components/ui/checkbox';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { useFeeClassListDefaulterreport, useFeeConCessionOnLoadreport, useFeeSectionListDefaulterreport } from '@/hooks/fees/useReports';
+import { useFeeMasterConfiguration } from '@/hooks/fees/useTrasactions';
+import { getFeesconcessionOnChangeofCustomGroup, saveFeesconcessionReport } from '@/server/fees/reports/fee_concession_report';
 import type {
-    IFeeBusRouteDropdownList,
     IFeeClassDropdownList,
-    IFeeCustomGroupDropdownList,
+    IFeeConcessionCustomGroupDropdownList,
+    IFeeConcessionReport,
     IFeeGroupDropdownList,
-    IFeeInstallmentDropdownList,
     IFeeSectionDropdownList,
     IFeeTermDropdownList
 } from '@/types/fees/reports/reports';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { exportToExcel, printTable } from './_components/columns';
+import { exportToExcelforFCW, exportToExcelforFGW, exportToExcelforFHW, exportToExcelforFSW, printTable } from './_components/columns';
 
-// Checkbox with full indeterminate support
 const Checkbox = ({ checked, indeterminate, onCheckedChange, ...props }: any) => {
     const ref = useRef<HTMLButtonElement>(null);
-
-    //   useEffect(() => {
-    //     if (ref.current) {
-    //       ref.current.indeterminate = !!indeterminate;
-    //     }
-    //   }, [indeterminate]);
-
     return <BaseCheckbox ref={ref} checked={checked} onCheckedChange={onCheckedChange} {...props} />;
 };
 
@@ -49,12 +33,9 @@ interface IAcademicYear {
 }
 
 export default function FeeConcessionReport() {
-    const [loading, setLoading] = useState(false);
-
     const [filters, setFilters] = useState({
         userType: 'Students' as 'Students' | 'Staff' | 'Others',
         viewMode: 'year' as 'year' | 'date',
-
         breakdown: 'FGW',
         academicYearId: '',
         classId: 0,
@@ -85,32 +66,21 @@ export default function FeeConcessionReport() {
     const [sections, setSections] = useState<IFeeSectionDropdownList[]>([]);
     const [feeGroups, setFeeGroups] = useState<IFeeGroupDropdownList[]>([]);
     const [feeTerms, setFeeTerms] = useState<IFeeTermDropdownList[]>([]);
-    const [feeBusRoutes, setFeeBusRoutes] = useState<IFeeBusRouteDropdownList[]>([]);
-    const [customGroups, setCustomGroups] = useState<IFeeCustomGroupDropdownList[]>([]);
-
-    //const [reportData, setReportData] = useState<IFeeAuditReport[]>([]);
-    const [reportData, setReportData] = useState<any[]>([]);
-    const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
+    const [customGroups, setCustomGroups] = useState<IFeeConcessionCustomGroupDropdownList[]>([]);
+    const [reportData, setReportData] = useState<IFeeConcessionReport[]>([]);
+    const [reportLoading, setReportLoading] = useState(false);
     const [showReport, setShowReport] = useState(false);
-    const [feeInstallments, setfeeInstallments] = useState<IFeeInstallmentDropdownList[]>([]);
-
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-
-    const [wiseType, setWiseType] = useState<'Yearly Wise' | 'Date Wise'>('Date Wise');
+    const [isGroupLoading, setIsGroupLoading] = useState(false);
 
     // Hooks
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
-    const { data: classListResponse, isLoading: loadingClasses, error: classListError } = useFeeClassListDefaulterreport();
-    const {
-        data: sectionListResponse,
-        isLoading: loadingSections,
-        error: sectionListError,
-        refetch: refetchSections
-    } = useFeeSectionListDefaulterreport();
-    const { data: feegroupData, isLoading: loadingfeegroup, error: feegroupError } = useFeeGroupDefaulterreport();
-    const { data: feetermData, isLoading: loadingfeeterm, error: feetermError } = useFeeTermDefaulterreport();
+    const { data: classListResponse, error: classListError } = useFeeClassListDefaulterreport();
+    const { data: sectionListResponse, error: sectionListError, refetch: refetchSections } = useFeeSectionListDefaulterreport();
+    const { data: onOnloadResponse, isLoading: loadingonOnloadResponse, error: onOnloadResponseError } = useFeeConCessionOnLoadreport();
+    const { data: masterConfiguration } = useFeeMasterConfiguration();
 
-    const { data: customGroupResponse, isLoading: loadingCustomGroup, error: customGroupError } = useFeeCustomGroupDefaulterreport();
+    const config = masterConfiguration?.data?.[0]?.fmC_GroupOrTermFlg ?? 'T';
 
     // Load data effects (unchanged)
     useEffect(() => {
@@ -125,7 +95,6 @@ export default function FeeConcessionReport() {
                 asmaY_Year: item.asmaY_Year ?? 'Unknown Year',
                 asmaY_Order: item.asmaY_Order ?? 0
             }));
-            //formatted.sort((a, b) => (b.asmaY_Order || 0) - (a.asmaY_Order || 0));
             setAcademicYears(formatted);
         }
     }, [academicData, academicError]);
@@ -160,20 +129,57 @@ export default function FeeConcessionReport() {
         }
     }, [sectionListResponse, sectionListError]);
 
-    useEffect(() => {
-        if (feegroupError) toast.error(feegroupError?.message || 'Failed to load fee groups');
-        else if (feegroupData?.data) setFeeGroups(feegroupData.data);
-    }, [feegroupData, feegroupError]);
+    // useEffect(() => {
+    //     if (feegroupError) toast.error(feegroupError?.message || 'Failed to load fee groups');
+    //     else if (feegroupData?.data) setFeeGroups(feegroupData.data);
+    // }, [feegroupData, feegroupError]);
+
+    // useEffect(() => {
+    //     if (feetermError) toast.error(feetermError?.message || 'Failed to load terms');
+    //     else if (feetermData?.data) setFeeTerms(feetermData.data);
+    // }, [feetermData, feetermError]);
+
+    // useEffect(() => {
+    //     if (customGroupError) toast.error(customGroupError?.message || 'Failed to load custom groups');
+    //     else if (customGroupResponse?.data) setCustomGroups(customGroupResponse.data);
+    // }, [customGroupResponse, customGroupError]);
 
     useEffect(() => {
-        if (feetermError) toast.error(feetermError?.message || 'Failed to load terms');
-        else if (feetermData?.data) setFeeTerms(feetermData.data);
-    }, [feetermData, feetermError]);
+        if (onOnloadResponseError) toast.error(onOnloadResponseError?.message || 'Failed to load Data');
+        else if (
+            (onOnloadResponse as any)?.data?.customlist ||
+            (onOnloadResponse as any)?.data?.grouplist ||
+            (onOnloadResponse as any)?.data?.terms
+        ) {
+            setCustomGroups((onOnloadResponse as any).data.customlist);
+            setFeeGroups((onOnloadResponse as any).data.grouplist);
+            setFeeTerms((onOnloadResponse as any).data.terms);
+        }
+    }, [onOnloadResponse, onOnloadResponseError]);
 
     useEffect(() => {
-        if (customGroupError) toast.error(customGroupError?.message || 'Failed to load custom groups');
-        else if (customGroupResponse?.data) setCustomGroups(customGroupResponse.data);
-    }, [customGroupResponse, customGroupError]);
+        if (filters.customGroupIds.length === 0) {
+            return;
+        }
+
+        const fetchGroup = async () => {
+            setIsGroupLoading(true);
+            try {
+                const payload = {
+                    customGroups: filters.customGroupIds
+                };
+                const group = await getFeesconcessionOnChangeofCustomGroup(payload);
+                setFeeGroups(group?.data || []);
+            } catch (error) {
+                console.error('Failed to fetch Records:', error);
+                setFeeGroups([]);
+            } finally {
+                setIsGroupLoading(false);
+            }
+        };
+
+        fetchGroup();
+    }, [filters.customGroupIds]);
 
     // Toggle handlers
     const toggleCustomGroup = (id: number) =>
@@ -194,36 +200,25 @@ export default function FeeConcessionReport() {
             termIds: prev.termIds.includes(id) ? prev.termIds.filter((x) => x !== id) : [...prev.termIds, id]
         }));
 
-    const toggleInstallment = (id: number) =>
-        setFilters((prev) => ({
-            ...prev,
-            installmentIds: prev.installmentIds.includes(id) ? prev.installmentIds.filter((x) => x !== id) : [...prev.installmentIds, id]
-        }));
-
-    const toggleBusRoute = (id: number) =>
-        setFilters((prev) => ({
-            ...prev,
-            busRouteIds: prev.busRouteIds.includes(id) ? prev.busRouteIds.filter((x) => x !== id) : [...prev.busRouteIds, id]
-        }));
-
     const selectAllCustomGroups = (checked: boolean) => {
-        setFilters((prev) => ({ ...prev, customGroupIds: checked ? customGroups.map((g) => g.fmgG_Id) : [] }));
+        setFilters((prev) => ({
+            ...prev,
+            customGroupIds: checked ? customGroups.map((g) => g.fmgG_Id) : []
+        }));
     };
 
     const selectAllFeeGroups = (checked: boolean) => {
-        setFilters((prev) => ({ ...prev, feeGroupIds: checked ? feeGroups.map((g) => g.fmG_Id) : [] }));
+        setFilters((prev) => ({
+            ...prev,
+            feeGroupIds: checked ? feeGroups.map((g) => g.fmG_Id) : []
+        }));
     };
 
     const selectAllTerms = (checked: boolean) => {
-        setFilters((prev) => ({ ...prev, termIds: checked ? feeTerms.map((t) => t.fmT_Id) : [] }));
-    };
-
-    const selectAllInstallments = (checked: boolean) => {
-        setFilters((prev) => ({ ...prev, installmentIds: checked ? feeInstallments.map((t) => t.fmI_Id) : [] }));
-    };
-
-    const selectAllBusRoutes = (checked: boolean) => {
-        setFilters((prev) => ({ ...prev, busRouteIds: checked ? feeBusRoutes.map((r) => r.trmR_Id) : [] }));
+        setFilters((prev) => ({
+            ...prev,
+            termIds: checked ? feeTerms.map((t) => t.fmT_Id) : []
+        }));
     };
 
     const toggleStatus = (status: 'active' | 'deactive' | 'left' | 'balance') => {
@@ -241,51 +236,10 @@ export default function FeeConcessionReport() {
         if (selectedIds.length === reportData.length) {
             setSelectedIds([]);
         } else {
-            setSelectedIds(reportData.map((r) => r.slNo));
+            setSelectedIds(reportData.map((r) => r.id));
         }
     };
-
-    const selectedRows = reportData.filter((r) => selectedIds.includes(r.slNo));
-
-    // const handleSubmit = async () => {
-
-    //   if (!filters.academicYearId) return toast.error('Please select an Academic Year');
-    //   if (filters.feeGroupIds.length === 0) return toast.error('Please select at least one Fee Group');
-    //   if (filters.termIds.length === 0) return toast.error('Please select at least one Term');
-
-    //   setReportLoading(true);
-    //   setShowReport(false);
-
-    //   try {   // Call your server function (make sure it returns Promise!)
-    //     const result = await feedefaluerreportdata(5855, 55);
-
-    //     const data = Array.isArray(result) ? result : (result?.data || []);
-
-    //     setReportData(data as IFeeAuditReport[]);
-    //     setShowReport(true);
-
-    //     // Feedback
-    //     if (data.length > 0) {
-    //       toast.success(`Report generated: ${data.length} defaulter(s) found`);
-    //     } else {
-    //       toast.info('No defaulters found for the selected criteria');
-    //     }
-
-    //     setTimeout(() => {
-    //       window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    //     }, 100);
-
-    //   } catch (error: any) {
-    //     console.error('Fee Defaulter Report Error:', error);
-    //     toast.error(error.message || 'Failed to generate report');
-
-    //     setReportData([]);
-    //     setShowReport(true);
-    //   } finally {
-    //     setReportLoading(false);
-    //     setLoading(false);
-    //   }
-    // };
+    const selectedRows = reportData.filter((r) => selectedIds.includes(r.id));
     const mockReportData = [
         { slNo: 1, groupName: 'HS BOOKS FEES', concessionAmount: 46875 },
         { slNo: 2, groupName: 'HS ILM & OTHER FEES', concessionAmount: 227600 },
@@ -311,56 +265,20 @@ export default function FeeConcessionReport() {
         { slNo: 19, groupName: 'CBSE TRANSPORT FEES', concessionAmount: 142000 },
         { slNo: 20, groupName: 'CBSE LAB FEES', concessionAmount: 91000 }
     ];
-
-    const handleSubmit = () => {
-        //      let data: any;
-        // if (filters.viewMode === "year") {
-        //   data = {
-        //     FMG_Id: filters.classId || 0,
-        //     FMGG_Id: 0, // You need to get this from your state
-        //     "FMT_Id": 0, // You need to get this from your state
-        //     "ASMAY_Id": filters.academicYearId,
-        //     "radioval": filters.breakdown, // FGW, FHW, FCW, FSW
-        //     "reporttype": filters.viewMode,
-        //     "studenttype": filters.userType,
-        //     "customflag": '0',
-        //     "groupflag": '0',
-        //     active: filters.status.active,
-        //     deactive: filters.status.deactive,
-        //     left: filters.status.deactive,
-
-        //     TempararyArrayhEADListnew1: TempararyArrayhEADListnew1,
-        //     TempararyArrayhEADListnew2: TempararyArrayhEADListnew2,
-        //     TempararyArrayhEADListnew3: TempararyArrayhEADListnew3,
-        //     FMG_Ids: FMG_Ids,
-        //     FMT_Ids: FMT_Ids,
-
-        //   };
-        // } else if (filters.viewMode === "date") {
-        //   data = {
-        //     "FMG_Id": 0,
-        //     "FMGG_Id": 0, // You need to get this from your state
-        //     "FMT_Id": 0, // You need to get this from your state
-        //       active: filters.status.active,
-        //     deactive: filters.status.deactive,
-        //     left: filters.status.deactive,
-        //     "ASMAY_Id": filters.academicYearId,
-        //     "From_Date": filters.fromDate ? new Date(filters.fromDate).toDateString() : "",
-        //     "To_Date": filters.toDate ? new Date(filters.toDate).toDateString() : "",
-        //     "radioval": filters.breakdown,
-        //     "reporttype": filters.viewMode,
-        //     "studenttype": filters.userType,
-        //     "customflag": '0',
-        //     "groupflag": '0',
-        //     TempararyArrayhEADListnew1: TempararyArrayhEADListnew1,
-        //     TempararyArrayhEADListnew2: TempararyArrayhEADListnew2,
-        //     TempararyArrayhEADListnew3: TempararyArrayhEADListnew3,
-        //     FMG_Ids: FMG_Ids,
-        //     FMT_Ids: FMT_Ids
-
-        //   };
-        // }
-
+    useEffect(() => {
+        setReportData([]);
+        setShowReport(false);
+    }, [
+        filters.breakdown,
+        filters.classId,
+        filters.sectionId,
+        filters.academicYearId,
+        filters.customGroupIds,
+        filters.termIds,
+        filters.installmentIds,
+        filters.feeGroupIds
+    ]);
+    const handleSubmit = async () => {
         if (filters.status.active === false && filters.status.deactive === false && filters.status.left === false) {
             setShowReport(false);
             return toast.error('Please select at least one Status Active or Deactive or Left');
@@ -371,25 +289,117 @@ export default function FeeConcessionReport() {
                 return toast.error('Please select From Date and To Date');
             }
         }
+        try {
+            setReportLoading(true);
+            let payload = {};
 
-        setReportLoading(true);
-
-        setTimeout(() => {
-            setReportData(mockReportData);
+            if (filters.viewMode === 'year') {
+                payload = {
+                    fmG_Ids: filters.feeGroupIds,
+                    fmT_Ids: filters.termIds,
+                    asmaY_Id: filters.academicYearId,
+                    reporttype: filters.viewMode,
+                    radioval: filters.breakdown,
+                    type: 'string',
+                    from_Date: filters.fromDate ?? new Date(),
+                    to_Date: filters.toDate ?? new Date(),
+                    mI_ID: 0,
+                    term_group: config.toString(),
+                    active: filters.status.active === true ? 1 : 0,
+                    deactive: filters.status.deactive === true ? 1 : 0,
+                    left: filters.status.left === true ? 1 : 0
+                };
+            } else {
+                payload = {
+                    fmG_Ids: filters.feeGroupIds,
+                    fmT_Ids: filters.termIds,
+                    asmaY_Id: filters.academicYearId,
+                    reporttype: filters.viewMode,
+                    radioval: filters.breakdown,
+                    type: 'string',
+                    from_Date: filters.fromDate,
+                    to_Date: filters.toDate,
+                    mI_ID: 0,
+                    term_group: config.toString(),
+                    active: filters.status.active === true ? 1 : 0,
+                    deactive: filters.status.deactive === true ? 1 : 0,
+                    left: filters.status.left === true ? 1 : 0
+                };
+            }
+            console.log('consession report payload', JSON.stringify(payload));
+            const response = await saveFeesconcessionReport(payload);
+            const apiList = (response as any).data.list || [];
+            const mapApiToReportRows = (apiData: any[]): IFeeConcessionReport[] => {
+                return apiData.map((item, index) => ({
+                    id: index + 1,
+                    studentname: item.studentname,
+                    reportname: item.reportname,
+                    fss_paidamount: item.fss_paidamount,
+                    balance: item.balance,
+                    concession: item.concession,
+                    waived: item.waived,
+                    rebate: item.rebate,
+                    fine: item.fine,
+                    classname: item.classname,
+                    sectionname: item.sectionname
+                }));
+            };
+            const data = mapApiToReportRows(apiList);
+            setReportData(data);
             setShowReport(true);
             setReportLoading(false);
-        }, 500);
+            if (apiList.length > 0) {
+                toast.success(response.message);
+            } else {
+                toast.info('No data found for selected criteria');
+            }
+        } catch (error: any) {
+            console.error('Delete error:', error);
+            toast.error(error.message || 'Error deleting record');
+        } finally {
+            setReportLoading(false);
+        }
+
+        // setTimeout(() => {
+        //   setReportData(mockReportData);
+        //   setShowReport(true);
+        //   setReportLoading(false);
+        // }, 500);
     };
 
-    const handleExport = () => {
+    const handleExportforFGW = () => {
         if (!selectedRows.length) {
             toast.error('Please select at least one record');
             return;
         }
-        exportToExcel(selectedRows, 'Fee Concession-Report');
+        exportToExcelforFGW(selectedRows, 'Fee Concession-Report');
     };
 
-    const handlePrint = () => {
+    const handleExportforFHW = () => {
+        if (!selectedRows.length) {
+            toast.error('Please select at least one record');
+            return;
+        }
+        exportToExcelforFHW(selectedRows, 'Fee Concession-Report');
+    };
+
+    const handleExportforFCW = () => {
+        if (!selectedRows.length) {
+            toast.error('Please select at least one record');
+            return;
+        }
+        exportToExcelforFCW(selectedRows, 'Fee Concession-Report');
+    };
+
+    const handleExportforFSW = () => {
+        if (!selectedRows.length) {
+            toast.error('Please select at least one record');
+            return;
+        }
+        exportToExcelforFSW(selectedRows, 'Fee Concession-Report');
+    };
+
+    const handlePrintforFGW = () => {
         if (!selectedRows.length) {
             toast.error('Please select at least one record');
             return;
@@ -399,16 +409,87 @@ export default function FeeConcessionReport() {
 
         const rowsToPrint = selectedRows.map((row, index) => ({
             'Sl No': index + 1,
-            groupName: row.groupName, // ✅ FIXED
-            concessionAmount: `₹ ${row.concessionAmount.toLocaleString('en-IN')}`
+            groupName: row.reportname,
+            concessionAmount: `₹ ${row.concession.toLocaleString('en-IN')}`
         }));
-
-        // ✅ TOTAL ROW
-        const totalAmount = selectedRows.reduce((sum, row) => sum + row.concessionAmount, 0);
+        const totalAmount = selectedRows.reduce((sum, row) => sum + row.concession, 0);
 
         const totalRow = {
             'Sl No': '',
             groupName: 'TOTAL',
+            concessionAmount: `₹ ${totalAmount.toLocaleString('en-IN')}`
+        };
+
+        printTable(columns, rowsToPrint, totalRow);
+    };
+
+    const handlePrintforFHW = () => {
+        if (!selectedRows.length) {
+            toast.error('Please select at least one record');
+            return;
+        }
+
+        const columns = ['Sl No', 'HeadName', 'concessionAmount'];
+
+        const rowsToPrint = selectedRows.map((row, index) => ({
+            'Sl No': index + 1,
+            HeadName: row.reportname,
+            concessionAmount: `₹ ${row.concession.toLocaleString('en-IN')}`
+        }));
+        const totalAmount = selectedRows.reduce((sum, row) => sum + row.concession, 0);
+
+        const totalRow = {
+            'Sl No': '',
+            HeadName: 'TOTAL',
+            concessionAmount: `₹ ${totalAmount.toLocaleString('en-IN')}`
+        };
+
+        printTable(columns, rowsToPrint, totalRow);
+    };
+    const handlePrintforFCW = () => {
+        if (!selectedRows.length) {
+            toast.error('Please select at least one record');
+            return;
+        }
+
+        const columns = ['Sl No', 'ClassName', 'concessionAmount'];
+
+        const rowsToPrint = selectedRows.map((row, index) => ({
+            'Sl No': index + 1,
+            ClassName: row.reportname,
+            concessionAmount: `₹ ${row.concession.toLocaleString('en-IN')}`
+        }));
+        const totalAmount = selectedRows.reduce((sum, row) => sum + row.concession, 0);
+
+        const totalRow = {
+            'Sl No': '',
+            ClassName: 'TOTAL',
+            concessionAmount: `₹ ${totalAmount.toLocaleString('en-IN')}`
+        };
+
+        printTable(columns, rowsToPrint, totalRow);
+    };
+
+    const handlePrintforFSW = () => {
+        if (!selectedRows.length) {
+            toast.error('Please select at least one record');
+            return;
+        }
+
+        const columns = ['Sl No', 'Student Name', 'ClassName', 'concessionAmount'];
+
+        const rowsToPrint = selectedRows.map((row, index) => ({
+            'Sl No': index + 1,
+            'Student Name': row.reportname,
+            ClassName: row.classname,
+            concessionAmount: `₹ ${row.concession.toLocaleString('en-IN')}`
+        }));
+        const totalAmount = selectedRows.reduce((sum, row) => sum + row.concession, 0);
+
+        const totalRow = {
+            'Sl No': '',
+            'Student Name': '',
+            ClassName: 'TOTAL',
             concessionAmount: `₹ ${totalAmount.toLocaleString('en-IN')}`
         };
 
@@ -438,7 +519,12 @@ export default function FeeConcessionReport() {
                                                 type='radio'
                                                 name='viewMode'
                                                 checked={filters.viewMode === mode.value}
-                                                onChange={() => setFilters((prev) => ({ ...prev, viewMode: mode.value }))}
+                                                onChange={() =>
+                                                    setFilters((prev) => ({
+                                                        ...prev,
+                                                        viewMode: mode.value
+                                                    }))
+                                                }
                                                 className='h-5 w-5 text-primary'
                                             />
                                             <span className='font-medium text-base'>{mode.label}</span>
@@ -527,7 +613,7 @@ export default function FeeConcessionReport() {
                                                 <span>Select All</span>
                                             </label>
 
-                                            {loadingCustomGroup ? (
+                                            {loadingonOnloadResponse ? (
                                                 <div className='py-4 text-center text-gray-500'>Loading...</div>
                                             ) : customGroups.length > 0 ? (
                                                 customGroups.map((group) => (
@@ -540,7 +626,7 @@ export default function FeeConcessionReport() {
                                                             checked={filters.customGroupIds.includes(group.fmgG_Id)}
                                                             onCheckedChange={() => toggleCustomGroup(group.fmgG_Id)}
                                                         />
-                                                        <span className='font-medium text-sm'>{group.fmgG_GroupName}</span>
+                                                        <span className='font-medium text-sm'>{group.fmg_groupname}</span>
                                                     </label>
                                                 ))
                                             ) : (
@@ -571,7 +657,7 @@ export default function FeeConcessionReport() {
                                                 <span>Select All</span>
                                             </label>
 
-                                            {loadingfeegroup ? (
+                                            {loadingonOnloadResponse || isGroupLoading ? (
                                                 <div className='py-4 text-center text-gray-500'>Loading...</div>
                                             ) : feeGroups.length > 0 ? (
                                                 feeGroups.map((group) => (
@@ -616,7 +702,7 @@ export default function FeeConcessionReport() {
                                                     <span>Select All</span>
                                                 </label>
 
-                                                {loadingfeeterm ? (
+                                                {loadingonOnloadResponse ? (
                                                     <div className='py-4 text-center text-gray-500'>Loading...</div>
                                                 ) : feeTerms.length > 0 ? (
                                                     feeTerms.map((term) => (
@@ -739,125 +825,302 @@ export default function FeeConcessionReport() {
                                     </Button>
                                 </div>
 
-                                {/* ==================== REPORT SECTION ==================== */}
-                                {/* ==================== REPORT SECTION ==================== */}
-                                {/* {showReport && (
-                                    <div className='-mx-8 mt-12 overflow-hidden rounded-lg bg-white shadow-xl'>
-                                     
-                                        {reportLoading ? (
-                                            <div className='p-24 text-center'>
-                                                <div className='inline-block h-14 w-14 animate-spin rounded-full border-4 border-primary border-t-transparent' />
-                                                <p className='mt-6 text-lg text-muted-foreground'>Generating report, please wait...</p>
-                                            </div>
-                                        ) : (
-                                           
-                                            <CollapsibleSection
-                                                defaultOpen={true}
-                                                variant='default'
-                                                size='lg'
-                                                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                                                <div className='border-b bg-primary/5 px-8 py-6'>
-                                                    <h2 className='font-bold text-2xl text-primary'>Fee Defaulter Report</h2>
-                                                </div>
-                                                <GenericDataTable<IFeeAuditReport>
-                                                    columns={FeeConcessionReportColumns}
-                                                    data={reportData}
-                                                    isLoading={reportLoading}
-                                                />
-                                            </CollapsibleSection>
-                                        )}
-                                    </div>
-                                )} */}
-
-                                {showReport && (
-                                    <CollapsibleSection defaultOpen={true}>
-                                        <div className='mt-10 overflow-hidden rounded-lg border bg-white shadow-lg'>
-                                            {/* <div className='border-b bg-primary/5 px-6 py-4'>
-                                                <h2 className='font-bold text-primary text-xl'>Yearly Fee Concession Report</h2>
-                                            </div> */}
+                                {showReport && reportData.length > 0 && (
+                                    <CollapsibleSection defaultOpen={true} className='mt-10'>
+                                        <div className='mt-5 overflow-hidden rounded-lg border bg-white shadow-lg'>
                                             <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
                                                 <div className='mb-6 text-center'>
                                                     <h2 className='font-bold text-2xl text-primary'>Fee Concession Report</h2>
                                                 </div>
-                                                <div className='flex gap-3'>
-                                                    <div className='mb-4 flex justify-end gap-2'>
-                                                        <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExport}>
-                                                            Export Excel
-                                                        </Button>
+                                                {filters.breakdown === 'FGW' && (
+                                                    <div className='flex gap-3'>
+                                                        <div className='mb-4 flex justify-end gap-2'>
+                                                            <Button
+                                                                size='sm'
+                                                                className='h-8 w-auto px-3 text-xs'
+                                                                onClick={handleExportforFGW}>
+                                                                Export Excel
+                                                            </Button>
 
-                                                        <Button
-                                                            size='sm'
-                                                            variant='outline'
-                                                            className='h-8 w-auto px-3 text-xs'
-                                                            onClick={handlePrint}>
-                                                            Print
-                                                        </Button>
+                                                            <Button
+                                                                size='sm'
+                                                                variant='outline'
+                                                                className='h-8 w-auto px-3 text-xs'
+                                                                onClick={handlePrintforFGW}>
+                                                                Print
+                                                            </Button>
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                )}
+                                                {filters.breakdown === 'FHW' && (
+                                                    <div className='flex gap-3'>
+                                                        <div className='mb-4 flex justify-end gap-2'>
+                                                            <Button
+                                                                size='sm'
+                                                                className='h-8 w-auto px-3 text-xs'
+                                                                onClick={handleExportforFHW}>
+                                                                Export Excel
+                                                            </Button>
+
+                                                            <Button
+                                                                size='sm'
+                                                                variant='outline'
+                                                                className='h-8 w-auto px-3 text-xs'
+                                                                onClick={handlePrintforFHW}>
+                                                                Print
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {filters.breakdown === 'FCW' && (
+                                                    <div className='flex gap-3'>
+                                                        <div className='mb-4 flex justify-end gap-2'>
+                                                            <Button
+                                                                size='sm'
+                                                                className='h-8 w-auto px-3 text-xs'
+                                                                onClick={handleExportforFCW}>
+                                                                Export Excel
+                                                            </Button>
+
+                                                            <Button
+                                                                size='sm'
+                                                                variant='outline'
+                                                                className='h-8 w-auto px-3 text-xs'
+                                                                onClick={handlePrintforFCW}>
+                                                                Print
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {filters.breakdown === 'FSW' && (
+                                                    <div className='flex gap-3'>
+                                                        <div className='mb-4 flex justify-end gap-2'>
+                                                            <Button
+                                                                size='sm'
+                                                                className='h-8 w-auto px-3 text-xs'
+                                                                onClick={handleExportforFSW}>
+                                                                Export Excel
+                                                            </Button>
+
+                                                            <Button
+                                                                size='sm'
+                                                                variant='outline'
+                                                                className='h-8 w-auto px-3 text-xs'
+                                                                onClick={handlePrintforFSW}>
+                                                                Print
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
-
-                                            <div className='overflow-x-auto'>
-                                                <table className='w-full border-collapse text-sm'>
-                                                    <thead className='bg-primary text-white'>
-                                                        <tr>
-                                                            <th className='border px-2 py-2 text-center'>
-                                                                <input
-                                                                    type='checkbox'
-                                                                    checked={
-                                                                        selectedIds.length === reportData.length && reportData.length > 0
-                                                                    }
-                                                                    onChange={toggleAll}
-                                                                />
-                                                            </th>
-                                                            <th className='w-20 border px-4 py-2 text-center'>Sl No</th>
-                                                            <th className='border px-4 py-2 text-left'>Group Name</th>
-                                                            <th className='w-56 border px-4 py-2 text-right'>Concession Amount</th>
-                                                        </tr>
-                                                    </thead>
-
-                                                    <tbody>
-                                                        {mockReportData.map((row, index) => (
-                                                            <tr
-                                                                key={row.slNo}
-                                                                className={
-                                                                    selectedIds.includes(row.slNo)
-                                                                        ? 'bg-blue-100'
-                                                                        : index % 2 === 0
-                                                                          ? 'bg-white'
-                                                                          : 'bg-gray-50'
-                                                                }>
-                                                                <td className='border px-2 py-2 text-center'>
+                                            {(filters.breakdown === 'FGW' || filters.breakdown === 'FHW') && (
+                                                <div className='overflow-x-auto'>
+                                                    <table className='w-full border-collapse text-sm'>
+                                                        <thead className='bg-primary text-white'>
+                                                            <tr>
+                                                                <th className='border px-2 py-2 text-center'>
                                                                     <input
                                                                         type='checkbox'
-                                                                        checked={selectedIds.includes(row.slNo)}
-                                                                        onChange={() => toggleRow(row.slNo)}
+                                                                        checked={
+                                                                            selectedIds.length === reportData.length &&
+                                                                            reportData.length > 0
+                                                                        }
+                                                                        onChange={toggleAll}
                                                                     />
+                                                                </th>
+                                                                <th className='w-20 border px-4 py-2 text-center'>Sl No</th>
+                                                                {filters.breakdown === 'FGW' && (
+                                                                    <th className='border px-4 py-2 text-left'>Group Name</th>
+                                                                )}
+                                                                {filters.breakdown === 'FHW' && (
+                                                                    <th className='border px-4 py-2 text-left'>Head Name</th>
+                                                                )}
+
+                                                                <th className='w-56 border px-4 py-2 text-right'>Concession Amount</th>
+                                                            </tr>
+                                                        </thead>
+
+                                                        <tbody>
+                                                            {reportData.map((row, index) => (
+                                                                <tr
+                                                                    key={row.id}
+                                                                    className={
+                                                                        selectedIds.includes(row.id)
+                                                                            ? 'bg-blue-100'
+                                                                            : index % 2 === 0
+                                                                              ? 'bg-white'
+                                                                              : 'bg-gray-50'
+                                                                    }>
+                                                                    <td className='border px-2 py-2 text-center'>
+                                                                        <input
+                                                                            type='checkbox'
+                                                                            checked={selectedIds.includes(row.id)}
+                                                                            onChange={() => toggleRow(row.id)}
+                                                                        />
+                                                                    </td>
+                                                                    <td className='border px-4 py-2 text-center'>{row.id}</td>
+                                                                    <td className='border px-4 py-2 font-medium'>{row.reportname}</td>
+                                                                    <td className='border px-4 py-2 text-right font-semibold'>
+                                                                        ₹ {row.concession.toLocaleString('en-IN')}
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+
+                                                        {/* GRAND TOTAL */}
+                                                        <tfoot className='bg-gray-100'>
+                                                            <tr>
+                                                                <td colSpan={3} className='border px-4 py-3 text-right font-bold'>
+                                                                    Total
                                                                 </td>
-                                                                <td className='border px-4 py-2 text-center'>{row.slNo}</td>
-                                                                <td className='border px-4 py-2 font-medium'>{row.groupName}</td>
-                                                                <td className='border px-4 py-2 text-right font-semibold'>
-                                                                    ₹ {row.concessionAmount.toLocaleString('en-IN')}
+                                                                <td className='border px-4 py-3 text-right font-bold'>
+                                                                    ₹{' '}
+                                                                    {reportData
+                                                                        .reduce((sum, row) => sum + row.concession, 0)
+                                                                        .toLocaleString('en-IN')}
                                                                 </td>
                                                             </tr>
-                                                        ))}
-                                                    </tbody>
+                                                        </tfoot>
+                                                    </table>
+                                                </div>
+                                            )}
 
-                                                    {/* GRAND TOTAL */}
-                                                    <tfoot className='bg-gray-100'>
-                                                        <tr>
-                                                            <td colSpan={3} className='border px-4 py-3 text-right font-bold'>
-                                                                Total
-                                                            </td>
-                                                            <td className='border px-4 py-3 text-right font-bold'>
-                                                                ₹{' '}
-                                                                {mockReportData
-                                                                    .reduce((sum, row) => sum + row.concessionAmount, 0)
-                                                                    .toLocaleString('en-IN')}
-                                                            </td>
-                                                        </tr>
-                                                    </tfoot>
-                                                </table>
-                                            </div>
+                                            {filters.breakdown === 'FCW' && (
+                                                <div className='overflow-x-auto'>
+                                                    <table className='w-full border-collapse text-sm'>
+                                                        <thead className='bg-primary text-white'>
+                                                            <tr>
+                                                                <th className='border px-2 py-2 text-center'>
+                                                                    <input
+                                                                        type='checkbox'
+                                                                        checked={
+                                                                            selectedIds.length === reportData.length &&
+                                                                            reportData.length > 0
+                                                                        }
+                                                                        onChange={toggleAll}
+                                                                    />
+                                                                </th>
+                                                                <th className='w-20 border px-4 py-2 text-center'>Sl No</th>
+
+                                                                <th className='border px-4 py-2 text-left'> Class</th>
+                                                                <th className='w-56 border px-4 py-2 text-right'> Amount</th>
+                                                            </tr>
+                                                        </thead>
+
+                                                        <tbody>
+                                                            {reportData.map((row, index) => (
+                                                                <tr
+                                                                    key={row.id}
+                                                                    className={
+                                                                        selectedIds.includes(row.id)
+                                                                            ? 'bg-blue-100'
+                                                                            : index % 2 === 0
+                                                                              ? 'bg-white'
+                                                                              : 'bg-gray-50'
+                                                                    }>
+                                                                    <td className='border px-2 py-2 text-center'>
+                                                                        <input
+                                                                            type='checkbox'
+                                                                            checked={selectedIds.includes(row.id)}
+                                                                            onChange={() => toggleRow(row.id)}
+                                                                        />
+                                                                    </td>
+                                                                    <td className='border px-4 py-2 text-center'>{row.id}</td>
+                                                                    <td className='border px-4 py-2 font-medium'>{row.reportname}</td>
+                                                                    <td className='border px-4 py-2 text-right font-semibold'>
+                                                                        ₹ {row.concession.toLocaleString('en-IN')}
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+
+                                                        {/* GRAND TOTAL */}
+                                                        <tfoot className='bg-gray-100'>
+                                                            <tr>
+                                                                <td colSpan={3} className='border px-4 py-3 text-right font-bold'>
+                                                                    Total
+                                                                </td>
+                                                                <td className='border px-4 py-3 text-right font-bold'>
+                                                                    ₹{' '}
+                                                                    {reportData
+                                                                        .reduce((sum, row) => sum + row.concession, 0)
+                                                                        .toLocaleString('en-IN')}
+                                                                </td>
+                                                            </tr>
+                                                        </tfoot>
+                                                    </table>
+                                                </div>
+                                            )}
+
+                                            {filters.breakdown === 'FSW' && (
+                                                <div className='overflow-x-auto'>
+                                                    <table className='w-full border-collapse text-sm'>
+                                                        <thead className='bg-primary text-white'>
+                                                            <tr>
+                                                                <th className='border px-2 py-2 text-center'>
+                                                                    <input
+                                                                        type='checkbox'
+                                                                        checked={
+                                                                            selectedIds.length === reportData.length &&
+                                                                            reportData.length > 0
+                                                                        }
+                                                                        onChange={toggleAll}
+                                                                    />
+                                                                </th>
+                                                                <th className='w-20 border px-4 py-2 text-center'>Sl No</th>
+
+                                                                <th className='border px-4 py-2 text-left'> Student Name</th>
+                                                                <th className='w-56 border px-4 py-2 text-right'> Class:Section</th>
+                                                                <th className='w-56 border px-4 py-2 text-right'> Concession Amount</th>
+                                                            </tr>
+                                                        </thead>
+
+                                                        <tbody>
+                                                            {reportData.map((row, index) => (
+                                                                <tr
+                                                                    key={row.id}
+                                                                    className={
+                                                                        selectedIds.includes(row.id)
+                                                                            ? 'bg-blue-100'
+                                                                            : index % 2 === 0
+                                                                              ? 'bg-white'
+                                                                              : 'bg-gray-50'
+                                                                    }>
+                                                                    <td className='border px-2 py-2 text-center'>
+                                                                        <input
+                                                                            type='checkbox'
+                                                                            checked={selectedIds.includes(row.id)}
+                                                                            onChange={() => toggleRow(row.id)}
+                                                                        />
+                                                                    </td>
+                                                                    <td className='border px-4 py-2 text-center'>{row.id}</td>
+                                                                    <td className='border px-4 py-2 font-medium'>{row.reportname}</td>
+                                                                    <td className='border px-4 py-2 font-medium'>{row.classname}</td>
+                                                                    <td className='border px-4 py-2 text-right font-semibold'>
+                                                                        ₹ {row.concession.toLocaleString('en-IN')}
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+
+                                                        {/* GRAND TOTAL */}
+                                                        <tfoot className='bg-gray-100'>
+                                                            <tr>
+                                                                <td colSpan={4} className='border px-4 py-3 text-right font-bold'>
+                                                                    Total
+                                                                </td>
+                                                                <td className='border px-4 py-3 text-right font-bold'>
+                                                                    ₹{' '}
+                                                                    {reportData
+                                                                        .reduce((sum, row) => sum + row.concession, 0)
+                                                                        .toLocaleString('en-IN')}
+                                                                </td>
+                                                            </tr>
+                                                        </tfoot>
+                                                    </table>
+                                                </div>
+                                            )}
                                         </div>
                                     </CollapsibleSection>
                                 )}

@@ -300,12 +300,12 @@ export default function AddFeeOpeningBalanceForm({
 
             const res = await addOrUpdateFeeOpeningBalance(payload);
             if (res.success || res.returnval) {
-                toast.success('Opening balance saved successfully!');
+                toast.success(res.message);
                 resetAllFormState();
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(res.message || 'Failed to save');
+                toast.error(res.message);
             }
         } catch {
             toast.error('Error saving data');

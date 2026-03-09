@@ -1,22 +1,36 @@
 'use client';
+import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
+import { Trash2 } from 'lucide-react';
+
 // Leave Balance Row
 export interface LeaveBalanceRow {
-    leaveType: string;
+    id: number;
+    leaveName: string;
+    leaveCode: string;
+    totalLeaves: number;
     balance: number;
 }
+
 // Leave History Row
 export interface LeaveHistoryRow {
-    leaveType: string;
-    fromDate: string;
-    toDate: string;
+    id: number;
+    employeeName?: string;
+    leaveType?: string;
+    leaveName?: string;
+    leaveReason?: string;
+    fromDate: string | Date;
+    toDate: string | Date;
     noOfDays?: number;
-    days?: number; // For backward compatibility
+    days?: number;
+    totalDays?: number;
     status: string;
     remark?: string;
+    remarks?: string;
     document?: string;
 }
+
 // Apply Leave Form Data
 export type ApplyLeave = {
     employeeName: string;
@@ -29,12 +43,13 @@ export type ApplyLeave = {
     reason: string;
     contactNumber?: string;
     dateReportingBack?: string;
+    inTime?: string;
+    outTime?: string;
     file?: FileList;
 };
+
 // Table columns for Leave Balance
-export const leaveBalanceColumns: ColumnDef<
-    LeaveBalanceRow & { slNo?: number; total?: number; fromDate?: string; toDate?: string; noOfDays?: number }
->[] = [
+export const leaveBalanceColumns: ColumnDef<LeaveBalanceRow>[] = [
     {
         accessorKey: 'slNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl No' />,
@@ -42,30 +57,31 @@ export const leaveBalanceColumns: ColumnDef<
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div className='font-medium'>{row.getValue('slNo') || continuousIndex}</div>;
+            return <div className='font-medium text-center'>{continuousIndex}</div>;
         }
     },
     {
-        accessorKey: 'leaveType',
-        header: 'Leave Type',
-        cell: ({ row }) => <div className='font-medium'>{row.getValue('leaveType')}</div>
+        accessorKey: 'leaveName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Type' />,
+        cell: ({ row }) => <div className='font-medium'>{row.getValue('leaveName')}</div>
     },
     {
-        accessorKey: 'total',
+        accessorKey: 'totalLeaves',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Total' />,
-        cell: ({ row }) => <div className='text-center'>{row.getValue('total') || '-'}</div>
+        cell: ({ row }) => <div className='text-center'>{row.getValue('totalLeaves')}</div>
     },
     {
         accessorKey: 'balance',
-        header: 'Balance',
-        cell: ({ row }) => <div className='text-center'>{row.getValue('balance')}</div>
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Balance' />,
+        cell: ({ row }) => <div className='text-center font-semibold'>{row.getValue('balance')}</div>
     }
 ];
-// Table columns for Leave History
-export const leaveHistoryColumns: ColumnDef<LeaveHistoryRow>[] = [
+
+// Table columns for Leave History - function to accept onDelete callback
+export const createLeaveHistoryColumns = (onDelete?: (id: number) => void): ColumnDef<LeaveHistoryRow>[] => [
     {
         accessorKey: 'sno',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SNO' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO.' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -76,33 +92,33 @@ export const leaveHistoryColumns: ColumnDef<LeaveHistoryRow>[] = [
     {
         accessorKey: 'leaveType',
         header: ({ column }) => <DataTableColumnHeader column={column} title='LEAVE NAME' />,
-        cell: ({ row }) => <div className='font-medium'>{row.getValue('leaveType')}</div>
+        cell: ({ row }) => <div className='font-medium'>{row.original.leaveType || row.original.leaveName || '-'}</div>
     },
     {
-        accessorKey: 'reason',
+        accessorKey: 'leaveReason',
         header: ({ column }) => <DataTableColumnHeader column={column} title='LEAVE REASON' />,
-        cell: ({ row }) => <div className='max-w-xs'>{row.original.remark || '-'}</div>
+        cell: ({ row }) => <div className='max-w-xs truncate'>{row.original.leaveReason || row.original.remark || '-'}</div>
     },
     {
         accessorKey: 'fromDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='FROM DATE' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='From Date' />,
         cell: ({ row }) => {
-            const date = row.getValue('fromDate') as string;
+            const date = row.original.fromDate;
             return <div>{date ? new Date(date).toLocaleDateString('en-GB') : '-'}</div>;
         }
     },
     {
         accessorKey: 'toDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='TO DATE' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='To Date' />,
         cell: ({ row }) => {
-            const date = row.getValue('toDate') as string;
+            const date = row.original.toDate;
             return <div>{date ? new Date(date).toLocaleDateString('en-GB') : '-'}</div>;
         }
     },
     {
         accessorKey: 'days',
         header: ({ column }) => <DataTableColumnHeader column={column} title='NO. OF DAYS' />,
-        cell: ({ row }) => <div className='text-center'>{row.getValue('days')}</div>
+        cell: ({ row }) => <div className='text-center'>{row.original.days || row.original.noOfDays || row.original.totalDays || '-'}</div>
     },
     {
         accessorKey: 'status',
@@ -110,26 +126,25 @@ export const leaveHistoryColumns: ColumnDef<LeaveHistoryRow>[] = [
         cell: ({ row }) => {
             const status = row.getValue('status') as string;
             const statusColors: Record<string, string> = {
-                Applied: 'text-yellow-700',
-                Approved: 'text-green-700',
-                Rejected: 'text-red-700',
-                'Partial Approved': 'text-yellow-700',
-                Pending: 'text-blue-700'
+                Applied: 'bg-yellow-100 text-yellow-700',
+                Approved: 'bg-green-100 text-green-700',
+                Rejected: 'bg-red-100 text-red-700',
+                'Partial Approved': 'bg-blue-100 text-blue-700',
+                Pending: 'bg-orange-100 text-orange-700'
             };
             return (
                 <span
-                    className={`inline-flex rounded-full px-2 py-1 font-medium text-xs ${
-                        statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-700'
-                    }`}>
+                    className={`inline-flex rounded-full px-2 py-1 font-medium text-xs ${statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-700'
+                        }`}>
                     {status}
                 </span>
             );
         }
     },
     {
-        accessorKey: 'remark',
+        accessorKey: 'remarks',
         header: ({ column }) => <DataTableColumnHeader column={column} title='REMARK' />,
-        cell: ({ row }) => <div className='max-w-xs'>{row.getValue('remark') || '-'}</div>
+        cell: ({ row }) => <div className='max-w-xs truncate'>{row.original.remarks || row.original.remark || '-'}</div>
     },
     {
         accessorKey: 'document',
@@ -144,5 +159,32 @@ export const leaveHistoryColumns: ColumnDef<LeaveHistoryRow>[] = [
                 <div>-</div>
             );
         }
+    },
+    {
+        id: 'actions',
+        header: 'Action',
+        cell: ({ row }) => {
+            const status = row.original.status;
+            const canDelete = status === 'Applied';
+
+            if (!canDelete) {
+                return <div className='text-center'>--</div>;
+            }
+
+            return (
+                <div className='flex justify-center'>
+                    <Button
+                        variant='ghost'
+                        size='sm'
+                        onClick={() => onDelete?.(row.original.id)}
+                        className='h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10'>
+                        <Trash2 className='h-4 w-4' />
+                    </Button>
+                </div>
+            );
+        }
     }
 ];
+
+// Default export for backward compatibility
+export const leaveHistoryColumns = createLeaveHistoryColumns();

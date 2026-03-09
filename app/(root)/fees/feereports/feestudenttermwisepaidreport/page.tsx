@@ -149,7 +149,7 @@ export default function FeeAccountsPositionReport() {
                 <div className='mx-auto max-w-7xl'>
                     <Card className='border-0 shadow-xl'>
                         <div className='p-8'>
-                            <h1 className='mb-8 font-bold text-3xl text-gray-900'>Fee Student Term Wise Paid Report</h1>
+                            {/* <h1 className='mb-8 font-bold text-3xl text-gray-900'>Fee Student Term Wise Paid Report</h1> */}
                             <div className='space-y-8'>
                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-2'>
                                     <div className='space-y-3'>

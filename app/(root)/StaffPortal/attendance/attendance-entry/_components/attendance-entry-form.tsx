@@ -1,44 +1,25 @@
-
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage
-} from '@/components/ui/form';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon, Eye, Trash, RefreshCcw, Save, X } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAttendanceEntry } from '@/hooks/staff-portal/useAttendanceEntry';
-import type {
-    IStudentAttendance,
-    IAttendanceEntryInitialData,
-    IAttendanceConfig,
-    IStandardConfig
-} from '@/types/staff-portal/attendance-entry';
-import { attendanceEntrySchema, AttendanceEntryValues } from '@/types/staff-portal/attendance-entry-schema';
+import { cn } from '@/lib/utils';
+import type { IAttendanceConfig, IAttendanceEntryInitialData, IStandardConfig } from '@/types/staff-portal/attendance-entry';
+import { type AttendanceEntryValues, attendanceEntrySchema } from '@/types/staff-portal/attendance-entry-schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { CalendarIcon, Eye, RefreshCcw, Save, Trash, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import AttendanceGrid from './attendance-grid';
 import ViewHistoryModal from './view-history-modal';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 
 const AttendanceEntryForm = () => {
     const [selectedYearId, setSelectedYearId] = useState<number>(0);
@@ -87,7 +68,7 @@ const AttendanceEntryForm = () => {
     const [countClass, setCountClass] = useState<number | string>(0);
     const [config, setConfig] = useState<IAttendanceConfig | null>(null);
     const [stdConfig, setStdConfig] = useState<IStandardConfig | null>(null);
-    const [attEntryTypeFlag, setAttEntryTypeFlag] = useState("");
+    const [attEntryTypeFlag, setAttEntryTypeFlag] = useState('');
     const [updateId, setUpdateId] = useState(0);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
@@ -106,6 +87,7 @@ const AttendanceEntryForm = () => {
                 ASMCL_Id: Number(currentClass),
                 classsecflag: '1'
             };
+
             getStudentData.mutate(data, {
                 onSuccess: (res: any) => {
                     if (res) {
@@ -114,14 +96,19 @@ const AttendanceEntryForm = () => {
                         setStdConfig(res.getstandarad?.[0]);
 
                         if (res.asA_Att_EntryType) {
-                            const type = res.asA_Att_EntryType === 'D' ? 'Dailyonce' :
-                                res.asA_Att_EntryType === 'H' ? 'Dailytwice' :
-                                    res.asA_Att_EntryType === 'M' ? 'monthly' : 'period';
+                            const type =
+                                res.asA_Att_EntryType === 'D'
+                                    ? 'Dailyonce'
+                                    : res.asA_Att_EntryType === 'H'
+                                      ? 'Dailytwice'
+                                      : res.asA_Att_EntryType === 'M'
+                                        ? 'monthly'
+                                        : 'period';
                             setValue('entry', type);
                             setEntryFlag(true);
                         } else {
                             setEntryFlag(false);
-                            toast.error("Attendance settings not found for this class");
+                            toast.error('Attendance settings not found for this class');
                         }
                     }
                 }
@@ -131,7 +118,13 @@ const AttendanceEntryForm = () => {
 
     // Load Student List for Daily Once/Twice
     useEffect(() => {
-        if (Number(currentYear) > 0 && Number(currentClass) > 0 && Number(currentSection) > 0 && currentDate && (currentEntry === 'Dailyonce' || currentEntry === 'Dailytwice')) {
+        if (
+            Number(currentYear) > 0 &&
+            Number(currentClass) > 0 &&
+            Number(currentSection) > 0 &&
+            currentDate &&
+            (currentEntry === 'Dailyonce' || currentEntry === 'Dailytwice')
+        ) {
             const entry = currentEntry === 'Dailyonce' ? 'D' : 'H';
             const data = {
                 ASMAY_Id: Number(currentYear),
@@ -149,7 +142,7 @@ const AttendanceEntryForm = () => {
                     } else {
                         setStudentGrid(false);
                         setStudentList([]);
-                        toast.error("No students found for selected section");
+                        toast.error('No students found for selected section');
                     }
                 }
             });
@@ -158,7 +151,13 @@ const AttendanceEntryForm = () => {
 
     // Load Student List for Monthly
     useEffect(() => {
-        if (Number(currentYear) > 0 && Number(currentClass) > 0 && Number(currentSection) > 0 && Number(currentMonth) > 0 && currentEntry === 'monthly') {
+        if (
+            Number(currentYear) > 0 &&
+            Number(currentClass) > 0 &&
+            Number(currentSection) > 0 &&
+            Number(currentMonth) > 0 &&
+            currentEntry === 'monthly'
+        ) {
             const data = {
                 ASMAY_Id: Number(currentYear),
                 ASMCL_Id: Number(currentClass),
@@ -183,7 +182,14 @@ const AttendanceEntryForm = () => {
 
     // Load Student List for Period Wise
     useEffect(() => {
-        if (Number(currentYear) > 0 && Number(currentClass) > 0 && Number(currentSection) > 0 && currentEntry === 'period' && Number(currentPeriod) > 0 && currentDate) {
+        if (
+            Number(currentYear) > 0 &&
+            Number(currentClass) > 0 &&
+            Number(currentSection) > 0 &&
+            currentEntry === 'period' &&
+            Number(currentPeriod) > 0 &&
+            currentDate
+        ) {
             const data = {
                 ASMAY_Id: Number(currentYear),
                 ASMCL_Id: Number(currentClass),
@@ -216,32 +222,36 @@ const AttendanceEntryForm = () => {
 
         // Apply initial state based on entry flags (A or P)
         if (res.asA_Att_EntryType === 'D') {
-            finalStudents = finalStudents.map(s => ({
+            finalStudents = finalStudents.map((s) => ({
                 ...s,
                 selected: res.attendanceentryflag === 'A' ? s.pdays === 0 : s.pdays > 0
             }));
         } else if (res.asA_Att_EntryType === 'H') {
-            finalStudents = finalStudents.map(s => {
-                let f = false, sc = false;
+            finalStudents = finalStudents.map((s) => {
+                let f = false;
+                let sc = false;
                 if (res.attendanceentryflag === 'A') {
                     if (s.pdays === 0.5) {
-                        if (s.asA_Dailytwice_Flag === "firsthalf") sc = true;
+                        if (s.asA_Dailytwice_Flag === 'firsthalf') sc = true;
                         else f = true;
                     } else if (s.pdays === 0) {
-                        f = true; sc = true;
+                        f = true;
+                        sc = true;
                     }
-                } else { // P
+                } else {
+                    // P
                     if (s.pdays === 0.5) {
-                        if (s.asA_Dailytwice_Flag === "firsthalf") f = true;
+                        if (s.asA_Dailytwice_Flag === 'firsthalf') f = true;
                         else sc = true;
                     } else if (s.pdays === 1) {
-                        f = true; sc = true;
+                        f = true;
+                        sc = true;
                     }
                 }
                 return { ...s, FirstHalfflag: f, SecondHalfflag: sc };
             });
         } else if (res.asA_Att_EntryType === 'P') {
-            finalStudents = finalStudents.map(s => ({
+            finalStudents = finalStudents.map((s) => ({
                 ...s,
                 selected: res.attendanceentryflag === 'A' ? s.pdays === 0 : s.pdays > 0
             }));
@@ -251,33 +261,43 @@ const AttendanceEntryForm = () => {
     };
 
     const onSave = (values: AttendanceEntryValues) => {
+        console.log('Save Clicked');
         let ASA_ClassHeld = '1.00';
-        let fromDateStr = currentDate ? format(new Date(currentDate), 'yyyy-MM-dd') : "";
-        let toDateStr = currentDate ? format(new Date(currentDate), 'yyyy-MM-dd') : "";
+        let fromDateStr = currentDate ? format(new Date(currentDate), 'yyyy-MM-dd') : '';
+        let toDateStr = currentDate ? format(new Date(currentDate), 'yyyy-MM-dd') : '';
 
         if (currentEntry === 'monthly') {
             ASA_ClassHeld = String(countClass);
-            fromDateStr = watch('ASA_FromDate') ? format(new Date(watch('ASA_FromDate')!), 'yyyy-MM-dd') : "";
-            toDateStr = watch('ASA_ToDate') ? format(new Date(watch('ASA_ToDate')!), 'yyyy-MM-dd') : "";
+            fromDateStr = watch('ASA_FromDate') ? format(new Date(watch('ASA_FromDate')!), 'yyyy-MM-dd') : '';
+            toDateStr = watch('ASA_ToDate') ? format(new Date(watch('ASA_ToDate')!), 'yyyy-MM-dd') : '';
         }
+
+        const updatedStdList = studentList.map((student) => ({
+            ...student,
+            asA_Dailytwice_Flag: student.asA_Dailytwice_Flag ?? ' '
+        }));
 
         const payload = {
             ASA_Id: updateId,
             ismS_Id: Number(currentSubject) || 0,
             ASMAY_Id: Number(currentYear),
-            ASA_Att_Type: currentEntry || "",
+            ASA_Att_Type: currentEntry || '',
             ASMCL_Id: Number(currentClass),
             ASMS_Id: Number(currentSection) || 0,
             TTMP_Id: Number(currentPeriod) || 0,
-            ASA_Entry_DateTime: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
+            ASA_Entry_DateTime: new Date().toISOString(),
             ASA_FromDate: fromDateStr,
             ASA_ToDate: toDateStr,
             ASA_ClassHeld: ASA_ClassHeld,
             ASA_Regular_Extra: watch('ASA_Regular_Extra') || 'Regular',
             asasB_Id: Number(currentBatch) || 0,
-            stdList: studentList
+            //stdList: studentList,
+            stdList: updatedStdList
         };
 
+        console.log('Save payload', payload);
+
+        console.log(JSON.stringify(payload));
         saveAttendance.mutate(payload, {
             onSuccess: (res) => {
                 if (res.returnval) {
@@ -292,13 +312,13 @@ const AttendanceEntryForm = () => {
             ASA_Id: updateId,
             ismS_Id: Number(currentSubject) || 0,
             ASMAY_Id: Number(currentYear),
-            ASA_Att_Type: currentEntry || "",
+            ASA_Att_Type: currentEntry || '',
             ASMCL_Id: Number(currentClass),
             ASMS_Id: Number(currentSection) || 0,
             TTMP_Id: Number(currentPeriod) || 0,
             ASA_Entry_DateTime: format(new Date(), 'yyyy-MM-dd'),
-            ASA_FromDate: currentDate ? format(new Date(currentDate), 'yyyy-MM-dd') : "",
-            ASA_ToDate: currentDate ? format(new Date(currentDate), 'yyyy-MM-dd') : "",
+            ASA_FromDate: currentDate ? format(new Date(currentDate), 'yyyy-MM-dd') : '',
+            ASA_ToDate: currentDate ? format(new Date(currentDate), 'yyyy-MM-dd') : '',
             ASA_ClassHeld: currentEntry === 'monthly' ? String(countClass) : '1.00',
             ASA_Regular_Extra: watch('ASA_Regular_Extra'),
             asasB_Id: Number(currentBatch) || 0,
@@ -312,31 +332,32 @@ const AttendanceEntryForm = () => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className='space-y-6'>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSave)} className="space-y-6">
+                <form onSubmit={form.handleSubmit(onSave)} className='space-y-6'>
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-lg">Filter Selection</CardTitle>
+                            <CardTitle className='text-lg'>Filter Selection</CardTitle>
                         </CardHeader>
-                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <CardContent className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                             <FormField
                                 control={form.control}
-                                name="asmaY_Id"
+                                name='asmaY_Id'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Academic Year <span className="text-destructive">*</span></FormLabel>
+                                        <FormLabel>
+                                            Academic Year <span className='text-destructive'>*</span>
+                                        </FormLabel>
                                         <Select
                                             onValueChange={(val) => {
                                                 field.onChange(Number(val));
                                                 setEntryFlag(false);
                                                 setStudentGrid(false);
                                             }}
-                                            value={field.value?.toString() || ""}
-                                        >
+                                            value={field.value?.toString() || ''}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Academic Year" />
+                                                    <SelectValue placeholder='Select Academic Year' />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -354,20 +375,21 @@ const AttendanceEntryForm = () => {
 
                             <FormField
                                 control={form.control}
-                                name="asmcL_Id"
+                                name='asmcL_Id'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Class <span className="text-destructive">*</span></FormLabel>
+                                        <FormLabel>
+                                            Class <span className='text-destructive'>*</span>
+                                        </FormLabel>
                                         <Select
                                             onValueChange={(val) => {
                                                 field.onChange(Number(val));
                                                 setStudentGrid(false);
                                             }}
-                                            value={field.value?.toString() || ""}
-                                        >
+                                            value={field.value?.toString() || ''}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Class" />
+                                                    <SelectValue placeholder='Select Class' />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -386,48 +408,44 @@ const AttendanceEntryForm = () => {
                     </Card>
 
                     {entryFlag && (
-                        <Card className="animate-in fade-in slide-in-from-top-4">
-                            <CardHeader className="flex flex-row items-center justify-between">
-                                <CardTitle className="text-lg">Attendance Entry Inputs</CardTitle>
-                                {(Number(currentSection) > 0) && (
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setIsHistoryOpen(true)}
-                                    >
-                                        <Eye className="h-4 w-4 mr-2" /> View Period Wise Attendance
+                        <Card className='fade-in slide-in-from-top-4 animate-in'>
+                            <CardHeader className='flex flex-row items-center justify-between'>
+                                <CardTitle className='text-lg'>Attendance Entry Inputs</CardTitle>
+                                {Number(currentSection) > 0 && (
+                                    <Button type='button' variant='outline' size='sm' onClick={() => setIsHistoryOpen(true)}>
+                                        <Eye className='mr-2 h-4 w-4' /> View Period Wise Attendance
                                     </Button>
                                 )}
                             </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="p-4 bg-muted rounded-lg flex justify-center gap-8">
+                            <CardContent className='space-y-6'>
+                                <div className='flex justify-center gap-8 rounded-lg bg-muted p-4'>
                                     {['Dailyonce', 'Dailytwice', 'monthly', 'period'].map((type) => (
-                                        <div key={type} className="flex items-center space-x-2">
-                                            <RadioGroup disabled value={currentEntry || ""}>
+                                        <div key={type} className='flex items-center space-x-2'>
+                                            <RadioGroup disabled value={currentEntry || ''}>
                                                 <RadioGroupItem value={type} id={type} />
                                             </RadioGroup>
-                                            <Label htmlFor={type} className="capitalize">
+                                            <Label htmlFor={type} className='capitalize'>
                                                 {type.replace('once', ' Once').replace('twice', ' Twice').replace('period', 'Period Wise')}
                                             </Label>
                                         </div>
                                     ))}
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                     <FormField
                                         control={form.control}
-                                        name="asmC_Id"
+                                        name='asmC_Id'
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Section <span className="text-destructive">*</span></FormLabel>
+                                                <FormLabel>
+                                                    Section <span className='text-destructive'>*</span>
+                                                </FormLabel>
                                                 <Select
                                                     onValueChange={(val) => field.onChange(Number(val))}
-                                                    value={field.value?.toString() || ""}
-                                                >
+                                                    value={field.value?.toString() || ''}>
                                                     <FormControl>
                                                         <SelectTrigger>
-                                                            <SelectValue placeholder="Select Section" />
+                                                            <SelectValue placeholder='Select Section' />
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
@@ -446,37 +464,36 @@ const AttendanceEntryForm = () => {
                                     {currentEntry !== 'monthly' && (
                                         <FormField
                                             control={form.control}
-                                            name="ASA_Entry_DateTime"
+                                            name='ASA_Entry_DateTime'
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>DOE <span className="text-destructive">*</span></FormLabel>
+                                                    <FormLabel>
+                                                        DOE <span className='text-destructive'>*</span>
+                                                    </FormLabel>
                                                     <Popover>
                                                         <PopoverTrigger asChild>
                                                             <FormControl>
                                                                 <Button
-                                                                    variant={"outline"}
+                                                                    variant={'outline'}
                                                                     className={cn(
-                                                                        "w-full pl-3 text-left font-normal",
-                                                                        !field.value && "text-muted-foreground"
-                                                                    )}
-                                                                >
+                                                                        'w-full pl-3 text-left font-normal',
+                                                                        !field.value && 'text-muted-foreground'
+                                                                    )}>
                                                                     {field.value ? (
-                                                                        format(new Date(field.value), "PPP")
+                                                                        format(new Date(field.value), 'PPP')
                                                                     ) : (
                                                                         <span>Pick a date</span>
                                                                     )}
-                                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                                    <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
                                                                 </Button>
                                                             </FormControl>
                                                         </PopoverTrigger>
-                                                        <PopoverContent className="w-auto p-0" align="start">
+                                                        <PopoverContent className='w-auto p-0' align='start'>
                                                             <Calendar
-                                                                mode="single"
+                                                                mode='single'
                                                                 selected={field.value ? new Date(field.value) : undefined}
                                                                 onSelect={field.onChange}
-                                                                disabled={(date) =>
-                                                                    date > new Date() || date < new Date("1900-01-01")
-                                                                }
+                                                                disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
                                                                 initialFocus
                                                             />
                                                         </PopoverContent>
@@ -491,17 +508,18 @@ const AttendanceEntryForm = () => {
                                         <>
                                             <FormField
                                                 control={form.control}
-                                                name="ivrM_Month_Id"
+                                                name='ivrM_Month_Id'
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel>Month <span className="text-destructive">*</span></FormLabel>
+                                                        <FormLabel>
+                                                            Month <span className='text-destructive'>*</span>
+                                                        </FormLabel>
                                                         <Select
                                                             onValueChange={(val) => field.onChange(Number(val))}
-                                                            value={field.value?.toString() || ""}
-                                                        >
+                                                            value={field.value?.toString() || ''}>
                                                             <FormControl>
                                                                 <SelectTrigger>
-                                                                    <SelectValue placeholder="Select Month" />
+                                                                    <SelectValue placeholder='Select Month' />
                                                                 </SelectTrigger>
                                                             </FormControl>
                                                             <SelectContent>
@@ -516,7 +534,7 @@ const AttendanceEntryForm = () => {
                                                     </FormItem>
                                                 )}
                                             />
-                                            <div className="flex items-center text-sm font-semibold text-primary">
+                                            <div className='flex items-center font-semibold text-primary text-sm'>
                                                 Total Class Helds: {countClass}
                                             </div>
                                         </>
@@ -526,17 +544,18 @@ const AttendanceEntryForm = () => {
                                         <>
                                             <FormField
                                                 control={form.control}
-                                                name="ismS_Id"
+                                                name='ismS_Id'
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel>Subject <span className="text-destructive">*</span></FormLabel>
+                                                        <FormLabel>
+                                                            Subject <span className='text-destructive'>*</span>
+                                                        </FormLabel>
                                                         <Select
                                                             onValueChange={(val) => field.onChange(Number(val))}
-                                                            value={field.value?.toString() || ""}
-                                                        >
+                                                            value={field.value?.toString() || ''}>
                                                             <FormControl>
                                                                 <SelectTrigger>
-                                                                    <SelectValue placeholder="Select Subject" />
+                                                                    <SelectValue placeholder='Select Subject' />
                                                                 </SelectTrigger>
                                                             </FormControl>
                                                             <SelectContent>
@@ -554,17 +573,18 @@ const AttendanceEntryForm = () => {
 
                                             <FormField
                                                 control={form.control}
-                                                name="ttmP_Id"
+                                                name='ttmP_Id'
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel>Period <span className="text-destructive">*</span></FormLabel>
+                                                        <FormLabel>
+                                                            Period <span className='text-destructive'>*</span>
+                                                        </FormLabel>
                                                         <Select
                                                             onValueChange={(val) => field.onChange(Number(val))}
-                                                            value={field.value?.toString() || ""}
-                                                        >
+                                                            value={field.value?.toString() || ''}>
                                                             <FormControl>
                                                                 <SelectTrigger>
-                                                                    <SelectValue placeholder="Select Period" />
+                                                                    <SelectValue placeholder='Select Period' />
                                                                 </SelectTrigger>
                                                             </FormControl>
                                                             <SelectContent>
@@ -582,17 +602,16 @@ const AttendanceEntryForm = () => {
 
                                             <FormField
                                                 control={form.control}
-                                                name="asasB_Id"
+                                                name='asasB_Id'
                                                 render={({ field }) => (
                                                     <FormItem>
                                                         <FormLabel>Batch</FormLabel>
                                                         <Select
                                                             onValueChange={(val) => field.onChange(Number(val))}
-                                                            value={field.value?.toString() || ""}
-                                                        >
+                                                            value={field.value?.toString() || ''}>
                                                             <FormControl>
                                                                 <SelectTrigger>
-                                                                    <SelectValue placeholder="Select Batch" />
+                                                                    <SelectValue placeholder='Select Batch' />
                                                                 </SelectTrigger>
                                                             </FormControl>
                                                             <SelectContent>
@@ -610,31 +629,28 @@ const AttendanceEntryForm = () => {
 
                                             <FormField
                                                 control={form.control}
-                                                name="ASA_Regular_Extra"
+                                                name='ASA_Regular_Extra'
                                                 render={({ field }) => (
-                                                    <FormItem className="space-y-3">
-                                                        <FormLabel>Entry Type <span className="text-destructive">*</span></FormLabel>
+                                                    <FormItem className='space-y-3'>
+                                                        <FormLabel>
+                                                            Entry Type <span className='text-destructive'>*</span>
+                                                        </FormLabel>
                                                         <FormControl>
                                                             <RadioGroup
                                                                 onValueChange={field.onChange}
                                                                 defaultValue={field.value}
-                                                                className="flex flex-row space-x-4"
-                                                            >
-                                                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                                                className='flex flex-row space-x-4'>
+                                                                <FormItem className='flex items-center space-x-2 space-y-0'>
                                                                     <FormControl>
-                                                                        <RadioGroupItem value="Regular" />
+                                                                        <RadioGroupItem value='Regular' />
                                                                     </FormControl>
-                                                                    <FormLabel className="font-normal">
-                                                                        Regular
-                                                                    </FormLabel>
+                                                                    <FormLabel className='font-normal'>Regular</FormLabel>
                                                                 </FormItem>
-                                                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                                                <FormItem className='flex items-center space-x-2 space-y-0'>
                                                                     <FormControl>
-                                                                        <RadioGroupItem value="Extra Period" />
+                                                                        <RadioGroupItem value='Extra Period' />
                                                                     </FormControl>
-                                                                    <FormLabel className="font-normal">
-                                                                        Extra Period
-                                                                    </FormLabel>
+                                                                    <FormLabel className='font-normal'>Extra Period</FormLabel>
                                                                 </FormItem>
                                                             </RadioGroup>
                                                         </FormControl>
@@ -650,14 +666,14 @@ const AttendanceEntryForm = () => {
                     )}
 
                     {studentGrid && (
-                        <Card className="animate-in fade-in slide-in-from-top-4">
+                        <Card className='fade-in slide-in-from-top-4 animate-in'>
                             <CardHeader>
-                                <CardTitle className="text-lg">Student Details</CardTitle>
-                                <div className="text-sm font-medium text-blue-600">
-                                    {attEntryTypeFlag === 'A' ? "Attendance Entry Type Is Absent" : "Attendance Entry Type Is Present"}
+                                <CardTitle className='text-lg'>Student Details</CardTitle>
+                                <div className='font-medium text-blue-600 text-sm'>
+                                    {attEntryTypeFlag === 'A' ? 'Attendance Entry Type Is Absent' : 'Attendance Entry Type Is Present'}
                                 </div>
                             </CardHeader>
-                            <CardContent className="space-y-6">
+                            <CardContent className='space-y-6'>
                                 <AttendanceGrid
                                     students={studentList}
                                     setStudents={setStudentList}
@@ -667,33 +683,24 @@ const AttendanceEntryForm = () => {
                                     countClass={Number(countClass)}
                                 />
 
-                                <div className="flex justify-center gap-4 mt-6">
-                                    <Button
-                                        type="submit"
-                                        className="bg-primary hover:bg-primary/90"
-                                        disabled={saveAttendance.isPending}
-                                    >
-                                        {updateId > 0 ? <RefreshCcw className="h-4 w-4 mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                                <div className='mt-6 flex justify-center gap-4'>
+                                    <Button type='submit' className='bg-primary hover:bg-primary/90' disabled={saveAttendance.isPending}>
+                                        {updateId > 0 ? <RefreshCcw className='mr-2 h-4 w-4' /> : <Save className='mr-2 h-4 w-4' />}
                                         {updateId > 0 ? 'Update' : 'Save'}
                                     </Button>
 
                                     {updateId > 0 && (
                                         <Button
-                                            type="button"
-                                            variant="destructive"
+                                            type='button'
+                                            variant='destructive'
                                             onClick={onDelete}
-                                            disabled={deleteAttendance.isPending}
-                                        >
-                                            <Trash className="h-4 w-4 mr-2" /> Delete
+                                            disabled={deleteAttendance.isPending}>
+                                            <Trash className='mr-2 h-4 w-4' /> Delete
                                         </Button>
                                     )}
 
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => window.location.reload()}
-                                    >
-                                        <X className="h-4 w-4 mr-2" /> Cancel
+                                    <Button type='button' variant='outline' onClick={() => window.location.reload()}>
+                                        <X className='mr-2 h-4 w-4' /> Cancel
                                     </Button>
                                 </div>
                             </CardContent>

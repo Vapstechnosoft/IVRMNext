@@ -85,6 +85,7 @@ export default function FeeHeadWiseReportForm() {
     }, [academicData, academicError, refreshAY]);
 
     const onYearChange = async (yearId: number) => {
+        setValue('classcategoryid', 0);
         try {
             setClassCategoryLoading(true);
             const res = await feeHeadwiseReportClassCategoryGropDown(yearId);
@@ -210,6 +211,8 @@ export default function FeeHeadWiseReportForm() {
 
             const { asmaY_Id, classcategoryid } = data;
 
+            console.log('headwisereportpayload', data);
+
             const response = await getHeadWiseReportData(Number(asmaY_Id), Number(classcategoryid));
             if ((response as any)?.data?.length > 0) {
                 toast.success('Report Genarated Successfully');
@@ -228,7 +231,7 @@ export default function FeeHeadWiseReportForm() {
                 slno: index + 1,
                 feeGroup: item.fmG_GroupName,
                 feeHead: item.fmH_FeeName,
-                active: item.fmG_ActiveFlag,
+                active: item.fmG_ActiceFlag,
                 fine: item.fyg_FineApplicableFlag || '--',
                 installment: item.ftI_Name,
                 amount: item.amount

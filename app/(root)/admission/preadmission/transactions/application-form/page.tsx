@@ -5,8 +5,10 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { ROLES } from '@/constants';
+import { PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import { useActivePreadmissionDetails, useStudentApplicationList } from '@/hooks/admission/preadmission/useTransactions';
 import type { IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
+import { useQueryClient } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { use, useEffect, useState } from 'react';
@@ -108,18 +110,20 @@ function StudentApplicationPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IPreadmissionStudentApplicationList>
-                        {...tableProps}
-                        columns={studentApplicationColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        showViewOptions={false}
-                        columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading applications...'
-                        noDataTitle='No Applications Found'
-                        noDataDescription='Get started by creating your first applications'
-                        errorTitle='Error Loading Applications'
-                    />
+                    <div className='[&_table_tbody_tr:nth-child(even)]:!bg-primary/5 [&_table_tbody_tr[data-state=selected]]:!bg-purple-100 [&_table_tbody_tr:hover]:!bg-purple-200 [&_table_tbody_tr:hover_td]:!bg-purple-200 [&_table_tbody_tr]:cursor-pointer [&_table_tbody_tr]:transition-colors'>
+                        <GenericDataTable<IPreadmissionStudentApplicationList>
+                            {...tableProps}
+                            columns={studentApplicationColumns}
+                            isLoading={isLoading}
+                            error={error}
+                            showViewOptions={false}
+                            columnPinning={{ right: ['actions'] }}
+                            loadingMessage='Loading applications...'
+                            noDataTitle='No Applications Found'
+                            noDataDescription='Get started by creating your first applications'
+                            errorTitle='Error Loading Applications'
+                        />
+                    </div>
                 </CollapsibleSection>
             </div>
         </div>
@@ -137,6 +141,7 @@ function FormSections({
     refetch: () => void;
 }) {
     const { isAddFormOpen, closeAddForm, addFormRef, isEditFormOpen, closeEditForm, editFormRef, selectedRow } = useFormContext();
+    const queryClient = useQueryClient();
 
     return (
         <>
@@ -164,6 +169,9 @@ function FormSections({
                                     closeAddForm();
                                     setSuccess('create');
                                     refetch();
+                                    queryClient.invalidateQueries({
+                                        queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_STATUS_COUNT_REPORT]
+                                    });
                                 }}
                             />
                         </div>
@@ -196,6 +204,9 @@ function FormSections({
                                     closeEditForm();
                                     setSuccess('update');
                                     refetch();
+                                    queryClient.invalidateQueries({
+                                        queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_STATUS_COUNT_REPORT]
+                                    });
                                 }}
                                 onClose={closeEditForm}
                             />

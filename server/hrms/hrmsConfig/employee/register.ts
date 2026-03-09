@@ -3,9 +3,11 @@
 import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
 import { auth } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
+import { extractListData, normalizeEmployeeList } from '@/app/(root)/hrms/employee/_components/employee-register-helper';
 import type {
     IBankDropdown,
     IBloodGroupDropdown,
+
     ICasteCategoryDropdown,
     ICasteDropdown,
     IContactTypeDropdown,
@@ -475,19 +477,63 @@ export async function getEmployeeList(searchParams?: ApiSearchparams) {
     // Define columns to search against if not already specified
     const searchColumns =
         searchParams?.search_columns || 'HRME_EmployeeFirstName,HRME_EmployeeLastName,HRME_EmployeeCode';
-    const queryParams = getSearchParamsUrl(searchParams, searchColumns);
 
-    const url = `/api/EmployeeRegistration/employee_registration_get_employee_details?MI_Id=${MI_Id}${queryParams ? `&${queryParams}` : ''}`;
+    // Build query parameters carefully
+    let queryUrl = `MI_Id=${MI_Id}`;
+
+    if (searchParams) {
+        if (searchParams.page) queryUrl += `&page=${searchParams.page}`;
+        if (searchParams.page_size) queryUrl += `&page_size=${searchParams.page_size}`;
+        if (searchParams.sort_column) queryUrl += `&sort_column=${searchParams.sort_column}`;
+        if (searchParams.sort_direction) queryUrl += `&sort_direction=${searchParams.sort_direction}`;
+        if (searchParams.search_query) {
+            queryUrl += `&search_query=${encodeURIComponent(searchParams.search_query)}`;
+            queryUrl += `&search_column=${encodeURIComponent(searchColumns)}`;
+        }
+    }
+
+    const url = `/api/EmployeeRegistration/employee_registration_get_employee_details?${queryUrl}`;
 
     try {
         const response = await api.get<any>('hrms', url);
-        return response || { success: false, data: [] };
+
+        // Log basic structure for debugging
+        console.log('✅ [API DEBUG] getEmployeeList response type:', typeof response);
+        if (response && typeof response === 'object') {
+            console.log('✅ [API DEBUG] getEmployeeList response keys:', Object.keys(response));
+        }
+
+        // Use robust extraction logic from helper
+        const gridData = extractListData(response);
+
+        // Normalize the list to ensure keys match frontend expectations (columns.tsx)
+        const normalizedGridData = normalizeEmployeeList(gridData);
+
+        console.log(`✅ [API DEBUG] getEmployeeList final normalized array length: ${normalizedGridData.length}`);
+
+        // Determine total count
+        const total = response?.total ||
+            (response?.data && response.data.total) ||
+            response?.totalItems ||
+            normalizedGridData.length;
+
+
+        return {
+            success: response?.success !== false,
+            message: response?.message || '',
+            data: normalizedGridData,
+            total: total,
+            page: response?.page || 1,
+            page_size: response?.page_size || 10
+        };
+
     } catch (error: any) {
-        console.error('API Error in getEmployeeList:', error);
+        console.error('❌ [API ERROR] getEmployeeList:', error.message);
         return {
             success: false,
+            message: error.message || 'Failed to fetch employee list',
             data: [],
-            message: error?.message || 'Failed to fetch employee list'
+            total: 0
         };
     }
 }

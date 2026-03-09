@@ -136,8 +136,9 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                 if (itemRes.success && itemRes.data) {
                     const detail = itemRes.data.get_itemDetail?.[0];
                     if (detail) {
-                        // Use detail if needed, but existing logic might not use it extensively yet
-                        // console.log("Detail", detail);
+                        if (detail.invmuoM_UOMName) {
+                            setValue(`GRNItem.${index}.invmuoM_UOMName`, detail.invmuoM_UOMName);
+                        }
                     }
                     setValue(`GRNItem.${index}.invmuoM_Id`, item.invmuoM_Id);
                 }
@@ -413,7 +414,7 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                                     </td>
                                     <td className='border p-2'>
                                         <div className='h-8 flex items-center justify-center bg-muted/30 rounded text-[11px] font-semibold text-muted-foreground border border-dashed'>
-                                            {loadData?.data?.get_item.find((i: any) => i.invmI_Id === watch(`GRNItem.${index}.invmI_Id`))?.invmuoM_UOMName || '-'}
+                                            {watch(`GRNItem.${index}.invmuoM_UOMName`) || loadData?.data?.get_item.find((i: any) => i.invmI_Id === watch(`GRNItem.${index}.invmI_Id`))?.invmuoM_UOMName || '-'}
                                         </div>
                                     </td>
                                     <td className='border p-2'>

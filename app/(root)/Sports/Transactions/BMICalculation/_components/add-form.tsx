@@ -9,10 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { DatePicker } from '../../../../../../components/ui/date-picker';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { Search, Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface BMICalculationFormProps {
     onSuccess?: () => void;
@@ -20,18 +21,19 @@ interface BMICalculationFormProps {
 }
 
 export default function BMICalculationForm({ onSuccess, selectedRow }: BMICalculationFormProps) {
-    const { data: loadGridData, sections, students, save } = useBMICalculation();
-    const [showStudentTable, setShowStudentTable] = useState(false);
+    const { data: loadGridData, classes, sections, students, save } = useBMICalculation();
+    const [showStudentTable, setShowStudentTable] = useState(!!selectedRow);
 
     const { control, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<IBMICalculation>({
         resolver: zodResolver(bmiCalculationSchema),
         defaultValues: {
-            asmaY_Id: selectedRow?.asmaY_Id || 0,
-            asmcL_Id: selectedRow?.asmcL_Id || 0,
-            asmS_Id: selectedRow?.asmS_Id || 0,
-            spccshW_AsOnDate: selectedRow?.spccshW_AsOnDate ? new Date(selectedRow.spccshW_AsOnDate) : new Date(),
-            student: []
-        } as any
+            // Upper case keys to match API
+            ASMAY_Id: selectedRow?.ASMAY_Id || 0,
+            ASMCL_Id: selectedRow?.ASMCL_Id || 0,
+            ASMS_Id: selectedRow?.ASMS_Id || 0,
+            SPCCSHW_AsOnDate: selectedRow?.SPCCSHW_AsOnDate ? new Date(selectedRow.SPCCSHW_AsOnDate) : new Date(),
+            student: selectedRow?.student || []
+        }
     });
 
     const { fields, replace, update } = useFieldArray({
@@ -39,19 +41,41 @@ export default function BMICalculationForm({ onSuccess, selectedRow }: BMICalcul
         name: 'student'
     });
 
-    const watchedAsmaY_Id = watch('asmaY_Id');
-    const watchedAsmcL_Id = watch('asmcL_Id');
-    const watchedAsmS_Id = watch('asmS_Id');
+    const watchedAsmaY_Id = watch('ASMAY_Id');
+    const watchedAsmcL_Id = watch('ASMCL_Id');
+    const watchedAsmS_Id = watch('ASMS_Id');
 
-    // Fetch sections when Year or Class changes
+    // Fetch Classes when Year changes
+    // Fetch Classes when Year changes
+    useEffect(() => {
+        if (watchedAsmaY_Id) {
+            classes.mutate({ ASMAY_Id: watchedAsmaY_Id });
+
+            // Logic to determine if we should reset dependent fields
+            const shouldReset = !selectedRow || watchedAsmaY_Id !== selectedRow.ASMAY_Id;
+
+            if (shouldReset) {
+                setValue('ASMCL_Id', 0);
+                setValue('ASMS_Id', 0);
+            }
+        }
+    }, [watchedAsmaY_Id]);
+
+    // Fetch Sections when Class changes
     useEffect(() => {
         if (watchedAsmaY_Id && watchedAsmcL_Id) {
             sections.mutate({ ASMAY_Id: watchedAsmaY_Id, ASMCL_Id: watchedAsmcL_Id });
+
+            const shouldReset = !selectedRow || watchedAsmcL_Id !== selectedRow.ASMCL_Id;
+
+            if (shouldReset) {
+                setValue('ASMS_Id', 0);
+            }
         }
     }, [watchedAsmaY_Id, watchedAsmcL_Id]);
 
     const handleGetStudents = async () => {
-        const asonDate = watch('spccshW_AsOnDate');
+        const asonDate = watch('SPCCSHW_AsOnDate');
         if (!watchedAsmaY_Id || !watchedAsmcL_Id || !watchedAsmS_Id || !asonDate) {
             toast.error('Please select all filters');
             return;
@@ -64,9 +88,23 @@ export default function BMICalculationForm({ onSuccess, selectedRow }: BMICalcul
             SPCCSHW_AsOnDate: asonDate
         });
 
-        if (result.studentList) {
-            replace(result.studentList as any);
+        if (result.success && result.data) {
+            const studentData = result.data.map((s: any) => ({
+                AMST_Id: s.AMST_Id || s.amsT_Id,
+                studentName: s.studentName || s.StudentName,
+                AMST_AdmNo: s.AMST_AdmNo || s.amsT_AdmNo,
+                SPCCSHW_Weight: s.SPCCSHW_Weight || s.spccshW_Weight || 0,
+                SPCCSHW_Height: s.SPCCSHW_Height || s.spccshW_Height || 0,
+                SPCCSHW_BMI: s.SPCCSHW_BMI || s.spccshW_BMI || 0,
+                SPCCSHW_BMIRemark: s.SPCCSHW_BMIRemark || s.spccshW_BMIRemark || '',
+                selected: false
+            }));
+            replace(studentData);
             setShowStudentTable(true);
+        } else {
+            toast.error(result.message || 'No students found');
+            replace([]);
+            setShowStudentTable(false);
         }
     };
 
@@ -77,7 +115,7 @@ export default function BMICalculationForm({ onSuccess, selectedRow }: BMICalcul
 
         let remark = '';
         if (bmi <= 18.5) remark = 'Underweight';
-        else if (bmi >= 18.5 && bmi <= 24.9) remark = 'Normal';
+        else if (bmi > 18.5 && bmi <= 24.9) remark = 'Normal';
         else if (bmi >= 25 && bmi <= 29.9) remark = 'Overweight';
         else if (bmi >= 30.0 && bmi <= 39.5) remark = 'Obese';
         else if (bmi > 39.5) remark = 'Extreme Obese';
@@ -86,51 +124,85 @@ export default function BMICalculationForm({ onSuccess, selectedRow }: BMICalcul
     };
 
     const handleWeightHeightChange = (index: number, type: 'weight' | 'height', value: string) => {
-        const numValue = parseFloat(value) || 0;
+        const numValue = parseFloat(value);
+        if (isNaN(numValue)) return; // Prevent NaN
+
         const student = fields[index];
-        const newWeight = type === 'weight' ? numValue : (Number(student.spccshW_Weight) || 0);
-        const newHeight = type === 'height' ? numValue : (Number(student.spccshW_Height) || 0);
+        const newWeight = type === 'weight' ? numValue : (Number(student.SPCCSHW_Weight) || 0);
+        const newHeight = type === 'height' ? numValue : (Number(student.SPCCSHW_Height) || 0);
 
         const { bmi, remark } = calculateBMI(newWeight, newHeight);
 
         update(index, {
             ...student,
-            [type === 'weight' ? 'spccshW_Weight' : 'spccshW_Height']: numValue,
-            spccshW_BMI: bmi,
-            spccshW_BMIRemark: remark
-        } as any);
+            [type === 'weight' ? 'SPCCSHW_Weight' : 'SPCCSHW_Height']: numValue,
+            SPCCSHW_BMI: bmi,
+            SPCCSHW_BMIRemark: remark,
+            selected: true // Auto-select on change
+        });
     };
 
-    const onSubmit = async (values: any) => {
-        const selectedStudents = values.student.filter((s: any) => s.selected);
-        if (selectedStudents.length === 0) {
+    const onSubmit = async (values: IBMICalculation) => {
+        console.log('📝 [BMI FORM] onSubmit triggered with values:', values);
+
+        const selectedStudents = values.student?.filter((s) => s.selected);
+        if (!selectedStudents || selectedStudents.length === 0) {
+            console.warn('⚠️ [BMI FORM] No students selected');
             toast.error('Please select at least one student');
             return;
         }
 
+        // Format date to local ISO string without milliseconds/Z if needed, 
+        // but normally Date object is fine for server actions. 
+        // Let's ensure it's a clean payload.
         const dataToSave = {
-            ...values,
-            student: selectedStudents,
-            SPCCSHW_Id: selectedRow?.spccshW_Id || 0
+            ASMAY_Id: Number(values.ASMAY_Id),
+            ASMCL_Id: Number(values.ASMCL_Id),
+            ASMS_Id: Number(values.ASMS_Id),
+            SPCCSHW_AsOnDate: values.SPCCSHW_AsOnDate,
+            SPCCSHW_Id: selectedRow?.SPCCSHW_Id || (selectedRow as any)?.spccshW_Id || 0,
+            student: selectedStudents.map(s => ({
+                AMST_Id: s.AMST_Id,
+                AMST_AdmNo: s.AMST_AdmNo,
+                studentName: s.studentName,
+                SPCCSHW_Height: Number(s.SPCCSHW_Height),
+                SPCCSHW_Weight: Number(s.SPCCSHW_Weight),
+                SPCCSHW_BMI: Number(s.SPCCSHW_BMI),
+                SPCCSHW_BMIRemark: s.SPCCSHW_BMIRemark
+            }))
         };
 
-        const result = await save.mutateAsync(dataToSave);
-        if (result.success || result.returnVal === 'saved' || result.returnVal === 'update') {
-            toast.success('Record saved successfully');
-            onSuccess?.();
-        } else {
-            toast.error(result.message || 'Failed to save record');
+        console.log('📤 [BMI FORM] Sending payload to saveBMIRecord:', dataToSave);
+
+        try {
+            const result = await save.mutateAsync(dataToSave as any);
+            console.log('✅ [BMI FORM] Save result:', result);
+
+            if (result.success || result.returnVal === 'saved' || result.returnVal === 'update' || result.message?.includes('Successfully')) {
+                toast.success(result.message || 'Record saved successfully');
+                onSuccess?.();
+            } else {
+                toast.error(result.message || 'Failed to save record');
+            }
+        } catch (error) {
+            console.error('❌ [BMI FORM] Mutation failed:', error);
+            toast.error('An error occurred during save');
         }
     };
 
+    const onInvalid = (errors: any) => {
+        console.error('❌ [BMI FORM] Validation failed:', errors);
+        toast.error('Please fix the errors in the form');
+    };
+
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className='space-y-6'>
             <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                 {/* Academic Year */}
                 <div className='flex flex-col gap-2'>
                     <Label>Academic Year</Label>
                     <Controller
-                        name='asmaY_Id'
+                        name='ASMAY_Id'
                         control={control}
                         render={({ field }) => (
                             <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
@@ -138,21 +210,23 @@ export default function BMICalculationForm({ onSuccess, selectedRow }: BMICalcul
                                     <SelectValue placeholder='Select Year' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {loadGridData?.academicYear?.map((y: any) => (
-                                        <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>{y.asmaY_Year}</SelectItem>
+                                    {((loadGridData as any)?.academicYear || (loadGridData as any)?.data?.academicYear || []).map((y: any) => (
+                                        <SelectItem key={y.ASMAY_Id || y.asmaY_Id} value={(y.ASMAY_Id || y.asmaY_Id).toString()}>
+                                            {y.ASMAY_Year || y.asmaY_Year}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         )}
                     />
-                    {errors.asmaY_Id && <span className='text-xs text-destructive'>{errors.asmaY_Id.message}</span>}
+                    {errors.ASMAY_Id && <span className='text-xs text-destructive'>{errors.ASMAY_Id.message}</span>}
                 </div>
 
                 {/* Class */}
                 <div className='flex flex-col gap-2'>
                     <Label>Class Name</Label>
                     <Controller
-                        name='asmcL_Id'
+                        name='ASMCL_Id'
                         control={control}
                         render={({ field }) => (
                             <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
@@ -160,21 +234,23 @@ export default function BMICalculationForm({ onSuccess, selectedRow }: BMICalcul
                                     <SelectValue placeholder='Select Class' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {loadGridData?.classlist?.map((c: any) => (
-                                        <SelectItem key={c.asmcL_Id} value={c.asmcL_Id.toString()}>{c.asmcL_ClassName}</SelectItem>
+                                    {(classes.data?.data?.classlist || classes.data?.classlist || []).map((c: any) => (
+                                        <SelectItem key={c.ASMCL_Id || c.asmcL_Id} value={(c.ASMCL_Id || c.asmcL_Id).toString()}>
+                                            {c.ASMCL_ClassName || c.asmcL_ClassName}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         )}
                     />
-                    {errors.asmcL_Id && <span className='text-xs text-destructive'>{errors.asmcL_Id.message}</span>}
+                    {errors.ASMCL_Id && <span className='text-xs text-destructive'>{errors.ASMCL_Id.message}</span>}
                 </div>
 
                 {/* Section */}
                 <div className='flex flex-col gap-2'>
                     <Label>Section Name</Label>
                     <Controller
-                        name='asmS_Id'
+                        name='ASMS_Id'
                         control={control}
                         render={({ field }) => (
                             <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
@@ -182,27 +258,29 @@ export default function BMICalculationForm({ onSuccess, selectedRow }: BMICalcul
                                     <SelectValue placeholder='Select Section' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {sections.data?.sectionList?.map((s: any) => (
-                                        <SelectItem key={s.asmS_Id} value={s.asmS_Id.toString()}>{s.asmC_SectionName}</SelectItem>
+                                    {(sections.data?.data || sections.data?.sectionList || []).map((s: any) => (
+                                        <SelectItem key={s.ASMS_Id || s.asmS_Id} value={(s.ASMS_Id || s.asmS_Id).toString()}>
+                                            {s.ASMC_SectionName || s.asmC_SectionName}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         )}
                     />
-                    {errors.asmS_Id && <span className='text-xs text-destructive'>{errors.asmS_Id.message}</span>}
+                    {errors.ASMS_Id && <span className='text-xs text-destructive'>{errors.ASMS_Id.message}</span>}
                 </div>
 
                 {/* Date */}
                 <div className='flex flex-col gap-2'>
                     <Label>Date</Label>
                     <Controller
-                        name='spccshW_AsOnDate'
+                        name='SPCCSHW_AsOnDate'
                         control={control}
                         render={({ field }) => (
                             <DatePicker date={field.value as Date} setDate={field.onChange} />
                         )}
                     />
-                    {errors.spccshW_AsOnDate && <span className='text-xs text-destructive'>{errors.spccshW_AsOnDate.message as string}</span>}
+                    {errors.SPCCSHW_AsOnDate && <span className='text-xs text-destructive'>{errors.SPCCSHW_AsOnDate.message as string}</span>}
                 </div>
             </div>
 
@@ -218,14 +296,16 @@ export default function BMICalculationForm({ onSuccess, selectedRow }: BMICalcul
                     <table className='w-full text-sm'>
                         <thead className='bg-muted/50'>
                             <tr className='border-b'>
-                                <th className='p-2'><Checkbox onCheckedChange={(checked) => fields.forEach((_, i) => update(i, { ...fields[i], selected: !!checked }))} /></th>
-                                <th className='p-2 text-left'>SL.No</th>
+                                <th className='p-2 w-10 text-center'>
+                                    <Checkbox onCheckedChange={(checked) => fields.forEach((_, i) => update(i, { ...fields[i], selected: !!checked }))} />
+                                </th>
+                                <th className='p-2 text-center w-12'>SL.No</th>
                                 <th className='p-2 text-left'>Student Name</th>
                                 <th className='p-2 text-left'>Adm No.</th>
-                                <th className='p-2 text-left'>Weight(kg)</th>
-                                <th className='p-2 text-left'>Height(cm)</th>
-                                <th className='p-2 text-left'>BMI</th>
-                                <th className='p-2 text-left'>Remark</th>
+                                <th className='p-2 text-left w-24'>Weight(kg)</th>
+                                <th className='p-2 text-left w-24'>Height(cm)</th>
+                                <th className='p-2 text-left w-20'>BMI</th>
+                                <th className='p-2 text-left w-24'>Remark</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -240,15 +320,15 @@ export default function BMICalculationForm({ onSuccess, selectedRow }: BMICalcul
                                             )}
                                         />
                                     </td>
-                                    <td className='p-2'>{index + 1}</td>
+                                    <td className='p-2 text-center'>{index + 1}</td>
                                     <td className='p-2'>{field.studentName}</td>
-                                    <td className='p-2'>{field.amsT_AdmNo}</td>
+                                    <td className='p-2'>{field.AMST_AdmNo}</td>
                                     <td className='p-2'>
                                         <Input
                                             type='number'
                                             step='0.1'
                                             className='h-8 w-20'
-                                            value={field.spccshW_Weight}
+                                            value={field.SPCCSHW_Weight}
                                             onChange={(e) => handleWeightHeightChange(index, 'weight', e.target.value)}
                                         />
                                     </td>
@@ -257,12 +337,22 @@ export default function BMICalculationForm({ onSuccess, selectedRow }: BMICalcul
                                             type='number'
                                             step='0.1'
                                             className='h-8 w-20'
-                                            value={field.spccshW_Height}
+                                            value={field.SPCCSHW_Height}
                                             onChange={(e) => handleWeightHeightChange(index, 'height', e.target.value)}
                                         />
                                     </td>
-                                    <td className='p-2'>{field.spccshW_BMI}</td>
-                                    <td className='p-2'>{field.spccshW_BMIRemark}</td>
+                                    <td className='p-2'>{field.SPCCSHW_BMI}</td>
+                                    <td className='p-2'>
+                                        {field.SPCCSHW_BMIRemark && (
+                                            <Badge variant={
+                                                field.SPCCSHW_BMIRemark === 'Normal' ? 'default' :
+                                                    field.SPCCSHW_BMIRemark === 'Overweight' ? 'secondary' :
+                                                        field.SPCCSHW_BMIRemark === 'Obese' ? 'destructive' : 'outline'
+                                            }>
+                                                {field.SPCCSHW_BMIRemark}
+                                            </Badge>
+                                        )}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>

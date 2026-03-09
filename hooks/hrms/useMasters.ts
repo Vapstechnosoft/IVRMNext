@@ -1,4 +1,5 @@
 'use client';
+import { useMemo } from 'react';
 /**
  * Unified HRMS Master Hooks
  * All master-related hooks consolidated in one file
@@ -52,6 +53,7 @@ import { getGroupTypeSetOrder, getMasterGroupType, getMasterGroupTypeById } from
 // ... (skipping to line 433 where useMasterGroupType is defined)
 
 import { getLeaveYearDropdown, getLeaveYearSetOrder, getMasterLeaveYear } from '@/server/hrms/hrmsConfig/master/leave-year';
+import { getLeaveDropdown } from '@/server/hrms/hrmsConfig/master/leave-dropdown';
 import { getMasterLoan, getMasterLoanById } from '@/server/hrms/hrmsConfig/master/loan';
 import { getMasterMaritalStatus, getMasterMaritalStatusById } from '@/server/hrms/hrmsConfig/master/marital-status';
 import {
@@ -72,6 +74,7 @@ import { getMasterSpecialization, getMasterSpecializationById } from '@/server/h
 import type { ApiSearchparams } from '@/types';
 import type { MasterEarningsDeductionsInput } from '@/types/hrms/master-earnings-deductions';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { getLeave } from '@/server/hrms/master-dropdown';
 // ============================================================================
 // DEPARTMENT
 // ============================================================================
@@ -496,18 +499,20 @@ export function useMasterLeaveYear(searchParams?: ApiSearchparams) {
 export function useLeaveYearDropdown() {
     const queryClient = useQueryClient();
 
-    return {
-        ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR, 'dropdown'],
-            queryFn: async () => getLeaveYearDropdown(),
-            staleTime: 1000 * 60 * 5
-        }),
+    const query = useQuery({
+        queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR, 'dropdown'],
+        queryFn: async () => getLeaveYearDropdown(),
+        staleTime: 1000 * 60 * 5
+    });
+
+    return useMemo(() => ({
+        ...query,
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR, 'dropdown']
             });
         }
-    };
+    }), [query, queryClient]);
 }
 
 export function useLeaveYearSetOrder() {
@@ -683,18 +688,20 @@ export function useSalaryComponentTypeDropdown() {
 export function useMonthDropdown() {
     const queryClient = useQueryClient();
 
-    return {
-        ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.MASTER_PAYROLL_STANDARD, 'dropdown', 'months'],
-            queryFn: async () => getMonthDropdown(),
-            staleTime: 1000 * 60 * 5
-        }),
+    const query = useQuery({
+        queryKey: [HRMS_QUERY_KEYS.MASTER_PAYROLL_STANDARD, 'dropdown', 'months'],
+        queryFn: async () => getMonthDropdown(),
+        staleTime: 1000 * 60 * 5
+    });
+
+    return useMemo(() => ({
+        ...query,
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_PAYROLL_STANDARD, 'dropdown', 'months']
             });
         }
-    };
+    }), [query, queryClient]);
 }
 // ============================================================================
 // PAYROLL STANDARD
@@ -797,6 +804,24 @@ export function useMasterCasteCategoryDropdown() {
             });
         }
     };
+}
+
+export function useLeaveDropdown() {
+    const queryClient = useQueryClient();
+    const query = useQuery({
+        queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR, 'dropdown', 'leave'], // Reusing or new key? Should probably be master-leave
+        queryFn: async () => getLeaveDropdown(),
+        staleTime: 1000 * 60 * 5
+    });
+
+    return useMemo(() => ({
+        ...query,
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR, 'dropdown', 'leave']
+            });
+        }
+    }), [query, queryClient]);
 }
 // ============================================================================
 // GROUP DEPT DESSG MAPPING
@@ -913,4 +938,26 @@ export function useGroupTypeSetOrder() {
             });
         }
     };
+}
+
+// ============================================================================
+// LEAVE
+// ============================================================================
+export function useMasterLeaveDropdown() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['MASTER_LEAVE', 'dropdown'],
+        queryFn: async () => getLeave(),
+        staleTime: 1000 * 60 * 5
+    });
+
+    return useMemo(() => ({
+        ...query,
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: ['MASTER_LEAVE', 'dropdown']
+            });
+        }
+    }), [query, queryClient]);
 }

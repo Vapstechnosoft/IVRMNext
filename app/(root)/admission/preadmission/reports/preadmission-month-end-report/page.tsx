@@ -19,6 +19,7 @@ export default function MonthendreportPage() {
     const [ifName, setIfName] = useState('');
     const [showReport, setShowReport] = useState(false);
     const [reportData, setReportData] = useState<ReportItem[]>([]);
+    const [formKey, setFormKey] = useState(0);
 
     const requestData = {
         ASMAY_Id: Number(academicYearId),
@@ -68,6 +69,10 @@ export default function MonthendreportPage() {
         setSelectedMonth('');
         setSelectedYear('');
         setIfName('');
+        setShowReport(false);
+        setReportData([]);
+        setFormKey((prev) => prev + 1);
+        toast.success('Form reset successfully');
     };
 
     // Handle Report Generate
@@ -155,8 +160,8 @@ export default function MonthendreportPage() {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -172,9 +177,6 @@ export default function MonthendreportPage() {
                 window.URL.revokeObjectURL(url);
             }, 100);
 
-            setShowReport(false);
-            setReportData([]);
-
             toast.success('Excel downloaded successfully');
         } catch (error) {
             console.error('Download error:', error);
@@ -186,7 +188,7 @@ export default function MonthendreportPage() {
         <div className='min-h-screen'>
             {/* FILTER CARD */}
             <div className='mb-3 space-y-6 rounded-xl border p-6 shadow-xl'>
-                <div className='grid grid-cols-2 gap-6 sm:grid-cols-1 md:grid-cols-4'>
+                <div key={formKey} className='grid grid-cols-2 gap-6 sm:grid-cols-1 md:grid-cols-4'>
                     {/* Academic Year */}
                     <div className='flex w-full flex-col gap-2'>
                         <Label className='font-semibold'>

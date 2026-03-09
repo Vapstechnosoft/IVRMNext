@@ -76,8 +76,9 @@ function SubSubjectSubExamModelViewContent({ rowData, onClose }: SubSubjectModel
                 {/* Header */}
                 <div className='mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                     <Heading
-                        title={`Mapped ${showSubExam && showSubSubject ? 'Sub-Subjects & Sub-Exams' : showSubExam ? 'Sub-Exams' : 'Sub-Subjects'
-                            }`}
+                        title={`Mapped ${
+                            showSubExam && showSubSubject ? 'Sub-Subjects & Sub-Exams' : showSubExam ? 'Sub-Exams' : 'Sub-Subjects'
+                        }`}
                         description={`View all mappings for "${rowData.emE_ExamName}"`}
                     />
 

@@ -286,7 +286,7 @@ export const tabFieldMap: Record<string, (keyof FormFields)[]> = {
         'sameAsCommunicationAddress'
     ],
     qualification: ['qualificationDetails'],
-    experience: ['experienceDetails'],
+    experience: [],
     document: ['documentList'],
     medical: [
         'employeeHeight',
@@ -418,38 +418,16 @@ export function ensureNonEmptyValue(value: any, fallback: any = null): string | 
  * Converts API response structure to form field structure
  */
 export function mapApiResponseToFormFields(apiData: any, targetId?: number): Partial<FormFields> & { photo?: string } {
-    console.log(`🔍 [HELPER DEBUG] mapApiResponseToFormFields input, targetId: ${targetId}`);
-    try {
-        const preview = JSON.stringify(apiData, (key, value) => {
-            if (key === 'photo' || key === 'hrmE_Photo') return '[PHOTO_BASE64_OMITTED]';
-            if (Array.isArray(value) && value.length > 5) return `[Array(${value.length})]`; // Truncate long arrays
-            return value;
-        }, 2);
-        console.log('🔍 [HELPER DEBUG] API RESPONSE DUMP:', preview.substring(0, 2000) + (preview.length > 2000 ? '...' : ''));
-    } catch (e) {
-        console.warn('Could not stringify apiData for debug', e);
-    }
+    console.log('🔍 [DEBUG] root apiData keys:', apiData ? Object.keys(apiData) : 'null');
     const data = extractDataObject(apiData, targetId);
-    console.log('🔍 [HELPER DEBUG] extracted data:', data);
-    if (apiData) {
-        console.log('🔍 [HELPER DEBUG] apiData keys:', Object.keys(apiData));
-        if (apiData.data) {
-            console.log('🔍 [HELPER DEBUG] apiData.data keys:', Object.keys(apiData.data));
-            if (Array.isArray(apiData.data) && apiData.data.length > 0) {
-                console.log('🔍 [HELPER DEBUG] apiData.data[0] keys:', Object.keys(apiData.data[0]));
-            }
-        }
-    }
 
     let finalData = data;
     if (!finalData || Object.keys(finalData).length === 0) {
-        console.warn('⚠️ [HELPER] extractDataObject returned empty. Proceeding with empty object to allow Fallback/Nuclear searches to run.');
         finalData = {};
-        // Do NOT return here. We want to fall through to the Qualification/Experience array logic 
-        // which might use apiData directly (Nuclear Option).
     }
     // Update local variable reference to be safe
     let safeData = finalData;
+    console.log('🔍 [DEBUG] safeData keys:', Object.keys(safeData));
 
     // DEEP MERGE STRATEGY:
     // If the found object doesn't have address keys, but valid address data exists elsewhere in the tree, find and merge it.
@@ -463,7 +441,7 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
 
         // Check if this object has the key
         const keys = Object.keys(obj);
-        const match = keys.find(k => k.toLowerCase().includes(keyFragment.toLowerCase()));
+        const match = keys.find((k) => k.toLowerCase().includes(keyFragment.toLowerCase()));
         if (match && obj[match]) {
             return obj;
         }
@@ -497,7 +475,6 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
         }
     }
 
-
     // Helper to format date from API (ISO string) to form format (YYYY-MM-DD)
     const formatDate = (dateStr: string | null | undefined): string => {
         if (!dateStr) return '';
@@ -527,7 +504,7 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
             const first = obj[0];
             // Check if first element has a key containing the fragment (case-insensitive)
             if (first && typeof first === 'object') {
-                const hasKey = Object.keys(first).some(k => k.toLowerCase().includes(keyFragment.toLowerCase()));
+                const hasKey = Object.keys(first).some((k) => k.toLowerCase().includes(keyFragment.toLowerCase()));
                 if (hasKey) {
                     console.log(`✅ [HELPER] Found heuristic match for array with key fragment '${keyFragment}'`);
                     return obj;
@@ -547,7 +524,6 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
         return null;
     };
 
-
     // Helper to extract array from either extracted data or raw API response
     const getArrayFromResponse = (discriminatorKey: string | null, ...keys: string[]): any[] => {
         const searchIn = (obj: any): any[] | null => {
@@ -559,18 +535,20 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
 
                 // 2. Case-insensitive search
                 const lowerKey = key.toLowerCase();
-                const foundKey = Object.keys(obj).find(k => k.toLowerCase() === lowerKey);
+                const foundKey = Object.keys(obj).find((k) => k.toLowerCase() === lowerKey);
                 if (foundKey && Array.isArray(obj[foundKey])) return obj[foundKey];
 
                 // 3. Normalized search (remove underscores, e.g. qualification_details -> qualificationdetails)
                 const normalizedKey = lowerKey.replace(/_/g, '');
-                const foundNormalizedKey = Object.keys(obj).find(k => k.toLowerCase().replace(/_/g, '') === normalizedKey);
+                const foundNormalizedKey = Object.keys(obj).find((k) => k.toLowerCase().replace(/_/g, '') === normalizedKey);
                 if (foundNormalizedKey && Array.isArray(obj[foundNormalizedKey])) return obj[foundNormalizedKey];
 
                 // 4. Fuzzy "Contains" Search (NEW) - helpful if API returns odd names like "employeeQualificationList" when we search "qualification"
                 // Only use the first key as the "primary" search term for fuzzy match (usually the most specific one like 'qualificationDetails')
                 // actually, let's use the current key loop.
-                const partialMatchKey = Object.keys(obj).find(k => k.toLowerCase().includes(lowerKey) || k.toLowerCase().includes(normalizedKey));
+                const partialMatchKey = Object.keys(obj).find(
+                    (k) => k.toLowerCase().includes(lowerKey) || k.toLowerCase().includes(normalizedKey)
+                );
                 if (partialMatchKey && Array.isArray(obj[partialMatchKey])) {
                     console.log(`⚠️ [HELPER] Found fuzzy match for '${key}': '${partialMatchKey}'`);
                     return obj[partialMatchKey];
@@ -584,7 +562,7 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
             const apiKeys = Object.keys(apiData);
             for (const key of keys) {
                 const lowerK = key.toLowerCase();
-                const matchedKey = apiKeys.find(ak => ak.toLowerCase() === lowerK);
+                const matchedKey = apiKeys.find((ak) => ak.toLowerCase() === lowerK);
                 if (matchedKey && Array.isArray(apiData[matchedKey])) {
                     console.log(`✅ [HELPER] Found array '${matchedKey}' (matched from '${key}') directly in apiData`);
                     return apiData[matchedKey];
@@ -593,7 +571,7 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
         }
 
         // FUZZY SEARCH FALLBACK: If standard keys fail, search for any array that looks like qualification data
-        if (keys.some(k => k.toLowerCase().includes('qual'))) {
+        if (keys.some((k) => k.toLowerCase().includes('qual'))) {
             const findQualificationArray = (obj: any, visited = new Set()): any[] | null => {
                 if (!obj || typeof obj !== 'object' || visited.has(obj)) return null;
                 visited.add(obj);
@@ -620,30 +598,34 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
         }
 
         // Try in order: extracted data, raw apiData, apiData.data, apiData.data[0]
+        // biome-ignore lint/suspicious/noConsoleLog: <explanation>
+        // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
+        // console.log(`🔍 [DEBUG] Searching for arrays in data keys:`, data ? Object.keys(data) : 'null');
         const fromData = searchIn(data);
         if (fromData) {
-            console.log(`✅ [HELPER] Found array in extracted data, length:`, fromData.length);
+            // console.log(`✅ [HELPER] Found array in extracted data, length:`, fromData.length);
             return fromData;
         }
 
+        // console.log(`🔍 [DEBUG] Searching for arrays in apiData keys:`, apiData ? Object.keys(apiData) : 'null');
         const fromApiData = searchIn(apiData);
         if (fromApiData) {
-            console.log(`✅ [HELPER] Found array in apiData root, length:`, fromApiData.length);
+            // console.log(`✅ [HELPER] Found array in apiData root, length:`, fromApiData.length);/
             return fromApiData;
         }
 
         if (apiData?.data) {
             const fromApiDataData = searchIn(apiData.data);
             if (fromApiDataData) {
-                console.log(`✅ [HELPER] Found array in apiData.data, length:`, fromApiDataData.length);
+                // console.log(`✅ [HELPER] Found array in apiData.data, length:`, fromApiDataData.length);
                 return fromApiDataData;
             }
 
             // CRITICAL: Check if apiData.data is an array using targetId logic if possible, OR check children
             if (Array.isArray(apiData.data) && apiData.data.length > 0) {
-                // Should we filter arrays too? 
+                // Should we filter arrays too?
                 // If the main 'data' extraction worked (via extractDataObject), we trust it.
-                // This block is fallback for finding sibling arrays. 
+                // This block is fallback for finding sibling arrays.
                 // If apiData.data[0] is correct, fine. If not, it's risky.
                 // But arrays (like Qualification) are usually inside the employee object (which we extracted in `data`)
                 // So `fromData` (above) should have caught it.
@@ -651,7 +633,7 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
                 // Assuming 1st element is OK for fallback if we couldn't find better path.
                 const fromFirstElement = searchIn(apiData.data[0]);
                 if (fromFirstElement) {
-                    console.log(`✅ [HELPER] Found array in apiData.data[0], length:`, fromFirstElement.length);
+                    // console.log(`✅ [HELPER] Found array in apiData.data[0], length:`, fromFirstElement.length);
                     return fromFirstElement;
                 }
             }
@@ -661,7 +643,7 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
 
         // Final fallback: Heuristic search
         if (discriminatorKey) {
-            console.log(`🔍 [HELPER] Attempting heuristic search for array with properties like '${discriminatorKey}'...`);
+            // console.log(`🔍 [HELPER] Attempting heuristic search for array with properties like '${discriminatorKey}'...`);
             const heuristicMatch = findArrayWithKey(apiData, discriminatorKey);
             if (heuristicMatch) return heuristicMatch;
         }
@@ -673,7 +655,7 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
     const v = (key: string) => getValue(safeData, key);
 
     // Map qualification details
-    console.log('🔍 [HELPER] Root apiData keys:', apiData ? Object.keys(apiData) : 'null');
+    // console.log('🔍 [HELPER] Root apiData keys:', apiData ? Object.keys(apiData) : 'null');
     if (apiData?.data) console.log('🔍 [HELPER] apiData.data keys:', Object.keys(apiData.data));
 
     let qualificationData: any[] = [];
@@ -685,7 +667,22 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
     }
     // 2. FALLBACK to fuzzy search
     else {
-        qualificationData = getArrayFromResponse('QualificationName', 'qualificationDetails', 'QualificationDetails', 'qualificationList', 'qualifications', 'qualification', 'educationalDetails', 'educational', 'education', 'qualificationlist_dto', 'educationalDetailList', 'qualificationlist', 'qualificationListDTO', 'employeeQualification');
+        qualificationData = getArrayFromResponse(
+            'QualificationName',
+            'qualificationDetails',
+            'QualificationDetails',
+            'qualificationList',
+            'qualifications',
+            'qualification',
+            'educationalDetails',
+            'educational',
+            'education',
+            'qualificationlist_dto',
+            'educationalDetailList',
+            'qualificationlist',
+            'qualificationListDTO',
+            'employeeQualification'
+        );
     }
 
     // 2. SEARCH BY KEYWORDS (Nuclear Option)
@@ -702,8 +699,8 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
             if (Array.isArray(obj) && obj.length > 0) {
                 const first = obj[0];
                 if (first && typeof first === 'object') {
-                    const keys = Object.keys(first).map(k => k.toLowerCase());
-                    const match = keySignatures.some(sig => keys.some(k => k.includes(sig.toLowerCase())));
+                    const keys = Object.keys(first).map((k) => k.toLowerCase());
+                    const match = keySignatures.some((sig) => keys.some((k) => k.includes(sig.toLowerCase())));
                     if (match) {
                         console.log(`✅ [HELPER] Found AGGRESSIVE match with keys: ${keys.join(', ')}`);
                         return obj;
@@ -723,46 +720,65 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
         };
 
         // Search for specific VAPS keys
-        qualificationData = findVapsArray(apiData, ['hrmeQ_Id', 'hrmeQ_QualificationName', 'hrmeQ_YearOfPassing', 'hrmeQ_UniversityName']) || [];
+        qualificationData =
+            findVapsArray(apiData, ['hrmeQ_Id', 'hrmeQ_QualificationName', 'hrmeQ_YearOfPassing', 'hrmeQ_UniversityName']) || [];
     }
     console.log('✅ [HELPER] Final qualificationData length:', qualificationData.length);
 
-    const qualificationDetails = qualificationData.length > 0
-        ? qualificationData.map((qual: any, qIndex: number) => {
-            if (qIndex === 0) {
-                console.log('🔴 [HELPER DEBUG] First Qualification Item Keys:', Object.keys(qual));
-            }
-            // Use exact keys found in JSON
-            const courseVal = numToString(getValue(qual, 'hrmC_Id')) || numToString(getValue(qual, 'hrmeQ_CourseId'));
-            const countryVal = numToString(getValue(qual, 'hrmeQ_CountryId')) || numToString(getValue(qual, 'hrmE_Country_Id'));
-            const stateVal = numToString(getValue(qual, 'hrmeQ_StateId')) || numToString(getValue(qual, 'hrmE_State_Id'));
-            const yearVal = numToString(getValue(qual, 'hrmeQ_YearOfPassing')) || String(getValue(qual, 'hrmeQ_YearOfPassing') || '');
+    const qualificationDetails =
+        qualificationData.length > 0
+            ? qualificationData.map((qual: any, qIndex: number) => {
+                if (qIndex === 0) {
+                    console.log('🔴 [HELPER DEBUG] First Qualification Item Keys:', Object.keys(qual));
+                }
+                // Use exact keys found in JSON
+                const courseVal =
+                    numToString(getValue(qual, 'hrmC_Id')) ||
+                    numToString(getValue(qual, 'hrmeQ_CourseId')) ||
+                    numToString(getValue(qual, 'hrmeQ_Course_Id')) ||
+                    '';
+                const countryVal = numToString(getValue(qual, 'hrmeQ_CountryId')) || numToString(getValue(qual, 'hrmE_Country_Id'));
+                const stateVal = numToString(getValue(qual, 'hrmeQ_StateId')) || numToString(getValue(qual, 'hrmE_State_Id'));
+                const yearVal = numToString(getValue(qual, 'hrmeQ_YearOfPassing')) || String(getValue(qual, 'hrmeQ_YearOfPassing') || '');
 
-            return {
-                hrmeQ_Id: getValue(qual, 'hrmeQ_Id') || 0,
-                qualification: getValue(qual, 'hrmE_QualificationName') || getValue(qual, 'hrmeQ_QualificationName') || '',
-                course: courseVal,
-                college: getValue(qual, 'hrmeQ_CollegeName') || '',
-                university: getValue(qual, 'hrmeQ_UniversityName') || '',
-                yearOfPassing: yearVal,
-                qualificationCountry: countryVal,
-                qualificationState: stateVal,
-                registrationNo: getValue(qual, 'hrmeQ_RegistrationNo') || '',
-                result: getValue(qual, 'hrmeQ_Result') || '',
-                cgpaOrPercentage: getValue(qual, 'hrmeQ_CGPAOrPerFlag') || 'CGPA',
-                cgpa: String(getValue(qual, 'hrmeQ_CGPAOrPerFlag') === 'Percentage' ? (getValue(qual, 'hrmeQ_Percentage') || getValue(qual, 'hrmeQ_CGPA') || '') : (getValue(qual, 'hrmeQ_CGPA') || getValue(qual, 'hrmeQ_Percentage') || '')),
-                percentage: String(getValue(qual, 'hrmeQ_Percentage') || ''),
-                areaOfSpecialisation: numToString(getValue(qual, 'hrmeQ_AreaOfSpecialisation')) || numToString(getValue(qual, 'hrmeQ_AreaOfSpecialization')) || numToString(getValue(qual, 'specialisation')) || numToString(getValue(qual, 'specialization')) || numToString(getValue(qual, 'hrmeQ_SpecialisationId')) || numToString(getValue(qual, 'hrmeQ_SpecializationId')) || '',
-                phdFlag: getValue(qual, 'hrmeQ_PHDFlg') || false,
-                thesisTitle: getValue(qual, 'hrmeQ_ThesisTitle') || '',
-                registrationYear: numToString(getValue(qual, 'hrmeQ_RegistrationYear')),
-                guideName: getValue(qual, 'hrmeQ_GuideName') || '',
-                qualifiedDate: formatDate(getValue(qual, 'hrmeQ_Date')),
-                medicalCouncil: getValue(qual, 'hrmeQ_MedicalCouncil') || '',
-                hardcopy: getValue(qual, 'hrmeQ_Hardcopy') || ''
-            };
-        })
-        : [];
+                return {
+                    hrmeQ_Id: getValue(qual, 'hrmeQ_Id') || 0,
+                    qualification: getValue(qual, 'hrmE_QualificationName') || getValue(qual, 'hrmeQ_QualificationName') || '',
+                    course: courseVal,
+                    college: getValue(qual, 'hrmeQ_CollegeName') || '',
+                    university: getValue(qual, 'hrmeQ_UniversityName') || '',
+                    yearOfPassing: yearVal,
+                    qualificationCountry: countryVal,
+                    qualificationState: stateVal,
+                    registrationNo: getValue(qual, 'hrmeQ_RegistrationNo') || '',
+                    result: getValue(qual, 'hrmeQ_Result') || '',
+                    cgpaOrPercentage: getValue(qual, 'hrmeQ_CGPAOrPerFlag') || 'CGPA',
+                    cgpa: String(
+                        getValue(qual, 'hrmeQ_CGPAOrPerFlag') === 'Percentage'
+                            ? getValue(qual, 'hrmeQ_Percentage') || getValue(qual, 'hrmeQ_CGPA') || ''
+                            : getValue(qual, 'hrmeQ_CGPA') || getValue(qual, 'hrmeQ_Percentage') || ''
+                    ),
+                    percentage: String(getValue(qual, 'hrmeQ_Percentage') || ''),
+                    areaOfSpecialisation:
+                        numToString(getValue(qual, 'hrmeQ_AreaOfSpecialisation')) ||
+                        numToString(getValue(qual, 'hrmeQ_AreaOfSpecialization')) ||
+                        numToString(getValue(qual, 'specialisation')) ||
+                        numToString(getValue(qual, 'specialization')) ||
+                        numToString(getValue(qual, 'hrmeQ_SpecialisationId')) ||
+                        numToString(getValue(qual, 'hrmeQ_SpecializationId')) ||
+                        numToString(getValue(qual, 'hrmspL_Id')) ||
+                        numToString(getValue(qual, 'HRMSPL_Id')) ||
+                        '',
+                    phdFlag: getValue(qual, 'hrmeQ_PHDFlg') || false,
+                    thesisTitle: getValue(qual, 'hrmeQ_ThesisTitle') || '',
+                    registrationYear: numToString(getValue(qual, 'hrmeQ_RegistrationYear')),
+                    guideName: getValue(qual, 'hrmeQ_GuideName') || '',
+                    qualifiedDate: formatDate(getValue(qual, 'hrmeQ_Date')),
+                    medicalCouncil: getValue(qual, 'hrmeQ_MedicalCouncil') || '',
+                    hardcopy: getValue(qual, 'hrmeQ_Hardcopy') || ''
+                };
+            })
+            : [];
 
     // Map experience details
     let experienceData: any[] = [];
@@ -771,7 +787,18 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
         console.log('✅ [HELPER] Found experience array at apiData.data.experience');
         experienceData = apiData.data.experience;
     } else {
-        experienceData = getArrayFromResponse('OrganisationName', 'experienceDetails', 'ExperienceDetails', 'experienceList', 'experiences', 'experience', 'selectedexperience_list_dto', 'experience_list_dto', 'experiencelist', 'employeeExperience');
+        experienceData = getArrayFromResponse(
+            'OrganisationName',
+            'experienceDetails',
+            'ExperienceDetails',
+            'experienceList',
+            'experiences',
+            'experience',
+            'selectedexperience_list_dto',
+            'experience_list_dto',
+            'experiencelist',
+            'employeeExperience'
+        );
     }
 
     // 2. SEARCH BY KEYWORDS (Nuclear Option)
@@ -787,8 +814,8 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
             if (Array.isArray(obj) && obj.length > 0) {
                 const first = obj[0];
                 if (first && typeof first === 'object') {
-                    const keys = Object.keys(first).map(k => k.toLowerCase());
-                    const match = keySignatures.some(sig => keys.some(k => k.includes(sig.toLowerCase())));
+                    const keys = Object.keys(first).map((k) => k.toLowerCase());
+                    const match = keySignatures.some((sig) => keys.some((k) => k.includes(sig.toLowerCase())));
                     if (match) {
                         console.log(`✅ [HELPER] Found AGGRESSIVE match for Experience with keys: ${keys.join(', ')}`);
                         return obj;
@@ -811,12 +838,9 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
         experienceData = findVapsArrayExp(apiData, ['hrmeE_Id', 'hrmeE_OrganisationName', 'hrmeE_Designation', 'hrmeE_Department']) || [];
     }
 
-
-
-
-
     if (!experienceData || experienceData.length === 0) {
-        if (apiData?.data?.[0]?.experienceDetails && Array.isArray(apiData.data[0].experienceDetails)) experienceData = apiData.data[0].experienceDetails;
+        if (apiData?.data?.[0]?.experienceDetails && Array.isArray(apiData.data[0].experienceDetails))
+            experienceData = apiData.data[0].experienceDetails;
         else if (apiData?.experiencelist && Array.isArray(apiData.experiencelist)) experienceData = apiData.experiencelist;
     }
 
@@ -824,21 +848,49 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
         if (apiData?.data?.experience && Array.isArray(apiData.data.experience)) experienceData = apiData.data.experience;
         else if (apiData?.experience && Array.isArray(apiData.experience)) experienceData = apiData.experience;
     }
-    const experienceDetails = experienceData.length > 0
-        ? experienceData.map((exp: any) => ({
-            hrmeE_Id: getValue(exp, 'hrmeE_Id') || getValue(exp, 'HRMEE_Id') || 0, // Preserve ID for updates
-            organisationName: getValue(exp, 'hrmeE_OrganisationName') || getValue(exp, 'hrmE_OrganisationName') || getValue(exp, 'organisationName') || '',
-            organisationAddress: getValue(exp, 'hrmeE_OrganisationAddress') || getValue(exp, 'hrmE_OrganisationAddress') || getValue(exp, 'organisationAddress') || '',
-            department: getValue(exp, 'hrmeE_Department') || getValue(exp, 'hrmE_Department') || getValue(exp, 'department') || '',
-            designation: getValue(exp, 'hrmeE_Designation') || getValue(exp, 'hrmE_Designation') || getValue(exp, 'designation') || '',
-            joinDate: formatDate(getValue(exp, 'hrmeE_JoinDate') || getValue(exp, 'hrmE_JoinDate') || getValue(exp, 'joinDate') || getValue(exp, 'hrmE_DateOfJoining')),
-            exitDate: formatDate(getValue(exp, 'hrmeE_ExitDate') || getValue(exp, 'hrmE_ExitDate') || getValue(exp, 'exitDate') || getValue(exp, 'hrmE_DateOfLeaving')),
-            noOfYears: numToString(getValue(exp, 'hrmeE_NoOfYears') || getValue(exp, 'hrmE_NoOfYears') || getValue(exp, 'noOfYears')),
-            noOfMonths: numToString(getValue(exp, 'hrmeE_NoOfMonths') || getValue(exp, 'hrmE_NoOfMonths') || getValue(exp, 'noOfMonths')),
-            annualSalary: numToString(getValue(exp, 'hrmeE_AnnualSalary') || getValue(exp, 'hrmE_AnnualSalary') || getValue(exp, 'annualSalary')),
-            reasonForLeaving: getValue(exp, 'hrmeE_ReasonForLeaving') || getValue(exp, 'hrmE_ReasonForLeaving') || getValue(exp, 'reasonForLeaving') || ''
-        }))
-        : [];
+    const experienceDetails =
+        experienceData.length > 0
+            ? experienceData.map((exp: any) => ({
+                hrmeE_Id: getValue(exp, 'hrmeE_Id') || getValue(exp, 'HRMEE_Id') || 0, // Preserve ID for updates
+                organisationName:
+                    getValue(exp, 'hrmeE_OrganisationName') ||
+                    getValue(exp, 'hrmE_OrganisationName') ||
+                    getValue(exp, 'organisationName') ||
+                    '',
+                organisationAddress:
+                    getValue(exp, 'hrmeE_OrganisationAddress') ||
+                    getValue(exp, 'hrmE_OrganisationAddress') ||
+                    getValue(exp, 'organisationAddress') ||
+                    '',
+                department: getValue(exp, 'hrmeE_Department') || getValue(exp, 'hrmE_Department') || getValue(exp, 'department') || '',
+                designation:
+                    getValue(exp, 'hrmeE_Designation') || getValue(exp, 'hrmE_Designation') || getValue(exp, 'designation') || '',
+                joinDate: formatDate(
+                    getValue(exp, 'hrmeE_JoinDate') ||
+                    getValue(exp, 'hrmE_JoinDate') ||
+                    getValue(exp, 'joinDate') ||
+                    getValue(exp, 'hrmE_DateOfJoining')
+                ),
+                exitDate: formatDate(
+                    getValue(exp, 'hrmeE_ExitDate') ||
+                    getValue(exp, 'hrmE_ExitDate') ||
+                    getValue(exp, 'exitDate') ||
+                    getValue(exp, 'hrmE_DateOfLeaving')
+                ),
+                noOfYears: numToString(getValue(exp, 'hrmeE_NoOfYears') || getValue(exp, 'hrmE_NoOfYears') || getValue(exp, 'noOfYears')),
+                noOfMonths: numToString(
+                    getValue(exp, 'hrmeE_NoOfMonths') || getValue(exp, 'hrmE_NoOfMonths') || getValue(exp, 'noOfMonths')
+                ),
+                annualSalary: numToString(
+                    getValue(exp, 'hrmeE_AnnualSalary') || getValue(exp, 'hrmE_AnnualSalary') || getValue(exp, 'annualSalary')
+                ),
+                reasonForLeaving:
+                    getValue(exp, 'hrmeE_ReasonForLeaving') ||
+                    getValue(exp, 'hrmE_ReasonForLeaving') ||
+                    getValue(exp, 'reasonForLeaving') ||
+                    ''
+            }))
+            : [];
 
     // Map document list
     let documentData = getArrayFromResponse('DocumentName', 'documentList', 'DocumentList', 'documents', 'document', 'employeeDocument');
@@ -854,8 +906,8 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
             if (Array.isArray(obj) && obj.length > 0) {
                 const first = obj[0];
                 if (first && typeof first === 'object') {
-                    const keys = Object.keys(first).map(k => k.toLowerCase());
-                    const match = keySignatures.some(sig => keys.some(k => k.includes(sig.toLowerCase())));
+                    const keys = Object.keys(first).map((k) => k.toLowerCase());
+                    const match = keySignatures.some((sig) => keys.some((k) => k.includes(sig.toLowerCase())));
                     if (match) return obj;
                 }
             }
@@ -871,57 +923,90 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
         documentData = findVapsArrayDoc(apiData, ['hrmedS_DocumentName', 'hrmedS_DucumentDescription']) || [];
     }
 
-    const documentList = documentData.length > 0
-        ? documentData.map((doc: any) => ({
-            hrmedS_Id: getValue(doc, 'hrmedS_Id') || 0,
-            documentName: getValue(doc, 'hrmedS_DocumentName') || '',
-            documentDescription: getValue(doc, 'hrmedS_DucumentDescription') || '',
-            document: null,
-            documentImageName: getValue(doc, 'hrmedS_DocumentImageName') || '', // Match key expected by update-form
-            imageName: getValue(doc, 'hrmedS_DocumentImageName') || '' // Keep alias for safety
-        }))
-        : [];
+    const documentList =
+        documentData.length > 0
+            ? documentData.map((doc: any) => ({
+                hrmedS_Id: getValue(doc, 'hrmedS_Id') || 0,
+                documentName: getValue(doc, 'hrmedS_DocumentName') || '',
+                documentDescription: getValue(doc, 'hrmedS_DucumentDescription') || '',
+                document: null,
+                documentImageName: getValue(doc, 'hrmedS_DocumentImageName') || '', // Match key expected by update-form
+                imageName: getValue(doc, 'hrmedS_DocumentImageName') || '' // Keep alias for safety
+            }))
+            : [];
 
     // Map bank details
     const bankData = getArrayFromResponse('hrmbD_Id', 'employeebankDetails', 'EmployeeBankDetails', 'bankDetails', 'bank', 'bank_details');
-    const bankDetails = bankData.length > 0
-        ? bankData.map((bank: any) => ({
-            hrmeB_Id: getValue(bank, 'hrmeB_Id') || 0, // Preserve ID for updates
-            employerBankName: numToString(bank.hrmbD_Id), // Changed to employerBankName from bank to match type
-            bankAccountNo: bank.hrmeB_AccountNo || '',
-            accountType: '', // Added missing required property
-            isActive: bank.hrmeB_ActiveFlag === 'Y' || bank.hrmeB_ActiveFlag === true
-        }))
-        : [];
-
-    // Map mobile details (from selectedmobile_list_dto or use hrmE_MobileNo)
-    const mobileData = getArrayFromResponse('selectedmobile_list_dto', 'mobileList', 'mobile');
-    const mobileDetails =
-        mobileData.length > 0
-            ? mobileData.map((mobile: any) => ({
-                mobileNo: numToString(mobile.hrmemno_MobileNo || mobile.hrmemnO_MobileNo || mobile.hrmemno_MobileNo),
-                type: mobile.hrmemno_DeFaultFlag || mobile.hrmemno_DeFaultFlag || 'Default'
+    const bankDetails =
+        bankData.length > 0
+            ? bankData.map((bank: any) => ({
+                hrmeB_Id: getValue(bank, 'hrmeB_Id') || 0, // Preserve ID for updates
+                employerBankName: numToString(bank.hrmbD_Id), // Changed to employerBankName from bank to match type
+                bankAccountNo: bank.hrmeB_AccountNo || '',
+                accountType: '', // Added missing required property
+                isActive: bank.hrmeB_ActiveFlag === 'Y' || bank.hrmeB_ActiveFlag === true
             }))
-            : data.hrmE_MobileNo
-                ? [{ mobileNo: numToString(data.hrmE_MobileNo), type: 'Default' }]
-                : [{ mobileNo: '', type: 'Default' }];
+            : [];
 
-    // Map email details (from selectedemail_list_dto or use hrmE_EmailId)
-    const emailData = getArrayFromResponse('selectedemail_list_dto', 'emailList', 'email');
+    const mobileData = getArrayFromResponse('hrmemno_MobileNo', 'selectedmobile_list_dto', 'mobileList', 'mobile', 'selectedMobileList', 'selectedmobile_list');
+    console.log('🔍 [DEBUG] hrmE_MobileNo from safeData:', v('hrmE_MobileNo'));
+    console.log('🔍 [DEBUG] mobileData array from response:', mobileData);
+    let mobileDetails =
+        mobileData.length > 0
+            ? mobileData.map((mobile: any, idx: number) => {
+                const mapped = {
+                    mobileNo: numToString(
+                        getValue(mobile, 'hrmemno_MobileNo') ||
+                        getValue(mobile, 'hrmemnO_MobileNo') ||
+                        getValue(mobile, 'hrmem_MobileNo') ||
+                        getValue(mobile, 'hrmE_MobileNo')
+                    ),
+                    type: getValue(mobile, 'hrmemno_DeFaultFlag') || 'Default'
+                };
+                console.log(`  - mobile[${idx}] mapped to:`, mapped);
+                return mapped;
+            })
+            : [];
+
+    // If mobileDetails is empty OR only contains a single empty item, try falling back to scalar hrmE_MobileNo
+    const hasActualData = mobileDetails.some(m => m.mobileNo && m.mobileNo.trim() !== '');
+
+    if (!hasActualData) {
+        const primaryMobile = v('hrmE_MobileNo') || v('hrme_MobileNo') || v('MobileNo') || v('hrmE_Mobile_No') || v('hrmE_Phno');
+        if (primaryMobile) {
+            console.log('🔍 [DEBUG] Falling back to primary mobile number:', primaryMobile);
+            mobileDetails = [{ mobileNo: numToString(primaryMobile), type: 'Default' }];
+        } else if (mobileDetails.length === 0) {
+            mobileDetails = [{ mobileNo: '', type: 'Default' }];
+        }
+    }
+    console.log('🔍 [DEBUG] final mobileDetails mapped:', mobileDetails);
+
+    const emailData = getArrayFromResponse('hrmem_EmailId', 'selectedemail_list_dto', 'emailList', 'email', 'selectedEmailList', 'selectedemail_list');
     const emailDetails =
         emailData.length > 0
             ? emailData.map((email: any) => ({
-                emailId: email.hrmem_EmailId || email.hrmeM_EmailId || '',
-                type: email.hrmem_DeFaultFlag || email.hrmem_DeFaultFlag || 'Default'
+                emailId: getValue(email, 'hrmem_EmailId') || getValue(email, 'hrmeM_EmailId') || '',
+                type: getValue(email, 'hrmem_DeFaultFlag') || 'Default'
             }))
-            : data.hrmE_EmailId
-                ? [{ emailId: data.hrmE_EmailId, type: 'Default' }]
+            : (v('hrmE_EmailId') || v('hrme_EmailId') || v('EmailId'))
+                ? [{ emailId: v('hrmE_EmailId') || v('hrme_EmailId') || v('EmailId'), type: 'Default' }]
                 : [{ emailId: '', type: 'Default' }];
+
+    // Map spouse fields (if they exist in API)
+    const spouseDetails = {
+        spouseName: v('hrmE_SpouseName') || '',
+        spouseOccupation: v('hrmE_SpouseOccupation') || '',
+        spouseMobileNo: numToString(v('hrmE_SpouseMobileNo')),
+        spouseEmailId: v('hrmE_SpouseEmailId') || '',
+        spouseAddress: v('hrmE_SpouseAddress') || ''
+    };
 
     // Return mapped form fields
     // Map all fields using the robust v() helper to handle casing variations
     const mappedData = {
         // Basic employee info
+        hrmE_Id: v('hrmE_Id') || targetId,
         firstName: v('hrmE_EmployeeFirstName') || '',
         middleName: v('hrmE_EmployeeMiddleName') || '',
         lastName: v('hrmE_EmployeeLastName') || '',
@@ -932,7 +1017,9 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
             v('employeeTypeId') ||
             v('EmployeeTypeId') ||
             v('hrmet_id') ||
+            // biome-ignore lint/complexity/useOptionalChain: <explanation>
             (apiData && apiData.HRMET_Id) ||
+            // biome-ignore lint/complexity/useOptionalChain: <explanation>
             (data && data.HRMET_Id)
         ),
         employeeGroup: numToString(v('hrmgT_Id') || v('HRMGT_Id')),
@@ -1022,7 +1109,8 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
         msTeamsUserName: v('hrmE_MSTeamsUserId') || '',
         msTeamsPassword: v('hrmE_MSTeamsPassword') || '',
         punchRelaxation: v('hrmE_ExcPunch') || false,
-        photo: v('hrmE_Photo') || ''
+        photo: v('hrmE_Photo') || '',
+        ...spouseDetails
     } as any;
 
     // Debug: Log final mapped address values
@@ -1052,9 +1140,10 @@ function findDataRoot(obj: any, visited = new WeakSet(), targetId?: number): any
     let foundId: number | undefined;
 
     // Case-insensitive search for hrme_id key
-    const idKey = Object.keys(obj).find(k => k.toLowerCase() === 'hrme_id');
+    const idKey = Object.keys(obj).find((k) => k.toLowerCase() === 'hrme_id');
     if (idKey) {
         foundId = obj[idKey];
+        if (foundId) console.log(`🔍 [DEBUG] findDataRoot checking object with ID: ${foundId} (Target: ${targetId})`);
     }
 
     if (foundId !== undefined && foundId !== null) {
@@ -1064,17 +1153,14 @@ function findDataRoot(obj: any, visited = new WeakSet(), targetId?: number): any
             // eslint-disable-next-line eqeqeq
             if (foundId == targetId) {
                 if (obj.hrmE_EmployeeCode || obj.HRME_EmployeeCode || obj.hrmE_EmployeeFirstName || obj.HRME_EmployeeFirstName) {
-                    console.log(`✅ [HELPER] Found Data Root via ID match: ${foundId} (Target: ${targetId})`);
                     return obj;
                 }
             } else {
-                // Log mismatch for debugging
-                // console.log(`⚠️ [HELPER] Object has ID ${foundId} but looking for ${targetId}`);
+                // Skip mismatch
             }
         } else {
             // No target ID, just return first employee-like object
             if (obj.hrmE_EmployeeCode || obj.HRME_EmployeeCode || obj.hrmE_EmployeeFirstName || obj.HRME_EmployeeFirstName) {
-                console.log(`✅ [HELPER] Found Data Root (No target ID): ${foundId}`);
                 return obj;
             }
         }
@@ -1103,31 +1189,62 @@ function findDataRoot(obj: any, visited = new WeakSet(), targetId?: number): any
 }
 
 /**
+ * Helper to extract list data from various VAPS response formats
+ */
+export function extractListData(response: any): any[] {
+    if (!response) return [];
+
+    // 1. If response is already an array
+    if (Array.isArray(response)) return response;
+
+    // 2. If 'data' property is an array
+    if (response.data && Array.isArray(response.data)) return response.data;
+
+    // 3. Check for common VAPS grid data keys
+    const commonKeys = [
+        'griddata',
+        'gridData',
+        'employeeList',
+        'employeelist',
+        'employeeListDTO',
+        'employeedetailList',
+        'employeedetails',
+        'employeelists',
+        'employeeList_dto'
+    ];
+
+    for (const key of commonKeys) {
+        // Direct match
+        if (Array.isArray(response[key])) return response[key];
+
+        // Case-insensitive match
+        const foundKey = Object.keys(response).find(k => k.toLowerCase() === key.toLowerCase());
+        if (foundKey && Array.isArray(response[foundKey])) return response[foundKey];
+
+        // Check inside 'data' property
+        if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
+            if (Array.isArray(response.data[key])) return response.data[key];
+            const foundDataKey = Object.keys(response.data).find(k => k.toLowerCase() === key.toLowerCase());
+            if (foundDataKey && Array.isArray(response.data[foundDataKey])) return response.data[foundDataKey];
+        }
+    }
+
+    return [];
+}
+
+/**
  * Helper to extract the actual data object using recursive search
  */
 function extractDataObject(apiData: any, targetId?: number): any {
     if (!apiData) return {};
 
-    console.log(`🔍 [HELPER] Starting recursive search for employee data... TargetID: ${targetId}`);
     const found = findDataRoot(apiData, new WeakSet(), targetId);
 
     if (found) {
         return found;
     }
 
-    // Fallback: If no ID found, maybe it's the root object itself or first element if array (e.g. for new employee templates?)
-    console.warn('⚠️ [HELPER] No object with matching hrmE_Id found. Falling back to basic extraction.');
-    console.log('⚠️ [HELPER] Available keys in root object:', apiData ? Object.keys(apiData) : 'null');
-    if (apiData?.data) {
-        console.log('⚠️ [HELPER] Available keys in apiData.data:', Object.keys(apiData.data));
-        if (Array.isArray(apiData.data) && apiData.data.length > 0) {
-            console.log('⚠️ [HELPER] First element keys in apiData.data array:', Object.keys(apiData.data[0]));
-        }
-    }
-
-    // If targetId was requested but not found via findDataRoot, strict filtering failed.
-    // If targetId is NOT provided (e.g. Add mode), basic extraction is fine.
-
+    // Fallback logic
     if (Array.isArray(apiData) && apiData.length > 0) return apiData[0];
     if (apiData.data && typeof apiData.data === 'object') {
         if (Array.isArray(apiData.data) && apiData.data.length > 0) return apiData.data[0];
@@ -1137,39 +1254,45 @@ function extractDataObject(apiData: any, targetId?: number): any {
     return apiData;
 }
 
+
 /**
  * Helper to safely get value from data object with case-insensitive fallback
  */
 export function getValue(data: any, key: string): any {
-    if (!data) return undefined;
+    if (!data || typeof data !== 'object') return undefined;
 
     // 1. Try exact match
     if (data[key] !== undefined) return data[key];
 
-    // 2. Try PascalCase variation (common in VAPS: hrmE_ -> HRME_)
-    if (key.startsWith('hrmE_')) {
-        const pascalKey = 'HRME_' + key.substring(5);
-        if (data[pascalKey] !== undefined) return data[pascalKey];
-    }
-
-    // 3. Try another common variation (hrm -> HRM)
-    if (key.startsWith('hrm')) {
-        const pascalKey = 'HRM' + key.substring(3);
-        if (data[pascalKey] !== undefined) return data[pascalKey];
-    }
-
-    // 4. Try lowercase match (expensive but safe)
+    // 2. Try common VAPS case variations (hrmE_ -> HRME_)
     const lowerKey = key.toLowerCase();
-    const foundKey = Object.keys(data).find(k => k.toLowerCase() === lowerKey);
+
+    // Check if key is already in our variations list
+    const variations = [
+        key,
+        key.toLowerCase(),
+        key.startsWith('hrmE_') ? 'HRME_' + key.substring(5) : null,
+        key.startsWith('hrm') ? 'HRM' + key.substring(3) : null,
+        key.toUpperCase()
+    ].filter(Boolean) as string[];
+
+    for (const v of variations) {
+        if (data[v] !== undefined) return data[v];
+    }
+
+    // 3. Fallback: Search all keys case-insensitively
+    const keys = Object.keys(data);
+    const foundKey = keys.find(k => k.toLowerCase() === lowerKey);
     if (foundKey) return data[foundKey];
 
-    // 5. Try removing underscores from data keys (e.g. qualification_details -> qualificationdetails)
-    const normalizedKey = lowerKey.replace(/_/g, '');
-    const foundNormalizedKey = Object.keys(data).find(k => k.toLowerCase().replace(/_/g, '') === normalizedKey);
-    if (foundNormalizedKey) return data[foundNormalizedKey];
+    // 4. Normalized search (remove underscores and case-insensitive)
+    const normalizedTarget = lowerKey.replace(/_/g, '');
+    const matchedNormalized = keys.find(k => k.toLowerCase().replace(/_/g, '') === normalizedTarget);
+    if (matchedNormalized) return data[matchedNormalized];
 
     return undefined;
 }
+
 
 /**
  * Map API response to form fields for Tab 1 (Employee Information) only
@@ -1207,7 +1330,10 @@ export function mapApiResponseToTab1Fields(apiData: any): Partial<FormFields> {
     if (!mobileData && apiData) {
         mobileData = getValue(apiData, 'selectedmobile_list_dto');
         if (!mobileData && apiData.data && !Array.isArray(apiData.data)) {
-            mobileData = getValue(apiData.data, 'selectedmobile_list_dto') || getValue(apiData.data, 'mobileList') || getValue(apiData.data, 'MobileList');
+            mobileData =
+                getValue(apiData.data, 'selectedmobile_list_dto') ||
+                getValue(apiData.data, 'mobileList') ||
+                getValue(apiData.data, 'MobileList');
         }
     }
     const mobileDetails =
@@ -1225,7 +1351,10 @@ export function mapApiResponseToTab1Fields(apiData: any): Partial<FormFields> {
     if (!emailData && apiData) {
         emailData = getValue(apiData, 'selectedemail_list_dto');
         if (!emailData && apiData.data && !Array.isArray(apiData.data)) {
-            emailData = getValue(apiData.data, 'selectedemail_list_dto') || getValue(apiData.data, 'emailList') || getValue(apiData.data, 'EmailList');
+            emailData =
+                getValue(apiData.data, 'selectedemail_list_dto') ||
+                getValue(apiData.data, 'emailList') ||
+                getValue(apiData.data, 'EmailList');
         }
     }
     const emailDetails =
@@ -1366,7 +1495,8 @@ export function mapApiResponseToTab3Fields(apiData: any): Partial<FormFields> {
     if (!qualificationData && apiData) {
         qualificationData = getValue(apiData, 'qualificationDetails') || getValue(apiData, 'QualificationDetails');
         if (!qualificationData && apiData.data && !Array.isArray(apiData.data)) {
-            qualificationData = getValue(apiData.data, 'qualificationDetails') ||
+            qualificationData =
+                getValue(apiData.data, 'qualificationDetails') ||
                 getValue(apiData.data, 'QualificationDetails') ||
                 getValue(apiData.data, 'qualificationList') ||
                 getValue(apiData.data, 'qualifications') ||
@@ -1378,8 +1508,12 @@ export function mapApiResponseToTab3Fields(apiData: any): Partial<FormFields> {
             console.log('🔍 [HELPER] Mapping Qualification Item:', qual);
             return {
                 hrmeQ_Id: getValue(qual, 'hrmeQ_Id') || getValue(qual, 'HRMEQ_Id') || 0, // Preserve ID for updates - CRITICAL!
-                qualification: getValue(qual, 'hrmeQ_QualificationName') || getValue(qual, 'HRMEQ_QualificationName') || getValue(qual, 'hrmE_QualificationName') || '',
-                course: numToString(getValue(qual, 'hrmC_Id')),
+                qualification:
+                    getValue(qual, 'hrmeQ_QualificationName') ||
+                    getValue(qual, 'HRMEQ_QualificationName') ||
+                    getValue(qual, 'hrmE_QualificationName') ||
+                    '',
+                course: numToString(getValue(qual, 'hrmeQ_CourseId') || getValue(qual, 'hrmC_Id') || getValue(qual, 'hrmeQ_Course_Id')),
                 college: getValue(qual, 'hrmeQ_CollegeName') || '',
                 university: getValue(qual, 'hrmeQ_UniversityName') || '',
                 yearOfPassing: numToString(getValue(qual, 'hrmeQ_YearOfPassing')),
@@ -1388,9 +1522,20 @@ export function mapApiResponseToTab3Fields(apiData: any): Partial<FormFields> {
                 registrationNo: getValue(qual, 'hrmeQ_RegistrationNo') || '',
                 result: getValue(qual, 'hrmeQ_Result') || '',
                 cgpaOrPercentage: getValue(qual, 'hrmeQ_CGPAOrPerFlag') || 'CGPA',
-                cgpa: (getValue(qual, 'hrmeQ_CGPAOrPerFlag') === 'Percentage' ? (getValue(qual, 'hrmeQ_Percentage') || '') : (getValue(qual, 'hrmeQ_CGPA') || '')) || '',
+                cgpa:
+                    (getValue(qual, 'hrmeQ_CGPAOrPerFlag') === 'Percentage'
+                        ? getValue(qual, 'hrmeQ_Percentage') || ''
+                        : getValue(qual, 'hrmeQ_CGPA') || '') || '',
                 percentage: getValue(qual, 'hrmeQ_Percentage') || '',
-                areaOfSpecialisation: getValue(qual, 'hrmeQ_AreaOfSpecialisation') || getValue(qual, 'specialisation') || '',
+                areaOfSpecialisation: numToString(
+                    getValue(qual, 'hrmeQ_AreaOfSpecialisation') ||
+                    getValue(qual, 'hrmeQ_AreaOfSpecialization') ||
+                    getValue(qual, 'specialisation') ||
+                    getValue(qual, 'specialization') ||
+                    getValue(qual, 'hrmeQ_SpecialisationId') ||
+                    getValue(qual, 'hrmeQ_SpecializationId') ||
+                    getValue(qual, 'hrmspL_Id')
+                ),
                 phdFlag: getValue(qual, 'hrmeQ_PHDFlg') || false,
                 medicalCouncil: getValue(qual, 'hrmeQ_MedicalCouncil') || '',
                 thesisTitle: getValue(qual, 'hrmeQ_ThesisTitle') || '',
@@ -1440,7 +1585,8 @@ export function mapApiResponseToTab4Fields(apiData: any): Partial<FormFields> {
     if (!experienceData && apiData) {
         experienceData = getValue(apiData, 'experienceDetails') || getValue(apiData, 'ExperienceDetails');
         if (!experienceData && apiData.data && !Array.isArray(apiData.data)) {
-            experienceData = getValue(apiData.data, 'experienceDetails') ||
+            experienceData =
+                getValue(apiData.data, 'experienceDetails') ||
                 getValue(apiData.data, 'ExperienceDetails') ||
                 getValue(apiData.data, 'experienceList') ||
                 getValue(apiData.data, 'experiences') ||
@@ -1452,7 +1598,8 @@ export function mapApiResponseToTab4Fields(apiData: any): Partial<FormFields> {
     }
     // Additional fallbacks for experienceData
     if (!experienceData || experienceData.length === 0) {
-        if (apiData?.data?.[0]?.experienceDetails && Array.isArray(apiData.data[0].experienceDetails)) experienceData = apiData.data[0].experienceDetails;
+        if (apiData?.data?.[0]?.experienceDetails && Array.isArray(apiData.data[0].experienceDetails))
+            experienceData = apiData.data[0].experienceDetails;
         else if (apiData?.experiencelist && Array.isArray(apiData.experiencelist)) experienceData = apiData.experiencelist;
     }
     if (!experienceData || experienceData.length === 0) {
@@ -1463,16 +1610,40 @@ export function mapApiResponseToTab4Fields(apiData: any): Partial<FormFields> {
     const experienceDetails = Array.isArray(experienceData)
         ? experienceData.map((exp: any) => ({
             hrmeE_Id: getValue(exp, 'hrmeE_Id') || getValue(exp, 'HRMEE_Id') || 0, // Preserve ID for updates
-            organisationName: getValue(exp, 'hrmeE_OrganisationName') || getValue(exp, 'hrmE_OrganisationName') || getValue(exp, 'organisationName') || '',
-            organisationAddress: getValue(exp, 'hrmeE_OrganisationAddress') || getValue(exp, 'hrmE_OrganisationAddress') || getValue(exp, 'organisationAddress') || '',
+            organisationName:
+                getValue(exp, 'hrmeE_OrganisationName') ||
+                getValue(exp, 'hrmE_OrganisationName') ||
+                getValue(exp, 'organisationName') ||
+                '',
+            organisationAddress:
+                getValue(exp, 'hrmeE_OrganisationAddress') ||
+                getValue(exp, 'hrmE_OrganisationAddress') ||
+                getValue(exp, 'organisationAddress') ||
+                '',
             department: getValue(exp, 'hrmeE_Department') || getValue(exp, 'hrmE_Department') || getValue(exp, 'department') || '',
             designation: getValue(exp, 'hrmeE_Designation') || getValue(exp, 'hrmE_Designation') || getValue(exp, 'designation') || '',
-            joinDate: formatDate(getValue(exp, 'hrmeE_JoinDate') || getValue(exp, 'hrmE_JoinDate') || getValue(exp, 'joinDate') || getValue(exp, 'hrmE_DateOfJoining')),
-            exitDate: formatDate(getValue(exp, 'hrmeE_ExitDate') || getValue(exp, 'hrmE_ExitDate') || getValue(exp, 'exitDate') || getValue(exp, 'hrmE_DateOfLeaving')),
+            joinDate: formatDate(
+                getValue(exp, 'hrmeE_JoinDate') ||
+                getValue(exp, 'hrmE_JoinDate') ||
+                getValue(exp, 'joinDate') ||
+                getValue(exp, 'hrmE_DateOfJoining')
+            ),
+            exitDate: formatDate(
+                getValue(exp, 'hrmeE_ExitDate') ||
+                getValue(exp, 'hrmE_ExitDate') ||
+                getValue(exp, 'exitDate') ||
+                getValue(exp, 'hrmE_DateOfLeaving')
+            ),
             noOfYears: numToString(getValue(exp, 'hrmeE_NoOfYears') || getValue(exp, 'hrmE_NoOfYears') || getValue(exp, 'noOfYears')),
             noOfMonths: numToString(getValue(exp, 'hrmeE_NoOfMonths') || getValue(exp, 'hrmE_NoOfMonths') || getValue(exp, 'noOfMonths')),
-            annualSalary: numToString(getValue(exp, 'hrmeE_AnnualSalary') || getValue(exp, 'hrmE_AnnualSalary') || getValue(exp, 'annualSalary')),
-            reasonForLeaving: getValue(exp, 'hrmeE_ReasonForLeaving') || getValue(exp, 'hrmE_ReasonForLeaving') || getValue(exp, 'reasonForLeaving') || ''
+            annualSalary: numToString(
+                getValue(exp, 'hrmeE_AnnualSalary') || getValue(exp, 'hrmE_AnnualSalary') || getValue(exp, 'annualSalary')
+            ),
+            reasonForLeaving:
+                getValue(exp, 'hrmeE_ReasonForLeaving') ||
+                getValue(exp, 'hrmE_ReasonForLeaving') ||
+                getValue(exp, 'reasonForLeaving') ||
+                ''
         }))
         : [];
 
@@ -1499,7 +1670,8 @@ export function mapApiResponseToTab5Fields(apiData: any): Partial<FormFields> {
     if (!docData && apiData) {
         docData = getValue(apiData, 'documentList') || getValue(apiData, 'DocumentList');
         if (!docData && apiData.data && !Array.isArray(apiData.data)) {
-            docData = getValue(apiData.data, 'documentList') ||
+            docData =
+                getValue(apiData.data, 'documentList') ||
                 getValue(apiData.data, 'DocumentList') ||
                 getValue(apiData.data, 'documents') ||
                 getValue(apiData.data, 'document');
@@ -1626,7 +1798,8 @@ export function mapApiResponseToTab8Fields(apiData: any): Partial<FormFields> {
     if (!bankData && apiData) {
         bankData = getValue(apiData, 'employeebankDetails') || getValue(apiData, 'EmployeeBankDetails');
         if (!bankData && apiData.data && !Array.isArray(apiData.data)) {
-            bankData = getValue(apiData.data, 'employeebankDetails') ||
+            bankData =
+                getValue(apiData.data, 'employeebankDetails') ||
                 getValue(apiData.data, 'EmployeeBankDetails') ||
                 getValue(apiData.data, 'bankDetails') ||
                 getValue(apiData.data, 'BankDetails') ||
@@ -1652,11 +1825,7 @@ export function mapApiResponseToTab8Fields(apiData: any): Partial<FormFields> {
  * Map form data to STRICT PascalCase flat API format
  * Required for Medical and Other details APIs
  */
-export function mapFormDataToPascalCaseApiFormat(
-    data: FormFields,
-    employeeId: number,
-    selectedPhoto: string | null = null
-): any {
+export function mapFormDataToPascalCaseApiFormat(data: FormFields, employeeId: number, selectedPhoto: string | null = null): any {
     // Get mobile and email from arrays (take first/default)
     const defaultMobile = Number(data.mobileDetails?.[0]?.mobileNo) || 0;
     const defaultEmail = data.emailDetails?.[0]?.emailId || '';
@@ -1763,9 +1932,49 @@ export function mapFormDataToPascalCaseApiFormat(
         hrmE_RetiredFlg: !!data.stopPension,
         hrmE_PensionStoppedDate: data.dateOfStopPension ? new Date(data.dateOfStopPension).toISOString() : new Date().toISOString(),
         hrmE_FPFNotApplicableFlg: !data.ppf,
-        hrmE_EPFNotApplicableFlg: !data.epf,
         hrmE_AllowSoftwareAccessFlg: true
     };
 
     return payload;
 }
+
+/**
+ * Normalize a single employee record for GenericDataTable display
+ * Ensures keys match those expected by columns.tsx (accessorKey)
+ */
+export function normalizeEmployeeData(data: any): any {
+    if (!data || typeof data !== 'object') return data;
+
+    const result = { ...data };
+
+    // List of critical display fields used in columns.tsx accessorKey
+    const fields = [
+        'hrmE_EmployeeFirstName',
+        'hrmE_EmployeeMiddleName',
+        'hrmE_EmployeeLastName',
+        'hrmE_EmployeeCode',
+        'hrmE_Photo',
+        'hrmE_Id',
+        'hrmE_EmployeeOrder',
+        'hrmE_ActiveFlag'
+    ];
+
+    for (const field of fields) {
+        const val = getValue(data, field);
+        if (val !== undefined) {
+            result[field] = val;
+        }
+    }
+
+    return result;
+}
+
+/**
+ * Normalize a list of employee records
+ */
+export function normalizeEmployeeList(list: any[] | null | undefined): any[] {
+    if (!list || !Array.isArray(list)) return [];
+    return list.map((item) => normalizeEmployeeData(item));
+}
+
+

@@ -1,5 +1,5 @@
 import { loginSchema } from '@/schemas/admission/preadmission/masters';
-import { getUserByEmail } from '@/server/user';
+import { getUserByEmail } from '@/server/user-service';
 import NextAuth, { AuthError, type NextAuthConfig } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 
@@ -50,7 +50,9 @@ export const authConfig: NextAuthConfig = {
                 token.email = user.email;
                 token.token = user.token;
                 token.role = user.role;
+                token.roleId = user.roleId;
                 token.designation = user.designation;
+                token.amst_id = user.amst_id;
             }
             if (trigger === 'update' && session) {
                 token = { ...token, ...session };

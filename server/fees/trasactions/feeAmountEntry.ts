@@ -27,7 +27,7 @@ export async function addOrUpdateAmountEntry(data: any) {
 
 export async function deleteAmountEntry(asmay_id: number, id: number) {
     const url = `/fee_amount_entry/deletedetails/${asmay_id}/${id}`;
-    console.info(url);
+    console.info('fee_amount_entry/deletedetails', url);
     return await api.put('fees', url);
 }
 
@@ -86,4 +86,9 @@ export async function getFineslabDetails(regular?: string, ecs?: string) {
     const url = `/fee_amount_entry/getfineslablist${queryString ? `?${queryString}` : ''}`;
     console.info('Fineslab Details URL:', url);
     return await api.get<any>('fees', url);
+}
+
+export async function getSavedFineSlabs(data: any) {
+    const url = '/fee_amount_entry/getgroupheaddetailsNew';
+    return await api.post<any>('fees', url, data);
 }

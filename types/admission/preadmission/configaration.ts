@@ -1,5 +1,10 @@
+export interface IInstitutionItem {
+    mI_Id: number;
+    mI_Name: string;
+}
+
 export interface IMasterAcademicYearMasterList {
-    asmaY_Id: string;
+    asmaY_Id: number;
     mI_Id: number;
     asmaY_Year: string;
     asmaY_From_Date: string;
@@ -8,6 +13,9 @@ export interface IMasterAcademicYearMasterList {
     asmaY_PreAdm_T_Date: string;
     asmaY_Order: number;
     asmaY_ActiveFlag: number;
+    mI_Name?: string;
+    asmaY_PreAdm_F_Time?: string | null;
+    asmaY_PreAdm_T_Time?: string | null;
     asmaY_Cut_Of_Date: string;
     asmaY_Pre_ActiveFlag: number;
     is_Active: boolean;
@@ -27,8 +35,19 @@ export interface IMasterAcademicYearMasterList {
     createdDate: string;
     updatedDate: string;
 }
+
+export interface IAcademicYearDetailsResponse {
+    academicList?: IMasterAcademicYearMasterList[];
+    institutionList?: IInstitutionItem[];
+    getYear?: IMasterAcademicYearMasterList[];
+    getAllYear?: IMasterAcademicYearMasterList[];
+    getAllYearNew?: IMasterAcademicYearMasterList[];
+    paginatedList?: IMasterAcademicYearMasterList[];
+    totalRecords?: number;
+    [key: string]: any;
+}
 export interface IMasterSetOrderList {
-    asmaY_Id: string;
+    asmaY_Id: number;
     asmaY_Year: string;
     asmaY_Order: number;
 }

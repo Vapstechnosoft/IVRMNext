@@ -8,6 +8,11 @@ export async function getRegistrationNumbering() {
     return await api.get<IMasterTransactionNumberingList[]>('preadmission', url);
 }
 
+export async function getRegNumbering(numberingType: string) {
+    const url = `/transaction_numbering/${numberingType}`;
+    return await api.get<IMasterTransactionNumberingList[]>('preadmission', url);
+}
+
 export async function getPreRegistrationNumbering() {
     const url = '/transaction_numbering/PreRegistration';
     return await api.get<IMasterTransactionNumberingList[]>('preadmission', url);
@@ -16,4 +21,9 @@ export async function getPreRegistrationNumbering() {
 export async function addOrUpdateTransactionNumbering(data: any) {
     const url = 'transaction_numbering';
     return await api.post<any>('preadmission', url, data);
+}
+
+export async function getMasterNumbering() {
+    const url = '/api/MasterDropDown/master_numbering';
+    return await api.get<any>('hrms', url);
 }

@@ -24,9 +24,9 @@ export async function getEmployeeLoanMasters(
     payload?: EmployeeLoanOnloadRequest
 ): Promise<ApiResponse<EmployeeLoanMastersResponse>> {
     const onloadUrl = '/api/HREmpLoanFacade/onloadgetdetails';
-    const employeeDropdownUrl = 'https://ivrm-dev-hrms-api.azurewebsites.net/api/MasterDropDown/active_loan_employees_dropdown';
-    const loanTypeUrl = 'https://ivrm-dev-hrms-api.azurewebsites.net/api/MasterDropDown/GetLoanType';
-    const paymentModeUrl = 'https://ivrm-dev-hrms-api.azurewebsites.net/api/MasterDropDown/mode_of_payment_drop_down_for_loan';
+    const employeeDropdownUrl = '/api/MasterDropDown/active_loan_employees_dropdown';
+   const loanTypeUrl = '/api/MasterDropDown/GetLoanType';
+    const paymentModeUrl = '/api/MasterDropDown/mode_of_payment_drop_down_for_loan';
 
     const requestBody = {
         page: 1,

@@ -1,132 +1,81 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useSalaryAdvanceList } from '@/hooks/hrms/useTransactions';
+import { useLeaveYearDropdown, useMonthDropdown } from '@/hooks/hrms/useMasters';
+import {
+    useSalaryAdvanceGrid,
+    useSalaryAdvanceEmployeeDropdown
+} from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
-import type { EmployeeDropdown, LeaveYearDropdown, MonthDropdown, SalaryAdvanceItem } from '@/types/hrms/salary-advance';
+import type {
+    SalaryAdvanceGridItem,
+    SalaryAdvanceEmployeeDropdownItem
+} from '@/types/hrms/salary-advance';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { ActionsCell } from './_components/actions-cell';
 import FormSections from './_components/form-sections';
-interface SalaryAdvance extends SalaryAdvanceItem {
-    selected?: boolean;
-}
+
 export default function SalaryAdvancePage() {
-    const roleId = 2;
-    const { data: advanceData, isLoading, refetch } = useSalaryAdvanceList({ roleId });
+    const { data: advanceData, isLoading: isGridLoading, refetch } = useSalaryAdvanceGrid();
+    const { data: employeeDropdown, isLoading: isDropdownLoading } = useSalaryAdvanceEmployeeDropdown();
+
+    // Pre-fetch master dropdowns to have them ready for add/edit forms
+    const { isLoading: isYearLoading } = useLeaveYearDropdown();
+    const { isLoading: isMonthLoading } = useMonthDropdown();
+
+    const isPageLoading = isGridLoading || isDropdownLoading || isYearLoading || isMonthLoading;
+
     return (
-        <FormProvider<SalaryAdvanceItem>>
-            <SalaryAdvancePageContent advanceData={advanceData} isLoading={isLoading} refetch={refetch} />
+        <FormProvider<SalaryAdvanceGridItem>>
+            <SalaryAdvancePageContent
+                advanceData={advanceData}
+                employeeDropdown={employeeDropdown}
+                isLoading={isPageLoading}
+                refetch={refetch}
+            />
         </FormProvider>
     );
 }
+
 function SalaryAdvancePageContent({
     advanceData,
+    employeeDropdown,
     isLoading,
     refetch
 }: {
-    advanceData: any;
+    advanceData: SalaryAdvanceGridItem[] | undefined;
+    employeeDropdown: SalaryAdvanceEmployeeDropdownItem[] | undefined;
     isLoading: boolean;
     refetch: () => void;
 }) {
-    const { openAddForm } = useFormContext<SalaryAdvanceItem>();
-    const [selectedAdvances, setSelectedAdvances] = useState<number[]>([]);
-    const _salaryAdvances: SalaryAdvance[] = (advanceData?.empadvaList || []).map((advance: any) => ({
-        ...advance,
-        selected: false
-    }));
-    const filteredAdvances = _salaryAdvances;
-    const employees = advanceData?.employeedropdown || [];
-    const leaveYears = advanceData?.leaveyeardropdown || [];
-    const months = advanceData?.monthdropdown || [];
-    const _modeOfPayments = advanceData?.modeOfPaymentdropdown || [];
-    const handleSelectAll = (selected: boolean) => {
-        if (selected) {
-            setSelectedAdvances(filteredAdvances.map((advance) => advance.HRESA_Id));
-        } else {
-            setSelectedAdvances([]);
-        }
-    };
-    const handleAdvanceSelect = (advanceId: number, selected: boolean) => {
-        if (selected) {
-            setSelectedAdvances((prev) => [...prev, advanceId]);
-        } else {
-            setSelectedAdvances((prev) => prev.filter((id) => id !== advanceId));
-        }
-    };
-    const getEmployeeName = (employee: EmployeeDropdown | null | undefined) => {
-        if (!employee) return 'N/A';
-        return (
-            `${employee.HRME_EmployeeFirstName || ''} ${
-                employee.HRME_EmployeeMiddleName || ''
-            } ${employee.HRME_EmployeeLastName || ''}`.trim() || 'N/A'
-        );
-    };
-    const getEmployeeCode = (employeeId: number) => {
-        const employee = employees.find((emp: EmployeeDropdown) => emp.HRME_Id === employeeId);
-        return employee?.HRME_EmployeeCode || `EMP${employeeId}`;
-    };
+    const { openAddForm } = useFormContext<SalaryAdvanceGridItem>();
+
+    const filteredAdvances = advanceData || [];
+    const employees = employeeDropdown || [];
+
     const getEmployeeNameById = (employeeId: number) => {
-        const employee = employees.find((emp: EmployeeDropdown) => emp.HRME_Id === employeeId);
-        return getEmployeeName(employee || null);
+        const employee = employees.find((emp) => emp.hrmE_Id === employeeId);
+        return employee?.employeeName || 'N/A';
     };
-    const getLeaveYearName = (yearId: number) => {
-        const year = leaveYears.find((y: LeaveYearDropdown) => y.HRMLY_Id === yearId);
-        return year?.HRMLY_LeaveYear || `Year ${yearId}`;
-    };
-    const getMonthName = (monthId: number) => {
-        const month = months.find((m: MonthDropdown) => m.IVRM_Month_Id === monthId);
-        return month?.IVRM_Month_Name || `Month ${monthId}`;
-    };
+
     const SalaryAdvanceTable = ({
         advances,
         isLoading,
-        onSelectAll,
-        onAdvanceSelect,
-        getEmployeeCode,
-        getEmployeeName,
-        getEmployeeNameById,
-        getLeaveYearName,
-        getMonthName
+        getEmployeeNameById
     }: {
-        advances: SalaryAdvance[];
+        advances: SalaryAdvanceGridItem[];
         isLoading: boolean;
-        onSelectAll: (selected: boolean) => void;
-        onAdvanceSelect: (advanceId: number, selected: boolean) => void;
-        getEmployeeCode: (employeeId: number) => string;
-        getEmployeeName: (employee: EmployeeDropdown | null | undefined) => string;
         getEmployeeNameById: (employeeId: number) => string;
-        getLeaveYearName: (yearId: number) => string;
-        getMonthName: (monthId: number) => string;
     }) => {
-        const columns: ColumnDef<SalaryAdvance>[] = [
+        const columns: ColumnDef<SalaryAdvanceGridItem>[] = [
             {
-                id: 'select',
-                header: () => (
-                    <Checkbox
-                        checked={advances.length > 0 && selectedAdvances.length === advances.length}
-                        onCheckedChange={(value) => onSelectAll(!!value)}
-                        aria-label='Select all'
-                    />
-                ),
-                cell: ({ row }) => (
-                    <Checkbox
-                        checked={selectedAdvances.includes(row.original.HRESA_Id)}
-                        onCheckedChange={(value) => onAdvanceSelect(row.original.HRESA_Id, !!value)}
-                        aria-label='Select row'
-                    />
-                ),
-                enableSorting: false,
-                enableHiding: false
-            },
-            {
-                accessorKey: 'HRESA_Id',
+                accessorKey: 'hresA_Id',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No.' />,
                 cell: ({ row, table }) => {
                     const index = table.getSortedRowModel().rows.findIndex((r) => r.id === row.id);
@@ -136,55 +85,46 @@ function SalaryAdvancePageContent({
                 enableHiding: false
             },
             {
-                accessorKey: 'HRME_Id',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-                cell: ({ row }) => <div>{getEmployeeCode(row.getValue('HRME_Id'))}</div>,
+                accessorKey: 'hrmE_Id',
+                header: ({ column }) => <DataTableColumnHeader column={column} title='Employee ID' />,
+                cell: ({ row }) => <div>{row.getValue('hrmE_Id')}</div>,
                 enableSorting: true,
                 enableHiding: true
             },
             {
-                accessorKey: 'HRME_Id',
+                accessorFn: (row) => getEmployeeNameById(row.hrmE_Id),
                 id: 'employeeName',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-                cell: ({ row }) => {
-                    // Try to get employee name from MasterEmployee first, then fallback to lookup
-                    const masterEmployee = (row.original as any).MasterEmployee as EmployeeDropdown | undefined;
-                    const employeeId = row.original.HRME_Id;
-                    if (masterEmployee) {
-                        return <div>{getEmployeeName(masterEmployee)}</div>;
-                    }
-                    // Fallback to lookup from employeedropdown
-                    return <div>{getEmployeeNameById(employeeId)}</div>;
-                },
+                cell: ({ row }) => <div>{row.getValue('employeeName')}</div>,
                 enableSorting: true,
                 enableHiding: true
             },
             {
-                accessorKey: 'HRESA_AdvYear',
+                accessorKey: 'hresA_AdvYear',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Advance Year' />,
-                cell: ({ row }) => <div>{getLeaveYearName(row.getValue('HRESA_AdvYear'))}</div>,
+                cell: ({ row }) => <div>{row.getValue('hresA_AdvYear')}</div>,
                 enableSorting: true,
                 enableHiding: true
             },
             {
-                accessorKey: 'HRESA_AdvMonth',
+                accessorKey: 'hresA_AdvMonth',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Advance Month' />,
-                cell: ({ row }) => <div>{getMonthName(Number(row.getValue('HRESA_AdvMonth')))}</div>,
+                cell: ({ row }) => <div>{row.getValue('hresA_AdvMonth')}</div>,
                 enableSorting: true,
                 enableHiding: true
             },
             {
-                accessorKey: 'HRESA_AppliedAmount',
+                accessorKey: 'hresA_AppliedAmount',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Applied Amount' />,
-                cell: ({ row }) => <div>₹{row.getValue('HRESA_AppliedAmount')?.toLocaleString()}</div>,
+                cell: ({ row }) => <div>₹{row.getValue('hresA_AppliedAmount')?.toLocaleString()}</div>,
                 enableSorting: true,
                 enableHiding: true
             },
             {
-                accessorKey: 'HRESA_AdvStatus',
+                accessorKey: 'hresA_AdvStatus',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
                 cell: ({ row }) => {
-                    const status = row.getValue('HRESA_AdvStatus') as string;
+                    const status = row.getValue('hresA_AdvStatus') as string;
                     return (
                         <span
                             className={cn(
@@ -192,8 +132,8 @@ function SalaryAdvancePageContent({
                                 status === 'Approved'
                                     ? 'bg-green-100 text-green-800'
                                     : status === 'Rejected'
-                                      ? 'bg-red-100 text-red-800'
-                                      : 'bg-yellow-100 text-yellow-800'
+                                        ? 'bg-red-100 text-red-800'
+                                        : 'bg-yellow-100 text-yellow-800'
                             )}>
                             {status}
                         </span>
@@ -214,10 +154,19 @@ function SalaryAdvancePageContent({
         ];
         return (
             <div className='overflow-hidden rounded-lg bg-card'>
-                <DataTable<SalaryAdvance, any> columns={columns} data={advances} totalItems={advances.length} isLoading={isLoading} />
+                <DataTable<SalaryAdvanceGridItem, any>
+                    columns={columns}
+                    data={advances}
+                    totalItems={advances.length}
+                    isLoading={isLoading}
+                    manualPagination={false}
+                    manualFiltering={false}
+                    showSearchColumns={true}
+                />
             </div>
         );
     };
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -237,35 +186,20 @@ function SalaryAdvancePageContent({
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <div className='space-y-4'>
-                        {selectedAdvances.length > 0 && (
-                            <div className='flex items-center gap-4 rounded-lg bg-blue-50 p-4'>
-                                <span className='font-medium text-sm'>{selectedAdvances.length} record(s) selected</span>
-                                <Button
-                                    variant='outline'
-                                    size='sm'
-                                    onClick={() => {
-                                        toast.info('Bulk actions not implemented yet');
-                                    }}>
-                                    Bulk Actions
-                                </Button>
-                            </div>
-                        )}
                         <SalaryAdvanceTable
                             advances={filteredAdvances}
                             isLoading={isLoading}
-                            onSelectAll={handleSelectAll}
-                            onAdvanceSelect={handleAdvanceSelect}
-                            getEmployeeCode={getEmployeeCode}
-                            getEmployeeName={getEmployeeName}
                             getEmployeeNameById={getEmployeeNameById}
-                            getLeaveYearName={getLeaveYearName}
-                            getMonthName={getMonthName}
                         />
                     </div>
                 </CollapsibleSection>
                 {/* Forms Section - Moved after table */}
-                <FormSections onloadData={advanceData} onSuccess={refetch} />
+                <FormSections
+                    employeeDropdown={employees}
+                    onSuccess={refetch}
+                />
             </div>
         </div>
     );
 }
+

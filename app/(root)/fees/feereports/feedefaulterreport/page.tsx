@@ -859,7 +859,7 @@ export default function FeeDefaulterReport() {
                     term_group: term_group,
                     Select_Button: filters.userType,
                     yearid: 0,
-                    studenttype: 'active',
+                    studenttype: 'active'
                 };
             }
 
@@ -1164,6 +1164,8 @@ export default function FeeDefaulterReport() {
                     ...(studentClassArray || [])
                 ];
                 setReportData(combinedData);
+                console.log('combinedData', combinedData);
+                console.log('setReportData', reportData);
                 setShowReport(true);
             } else {
                 setReportData([]);

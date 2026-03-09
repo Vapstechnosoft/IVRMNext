@@ -1,6 +1,10 @@
 'use server';
 
-import { ClassAnalysis, IndividualAnalysis } from '@/types/exam/exam-module/ai-analysis';
+import type {
+    ClassAnalysis,
+    IndividualAnalysis,
+    StudentPerformance
+} from '@/types/exam/exam-module/ai-analysis';
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
@@ -152,5 +156,100 @@ Format your response as JSON with this structure:
     } catch (error: any) {
         console.error('Individual Analysis failed:', error);
         throw new Error(`Individual Analysis failed: ${error.message}`);
+    }
+}
+
+export async function extractStudentDataFromPdf(base64Pdf: string): Promise<StudentPerformance[]> {
+    if (!GROQ_API_KEY) {
+        throw new Error('GROQ_API_KEY is not defined');
+    }
+
+    try {
+        const buffer = Buffer.from(base64Pdf, 'base64');
+        // Lazy load pdf-parse
+        // biome-ignore lint/style/useNodejsImportProtocol: <explanation>
+        const pdf = require('pdf-parse/lib/pdf-parse.js');
+        const data = await pdf(buffer);
+        const text = data.text;
+
+        if (!text || text.trim().length < 10) {
+            throw new Error('Could not extract meaningful text from PDF');
+        }
+
+        const prompt = `Extract student performance data from the provided text which was converted from a PDF school report.
+The text contains a table or list with student names, subjects, and marks.
+
+**Text to analyze:**
+${text.slice(0, 30000)}
+
+**Instructions:**
+1. Identify each student and their respective scores in various subjects.
+2. For each student, find their name and a list of subjects with their numeric scores.
+3. If a cell contains both a score and a grade (e.g., "88 A"), extract ONLY the numeric score (88).
+4. Calculate 'totalScore', 'averageScore' (total / count), and 'subjectCount' for each student.
+5. Provide the output in a clean JSON format.
+
+**Return ONLY a JSON object with this structure:**
+{
+  "students": [
+    {
+      "name": "string",
+      "subjects": [
+        { "subject": "string", "score": number, "maxScore": 100, "percentage": number }
+      ],
+      "totalScore": number,
+      "averageScore": number,
+      "subjectCount": number
+    }
+  ]
+}
+
+Ensure all scores are numbers. If a score is missing or invalid, skip that subject for that student.`;
+
+        const response = await fetch(GROQ_API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${GROQ_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: 'llama-3.3-70b-versatile',
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You are a precise data extraction expert. Always respond with valid JSON only.'
+                    },
+                    {
+                        role: 'user',
+                        content: prompt
+                    }
+                ],
+                temperature: 0.1,
+                max_tokens: 4000,
+                response_format: { type: 'json_object' }
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.text();
+            throw new Error(`Groq API Error: ${response.status} - ${error}`);
+        }
+
+        const resData = await response.json();
+        const content = resData.choices[0].message.content;
+        const parsed = JSON.parse(content);
+
+        if (!parsed.students || !Array.isArray(parsed.students)) {
+            throw new Error('Invalid data format returned from AI');
+        }
+
+        return parsed.students.map((s: any, idx: number) => ({
+            ...s,
+            index: idx + 1
+        }));
+
+    } catch (error: any) {
+        console.error('PDF Extraction failed:', error);
+        throw new Error(`Failed to parse PDF: ${error.message}`);
     }
 }

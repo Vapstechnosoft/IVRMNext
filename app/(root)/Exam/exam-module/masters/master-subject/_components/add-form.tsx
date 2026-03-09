@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useMasterSubject } from '@/hooks/exam/exammodule/usemasters';
@@ -32,7 +31,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterSubjectSchema.addOrUpdate),
-        mode: 'onChange',
+        mode: 'onTouched',
         defaultValues: {
             ismS_PreadmFlag: 0,
             ismS_AttendanceFlag: true, // boolean
@@ -40,6 +39,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
             ismS_ExamFlag: 0,
             ismS_LanguageFlg: 0,
             ismS_AtExtraFeeFlg: 0,
+            ismS_TTFlag: 0,
             ismS_ActiveFlag: 1, // Add this
             ismS_SubjectName: '', // Add all string fields
             ismS_IVRSSubjectName: '',
@@ -51,6 +51,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
     // Submit handler
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
+            console.log('Payload DATA:', data);
             const response = await addOrUpdateMasterSubject(data);
 
             if (response.success) {
@@ -98,7 +99,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                             error={errors.ismS_SubjectCode?.message}
                         />
                         <InputText
-                            label='Subject Type / New Name'
+                            label='Description'
                             required
                             id='ismS_SubjectNameNew'
                             {...register('ismS_SubjectNameNew')}
@@ -113,7 +114,8 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                             { name: 'ismS_BatchAppl', label: 'Batch Wise Flag', isBoolean: false },
                             { name: 'ismS_ExamFlag', label: 'Exam Flag', isBoolean: false },
                             { name: 'ismS_LanguageFlg', label: 'Language Flag', isBoolean: false },
-                            { name: 'ismS_AtExtraFeeFlg', label: 'Extra Fee Flag', isBoolean: false }
+                            { name: 'ismS_AtExtraFeeFlg', label: 'Extra Fee Flag', isBoolean: false },
+                            { name: 'ismS_TTFlag', label: 'Time Table Flag', isBoolean: false }
                         ].map((fieldDef) => (
                             <div key={fieldDef.name} className='group flex flex-col gap-1.5'>
                                 <Label htmlFor={fieldDef.name}>

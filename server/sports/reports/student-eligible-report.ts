@@ -1,71 +1,71 @@
 'use server';
 
-import { IStudentEligibleReportDetail } from '@/types/sports/reports/student-eligible-report';
+import { api } from '@/lib/apiService';
+import {
+    IStudentEligibleReportClass,
+    IStudentEligibleReportDetail,
+    IStudentEligibleReportLoadData,
+    IStudentEligibleReportRequest,
+    IStudentEligibleReportSection,
+    IStudentEligibleReportStudent
+} from '@/types/sports/reports/student-eligible-report';
 
-export const getStudentEligibleReportLoadGrid = async () => {
-    // Dummy data for initial load
-    const yearlist = [
-        { asmaY_Id: 1, asmaY_Year: '2023-2024' },
-        { asmaY_Id: 2, asmaY_Year: '2024-2025' },
-        { asmaY_Id: 3, asmaY_Year: '2025-2026' }
-    ];
-
-    const data: IStudentEligibleReportDetail[] = Array.from({ length: 17 }, (_, i) => ({
-        amsT_Id: i + 1,
-        adm_no: `ADM00${i + 1}`,
-        studentname: `Student ${i + 1}`,
-        classname: 'Class X',
-        sectionname: 'Section A',
-        spccE_StartDate: '2010-01-01',
-        pasR_Age: 15,
-        amsT_FatherName: `Father ${i + 1}`,
-        amsT_MotherName: `Mother ${i + 1}`,
-        address: `Address ${i + 1}`,
-        Selected: false
-    }));
-
-    return { success: true, yearlist, data, total: 17 };
+const API_URL = {
+    GET_DETAILS: 'SportStudentEligbleReport/Getdetails',
+    GET_CLASS: 'SportStudentEligbleReport/get_class',
+    GET_SECTION: 'SportStudentEligbleReport/get_section',
+    GET_STUDENT: 'SportStudentEligbleReport/get_student',
+    SHOW_DETAILS: 'SportStudentEligbleReport/showdetails',
 };
 
-export const getStudentEligibleReportClasses = async (data: { ASMAY_Id: number }) => {
-    const classList = [
-        { asmcL_Id: 1, asmcL_ClassName: 'Class I' },
-        { asmcL_Id: 2, asmcL_ClassName: 'Class II' },
-        { asmcL_Id: 3, asmcL_ClassName: 'Class III' }
-    ];
-    return { success: true, classList };
-};
+export async function getStudentEligibleReportLoadData(): Promise<IStudentEligibleReportLoadData> {
+    try {
+        const response = await api.post<{ yearlist: any[] }>('sports', API_URL.GET_DETAILS, {});
+        return {
+            yearlist: response.data?.yearlist || [],
+        };
+    } catch (error) {
+        console.error('Error fetching Student Eligible Report Load Data:', error);
+        return { yearlist: [] };
+    }
+}
 
-export const getStudentEligibleReportSections = async (data: { ASMAY_Id: number; ASMCL_Id: number }) => {
-    const sectionList = [
-        { asmS_Id: 1, asmC_SectionName: 'Section A' },
-        { asmS_Id: 2, asmC_SectionName: 'Section B' }
-    ];
-    return { success: true, sectionList };
-};
+export async function getClassesForStudentEligible(asmaY_Id: number): Promise<IStudentEligibleReportClass[]> {
+    try {
+        const response = await api.post<{ classList: IStudentEligibleReportClass[] }>('sports', API_URL.GET_CLASS, { asmaY_Id });
+        return response.data?.classList || [];
+    } catch (error) {
+        console.error('Error fetching Classes:', error);
+        return [];
+    }
+}
 
-export const getStudentEligibleReportStudents = async (data: { ASMAY_Id: number; ASMCL_Id: number; ASMS_Id: number }) => {
-    const studentList1 = Array.from({ length: 10 }, (_, i) => ({
-        amsT_Id: i + 100,
-        studentname: `Student ${i + 100}`,
-        Selected: false
-    }));
-    return { success: true, studentList1 };
-};
+export async function getSectionsForStudentEligible(asmaY_Id: number, asmcL_Id: number): Promise<IStudentEligibleReportSection[]> {
+    try {
+        const response = await api.post<{ sectionList: IStudentEligibleReportSection[] }>('sports', API_URL.GET_SECTION, { asmaY_Id, asmcL_Id });
+        return response.data?.sectionList || [];
+    } catch (error) {
+        console.error('Error fetching Sections:', error);
+        return [];
+    }
+}
 
-export const getStudentEligibleReportDetails = async (params: any) => {
-    const data: IStudentEligibleReportDetail[] = Array.from({ length: 5 }, (_, i) => ({
-        amsT_Id: i + 200,
-        adm_no: `ADM00${i + 200}`,
-        studentname: `Filtered Student ${i + 1}`,
-        classname: 'Class X',
-        sectionname: 'Section A',
-        spccE_StartDate: '2010-01-01',
-        pasR_Age: 15,
-        amsT_FatherName: `Father ${i + 200}`,
-        amsT_MotherName: `Mother ${i + 200}`,
-        address: `Address ${i + 200}`,
-        Selected: false
-    }));
-    return { success: true, data, total: 5 };
-};
+export async function getStudentsForStudentEligible(asmaY_Id: number, asmcL_Id: number, asmS_Id: number): Promise<IStudentEligibleReportStudent[]> {
+    try {
+        const response = await api.post<{ studentList1: IStudentEligibleReportStudent[] }>('sports', API_URL.GET_STUDENT, { asmaY_Id, asmcL_Id, asmS_Id });
+        return response.data?.studentList1 || [];
+    } catch (error) {
+        console.error('Error fetching Students:', error);
+        return [];
+    }
+}
+
+export async function getStudentEligibleReport(data: IStudentEligibleReportRequest): Promise<IStudentEligibleReportDetail[]> {
+    try {
+        const response = await api.post<{ viewlist: IStudentEligibleReportDetail[] }>('sports', API_URL.SHOW_DETAILS, data);
+        return response.data?.viewlist || [];
+    } catch (error) {
+        console.error('Error generating Student Eligible Report:', error);
+        return [];
+    }
+}

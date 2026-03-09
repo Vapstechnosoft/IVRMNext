@@ -105,7 +105,6 @@ function StudentTransactionContent() {
     const [loadingExamData, setLoadingExamData] = useState(false);
     const [loadingNames, setLoadingNames] = useState(false);
     const [loadingAreas, setLoadingAreas] = useState(false);
-    const [submitted, setSubmitted] = useState(false);
 
     // Initialize academic years
     useEffect(() => {
@@ -418,7 +417,6 @@ function StudentTransactionContent() {
 
     // Handle search
     const handleSearch = async (data: FormFields) => {
-        setSubmitted(true);
 
         if (!isValid) {
             await trigger();
@@ -531,7 +529,7 @@ function StudentTransactionContent() {
         setSelectedStudentIds([]);
         setHideSaveButton(false);
         setIsSelectAll(false);
-        setSubmitted(false);
+
 
         // Reload academic years (in case they were affected, though unlikely in this component)
         if (academicYearsData?.data) {
@@ -698,10 +696,11 @@ function StudentTransactionContent() {
                                         <>
                                             <button
                                                 type='button'
-                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'TermWise'
-                                                    ? 'bg-purple-600 text-white'
-                                                    : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                                    }`}
+                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
+                                                    field.value === 'TermWise'
+                                                        ? 'bg-purple-600 text-white'
+                                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                                }`}
                                                 onClick={() => {
                                                     field.onChange('TermWise');
                                                     setValue('emE_Id', 0);
@@ -712,10 +711,11 @@ function StudentTransactionContent() {
                                             </button>
                                             <button
                                                 type='button'
-                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'ExamWise'
-                                                    ? 'bg-purple-600 text-white'
-                                                    : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                                    }`}
+                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
+                                                    field.value === 'ExamWise'
+                                                        ? 'bg-purple-600 text-white'
+                                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                                }`}
                                                 onClick={() => {
                                                     field.onChange('ExamWise');
                                                     setValue('examTermId', 0);
@@ -774,7 +774,7 @@ function StudentTransactionContent() {
                                                     )}
                                                 </SelectContent>
                                             </Select>
-                                            {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            { fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </>
                                     )}
                                 />
@@ -828,7 +828,7 @@ function StudentTransactionContent() {
                                                     )}
                                                 </SelectContent>
                                             </Select>
-                                            {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            { fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </>
                                     )}
                                 />
@@ -879,7 +879,7 @@ function StudentTransactionContent() {
                                                     )}
                                                 </SelectContent>
                                             </Select>
-                                            {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            { fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </>
                                     )}
                                 />
@@ -929,7 +929,7 @@ function StudentTransactionContent() {
                                                         )}
                                                     </SelectContent>
                                                 </Select>
-                                                {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                { fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />
@@ -994,7 +994,7 @@ function StudentTransactionContent() {
                                                         ) : null}
                                                     </SelectContent>
                                                 </Select>
-                                                {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                { fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />
@@ -1037,7 +1037,7 @@ function StudentTransactionContent() {
                                                     <SelectItem value='Activities'>Activities</SelectItem>
                                                 </SelectContent>
                                             </Select>
-                                            {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            { fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </>
                                     )}
                                 />
@@ -1085,7 +1085,7 @@ function StudentTransactionContent() {
                                                         )}
                                                     </SelectContent>
                                                 </Select>
-                                                {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                { fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />
@@ -1136,7 +1136,7 @@ function StudentTransactionContent() {
                                                         )}
                                                     </SelectContent>
                                                 </Select>
-                                                {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                { fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />
@@ -1184,7 +1184,7 @@ function StudentTransactionContent() {
                                                         )}
                                                     </SelectContent>
                                                 </Select>
-                                                {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                { fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />
@@ -1234,7 +1234,7 @@ function StudentTransactionContent() {
                                                         )}
                                                     </SelectContent>
                                                 </Select>
-                                                {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                { fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />

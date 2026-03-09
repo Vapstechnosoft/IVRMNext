@@ -48,14 +48,14 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
         if (watchedAsmaY_Id) {
             getClasses.mutate({ ASMAY_Id: watchedAsmaY_Id });
         }
-    }, [watchedAsmaY_Id]);
+    }, [watchedAsmaY_Id, getClasses.mutate]);
 
     // Cascade: Class -> Section
     useEffect(() => {
         if (watchedAsmaY_Id && watchedAsmcL_Id) {
             getSections.mutate({ ASMAY_Id: watchedAsmaY_Id, ASMCL_Id: watchedAsmcL_Id });
         }
-    }, [watchedAsmaY_Id, watchedAsmcL_Id]);
+    }, [watchedAsmaY_Id, watchedAsmcL_Id, getSections.mutate]);
 
     // Cascade: Section -> Students
     useEffect(() => {
@@ -64,38 +64,57 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
                 ASMAY_Id: watchedAsmaY_Id,
                 ASMCL_Id: watchedAsmcL_Id,
                 ASMS_Id: watchedAsmS_Id
-            }).then(res => {
-                if (res.studentList1) {
-                    replace(res.studentList1.map((s: any) => ({ ...s, Selected: false })));
+            }).then(data => {
+                if (data && data.length > 0) {
+                    replace(data.map((s: any) => ({ ...s, Selected: false })));
                     setShowStudentList(true);
+                } else {
+                    replace([]);
+                    setShowStudentList(false);
                 }
             });
         }
-    }, [watchedAsmaY_Id, watchedAsmcL_Id, watchedAsmS_Id]);
+    }, [watchedAsmaY_Id, watchedAsmcL_Id, watchedAsmS_Id, getStudents.mutateAsync, replace]);
 
-    const onSubmit = async (values: IStudentEligibleReport) => {
+    const onSubmit = (values: IStudentEligibleReport) => {
         const selectedStudents = values.studentList?.filter(s => s.Selected) || [];
         if (selectedStudents.length === 0) {
             toast.error('Please select at least one student');
             return;
         }
 
-        const res = await showDetails.mutateAsync({
-            ...values,
-            StudentList: selectedStudents
-        });
+        const payload = {
+            asmaY_Id: values.asmaY_Id,
+            asmcL_Id: values.asmcL_Id,
+            asmS_Id: values.asmS_Id,
+            studentList: selectedStudents.map(s => ({ amsT_Id: s.amsT_Id }))
+        };
 
-        if (res.data) {
-            onReport(res);
-        } else {
-            toast.error('No records found');
-        }
+        showDetails.mutate(payload, {
+            onSuccess: (data: any) => {
+                if (data && data.length > 0) {
+                    onReport({ data });
+                } else {
+                    toast.error('No records found');
+                }
+            },
+            onError: (error) => {
+                toast.error('Failed to generate report');
+            }
+        });
     };
 
     const handleCancel = () => {
         reset();
         setShowStudentList(false);
         onReset();
+    };
+
+    // Toggle Select All
+    const handleSelectAll = (checked: boolean) => {
+        fields.forEach((_, index) => {
+            update(index, { ...fields[index], Selected: checked } as any);
+        });
     };
 
     return (
@@ -108,7 +127,7 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
                         name='asmaY_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? field.value.toString() : ''}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
@@ -130,12 +149,12 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
                         name='asmcL_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? field.value.toString() : ''}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Class' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {getClasses.data?.classList?.map((c: any) => (
+                                    {getClasses.data?.map((c: any) => (
                                         <SelectItem key={c.asmcL_Id} value={c.asmcL_Id.toString()}>{c.asmcL_ClassName}</SelectItem>
                                     ))}
                                 </SelectContent>
@@ -152,12 +171,12 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
                         name='asmS_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? field.value.toString() : ''}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Section' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {getSections.data?.sectionList?.map((s: any) => (
+                                    {getSections.data?.map((s: any) => (
                                         <SelectItem key={s.asmS_Id} value={s.asmS_Id.toString()}>{s.asmC_SectionName}</SelectItem>
                                     ))}
                                 </SelectContent>
@@ -174,7 +193,7 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
                         <div className='h-32 overflow-y-auto rounded-md border p-2 space-y-1'>
                             <div className='flex items-center space-x-2 pb-1 border-b mb-1'>
                                 <Checkbox
-                                    onCheckedChange={(checked) => fields.forEach((_, i) => update(i, { ...fields[i], Selected: !!checked } as any))}
+                                    onCheckedChange={(checked) => handleSelectAll(!!checked)}
                                 />
                                 <span className='text-xs font-medium'>Select All</span>
                             </div>
@@ -204,11 +223,11 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
-                <Button type='button' className='bg-blue-600 hover:bg-blue-700' onClick={onPrint} disabled={!hasData}>
+                <Button type='button' variant='outline' onClick={onPrint} disabled={!hasData}>
                     <Printer className='mr-2 h-4 w-4' />
                     Print
                 </Button>
-                <Button type='button' className='bg-green-600 hover:bg-green-700' onClick={onExcel} disabled={!hasData}>
+                <Button type='button' variant='outline' onClick={onExcel} disabled={!hasData}>
                     <FileSpreadsheet className='mr-2 h-4 w-4' />
                     Excel
                 </Button>

@@ -1,21 +1,19 @@
-
 'use client';
 
+import {
+    deleteAttendance,
+    deleteRecordWise,
+    getBatchList,
+    getDateWiseAttendance,
+    getInitialData,
+    getMonthClassHeld,
+    getStdListPeriod,
+    getStudentData,
+    saveStudentAttendance,
+    viewAttendanceHistory
+} from '@/server/staff-portal/attendance-entry';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import {
-    getInitialData,
-    getStudentData,
-    getMonthClassHeld,
-    getDateWiseAttendance,
-    getBatchList,
-    getStdListPeriod,
-    saveStudentAttendance,
-    deleteAttendance,
-    viewAttendanceHistory,
-    deleteRecordWise
-} from '@/server/staff-portal/attendance-entry';
-import { STAFF_PORTAL_QUERY_KEYS } from '@/constants/query-keys';
 
 export const useAttendanceEntry = (asmaY_Id: number) => {
     const queryClient = useQueryClient();
@@ -24,32 +22,32 @@ export const useAttendanceEntry = (asmaY_Id: number) => {
     const initialDataQuery = useQuery({
         queryKey: ['staff-attendance-entry-initial', asmaY_Id],
         queryFn: () => getInitialData(asmaY_Id),
-        enabled: asmaY_Id > 0 || asmaY_Id === 0,
+        enabled: asmaY_Id !== undefined && asmaY_Id !== null
     });
 
     // Mutation to get student data (initial settings for class/year)
     const getStudentDataMutation = useMutation({
-        mutationFn: getStudentData,
+        mutationFn: getStudentData
     });
 
     // Mutation to get month class held
     const getMonthClassHeldMutation = useMutation({
-        mutationFn: getMonthClassHeld,
+        mutationFn: getMonthClassHeld
     });
 
     // Mutation for date-wise attendance
     const getDateWiseAttendanceMutation = useMutation({
-        mutationFn: getDateWiseAttendance,
+        mutationFn: getDateWiseAttendance
     });
 
     // Mutation for batch list
     const getBatchListMutation = useMutation({
-        mutationFn: getBatchList,
+        mutationFn: getBatchList
     });
 
     // Mutation for period-wise student list
     const getStdListPeriodMutation = useMutation({
-        mutationFn: getStdListPeriod,
+        mutationFn: getStdListPeriod
     });
 
     // Mutation to save/update attendance
@@ -62,7 +60,7 @@ export const useAttendanceEntry = (asmaY_Id: number) => {
             } else {
                 toast.error(data.message || 'Record Not Saved Successfully!');
             }
-        },
+        }
     });
 
     // Mutation to delete attendance
@@ -74,12 +72,12 @@ export const useAttendanceEntry = (asmaY_Id: number) => {
             } else {
                 toast.error('Failed To Delete Record');
             }
-        },
+        }
     });
 
     // Mutation to view history
     const viewHistoryMutation = useMutation({
-        mutationFn: viewAttendanceHistory,
+        mutationFn: viewAttendanceHistory
     });
 
     // Mutation to delete from history
@@ -91,7 +89,7 @@ export const useAttendanceEntry = (asmaY_Id: number) => {
             } else {
                 toast.error('Failed To Delete Record');
             }
-        },
+        }
     });
 
     return {
@@ -105,6 +103,7 @@ export const useAttendanceEntry = (asmaY_Id: number) => {
         saveAttendance: saveMutation,
         deleteAttendance: deleteMutation,
         viewHistory: viewHistoryMutation,
-        deleteRecordWise: deleteRecordMutation
+        deleteRecordWise: deleteRecordMutation,
+        queryClient
     };
 };
