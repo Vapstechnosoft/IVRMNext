@@ -412,6 +412,7 @@ export default function DailyFeeCollectionReportForm() {
                 }));
                 payload = {
                     AsmayId: asmaY_Id,
+                    classid: asmcL_Id ?? 0,
                     FromDate: formatDate(fromDate),
                     ToDate: formatDate(toDate),
                     regornamedetails: report,
