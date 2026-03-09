@@ -886,10 +886,16 @@ export default function DailyFeeCollectionReportForm() {
 
                         {/* SPECIAL CHECKBOXES */}
                         <div className='space-y-3 text-sm'>
-                            <div className='flex items-center gap-2'>
+                            {reportdate !== 'SettledOnline' && reportdate !== 'settdate' && (
+                                <div className='flex items-center gap-2'>
+                                    <Checkbox id='acdmyr-1' checked={chequeDate} onCheckedChange={(v) => setValue('chequeDate', !!v)} />
+                                    <Label htmlFor='acdmyr-1'>Cheque Date</Label>
+                                </div>
+                            )}
+                            {/* <div className='flex items-center gap-2'>
                                 <Checkbox id='acdmyr-1' checked={chequeDate} onCheckedChange={(v) => setValue('chequeDate', !!v)} />
                                 <Label htmlFor='acdmyr-1'>Cheque Date</Label>
-                            </div>
+                            </div> */}
 
                             <div className='flex items-center gap-2'>
                                 <Checkbox id='acdmyr-2' checked={acdmyr} onCheckedChange={(v) => setValue('acdmyr', !!v)} />
