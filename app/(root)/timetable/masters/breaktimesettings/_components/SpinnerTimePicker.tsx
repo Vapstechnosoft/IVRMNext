@@ -11,20 +11,25 @@ interface SpinnerTimePickerProps {
 
 export function SpinnerTimePicker({ value, onChange }: SpinnerTimePickerProps) {
     const hasValue = !!value;
-    const hour = hasValue ? value.getHours() % 12 : undefined;
-    const minute = hasValue ? value.getMinutes() : undefined;
+    const hour = hasValue ? value.getHours() % 12 : 1;
+    const minute = hasValue ? value.getMinutes() : 0;
     const isPM = hasValue ? value.getHours() >= 12 : false;
 
     const updateTime = (h: number | undefined, m: number | undefined, pm: boolean) => {
         const d = value ? new Date(value) : new Date();
+
         if (!value) {
-            d.setHours(0, 0, 0, 0); // Default to start of day if no value
+            d.setHours(0, 0, 0, 0);
         }
 
         let newHour = (h ?? 0) % 12;
         if (pm) newHour += 12;
+
         d.setHours(newHour);
         d.setMinutes(m ?? 0);
+        d.setSeconds(0);   // ✅ force seconds to 0
+        d.setMilliseconds(0); // optional but good practice
+
         onChange(d);
     };
 
@@ -120,8 +125,8 @@ function InputBox({
 
     const handleBlur = () => {
         if (inputValue === '') {
-            setInputValue('0');
-            onChange(0);
+            setInputValue('1');
+            onChange(1);
         } else if (pad && inputValue !== '0') {
             setInputValue(inputValue.padStart(2, '0'));
         }

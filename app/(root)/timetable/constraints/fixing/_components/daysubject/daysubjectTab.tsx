@@ -15,35 +15,12 @@ import DaySubjectAddForm from './daysubjectAddForm';
 import DaySubjectUpdate from './daysubjectUpdate';
 import DaySubjectToggle from './daysubjectToggle';
 import { FixingViewModal } from '../fixing-view-modal';
+import { filterData } from '../dayperiod/utils';
 
 interface DaySubjectTabProps {
     initialData: any;
     searchParams?: any;
 }
-
-const uniqueById = (list: any[], idKey: string) => {
-    const seen = new Set();
-    return (list || []).filter((item: any) => {
-        if (!item) return false;
-        const actualKey = Object.keys(item).find((k) => k.toLowerCase() === idKey.toLowerCase());
-        const id = actualKey ? item[actualKey] : undefined;
-        if (id === undefined || id === null) return false;
-        if (seen.has(id)) return false;
-        seen.add(id);
-        return true;
-    });
-};
-
-const filterData = (list: any[], key: string) => {
-    return (list || []).filter((item: any) => {
-        if (!item) return false;
-        const val = item[key] ?? item[Object.keys(item).find((k) => k.toLowerCase() === key.toLowerCase()) || ''];
-        if (!val) return true;
-        if (typeof val !== 'string') return !!val;
-        const name = val.trim();
-        return name && name.toLowerCase() !== 'test';
-    });
-};
 
 export default function DaySubjectTab({ initialData, searchParams }: DaySubjectTabProps) {
     return (
@@ -63,35 +40,21 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
         closeAllForms,
         isToggleFormOpen,
         closeToggleForm,
-        selectedRow,
-        isDetailsViewOpen,
-        selectedRow: viewRow,
-        closeDetailsView
+        selectedRow
     } = useFormContext();
 
     const { data: academicData } = usebifurcationAcademicYear();
-    const academicList = (academicData as any)?.data || [];
+    const academicList = Array.isArray(academicData) ? academicData : (academicData as any)?.data || [];
 
-    const [dayList, setDayList] = useState<any[]>(initialData?.daylist || []);
-    const [subjectList, setSubjectList] = useState<any[]>([]);
+    const [dayList, setDayList] = useState<any[]>(initialData?.daylist || initialData?.data?.daylist || []);
+    const [subjectList, setSubjectList] = useState<any[]>(initialData?.subjectlist || initialData?.data?.subjectlist || []);
 
     const { data: gridResponse, isLoading: isGridLoading, refetchAll } = useDaySubjectGridData(searchParams);
+    console.log("gridResponse", gridResponse);
 
-    const getGridData = (res: any, fallback: any) => {
-        if (!res) return fallback || [];
-        if (Array.isArray(res)) return res;
-        if (res.data && Array.isArray(res.data)) return res.data;
-        if (res.fix_day_subject_list) return res.fix_day_subject_list;
-        const arrayProp = Object.values(res).find((val) => Array.isArray(val));
-        if (arrayProp) return arrayProp;
-        return fallback || [];
-    };
+    const gridData = (gridResponse as any)?.data || [];
 
-    const gridData = getGridData(gridResponse, initialData?.fix_day_subject_list);
-    const totalItems = (gridResponse as any)?.total || (gridResponse as any)?.count || gridData.length;
-
-    const [viewDetails, setViewDetails] = useState<any[]>([]);
-    const [isLoadingView, setIsLoadingView] = useState(false);
+    const totalItems = (gridResponse as any)?.total || gridData.length;
 
     useEffect(() => {
         const loadDropdowns = async () => {
@@ -99,8 +62,8 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
                 if (dayList.length === 0 || subjectList.length === 0) {
                     const fixingData = await getdetailsAllFixing();
                     if (fixingData?.data) {
-                        setDayList(uniqueById(filterData(fixingData.data.daylist || [], 'ttmD_DayName'), 'ttmD_Id'));
-                        setSubjectList(uniqueById(filterData(fixingData.data.subjectlist || [], 'ismS_SubjectName'), 'ismS_Id'));
+                        setDayList(filterData(fixingData.data.daylist || [], 'ttmD_DayName'));
+                        setSubjectList(filterData(fixingData.data.subjectlist || [], 'ismS_SubjectName'));
                     }
                 }
             } catch (error) {
@@ -110,46 +73,6 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
         };
         loadDropdowns();
     }, []);
-
-    useEffect(() => {
-        const fetchViewDetails = async () => {
-            if (isDetailsViewOpen && viewRow) {
-                try {
-                    setIsLoadingView(true);
-                    setViewDetails([]);
-                    const id = viewRow.ttfdsU_Id ?? viewRow.TTFDSU_Id;
-                    if (!id) return;
-
-                    const res = await getFixingDaySubjectDetails(id);
-                    const subDetails = res?.fix_day_subject__classecedit || (res?.data && res.data[0]?.tempararyArrayList);
-                    if (subDetails && Array.isArray(subDetails)) {
-                        const details = subDetails.map((sub: any) => ({
-                            clsDisplay: sub.asmcL_ClassName,
-                            sectDisplay: sub.asmC_SectionName,
-                            staffDisplay: sub.staffName,
-                            nop: sub.ttfdsucC_Periods || sub.ttscC_Periods || sub.nop
-                        }));
-                        setViewDetails(details);
-                    }
-                } catch (e) {
-                    console.error(e);
-                } finally {
-                    setIsLoadingView(false);
-                }
-            }
-        };
-        fetchViewDetails();
-    }, [isDetailsViewOpen, viewRow]);
-
-    const viewColumns = useMemo(
-        () => [
-            { accessorKey: 'clsDisplay', header: 'Class' },
-            { accessorKey: 'sectDisplay', header: 'Section' },
-            { accessorKey: 'staffDisplay', header: 'Staff' },
-            { accessorKey: 'nop', header: 'No Of Periods' }
-        ],
-        []
-    );
 
     const onFormSuccess = () => {
         refetchAll();
@@ -219,15 +142,6 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
                     </div>
                 </CollapsibleSection>
             )}
-
-            <FixingViewModal
-                isOpen={!!isDetailsViewOpen}
-                onClose={closeDetailsView}
-                title='Class-Section Wise Details'
-                data={viewDetails}
-                columns={viewColumns}
-                isLoading={isLoadingView}
-            />
         </div>
     );
 }
