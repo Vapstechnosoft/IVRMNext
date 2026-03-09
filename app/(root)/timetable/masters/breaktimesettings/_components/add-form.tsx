@@ -73,15 +73,6 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
     } = useAcademicYearDropDownMasterDayClasswise();
 
     const {
-        data: categoryList,
-        isLoading: categoryLoading,
-        error: categoryError,
-        refetchAll: categoryRefetch
-    } = useCategtoryDropDownMasterDayClasswise();
-
-    // const { data: classData, isLoading: classloading, error: classError, refetchAll: classRefetch } = useClassDropDownMasterDayClasswise();
-
-    const {
         data: Masterdaydata,
         isLoading: masterdaydataloading,
         error: masterdaydataError,
@@ -98,10 +89,7 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(breakTimeSettingsSchema.addOrUpdate),
-        mode: 'onChange',
-        defaultValues: {
-            // Defaults if needed
-        }
+        mode: 'onChange'
     });
 
     const watchedAcademicYear = watch('asmay_id');
@@ -111,6 +99,19 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
 
     const academicyear = watch('asmay_id');
     const category = watch('ttmC_Id');
+
+    const {
+        data: categoryList,
+        isLoading: categoryLoading,
+        error: categoryError,
+        refetchAll: categoryRefetch
+    } = useCategtoryDropDownMasterDayClasswise({ enabled: !!watchedAcademicYear });
+
+    useEffect(() => {
+        if (!watchedAcademicYear) {
+            setValue('ttmC_Id', undefined as any);
+        }
+    }, [watchedAcademicYear, setValue]);
 
     // Fetch classes when academic year or category changes
     useEffect(() => {
@@ -688,7 +689,11 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                                             <SelectValue placeholder='Select Category' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {categoryLoading ? (
+                                            {!watchedAcademicYear ? (
+                                                <SelectItem value='none' disabled>
+                                                    Please select Academic Year first
+                                                </SelectItem>
+                                            ) : categoryLoading ? (
                                                 <SelectItem value='loading' disabled>
                                                     Loading CategoryData
                                                 </SelectItem>
