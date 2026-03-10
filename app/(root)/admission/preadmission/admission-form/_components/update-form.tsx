@@ -44,7 +44,8 @@ import {
     saveGaurdianApi,
     saveSecondTabApi,
     saveStudentPhotoApi,
-    saveThirdTabApi
+    saveThirdTabApi,
+    getAllAdmissionLists
 } from '@/server/admission/admission-form/admission';
 import { deleteDocument, uploadDocument } from '@/server/document_upload';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -1916,6 +1917,108 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         );
     };
 
+    const handleCheckDuplicateRegNo = async (regNo: string): Promise<boolean> => {
+        if (!regNo || regNo.trim() === '') return false;
+
+        try {
+            const trimmedRegNo = regNo.trim();
+            const currentAmsTId = Number(getValues('amsT_Id' as any));
+
+            const response = await getAllAdmissionLists({
+                search_query: trimmedRegNo,
+                search_columns: 'registrationNo'
+            });
+
+            interface AdmissionData {
+                registrationNo?: string;
+                amst_Id?: number;
+                amsT_Id?: number;
+                AMST_Id?: number;
+                amstId?: number;
+            }
+            const students = response?.data as AdmissionData[] | null;
+
+            if (Array.isArray(students) && students.length > 0) {
+                const duplicateFound = students.some((s: AdmissionData) => {
+                    const studentRegNo = s.registrationNo?.toString().toLowerCase();
+                    const isSameRegNo = studentRegNo === trimmedRegNo.toLowerCase();
+                    const studentId = Number(s.amsT_Id ?? s.amst_Id ?? s.AMST_Id ?? s.amstId ?? 0);
+                    const isDifferentStudent = studentId !== currentAmsTId;
+                    return isSameRegNo && isDifferentStudent;
+                });
+
+                if (duplicateFound) {
+                    toast.error(`Registration No. "${trimmedRegNo}" already exists`);
+                    setError('amsT_RegistrationNo', {
+                        type: 'manual',
+                        message: 'Duplicate Registration Number'
+                    });
+                    return true;
+                } else {
+                    clearErrors('amsT_RegistrationNo');
+                    return false;
+                }
+            } else {
+                clearErrors('amsT_RegistrationNo');
+                return false;
+            }
+        } catch (error) {
+            console.error('Error checking duplicate registration number:', error);
+            return false;
+        }
+    };
+
+    const handleCheckDuplicateAdmissionNo = async (admissionNo: string): Promise<boolean> => {
+        if (!admissionNo || admissionNo.trim() === '') return false;
+
+        try {
+            const trimmedAdmissionNo = admissionNo.trim();
+            const currentAmsTId = Number(getValues('amsT_Id' as any));
+
+            const response = await getAllAdmissionLists({
+                search_query: trimmedAdmissionNo,
+                search_columns: 'admissionNo'
+            });
+
+            interface AdmissionData {
+                admissionNo?: string;
+                amst_Id?: number;
+                amsT_Id?: number;
+                AMST_Id?: number;
+                amstId?: number;
+            }
+            const students = response?.data as AdmissionData[] | null;
+
+            if (Array.isArray(students) && students.length > 0) {
+                const duplicateFound = students.some((s: AdmissionData) => {
+                    const studentAdmissionNo = s.admissionNo?.toString().toLowerCase();
+                    const isSameAdmissionNo = studentAdmissionNo === trimmedAdmissionNo.toLowerCase();
+                    const studentId = Number(s.amsT_Id ?? s.amst_Id ?? s.AMST_Id ?? s.amstId ?? 0);
+                    const isDifferentStudent = studentId !== currentAmsTId;
+                    return isSameAdmissionNo && isDifferentStudent;
+                });
+
+                if (duplicateFound) {
+                    toast.error(`Admission No. "${trimmedAdmissionNo}" already exists`);
+                    setError('amsT_AdmissionNo', {
+                        type: 'manual',
+                        message: 'Duplicate Admission Number'
+                    });
+                    return true;
+                } else {
+                    clearErrors('amsT_AdmissionNo');
+                    return false;
+                }
+            } else {
+                clearErrors('amsT_AdmissionNo');
+                return false;
+            }
+        } catch (error) {
+            console.error('Error checking duplicate admission number:', error);
+            return false;
+        }
+    };
+
     const saveFirstTab = async (formData: any) => {
         try {
             const requiredFields = ['amsT_FirstName', 'asmcL_Id', 'amsT_Date', 'amsT_DOB'];
@@ -2234,7 +2337,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             let fieldsToValidate: any[] = [];
 
             if (currentStep === 1) {
-                fieldsToValidate = ['asmaY_Year', 'amsT_FirstName', 'asmcL_Id', 'amsT_Sex'];
+                fieldsToValidate = ['asmaY_Year', 'amsT_FirstName', 'amsT_RegistrationNo', 'asmcL_Id', 'amsT_Sex'];
                 // If EMIS checkbox is set, ensure the EMIS field is validated
                 if (Number(getValues('isEmisBpl') ?? 0) === 1) {
                     fieldsToValidate.push('amsT_BPLCardNo');
@@ -2312,9 +2415,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             }
 
             // First, trigger schema validation
-            // Clear any lingering errors from previous validations
-            clearErrors();
-
+            // We don't clearErrors here as it might clear manual errors from onBlur (like duplicate checks)
+            //clearErrors();
             let isValid: boolean;
             if (currentStep === 1) {
                 // For Step 1, validate ALL fields to show all errors at once
@@ -2375,8 +2477,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 }
             }
 
-            // Check if there are any validation errors (schema only — not custom setError leftovers)
-            const hasErrors = !isValid;
+            // Check if there are any validation errors (schema AND custom setError)
+            const hasErrors = !isValid || Object.keys(errors).length > 0;
 
             if (hasErrors) {
                 console.debug('[Admission] Validation errors detected, aborting API call', { isValid, errors: Object.keys(errors) });
@@ -2404,6 +2506,16 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 }
 
                 return;
+            }
+
+            // Reinforce duplication check explicitly for Step 1
+            if (currentStep === 1) {
+                const regNo = getValues('amsT_RegistrationNo');
+                const isDuplicate = await handleCheckDuplicateRegNo(String(regNo ?? ''));
+                if (isDuplicate) {
+                    setIsSavingStep(false);
+                    return;
+                }
             }
 
             // Set saving state to prevent multiple submissions
@@ -2604,7 +2716,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 }
             }
             // If validation passed for Step 1, save the data
-            if (isValid && Number(currentStep) === 1) {
+            if (isValid && Object.keys(errors).length === 0 && Number(currentStep) === 1) {
                 // All validations (including student photo, EMIS, ECS) have already been checked above
                 // If we reach here, all validations passed
                 try {
@@ -3076,6 +3188,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         } catch (err) {
             console.error('[Admission] nextStep top-level error:', err);
             throw err;
+        } finally {
+            setIsSavingStep(false);
         }
     };
 
@@ -4534,6 +4648,10 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                 id='amsT_RegistrationNo'
                                                 placeholder='Enter registration number'
                                                 {...register('amsT_RegistrationNo')}
+                                                onBlur={(e) => {
+                                                    register('amsT_RegistrationNo').onBlur(e);
+                                                    handleCheckDuplicateRegNo(e.target.value);
+                                                }}
                                                 error={errors.amsT_RegistrationNo?.message}
                                             />
                                             <InputText
@@ -4542,6 +4660,10 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                 id='amsT_AdmissionNo'
                                                 placeholder='Enter admission number'
                                                 {...register('amsT_AdmissionNo')}
+                                                onBlur={(e) => {
+                                                    register('amsT_AdmissionNo').onBlur(e);
+                                                    handleCheckDuplicateAdmissionNo(e.target.value);
+                                                }}
                                                 error={errors.amsT_AdmissionNo?.message}
                                             />
                                             <div className='flex flex-col gap-1.5'>
@@ -8105,7 +8227,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                 {phoneExpectedInfo?.[`guardian_${idx}_phone`]?.expected && (
                                                                                     <span className='mt-1 text-muted-foreground text-xs'>
                                                                                         {`Mobile number must be exactly ${phoneExpectedInfo[`guardian_${idx}_phone`]
-                                                                                                .expected
+                                                                                            .expected
                                                                                             } digits for ${phoneExpectedInfo[`guardian_${idx}_phone`]
                                                                                                 .name ?? 'selected country'
                                                                                             }`}
