@@ -99,41 +99,57 @@ export default function DayPeriodUpdate({ academicList, categoryList, dayList, p
         const loadEditData = async () => {
             try {
                 let d = selectedRow;
-                const id = d?.ttfdP_Id || d?.ttfdsU_Id || d?.ttfpS_Id || d?.ttfpH_Id || d?.ttfD_Id;
+                const id = d?.ttfdP_Id || d?.ttfdsU_Id || d?.ttfpS_Id || d?.ttfpH_Id || d?.ttfD_Id || d?.TTFDP_Id;
                 if (id) {
                     const res = await getFixingDayPeriodDetails(id);
-                    const editData = res?.data?.fix_day_period_edit || res?.fix_day_period_edit || res?.data;
-                    if (editData && editData.length > 0) {
+                    const editData = res?.data?.fix_day_period_edit || res?.fix_day_period_edit || (Array.isArray(res?.data) ? res.data : undefined) || res?.data?.data || res?.data;
+
+                    if (editData && Array.isArray(editData) && editData.length > 0) {
                         d = editData[0];
+                    } else if (editData && !Array.isArray(editData)) {
+                        d = editData;
                     }
                 }
 
                 if (d) {
-                    if (d.asmaY_Id && d.ttmC_Id) {
-                        await fetchClasses(d.asmaY_Id, d.ttmC_Id);
-                        if (d.asmcL_Id) {
-                            const secRes = await getSectionDropdownByClassCategory(d.asmaY_Id, d.asmcL_Id, d.ttmC_Id);
+                    // Normalize keys (handle PascalCase from API)
+                    const normalizedData = {
+                        ttfdP_Id: d.ttfdP_Id ?? d.TTFDP_Id ?? d.ttfD_Id ?? 0,
+                        asmaY_Id: d.asmaY_Id ?? d.ASMAY_Id,
+                        ttmC_Id: d.ttmC_Id ?? d.TTMC_Id,
+                        asmcL_Id: d.asmcL_Id ?? d.ASMCL_Id,
+                        asmS_Id: d.asmS_Id ?? d.ASMS_Id ?? d.asmC_Id ?? d.ASMC_Id,
+                        hrmE_Id: d.hrmE_Id ?? d.HRME_Id,
+                        ismS_Id: d.ismS_Id ?? d.ISMS_Id,
+                        ttmD_Id: d.ttmD_Id ?? d.TTMD_Id,
+                        ttmP_Id: d.ttmP_Id ?? d.TTMP_Id
+                    };
+
+                    if (normalizedData.asmaY_Id && normalizedData.ttmC_Id) {
+                        await fetchClasses(normalizedData.asmaY_Id, normalizedData.ttmC_Id);
+                        if (normalizedData.asmcL_Id) {
+                            const secRes = await getSectionDropdownByClassCategory(normalizedData.asmaY_Id, normalizedData.asmcL_Id, normalizedData.ttmC_Id);
                             const sections = extractList(secRes, 'get_period_section1');
                             setSectionList(sections || []);
-                            if (d.asmS_Id) {
-                                await fetchStaff(d.asmaY_Id, d.ttmC_Id, d.asmcL_Id, d.asmS_Id);
-                                if (d.hrmE_Id) {
-                                    await fetchSubjects(d.asmaY_Id, d.ttmC_Id, d.asmcL_Id, d.asmS_Id, d.hrmE_Id);
+                            if (normalizedData.asmS_Id) {
+                                await fetchStaff(normalizedData.asmaY_Id, normalizedData.ttmC_Id, normalizedData.asmcL_Id, normalizedData.asmS_Id);
+                                if (normalizedData.hrmE_Id) {
+                                    await fetchSubjects(normalizedData.asmaY_Id, normalizedData.ttmC_Id, normalizedData.asmcL_Id, normalizedData.asmS_Id, normalizedData.hrmE_Id);
                                 }
                             }
                         }
                     }
 
                     reset({
-                        ttfdP_Id: d.ttfdP_Id || d.ttfD_Id,
-                        asmaY_Id: d.asmaY_Id,
-                        ttmC_Id: d.ttmC_Id,
-                        asmcL_Id: d.asmcL_Id,
-                        asmS_Id: d.asmS_Id,
-                        hrmE_Id: d.hrmE_Id,
-                        ismS_Id: d.ismS_Id,
-                        ttmD_Id: d.ttmD_Id,
-                        ttmP_Id: d.ttmP_Id
+                        ttfdP_Id: normalizedData.ttfdP_Id,
+                        asmaY_Id: normalizedData.asmaY_Id,
+                        ttmC_Id: normalizedData.ttmC_Id,
+                        asmcL_Id: normalizedData.asmcL_Id,
+                        asmS_Id: normalizedData.asmS_Id,
+                        hrmE_Id: normalizedData.hrmE_Id,
+                        ismS_Id: normalizedData.ismS_Id,
+                        ttmD_Id: normalizedData.ttmD_Id,
+                        ttmP_Id: normalizedData.ttmP_Id
                     });
                 }
             } catch (error) {
