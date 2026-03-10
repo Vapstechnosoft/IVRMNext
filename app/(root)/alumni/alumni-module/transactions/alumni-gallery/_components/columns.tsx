@@ -12,25 +12,25 @@ import { useCallback } from 'react';
 export const AlumniGalleryColumns: ColumnDef<IAlumniGallery>[] = [
     {
         accessorKey: 'slNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='text-center font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div>{continuousIndex}</div>;
+            return <div className='text-center'>{continuousIndex}</div>;
         },
         enableHiding: true,
         enableSorting: false
     },
     {
         accessorKey: 'algA_GalleryName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Gallery Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Gallery Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('algA_GalleryName')}</div>,
         enableSorting: true
     },
     {
         accessorKey: 'algA_Date',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Date' className='font-bold text-black' />,
         cell: ({ row }) => {
             const date = row.getValue('algA_Date');
             return <div>{date ? format(new Date(date as string), 'dd/MM/yyyy') : ''}</div>;
@@ -38,12 +38,12 @@ export const AlumniGalleryColumns: ColumnDef<IAlumniGallery>[] = [
     },
     {
         accessorKey: 'algA_Time',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Time' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Time' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('algA_Time')}</div>
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
