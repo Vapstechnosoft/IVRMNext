@@ -38,9 +38,10 @@ export async function sendFriendRequest(data: {
     return await api.post('alumni', url, payload);
 }
 
-export async function getAlumniFriendRequestReceivedData() {
-    const url = '/Alumni_Student_FriendRequest/getdata_request';
-    return await api.post<IAlumniFriendRequest[]>('alumni', url, { id: 1 });
+export async function getAlumniFriendRequestReceivedData(searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'searchParams');
+    const url = `/Alumni_Student_FriendRequest/getdata_request?${urlParams}`;
+    return await api.post<any>('alumni', url);
 }
 
 export async function handleFriendRequestAction(data: {

@@ -66,42 +66,51 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
             try {
                 let d = selectedRow;
                 const id = d?.ttfdS_Id || d?.ttfdsU_Id || d?.ttfpS_Id || d?.ttfpH_Id || d?.ttfD_Id || d?.TTFDS_Id;
+                let fullRes = null;
                 if (id) {
-                    const res = await getFixingDayStaffDetails(id);
-                    const editData = res?.data?.fix_day_staff_edit || res?.fix_day_staff_edit || res?.data;
+                    fullRes = await getFixingDayStaffDetails(id);
+                    const editData = fullRes?.data?.fix_day_staff_edit || fullRes?.fix_day_staff_edit || (Array.isArray(fullRes?.data) ? fullRes.data : undefined) || fullRes?.data;
                     if (editData && Array.isArray(editData) && editData.length > 0) {
                         d = editData[0];
+                    } else if (editData && !Array.isArray(editData)) {
+                        d = editData;
                     }
                 }
 
                 if (d) {
-                    const mainId = d.ttfdS_Id ?? d.TTFDS_Id;
+                    const normalizedData = {
+                        ttfdS_Id: d.ttfdS_Id ?? d.TTFDS_Id ?? 0,
+                        asmaY_Id: d.asmaY_Id ?? d.ASMAY_Id,
+                        ttmD_Id: d.ttmD_Id ?? d.TTMD_Id,
+                        hrmE_Id: d.hrmE_Id ?? d.HRME_Id,
+                        ttfdS_SUbSelcFlag: d.ttfdS_SUbSelcFlag ?? d.TTFDS_SUbSelcFlag ?? false
+                    };
 
-                    if (d.hrmE_Id && d.asmaY_Id) {
-                        await handleStaffChange(d.hrmE_Id, d.asmaY_Id);
+                    if (normalizedData.hrmE_Id && normalizedData.asmaY_Id) {
+                        await handleStaffChange(normalizedData.hrmE_Id, normalizedData.asmaY_Id);
                     }
 
                     reset({
-                        ttfdS_Id: mainId,
-                        asmaY_Id: d.asmaY_Id,
-                        ttmD_Id: d.ttmD_Id,
-                        hrmE_Id: d.hrmE_Id,
-                        ttfdS_SUbSelcFlag: d.ttfdS_SUbSelcFlag,
+                        ttfdS_Id: normalizedData.ttfdS_Id,
+                        asmaY_Id: normalizedData.asmaY_Id,
+                        ttmD_Id: normalizedData.ttmD_Id,
+                        hrmE_Id: normalizedData.hrmE_Id,
+                        ttfdS_SUbSelcFlag: normalizedData.ttfdS_SUbSelcFlag,
                         tempararyArrayList: []
                     });
 
-                    const resForSub = id ? await getFixingDayStaffDetails(id) : null;
-                    const subDetails = resForSub?.data?.fix_day_staff__classecedit || resForSub?.fix_day_staff__classecedit || selectedRow?.data?.fix_day_staff__classecedit || selectedRow?.fix_day_staff__classecedit || d?.tempararyArrayList;
-                    if (d.ttfdS_SUbSelcFlag && subDetails && Array.isArray(subDetails)) {
+                    const subDetails = fullRes?.data?.fix_day_staff__classecedit || fullRes?.fix_day_staff__classecedit || selectedRow?.data?.fix_day_staff__classecedit || selectedRow?.fix_day_staff__classecedit;
+
+                    if (normalizedData.ttfdS_SUbSelcFlag && subDetails && Array.isArray(subDetails)) {
                         subDetails.forEach((sub: any) => {
                             append({
-                                asmcL_Id: sub.asmcL_Id,
-                                asmS_Id: sub.asmS_Id,
-                                ismS_Id: sub.ismS_Id,
-                                nop: sub.ttfdscC_Periods || sub.ttscC_Periods || sub.nop,
-                                clsDisplay: sub.asmcL_ClassName,
-                                sectDisplay: sub.asmC_SectionName,
-                                subDisplay: sub.ismS_SubjectName
+                                asmcL_Id: sub.asmcL_Id ?? sub.ASMCL_Id,
+                                asmS_Id: sub.asmS_Id ?? sub.ASMS_Id ?? sub.asmC_Id ?? sub.ASMC_Id,
+                                ismS_Id: sub.ismS_Id ?? sub.ISMS_Id,
+                                nop: sub.ttfdscC_Periods ?? sub.ttscC_Periods ?? sub.nop ?? sub.TTFDSC_Periods,
+                                clsDisplay: sub.asmcL_ClassName ?? sub.ASMCL_ClassName,
+                                sectDisplay: sub.asmC_SectionName ?? sub.ASMC_SectionName ?? sub.asmS_SectionName ?? sub.ASMS_SectionName,
+                                subDisplay: sub.ismS_SubjectName ?? sub.ISMS_SubjectName
                             });
                         });
                     }

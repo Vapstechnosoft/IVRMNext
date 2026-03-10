@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 export const masterCasteColumns: ColumnDef<IMasterCasteList>[] = [
     {
         accessorKey: 'imC_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -21,21 +21,21 @@ export const masterCasteColumns: ColumnDef<IMasterCasteList>[] = [
     },
     {
         accessorKey: 'imcC_CategoryName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Caste Category' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Caste Category' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('imcC_CategoryName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'imC_CasteName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Caste Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Caste Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('imC_CasteName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'imC_CasteDesc',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Caste Description' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Caste Description' className='font-bold text-black' />,
         cell: ({ row }) => (
             <div className='max-w-[200px] overflow-hidden truncate text-ellipsis'>
                 {row.getValue('imC_CasteDesc') === null || row.getValue('imC_CasteDesc') === undefined
@@ -48,7 +48,7 @@ export const masterCasteColumns: ColumnDef<IMasterCasteList>[] = [
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

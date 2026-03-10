@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 export const masterSourceColumns: ColumnDef<IMasterSourceList>[] = [
     {
         accessorKey: 'pamS_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -21,21 +21,21 @@ export const masterSourceColumns: ColumnDef<IMasterSourceList>[] = [
     },
     {
         accessorKey: 'pamS_SourceName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('pamS_SourceName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'pamS_SourceDesc',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('pamS_SourceDesc')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

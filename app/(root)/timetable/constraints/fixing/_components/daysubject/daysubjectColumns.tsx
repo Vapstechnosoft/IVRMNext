@@ -35,6 +35,10 @@ export const daySubjectColumns: ColumnDef<TTDaySubjectGridData>[] = [
         cell: ({ row }) => row.index + 1
     },
     {
+        accessorKey: 'ttfdsU_Id',
+        header: 'ID'
+    },
+    {
         accessorKey: 'asmaY_Year',
         header: 'Academic Year'
     },

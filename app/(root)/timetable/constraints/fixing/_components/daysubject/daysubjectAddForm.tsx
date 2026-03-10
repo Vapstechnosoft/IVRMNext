@@ -155,12 +155,14 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                 }
             }
             const res = await saveFixingDaySubject(data);
+            console.log(res);
             if (res?.returnval === true || res?.success === true) {
-                toast.success(res?.message || 'Record Saved Successfully');
+                toast.success(res.message);
+                console.log(res);
                 reset();
                 onSuccess();
             } else {
-                toast.error(res?.message || 'Failed to save');
+                toast.error(res.message);
             }
         } catch (e) {
             console.error(e);

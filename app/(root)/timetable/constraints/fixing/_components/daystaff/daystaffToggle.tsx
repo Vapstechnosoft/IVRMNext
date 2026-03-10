@@ -10,8 +10,17 @@ import {
     DialogTitle
 } from '@/components/ui/dialog';
 import { deactivateFixingDayStaff } from '@/server/timetable/constraints/fixing';
-import { useState } from 'react';
+import { useDayStaffGridData } from '@/hooks/timetable/constraints/fixingData';
 import { toast } from 'sonner';
+import { z } from 'zod';
+import { SubmitHandler, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const toggleSchema = z.object({
+    ttfdS_Id: z.number()
+});
+
+type FormFields = z.infer<typeof toggleSchema>;
 
 interface ToggleDayStaffFormProps {
     rowData: any;
@@ -19,51 +28,66 @@ interface ToggleDayStaffFormProps {
 }
 
 export default function DayStaffToggle({ rowData, onClose }: ToggleDayStaffFormProps) {
-    const [isLoading, setIsLoading] = useState(false);
+    const { refetchAll } = useDayStaffGridData();
     const isActive = rowData.ttfdS_ActiveFlag;
 
-    const handleToggle = async () => {
-        setIsLoading(true);
+    const {
+        handleSubmit,
+        reset,
+        formState: { isSubmitting }
+    } = useForm<FormFields>({
+        resolver: zodResolver(toggleSchema),
+        defaultValues: {
+            ttfdS_Id: Number(rowData.ttfdS_Id)
+        },
+        mode: 'onChange'
+    });
+
+    function closeDialog() {
+        onClose();
+        reset();
+    }
+
+    const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
-            const payload = {
-                TTFDS_Id: rowData.ttfdS_Id || rowData.ttfD_Id,
+            const response = await deactivateFixingDayStaff({
+                TTFDS_Id: Number(rowData.ttfdS_Id),
                 TTFDS_ActiveFlag: !isActive
-            };
-            const res = await deactivateFixingDayStaff(payload);
-            if (res?.returnval === true) {
-                toast.success(`Record ${isActive ? 'Deactivated' : 'Activated'} Successfully`);
-                window.location.reload();
+            });
+
+            if (response.success) {
+                toast.success(response.message);
+                refetchAll();
+                closeDialog();
             } else {
-                toast.error(res?.message || 'Failed to update record status');
+                toast.error(response.message);
             }
-        } catch (error) {
-            console.error('Error toggling record:', error);
-            toast.error('An error occurred');
-        } finally {
-            setIsLoading(false);
-            onClose();
+        } catch (error: any) {
+            toast.error(error.message);
         }
     };
 
     return (
         <Dialog open={true} onOpenChange={onClose}>
             <DialogContent className='sm:max-w-[425px]'>
-                <DialogHeader>
-                    <DialogTitle>{isActive ? 'Deactivate' : 'Activate'} Record</DialogTitle>
-                    <DialogDescription>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} this record?
-                        <br />
-                        <strong>Class:</strong> {rowData.asmcL_ClassName || 'N/A'} | <strong>Section:</strong> {rowData.asmC_SectionName || 'N/A'}
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter className='mt-6'>
-                    <Button variant='outline' onClick={onClose} disabled={isLoading}>
-                        Cancel
-                    </Button>
-                    <Button variant={isActive ? 'destructive' : 'default'} onClick={handleToggle} disabled={isLoading}>
-                        {isLoading ? 'Processing...' : isActive ? 'Deactivate' : 'Activate'}
-                    </Button>
-                </DialogFooter>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                    <DialogHeader>
+                        <DialogTitle>{isActive ? 'Deactivate' : 'Activate'} Record</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to {isActive ? 'deactivate' : 'activate'} this record?
+                            <br />
+                            <strong>Class:</strong> {rowData.asmcL_ClassName || 'N/A'} | <strong>Section:</strong> {rowData.asmC_SectionName || 'N/A'}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className='mt-6'>
+                        <Button variant='outline' onClick={onClose} type='button' disabled={isSubmitting}>
+                            Cancel
+                        </Button>
+                        <Button variant={isActive ? 'destructive' : 'default'} type='submit' isLoading={isSubmitting}>
+                            {isActive ? 'Deactivate' : 'Activate'}
+                        </Button>
+                    </DialogFooter>
+                </form>
             </DialogContent>
         </Dialog>
     );
