@@ -7,7 +7,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 export const studentAttendanceColumns: ColumnDef<StudentAttendanceStudent>[] = [
     {
         accessorKey: 'slNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL. NO.' className='w-[80px] text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL. NO.' className='w-[80px] text-center font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -19,22 +19,22 @@ export const studentAttendanceColumns: ColumnDef<StudentAttendanceStudent>[] = [
     },
     {
         accessorKey: 'studentName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' className='font-bold text-black' />,
         cell: ({ row }) => <div className='font-medium'>{row.getValue('studentName')}</div>
     },
     {
         accessorKey: 'amsT_AdmNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Admission No.' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Admission No.' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('amsT_AdmNo')}</div>
     },
     {
         accessorKey: 'amaY_RollNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Roll No.' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Roll No.' className='text-center font-bold text-black' />,
         cell: ({ row }) => <div className='text-center'>{row.getValue('amaY_RollNo')}</div>
     },
     {
         id: 'attendance',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Attendance' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Attendance' className='text-center font-bold text-black' />,
         cell: ({ row }) => {
             return (
                 <div className='flex justify-center'>

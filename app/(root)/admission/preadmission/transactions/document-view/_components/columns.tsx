@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react';
 export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
     {
         accessorKey: 'pasr_id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -27,7 +27,7 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
     {
         id: 'student_photo',
         accessorKey: 'student_photo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Image' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Image' className='font-bold text-black' />,
         cell: ({ row }) => {
             const imageUrl: string = row.getValue('student_photo') || '/icons/user.png';
             const [showImageModal, setShowImageModal] = useState(false);
@@ -73,25 +73,25 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
     },
     {
         accessorKey: 'student_name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('student_name')}</div>,
         enableSorting: true
     },
     {
         accessorKey: 'pasR_RegistrationNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Registration No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Registration No' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('pasR_RegistrationNo') ?? 'N.A'}</div>,
         enableSorting: true
     },
     {
         accessorKey: 'applied_class_name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('applied_class_name')}</div>,
         enableSorting: true
     },
     {
         accessorKey: 'application_form',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Application Form' />,
+        header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-black' column={column} title='Application Form' />,
         cell: ({ row }) => {
             const appId = row.original.pasr_id;
             const [showPdfModal, setShowPdfModal] = useState(false);
@@ -203,7 +203,7 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
     },
     {
         accessorKey: 'studentt_photo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Photo' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Photo' className='font-bold text-black' />,
 
         cell: ({ row }) => {
             const downloadUrl = row.getValue('student_photo');

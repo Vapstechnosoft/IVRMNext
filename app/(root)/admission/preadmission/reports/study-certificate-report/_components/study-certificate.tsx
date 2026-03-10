@@ -306,83 +306,83 @@ const StudyCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
                         return (
                             <div key={`${student.AMST_Id || 's'}-${index}`} className='study-a4-page print:shadow-none bg-white'>
                                 <div className='study-a4-container'>
-                                    <div className='study-content-wrapper p-8 h-full'>
-                                        <div className='mb-4 text-center'>
-                                            {logoBase64 ? (
-                                                <img src={logoBase64} className='max-h-[120px] mx-auto object-contain' alt="Logo" />
-                                            ) : (
-                                                <div className='text-center'>
-                                                    <h2 className='text-[28px] font-bold uppercase'>{data.masterCompany?.[0]?.companyName || 'INSTITUTION NAME'}</h2>
-                                                    <p className='text-md'>{data.masterCompany?.[0]?.companyAddress}</p>
+                                    <div className='study-content-wrapper p-10 h-full font-serif text-[16px]'>
+
+                                        {/* Header */}
+                                        <div className='flex items-center justify-between gap-4 mb-4 border-b-2 border-black pb-4'>
+                                            <div className='w-50'>
+                                                {logoBase64 && <img src={logoBase64} className='w-full h-auto object-contain' alt="Logo" />}
+                                            </div>
+
+                                            <div className='w-28'></div> {/* Empty div to balance logo */}
+                                        </div>
+
+                                        {/* Certificate Title */}
+                                        <div className='text-center my-10'>
+                                            <h3 className='text-xl font-bold uppercase tracking-wider'>STUDY CERTIFICATE</h3>
+                                        </div>
+
+                                        {/* Body Content */}
+                                        <div className='flex flex-col gap-8 w-full max-w-[90%] mx-auto px-4 mt-6'>
+                                            <div className='flex items-end gap-2'>
+                                                <span className='whitespace-nowrap font-bold italic w-[220px]'>This is to certify that</span>
+                                                <span className='flex-1 border-b border-black text-center font-bold uppercase pb-1'>{student.studentnam}</span>
+                                            </div>
+
+                                            <div className='flex items-end gap-2'>
+                                                <span className='whitespace-nowrap font-bold italic w-[220px]'>Address</span>
+                                                <span className='flex-1 border-b border-black text-center font-bold uppercase pb-1'>{fullAddress}</span>
+                                            </div>
+
+                                            <div className='flex flex-wrap items-end gap-2 mt-2'>
+                                                <span className='whitespace-nowrap font-bold italic w-[220px]'>Is studying in</span>
+                                                <div className='flex-1 flex gap-2 w-full'>
+                                                    <span className='w-32 border-b border-black text-center font-bold uppercase pb-1'>{student.class}</span>
+                                                    <span className='whitespace-nowrap font-bold italic'>Standard during the year</span>
+                                                    <span className='flex-1 border-b border-black text-center font-bold uppercase pb-1'>{student.acadamicyear}</span>
                                                 </div>
-                                            )}
-                                        </div>
+                                            </div>
 
-                                        <div className='text-center mb-12 py-4'>
-                                            <h3 className='text-[28px] font-bold uppercase tracking-widest'>STUDY CERTIFICATE</h3>
-                                        </div>
+                                            <div className='flex items-end gap-2 mt-2'>
+                                                <span className='whitespace-nowrap font-bold italic w-[220px] leading-tight'>His/her Date of<br />birth is</span>
+                                                <span className='flex-1 border-b border-black text-center font-bold uppercase pb-1 leading-snug'>{student.dob ? format(new Date(student.dob), 'dd MMMM, yyyy') : ''}</span>
+                                            </div>
 
-                                        <div className='relative mt-4'>
-                                            <div className='w-full'>
-                                                <table className='w-full text-[18px] leading-[3rem] border-separate border-spacing-y-2'>
-                                                    <tbody>
-                                                        <tr>
-                                                            <td className='w-[200px] font-bold whitespace-nowrap align-bottom'>This is to certify that</td>
-                                                            <td className='border-b border-gray-400 px-4 font-bold uppercase text-left align-bottom'>{student.studentnam}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td className='font-bold whitespace-nowrap align-bottom'>Address</td>
-                                                            <td className='border-b border-gray-400 px-4 uppercase text-left align-bottom'>{fullAddress}</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
+                                            <div className='flex items-end gap-2'>
+                                                <span className='whitespace-nowrap font-bold italic w-[220px]'>In words:</span>
+                                                <span className='flex-1 border-b border-black text-center font-bold uppercase pb-1 text-[15px]'>{student.dobwords}</span>
+                                            </div>
 
-                                                <table className='w-full text-[18px] leading-[3rem] border-separate border-spacing-y-2 mt-2'>
-                                                    <tbody>
-                                                        <tr>
-                                                            <td className='w-[150px] font-bold whitespace-nowrap align-bottom'>Is studying in</td>
-                                                            <td className='border-b border-gray-400 px-4 font-bold text-center align-bottom'>{student.class}</td>
-                                                            <td className='w-[240px] font-bold whitespace-nowrap px-4 align-bottom text-right'>Standard during the year</td>
-                                                            <td className='border-b border-gray-400 px-4 font-bold text-center align-bottom'>{student.acadamicyear}</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
+                                            <div className='flex items-end gap-2'>
+                                                <span className='whitespace-nowrap font-bold italic w-[220px]'>Caste :</span>
+                                                <span className='flex-1 border-b border-black text-center font-bold uppercase pb-1'>{student.caste_name}</span>
+                                            </div>
 
-                                                <table className='w-full text-[18px] leading-[3rem] border-separate border-spacing-y-2 mt-2'>
-                                                    <tbody>
-                                                        <tr>
-                                                            <td className='w-[240px] font-bold whitespace-nowrap align-bottom'>His/her Date of birth is</td>
-                                                            <td className='border-b border-gray-400 px-4 font-bold uppercase text-left align-bottom'>
-                                                                {student.dob ? format(new Date(student.dob), 'dd MMMM, yyyy') : ''}
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td className='font-bold whitespace-nowrap align-bottom'>In words:</td>
-                                                            <td className='border-b border-gray-400 px-4 font-bold uppercase text-left align-bottom text-[16px]'>{student.dobwords}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td className='font-bold whitespace-nowrap align-bottom'>Caste :</td>
-                                                            <td className='border-b border-gray-400 px-4 uppercase text-left align-bottom'>{student.caste_name}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td className='font-bold whitespace-nowrap align-bottom'>And her/his Admission No. is</td>
-                                                            <td className='border-b border-gray-400 px-4 font-bold uppercase text-left align-bottom'>{student.admno}</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
+                                            <div className='flex items-end gap-2'>
+                                                <span className='whitespace-nowrap font-bold italic w-[220px] leading-tight'>And his/her Admission<br />No. is</span>
+                                                <span className='flex-1 border-b border-black text-center font-bold uppercase pb-1 leading-snug'>{student.admno}</span>
                                             </div>
                                         </div>
 
-                                        <div className='mt-auto pt-24 pb-8 grid grid-cols-2 gap-20 items-end px-4'>
-                                            <div className='space-y-2 font-bold text-[18px]'>
-                                                <div className='flex gap-2'><span>Place:</span><span className='uppercase'>{student.IVRMMCT_Name || 'BANGALORE'}</span></div>
-                                                <div className='flex gap-2'><span>Date:</span><span>{formattedDateLong}</span></div>
+                                        {/* Declaration */}
+                                        <div className='mt-16 text-center px-16'>
+                                            <p className='font-bold italic text-[17px]'>
+                                                I do hereby declare that the above particulars are correct as mentioned in the relevant school records.
+                                            </p>
+                                        </div>
+
+                                        {/* Footer */}
+                                        <div className='mt-auto pt-16 grid grid-cols-2 gap-8 items-end px-8'>
+                                            <div className='space-y-4 font-bold italic text-[16px]'>
+                                                {/* <div>Place : <span className='font-normal uppercase'>{student.IVRMMCT_Name || 'Udupi'}</span></div> */}
+                                                <div>Date : <span className='font-normal'>{formattedDateLong}</span></div>
                                             </div>
-                                            <div className='text-center'>
-                                                {principalSign && <img src={principalSign} className='h-20 mx-auto mb-2 mix-blend-multiply' alt="Principal Sign" />}
-                                                <div className='border-t border-black pt-2 w-[200px] mx-auto'>
-                                                    <p className='font-bold text-[18px] uppercase'>Principal</p>
-                                                    <p className='text-xs'>(With School Seal)</p>
+                                            <div className='text-right flex flex-col items-end'>
+                                                {principalSign && (
+                                                    <img src={principalSign} className='h-16 object-contain mb-2 mix-blend-multiply' alt="Principal Sign" />
+                                                )}
+                                                <div className='border-t border-black pt-2 w-56 text-center'>
+                                                    <p className='font-bold italic'>Principal Signature</p>
                                                 </div>
                                             </div>
                                         </div>
