@@ -22,9 +22,10 @@ interface Props {
     year: number;
     academicYear: number;
     implementationName: string;
+    logoBase64?: string;
 }
 
-export default function AdmissionMonthEndReport({ reportData, month, year, implementationName }: Props) {
+export default function AdmissionMonthEndReport({ reportData, month, year, implementationName, logoBase64 = '/school-logo.png' }: Props) {
     const todayDate = new Date().toLocaleDateString('en-GB', {
         day: '2-digit',
         month: 'short',
@@ -40,16 +41,10 @@ export default function AdmissionMonthEndReport({ reportData, month, year, imple
         <div className='w-full p-5 font-sans'>
             {/* HEADER */}
             <div className='mb-6 text-center'>
-                <img src='/school-logo.png' alt='logo' className='mx-auto mb-3 w-[90px]' />
+                <div className='mx-auto mb-3 w-[150px]'>
+                    {logoBase64 && <img src={logoBase64} className='w-full h-auto object-contain' alt="Logo" />}
+                </div>
 
-                <h2 className='m-0 font-bold text-lg'>VIDYA VIKASA PRIMARY / HIGHER PRIMARY AND HIGH SCHOOL</h2>
-
-                <p className='m-0 text-sm leading-5'>
-                    Basaveshwara Talkies Road, Mob: 7090808194, Tel: 08194 220904 <br />
-                    Chitradurga - 577501, Karnataka
-                </p>
-
-                <h3 className='mt-5 mb-3 font-semibold text-base'>ADMISSION MODULE</h3>
                 <h2 className='font-semibold text-base'>
                     <span className='font-bold text-xl'>{getMonthName(Number(month)).toUpperCase()} MONTH END REPORT</span>
                 </h2>
