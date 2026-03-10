@@ -6108,37 +6108,38 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
-                        },
-                        {
-                            id: 8,
-                            name: 'User Password Creation',
-                            icon: 'MessageSquare',
-                            sub_menu: [
-                                {
-                                    id: 40010,
-                                    name: 'Transaction',
-                                    icon: 'List',
-                                    pages: [
-                                        {
-                                            id: 40012,
-                                            name: 'User Password Creation',
-                                            icon: 'KeyRound',
-                                            url: '/StudentPortal/transactions/user-password-creation',
-                                            title: 'User Password Creation',
-                                            description: 'Generate Usernames and Passwords'
-                                        },
-                                        {
-                                            id: 40013,
-                                            name: 'Student Password Creation',
-                                            icon: 'LockKeyhole',
-                                            url: '/StudentPortal/transactions/student-password-creation',
-                                            title: 'Student Password Creation',
-                                            description: 'Student Credentials Management'
-                                        }
-                                    ]
-                                }
-                            ]
                         }
+                        //,
+                        // {
+                        //     id: 8,
+                        //     name: 'User Password Creation',
+                        //     icon: 'MessageSquare',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 40010,
+                        //             name: 'Transaction',
+                        //             icon: 'List',
+                        //             pages: [
+                        //                 {
+                        //                     id: 40012,
+                        //                     name: 'User Password Creation',
+                        //                     icon: 'KeyRound',
+                        //                     url: '/StudentPortal/transactions/user-password-creation',
+                        //                     title: 'User Password Creation',
+                        //                     description: 'Generate Usernames and Passwords'
+                        //                 },
+                        //                 {
+                        //                     id: 40013,
+                        //                     name: 'Student Password Creation',
+                        //                     icon: 'LockKeyhole',
+                        //                     url: '/StudentPortal/transactions/student-password-creation',
+                        //                     title: 'Student Password Creation',
+                        //                     description: 'Student Credentials Management'
+                        //                 }
+                        //             ]
+                        //         }
+                        //     ]
+                        // }
                     ]
                 },
                 {
