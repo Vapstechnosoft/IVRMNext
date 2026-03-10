@@ -4,32 +4,32 @@ import type { ColumnDef } from '@tanstack/react-table';
 export const attendanceSummaryColumns: ColumnDef<any>[] = [
     {
         accessorKey: 'RowNo',
-        header: 'Sl. No.',
+        header: () => <div className="font-bold text-black">Sl. No.</div>,
         cell: (info) => info.getValue()
     },
     {
         accessorKey: 'ASMCL_ClassName',
-        header: 'Class'
+        header: () => <div className="font-bold text-black">Class</div>
     },
     {
         accessorKey: 'ASMC_SectionName',
-        header: 'Section'
+        header: () => <div className="font-bold text-black">Section</div>
     },
     {
         accessorKey: 'PRESENT',
-        header: 'Present'
+        header: () => <div className="font-bold text-black">Present</div>
     },
     {
         accessorKey: 'ABSENT',
-        header: 'Absent'
+        header: () => <div className="font-bold text-black">Absent</div>
     },
     {
         accessorKey: 'HALFDAY',
-        header: 'Half Day'
+        header: () => <div className="font-bold text-black">Half Day</div>
     },
     {
         accessorKey: 'TOTAL',
-        header: 'Total'
+        header: () => <div className="font-bold text-black">Total</div>
     }
 ];
 
@@ -60,7 +60,7 @@ export const absentStudentColumns = (attendanceType: string): ColumnDef<any>[] =
         columns.push(
             {
                 accessorKey: 'FirstHalf',
-                header: 'I Half',
+                header: () => <div className="font-bold text-black">I Half</div>,
                 cell: (info) => (
                     <Checkbox
                         checked={info.row.original.ASA_Class_Attended === 0.5 || (info.row.original.ASA_Class_Attended === 0.0 && info.row.original.FirstHalf === 1)}
@@ -70,7 +70,7 @@ export const absentStudentColumns = (attendanceType: string): ColumnDef<any>[] =
             },
             {
                 accessorKey: 'SecondHalf',
-                header: 'II Half',
+                header: () => <div className="font-bold text-black">II Half</div>,
                 cell: (info) => (
                     <Checkbox
                         checked={info.row.original.ASA_Class_Attended === 0.5 || (info.row.original.ASA_Class_Attended === 0.0 && info.row.original.SecondHalf === 1)}
@@ -84,20 +84,20 @@ export const absentStudentColumns = (attendanceType: string): ColumnDef<any>[] =
     columns.push(
         {
             accessorKey: 'RowNo',
-            header: 'Sl.No.',
+            header: () => <div className="font-bold text-black">Sl.No.</div>,
             cell: (info) => info.row.index + 1
         },
         {
             accessorKey: 'classsection',
-            header: 'Class-Section'
+            header: () => <div className="font-bold text-black">Class-Section</div>
         },
         {
             accessorKey: 'AMST_AdmNo',
-            header: 'Adm.No.'
+            header: () => <div className="font-bold text-black">Adm.No.</div>
         },
         {
             accessorKey: 'studentname',
-            header: 'Student Name'
+            header: () => <div className="font-bold text-black">Student Name</div>
         }
     );
 

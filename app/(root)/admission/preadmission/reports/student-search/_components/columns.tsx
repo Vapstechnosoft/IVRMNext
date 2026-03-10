@@ -48,7 +48,7 @@ export const studentSearchColumns: ColumnDef<StudentData>[] = [
     },
     {
         accessorKey: 'amsT_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -60,7 +60,7 @@ export const studentSearchColumns: ColumnDef<StudentData>[] = [
     },
     {
         accessorKey: 'amsT_Photoname',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Photo' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Photo' className='font-bold text-black' />,
         cell: ({ row }) => (
             <img
                 src={row.getValue('amsT_Photoname')}
@@ -76,56 +76,56 @@ export const studentSearchColumns: ColumnDef<StudentData>[] = [
     },
     {
         accessorKey: 'amsT_RegistrationNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Reg. No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Reg. No' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('amsT_RegistrationNo')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'amsT_FirstName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' className='font-bold text-black' />,
         cell: ({ row }) => <div className='font-medium'>{row.getValue('amsT_FirstName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmcL_ClassName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmcL_ClassName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmC_SectionName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Section' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmC_SectionName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'amsT_Sex',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Gender' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Gender' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('amsT_Sex')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'amsT_DOB',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='DOB' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='DOB' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('amsT_DOB')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'amsT_FatherName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Father Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Father Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('amsT_FatherName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'amsT_MobileNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Mobile' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Mobile' className='font-bold text-black' />,
         cell: ({ row }) => {
             const mobile = row.getValue('amsT_MobileNo') as string | number | null | undefined;
             return <div>{mobile ?? 'N/A'}</div>;
@@ -135,7 +135,7 @@ export const studentSearchColumns: ColumnDef<StudentData>[] = [
     },
     {
         accessorKey: 'amsT_emailId',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Email' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Email' className='font-bold text-black' />,
         cell: ({ row }) => {
             const email = row.getValue('amsT_emailId') as string | number | null | undefined;
             return (
@@ -149,14 +149,14 @@ export const studentSearchColumns: ColumnDef<StudentData>[] = [
     },
     {
         accessorKey: 'amsT_AdmNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Admission No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Admission No' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('amsT_AdmNo')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'amsT_BloodGroup',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Blood Group' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Blood Group' className='font-bold text-black' />,
         cell: ({ row }) => {
             const bloodGroup = row.getValue('amsT_BloodGroup') as string | number | null | undefined;
             return <div>{bloodGroup || 'N/A'}</div>;

@@ -7,11 +7,10 @@ import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useSectionDropDown, useClassDetails } from '@/hooks/timetable/reports';
-import { useTimeTableAcademicYear, useTimeTableCategoryDropDownData } from '@/hooks/timetable/useMasters';
 import { consolidatedReportSchema } from '@/schemas/timetable/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Search, X } from 'lucide-react';
+import { useEffect } from 'react';
 
 import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -26,29 +25,14 @@ interface ConsolidatedFormProps {
 export default function ConsolidatedForm({ initialData, onSubmit }: ConsolidatedFormProps) {
 
 
-    const {
-        data: academicyeardata,
-        isLoading: academicyearloading,
-        // error: academicyearerror, // Not used in the provided snippet
-        // refetchAll: refetchAllAcademicYear // Not used in the provided snippet
-    } = useTimeTableAcademicYear();
-
-
-    const {
-        data: categorydropdowndata,
-    } = useTimeTableCategoryDropDownData();
-
-    const {
-        data: classdata,
-    } = useClassDetails();
-
-
-    const {
-        data: sectiondropdowndata,
-        // isLoading: sectiondropdownloading, // Not used in the provided snippet
-        // error: sectiondropdownerror, // Not used in the provided snippet
-        // refetchAll: refetchAllSection // Not used in the provided snippet
-    } = useSectionDropDown();
+    // We use the data directly from initialData as per user request to integrate the facade API lists
+    const academicList = initialData?.acayear || initialData?.academiclist || [];
+    const categoryList = initialData?.catelist || initialData?.categorylist || initialData?.cateoglst || []; // Added catelist/categorylist fallback
+    const staffList = initialData?.stafflst || initialData?.stafflist || [];
+    const periodList = initialData?.periodslst || initialData?.periodlist || [];
+    const daysList = initialData?.dayslst_fix || initialData?.daylist || [];
+    const sectionList = initialData?.sectionlists || initialData?.sectionlist || []; // Handles plural and singular
+    const classList = initialData?.classlists || initialData?.classlist || []; // Handles plural and singular
 
     // Mapping for better readability based on user request
     const mockReportTypes = [
@@ -66,19 +50,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
     ];
 
     // Initial lists from props
-    const academicList = (academicyeardata as any)?.data || [];
-    const categoryList = (categorydropdowndata as any)?.data || [];
-    const staffList = initialData?.stafflst || [];
-    const periodList = initialData?.periodslst || [];
-    const daysList = (initialData?.dayslst_fix || [
-        { ttmD_Id: 1, ttmD_DayName: 'MONDAY' },
-        { ttmD_Id: 2, ttmD_DayName: 'TUESDAY' },
-        { ttmD_Id: 3, ttmD_DayName: 'WEDNESDAY' },
-        { ttmD_Id: 4, ttmD_DayName: 'THURSDAY' },
-        { ttmD_Id: 5, ttmD_DayName: 'FRIDAY' }
-    ]);
-    const sectionList = (sectiondropdowndata as any)?.data || [];
-    const classList = (classdata as any)?.data || (Array.isArray(classdata) ? classdata : []);
+    // List variables already defined above from initialData
 
     const form = useForm<FormFields>({
         resolver: zodResolver(consolidatedReportSchema.search),
@@ -86,7 +58,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
             type: 'ST',
             rpttyp: 'SAWC',
             rpttypai: false,
-            asmaY_Id: academicList[0]?.asmaY_Id || undefined
+            asmaY_Id: undefined
         }
     });
 
@@ -103,7 +75,11 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
     const watchedAcademicYear = watch('asmaY_Id');
     const watchedCategory = watch('ttmC_Id');
 
-    // Simplified class list fetching - using useClassDetails instead of effect-based cascading for this specific report if user requested it
+    // useEffect(() => {
+    //     if (academicList?.length > 0 && !watchedAcademicYear) {
+    //         setValue('asmaY_Id', academicList[0].asmaY_Id);
+    //     }
+    // }, [academicList, watchedAcademicYear, setValue]);
 
     const onFormSubmit = (data: FormFields) => {
         const payload = {
@@ -125,15 +101,8 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
     };
 
     const handleClear = () => {
-        reset({
-            type: 'ST',
-            rpttyp: 'SAWC',
-            rpttypai: false,
-            asmaY_Id: academicList[0]?.asmaY_Id
-        });
-        onSubmit({ CLEAR: true });
+        reset();
     };
-
     return (
         <form onSubmit={handleSubmit(onFormSubmit)} className='space-y-6 rounded-lg border bg-white p-6 shadow-sm'>
             {/* Report Type Selection */}
@@ -169,26 +138,19 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                         control={control}
                         render={({ field }) => (
                             <Select
-                                key={field.value?.toString() || 'empty'}
-                                onValueChange={(value) => {
-                                    field.onChange(value ? Number(value) : '');
-                                }}
-                                value={field.value?.toString() || undefined}>
+                                onValueChange={(value) => field.onChange(value ? Number(value) : '')}
+                                value={field.value ? field.value.toString() : ''}
+                            >
                                 <SelectTrigger className='w-full'>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
+
                                 <SelectContent>
-                                    {academicyearloading ? (
-                                        <SelectItem value='loading' disabled>
-                                            Loading Academic Years...
+                                    {academicList?.map((item: any) => (
+                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                            {item.asmaY_Year}
                                         </SelectItem>
-                                    ) : (
-                                        academicList?.map((item: any) => (
-                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                {item.asmaY_Year}
-                                            </SelectItem>
-                                        ))
-                                    )}
+                                    ))}
                                 </SelectContent>
                             </Select>
                         )}
