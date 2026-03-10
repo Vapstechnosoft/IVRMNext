@@ -5663,7 +5663,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         error={errors.amsT_ConArea?.message}
                                                     />
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_ConCountry'>Country</Label>
+                                                        <Label htmlFor='amsT_ConCountry'>Country <span className='ml-1 text-red-500'>*</span></Label>
                                                         <Controller
                                                             name='amsT_ConCountry'
                                                             control={control}
@@ -5849,7 +5849,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         disabled={sameAsResidential}
                                                     />
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_PerCountry'>Country</Label>
+                                                        <Label htmlFor='amsT_PerCountry'>Country <span className='ml-1 text-red-500'>*</span></Label>
                                                         <Controller
                                                             name='amsT_PerCountry'
                                                             control={control}

@@ -4115,7 +4115,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         error={errors.amsT_ConArea?.message}
                                                     />
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_ConCountry'>Country</Label>
+                                                        <Label htmlFor='amsT_ConCountry'>Country<span className='ml-1 text-red-500'>*</span></Label>
                                                         <Controller
                                                             name='amsT_ConCountry'
                                                             control={control}
@@ -4152,7 +4152,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         {errors.amsT_ConCountry && <FormError>{errors.amsT_ConCountry.message}</FormError>}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='pasR_ConState'>State</Label>
+                                                        <Label htmlFor='pasR_ConState'>State<span className='ml-1 text-red-500'>*</span></Label>
                                                         <Controller
                                                             name='amsT_ConState'
                                                             control={control}
@@ -4330,7 +4330,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         disabled={sameAsResidential}
                                                     />
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_PerCountry'>Country</Label>
+                                                        <Label htmlFor='amsT_PerCountry'>Country <span className='ml-1 text-red-500'>*</span></Label>
                                                         <Controller
                                                             name='amsT_PerCountry'
                                                             control={control}
@@ -4368,7 +4368,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         {errors.amsT_PerCountry && <FormError>{errors.amsT_PerCountry.message}</FormError>}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_PerState'>State</Label>
+                                                        <Label htmlFor='amsT_PerState'>State <span className='ml-1 text-red-500'>*</span></Label>
                                                         <Controller
                                                             name='amsT_PerState'
                                                             control={control}

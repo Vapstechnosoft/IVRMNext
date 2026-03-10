@@ -466,7 +466,7 @@ export async function getUserAccessibleModules() {
                             sub_menu: [
                                 {
                                     id: 5,
-                                    name: 'Application',
+                                    name: 'Admission Form',
                                     icon: 'Settings',
                                     pages: [
                                         {
