@@ -155,7 +155,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
     }
 
     return (
-        <div className='overflow-hidden rounded-lg bg-card'>
+        <div className='bg-card'>
             <DataTable
                 ref={ref}
                 isLoading={isLoading}

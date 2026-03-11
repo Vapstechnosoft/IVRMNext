@@ -1,637 +1,451 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/ui/extension/field';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterDepartments, useMasterDesignations, useMasterGroupTypes, useMasterMonths, useMasterYears } from '@/hooks/hrms/useReports';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Printer, RefreshCw, Search, X } from 'lucide-react';
-import { useRef, useState } from 'react';
+import {
+    useReportDepartments,
+    useReportDesignations,
+    useReportGroupTypes,
+    useMonthEndReport
+} from '@/hooks/hrms/useReports';
+import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
+import { Loader2, Search, Users, UserPlus, UserMinus, ImageOff, Mail, Phone, FileCheck, FileText, Printer } from 'lucide-react';
+import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis, Pie, PieChart, Cell } from 'recharts';
 
-const monthEndReportSchema = z.object({
-    groupType: z.array(z.string()).min(1, 'At least one group type is required'),
-    department: z.array(z.string()).min(1, 'At least one department is required'),
-    designation: z.array(z.string()).min(1, 'At least one designation is required'),
-    ieName: z.string().min(1, 'IE Name is required'),
+const MONTH_LIST = [
+    { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
+    { id: 4, name: 'April' }, { id: 5, name: 'May' }, { id: 6, name: 'June' },
+    { id: 7, name: 'July' }, { id: 8, name: 'August' }, { id: 9, name: 'September' },
+    { id: 10, name: 'October' }, { id: 11, name: 'November' }, { id: 12, name: 'December' }
+];
+
+const MonthEndReportSchema = z.object({
+    groupType: z.array(z.string()).min(1, 'Group type is required'),
+    department: z.array(z.string()).min(1, 'Department is required'),
+    designation: z.array(z.string()).min(1, 'Designation is required'),
     month: z.string().min(1, 'Month is required'),
     year: z.string().min(1, 'Year is required')
 });
 
-type FormFields = z.infer<typeof monthEndReportSchema>;
+type FormFields = z.infer<typeof MonthEndReportSchema>;
 
-const mockMonthEndData = {
-    reportData: [
-        {
-            slNo: 1,
-            description: 'Total Students',
-            count: 1250,
-            sms: 1200,
-            email: 1180,
-            missingDetails: {
-                photo: 45,
-                emailId: 70,
-                contactNumber: 25
-            }
-        },
-        {
-            slNo: 2,
-            description: 'Total Staff',
-            count: 85,
-            sms: 85,
-            email: 82,
-            missingDetails: {
-                photo: 3,
-                emailId: 3,
-                contactNumber: 0
-            }
-        },
-        {
-            slNo: 3,
-            description: 'New Admissions',
-            count: 45,
-            sms: 45,
-            email: 40,
-            missingDetails: {
-                photo: 12,
-                emailId: 5,
-                contactNumber: 8
-            }
-        },
-        {
-            slNo: 4,
-            description: 'Attendance Records',
-            count: 2850,
-            sms: 2850,
-            email: 2800,
-            missingDetails: {
-                photo: 0,
-                emailId: 50,
-                contactNumber: 15
-            }
-        },
-        {
-            slNo: 5,
-            description: 'Fee Payments',
-            count: 980,
-            sms: 950,
-            email: 920,
-            missingDetails: {
-                photo: 0,
-                emailId: 60,
-                contactNumber: 30
-            }
-        }
-    ]
-};
+const COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6'];
 
 export default function HRMSMonthEndReportPage() {
-    const [isSearching, setIsSearching] = useState(false);
     const [reportData, setReportData] = useState<any>(null);
-    const printRef = useRef<HTMLDivElement>(null);
-
-    const { data: masterGroupTypes, isLoading: masterGroupTypesLoading, isError: masterGroupTypesError } = useMasterGroupTypes();
-
-    const { data: masterDepartments, isLoading: masterDepartmentsLoading, isError: masterDepartmentsError } = useMasterDepartments();
-
-    const { data: masterDesignations, isLoading: masterDesignationsLoading, isError: masterDesignationsError } = useMasterDesignations();
-
-    const { data: masterMonths, isLoading: masterMonthsLoading, isError: masterMonthsError } = useMasterMonths();
-
-    const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useMasterYears();
-
-    const groupTypeOptions =
-        masterGroupTypes?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const DeaparmentsOptions =
-        masterDepartments?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const DesignationOptions =
-        masterDesignations?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const MonthsOptions =
-        masterMonths?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const YearsOptions =
-        masterYears?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
 
     const {
         control,
         handleSubmit,
-        reset,
         watch,
+        reset,
         formState: { errors }
     } = useForm<FormFields>({
-        resolver: zodResolver(monthEndReportSchema),
+        resolver: zodResolver(MonthEndReportSchema),
         defaultValues: {
             groupType: [],
             department: [],
             designation: [],
-            ieName: '',
             month: '',
             year: ''
-        },
-        mode: 'onChange'
+        }
     });
 
-    const selectedMonth = watch('month');
-    const selectedYear = watch('year');
-    const ieName = watch('ieName');
+    const watchedGroupTypes = watch('groupType');
+    const watchedDepartments = watch('department');
 
-    const getMonthName = (monthValue: string) => {
-        return MonthsOptions.find((m: any) => m.value === monthValue)?.label || '';
-    };
+    const { data: groupTypesData, isLoading: groupTypesLoading } = useReportGroupTypes();
+    const { data: departmentsData, isLoading: departmentsLoading } = useReportDepartments((Array.isArray(watchedGroupTypes) ? watchedGroupTypes : []).join(','));
+    const { data: designationsData, isLoading: designationsLoading } = useReportDesignations((Array.isArray(watchedGroupTypes) ? watchedGroupTypes : []).join(','), (Array.isArray(watchedDepartments) ? watchedDepartments : []).join(','));
+    const { data: yearsData, isLoading: yearsLoading } = useLeaveYearDropdown();
 
-    const onSearch = async (data: FormFields) => {
-        setIsSearching(true);
-        try {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            setReportData({
-                ...mockMonthEndData,
-                ieName: data.ieName,
-                month: getMonthName(data.month),
-                year: data.year,
-                date: new Date().toLocaleDateString('en-IN'),
-                designation: 'Implementation Engineer'
-            });
-            toast.success('Report generated successfully!');
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to generate report');
-        } finally {
-            setIsSearching(false);
-        }
+    const { mutate: generateReport, isPending: isSearching } = useMonthEndReport();
+
+    const onSearch = (data: FormFields) => {
+        const selectedYearObj = (yearsData?.data || []).find((y: any) => y && String(y.hrmlY_Id ?? '') === String(data.year ?? ''));
+        const yearStr = selectedYearObj?.hrmlY_LeaveYear || String(data.year ?? '0');
+        generateReport({
+            hreS_Year: Number(yearStr),
+            hreS_Month: data.month,
+            hrmd_ids: (data.department || []).map(Number),
+            hrmgt_ids: (data.groupType || []).map(Number),
+            hrmdes_ids: (data.designation || []).map(Number)
+        }, {
+            onSuccess: (res) => {
+                if (res.success && res.data) {
+                    setReportData(res.data);
+                    toast.success('Report generated successfully');
+                } else {
+                    toast.error(res.message || 'No data found');
+                    setReportData(null);
+                }
+            }
+        });
     };
 
     const handleReset = () => {
-        reset({
-            groupType: [],
-            department: [],
-            designation: [],
-            ieName: '',
-            month: '',
-            year: ''
-        });
+        reset();
         setReportData(null);
-        toast.info('Form has been reset');
-    };
-    const handlePrint = () => {
-        window.print();
     };
 
-    const chartData = reportData?.reportData.map((item: any) => ({
-        name: item.description,
-        Count: item.count,
-        SMS: item.sms,
-        Email: item.email
-    }));
+    const employeeStatusData = reportData ? [
+        { name: 'Working', value: reportData.workingEmployeeCount },
+        { name: 'Left', value: reportData.leftEmployeeCount },
+        { name: 'New', value: reportData.newEmployeeCount }
+    ].filter(item => item.value > 0) : [];
 
-    const getTotals = () => {
-        if (!reportData) return null;
-        return reportData.reportData.reduce(
-            (acc: any, curr: any) => ({
-                count: acc.count + curr.count,
-                sms: acc.sms + curr.sms,
-                email: acc.email + curr.email,
-                photo: acc.photo + curr.missingDetails.photo,
-                emailId: acc.emailId + curr.missingDetails.emailId,
-                contactNumber: acc.contactNumber + curr.missingDetails.contactNumber
-            }),
-            { count: 0, sms: 0, email: 0, photo: 0, emailId: 0, contactNumber: 0 }
-        );
-    };
-
-    const totals = getTotals();
+    const missingInfoData = reportData ? [
+        { name: 'Photos', Working: reportData.missingPhotoWorking, Left: reportData.missingPhotoLeft, New: reportData.missingPhotoNew },
+        { name: 'Emails', Working: reportData.missingEmailWorking, Left: reportData.missingEmailLeft, New: reportData.missingEmailNew },
+        { name: 'Mobiles', Working: reportData.missingMobileWorking, Left: reportData.missingMobileLeft, New: reportData.missingMobileNew }
+    ] : [];
 
     return (
-        <div className='min-h-screen p-8'>
-            <style>
-                {`
-          @media print {
-            body * {
-              visibility: hidden;
-            }
-            #printable-report, #printable-report * {
-              visibility: visible;
-            }
-            #printable-report {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100%;
-            }
-            .no-print {
-              display: none !important;
-            }
-          }
-        `}
-            </style>
+        <div className='container min-h-screen space-y-6 p-4'>
+            <div className='flex items-center justify-between'>
+                <h2 className='text-3xl font-bold tracking-tight'>HRMS Month End Report</h2>
+            </div>
 
-            <div className='container space-y-4 p-1'>
-                <CollapsibleSection
-                    title='Month End Report'
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='no-print slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <div className='space-y-6'>
-                        <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
-                            <div className='space-y-2'>
-                                <Label htmlFor='group-type' className='font-medium text-sm text-white-900'>
-                                    Group Type: <span className='text-red-500'>*</span>
-                                </Label>
-                                {masterGroupTypesLoading ? (
-                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
-                                ) : groupTypeOptions.length === 0 ? (
-                                    <div className='text-sm text-white-500'>No group types available</div>
-                                ) : masterGroupTypesError ? (
-                                    <SelectItem value='error' disabled>
-                                        Error loading data
-                                    </SelectItem>
-                                ) : (
-                                    <>
-                                        <Controller
-                                            name='groupType'
-                                            control={control}
-                                            render={({ field }) => (
-                                                <MultiSelect
-                                                    options={groupTypeOptions}
-                                                    defaultValue={field.value}
-                                                    onValueChange={field.onChange}
-                                                    placeholder='Select Group Types'
-                                                    className='w-full'
-                                                    maxHeight={240}
-                                                />
-                                            )}
-                                        />
-                                        {errors.groupType && <FormError>{errors.groupType.message}</FormError>}
-                                    </>
-                                )}
-                            </div>
-
-                            <div className='space-y-2'>
-                                <Label htmlFor='department' className='font-medium text-sm text-white-900'>
-                                    Department: <span className='text-red-500'>*</span>
-                                </Label>
-                                {masterDepartmentsLoading ? (
-                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
-                                ) : DeaparmentsOptions.length === 0 ? (
-                                    <div className='text-sm text-white-500'>No departments available</div>
-                                ) : masterDepartmentsError ? (
-                                    <SelectItem value='error' disabled>
-                                        Error loading data
-                                    </SelectItem>
-                                ) : (
-                                    <>
-                                        <Controller
-                                            name='department'
-                                            control={control}
-                                            render={({ field }) => (
-                                                <MultiSelect
-                                                    options={DeaparmentsOptions}
-                                                    defaultValue={field.value}
-                                                    onValueChange={field.onChange}
-                                                    placeholder='Select Departments'
-                                                    className='w-full'
-                                                    maxHeight={240}
-                                                />
-                                            )}
-                                        />
-                                        {errors.department && <FormError>{errors.department.message}</FormError>}
-                                    </>
-                                )}
-                            </div>
-
-                            <div className='space-y-2'>
-                                <Label htmlFor='designation' className='font-medium text-sm text-white-900'>
-                                    Designation: <span className='text-red-500'>*</span>
-                                </Label>
-                                {masterDesignationsLoading ? (
-                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
-                                ) : DesignationOptions.length === 0 ? (
-                                    <div className='text-sm text-white-500'>No designations available</div>
-                                ) : masterDesignationsError ? (
-                                    <SelectItem value='error' disabled>
-                                        Error loading data
-                                    </SelectItem>
-                                ) : (
-                                    <>
-                                        <Controller
-                                            name='designation'
-                                            control={control}
-                                            render={({ field }) => (
-                                                <MultiSelect
-                                                    options={DesignationOptions}
-                                                    defaultValue={field.value}
-                                                    onValueChange={field.onChange}
-                                                    placeholder='Select Designations'
-                                                    className='w-full'
-                                                    maxHeight={240}
-                                                />
-                                            )}
-                                        />
-                                        {errors.designation && <FormError>{errors.designation.message}</FormError>}
-                                    </>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className='flex justify-center'>
-                            <div className='grid w-full max-w-2xl grid-cols-1 gap-6 md:grid-cols-2'>
-                                <div className='space-y-2'>
-                                    <Label htmlFor='month' className='font-medium text-sm text-white-900'>
-                                        Month: <span className='text-red-500'>*</span>
-                                    </Label>
-                                    <Controller
-                                        name='month'
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <SelectTrigger className='w-full'>
-                                                    <SelectValue placeholder='Select Month' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {masterMonthsLoading ? (
-                                                        <SelectItem value='loading' disabled>
-                                                            Loading...
-                                                        </SelectItem>
-                                                    ) : masterMonthsError ? (
-                                                        <SelectItem value='error' disabled>
-                                                            Error loading data
-                                                        </SelectItem>
-                                                    ) : (
-                                                        MonthsOptions?.map((opt: any) => (
-                                                            <SelectItem key={opt.value} value={opt.value}>
-                                                                {opt.label}
-                                                            </SelectItem>
-                                                        ))
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
+            <CollapsibleSection title='Report Criteria' defaultOpen={true} variant='outline' className='shadow-md border-primary/20 bg-card/50 backdrop-blur-sm'>
+                <form onSubmit={handleSubmit(onSearch)} className='space-y-6'>
+                    <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
+                        <div className='space-y-2'>
+                            <Label>Group Type <span className='text-destructive'>*</span></Label>
+                            <Controller
+                                name='groupType'
+                                control={control}
+                                render={({ field }) => (
+                                    <MultiSelect
+                                        options={(groupTypesData?.data || []).filter(Boolean).map((gt: any) => ({
+                                            label: String(gt.value || ''),
+                                            value: String(gt.key ?? '')
+                                        }))}
+                                        defaultValue={field.value}
+                                        onValueChange={field.onChange}
+                                        placeholder='Select Group Types'
+                                        disabled={groupTypesLoading}
                                     />
-                                    {errors.month && <FormError>{errors.month.message}</FormError>}
-                                </div>
-
-                                <div className='space-y-2'>
-                                    <Label htmlFor='year' className='font-medium text-sm text-white-900'>
-                                        Year: <span className='text-red-500'>*</span>
-                                    </Label>
-                                    <Controller
-                                        name='year'
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <SelectTrigger className='w-full'>
-                                                    <SelectValue placeholder='Select Year' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {masterYearsLoading ? (
-                                                        <SelectItem value='loading' disabled>
-                                                            Loading...
-                                                        </SelectItem>
-                                                    ) : masterYearsError ? (
-                                                        <SelectItem value='error' disabled>
-                                                            Error loading data
-                                                        </SelectItem>
-                                                    ) : (
-                                                        YearsOptions?.map((opt: any) => (
-                                                            <SelectItem key={opt.value} value={opt.value}>
-                                                                {opt.label}
-                                                            </SelectItem>
-                                                        ))
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    />
-                                    {errors.year && <FormError>{errors.year.message}</FormError>}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className='flex justify-center'>
-                            <div className='w-full max-w-md space-y-2'>
-                                <Label htmlFor='ie-name' className='font-medium text-sm text-white-900'>
-                                    IE Name: <span className='text-red-500'>*</span>
-                                </Label>
-                                <Controller
-                                    name='ieName'
-                                    control={control}
-                                    render={({ field }) => <Input {...field} id='ie-name' placeholder='Enter IE Name' className='w-full' />}
-                                />
-                                {errors.ieName && <FormError>{errors.ieName.message}</FormError>}
-                            </div>
-                        </div>
-
-                        <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                onClick={handleReset}
-                                disabled={isSearching}
-                                className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                                Reset
-                            </Button>
-                            <Button
-                                type='button'
-                                onClick={handleSubmit(onSearch)}
-                                disabled={isSearching}
-                                className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
-                                {isSearching ? (
-                                    <>
-                                        <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                                        Searching...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Search className='mr-2 h-4 w-4' />
-                                        Search
-                                    </>
                                 )}
-                            </Button>
+                            />
+                            {errors.groupType && <FormError>{errors.groupType.message}</FormError>}
+                        </div>
+
+                        <div className='space-y-2'>
+                            <Label>Department <span className='text-destructive'>*</span></Label>
+                            <Controller
+                                name='department'
+                                control={control}
+                                render={({ field }) => (
+                                    <MultiSelect
+                                        options={(departmentsData?.data || []).filter(Boolean).map((d: any) => ({
+                                            label: String(d.hrmD_DepartmentName || d.value || ''),
+                                            value: String(d.hrmD_Id ?? d.key ?? '')
+                                        }))}
+                                        defaultValue={field.value}
+                                        onValueChange={field.onChange}
+                                        placeholder='Select Departments'
+                                        disabled={departmentsLoading}
+                                    />
+                                )}
+                            />
+                            {errors.department && <FormError>{errors.department.message}</FormError>}
+                        </div>
+
+                        <div className='space-y-2'>
+                            <Label>Designation <span className='text-destructive'>*</span></Label>
+                            <Controller
+                                name='designation'
+                                control={control}
+                                render={({ field }) => (
+                                    <MultiSelect
+                                        options={(designationsData?.data || []).filter(Boolean).map((d: any) => ({
+                                            label: String(d.hrmdeS_DesignationName || d.value || ''),
+                                            value: String(d.hrmdeS_Id ?? d.key ?? '')
+                                        }))}
+                                        defaultValue={field.value}
+                                        onValueChange={field.onChange}
+                                        placeholder='Select Designations'
+                                        disabled={designationsLoading}
+                                    />
+                                )}
+                            />
+                            {errors.designation && <FormError>{errors.designation.message}</FormError>}
+                        </div>
+
+                        <div className='space-y-2'>
+                            <Label>Year <span className='text-destructive'>*</span></Label>
+                            <Controller
+                                name='year'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Year' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {(yearsData?.data || []).filter(Boolean).map((y: any) => (
+                                                <SelectItem key={y.hrmlY_Id} value={String(y.hrmlY_Id ?? '')}>
+                                                    {y.hrmlY_LeaveYear}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.year && <FormError>{errors.year.message}</FormError>}
+                        </div>
+
+                        <div className='space-y-2'>
+                            <Label>Month <span className='text-destructive'>*</span></Label>
+                            <Controller
+                                name='month'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Month' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {MONTH_LIST.map((m) => (
+                                                <SelectItem key={m.id} value={m.name}>
+                                                    {m.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.month && <FormError>{errors.month.message}</FormError>}
                         </div>
                     </div>
-                </CollapsibleSection>
 
-                {reportData && (
-                    <div id='printable-report' ref={printRef}>
-                        <CollapsibleSection
-                            title='Month End Report'
-                            defaultOpen={true}
-                            variant='outline'
-                            size='md'
-                            className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                            <div className='space-y-6 p-6'>
-                                <div className='space-y-4 text-center'>
-                                    <div className='mb-4 flex justify-center'>
-                                        <div className='flex h-20 w-20 items-center justify-center rounded-full bg-gray-200'>
-                                            <span className='text-gray-500 text-xs'>Logo</span>
+                    <div className='flex justify-end gap-3'>
+                        <Button type='button' variant='outline' onClick={handleReset} className='hover:bg-accent hover:text-accent-foreground transition-all duration-200'>
+                            Reset
+                        </Button>
+                        <Button type='submit' disabled={isSearching} className='bg-primary hover:bg-primary/90 transition-all duration-200 shadow-md'>
+                            {isSearching ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
+                            Generate Report
+                        </Button>
+                    </div>
+                </form>
+            </CollapsibleSection>
+
+            {reportData && (
+                <div className='space-y-8 animate-in fade-in zoom-in duration-500'>
+                    {/* Summary Cards */}
+                    <div className='grid gap-4 md:grid-cols-3'>
+                        <Card className='bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20 shadow-sm'>
+                            <CardHeader className='flex flex-row items-center justify-between pb-2'>
+                                <CardTitle className='text-sm font-medium'>Working Employees</CardTitle>
+                                <Users className='h-4 w-4 text-green-500' />
+                            </CardHeader>
+                            <CardContent>
+                                <div className='text-2xl font-bold'>{reportData.workingEmployeeCount}</div>
+                                <p className='text-xs text-muted-foreground'>Total active staff members</p>
+                            </CardContent>
+                        </Card>
+                        <Card className='bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20 shadow-sm'>
+                            <CardHeader className='flex flex-row items-center justify-between pb-2'>
+                                <CardTitle className='text-sm font-medium'>New Joinings</CardTitle>
+                                <UserPlus className='h-4 w-4 text-blue-500' />
+                            </CardHeader>
+                            <CardContent>
+                                <div className='text-2xl font-bold'>{reportData.newEmployeeCount}</div>
+                                <p className='text-xs text-muted-foreground'>Newly recruited this month</p>
+                            </CardContent>
+                        </Card>
+                        <Card className='bg-gradient-to-br from-red-500/10 to-red-500/5 border-red-500/20 shadow-sm'>
+                            <CardHeader className='flex flex-row items-center justify-between pb-2'>
+                                <CardTitle className='text-sm font-medium'>Employees Left</CardTitle>
+                                <UserMinus className='h-4 w-4 text-red-500' />
+                            </CardHeader>
+                            <CardContent>
+                                <div className='text-2xl font-bold'>{reportData.leftEmployeeCount}</div>
+                                <p className='text-xs text-muted-foreground'>Staff who resigned</p>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Salary & Communication Progress */}
+                    <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+                        <div className='flex items-center gap-4 p-4 rounded-xl border bg-card shadow-sm'>
+                            <div className='p-3 rounded-lg bg-orange-500/10'>
+                                <FileCheck className='h-6 w-6 text-orange-500' />
+                            </div>
+                            <div>
+                                <p className='text-sm font-medium text-muted-foreground'>Generated</p>
+                                <p className='text-xl font-bold'>{reportData.salaryGenerated}</p>
+                            </div>
+                        </div>
+                        <div className='flex items-center gap-4 p-4 rounded-xl border bg-card shadow-sm'>
+                            <div className='p-3 rounded-lg bg-emerald-500/10'>
+                                <FileText className='h-6 w-6 text-emerald-500' />
+                            </div>
+                            <div>
+                                <p className='text-sm font-medium text-muted-foreground'>Slips</p>
+                                <p className='text-xl font-bold'>{reportData.salarySlipGenerated}</p>
+                            </div>
+                        </div>
+                        <div className='flex items-center gap-4 p-4 rounded-xl border bg-card shadow-sm'>
+                            <div className='p-3 rounded-lg bg-indigo-500/10'>
+                                <Mail className='h-6 w-6 text-indigo-500' />
+                            </div>
+                            <div>
+                                <p className='text-sm font-medium text-muted-foreground'>Emails Sent</p>
+                                <p className='text-xl font-bold'>{reportData.emailCount}</p>
+                            </div>
+                        </div>
+                        <div className='flex items-center gap-4 p-4 rounded-xl border bg-card shadow-sm'>
+                            <div className='p-3 rounded-lg bg-cyan-500/10'>
+                                <Phone className='h-6 w-6 text-cyan-500' />
+                            </div>
+                            <div>
+                                <p className='text-sm font-medium text-muted-foreground'>SMS Sent</p>
+                                <p className='text-xl font-bold'>{reportData.smsCount}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Data Completeness Alerts (Missing Info) */}
+                    <Card className='border-amber-500/20 bg-amber-500/5'>
+                        <CardHeader>
+                            <CardTitle className='text-lg font-semibold flex items-center gap-2'>
+                                <Loader2 className='h-5 w-5 text-amber-500 animate-spin' />
+                                Data Completeness Issues
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className='grid gap-6 md:grid-cols-3'>
+                                <div className='space-y-4'>
+                                    <h4 className='font-semibold flex items-center gap-2'><Users className='h-4 w-4' /> Working Staff</h4>
+                                    <div className='space-y-2'>
+                                        <div className='flex justify-between text-sm'>
+                                            <span className='flex items-center gap-2 text-muted-foreground'><ImageOff className='h-3 w-3' /> Missing Photos</span>
+                                            <span className='font-bold text-red-500'>{reportData.missingPhotoWorking}</span>
+                                        </div>
+                                        <div className='flex justify-between text-sm'>
+                                            <span className='flex items-center gap-2 text-muted-foreground'><Mail className='h-3 w-3' /> Missing Emails</span>
+                                            <span className='font-bold text-red-500'>{reportData.missingEmailWorking}</span>
+                                        </div>
+                                        <div className='flex justify-between text-sm'>
+                                            <span className='flex items-center gap-2 text-muted-foreground'><Phone className='h-3 w-3' /> Missing Mobiles</span>
+                                            <span className='font-bold text-red-500'>{reportData.missingMobileWorking}</span>
                                         </div>
                                     </div>
-                                    <h1 className='font-bold text-2xl'>
-                                        HRMS Month End Report of {reportData.month} - {reportData.year}
-                                    </h1>
-                                    <h2 className='font-semibold text-xl uppercase'>{reportData.month} MONTH REPORT</h2>
                                 </div>
-
-                                <div className='mt-8 overflow-x-auto rounded-lg border'>
-                                    <table className='w-full border-collapse'>
-                                        <thead>
-                                            <tr className='bg-white'>
-                                                <th className='w-40 border px-4 py-3 text-left font-semibold'>Name:</th>
-                                                <td className='border px-4 py-3' colSpan={7}>
-                                                    {reportData.ieName}
-                                                </td>
-                                            </tr>
-                                            <tr className='bg-white'>
-                                                <th className='w-40 border px-4 py-3 text-left font-semibold'>Date:</th>
-                                                <td className='border px-4 py-3' colSpan={7}>
-                                                    {reportData.date}
-                                                </td>
-                                            </tr>
-                                            <tr className='bg-white'>
-                                                <th className='w-40 border px-4 py-3 text-left font-semibold'>Designation:</th>
-                                                <td className='border px-4 py-3' colSpan={7}>
-                                                    {reportData.designation}
-                                                </td>
-                                            </tr>
-                                            <tr className='bg-white'>
-                                                <th className='w-40 border px-4 py-3 text-left font-semibold'>Module Name:</th>
-                                                <td className='border px-4 py-3' colSpan={7}>
-                                                    HRMS
-                                                </td>
-                                            </tr>
-
-                                            <tr className='border-b-2 bg-white'>
-                                                <th className='border px-4 py-3 text-center font-semibold text-sm' rowSpan={2}>
-                                                    SI.No
-                                                </th>
-                                                <th className='border px-4 py-3 text-center font-semibold text-sm' rowSpan={2}>
-                                                    Description
-                                                </th>
-                                                <th className='border px-4 py-3 text-center font-semibold text-sm' rowSpan={2}>
-                                                    Count
-                                                </th>
-                                                <th className='border px-4 py-3 text-center font-semibold text-sm' rowSpan={2}>
-                                                    SMS
-                                                </th>
-                                                <th className='border px-4 py-3 text-center font-semibold text-sm' rowSpan={2}>
-                                                    Email
-                                                </th>
-                                                <th className='border bg-gray-50 px-4 py-2 text-center font-semibold text-sm' colSpan={3}>
-                                                    Missing Details
-                                                </th>
-                                            </tr>
-                                            <tr className='border-b-2 bg-gray-50'>
-                                                <th className='border px-4 py-2 text-center font-medium text-xs'>Photo</th>
-                                                <th className='border px-4 py-2 text-center font-medium text-xs'>Email-ID</th>
-                                                <th className='border px-4 py-2 text-center font-medium text-xs'>Contact Number</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {reportData.reportData.map((row: any, index: number) => (
-                                                <tr key={index} className='hover:bg-gray-50'>
-                                                    <td className='border px-4 py-2 text-center text-sm'>{row.slNo}</td>
-                                                    <td className='border px-4 py-2 text-left text-sm'>{row.description}</td>
-                                                    <td className='border px-4 py-2 text-center text-sm'>{row.count}</td>
-                                                    <td className='border px-4 py-2 text-center text-sm'>{row.sms}</td>
-                                                    <td className='border px-4 py-2 text-center text-sm'>{row.email}</td>
-                                                    <td className='border px-4 py-2 text-center text-sm'>{row.missingDetails.photo}</td>
-                                                    <td className='border px-4 py-2 text-center text-sm'>{row.missingDetails.emailId}</td>
-                                                    <td className='border px-4 py-2 text-center text-sm'>
-                                                        {row.missingDetails.contactNumber}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                            {totals && (
-                                                <tr className='border-t-2 bg-white font-bold'>
-                                                    <td className='border px-4 py-3 text-center text-sm' colSpan={2}>
-                                                        Total
-                                                    </td>
-                                                    <td className='border px-4 py-3 text-center text-sm'>{totals.count}</td>
-                                                    <td className='border px-4 py-3 text-center text-sm'>{totals.sms}</td>
-                                                    <td className='border px-4 py-3 text-center text-sm'>{totals.email}</td>
-                                                    <td className='border px-4 py-3 text-center text-sm'>{totals.photo}</td>
-                                                    <td className='border px-4 py-3 text-center text-sm'>{totals.emailId}</td>
-                                                    <td className='border px-4 py-3 text-center text-sm'>{totals.contactNumber}</td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                <div className='mt-8'>
-                                    <h3 className='mb-4 text-center font-semibold text-lg'>Report Analytics</h3>
-                                    <ResponsiveContainer width='100%' height={400}>
-                                        <BarChart data={chartData}>
-                                            <CartesianGrid strokeDasharray='3 3' />
-                                            <XAxis dataKey='name' angle={-45} textAnchor='end' height={100} />
-                                            <YAxis />
-                                            <Tooltip />
-                                            <Legend />
-                                            <Bar dataKey='Count' fill='#8884d8' />
-                                            <Bar dataKey='SMS' fill='#82ca9d' />
-                                            <Bar dataKey='Email' fill='#ffc658' />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
-
-                                <div className='mt-12 grid grid-cols-3 gap-8 border-t pt-8'>
-                                    <div className='text-center'>
-                                        <div className='mb-2 h-20 border-gray-300 border-b-2' />
-                                        <p className='font-semibold'>Implementation Engineer</p>
-                                    </div>
-                                    <div className='text-center'>
-                                        <div className='mb-2 h-20 border-gray-300 border-b-2' />
-                                        <p className='font-semibold'>End User Signature</p>
-                                    </div>
-                                    <div className='text-center'>
-                                        <div className='mb-2 h-20 border-gray-300 border-b-2' />
-                                        <p className='font-semibold'>Nodal Officer With Seal</p>
+                                <div className='space-y-4'>
+                                    <h4 className='font-semibold flex items-center gap-2'><UserPlus className='h-4 w-4' /> New Joinings</h4>
+                                    <div className='space-y-2'>
+                                        <div className='flex justify-between text-sm'>
+                                            <span className='text-muted-foreground'>Missing Photos</span>
+                                            <span className='font-bold text-red-500'>{reportData.missingPhotoNew}</span>
+                                        </div>
+                                        <div className='flex justify-between text-sm'>
+                                            <span className='text-muted-foreground'>Missing Emails</span>
+                                            <span className='font-bold text-red-500'>{reportData.missingEmailNew}</span>
+                                        </div>
+                                        <div className='flex justify-between text-sm'>
+                                            <span className='text-muted-foreground'>Missing Mobiles</span>
+                                            <span className='font-bold text-red-500'>{reportData.missingMobileNew}</span>
+                                        </div>
                                     </div>
                                 </div>
-
-                                <div className='no-print flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
-                                    <Button
-                                        onClick={handlePrint}
-                                        className='order-1 w-fit gap-2 transition-all duration-200 hover:scale-105 sm:order-2'>
-                                        <Printer className='h-4 w-4' />
-                                        Print
-                                    </Button>
-                                    <Button
-                                        variant='outline'
-                                        onClick={() => setReportData(null)}
-                                        className='order-2 w-fit gap-2 transition-all duration-200 hover:scale-105 sm:order-1'>
-                                        <X className='h-4 w-4' />
-                                        Cancel
-                                    </Button>
+                                <div className='space-y-4'>
+                                    <h4 className='font-semibold flex items-center gap-2'><UserMinus className='h-4 w-4' /> Left Staff</h4>
+                                    <div className='space-y-2'>
+                                        <div className='flex justify-between text-sm'>
+                                            <span className='text-muted-foreground'>Missing Photos</span>
+                                            <span className='font-bold text-red-500'>{reportData.missingPhotoLeft}</span>
+                                        </div>
+                                        <div className='flex justify-between text-sm'>
+                                            <span className='text-muted-foreground'>Missing Emails</span>
+                                            <span className='font-bold text-red-500'>{reportData.missingEmailLeft}</span>
+                                        </div>
+                                        <div className='flex justify-between text-sm'>
+                                            <span className='text-muted-foreground'>Missing Mobiles</span>
+                                            <span className='font-bold text-red-500'>{reportData.missingMobileLeft}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </CollapsibleSection>
+                        </CardContent>
+                    </Card>
+
+                    {/* Visual Analytics */}
+                    <div className='grid gap-6 md:grid-cols-2'>
+                        <Card className='shadow-sm overflow-hidden border-primary/10'>
+                            <CardHeader className='bg-muted/30'>
+                                <CardTitle className='text-lg font-semibold'>Employee Status Distribution</CardTitle>
+                            </CardHeader>
+                            <CardContent className='p-6'>
+                                <ResponsiveContainer width='100%' height={300}>
+                                    <PieChart>
+                                        <Pie
+                                            data={employeeStatusData}
+                                            cx='50%'
+                                            cy='50%'
+                                            labelLine={false}
+                                            outerRadius={80}
+                                            fill='#8884d8'
+                                            dataKey='value'
+                                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                        >
+                                            {employeeStatusData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip />
+                                        <Legend />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </CardContent>
+                        </Card>
+
+                        <Card className='shadow-sm overflow-hidden border-primary/10'>
+                            <CardHeader className='bg-muted/30'>
+                                <CardTitle className='text-lg font-semibold'>Missing Data Analysis</CardTitle>
+                            </CardHeader>
+                            <CardContent className='p-6'>
+                                <ResponsiveContainer width='100%' height={300}>
+                                    <BarChart data={missingInfoData}>
+                                        <CartesianGrid strokeDasharray='3 3' vertical={false} />
+                                        <XAxis dataKey='name' />
+                                        <YAxis />
+                                        <Tooltip />
+                                        <Legend />
+                                        <Bar dataKey='Working' fill='#22c55e' radius={[4, 4, 0, 0]} />
+                                        <Bar dataKey='New' fill='#3b82f6' radius={[4, 4, 0, 0]} />
+                                        <Bar dataKey='Left' fill='#ef4444' radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </CardContent>
+                        </Card>
                     </div>
-                )}
-            </div>
+
+                    {/* Action Footer */}
+                    <div className='flex justify-center pt-6 border-t'>
+                        <Button
+                            variant='outline'
+                            size='lg'
+                            onClick={() => window.print()}
+                            className='gap-2 shadow-sm transition-transform hover:scale-105 active:scale-95'
+                        >
+                            <Printer className='h-5 w-5' />
+                            Print Summary Report
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

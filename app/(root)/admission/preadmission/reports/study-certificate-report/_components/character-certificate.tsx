@@ -123,6 +123,7 @@ const CharacterCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
                         const fatherName = student.fathername || '';
                         const academicYear = student.acadamicyear || '';
                         const admNo = student.admno || '';
+                        const logoBase64 = student.MI_Logo || '';
 
                         if (isStAnnas) {
                             return (
@@ -130,7 +131,9 @@ const CharacterCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
                                     <div className='char-a4-container char-bg-watermark'>
                                         <div className='char-content-wrapper pt-[120px]'>
                                             <div className='text-center mb-20'>
-                                                <h2 className='text-[40px] font-bold uppercase tracking-tight mb-2'>ST. ANNAS SCHOOL</h2>
+                                                <div className='mx-auto mb-3 w-[150px]'>
+                                                    {logoBase64 && <img src={logoBase64} className='w-full h-auto object-contain' alt="Logo" />}
+                                                </div>
                                                 <h3 className='text-[24px] font-bold underline uppercase tracking-wide'>CONDUCT & CHARACTER CERTIFICATE</h3>
                                             </div>
 

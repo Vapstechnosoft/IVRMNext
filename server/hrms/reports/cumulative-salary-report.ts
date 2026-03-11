@@ -6,10 +6,11 @@ export interface CumulativeSalaryReportRequest {
     hreS_Year: string;
     hreS_Month: string;
     hrmdeS_IdList: number[];
+    hrmdeS_Ids: string
 }
 
 export async function getCumulativeSalaryReport(data: CumulativeSalaryReportRequest) {
-    const url = '/api/ReportCumulativeSalary/get_cumulative_salary_report';
+    const url = '/api/ReportCumulativeSalary/get_employee_cumulative_salary_by_selection';
     try {
         const response = await api.post<any>('hrms', url, data);
         if (response.success) {
@@ -91,7 +92,7 @@ export async function getEmployeesByDeptAndDesignation(deptIds: string, desigIds
 
 // API call for Getting employees based on GroupType, Department and Designation IDs
 
-export async function getEmployeesByGroupTypeDeptAndDesignation( groupTypeIds: number[],
+export async function getEmployeesByGroupTypeDeptAndDesignation(groupTypeIds: number[],
     deptIds: number[],
     desigIds: number[]) {
     const requestBody = {

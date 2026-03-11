@@ -20,6 +20,7 @@ export default function MonthendreportPage() {
     const [showReport, setShowReport] = useState(false);
     const [reportData, setReportData] = useState<ReportItem[]>([]);
     const [formKey, setFormKey] = useState(0);
+    const [logo, setLogo] = useState<string>('/school-logo.png');
 
     const requestData = {
         ASMAY_Id: Number(academicYearId),
@@ -90,8 +91,11 @@ export default function MonthendreportPage() {
             const res = await refetch();
             toast.dismiss(toastId);
 
-            if (res?.data?.data?.reportdatelist?.length) {
-                const r = res.data.data.reportdatelist[0];
+            const reportList = res?.data?.data?.reportdatelist || (Array.isArray(res?.data?.data) ? res.data.data : []);
+            if (reportList?.length) {
+                const r = reportList[0];
+                const fetchedLogo = r.MI_Logo || r.mI_Logo || r.mi_logo || '/school-logo.png';
+                setLogo(fetchedLogo);
 
                 setReportData([
                     {
@@ -299,6 +303,7 @@ export default function MonthendreportPage() {
                         year={Number(selectedYear)}
                         academicYear={Number(academicYearId)}
                         implementationName={ifName}
+                        logoBase64={logo}
                     />
                 </CollapsibleSection>
             )}
