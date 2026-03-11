@@ -231,8 +231,8 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     control={control}
                                     name='ASMAY_Id'
                                     render={({ field, fieldState }) => (
-                                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                            <Label className='font-medium text-sm sm:w-32'>
+                                        <div className='space-y-2'>
+                                            <Label>
                                                 Academic Year <span className='text-red-500'>*</span>
                                             </Label>
                                             <div className='flex-1'>
