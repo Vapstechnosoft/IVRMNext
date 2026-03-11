@@ -2030,22 +2030,22 @@ export async function getUserAccessibleModules() {
                                             title: 'ESI Report',
                                             description: 'ESI Contribution Report'
                                         },
-                                        // {
-                                        //     id: 9,
-                                        //     name: 'Head Wise Report',
-                                        //     icon: 'List',
-                                        //     url: '/hrms/reports/head-wise-report',
-                                        //     title: 'Head Wise Report',
-                                        //     description: 'Head-wise Analysis Report'
-                                        // },
-                                        // {
-                                        //     id: 10,
-                                        //     name: 'Bank Cash Report',
-                                        //     icon: 'Banknote',
-                                        //     url: '/hrms/reports/bank-cash-report',
-                                        //     title: 'Bank Cash Report',
-                                        //     description: 'Bank & Cash Summary'
-                                        // },
+                                        {
+                                            id: 9,
+                                            name: 'Head Wise Report',
+                                            icon: 'FileText',
+                                            url: '/hrms/reports/head-wise-report',
+                                            title: 'Head Wise Report',
+                                            description: 'Head-wise Analysis Report'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'Bank Cash Report',
+                                            icon: 'Banknote',
+                                            url: '/hrms/reports/bank-cash-report',
+                                            title: 'Bank Cash Report',
+                                            description: 'Bank & Cash Summary'
+                                        },
                                         // {
                                         //     id: 11,
                                         //     name: 'Employee Service Report',
@@ -2103,14 +2103,14 @@ export async function getUserAccessibleModules() {
                                         //     title: 'PF Form3A',
                                         //     description: 'Provident Fund Form 3A'
                                         // },
-                                        // {
-                                        //     id: 18,
-                                        //     name: 'HRMS Monthend Report',
-                                        //     icon: 'CalendarCheck',
-                                        //     url: '/hrms/reports/hrms-monthend-report',
-                                        //     title: 'HRMS Monthend Report',
-                                        //     description: 'Monthly Closure Report'
-                                        // },
+                                        {
+                                            id: 18,
+                                            name: 'HRMS Monthend Report',
+                                            icon: 'CalendarCheck',
+                                            url: '/hrms/reports/hrms-monthend-report',
+                                            title: 'HRMS Monthend Report',
+                                            description: 'Monthly Closure Report'
+                                        },
                                         // {
                                         //     id: 19,
                                         //     name: 'Retirement Report',
@@ -4798,7 +4798,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                 },
+                },
                 // {
                 //     id: 14,
                 //     name: 'Lesson Planner',
