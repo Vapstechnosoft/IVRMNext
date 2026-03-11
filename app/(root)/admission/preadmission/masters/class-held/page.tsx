@@ -97,10 +97,14 @@ export default function MasterClassHeldPage() {
                 const monthShortName = monthData.ivrM_Month_Name;
                 const displayName = `${monthShortName}-${year}`;
 
+                // Handle Leap Year for February
+                const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+                const maxDays = (monthNum === 2 && isLeapYear) ? 29 : monthData.ivrM_Month_Max_Days;
+
                 result.push({
                     ivrM_Month_Id: monthData.ivrM_Month_Id,
                     ivrM_Month_Name: monthData.ivrM_Month_Name,
-                    ivrM_Month_Max_Days: monthData.ivrM_Month_Max_Days,
+                    ivrM_Month_Max_Days: maxDays,
                     ascH_ClassHeld: '',
                     selected: false,
                     is_Active: true,
