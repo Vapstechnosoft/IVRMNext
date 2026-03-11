@@ -40,9 +40,7 @@ export function HeaderSearch() {
     const [isSearching, setIsSearching] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const debounceRef = useRef<NodeJS.Timeout | null>(null);
-<<<<<<< HEAD
     const activeSearchRef = useRef('');
-=======
     const [selectedIndex, setSelectedIndex] = useState(-1);
 
     useEffect(() => {
@@ -85,7 +83,6 @@ export function HeaderSearch() {
             setIsOpen(false);
         }
     };
->>>>>>> 1d265bf2a3c5168b484f89a405eb007340750d00
 
     // Flatten accessible modules into searchable pages
     const getAllPages = () => {
