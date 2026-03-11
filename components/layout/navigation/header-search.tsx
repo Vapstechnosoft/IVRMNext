@@ -228,7 +228,6 @@ export function HeaderSearch() {
 
         setIsSearching(true);
 
-        // biome-ignore lint/style/useConst: <explanation>
         let initialSearchTerm = originalSearchTerm;
 
         // Immediately update what string is currently active
@@ -415,7 +414,7 @@ export function HeaderSearch() {
                     className='w-[300px] pl-9 pr-9 transition-all focus:w-[400px] focus:ring-2 focus:ring-primary/20 bg-background'
                 />
                 {/* biome-ignore lint/a11y/useButtonType: <explanation> */}
-<button
+                <button
                     onClick={isRecording ? stopRecording : startRecording}
                     disabled={isTranscribing}
                     className={cn(
@@ -465,7 +464,7 @@ export function HeaderSearch() {
                                 <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase bg-muted/30">Application Pages</div>
                                 {results.map((result, index) => (
                                     // biome-ignore lint/a11y/useButtonType: <explanation>
-<button
+                                    <button
                                         id={`search-result-${index}`}
                                         key={`page-${index}`}
                                         onClick={() => handleSelect(result)}
@@ -494,7 +493,7 @@ export function HeaderSearch() {
                                     const actualIndex = results.length + index;
                                     return (
                                         // biome-ignore lint/a11y/useButtonType: <explanation>
-<button
+                                        <button
                                             id={`search-result-${actualIndex}`}
                                             key={`db-${index}`}
                                             onClick={() => handleDbSelect(result)}
