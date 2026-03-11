@@ -2,20 +2,18 @@
 
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { getConsolidatedReportDetails } from '@/server/timetable/reports/consolidated';
-import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable, type ColumnDef, type SortingState } from '@tanstack/react-table';
-import { Download, FileDown, Printer, RefreshCw } from 'lucide-react';
+import { getConsolidatedReport, getConsolidatedReportDetails } from '@/server/timetable/reports/consolidated';
+import { toast } from 'sonner';
+import { RefreshCw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import * as XLSX from 'xlsx';
 import ConsolidatedForm from './_components/consolidated-form';
 import ConsolidatedReportGrid from './_components/consolidated-report-grid';
 
 export default function ConsolidatedReportPage() {
     const [initialData, setInitialData] = useState<any>({});
     const [reportData, setReportData] = useState<any[]>([]);
+    const [fullReportResponse, setFullReportResponse] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [reportType, setReportType] = useState<string>('');
     const componentRef = useRef<HTMLDivElement>(null);
@@ -23,10 +21,13 @@ export default function ConsolidatedReportPage() {
     useEffect(() => {
         const fetchDetails = async () => {
             try {
-                const data = await getConsolidatedReportDetails({});
-                if (data) setInitialData(data);
+                const response = await getConsolidatedReportDetails({});
+                if (response?.success && response.data) {
+                    console.log("Consolidated Report Details Data Keys:", Object.keys(response.data));
+                    setInitialData(response.data);
+                }
             } catch (error) {
-                // Keep empty initialData to show form
+                console.error("Error fetching consolidated report details:", error);
             }
         };
         fetchDetails();
@@ -40,53 +41,36 @@ export default function ConsolidatedReportPage() {
     const handleFormSubmit = async (payload: any) => {
         if (payload.CLEAR) {
             setReportData([]);
+            setFullReportResponse(null);
+            console.log("payload", payload)
             return;
+
         }
+        console.log("payload", payload)
 
         setLoading(true);
         setReportType(payload.TYPE);
 
-        // Simulate API delay
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        try {
+            const response: any = await getConsolidatedReport(payload);
+            if (response) {
+                setFullReportResponse(response);
+                // Extract main table data based on response structure
+                const data = response.finaltable || response.data || (Array.isArray(response) ? response : []);
+                setReportData(data);
 
-        generateMockData(payload.TYPE);
-        setLoading(false);
-    };
-
-    const generateMockData = (type: string) => {
-        const staffNames = [
-            'Aarthi Rao', 'Aksa Mariyam Varghese', 'Alka Saksena', 'Alousia Jennifer',
-            'Alphonsa Mahesh', 'Angelina Judith White', 'Anita Janet Valerine Pereira',
-            'Anitha C', 'Anitha D Souza', 'Anitha Saldanha', 'Bhavya Hegde', 'Deepa M',
-            'Gowri Sankar', 'Hema Malini', 'Indira Gandhi', 'Jyothi Lakshmi'
-        ];
-        const staffAbbrs = ['Aarthi', 'Aksa', 'Alka', 'Alousla', 'Alphonsa', 'Angelina', 'Anita J V P', 'Anitha C', 'Anitha D', 'Anitha S', 'Bhavya', 'Deepa', 'Gowri', 'Hema', 'Indira', 'Jyothi'];
-
-        // Shuffle staff names to make it "change randomly"
-        const shuffledStaff = [...staffNames].sort(() => Math.random() - 0.5);
-        const limit = Math.floor(Math.random() * 10) + 10; // Random length between 10 and 20
-
-        const data = shuffledStaff.slice(0, limit).map((name) => {
-            const mon = Math.floor(Math.random() * 8);
-            const tue = Math.floor(Math.random() * 8);
-            const wed = Math.floor(Math.random() * 8);
-            const thu = Math.floor(Math.random() * 8);
-            const fri = Math.floor(Math.random() * 8);
-            const total = mon + tue + wed + thu + fri;
-
-            return {
-                name: name,
-                abbr: staffAbbrs[staffNames.indexOf(name)],
-                mon,
-                tue,
-                wed,
-                thu,
-                fri,
-                total
-            };
-        });
-
-        setReportData(data);
+                if (data.length === 0 && (!response.finaltable || response.finaltable.length === 0)) {
+                    toast.info('No data found for the selected criteria');
+                }
+            } else {
+                toast.error('Failed to fetch report data');
+            }
+        } catch (error) {
+            console.error('Error fetching consolidated report:', error);
+            toast.error('An error occurred while generating the report');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -110,6 +94,7 @@ export default function ConsolidatedReportPage() {
                     <div className='p-2' ref={componentRef}>
                         <ConsolidatedReportGrid
                             reportData={reportData}
+                            fullResponse={fullReportResponse}
                             onPrint={handlePrint}
                             reportType={reportType}
                         />
@@ -119,4 +104,3 @@ export default function ConsolidatedReportPage() {
         </div>
     );
 }
-

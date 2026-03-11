@@ -169,11 +169,12 @@ function LeaveStatusReportContent() {
             const response = await fetchLeaveStatusReport(payload);
             console.log('response', response);
             if (response.success && response.data) {
-                setReportData(response.data);
                 console.log('response.data', response.data);
                 if (response.data.length === 0) {
+                    setReportData([]);
                     toast.info('No data found for selected criteria');
                 } else {
+                    setReportData(response.data);
                     toast.success('Report generated successfully');
                 }
             } else {
@@ -397,7 +398,7 @@ function LeaveStatusReportContent() {
 
 
 
-            {reportData && (
+            {reportData?.length > 0 && (
                 <CollapsibleSection
                     title='Report Details'
                     defaultOpen={true}

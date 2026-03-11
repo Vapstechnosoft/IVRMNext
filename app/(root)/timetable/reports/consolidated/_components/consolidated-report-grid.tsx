@@ -2,16 +2,17 @@
 
 import { Button } from '@/components/ui/button';
 import { Download, Printer } from 'lucide-react';
-import { useState } from 'react';
 import * as XLSX from 'xlsx';
 
 interface ConsolidatedReportGridProps {
     reportData: any[];
+    fullResponse: any;
     onPrint: () => void;
     reportType: string;
 }
 
-export default function ConsolidatedReportGrid({ reportData, onPrint, reportType }: ConsolidatedReportGridProps) {
+export default function ConsolidatedReportGrid({ reportData, fullResponse, onPrint, reportType }: ConsolidatedReportGridProps) {
+
     const exportToExcel = () => {
         if (!reportData.length) {
             alert('No data to export!');
@@ -19,42 +20,257 @@ export default function ConsolidatedReportGrid({ reportData, onPrint, reportType
         }
 
         const wb = XLSX.utils.book_new();
-        const wsData = [];
+        let ws;
 
-        // Header
-        const headers = [
-            'SL. NO.',
-            'STAFF NAME',
-            'STAFF ABBREVIATION',
-            'MONDAY',
-            'TUESDAY',
-            'WEDNESDAY',
-            'THURSDAY',
-            'FRIDAY',
-            'TOTAL ALLOTTED PERIODS'
-        ];
-        wsData.push(headers);
-
-        // Data
-        reportData.forEach((row, index) => {
-            wsData.push([
-                index + 1,
-                row.name,
-                row.abbr,
-                row.mon,
-                row.tue,
-                row.wed,
-                row.thu,
-                row.fri,
-                row.total
-            ]);
+        // Simple export for now, can be improved per type
+        const wsData = [Object.keys(reportData[0])];
+        reportData.forEach(row => {
+            wsData.push(Object.values(row));
         });
 
-        const ws = XLSX.utils.aoa_to_sheet(wsData);
-        XLSX.utils.book_append_sheet(wb, ws, 'Consolidated Report');
+        ws = XLSX.utils.aoa_to_sheet(wsData);
+        XLSX.utils.book_append_sheet(wb, ws, 'Report');
 
-        const fileName = `Consolidated_Report_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        const fileName = `Consolidated_Report_${reportType}_${new Date().toISOString().slice(0, 10)}.xlsx`;
         XLSX.writeFile(wb, fileName);
+    };
+
+    // Rendering logic based on reportType
+    const renderTable = () => {
+        switch (reportType) {
+            case 'ST':
+                return renderStaffWiseDetails();
+            case 'STD':
+                return renderStaffDayWise();
+            case 'CSUB':
+                return renderClassSubject();
+            case 'STSUB':
+                return renderStaffSubject();
+            default:
+                return renderDefaultTable();
+        }
+    };
+
+    // 1. STAFF WISE DETAILS (ST)
+    const renderStaffWiseDetails = () => {
+        const staffList = fullResponse?.stafflst || [];
+        const days = fullResponse?.dayslst || [];
+        const periods = fullResponse?.periodslst || [];
+
+        // This view in the original code uses day/period as rows and staff as columns
+        // We'll reconstruct the rows if finaltable is the data
+        const rows: any[] = [];
+        days.forEach((day: any) => {
+            periods.forEach((period: any) => {
+                const dayPeriodLabel = `${day.ttmD_DayName}/${period.ttmP_PeriodName}`;
+                const rowData: any = { label: dayPeriodLabel, dayId: day.ttmD_Id, periodId: period.ttmP_Id };
+
+                staffList.forEach((staff: any) => {
+                    const match = reportData.filter((tt: any) =>
+                        tt.TTMD_Id === day.ttmD_Id &&
+                        tt.TTMP_Id === period.ttmP_Id &&
+                        tt.HRME_Id === staff.hrmE_Id
+                    );
+
+                    if (match.length > 0) {
+                        rowData[`staff_${staff.hrmE_Id}`] = match.map((m: any) => m.StaffSubject).join(' && ');
+                    }
+                });
+                rows.push(rowData);
+            });
+        });
+
+        return (
+            <div className='overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-lg'>
+                <table className='w-full border-collapse text-xs'>
+                    <thead>
+                        <tr className='bg-purple-700 text-white'>
+                            <th className='border border-purple-800 px-2 py-3 font-bold uppercase'>DAY/PERIOD</th>
+                            {staffList.map((staff: any) => (
+                                <th key={staff.hrmE_Id} className='border border-purple-800 px-2 py-3 font-bold uppercase'>
+                                    {fullResponse?.rpttypairods ? staff.empName : staff.ttmsaB_Abbreviation}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rows.map((row, idx) => (
+                            <tr key={idx} className='hover:bg-purple-50 transition-colors'>
+                                <td className='border border-gray-200 px-2 py-2 font-semibold bg-gray-50'>{row.label}</td>
+                                {staffList.map((staff: any) => (
+                                    <td key={staff.hrmE_Id} className='border border-gray-200 px-2 py-2 text-center'>
+                                        {row[`staff_${staff.hrmE_Id}`] || ''}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        );
+    };
+
+    // 2. STAFF DAY WISE (STD)
+    const renderStaffDayWise = () => {
+        const staffList = fullResponse?.stafflst || [];
+        const days = fullResponse?.dayslst || [];
+
+        return (
+            <div className='overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-lg'>
+                <table className='w-full border-collapse text-sm'>
+                    <thead>
+                        <tr className='bg-purple-700 text-white'>
+                            <th className='border border-purple-800 px-4 py-3 font-bold'>SL. NO.</th>
+                            <th className='border border-purple-800 px-4 py-3 font-bold text-left'>STAFF NAME</th>
+                            <th className='border border-purple-800 px-4 py-3 font-bold text-left'>ABBR</th>
+                            {days.map((day: any) => (
+                                <th key={day.ttmD_Id} className='border border-purple-800 px-4 py-3 font-bold'>{day.ttmD_DayName}</th>
+                            ))}
+                            <th className='border border-purple-800 px-4 py-3 font-bold bg-purple-800'>TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {staffList.map((staff: any, idx: number) => {
+                            const staffData = reportData.filter((tt: any) => tt.HRME_Id === staff.hrmE_Id);
+                            let total = 0;
+                            return (
+                                <tr key={staff.hrmE_Id} className='hover:bg-purple-50 transition-colors'>
+                                    <td className='border border-gray-200 px-4 py-2 text-center'>{idx + 1}</td>
+                                    <td className='border border-gray-200 px-4 py-2 font-medium'>{staff.empName}</td>
+                                    <td className='border border-gray-200 px-4 py-2'>{staff.ttmsaB_Abbreviation}</td>
+                                    {days.map((day: any) => {
+                                        const dayMatch = staffData.find((tt: any) => tt.TTMD_Id === day.ttmD_Id);
+                                        const count = dayMatch ? dayMatch.PCOUNT : 0;
+                                        total += count;
+                                        return (
+                                            <td key={day.ttmD_Id} className='border border-gray-200 px-4 py-2 text-center'>{count || ''}</td>
+                                        );
+                                    })}
+                                    <td className='border border-gray-200 px-4 py-2 text-center font-bold text-purple-700 bg-purple-50'>{total}</td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+            </div>
+        );
+    };
+
+    // 3. CLASS SUBJECT (CSUB)
+    const renderClassSubject = () => {
+        const subjectList = fullResponse?.subjectlist || [];
+        const classSections = fullResponse?.class_sectons || [];
+
+        return (
+            <div className='overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-lg'>
+                <table className='w-full border-collapse text-sm'>
+                    <thead>
+                        <tr className='bg-purple-700 text-white'>
+                            <th className='border border-purple-800 px-4 py-3 font-bold'>SL. NO.</th>
+                            <th className='border border-purple-800 px-4 py-3 font-bold text-left'>SUBJECT</th>
+                            {classSections.map((cs: any, idx: number) => (
+                                <th key={idx} className='border border-purple-800 px-2 py-3 font-bold text-xs'>{cs.asmcL_ClassName}</th>
+                            ))}
+                            <th className='border border-purple-800 px-4 py-3 font-bold bg-purple-800'>TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {subjectList.map((sub: any, idx: number) => {
+                            const subData = reportData.filter((tt: any) => tt.ISMS_Id === sub.ismS_Id);
+                            let total = 0;
+                            return (
+                                <tr key={sub.ismS_Id} className='hover:bg-purple-50 transition-colors'>
+                                    <td className='border border-gray-200 px-4 py-2 text-center'>{idx + 1}</td>
+                                    <td className='border border-gray-200 px-4 py-2 font-medium'>{sub.ismS_SubjectName}</td>
+                                    {classSections.map((cs: any, csIdx: number) => {
+                                        const match = subData.find((tt: any) => tt.ASMCL_Id === cs.asmcL_Id && tt.ASMS_Id === cs.asmS_Id);
+                                        const count = match ? match.PCOUNT : 0;
+                                        total += count;
+                                        return (
+                                            <td key={csIdx} className='border border-gray-200 px-2 py-2 text-center'>{count || ''}</td>
+                                        );
+                                    })}
+                                    <td className='border border-gray-200 px-4 py-2 text-center font-bold text-purple-700 bg-purple-50'>{total}</td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+            </div>
+        );
+    };
+
+    // 4. STAFF SUBJECT (STSUB)
+    const renderStaffSubject = () => {
+        const subjectList = fullResponse?.subjectlist || [];
+        const classSections = fullResponse?.class_sectons || [];
+
+        return (
+            <div className='overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-lg'>
+                <table className='w-full border-collapse text-sm'>
+                    <thead>
+                        <tr className='bg-purple-700 text-white'>
+                            <th className='border border-purple-800 px-4 py-3 font-bold'>SL. NO.</th>
+                            <th className='border border-purple-800 px-4 py-3 font-bold text-left'>SUBJECT</th>
+                            {classSections.map((cs: any, idx: number) => (
+                                <th key={idx} className='border border-purple-800 px-2 py-3 font-bold text-xs'>{cs.asmcL_ClassName}</th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {subjectList.map((sub: any, idx: number) => {
+                            const subData = reportData.filter((tt: any) => tt.ISMS_Id === sub.ismS_Id);
+                            return (
+                                <tr key={sub.ismS_Id} className='hover:bg-purple-50 transition-colors'>
+                                    <td className='border border-gray-200 px-4 py-2 text-center'>{idx + 1}</td>
+                                    <td className='border border-gray-200 px-4 py-2 font-medium'>{sub.ismS_SubjectName}</td>
+                                    {classSections.map((cs: any, csIdx: number) => {
+                                        const match = subData.find((tt: any) => tt.ASMCL_Id === cs.asmcL_Id && tt.ASMS_Id === cs.asmS_Id);
+                                        return (
+                                            <td key={csIdx} className='border border-gray-200 px-2 py-2 text-center text-xs'>
+                                                {match ? match.ENAME : ''}
+                                            </td>
+                                        );
+                                    })}
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+            </div>
+        );
+    };
+
+    // Default Table for other types
+    const renderDefaultTable = () => {
+        if (!reportData.length) return <div className="p-4 text-center text-gray-500">No data available for this report type.</div>;
+
+        const headers = Object.keys(reportData[0]);
+
+        return (
+            <div className='overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-lg'>
+                <table className='w-full border-collapse'>
+                    <thead>
+                        <tr className='bg-purple-700 text-white'>
+                            <th className='border border-purple-800 px-4 py-3'>SL. NO.</th>
+                            {headers.map(h => (
+                                <th key={h} className='border border-purple-800 px-4 py-3 uppercase text-xs font-bold'>{h.replace(/_/g, ' ')}</th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {reportData.map((row, idx) => (
+                            <tr key={idx} className='hover:bg-purple-50 transition-colors'>
+                                <td className='border border-gray-200 px-4 py-2 text-center'>{idx + 1}</td>
+                                {headers.map(h => (
+                                    <td key={h} className='border border-gray-200 px-4 py-2 text-sm'>{row[h]}</td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        );
     };
 
     return (
@@ -84,38 +300,7 @@ export default function ConsolidatedReportGrid({ reportData, onPrint, reportType
             </div>
 
             {/* Report Content */}
-            <div className='overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-lg'>
-                <table className='w-full border-collapse'>
-                    <thead>
-                        <tr className='bg-purple-700 text-white'>
-                            <th className='border border-purple-800 px-4 py-4 text-xs font-bold uppercase tracking-wider'>SL. NO.</th>
-                            <th className='border border-purple-800 px-4 py-4 text-xs font-bold uppercase tracking-wider text-left'>STAFF NAME</th>
-                            <th className='border border-purple-800 px-4 py-4 text-xs font-bold uppercase tracking-wider text-left'>STAFF ABBREVIATION</th>
-                            <th className='border border-purple-800 px-4 py-4 text-xs font-bold uppercase tracking-wider'>MONDAY</th>
-                            <th className='border border-purple-800 px-4 py-4 text-xs font-bold uppercase tracking-wider'>TUESDAY</th>
-                            <th className='border border-purple-800 px-4 py-4 text-xs font-bold uppercase tracking-wider'>WEDNESDAY</th>
-                            <th className='border border-purple-800 px-4 py-4 text-xs font-bold uppercase tracking-wider'>THURSDAY</th>
-                            <th className='border border-purple-800 px-4 py-4 text-xs font-bold uppercase tracking-wider'>FRIDAY</th>
-                            <th className='border border-purple-800 px-4 py-4 text-xs font-bold uppercase tracking-wider bg-purple-800'>TOTAL ALLOTTED PERIODS</th>
-                        </tr>
-                    </thead>
-                    <tbody className='divide-y divide-gray-100'>
-                        {reportData.map((row, idx) => (
-                            <tr key={idx} className='hover:bg-purple-50/50 transition-colors group'>
-                                <td className='border border-gray-200 px-4 py-3 text-center text-sm font-medium text-gray-500 bg-gray-50 group-hover:bg-purple-50'>{idx + 1}</td>
-                                <td className='border border-gray-200 px-4 py-3 text-sm font-semibold text-purple-900'>{row.name}</td>
-                                <td className='border border-gray-200 px-4 py-3 text-sm text-gray-600 italic'>{row.abbr}</td>
-                                <td className='border border-gray-200 px-4 py-3 text-center text-sm font-bold text-gray-700'>{row.mon || 0}</td>
-                                <td className='border border-gray-200 px-4 py-3 text-center text-sm font-bold text-gray-700'>{row.tue || 0}</td>
-                                <td className='border border-gray-200 px-4 py-3 text-center text-sm font-bold text-gray-700'>{row.wed || 0}</td>
-                                <td className='border border-gray-200 px-4 py-3 text-center text-sm font-bold text-gray-700'>{row.thu || 0}</td>
-                                <td className='border border-gray-200 px-4 py-3 text-center text-sm font-bold text-gray-700'>{row.fri || 0}</td>
-                                <td className='border border-gray-200 px-4 py-3 text-center text-sm font-black text-purple-700 bg-purple-50 group-hover:bg-purple-100'>{row.total || 0}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+            {renderTable()}
 
             <div className='flex justify-between items-center px-2 text-xs text-gray-500 font-medium italic'>
                 <p>* This is a generated consolidated report summary.</p>

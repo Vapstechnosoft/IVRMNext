@@ -11,7 +11,7 @@ const formatDate = (date: unknown): string => {
 export const masterStudentCountReportColumns: ColumnDef<IMasterStudentCountReportList>[] = [
     {
         accessorKey: 'user_id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -23,28 +23,28 @@ export const masterStudentCountReportColumns: ColumnDef<IMasterStudentCountRepor
     },
     {
         accessorKey: 'user_name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('user_name')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'email',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Email-Id' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Email-Id' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('email')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'phone_number',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Mobile Number' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Mobile Number' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('phone_number')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'entry_date',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Date' className='font-bold text-black' />,
         cell: ({ row }) => {
             const date = row.getValue('entry_date');
             return <div>{formatDate(date)}</div>;

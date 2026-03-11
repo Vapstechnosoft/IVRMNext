@@ -11,7 +11,7 @@ import type {
 } from '@/types/timetable/masters/masters';
 
 export async function getMasterDayClassWiseDetails(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'academicyr,classname');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'academicyr,classname,ttmD_DayName');
     const url = `/MasterDayFacade/MasterDayClasswiseDetails?${urlParams}`;
     return await api.get<IMasterDayClassWise[]>('timetable', url);
 }

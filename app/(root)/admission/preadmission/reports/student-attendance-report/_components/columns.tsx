@@ -23,49 +23,49 @@ export const attendanceColumns: ColumnDef<IStudentAttendanceReportList>[] = [
     },
     {
         accessorKey: 'RowNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row }) => <div className='w-full pl-6'>{row.getValue('RowNo')}</div>,
         enableSorting: true,
         enableHiding: false
     },
     {
         accessorKey: 'name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('name')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'AMST_AdmNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Admission No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Admission No' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('AMST_AdmNo')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'AMAY_RollNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Roll No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Roll No' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('AMAY_RollNo')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'ASA_ClassHeld',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Held' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Held' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('ASA_ClassHeld')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'ASA_Class_Attended',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Attended' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Attended' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('ASA_Class_Attended')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'Percentage',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Percentage' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Percentage' className='font-bold text-black' />,
         cell: ({ row }) => {
             const percentage = Number(row.getValue('Percentage'));
             return <div>{percentage.toFixed(2)}%</div>;

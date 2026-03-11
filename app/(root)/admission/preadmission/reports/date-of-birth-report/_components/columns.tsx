@@ -23,7 +23,7 @@ export const birthCertificateColumns: ColumnDef<any>[] = [
     },
     {
         accessorKey: 'stuFN',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' className='font-bold text-black' />,
         cell: ({ row }) => {
             const first = row.original.stuFN || row.original.stufn || '';
             const middle = row.original.stuMN || row.original.stumn || '';
@@ -35,21 +35,21 @@ export const birthCertificateColumns: ColumnDef<any>[] = [
     },
     {
         accessorKey: 'admNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Admission No.' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Admission No.' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.original.admNo || row.original.admno || 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'class',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('class') ?? row.original.className ?? 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'dob',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Date of Birth' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Date of Birth' className='font-bold text-black' />,
         cell: ({ row }) => {
             const dob = row.getValue('dob') ?? row.original.dob;
             if (!dob) return <div>N/A</div>;
@@ -64,28 +64,28 @@ export const birthCertificateColumns: ColumnDef<any>[] = [
     },
     {
         accessorKey: 'dobWord',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Date of Birth (Words)' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Date of Birth (Words)' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.original.dobWord || row.original.dobword || 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'fatherName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Father Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Father Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.original.fatherName || row.original.fathername || 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'motherName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Mother Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Mother Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.original.motherName || row.original.mothername || 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'acadamicyear',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('acadamicyear') ?? 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true

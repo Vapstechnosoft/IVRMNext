@@ -17,6 +17,8 @@ import { useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { printCumulativeSalaryReport } from './_components/print-utils';
+import { sum } from 'pdf-lib';
+import { access } from 'fs';
 
 // Static Month List (copied from Exam Module reference)
 const MONTH_LIST = [
@@ -65,6 +67,7 @@ function CumulativeSalaryReportContent() {
     const componentRef = useRef<HTMLDivElement>(null);
     const watchedGroupType = watch('groupType');
     const watchedDepartment = watch('department');
+    const watchedDesignation = watch('designation');
 
     // Queries
     const { data: yearsData } = useLeaveYearDropdown();
@@ -81,81 +84,54 @@ function CumulativeSalaryReportContent() {
         printCumulativeSalaryReport(reportData, selectedMonth, selectedYear);
     };
     const handleExport = () => {
-        if (!reportData || !reportData.cumulativeSalaryReport || reportData.cumulativeSalaryReport.length === 0) {
+        if (!reportData || !Array.isArray(reportData) || reportData.length === 0) {
             toast.error('No data to export');
             return;
         }
 
-        // Prepare columns for JSON-AS-XLSX
-        // Reference: lib/export-to-file.ts expects JSON string for columns and content if using `exportToExcel`
-        // But wait, checking usage in other files (found in step 6/7) might clarify if we pass object or string.
-        // Step 12 showed: columns: JSON.parse(columns). So it MUST be a string.
+        const uniqueEarnings = new Map();
+        const uniqueDeductions = new Map();
+        reportData.forEach((row: any) => {
+            (row.earningresult || []).forEach((e: any) => {
+                if (!uniqueEarnings.has(e.hrmeD_Id)) uniqueEarnings.set(e.hrmeD_Id, e);
+            });
+            (row.deductionresult || []).forEach((d: any) => {
+                if (!uniqueDeductions.has(d.hrmeD_Id)) uniqueDeductions.set(d.hrmeD_Id, d);
+            });
+        });
+        const earningDetails = Array.from(uniqueEarnings.values()).sort((a: any, b: any) => a.hrmeD_Order - b.hrmeD_Order);
+        const deductionDetails = Array.from(uniqueDeductions.values()).sort((a: any, b: any) => a.hrmeD_Order - b.hrmeD_Order);
 
-        const exportColumns = [
-            { label: 'Employee Code', value: 'hrme_employeecode' },
-            {
-                label: 'Employee Name',
-                value: (row: any) =>
-                    `${row.hrme_employeefirstname || ''} ${row.hrme_employeemiddlename || ''} ${row.hrme_employeelastname || ''}`
-            },
-            { label: 'Designation', value: 'hrmdes_designationname' },
-            { label: 'Working Days', value: 'hres_workingdays' },
-            // Earnings
-            ...(reportData.earningDetails || []).map((head: any) => ({
-                label: head.hrmeD_Name,
-                value: (row: any) => row[head.hrmeD_Name] || 0
-            })),
-            { label: 'Gross Pay', value: 'totalearnings' },
-            // Deductions
-            ...(reportData.dectuionDetails || []).map((head: any) => ({
-                label: head.hrmeD_Name,
-                value: (row: any) => row[head.hrmeD_Name] || 0
-            })),
-            { label: 'Total Deductions', value: 'totaldeduction' },
-            { label: 'Net Pay', value: 'totalpayable' }
-        ];
-
-        // We need to pass JSON stringified columns and content?
-        // Actually, json-as-xlsx takes objects.
-        // The helper `exportToExcel` in `lib/export-to-file.ts` does:
-        // columns: JSON.parse(columns), content: JSON.parse(content)
-        // This suggests the helper expects STRINGS.
-        // Let's verify if `json-as-xlsx` can take functions in `value`.
-        // `json-as-xlsx` supports value as function.
-        // BUT `JSON.parse` will fail if the string contains functions.
-        // If `exportToExcel` strictly parses, then we cannot use functions in `value`.
-        // We must map the content beforehand to match the keys or use simple keys.
-
-        // Strategy: Map content to flat objects with known keys if needed, OR just pass keys.
-        // But for "Employee Name", we need a computed value.
-        // So we should pre-process the content.
-
-        const processedContent = reportData.cumulativeSalaryReport.map((row: any) => {
+        const processedContent = reportData.map((row: any) => {
             const newRow: any = { ...row };
-            newRow.empName = `${row.hrme_employeefirstname || ''} ${row.hrme_employeemiddlename || ''} ${row.hrme_employeelastname || ''}`;
-
-            // Ensure earnings/deductions exist as keys (they should be there based on table logic)
+            earningDetails.forEach((head: any) => {
+                const val = (row.earningresult || []).find((e: any) => e.hrmeD_Id === head.hrmeD_Id);
+                newRow[`earning_${head.hrmeD_Id}`] = val ? val.hresD_Amount : 0;
+            });
+            deductionDetails.forEach((head: any) => {
+                const val = (row.deductionresult || []).find((d: any) => d.hrmeD_Id === head.hrmeD_Id);
+                newRow[`deduction_${head.hrmeD_Id}`] = val ? val.hresD_Amount : 0;
+            });
             return newRow;
         });
 
         const safeColumns = [
-            { label: 'Employee Code', value: 'hrme_employeecode' },
-            { label: 'Employee Name', value: 'empName' },
-            { label: 'Designation', value: 'hrmdes_designationname' },
-            { label: 'Working Days', value: 'hres_workingdays' },
-            // Earnings
-            ...(reportData.earningDetails || []).map((head: any) => ({
+            { label: 'Employee Code', value: 'hrmE_EmployeeCode' },
+            { label: 'Employee Name', value: 'hrmE_EmployeeFirstName' },
+            { label: 'Designation', value: 'hrmdeS_DesignationName' },
+            { label: 'Working Days', value: 'hreS_WorkingDays' },
+            { label: 'Basic Salary', value: 'empGrossSal' },
+            ...earningDetails.map((head: any) => ({
                 label: head.hrmeD_Name,
-                value: head.hrmeD_Name // Assuming key matches name
+                value: `earning_${head.hrmeD_Id}`
             })),
-            { label: 'Gross Pay', value: 'totalearnings' },
-            // Deductions
-            ...(reportData.dectuionDetails || []).map((head: any) => ({
+            { label: 'Gross Earning', value: 'grossEarning' },
+            ...deductionDetails.map((head: any) => ({
                 label: head.hrmeD_Name,
-                value: head.hrmeD_Name
+                value: `deduction_${head.hrmeD_Id}`
             })),
-            { label: 'Total Deductions', value: 'totaldeduction' },
-            { label: 'Net Pay', value: 'totalpayable' }
+            { label: 'Total Deductions', value: 'grossDeduction' },
+            { label: 'Net Pay', value: 'netSalary' }
         ];
 
         exportToExcel('CumulativeSalaryReport', JSON.stringify(safeColumns), JSON.stringify(processedContent));
@@ -171,6 +147,7 @@ function CumulativeSalaryReportContent() {
     const { mutate: generateReport, isPending } = useCumulativeSalaryReport();
 
     const onSubmit = (data: FilterFormValues) => {
+        console.log('onSubmit', data);
         if (!data.year || !data.month || data.designation.length === 0) {
             toast.error('Please select Year, Month and at least one Designation');
             return;
@@ -194,6 +171,8 @@ function CumulativeSalaryReportContent() {
         const selectedMonthObj = MONTH_LIST.find((m) => m.id.toString() === data.month);
         const monthName = selectedMonthObj?.name || '';
 
+        console.log('yearString', yearString);
+        console.log('monthName', monthName);
         generateReport(
             {
                 hreS_Year: yearString, // Careful here, might need full year or split. Payload "2025" implies calendar year? OR Academic start?
@@ -210,10 +189,12 @@ function CumulativeSalaryReportContent() {
                 // If the user meant "Calendar Year" dropdown, I don't have that.
                 // I'll use the selectedYearObj?.asmaY_Year for now.
                 hreS_Month: monthName,
-                hrmdeS_IdList: data.designation.map(Number)
+                hrmdeS_IdList: data.designation.map(Number),
+                hrmdeS_Ids: ''
             },
             {
                 onSuccess: (res) => {
+                    console.log('API Response:', res);
                     if (res.success && res.data) {
                         setReportData(res.data);
                         toast.success('Report generated successfully');
@@ -227,7 +208,26 @@ function CumulativeSalaryReportContent() {
 
     // Columns Construction
     const columns = useMemo(() => {
-        if (!reportData) return [];
+        if (!reportData || !Array.isArray(reportData)) return [];
+
+        const uniqueEarnings = new Map();
+        const uniqueDeductions = new Map();
+
+        reportData.forEach((row: any) => {
+            (row.earningresult || []).forEach((e: any) => {
+                if (!uniqueEarnings.has(e.hrmeD_Id)) {
+                    uniqueEarnings.set(e.hrmeD_Id, e);
+                }
+            });
+            (row.deductionresult || []).forEach((d: any) => {
+                if (!uniqueDeductions.has(d.hrmeD_Id)) {
+                    uniqueDeductions.set(d.hrmeD_Id, d);
+                }
+            });
+        });
+
+        const earningDetails = Array.from(uniqueEarnings.values()).sort((a: any, b: any) => a.hrmeD_Order - b.hrmeD_Order);
+        const deductionDetails = Array.from(uniqueDeductions.values()).sort((a: any, b: any) => a.hrmeD_Order - b.hrmeD_Order);
 
         const baseColumns = [
             {
@@ -236,141 +236,106 @@ function CumulativeSalaryReportContent() {
                 cell: ({ row }: any) => row.index + 1
             },
             {
-                accessorKey: 'hrme_employeecode',
+                accessorKey: 'hrmE_EmployeeCode',
                 header: 'Employee Code'
             },
             {
-                accessorKey: 'hrme_employeefirstname',
-                header: 'Employee Name',
-                cell: ({ row }: any) => {
-                    const e = row.original;
-                    return `${e.hrme_employeefirstname || ''} ${e.hrme_employeemiddlename || ''} ${e.hrme_employeelastname || ''}`;
-                }
+                accessorKey: 'hrmE_EmployeeFirstName',
+                header: 'Employee Name'
             },
             {
-                accessorKey: 'hrmdes_designationname',
+                accessorKey: 'hrmdeS_DesignationName',
                 header: 'Designation'
             },
             {
-                accessorKey: 'hres_workingdays',
+                accessorKey: 'hreS_WorkingDays',
                 header: 'Working Days'
+            },
+            {
+                accessorKey: 'lopAmount',
+                header: 'LOP Amount'
             }
         ];
 
         // Dynamic Earnings
-        const earningColumns = (reportData.earningDetails || []).map((head: any) => ({
+        const earningColumns = earningDetails.map((head: any) => ({
             id: `earning_${head.hrmeD_Id}`,
             header: head.hrmeD_Name, // Column Header
-            // We need to find the value for this head in the row data.
-            // Since row data seems flat but dynamic, OR we might need to match keys.
-            // Sample doesn't show keys.
-            // If the row data DOES contain dynamic keys (e.g. "Basic Pay": 1200), we can try regular accessor.
-            // If not, and it's missing from sample, we might need a mapping strategy.
-            // Let's assume the backend puts values in keys matching the Head Name (sanitized) or ID.
-            // Or maybe inside an 'earnings' array in the row?
-            // Sample: "totalearnings" is there.
-            // Valid assumption for VAPS: keys are often `headName` or similar.
-            // I'll try to look for `head.hrmeD_Name` in the row.
             accessorFn: (row: any) => {
-                // Try direct name match
-                if (row[head.hrmeD_Name] !== undefined) return row[head.hrmeD_Name];
-
-                // Try finding in an nested array if it existed (not in sample).
-                // If keys are not present, return 0.
-                return 0; // Placeholder until we confirm data structure
+                const earning = (row.earningresult || []).find((e: any) => e.hrmeD_Id === head.hrmeD_Id);
+                return earning ? earning.hresD_Amount : 0;
             }
         }));
 
         // Dynamic Deductions
-        const deductionColumns = (reportData.dectuionDetails || []).map((head: any) => ({
+        const deductionColumns = deductionDetails.map((head: any) => ({
             id: `deduction_${head.hrmeD_Id}`,
             header: head.hrmeD_Name,
             accessorFn: (row: any) => {
-                if (row[head.hrmeD_Name] !== undefined) return row[head.hrmeD_Name];
-                return 0;
+                const deduction = (row.deductionresult || []).find((d: any) => d.hrmeD_Id === head.hrmeD_Id);
+                return deduction ? deduction.hresD_Amount : 0;
             }
         }));
 
         const summaryColumns = [
             {
-                id: 'totalearnings',
-                accessorKey: 'totalearnings', // Keep for sorting if needed, but override cell
-                header: 'Gross Pay',
-                cell: ({ row }: any) => {
-                    const r = row.original;
-                    // Calculate Gross Pay
-                    const gross = (reportData.earningDetails || []).reduce((sum: number, head: any) => {
-                        return sum + (Number(r[head.hrmeD_Name]) || 0);
-                    }, 0);
-                    return gross.toFixed(2);
-                }
+                id: 'empGrossSal',
+                accessorKey: 'empGrossSal',
+                header: 'Gross Salary'
             },
             {
-                id: 'totaldeduction',
-                accessorKey: 'totaldeduction',
-                header: 'Total Deductions',
-                cell: ({ row }: any) => {
-                    const r = row.original;
-                    // Calculate Total Deductions
-                    const totalDed = (reportData.dectuionDetails || []).reduce((sum: number, head: any) => {
-                        return sum + (Number(r[head.hrmeD_Name]) || 0);
-                    }, 0);
-                    return totalDed.toFixed(2);
-                }
+                id: 'grossEarning',
+                accessorKey: 'grossEarning',
+                header: 'Gross Earning'
             },
             {
-                id: 'totalpayable',
-                accessorKey: 'totalpayable',
-                header: 'Net Pay',
-                cell: ({ row }: any) => {
-                    const r = row.original;
-                    // Calculate Net Pay
-                    const gross = (reportData.earningDetails || []).reduce((sum: number, head: any) => {
-                        return sum + (Number(r[head.hrmeD_Name]) || 0);
-                    }, 0);
-                    const totalDed = (reportData.dectuionDetails || []).reduce((sum: number, head: any) => {
-                        return sum + (Number(r[head.hrmeD_Name]) || 0);
-                    }, 0);
-                    return (gross - totalDed).toFixed(2);
-                }
+                id: 'grossDeduction',
+                accessorKey: 'grossDeduction',
+                header: 'Total Deductions'
+            },
+            {
+                id: 'netSalary',
+                accessorKey: 'netSalary',
+                header: 'Net Pay'
             }
         ];
 
         const earningGroup =
             earningColumns.length > 0
                 ? [
-                      {
-                          id: 'earnings_group',
-                          header: () => (
-                              <div className='rounded-t-md border bg-green-100 py-1 text-center font-bold text-green-700 dark:bg-green-900/20 dark:text-green-300'>
-                                  Earnings
-                              </div>
-                          ),
-                          columns: earningColumns
-                      }
-                  ]
+                    {
+                        id: 'earnings_group',
+                        header: () => (
+                            <div className='rounded-t-md border bg-green-100 py-1 text-center font-bold text-green-700 dark:bg-green-900/20 dark:text-green-300'>
+                                Earnings
+                            </div>
+                        ),
+                        columns: earningColumns
+                    }
+                ]
                 : [];
 
         const deductionGroup =
             deductionColumns.length > 0
                 ? [
-                      {
-                          id: 'deductions_group',
-                          header: () => (
-                              <div className='rounded-t-md border bg-red-100 py-1 text-center font-bold text-red-700 dark:bg-red-900/20 dark:text-red-300'>
-                                  Deductions
-                              </div>
-                          ),
-                          columns: deductionColumns
-                      }
-                  ]
+                    {
+                        id: 'deductions_group',
+                        header: () => (
+                            <div className='rounded-t-md border bg-red-100 py-1 text-center font-bold text-red-700 dark:bg-red-900/20 dark:text-red-300'>
+                                Deductions
+                            </div>
+                        ),
+                        columns: deductionColumns
+                    }
+                ]
                 : [];
 
-        return [...baseColumns, ...earningGroup, ...deductionGroup, ...summaryColumns];
+        return [...baseColumns,...summaryColumns.slice(0, 1),  ...earningGroup, ...summaryColumns.slice(1, 2), ...deductionGroup, ...summaryColumns.slice(2)];
     }, [reportData]);
 
     const processedGridData = useMemo(() => {
-        return reportData?.cumulativeSalaryReport || [];
+        console.log('Processing grid data:', reportData);
+        return reportData || [];
     }, [reportData]);
 
     return (
@@ -519,7 +484,7 @@ function CumulativeSalaryReportContent() {
                 <CollapsibleSection
                     title='Report Details'
                     defaultOpen={true}
-                    className='border shadow-md'
+                    className=''
                     rightElement={
                         <div className='flex gap-2'>
                             <Button variant='outline' size='sm' onClick={handleExport} className='gap-2'>

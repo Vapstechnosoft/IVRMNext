@@ -72,6 +72,7 @@ export default function AddMasterDayForm({ onSuccess, className = '' }: AddMaste
                                     label='Day Name'
                                     required
                                     id='ttmD_DayName'
+                                    placeholder='Enter Day Name'
                                     {...register('ttmD_DayName')}
                                     error={errors.ttmD_DayName?.message}
                                     className='w-full transition-colors focus:ring-2 focus:ring-primary/20 md:w-[250px]'
@@ -84,6 +85,7 @@ export default function AddMasterDayForm({ onSuccess, className = '' }: AddMaste
                                         label='Day Code'
                                         required
                                         id='ttmD_DayCode'
+                                        placeholder='Enter Day Code'
                                         {...register('ttmD_DayCode')}
                                         error={errors.ttmD_DayCode?.message}
                                         className='w-full transition-colors focus:ring-2 focus:ring-primary/20 md:w-[250px]'

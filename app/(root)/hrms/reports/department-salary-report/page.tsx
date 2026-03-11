@@ -67,11 +67,13 @@ export default function DepartmentSalaryReportPage() {
 
     // Watch for success
     useEffect(() => {
-        // biome-ignore lint/complexity/useOptionalChain: <explanation>
-        if (reportResult && reportResult.data && reportResult.data.departmentSalaryDetails) {
-            setReportData(reportResult.data);
-        } else if (reportResult) {
-            setReportData(null);
+        if (reportResult) {
+            if (reportResult.data?.departmentSalaryDetails?.length > 0) {
+                setReportData(reportResult.data);
+            } else {
+                setReportData(null);
+                toast.info('No Data Found');
+            }
         }
     }, [reportResult]);
 

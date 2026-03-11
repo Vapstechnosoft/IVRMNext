@@ -64,7 +64,9 @@ export default function EmailSmsPageprops(props: {
     } = usePreAdmissionEmailSmsReport(academicIdParam, fromDateParam, toDateParam, searchParams);
 
     const tableProps = useDataTableProps({
-        data: response?.data?.combined_listarray ?? []
+        ...(response || {}),
+        data: response?.data?.combined_listarray ?? [],
+        total: response?.data?.combined_listarray?.length ?? 0
     });
 
     const handleReport = () => {
@@ -275,6 +277,8 @@ export default function EmailSmsPageprops(props: {
                             isLoading={isLoading}
                             error={error}
                             showViewOptions={false}
+                            isSearchRequired={true}
+                            showSearchColumns={true}
                             loadingMessage='Loading Email Sms reports...'
                             noDataTitle='No Data Found'
                             noDataDescription='No Email Sms reports found.'
