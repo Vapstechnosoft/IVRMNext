@@ -57,6 +57,8 @@ export const studentAdmissionFormSchema = {
     // Reuse the same schema for add
     add: z.object({
         // Student Details
+        //Duplicate issue resolved
+        amsT_Id: z.coerce.number().int().optional().default(0),
         amsT_FirstName: createStringOnlySchema('First Name', 1, 100),
         amsT_MiddleName: createStringOnlyOptionalSchema('Middle Name', 0, 100).optional(),
         amsT_LastName: createStringOnlyOptionalSchema('Last Name', 0, 100).optional(),
