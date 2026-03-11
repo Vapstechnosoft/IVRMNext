@@ -958,7 +958,7 @@ export const CONCESSION_CATEGORYG_HEADS_DROPDOWN_DATA = (groupId: number) => {
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORY_HEADS__DROPDOWN],
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORY_HEADS__DROPDOWN, groupId],
             queryFn: async () => getcategoryheadsdropdown(groupId),
             staleTime: 0
         }),
