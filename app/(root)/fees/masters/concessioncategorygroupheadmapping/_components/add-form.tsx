@@ -40,14 +40,19 @@ export default function AddConcessionCatgoryGroupHeadMappingForm({ onSuccess, te
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterConcessionCategorygroupHeadMappingSchema.addOrUpdate),
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            fmcC_Id: undefined,
+            FMG_Id: undefined,
+            fmH_Ids: undefined as any
+        }
     });
-
+    const [formKey, setFormKey] = useState(0);
     const [headSearch, setheadSearch] = useState('');
 
-    const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
+    const [selectedGroupId, setSelectedGroupId] = useState<number | undefined>(undefined);
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
-    const [selectedHeadsItems, setSelectedHeadsItems] = useState<{ fmH_Id: string }[]>([]);
+    // const [selectedHeadsItems, setSelectedHeadsItems] = useState<{ fmH_Id: string }[]>([]);
     const [shouldFetchHeads, setShouldFetchHeads] = useState(false);
 
     // Group API
@@ -70,7 +75,7 @@ export default function AddConcessionCatgoryGroupHeadMappingForm({ onSuccess, te
         isLoading: headsLoading,
         error: headsError,
         refetchAll: refetchHeads
-    } = CONCESSION_CATEGORYG_HEADS_DROPDOWN_DATA(selectedGroupId ?? 0);
+    } = CONCESSION_CATEGORYG_HEADS_DROPDOWN_DATA(selectedGroupId || 0);
 
     //const headsValue = watch('fmH_Ids') || [];
 
@@ -86,12 +91,21 @@ export default function AddConcessionCatgoryGroupHeadMappingForm({ onSuccess, te
     //     }
     // }, [selectedGroupId]);
 
+    // useEffect(() => {
+    //     if (selectedGroupId) {
+    //         setSelectedHeadsItems([]); // clear previous selections
+    //         refetchHeads(); // fetch heads for selected group
+    //     }
+    // }, [selectedGroupId]);
+
     useEffect(() => {
         if (selectedGroupId) {
-            setSelectedHeadsItems([]); // clear previous selections
-            refetchHeads(); // fetch heads for selected group
+            setValue('fmH_Ids', undefined as any);
+            refetchHeads();
         }
     }, [selectedGroupId]);
+
+    // Add this useEffect after your other useEffects
 
     // Convert Heads API to { label, id }
     const headOptions =
@@ -101,58 +115,71 @@ export default function AddConcessionCatgoryGroupHeadMappingForm({ onSuccess, te
         })) ?? [];
 
     // Define form value for fmH_Ids
-    const fmH_Ids = watch('fmH_Ids') || [];
+    const fmH_Ids = watch('fmH_Ids') ?? [];
 
     const toggleHead = (id: string) => {
-        let updated = [];
+        const current = (watch('fmH_Ids') ?? []) as string[];
 
-        if (fmH_Ids.includes(id)) {
-            updated = fmH_Ids.filter((v: string) => v !== id);
+        let updated: string[];
+
+        if (current.includes(id)) {
+            updated = current.filter((v) => v !== id);
         } else {
-            updated = [...fmH_Ids, id];
+            updated = [...current, id];
         }
 
-        // MUST be tuple: at least 1 element
-        if (updated.length === 0) {
-            setValue('fmH_Ids', undefined as any);
-        } else {
-            setValue('fmH_Ids', updated as [string, ...string[]], {
-                shouldValidate: true
-            });
-        }
-
-        setSelectedHeadsItems(updated.map((x) => ({ fmH_Id: x })));
+        setValue('fmH_Ids', updated as any, { shouldValidate: true });
     };
-
     const selectAllHeads = () => {
         const all = headOptions.map((h) => h.id);
+        const current = (watch('fmH_Ids') ?? []) as string[];
 
-        if (fmH_Ids.length === all.length) {
-            // Option: clear selection → field becomes undefined
-            setValue('fmH_Ids', undefined as any);
-            setSelectedHeadsItems([]);
+        if (current.length === all.length) {
+            setValue('fmH_Ids', [] as any);
         } else {
-            setValue('fmH_Ids', all as [string, ...string[]], {
-                shouldValidate: true
-            });
-            setSelectedHeadsItems(all.map((x) => ({ fmH_Id: x })));
+            setValue('fmH_Ids', all as any, { shouldValidate: true });
         }
     };
-
     const filteredHeads = heads?.data?.filter((h) => h.fmH_FeeName.toLowerCase().includes(headSearch.toLowerCase())) ?? [];
 
+    // function OnReset() {
+    //     reset();
+    //     refetchAll();
+    //     refetchGroup();
+    //     refetchcategory();
+    //     setSelectedGroupId(null);
+    //     setSelectedHeadsItems([]);
+    //     setShouldFetchHeads(false);
+    // }
+
     function OnReset() {
-        reset();
+        reset({
+            fmcC_Id: undefined,
+            FMG_Id: undefined,
+            fmH_Ids: [] as any
+        });
+
+        setSelectedGroupId(undefined);
+        setSelectedCategoryId(null);
+        setheadSearch('');
+
+        setValue('fmH_Ids', [] as any);
+
+        setFormKey((prev) => prev + 1);
+
         refetchAll();
         refetchGroup();
         refetchcategory();
-        setSelectedGroupId(null);
-        setSelectedHeadsItems([]);
-        setShouldFetchHeads(false);
     }
-    const headIds: number[] = selectedHeadsItems.map((item) => Number(item.fmH_Id));
+
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
+            const headIds = (data.fmH_Ids || []).map((id) => Number(id));
+
+            if (!selectedCategoryId || !selectedGroupId || headIds.length === 0) {
+                toast.error('Please fill all required fields');
+                return;
+            }
             const { fmcC_Id } = data;
 
             console.log('headIds', headIds);
@@ -183,15 +210,15 @@ export default function AddConcessionCatgoryGroupHeadMappingForm({ onSuccess, te
         }
     };
 
-    const handleHeadSelection = (selectedValues: string[]) => {
-        setSelectedHeadsItems(selectedValues.map((value) => ({ fmH_Id: value.toString() })));
-    };
+    // const handleHeadSelection = (selectedValues: string[]) => {
+    //     setSelectedHeadsItems(selectedValues.map((value) => ({ fmH_Id: value.toString() })));
+    // };
 
-    console.log('selectedHeadsItems', selectedHeadsItems);
+    //console.log('selectedHeadsItems', selectedHeadsItems);
 
     return (
         <div className={`${termname}`}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+            <form key={formKey} onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='flex flex-col items-center space-y-4'>
                         {/* Category DROPDOWN */}
@@ -205,12 +232,19 @@ export default function AddConcessionCatgoryGroupHeadMappingForm({ onSuccess, te
                                     control={control}
                                     render={({ field }) => (
                                         <Select
+                                            // onValueChange={(value) => {
+                                            //     const id = Number(value);
+                                            //     field.onChange(id);
+                                            //     setSelectedCategoryId(id);
+                                            // }}
+                                            // value={field.value?.toString() || ''}>
+
+                                            key={field.value || 'empty'}
                                             onValueChange={(value) => {
-                                                const id = Number(value);
-                                                field.onChange(id);
-                                                setSelectedCategoryId(id);
+                                                field.onChange(Number(value) || '');
+                                                setSelectedCategoryId(Number(value));
                                             }}
-                                            value={field.value?.toString() || ''}>
+                                            value={field.value?.toString() || undefined}>
                                             <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder='Select Category' />
                                             </SelectTrigger>
@@ -248,13 +282,21 @@ export default function AddConcessionCatgoryGroupHeadMappingForm({ onSuccess, te
                                     control={control}
                                     render={({ field }) => (
                                         <Select
+                                            // onValueChange={(value) => {
+                                            //     const id = Number(value);
+                                            //     field.onChange(id);
+                                            //     setSelectedGroupId(id);
+                                            //     setSelectedHeadsItems([]); // clear previous heads
+                                            // }}
+                                            // value={field.value?.toString() || ''}>
+
+                                            key={field.value || 'empty'}
                                             onValueChange={(value) => {
-                                                const id = Number(value);
-                                                field.onChange(id);
-                                                setSelectedGroupId(id);
-                                                setSelectedHeadsItems([]); // clear previous heads
+                                                field.onChange(Number(value) || '');
+                                                setSelectedGroupId(Number(value));
+                                                // setSelectedHeadsItems([]); // clear previous heads
                                             }}
-                                            value={field.value?.toString() || ''}>
+                                            value={field.value?.toString() || undefined}>
                                             <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder='Select Group' />
                                             </SelectTrigger>
