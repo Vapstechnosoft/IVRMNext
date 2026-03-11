@@ -159,6 +159,7 @@ function SalaryUpdationPageContent({
 
     const watchedGroupType = watch('groupType');
     const watchedDepartment = watch('department');
+    const watchedDesignation = watch('designation');
     watch('earningDeduction');
     watch('amountType');
 
@@ -263,7 +264,12 @@ function SalaryUpdationPageContent({
                     setFilteredEmployees(initializedEmps);
                     setHasSearched(true);
                     setSelectedEmployees([]); // Reset selection on new search
-                    toast.success('Search completed successfully');
+                    if(initializedEmps?.length > 0){
+                        toast.success('Search completed successfully');
+                    }else{
+
+                        toast.error('No data found');
+                    }
                 },
                 onError: (err: any) => toast.error(err.message || 'Search failed')
             }
@@ -573,7 +579,8 @@ function SalaryUpdationPageContent({
                                 <Controller
                                     name='heads'
                                     control={control}
-                                    render={({ field }) => {
+                                    rules={{ required: 'Please select at least one head' }}
+                                    render={({ field, fieldState }) => {
                                         const currentValue = Array.isArray(field.value) ? field.value : [];
 
                                         // Filter heads based on selections
@@ -593,6 +600,7 @@ function SalaryUpdationPageContent({
                                         });
 
                                         return (
+                                            <>
                                             <MultiSelect
                                                 options={[
                                                     { label: 'All', value: 'All' },
@@ -607,19 +615,26 @@ function SalaryUpdationPageContent({
                                                 maxHeight={240}
                                                 className='w-full'
                                             />
+                                             {fieldState.error && (
+                        <p className="text-sm text-destructive">
+                            {fieldState.error.message}
+                        </p>
+                    )}
+                                            </>
                                         );
                                     }}
                                 />
+                                
                             </div>
                         </div>
 
                         <div className='flex justify-end lg:col-span-4'>
-                            <Button type='submit' className='w-32'>
+                            <Button type='submit' className='w-32' disabled={watchedGroupType?.length === 0 || watchedDepartment?.length === 0  || watchedDesignation?.length === 0 || headsData?.length === 0}>
                                 Search
                             </Button>
                         </div>
 
-                        {hasSearched && (
+                        {hasSearched && processedGridData?.length > 0 && (
                             <CollapsibleSection defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                                 <div className='space-y-4 rounded-lg border p-1'>
                                     {/* Client-side Search Input */}

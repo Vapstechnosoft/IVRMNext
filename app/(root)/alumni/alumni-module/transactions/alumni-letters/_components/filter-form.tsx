@@ -186,7 +186,17 @@ export default function FilterForm({ years, classes, onShowReport, onClear, onPr
 
                 <div className='flex flex-col gap-2'>
                     <Label>Date and Time</Label>
-                    <InputText placeholder='Enter Date and Time' {...register('display_DateandTime')} />
+                    <InputText
+                        placeholder='Enter Date and Time'
+                        {...register('display_DateandTime')}
+                        onKeyDown={(e) => {
+                            const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', '-', ':', ' '];
+                            if (!allowedKeys.includes(e.key) && !/^\d$/.test(e.key)) {
+                                e.preventDefault();
+                            }
+                        }}
+                    />
+                    {errors.display_DateandTime && <FormError>{errors.display_DateandTime.message}</FormError>}
                 </div>
             </div>
 
