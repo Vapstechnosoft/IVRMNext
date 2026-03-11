@@ -39,6 +39,48 @@ export function HeaderSearch() {
     const [isSearching, setIsSearching] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const debounceRef = useRef<NodeJS.Timeout | null>(null);
+    const [selectedIndex, setSelectedIndex] = useState(-1);
+
+    useEffect(() => {
+        setSelectedIndex(-1);
+    }, [query, results, dbResults]);
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        const totalItems = results.length + dbResults.length;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (isOpen && totalItems > 0) {
+                setSelectedIndex(prev => {
+                    const next = prev < totalItems - 1 ? prev + 1 : -1;
+                    document.getElementById(`search-result-${next}`)?.scrollIntoView({ block: 'nearest' });
+                    return next;
+                });
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (isOpen && totalItems > 0) {
+                setSelectedIndex(prev => {
+                    const next = prev > 0 ? prev - 1 : totalItems - 1;
+                    document.getElementById(`search-result-${next}`)?.scrollIntoView({ block: 'nearest' });
+                    return next;
+                });
+            }
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (isOpen && selectedIndex >= 0 && selectedIndex < totalItems) {
+                if (selectedIndex < results.length) {
+                    handleSelect(results[selectedIndex]);
+                } else {
+                    handleDbSelect(dbResults[selectedIndex - results.length]);
+                }
+            } else {
+                performSearch(query);
+            }
+        } else if (e.key === 'Escape') {
+            setIsOpen(false);
+        }
+    };
 
     // Flatten accessible modules into searchable pages
     const getAllPages = () => {
@@ -369,11 +411,7 @@ export function HeaderSearch() {
                     onFocus={() => {
                         if (query) setIsOpen(true);
                     }}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                            performSearch(query);
-                        }
-                    }}
+                    onKeyDown={handleKeyDown}
                     className='w-[300px] pl-9 pr-9 transition-all focus:w-[400px] focus:ring-2 focus:ring-primary/20 bg-background'
                 />
                 <button
@@ -426,9 +464,13 @@ export function HeaderSearch() {
                                 <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase bg-muted/30">Application Pages</div>
                                 {results.map((result, index) => (
                                     <button
+                                        id={`search-result-${index}`}
                                         key={`page-${index}`}
                                         onClick={() => handleSelect(result)}
-                                        className='relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground text-left group'
+                                        className={cn(
+                                            'relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground text-left group',
+                                            selectedIndex === index && 'bg-accent text-accent-foreground'
+                                        )}
                                     >
                                         <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-md border bg-muted/50 mr-3 group-hover:bg-background'>
                                             <FileText className='h-4 w-4 text-muted-foreground' />
@@ -446,30 +488,37 @@ export function HeaderSearch() {
                         {dbResults.length > 0 && (
                             <div>
                                 <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase bg-muted/30 border-t mt-2 pt-2">Data Records</div>
-                                {dbResults.map((result, index) => (
-                                    <button
-                                        key={`db-${index}`}
-                                        onClick={() => handleDbSelect(result)}
-                                        className='relative flex flex-col w-full px-4 py-3 text-sm border-b last:border-0 hover:bg-accent/50 text-left transition-colors'
-                                    >
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <Database className="h-3 w-3 text-blue-500" />
-                                            <span className="text-xs font-semibold text-blue-600 truncate">{result.source}</span>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                                            {/* Render first 4 key-value pairs ignoring nulls */}
-                                            {Object.entries(result.data || {})
-                                                .filter(([_, v]) => v !== null && v !== '')
-                                                .slice(0, 4)
-                                                .map(([k, v]) => (
-                                                    <div key={k} className="flex gap-1 overflow-hidden">
-                                                        <span className="font-semibold shrink-0">{k}:</span>
-                                                        <span className="truncate" title={String(v)}>{String(v)}</span>
-                                                    </div>
-                                                ))}
-                                        </div>
-                                    </button>
-                                ))}
+                                {dbResults.map((result, index) => {
+                                    const actualIndex = results.length + index;
+                                    return (
+                                        <button
+                                            id={`search-result-${actualIndex}`}
+                                            key={`db-${index}`}
+                                            onClick={() => handleDbSelect(result)}
+                                            className={cn(
+                                                'relative flex flex-col w-full px-4 py-3 text-sm border-b last:border-0 hover:bg-accent/50 text-left transition-colors',
+                                                selectedIndex === actualIndex && 'bg-accent/50'
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Database className="h-3 w-3 text-blue-500" />
+                                                <span className="text-xs font-semibold text-blue-600 truncate">{result.source}</span>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                                                {/* Render first 4 key-value pairs ignoring nulls */}
+                                                {Object.entries(result.data || {})
+                                                    .filter(([_, v]) => v !== null && v !== '')
+                                                    .slice(0, 4)
+                                                    .map(([k, v]) => (
+                                                        <div key={k} className="flex gap-1 overflow-hidden">
+                                                            <span className="font-semibold shrink-0">{k}:</span>
+                                                            <span className="truncate" title={String(v)}>{String(v)}</span>
+                                                        </div>
+                                                    ))}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         )}
 
