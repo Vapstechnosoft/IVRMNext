@@ -12,22 +12,22 @@ import { useCallback } from 'react';
 export const EventsMappingColumns: ColumnDef<IEventsMapping>[] = [
     {
         accessorKey: 'sno',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL No' />,
-        cell: (info) => info.row.index + 1
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL No' className='justify-center text-center font-bold text-black' />,
+        cell: (info) => <div className='text-center'>{info.row.index + 1}</div>
     },
     {
         accessorKey: 'coemE_EventName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Event Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Event Name' className='justify-center text-center font-bold text-black' />,
         cell: (info) => info.getValue() as string
     },
     {
         accessorKey: 'asmaY_Year',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' className='justify-center text-center font-bold text-black' />,
         cell: (info) => info.getValue() as string
     },
     {
         accessorKey: 'coeE_EStartDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Start Date' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Start Date' className='justify-center text-center font-bold text-black' />,
         cell: (info) => {
             const val = info.getValue() as string;
             return val ? new Date(val).toLocaleDateString() : '-';
@@ -35,7 +35,7 @@ export const EventsMappingColumns: ColumnDef<IEventsMapping>[] = [
     },
     {
         accessorKey: 'coeE_EEndDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='End Date' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='End Date' className='justify-center text-center font-bold text-black' />,
         cell: (info) => {
             const val = info.getValue() as string;
             return val ? new Date(val).toLocaleDateString() : '-';
@@ -43,7 +43,7 @@ export const EventsMappingColumns: ColumnDef<IEventsMapping>[] = [
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

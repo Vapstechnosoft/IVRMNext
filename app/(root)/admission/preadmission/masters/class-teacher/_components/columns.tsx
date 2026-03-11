@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 export const masterClassTeacherColumns: ColumnDef<IMasterClassTeacherList>[] = [
     {
         accessorKey: 'imcT_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -21,35 +21,35 @@ export const masterClassTeacherColumns: ColumnDef<IMasterClassTeacherList>[] = [
     },
     {
         accessorKey: 'asmaY_Year',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmcL_ClassName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='class' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='class' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmcL_ClassName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmC_SectionName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='section' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='section' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmC_SectionName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'employee_code',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='employee code' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='employee code' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('employee_code')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'employee_name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('employee_name')}</div>,
         enableSorting: true,
         enableHiding: true
@@ -57,7 +57,7 @@ export const masterClassTeacherColumns: ColumnDef<IMasterClassTeacherList>[] = [
     // {
     //   accessorKey: "Employee_Code",
     //   header: ({ column }) => (
-    //     <DataTableColumnHeader column={column} title="Employee Code" />
+    //     <DataTableColumnHeader column={column} title="Employee Code" className='font-bold text-black' />
     //   ),
     //   cell: ({ row }) => <div>{row.getValue("Employee_Code")}</div>,
     //   enableSorting: true,
@@ -66,7 +66,7 @@ export const masterClassTeacherColumns: ColumnDef<IMasterClassTeacherList>[] = [
 
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

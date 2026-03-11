@@ -74,19 +74,10 @@ function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProp
     const academicList = (academicData as any)?.data || [];
 
     const { data: gridResponse, isLoading: isGridLoading, refetchAll } = usePeriodStaffGridData(searchParams);
+    console.log()
 
-    const getGridData = (res: any, fallback: any) => {
-        if (!res) return fallback || [];
-        if (Array.isArray(res)) return res;
-        if (res.data && Array.isArray(res.data)) return res.data;
-        if (res.fix_period_staff_list) return res.fix_period_staff_list;
-        const arrayProp = Object.values(res).find((val) => Array.isArray(val));
-        if (arrayProp) return arrayProp;
-        return fallback || [];
-    };
-
-    const gridData = getGridData(gridResponse, initialData?.fix_period_staff_list);
-    const totalItems = (gridResponse as any)?.total || (gridResponse as any)?.count || gridData.length;
+    const gridData = (gridResponse as any)?.data || [];
+    const totalItems = (gridResponse as any)?.total || gridData.length;
 
     const [dayList, setDayList] = useState<any[]>(initialData?.daylist || []);
     const [periodList, setPeriodList] = useState<any[]>(initialData?.periodlist || []);
@@ -100,9 +91,9 @@ function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProp
                 if (dayList.length === 0 || periodList.length === 0 || staffList.length === 0) {
                     const fixingData = await getdetailsAllFixing();
                     if (fixingData?.data) {
-                        setDayList(uniqueById(filterData(fixingData.data.daylist || [], 'ttmD_DayName'), 'ttmD_Id'));
-                        setPeriodList(uniqueById(filterData(fixingData.data.periodlist || [], 'ttmP_PeriodName'), 'ttmP_Id'));
-                        setStaffList(uniqueById(filterData(fixingData.data.stafflist || [], 'staffName'), 'hrmE_Id'));
+                        setDayList(filterData(fixingData.data.daylist || [], 'ttmD_DayName'));
+                        setPeriodList(filterData(fixingData.data.periodlist || [], 'ttmP_PeriodName'));
+                        setStaffList(filterData(fixingData.data.stafflist || [], 'staffName'));
                     }
                 }
             } catch (error) {

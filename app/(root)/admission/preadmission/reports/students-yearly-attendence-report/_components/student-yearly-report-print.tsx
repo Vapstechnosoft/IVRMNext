@@ -108,35 +108,38 @@ export const StudentYearlyReportPrint = React.forwardRef<HTMLDivElement, Student
                                 <table className='data-table w-full'>
                                     <thead>
                                         <tr className='bg-gray-100'>
-                                            <th className='w-12'>Sl.No</th>
+                                            <th className='w-12'>Sl. No.</th>
+                                            <th>Reg No.</th>
+                                            <th>Adm No.</th>
                                             <th className='text-left'>Student Name</th>
-                                            <th>Adm. No</th>
-                                            <th>Roll No</th>
+                                            <th>Roll No.</th>
                                             {monthList.map((month: any, index: number) => (
-                                                <th key={index}>{month.monthnamee}</th>
+                                                <th key={index}>{month.monthnamee.trim()} {month.yearidname}({month.total})</th>
                                             ))}
-                                            <th>Total Present</th>
-                                            <th>Total Working Days</th>
+                                            <th>Total ({monthList.reduce((sum: any, month: any) => sum + month.total, 0)})</th>
                                             <th>Percentage</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {data.map((student, index) => {
-                                            const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
                                             return (
                                                 <tr key={index}>
                                                     <td>{index + 1}</td>
+                                                    <td>{student.AMST_RegistrationNo ?? 'N.A'}</td>
+                                                    <td>{student.AMST_AdmNo ?? 'N.A'}</td>
                                                     <td className='text-left'>{student.name}</td>
-                                                    <td>{student.AMST_AdmNo}</td>
-                                                    <td>{student.AMAY_RollNo}</td>
-                                                    {monthList.map((month: any, idx: number) => (
-                                                        <td key={idx}>
-                                                            {student.monthlyAttendance[`${month.yearidname}-${month.monthidname}`] || 0} / {month.total}
-                                                        </td>
-                                                    ))}
-                                                    <td>{student.totalPresent}</td>
-                                                    <td>{totalWorkingDays}</td>
-                                                    <td>{student.percentage}%</td>
+                                                    <td>{student.AMAY_RollNo ?? 'N.A'}</td>
+                                                    {monthList.map((month: any, idx: number) => {
+                                                        const monthKey = `${month.yearidname}-${month.monthidname}`;
+                                                        const attendance = student.monthlyAttendance[monthKey];
+                                                        return (
+                                                            <td key={idx}>
+                                                                {attendance ?? 0}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                    <td className='font-semibold'>{Number(student.totalPresent).toFixed(2)}</td>
+                                                    <td className='font-semibold'>{student.percentage}</td>
                                                 </tr>
                                             );
                                         })}

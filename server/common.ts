@@ -466,7 +466,7 @@ export async function getUserAccessibleModules() {
                             sub_menu: [
                                 {
                                     id: 5,
-                                    name: 'Application',
+                                    name: 'Admission Form',
                                     icon: 'Settings',
                                     pages: [
                                         {
@@ -4798,7 +4798,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                 },
+                }
                 // {
                 //     id: 14,
                 //     name: 'Lesson Planner',
@@ -5589,7 +5589,8 @@ export async function getUserAccessibleModules() {
                                             id: 8001,
                                             name: 'Attendance Entry',
                                             icon: 'UserCheck',
-                                            url: '/StaffPortal/attendance/attendance-entry',
+                                            // url: '/StaffPortal/attendance/attendance-entry',
+                                            url: '/admission/preadmission/attendance-entry/student-attendance',
                                             title: 'Attendance Entry',
                                             description: 'Daily Student Attendance'
                                         }
@@ -5600,19 +5601,21 @@ export async function getUserAccessibleModules() {
                                     name: 'Report',
                                     icon: 'CalendarCheck',
                                     pages: [
-                                        {
-                                            id: 8002,
-                                            name: '100% Attendance Report',
-                                            icon: 'UserCheck',
-                                            url: '/StaffPortal/attendance/100_attendance-entry',
-                                            title: '100% Attendance Report ',
-                                            description: '100% Attendance Report '
-                                        },
+                                        // {
+                                        //     id: 8002,
+                                        //     name: '100% Attendance Report',
+                                        //     icon: 'UserCheck',
+                                        //     //url: '/StaffPortal/attendance/100_attendance-entry',
+                                        //     url: '/admission/preadmission/reports/student-attendance-report',
+                                        //     title: '100% Attendance Report ',
+                                        //     description: '100% Attendance Report '
+                                        // },
                                         {
                                             id: 8003,
                                             name: 'Student Attendance Report ',
                                             icon: 'FilePieChart',
-                                            url: '/StaffPortal/attendance/student-attendance-report',
+                                            //url: '/StaffPortal/attendance/student-attendance-report',
+                                            url: '/admission/preadmission/reports/student-attendance-report',
                                             title: 'Student Attendance Report',
                                             description: 'View Attendance History'
                                         }
@@ -5635,7 +5638,8 @@ export async function getUserAccessibleModules() {
                                             id: 8004,
                                             name: 'Marks Entry',
                                             icon: 'PenSquare',
-                                            url: '/StaffPortal/exam/marks-entry',
+                                            //url: '/StaffPortal/exam/marks-entry',
+                                            url: '/Exam/exam-module/marks-entry/exam-marks-entry',
                                             title: 'Marks Entry',
                                             description: 'Direct Marks Entry'
                                         },
@@ -5643,7 +5647,8 @@ export async function getUserAccessibleModules() {
                                             id: 8005,
                                             name: 'Promotion Remarks',
                                             icon: 'Layers',
-                                            url: '/StaffPortal/exam/promotion-remarks',
+                                            //url: '/StaffPortal/exam/promotion-remarks',
+                                            url: '/Exam/exam-module/exam-mapping/promotion-setting',
                                             title: 'Promotion Remarks',
                                             description: 'Promotion Remarks'
                                         }
@@ -5658,7 +5663,8 @@ export async function getUserAccessibleModules() {
                                             id: 8006,
                                             name: 'Student Transaction',
                                             icon: 'Layers',
-                                            url: '/StaffPortal/exam/student-transaction-cce',
+                                            //url: '/StaffPortal/exam/student-transaction-cce',
+                                            url: '/Exam/exam-module/exam-mapping/student-transactioncce',
                                             title: 'Student Transaction CCE',
                                             description: 'CCE Transaction Entry'
                                         }
@@ -5674,7 +5680,8 @@ export async function getUserAccessibleModules() {
                                             id: 8007,
                                             name: 'Exam Student Wise Remarks Entry',
                                             icon: 'Layers',
-                                            url: '/StaffPortal/exam/transaction/examwise-student-remarks',
+                                            //url: '/StaffPortal/exam/transaction/examwise-student-remarks',
+                                            url: '/Exam/exam-module/marks-entry/exam-wise-student-remarks-entry',
                                             title: 'Exam Student Wise Remarks Entry',
                                             description: 'Exam Student Wise Remarks Entry'
                                         }
@@ -5689,7 +5696,8 @@ export async function getUserAccessibleModules() {
                                             id: 8008,
                                             name: 'Cumulative Report',
                                             icon: 'Layers',
-                                            url: '/StaffPortal/exam/report/cumulative-report',
+                                            //url: '/StaffPortal/exam/report/cumulative-report',
+                                            url: '/Exam/exam-module/reports/cumulative-report',
                                             title: 'Cumulative Report',
                                             description: 'Cumulative Report BB'
                                         }
@@ -5869,7 +5877,8 @@ export async function getUserAccessibleModules() {
                                             id: 80018,
                                             name: 'Defaulter Report',
                                             icon: 'UserX',
-                                            url: '/StaffPortal/fees/staff-fee-defaulter-report',
+                                            // url: '/StaffPortal/fees/staff-fee-defaulter-report',
+                                            url: '/fees/feereports/feedefaulterreport',
                                             title: 'Fee Defaulter Report',
                                             description: 'Monitor Fee Defaulters'
                                         }
@@ -6099,37 +6108,38 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
-                        },
-                        {
-                            id: 8,
-                            name: 'User Password Creation',
-                            icon: 'MessageSquare',
-                            sub_menu: [
-                                {
-                                    id: 40010,
-                                    name: 'Transaction',
-                                    icon: 'List',
-                                    pages: [
-                                        {
-                                            id: 40012,
-                                            name: 'User Password Creation',
-                                            icon: 'KeyRound',
-                                            url: '/StudentPortal/transactions/user-password-creation',
-                                            title: 'User Password Creation',
-                                            description: 'Generate Usernames and Passwords'
-                                        },
-                                        {
-                                            id: 40013,
-                                            name: 'Student Password Creation',
-                                            icon: 'LockKeyhole',
-                                            url: '/StudentPortal/transactions/student-password-creation',
-                                            title: 'Student Password Creation',
-                                            description: 'Student Credentials Management'
-                                        }
-                                    ]
-                                }
-                            ]
                         }
+                        //,
+                        // {
+                        //     id: 8,
+                        //     name: 'User Password Creation',
+                        //     icon: 'MessageSquare',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 40010,
+                        //             name: 'Transaction',
+                        //             icon: 'List',
+                        //             pages: [
+                        //                 {
+                        //                     id: 40012,
+                        //                     name: 'User Password Creation',
+                        //                     icon: 'KeyRound',
+                        //                     url: '/StudentPortal/transactions/user-password-creation',
+                        //                     title: 'User Password Creation',
+                        //                     description: 'Generate Usernames and Passwords'
+                        //                 },
+                        //                 {
+                        //                     id: 40013,
+                        //                     name: 'Student Password Creation',
+                        //                     icon: 'LockKeyhole',
+                        //                     url: '/StudentPortal/transactions/student-password-creation',
+                        //                     title: 'Student Password Creation',
+                        //                     description: 'Student Credentials Management'
+                        //                 }
+                        //             ]
+                        //         }
+                        //     ]
+                        // }
                     ]
                 },
                 {
@@ -6148,18 +6158,10 @@ export async function getUserAccessibleModules() {
                                     icon: 'Database',
                                     pages: [
                                         {
-                                            id: 1,
-                                            name: 'Question Paper Generator',
-                                            icon: 'FileText',
-                                            url: '/iframe/ai-question-paper-generator',
-                                            title: 'AI Question Paper Generator',
-                                            description: 'Generate question papers from textbooks using AI'
-                                        },
-                                        {
                                             id: 2,
                                             name: 'AI Notemaker',
                                             icon: 'FileText',
-                                            url: '/iframe/ai-notemaker',
+                                            url: '/StudentPortal/ai-notemaker',
                                             title: 'AI Notemaker',
                                             description: 'Summarize and create structured notes from textbooks using AI'
                                         },
@@ -6167,7 +6169,7 @@ export async function getUserAccessibleModules() {
                                             id: 3,
                                             name: 'AI Performance Analysis',
                                             icon: 'BarChart',
-                                            url: '/Exam/exam-module/ai-performance-analysis',
+                                            url: '/StudentPortal/ai-performance-analysis',
                                             title: 'AI Performance Analysis',
                                             description: 'Analyze performance metrics and AI-driven insights'
                                         }
