@@ -228,6 +228,7 @@ export function HeaderSearch() {
 
         setIsSearching(true);
 
+        // biome-ignore lint/style/useConst: <explanation>
         let initialSearchTerm = originalSearchTerm;
 
         // Immediately update what string is currently active
