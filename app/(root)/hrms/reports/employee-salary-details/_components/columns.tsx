@@ -41,11 +41,22 @@ export const getMonthlySalaryDetailColumns = (
         },
         {
             id: 'viewDetails',
-            header: 'View Details',
+            header: () => (
+                <div className="text-center">
+                    View Details
+                </div>
+            ),
             cell: ({ row }) => (
-                <Button variant='ghost' size='sm' onClick={() => onViewDetails(row.original)} className='text-blue-600 hover:text-blue-700'>
-                    <Eye className='h-4 w-4' />
-                </Button>
+                <div className="flex justify-center">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onViewDetails(row.original)}
+                        className="text-blue-600 hover:text-blue-700"
+                    >
+                        <Eye className="h-4 w-4" />
+                    </Button>
+                </div>
             ),
             enableSorting: false,
             enableHiding: false
