@@ -75,18 +75,8 @@ function PeriodSubjectTabContent({ initialData, searchParams }: PeriodSubjectTab
 
     const { data: gridResponse, isLoading: isGridLoading, refetchAll } = usePeriodSubjectGridData(searchParams);
 
-    const getGridData = (res: any, fallback: any) => {
-        if (!res) return fallback || [];
-        if (Array.isArray(res)) return res;
-        if (res.data && Array.isArray(res.data)) return res.data;
-        if (res.fix_period_subject_list) return res.fix_period_subject_list;
-        const arrayProp = Object.values(res).find((val) => Array.isArray(val));
-        if (arrayProp) return arrayProp;
-        return fallback || [];
-    };
-
-    const gridData = getGridData(gridResponse, initialData?.fix_period_subject_list);
-    const totalItems = (gridResponse as any)?.total || (gridResponse as any)?.count || gridData.length;
+    const gridData = (gridResponse as any)?.data || [];
+    const totalItems = (gridResponse as any)?.total || gridData.length;
 
     const [dayList, setDayList] = useState<any[]>(initialData?.daylist || []);
     const [periodList, setPeriodList] = useState<any[]>(initialData?.periodlist || []);

@@ -58,7 +58,7 @@ export function audioBufferToWavBlob(buffer: AudioBuffer): Blob {
 export async function enhanceAndConvertToWav(webmBlob: Blob): Promise<Blob> {
     try {
         const arrayBuffer = await webmBlob.arrayBuffer();
-        const ctx = new OfflineAudioContext(1, 44100 * 5, 44100);
+        const ctx = new OfflineAudioContext(1, 44100 * 15, 44100);
         const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
 
         // Normalize

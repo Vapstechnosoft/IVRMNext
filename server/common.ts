@@ -466,7 +466,7 @@ export async function getUserAccessibleModules() {
                             sub_menu: [
                                 {
                                     id: 5,
-                                    name: 'Application',
+                                    name: 'Admission Form',
                                     icon: 'Settings',
                                     pages: [
                                         {
@@ -6108,37 +6108,38 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
-                        },
-                        {
-                            id: 8,
-                            name: 'User Password Creation',
-                            icon: 'MessageSquare',
-                            sub_menu: [
-                                {
-                                    id: 40010,
-                                    name: 'Transaction',
-                                    icon: 'List',
-                                    pages: [
-                                        {
-                                            id: 40012,
-                                            name: 'User Password Creation',
-                                            icon: 'KeyRound',
-                                            url: '/StudentPortal/transactions/user-password-creation',
-                                            title: 'User Password Creation',
-                                            description: 'Generate Usernames and Passwords'
-                                        },
-                                        {
-                                            id: 40013,
-                                            name: 'Student Password Creation',
-                                            icon: 'LockKeyhole',
-                                            url: '/StudentPortal/transactions/student-password-creation',
-                                            title: 'Student Password Creation',
-                                            description: 'Student Credentials Management'
-                                        }
-                                    ]
-                                }
-                            ]
                         }
+                        //,
+                        // {
+                        //     id: 8,
+                        //     name: 'User Password Creation',
+                        //     icon: 'MessageSquare',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 40010,
+                        //             name: 'Transaction',
+                        //             icon: 'List',
+                        //             pages: [
+                        //                 {
+                        //                     id: 40012,
+                        //                     name: 'User Password Creation',
+                        //                     icon: 'KeyRound',
+                        //                     url: '/StudentPortal/transactions/user-password-creation',
+                        //                     title: 'User Password Creation',
+                        //                     description: 'Generate Usernames and Passwords'
+                        //                 },
+                        //                 {
+                        //                     id: 40013,
+                        //                     name: 'Student Password Creation',
+                        //                     icon: 'LockKeyhole',
+                        //                     url: '/StudentPortal/transactions/student-password-creation',
+                        //                     title: 'Student Password Creation',
+                        //                     description: 'Student Credentials Management'
+                        //                 }
+                        //             ]
+                        //         }
+                        //     ]
+                        // }
                     ]
                 },
                 {
@@ -6157,18 +6158,10 @@ export async function getUserAccessibleModules() {
                                     icon: 'Database',
                                     pages: [
                                         {
-                                            id: 1,
-                                            name: 'Question Paper Generator',
-                                            icon: 'FileText',
-                                            url: '/iframe/ai-question-paper-generator',
-                                            title: 'AI Question Paper Generator',
-                                            description: 'Generate question papers from textbooks using AI'
-                                        },
-                                        {
                                             id: 2,
                                             name: 'AI Notemaker',
                                             icon: 'FileText',
-                                            url: '/iframe/ai-notemaker',
+                                            url: '/StudentPortal/ai-notemaker',
                                             title: 'AI Notemaker',
                                             description: 'Summarize and create structured notes from textbooks using AI'
                                         },
@@ -6176,7 +6169,7 @@ export async function getUserAccessibleModules() {
                                             id: 3,
                                             name: 'AI Performance Analysis',
                                             icon: 'BarChart',
-                                            url: '/Exam/exam-module/ai-performance-analysis',
+                                            url: '/StudentPortal/ai-performance-analysis',
                                             title: 'AI Performance Analysis',
                                             description: 'Analyze performance metrics and AI-driven insights'
                                         }

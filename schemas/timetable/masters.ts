@@ -5,7 +5,7 @@ export const masterDaySchema = {
     addOrUpdate: z.object({
         ttmD_Id: z.number().optional(),
         ttmD_DayName: createStringOnlySchema('Day Name', 1, 50),
-        ttmD_DayCode: createStringOnlySchema('Day Code', 1, 30)
+        ttmD_DayCode: createStringOnlySchema('Day Code', 1, 10)
     }),
     delete: z.object({
         ttmD_Id: deleteIdSchema('ttmD_Id')

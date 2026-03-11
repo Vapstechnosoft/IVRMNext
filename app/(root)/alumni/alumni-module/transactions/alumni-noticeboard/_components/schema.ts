@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const alumniNoticeBoardSchema = z
     .object({
         alntB_Id: z.number().optional(),
-        alntB_Title: z.string().min(1, 'Notice Title is required'),
+        alntB_Title: z.string().min(1, 'Notice Title is required').max(25, 'Notice Title cannot exceed 25 characters'),
         alntB_Description: z.string().optional(),
         alntB_StartDate: z.coerce.date({ required_error: 'Start Date is required' }),
         alntB_EndDate: z.coerce.date({ required_error: 'End Date is required' }),
