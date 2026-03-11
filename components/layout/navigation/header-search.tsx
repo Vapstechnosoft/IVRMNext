@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { setNavigationContext } from './navigation-context';
 import { searchDatabase } from '@/server/search-action';
 import type { IUserAccessibleModules } from '@/types';
+import { translateText } from '@/server/translate-action';
 
 interface SearchResult {
     type: 'page';
@@ -39,60 +40,14 @@ export function HeaderSearch() {
     const [isSearching, setIsSearching] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const debounceRef = useRef<NodeJS.Timeout | null>(null);
+    const activeSearchRef = useRef('');
 
     // Flatten accessible modules into searchable pages
     const getAllPages = () => {
-        const visualsModule: IUserAccessibleModules = {
-            id: 9999,
-            name: "Visual Insights",
-            icon: "BarChart3",
-            menu: [
-                {
-                    id: 9991,
-                    name: "Dashboard",
-                    icon: "LayoutDashboard",
-                    sub_menu: [
-                        {
-                            id: 9992,
-                            name: "Statistics & Graphs",
-                            icon: "BarChart",
-                            pages: [
-                                {
-                                    id: 9993,
-                                    name: "Statistics",
-                                    icon: "BarChart",
-                                    url: "/visual-insights/statistics-graphs",
-                                    title: "Statistics & Graphs",
-                                    description: "Visual analytics and reports"
-                                }
-                            ]
-                        },
-                        {
-                            id: 9994,
-                            name: "Templates",
-                            icon: "LayoutTemplate",
-                            pages: [
-                                {
-                                    id: 9995,
-                                    name: "Custom Templates",
-                                    icon: "LayoutTemplate",
-                                    url: "/visual-insights/custom-templates",
-                                    title: "Custom Templates",
-                                    description: "Create and manage report templates"
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        };
-
         const baseModules = accessibleModule?.data || [];
-        const combinedModules = [...baseModules, visualsModule];
-
         const pages: SearchResult[] = [];
 
-        combinedModules.forEach((module) => {
+        baseModules.forEach((module) => {
             module.menu.forEach((menu) => {
                 menu.sub_menu.forEach((subMenu) => {
                     subMenu.pages.forEach((page) => {
@@ -219,9 +174,9 @@ export function HeaderSearch() {
         };
     }, []);
 
-    const performSearch = async (searchTerm: string) => {
-        if (!searchTerm.trim() || searchTerm === "Listening") {
-            if (searchTerm !== "Listening") {
+    const performSearch = async (originalSearchTerm: string) => {
+        if (!originalSearchTerm.trim() || originalSearchTerm === "Listening") {
+            if (originalSearchTerm !== "Listening") {
                 setResults([]);
                 setDbResults([]);
                 setIsSearching(false);
@@ -231,35 +186,79 @@ export function HeaderSearch() {
 
         setIsSearching(true);
 
-        // 1. Search Pages (Client-side)
+        let initialSearchTerm = originalSearchTerm;
+
+        // Immediately update what string is currently active
+        // This prevents race conditions from slow backend translation
+        activeSearchRef.current = originalSearchTerm;
+
+        // 1. Immediate Search Pages (Client-side)
+        // We do this immediately for instant feedback
         const allPages = getAllPages();
-        const searchTerms = searchTerm.toLowerCase().split(' ');
+        const searchTerms = initialSearchTerm.toLowerCase().split(' ');
         const filteredPages = allPages.filter(item => {
             const text = `${item.title} ${item.subtitle}`.toLowerCase();
             return searchTerms.every(term => text.includes(term));
         }).slice(0, 7); // Limit 6 suggestions
         setResults(filteredPages);
 
-        try {
-            // 2. Search Database (Python Backend)
-            // Debounce DB search to avoid spamming the Python script
-            if (debounceRef.current) clearTimeout(debounceRef.current);
+        if (debounceRef.current) clearTimeout(debounceRef.current);
 
-            debounceRef.current = setTimeout(async () => {
+        debounceRef.current = setTimeout(async () => {
+            try {
+                let searchTerm = originalSearchTerm;
+
+                // Fast path: if starts with English alphabet, don't run heavy translation
+                const isEnglish = /^[a-zA-Z]/.test(searchTerm);
+
+                if (!isEnglish) {
+                    try {
+                        const translateResponse = await translateText(originalSearchTerm);
+                        // Abort if the user typed something else while we were translating
+                        if (activeSearchRef.current !== originalSearchTerm) return;
+
+                        if (translateResponse?.text) {
+                            searchTerm = translateResponse.text;
+
+                            // Re-filter client pages using translated string
+                            const translatedTerms = searchTerm.toLowerCase().split(' ');
+                            const newFilteredPages = allPages.filter(item => {
+                                const text = `${item.title} ${item.subtitle}`.toLowerCase();
+                                return translatedTerms.every(term => text.includes(term));
+                            }).slice(0, 7);
+                            setResults(newFilteredPages);
+                        }
+                    } catch (err) {
+                        console.warn('Translation step failed', err);
+                    }
+                }
+
+                // Abort if the user typed something else before DB fetch
+                if (activeSearchRef.current !== originalSearchTerm) return;
+
+                // 2. Search Database (Python Backend)
                 const response = await searchDatabase(searchTerm);
+
+                // Abort if the user typed something else during DB fetch
+                if (activeSearchRef.current !== originalSearchTerm) return;
+
                 if (response?.results) {
                     setDbResults(response.results.slice(0, 6).map((r: any) => ({
                         source: r.table || 'Database',
                         data: r.data
                     })));
+                } else {
+                    setDbResults([]);
                 }
-                setIsSearching(false);
-            }, 800);
-
-        } catch (error) {
-            console.error("DB Search failed", error);
-            setIsSearching(false);
-        }
+            } catch (error) {
+                console.error("Search failed", error);
+            } finally {
+                // Only clear searching state if this is the active search
+                if (activeSearchRef.current === originalSearchTerm) {
+                    setIsSearching(false);
+                }
+            }
+        }, 800);
     };
 
     useEffect(() => {
