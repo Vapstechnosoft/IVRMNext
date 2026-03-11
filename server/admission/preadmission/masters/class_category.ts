@@ -12,7 +12,7 @@ import type {
 } from '@/types/admission/preadmission/masters';
 
 export async function getMasterClassCategory(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmaY_Year,amC_Name,asmcL_ClassName');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmaY_Year,amC_Name,asmcL_ClassName,asmC_SectionName');
     const url = `/master_class_category?${urlParams}`;
     return await api.get<IMasterClassCategoryList[]>('admission', url);
 }
