@@ -67,6 +67,11 @@ export default function ExamMarksCalculationForm() {
             try {
                 const { data } = await getClassDropDownByAcademicYearlist(selectedYear);
                 setClasses(Array.isArray(data) ? data : []);
+                setSections([]);
+                setExams([]);
+                setValue('asmcL_Id', 0);
+                setValue('asmS_Id', 0);
+                setValue('emE_Id', 0);
             } catch {
                 toast.error('Failed to load classes');
                 setClasses([]);
@@ -87,6 +92,9 @@ export default function ExamMarksCalculationForm() {
             try {
                 const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
                 setSections(Array.isArray(data) ? data : []);
+                setExams([]);
+                setValue('asmS_Id', 0);
+                setValue('emE_Id', 0);
             } catch {
                 toast.error('Failed to load sections');
                 setSections([]);
@@ -134,6 +142,13 @@ export default function ExamMarksCalculationForm() {
 
     const handleCancel = () => {
         reset();
+        setValue('asmaY_Id', 0);
+        setValue('asmcL_Id', 0);
+        setValue('asmS_Id', 0);
+        setValue('emE_Id', 0);
+        setClasses([]);
+        setSections([]);
+        setExams([]);
         toast.info('Form cleared');
     };
 
@@ -157,8 +172,9 @@ export default function ExamMarksCalculationForm() {
                                                 </Label>
                                                 <div className='flex-1'>
                                                     <Select
+                                                        key={field.value}
                                                         onValueChange={(v) => field.onChange(Number(v))}
-                                                        value={field.value ? String(field.value) : ''}>
+                                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select Academic Year' />
                                                         </SelectTrigger>
@@ -187,9 +203,10 @@ export default function ExamMarksCalculationForm() {
                                                 </Label>
                                                 <div className='flex-1'>
                                                     <Select
+                                                        key={field.value}
                                                         disabled={!selectedYear || selectedYear === 0}
                                                         onValueChange={(v) => field.onChange(Number(v))}
-                                                        value={field.value ? String(field.value) : ''}>
+                                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select Class' />
                                                         </SelectTrigger>
@@ -218,9 +235,10 @@ export default function ExamMarksCalculationForm() {
                                                 </Label>
                                                 <div className='flex-1'>
                                                     <Select
+                                                        key={field.value}
                                                         disabled={!selectedClass || selectedClass === 0}
                                                         onValueChange={(v) => field.onChange(Number(v))}
-                                                        value={field.value ? String(field.value) : ''}>
+                                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select Section' />
                                                         </SelectTrigger>
@@ -249,9 +267,10 @@ export default function ExamMarksCalculationForm() {
                                                 </Label>
                                                 <div className='flex-1'>
                                                     <Select
+                                                        key={field.value}
                                                         disabled={!selectedSection || selectedSection === 0}
                                                         onValueChange={(v) => field.onChange(Number(v))}
-                                                        value={field.value ? String(field.value) : ''}>
+                                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select Exam Name' />
                                                         </SelectTrigger>

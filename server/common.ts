@@ -1376,14 +1376,14 @@ export async function getUserAccessibleModules() {
                                             title: 'PROMOTION REMARKS',
                                             description: ''
                                         },
-                                        // {
-                                        //     id: 65,
-                                        //     name: 'Marks Entry',
-                                        //     icon: 'CalendarDays',
-                                        //     url: '/Exam/exam-module/marks-entry/exam-marks-entry',
-                                        //     title: 'Marks Entry',
-                                        //     description: 'Manage Marks Entry Details'
-                                        // },
+                                        {
+                                            id: 65,
+                                            name: 'Marks Entry',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/marks-entry/exam-marks-entry',
+                                            title: 'Marks Entry',
+                                            description: 'Manage Marks Entry Details'
+                                        },
                                         {
                                             id: 66,
                                             name: 'Student Wise Publish Marks',
