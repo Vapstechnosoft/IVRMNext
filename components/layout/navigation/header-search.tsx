@@ -184,7 +184,6 @@ export function HeaderSearch() {
                 }
 
                 setIsTranscribing(true);
-                setQuery("Transcribing...");
 
                 try {
                     const wavBlob = await enhanceAndConvertToWav(blob);
@@ -193,14 +192,25 @@ export function HeaderSearch() {
                     const formData = new FormData();
                     formData.append('audio', file);
 
-                    const res = await fetch('/api/transcribe', {
+                    const res = await fetch('/api/header-voice', {
                         method: 'POST',
                         body: formData
                     });
 
+                    if (!res.ok) {
+                        const errorText = await res.text();
+                        try {
+                            const errorJson = JSON.parse(errorText);
+                            toast.error(errorJson.error || 'Server error');
+                        } catch {
+                            toast.error(`Server error: ${res.status}`);
+                        }
+                        return;
+                    }
+
                     const result = await res.json();
 
-                    if (res.ok && result.text?.trim()) {
+                    if (result.text?.trim()) {
                         const transcript = result.text.trim();
                         setQuery(transcript);
                         setIsOpen(true);
@@ -221,15 +231,14 @@ export function HeaderSearch() {
             recorder.start();
             mediaRecorderRef.current = recorder;
             setIsRecording(true);
-            setQuery("Listening...");
             setIsOpen(true);
 
-            // Longer timeout for header search (5 seconds)
+            // Longer timeout for header search (10 seconds)
             recordingTimeoutRef.current = setTimeout(() => {
                 if (mediaRecorderRef.current?.state === 'recording') {
                     stopRecording();
                 }
-            }, 5000);
+            }, 10000);
 
         } catch (err: any) {
             console.error("Microphone error:", err);
@@ -253,8 +262,8 @@ export function HeaderSearch() {
     }, []);
 
     const performSearch = async (searchTerm: string) => {
-        if (!searchTerm.trim() || searchTerm === "Listening...") {
-            if (searchTerm !== "Listening...") {
+        if (!searchTerm.trim() || searchTerm === "Listening") {
+            if (searchTerm !== "Listening") {
                 setResults([]);
                 setDbResults([]);
                 setIsSearching(false);
@@ -270,7 +279,7 @@ export function HeaderSearch() {
         const filteredPages = allPages.filter(item => {
             const text = `${item.title} ${item.subtitle}`.toLowerCase();
             return searchTerms.every(term => text.includes(term));
-        }).slice(0, 6); // Limit 6 suggestions
+        }).slice(0, 7); // Limit 6 suggestions
         setResults(filteredPages);
 
         try {
@@ -303,8 +312,8 @@ export function HeaderSearch() {
             return;
         }
 
-        // Only search on type if query length > 2 and not "Listening..."
-        if (query.length > 2 && query !== "Listening...") {
+        // Only search on type if query length > 1 and not "Listening"
+        if (query.length > 1 && query !== "Listening") {
             performSearch(query);
         }
     }, [query]);
@@ -408,21 +417,43 @@ export function HeaderSearch() {
                 <button
                     onClick={isRecording ? stopRecording : startRecording}
                     disabled={isTranscribing}
-                    className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full transition-colors ${isRecording
-                        ? "bg-red-100 text-red-600 animate-pulse"
-                        : "hover:bg-accent text-muted-foreground"
-                        } ${isTranscribing ? "opacity-50 cursor-not-allowed" : ""}`}
+                    className={cn(
+                        "absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300",
+                        isRecording
+                            ? "bg-white shadow-[0_0_20px_rgba(139,92,246,0.3)] scale-110 z-10"
+                            : "hover:bg-purple-50 text-muted-foreground hover:text-purple-600 group/mic"
+                    )}
                     title={isRecording ? "Stop recording" : "Voice search"}
                 >
                     {isTranscribing ? (
-                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                        <div className="flex gap-1 items-center justify-center">
+                            <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce [animation-delay:-0.3s]" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-bounce [animation-delay:-0.15s]" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-bounce" />
+                        </div>
                     ) : isRecording ? (
-                        <MicOff className="h-4 w-4" />
+                        <div className="flex gap-1 items-center justify-center">
+                            <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-purple-dot-1" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-purple-dot-2" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-purple-dot-3" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-purple-700 animate-purple-dot-4" />
+                        </div>
                     ) : (
-                        <Mic className="h-4 w-4" />
+                        <Mic className="h-5 w-5 text-purple-600 transition-colors" />
                     )}
                 </button>
             </div>
+
+            <style jsx>{`
+                @keyframes purple-dot {
+                    0%, 100% { transform: translateY(0); opacity: 0.5; }
+                    50% { transform: translateY(-6px); opacity: 1; }
+                }
+                .animate-purple-dot-1 { animation: purple-dot 0.8s ease-in-out infinite; animation-delay: 0s; }
+                .animate-purple-dot-2 { animation: purple-dot 0.8s ease-in-out infinite; animation-delay: 0.1s; }
+                .animate-purple-dot-3 { animation: purple-dot 0.8s ease-in-out infinite; animation-delay: 0.2s; }
+                .animate-purple-dot-4 { animation: purple-dot 0.8s ease-in-out infinite; animation-delay: 0.3s; }
+            `}</style>
 
             {isOpen && (results.length > 0 || dbResults.length > 0 || isSearching) && (
                 <div className='absolute top-full left-0 mt-2 w-full min-w-[400px] max-w-[600px] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95 z-50'>

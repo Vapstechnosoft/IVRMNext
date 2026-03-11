@@ -7,8 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useTimeTableAcademicYear, useTimeTableCategoryClassMapping, useTimeTableCategoryDropDownData } from '@/hooks/timetable/useMasters';
 import { cn } from '@/lib/utils';
 import { categoryClassMappingSchema } from '@/schemas/timetable/masters';
-import { addOrUpdateCategoryClassMapping } from '@/server/timetable/masters/categoryclassmapping';
-import { ClassDropDownDataOnchnGeYrAndCategory } from '@/server/timetable/masters/masterdayclasswise';
+import { addOrUpdateCategoryClassMapping, getuseTimeTableClassDropdownDataDetails, getuseTimeTableClassDropdownDataDetailsNew } from '@/server/timetable/masters/categoryclassmapping';
 import type { ClassDropDownDataTT } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, Save, Square } from 'lucide-react';
@@ -84,35 +83,47 @@ export default function AddCategoryClassMappingForm({ onSuccess, buildingname = 
             const fetchClasses = async () => {
                 try {
                     setIsLoadingClasses(true);
-                    const res = await ClassDropDownDataOnchnGeYrAndCategory(academicyear, category);
+                    const res = await getuseTimeTableClassDropdownDataDetailsNew(academicyear, category);
 
-                    console.log('getClassDropDownMasterDayClasswiseOnchnageofCatandyr res', res);
+                    console.log('getuseTimeTableClassDropdownDataDetails res', res);
 
-                    if (res?.success && Array.isArray(res.data)) {
-                        setClassdata(res.data);
+                    const classes = res?.data?.querydata || res?.querydata || [];
+                    const selected = res?.data?.binddetails || res?.binddetails || [];
+
+                    if (Array.isArray(classes)) {
+                        setClassdata(classes);
                     } else {
                         setClassdata([]);
                     }
 
-                    // Reset class selection when data changes
-                    setValue('calssids', undefined as any);
-                    setSelectedcalssidsItems([]);
+                    if (Array.isArray(selected) && selected.length > 0) {
+                        const preselectedIds = selected.map((item: any) => String(item.asmcL_Id));
+                        setValue('calssids', preselectedIds as [string, ...string[]], {
+                            shouldValidate: true
+                        });
+                        setSelectedClassItems(preselectedIds.map((id) => ({ asmcl_Id: id })));
+                    } else {
+                        setValue('calssids', undefined as any);
+                        setSelectedClassItems([]);
+                    }
+
                     setClassSearch('');
                 } catch (err) {
                     console.error('Error fetching classes', err);
                     setClassdata([]);
+                    setValue('calssids', undefined as any);
+                    setSelectedClassItems([]);
                 } finally {
                     setIsLoadingClasses(false);
                 }
             };
             fetchClasses();
         } else {
-            // Clear class data if either academic year or category is not selected
             setClassdata([]);
             setValue('calssids', undefined as any);
-            setSelectedcalssidsItems([]);
+            setSelectedClassItems([]);
         }
-    }, [academicyear, category]);
+    }, [academicyear, category, setValue]);
 
     const ClassOptions =
         classdata.map((h) => ({
@@ -172,6 +183,7 @@ export default function AddCategoryClassMappingForm({ onSuccess, buildingname = 
             };
             console.log('payload', JSON.stringify(payload));
             const response = await addOrUpdateCategoryClassMapping(payload);
+            console.log('response', response);
             if (response.success) {
                 toast.success(response.message);
                 reset();

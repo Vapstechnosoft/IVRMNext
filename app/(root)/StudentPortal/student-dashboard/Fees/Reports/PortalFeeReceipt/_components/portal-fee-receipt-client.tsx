@@ -3,8 +3,10 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useRef, useState } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import { getReceipts, getReceiptDetails } from '../actions'; // Fixed: removed duplicate
 import type { AcademicYear, FeeReceipt, ReceiptDetailsResponse } from '../types';
 
@@ -18,7 +20,32 @@ export default function PortalFeeReceiptClient({ initialYears }: PortalFeeReceip
     const [receipts, setReceipts] = useState<FeeReceipt[]>([]);
     const [selectedReceipt, setSelectedReceipt] = useState<string>('');
     const [receiptData, setReceiptData] = useState<ReceiptDetailsResponse | null>(null);
+    const [resetKey, setResetKey] = useState<number>(0);
     const componentRef = useRef<HTMLDivElement>(null);
+
+    const handlePrint = useReactToPrint({
+        contentRef: componentRef,
+        documentTitle: 'Fee_Receipt',
+    });
+
+    const handleDownload = async () => {
+        if (!componentRef.current) return;
+        try {
+            const canvas = await html2canvas(componentRef.current, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'px',
+                format: 'a4',
+            });
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save('Fee_Receipt.pdf');
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+        }
+    };
 
     const handleYearChange = async (yearId: string) => {
         setSelectedYear(yearId);
@@ -52,6 +79,7 @@ export default function PortalFeeReceiptClient({ initialYears }: PortalFeeReceip
         setReceipts([]);
         setSelectedReceipt('');
         setReceiptData(null);
+        setResetKey(prev => prev + 1);
     };
 
     // Helper to format currency or numbers
@@ -156,7 +184,7 @@ export default function PortalFeeReceiptClient({ initialYears }: PortalFeeReceip
                             <div className='font-semibold text-sm'>
                                 Academic Year <span className='text-red-500'>*</span>
                             </div>
-                            <Select value={selectedYear} onValueChange={handleYearChange}>
+                            <Select key={`year-${resetKey}`} value={selectedYear} onValueChange={handleYearChange}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Year' />
                                 </SelectTrigger>
@@ -174,7 +202,7 @@ export default function PortalFeeReceiptClient({ initialYears }: PortalFeeReceip
                             <div className='font-semibold text-sm'>
                                 Receipt No <span className='text-red-500'>*</span>
                             </div>
-                            <Select value={selectedReceipt} onValueChange={handleReceiptChange} disabled={!selectedYear}>
+                            <Select key={`receipt-${resetKey}`} value={selectedReceipt} onValueChange={handleReceiptChange} disabled={!selectedYear}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Receipt No.' />
                                 </SelectTrigger>
@@ -189,7 +217,13 @@ export default function PortalFeeReceiptClient({ initialYears }: PortalFeeReceip
                         </div>
 
                         <div className='flex items-end space-x-2'>
-                            <Button variant='outline' onClick={handleClear}>
+                            <Button className='bg-[#1860A8] hover:bg-[#124d87]' onClick={handlePrint} disabled={!receiptData}>
+                                Print
+                            </Button>
+                            <Button className='bg-[#1860A8] hover:bg-[#124d87]' onClick={handleDownload} disabled={!receiptData}>
+                                Download
+                            </Button>
+                            <Button className='bg-[#1860A8] hover:bg-[#124d87]' onClick={handleClear}>
                                 Clear
                             </Button>
                         </div>
@@ -198,7 +232,7 @@ export default function PortalFeeReceiptClient({ initialYears }: PortalFeeReceip
             </Card>
 
             {receiptData && (
-                <div className='mx-auto max-w-4xl border bg-white p-8 shadow-lg' ref={componentRef}>
+                <div className='printable-content mx-auto max-w-4xl border bg-white p-8 shadow-lg' ref={componentRef}>
                     {/* Receipt content remains the same */}
                     <div className='mb-6 text-center'>
                         <h2 className='mt-2 font-bold text-xl'>FEE RECEIPT</h2>

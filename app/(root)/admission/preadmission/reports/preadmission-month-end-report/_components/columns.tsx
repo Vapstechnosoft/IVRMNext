@@ -26,9 +26,10 @@ interface Props {
     year: number;
     academicYear: number;
     implementationName: string;
+    logoBase64?: string;
 }
 
-export default function AdmissionMonthEndReport({ reportData, month, year, implementationName }: Props) {
+export default function AdmissionMonthEndReport({ reportData, month, year, implementationName, logoBase64 = '/school-logo.png' }: Props) {
     const todayDate = new Date().toLocaleDateString('en-GB', {
         day: '2-digit',
         month: 'short',

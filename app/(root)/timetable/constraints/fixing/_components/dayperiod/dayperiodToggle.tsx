@@ -1,17 +1,19 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle
-} from '@/components/ui/dialog';
+import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
+import { useFixingDayPeriodGridData } from '@/hooks/timetable/constraints/fixingData';
 import { deactivateFixingDayPeriod } from '@/server/timetable/constraints/fixing';
-import { useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
+
+const toggleSchema = z.object({
+    ttfdP_Id: z.number()
+});
+
+type FormFields = z.infer<typeof toggleSchema>;
 
 interface ToggleDayPeriodFormProps {
     rowData: any;
@@ -19,52 +21,64 @@ interface ToggleDayPeriodFormProps {
 }
 
 export default function DayPeriodToggle({ rowData, onClose }: ToggleDayPeriodFormProps) {
-    const [isLoading, setIsLoading] = useState(false);
+    const { refetchAll } = useFixingDayPeriodGridData();
     const isActive = rowData.ttfdP_ActiveFlag;
 
-    const handleToggle = async () => {
-        setIsLoading(true);
+    const {
+        handleSubmit,
+        reset,
+        formState: { isSubmitting }
+    } = useForm<FormFields>({
+        resolver: zodResolver(toggleSchema),
+        defaultValues: {
+            ttfdP_Id: Number(rowData.ttfdP_Id)
+        },
+        mode: 'onChange'
+    });
+
+    function closeDialog() {
+        onClose();
+        reset();
+    }
+
+    const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
-            const payload = {
-                TTFDP_Id: rowData.ttfdP_Id || rowData.ttfD_Id,
+            const response = await deactivateFixingDayPeriod({
+                TTFDP_Id: Number(rowData.ttfdP_Id),
                 TTFDP_ActiveFlag: !isActive
-            };
-            const res = await deactivateFixingDayPeriod(payload);
-            if (res?.returnval === true) {
-                toast.success(`Record ${isActive ? 'Deactivated' : 'Activated'} Successfully`);
-                window.location.reload();
+            });
+
+            if (response.success) {
+                toast.success(response.message);
+                refetchAll();
+                closeDialog();
             } else {
-                toast.error(res?.message || 'Failed to update record status');
+                toast.error(response.message);
             }
-        } catch (error) {
-            console.error('Error toggling record:', error);
-            toast.error('An error occurred');
-        } finally {
-            setIsLoading(false);
-            onClose();
+        } catch (error: any) {
+            toast.error(error.message);
         }
     };
 
     return (
-        <Dialog open={true} onOpenChange={onClose}>
-            <DialogContent className='sm:max-w-[425px]'>
-                <DialogHeader>
-                    <DialogTitle>{isActive ? 'Deactivate' : 'Activate'} Record</DialogTitle>
-                    <DialogDescription>
+        <AdaptiveDialog title={isActive ? 'Deactivate Record' : 'Activate Record'} isOpen={true} onClose={closeDialog}>
+            <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
+                <AdaptiveBody className='flex flex-col gap-5'>
+                    <p>
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'} this record?
                         <br />
                         <strong>Class:</strong> {rowData.asmcL_ClassName} | <strong>Section:</strong> {rowData.asmC_SectionName}
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter className='mt-6'>
-                    <Button variant='outline' onClick={onClose} disabled={isLoading}>
+                    </p>
+                </AdaptiveBody>
+                <AdaptiveFooter>
+                    <Button variant='secondary' onClick={closeDialog} type='button' disabled={isSubmitting}>
                         Cancel
                     </Button>
-                    <Button variant={isActive ? 'destructive' : 'default'} onClick={handleToggle} disabled={isLoading}>
-                        {isLoading ? 'Processing...' : isActive ? 'Deactivate' : 'Activate'}
+                    <Button type='submit' isLoading={isSubmitting} variant={isActive ? 'destructive' : 'default'}>
+                        {isActive ? 'Deactivate' : 'Activate'}
                     </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </AdaptiveFooter>
+            </form>
+        </AdaptiveDialog>
     );
 }

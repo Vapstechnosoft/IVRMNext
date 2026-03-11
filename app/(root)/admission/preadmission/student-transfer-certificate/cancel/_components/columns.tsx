@@ -14,32 +14,32 @@ export interface TCCancelDetail {
 export const tcCancelDetailsColumns: ColumnDef<TCCancelDetail>[] = [
     {
         accessorKey: 'slNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No.' className='w-[60px] text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No.' className='w-[60px] text-center font-bold text-black' />,
         cell: ({ row }) => <div className='text-center'>{row.getValue('slNo')}</div>
     },
     {
         accessorKey: 'studentDetails',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Details' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Details' className='font-bold text-black' />,
         cell: ({ row }) => <div className='font-bold'>{row.getValue('studentDetails')}</div>
     },
     {
         accessorKey: 'tcNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='TC.No.' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='TC.No.' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('tcNo')}</div>
     },
     {
         accessorKey: 'tcDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='TC Date' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='TC Date' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('tcDate')}</div>
     },
     {
         accessorKey: 'reason',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Reason For Deletion' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Reason For Deletion' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('reason')}</div>
     },
     {
         accessorKey: 'deletedDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Deleted Date' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Deleted Date' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('deletedDate')}</div>
     }
 ];

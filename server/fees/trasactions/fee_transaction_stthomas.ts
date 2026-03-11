@@ -11,17 +11,17 @@ export async function getFeeStudentTransactionDetailsstthomas(asmaY_Id: number, 
 }
 
 export async function searchStudentNamestsstthomas(payload: any) {
-    const url = '/FeeStudentTransaction/fee-stud-search-filter';
+    const url = '/FeeTransactionStThomas/fee-stud-search-filter';
     return api.post<any>('fees', url, payload);
 }
 
 export async function getStudentDetailssstthomas(payload: any) {
-    const url = '/FeeStudentTransaction/fee-stud-lst-det';
+    const url = '/FeeTransactionStThomas/fee-stud-lst-det';
     return api.post<any>('fees', url, payload);
 }
 
 export async function getFeeHeadsstthomas(payload: any) {
-    const url = '/FeeStudentTransaction/fee-term-details';
+    const url = '/FeeTransactionStThomas/fee-term-details';
     return api.post<any>('fees', url, payload);
 }
 

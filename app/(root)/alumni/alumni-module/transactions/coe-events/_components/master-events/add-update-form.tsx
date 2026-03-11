@@ -130,7 +130,7 @@ export default function MasterEventsForm({ onSuccess, parameterlist, editData }:
                                     Event Name <span className='text-destructive'>*</span>
                                 </FormLabel>
                                 <FormControl>
-                                    <Input {...field} value={field.value as string} />
+                                    <Input {...field} value={field.value as string} maxLength={25} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

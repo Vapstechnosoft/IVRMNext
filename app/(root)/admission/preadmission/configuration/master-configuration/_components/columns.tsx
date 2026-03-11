@@ -13,7 +13,7 @@ import { useCallback, useMemo } from 'react';
 export const masterConfigurationColumns: ColumnDef<IMasterConfiguration>[] = [
     {
         accessorKey: 'asmcC_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -25,21 +25,21 @@ export const masterConfigurationColumns: ColumnDef<IMasterConfiguration>[] = [
     },
     {
         accessorKey: 'institution_name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Institute Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Institute Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('institution_name') || '—'}</div>,
         enableSorting: true,
         enableHiding: false
     },
     {
         accessorKey: 'trust_name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Trust Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Trust Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('trust_name') || '—'}</div>,
         enableSorting: true,
         enableHiding: false
     },
     {
         accessorKey: 'academic_year',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('academic_year') || '—'}</div>,
         enableSorting: true,
         enableHiding: false
