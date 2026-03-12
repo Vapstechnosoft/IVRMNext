@@ -222,13 +222,13 @@ export const useStudentYearlyAttendance = (ASMAY_Id: number, ASMCL_Id: number, A
     };
 };
 
-export const useClassTeacherReport = (ASMAY_Id: number, flag: number, searchParams?: ApiSearchparams) => {
+export const useClassTeacherReport = (ASMAY_Id: number, flag: number, amcId?: number, searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_CLASS_TEACHER_REPORT, ASMAY_Id, flag, searchParams ?? {}],
-            queryFn: async () => GetClassTeacherReport(ASMAY_Id, flag, searchParams),
+            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_CLASS_TEACHER_REPORT, ASMAY_Id, flag, amcId, searchParams ?? {}],
+            queryFn: async () => GetClassTeacherReport(ASMAY_Id, flag, amcId, searchParams),
             staleTime: 0,
             enabled: !!ASMAY_Id
         }),
