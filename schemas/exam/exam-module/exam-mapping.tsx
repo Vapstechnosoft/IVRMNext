@@ -268,7 +268,7 @@ export const ExamTermAndExamMappingSchema = {
         .object({
             // Core IDs
             ecT_Id: z.preprocess(toNumber, z.number().int().min(0).optional().default(0)),
-            mI_Id: z.preprocess(toNumber, z.number().int().min(1).optional()),
+            mI_Id: z.preprocess(toNumber, z.number().int().optional()),
             asmaY_Id: z.preprocess(toNumber, z.number().int().min(1, 'Select Academic Year')),
             emcA_Id: z.preprocess(toNumber, z.number().int().min(1, 'Select Category')),
             emgR_Id: z.preprocess(toNumber, z.number().int().min(1, 'Select Grade')),

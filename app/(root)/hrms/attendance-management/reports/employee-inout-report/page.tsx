@@ -178,15 +178,15 @@ function EmployeeInOutReportPageContent({
                     </thead>
                     <tbody>
                         ${selectedRows
-                            .map(
-                                (row, index) => `
+                .map(
+                    (row, index) => `
                             <tr>
                                 <td>${index + 1}</td>
                                 ${columnKeys.map((key) => `<td>${formatValue(row[key], key)}</td>`).join('')}
                             </tr>
                         `
-                            )
-                            .join('')}
+                )
+                .join('')}
                     </tbody>
                 </table>
             </body>

@@ -354,7 +354,6 @@ const SelectContent = React.forwardRef<
     React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
 >(({ className, children, position = 'popper', ...props }, ref) => {
     const { searchable, searchQuery, filteredItems } = React.useContext(SelectSearchContext);
-    console.log('searchable', searchable, 'searchQuery', searchQuery, 'filteredItems', filteredItems);
     // Check if we should show "No Data Found" - only when actively searching and no matches
     const showNoResults = !!searchQuery && filteredItems.size === 0;
 

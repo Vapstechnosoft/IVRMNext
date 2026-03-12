@@ -5747,23 +5747,23 @@ export async function getUserAccessibleModules() {
                                             title: 'Home Work',
                                             description: 'Homework Upload Report'
                                         },
-                                        {
-                                            id: 6,
-                                            name: 'Sport House Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportHouseReport',
-                                            title: 'Sport House Report',
-                                            description: 'Sport House Report'
-                                        },
+                                        // {
+                                        //     id: 6,
+                                        //     name: 'Sport House Report',
+                                        //     icon: 'FileText',
+                                        //     url: '/Sports/Reports/SportHouseReport',
+                                        //     title: 'Sport House Report',
+                                        //     description: 'Sport House Report'
+                                        // },
 
-                                        {
-                                            id: 11,
-                                            name: 'Venue Wise Participation',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/VenueWiseParticipationReport',
-                                            title: 'Venue Wise Participation',
-                                            description: 'View Venue Wise Participation Report'
-                                        },
+                                        // {
+                                        //     id: 11,
+                                        //     name: 'Venue Wise Participation',
+                                        //     icon: 'FileText',
+                                        //     url: '/Sports/Reports/VenueWiseParticipationReport',
+                                        //     title: 'Venue Wise Participation',
+                                        //     description: 'View Venue Wise Participation Report'
+                                        // },
                                         // {
                                         //     id: 7,
                                         //     name: 'Sport Student Participation Report',
@@ -5772,14 +5772,14 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Sport Student Participation Report',
                                         //     description: 'Sport Student Participation Report'
                                         // },
-                                        {
-                                            id: 8,
-                                            name: 'Sport Topper List Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportTopperListReport',
-                                            title: 'Sport Topper List Report',
-                                            description: 'Sport Topper List Report'
-                                        },
+                                        // {
+                                        //     id: 8,
+                                        //     name: 'Sport Topper List Report',
+                                        //     icon: 'FileText',
+                                        //     url: '/Sports/Reports/SportTopperListReport',
+                                        //     title: 'Sport Topper List Report',
+                                        //     description: 'Sport Topper List Report'
+                                        // },
                                         {
                                             id: 80013,
                                             name: 'Notice Board',

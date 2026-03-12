@@ -286,7 +286,7 @@ export const juniorsProgressCardReportSchemaForPrint = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
     ASMCL_Id: z.string().min(1, 'Class is required'),
     ASMS_Id: z.string().min(1, 'Section is required'),
-    EME_Id: z.string().min(1, 'Exam Name is required'),
+    exmname: z.string().min(1, 'Exam Name is required'),
     superAverage: z.boolean().default(false),
     printLogo: z.boolean().default(false),
     selectedStudents: z.array(z.string()).min(1, 'Select at least one student')

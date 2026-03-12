@@ -3578,7 +3578,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 if (countryData?.dialCode === '91' && totalLength !== 12) {
                     setError(fieldName as any, {
                         type: 'manual',
-                        message: `Mobile number must be exactly 12 digits for India`
+                        message: 'Mobile number must be exactly 12 digits for India'
                     });
                 }
             }

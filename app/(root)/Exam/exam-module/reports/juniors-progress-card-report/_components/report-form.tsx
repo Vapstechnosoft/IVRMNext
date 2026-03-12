@@ -206,7 +206,8 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 getReportDetails(data),
                 getMasterInstitution()
             ]);
-            onReportGenerated({ ...result, institution: institutionRes?.data });
+            const instData = Array.isArray(institutionRes?.data) ? institutionRes.data[0] : institutionRes?.data;
+            onReportGenerated({ ...result, institution: instData, printLogo: data.printLogo });
         } catch (error) {
             console.error('Error:', error);
         }
@@ -237,41 +238,41 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                             {/* Left Column */}
                             <div className='space-y-4'>
-                                <div className='space-y-2'> 
+                                <div className='space-y-2'>
                                     <Label className='font-medium text-sm sm:w-32'>
                                         Academic Year <span className='text-red-500'>*</span>
                                     </Label>
                                     <Controller
                                         control={control}
                                         name='ASMAY_Id'
-                                        render={({ field, fieldState }) => (         
-                                                <div className='flex-1'>
-                                                    <Select
-                                                        key={field.value}
-                                                        onValueChange={field.onChange}
-                                                        value={field.value ? String(field.value) : ''}>
-                                                        <SelectTrigger className='w-full'>
-                                                            <SelectValue placeholder='Select Academic Year' />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {academicYearLoading ? (
-                                                                <SelectItem value='0' disabled>
-                                                                    Academic Years are loading...
+                                        render={({ field, fieldState }) => (
+                                            <div className='flex-1'>
+                                                <Select
+                                                    key={field.value}
+                                                    onValueChange={field.onChange}
+                                                    value={field.value ? String(field.value) : ''}>
+                                                    <SelectTrigger className='w-full'>
+                                                        <SelectValue placeholder='Select Academic Year' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {academicYearLoading ? (
+                                                            <SelectItem value='0' disabled>
+                                                                Academic Years are loading...
+                                                            </SelectItem>
+                                                        ) : academicYears.length === 0 ? (
+                                                            <SelectItem value='0' disabled>
+                                                                No Academic Years found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            academicYears.map((y: any) => (
+                                                                <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                                    {y.asmaY_Year}
                                                                 </SelectItem>
-                                                            ) : academicYears.length === 0 ? (
-                                                                <SelectItem value='0' disabled>
-                                                                    No Academic Years found
-                                                                </SelectItem>
-                                                            ) : (
-                                                                academicYears.map((y: any) => (
-                                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                                        {y.asmaY_Year}
-                                                                    </SelectItem>
-                                                                ))
-                                                            )}
-                                                        </SelectContent>
-                                                    </Select>
-                                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                            ))
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>
                                         )}
                                     />
@@ -479,7 +480,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                         </div>
 
                         <div className='mt-8 flex justify-center gap-4'>
-                            <Button type='submit' disabled={isSubmitting} isLoading = {isSubmitting}>
+                            <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting}>
                                 Report
                             </Button>
                             <Button type='button' variant='outline' onClick={handleClear} disabled={isSubmitting}>

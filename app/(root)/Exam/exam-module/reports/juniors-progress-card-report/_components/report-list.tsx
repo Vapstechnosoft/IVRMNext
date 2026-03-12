@@ -75,7 +75,7 @@ export const ReportList = ({ data }: ReportListProps) => {
     return (
         <div className='space-y-4 bg-gray-200'>
             <div className="flex justify-end gap-2 py-2">
-                <Button  onClick={handlePrint} className="hover:bg-orange-800 text-white flex w-fit">
+                <Button onClick={handlePrint} className="hover:bg-orange-800 text-white flex w-fit">
                     <Printer className="h-4 w-4" />
                     <span>PRINT</span>
                 </Button>
@@ -90,14 +90,14 @@ export const ReportList = ({ data }: ReportListProps) => {
                     <div key={student.amsT_Id} className='page-break rounded-lg border bg-white p-6 shadow-sm'>
                         {/* Header */}
                         <div className='header'>
-                            {data.institution?.mI_Logo && (
+                            {data.printLogo && data.institution?.mI_Logo && (
                                 <img
                                     src={data.institution.mI_Logo}
                                     alt={data.institution.mI_Name}
-                                    className='mx-auto mb-2 h-16 w-auto'
+                                    className='mx-auto mb-2 h-50 w-full'
                                 />
                             )}
-                            <h2 className='font-bold text-xl uppercase'>{data.institution?.mI_Name || "ST. THOMAS SCHOOL, HOWRAH"}</h2>
+
                             <h3 className='font-semibold text-lg uppercase'>Progress Report</h3>
                             <p className='text-sm'>Academic Year: {data.year}</p>
                         </div>
