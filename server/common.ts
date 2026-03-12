@@ -5736,7 +5736,7 @@ export async function getUserAccessibleModules() {
                                             name: 'Homework Marks Update',
                                             icon: 'MessageSquare',
                                             url: '/StaffPortal/Upload/homework-marks-entry',
-                                            title: 'Home Work',
+                                            title: 'Home Work Marks Update',
                                             description: 'Homework Marks Update'
                                         },
                                         {
@@ -5744,7 +5744,7 @@ export async function getUserAccessibleModules() {
                                             name: 'Homework Upload Report',
                                             icon: 'MessageSquare',
                                             url: '/StaffPortal/Upload/homework-upload-report',
-                                            title: 'Home Work',
+                                            title: 'Home Work Upload Report',
                                             description: 'Homework Upload Report'
                                         },
                                         // {
@@ -5800,7 +5800,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 80015,
                                             name: 'Classwork Marks Update',
-                                            icon: 'Classwork Marks Update',
+                                            icon: 'MessageSquare',
                                             url: '/StaffPortal/Upload/classwork-marks',
                                             title: 'Classwork Marks Update',
                                             description: 'Classwork Marks Update'
