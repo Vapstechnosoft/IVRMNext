@@ -69,27 +69,27 @@ export function LeaveCreditTransactionForm({
                 selectedTypeIds: [],
                 selectedDeptIds: [],
                 selectedDesignationIds: [],
-                lossOfPayType: 'none',
+                lossOfPayType: '',
                 lossOfPayAmount: 0
             } : {
                 employeeId: 0,
                 leaveName: '',
                 hrmL_LeaveType: '',
                 hrmlY_Id: activeYearId,
-                fromDate: new Date(),
-                toDate: new Date(),
-                totalDays: 1,
+                fromDate: undefined,
+                toDate: undefined,
+                totalDays: 0,
                 id: 0,
                 transactionId: 0,
-                isActive: true, // Default to true for new records
+                isActive: true,
                 employeeName: '',
                 createdAt: new Date(),
                 selectedTypeIds: [],
                 selectedDeptIds: [],
                 selectedDesignationIds: [],
-                lossOfPayType: 'none',
+                lossOfPayType: '',
                 lossOfPayAmount: 0
-            }) as FormData
+            }) as unknown as FormData
     });
 
     const fromDate = watch('fromDate');
@@ -103,94 +103,35 @@ export function LeaveCreditTransactionForm({
     /* ---------------- TOTAL DAYS CALCULATION ---------------- */
     useEffect(() => {
         if (fromDate && toDate) {
-            try {
-                const start = new Date(fromDate);
-                const end = new Date(toDate);
-
-                if (end >= start) {
-                    const days = differenceInDays(end, start) + 1;
-                    setValue('totalDays', days);
-                } else {
-                    setValue('totalDays', 0);
-                }
-            } catch {
+            const start = new Date(fromDate);
+            const end = new Date(toDate);
+            start.setHours(0, 0, 0, 0);
+            end.setHours(0, 0, 0, 0);
+            if (end >= start) {
+                setValue('totalDays', differenceInDays(end, start) + 1);
+            } else {
                 setValue('totalDays', 0);
             }
+        } else {
+            setValue('totalDays', 0);
         }
     }, [fromDate, toDate, setValue]);
 
     /* ---------------- LOSS OF PAY CALCULATION ---------------- */
     useEffect(() => {
-        if (lossOfPayType && lossOfPayType !== 'none' && totalDays > 0) {
-
+        if (lossOfPayType && totalDays > 0) {
             let multiplier = 0;
-
             switch (lossOfPayType) {
-                case 'full':
-                    multiplier = 0;
-                    break;
-                case 'half':
-                    multiplier = 0.5;
-                    break;
-                case 'oneFourth':
-                    multiplier = 0.25;
-                    break;
-                case 'threeFourth':
-                    multiplier = 0.75;
-                    break;
+                case 'full':       multiplier = 0;    break;
+                case 'half':       multiplier = 0.5;  break;
+                case 'oneFourth':  multiplier = 0.25; break;
+                case 'threeFourth': multiplier = 0.75; break;
             }
-
-            setValue(
-                'lossOfPayAmount',
-                Number.parseFloat((totalDays - multiplier).toFixed(2))
-            );
+            setValue('lossOfPayAmount', Number.parseFloat((totalDays - multiplier).toFixed(2)));
         } else {
             setValue('lossOfPayAmount', 0);
         }
     }, [lossOfPayType, totalDays, setValue]);
-    // Calculate loss of pay amount based on type and total days
-    // useEffect(() => {
-    //     if (lossOfPayType && lossOfPayType !== 'none' && totalDays && totalDays > 0) {
-    //         let multiplier = 0;
-    //         switch (lossOfPayType) {
-    //             case 'full':
-    //                 multiplier = 0;
-    //                 break;
-    //             case 'half':
-    //                 multiplier = 0.5;
-    //                 break;
-    //             case 'oneFourth':
-    //                 multiplier = 0.25;
-    //                 break;
-    //             case 'threeFourth':
-    //                 multiplier = 0.75;
-    //                 break;
-    //             default:
-    //                 multiplier = 0;
-    //         }
-    //         setValue('lossOfPayAmount', Number.parseFloat(((totalDays || 0) - multiplier).toFixed(2)));
-    //     } else {
-    //         setValue('lossOfPayAmount', 0);
-    //     }
-    // }, [lossOfPayType, totalDays, setValue]);
-
-    // Calculate total days from date range
-    useEffect(() => {
-        if (fromDate && toDate) {
-            const start = new Date(fromDate);
-            const end = new Date(toDate);
-
-            start.setHours(0, 0, 0, 0);
-            end.setHours(0, 0, 0, 0);
-
-            if (end >= start) {
-                const days = differenceInDays(end, start) + 1;
-                setValue('totalDays', days);
-            } else {
-                setValue('totalDays', 0);
-            }
-        }
-    }, [fromDate, toDate, setValue]);
 
     // Automatically set Leave Year based on Date Range
     useEffect(() => {
@@ -228,9 +169,9 @@ export function LeaveCreditTransactionForm({
             leaveName: '',
             hrmL_LeaveType: '',
             hrmlY_Id: activeYearId,
-            fromDate: new Date(),
-            toDate: new Date(),
-            totalDays: 1,
+            fromDate: undefined,
+            toDate: undefined,
+            totalDays: 0,
             id: 0,
             transactionId: 0,
             isActive: true,
@@ -239,9 +180,9 @@ export function LeaveCreditTransactionForm({
             selectedTypeIds: [],
             selectedDeptIds: [],
             selectedDesignationIds: [],
-            lossOfPayType: 'none',
+            lossOfPayType: '',
             lossOfPayAmount: 0
-        } as FormData);
+        } as unknown as FormData);
     };
 
     const onSubmitForm: SubmitHandler<FormData> = (data) => {
@@ -464,6 +405,7 @@ export function LeaveCreditTransactionForm({
                         {...control.register('totalDays', { valueAsNumber: true, required: 'Total Days is required', min: 0.5 })}
                         type='text'
                         step='0.5'
+                        disabled = {true}
                         className={errors.totalDays ? 'border-red-500' : ''}
                     />
                     {errors.totalDays && <FormError>{errors.totalDays.message}</FormError>}
@@ -471,56 +413,59 @@ export function LeaveCreditTransactionForm({
             </div>
 
             {/* Loss of Pay Options and Calculated Field */}
-            <div className='space-y-3 '>
-                <Label className='font-medium text-sm'>Loss Of Pay :</Label>
+            <div className='space-y-3'>
+                <Label className={cn('font-medium text-sm', !fromDate || !toDate ? 'text-muted-foreground' : '')}>
+                    Loss Of Pay :
+                </Label>
                 <Controller
                     name='lossOfPayType'
                     control={control}
                     render={({ field }) => (
-                        <RadioGroup value={field.value || 'none'} onValueChange={field.onChange} className='space-y-2'>
+                        <RadioGroup
+                            value={field.value || ''}
+                            onValueChange={field.onChange}
+                            className='space-y-2'
+                            disabled={!fromDate || !toDate || totalDays <= 0}
+                        >
                             <div className='flex items-center space-x-2'>
                                 <RadioGroupItem value='full' id='loss-of-pay-full' />
-                                <Label htmlFor='loss-of-pay-full' className='cursor-pointer font-normal'>
+                                <Label htmlFor='loss-of-pay-full' className={cn('font-normal', !fromDate || !toDate ? 'cursor-not-allowed text-muted-foreground' : 'cursor-pointer')}>
                                     Loss Of Pay
                                 </Label>
                             </div>
                             <div className='flex items-center space-x-2'>
                                 <RadioGroupItem value='half' id='loss-of-pay-half' />
-                                <Label htmlFor='loss-of-pay-half' className='cursor-pointer font-normal'>
+                                <Label htmlFor='loss-of-pay-half' className={cn('font-normal', !fromDate || !toDate ? 'cursor-not-allowed text-muted-foreground' : 'cursor-pointer')}>
                                     Loss Of Pay Half Day
                                 </Label>
                             </div>
                             <div className='flex items-center space-x-2'>
                                 <RadioGroupItem value='oneFourth' id='loss-of-pay-one-fourth' />
-                                <Label htmlFor='loss-of-pay-one-fourth' className='cursor-pointer font-normal'>
+                                <Label htmlFor='loss-of-pay-one-fourth' className={cn('font-normal', !fromDate || !toDate ? 'cursor-not-allowed text-muted-foreground' : 'cursor-pointer')}>
                                     Loss Of Pay One Fourth Day
                                 </Label>
                             </div>
                             <div className='flex items-center space-x-2'>
                                 <RadioGroupItem value='threeFourth' id='loss-of-pay-three-fourth' />
-                                <Label htmlFor='loss-of-pay-three-fourth' className='cursor-pointer font-normal'>
+                                <Label htmlFor='loss-of-pay-three-fourth' className={cn('font-normal', !fromDate || !toDate ? 'cursor-not-allowed text-muted-foreground' : 'cursor-pointer')}>
                                     Loss Of Pay Three Fourth Day
-                                </Label>
-                            </div>
-                            <div className='flex items-center space-x-2'>
-                                <RadioGroupItem value='none' id='loss-of-pay-none' />
-                                <Label htmlFor='loss-of-pay-none' className='cursor-pointer font-normal'>
-                                    None
                                 </Label>
                             </div>
                         </RadioGroup>
                     )}
                 />
-                <div>
-                    <Input
-                        type='number'
-                        step='0.01'
-                        readOnly
-                        value={watch('lossOfPayAmount') || 0}
-                        className=' w-full md:w-1/2'
-                        placeholder='Auto-calculated'
-                    />
-                </div>
+                {fromDate && toDate && totalDays > 0 && lossOfPayType && (
+                    <div>
+                        <Input
+                            type='number'
+                            step='0.01'
+                            readOnly
+                            value={watch('lossOfPayAmount') ||''}
+                            className='w-full md:w-1/2'
+                            placeholder='Auto-calculated'
+                        />
+                    </div>
+                )}
             </div>
 
             {/* Action Buttons */}

@@ -131,51 +131,52 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                   {/* Checkboxes for Leave Credit Flag and Late Deduct Flag */}
+                    <div className='flex flex-wrap gap-6 pt-1'>
                         <Controller
-                            name='hrmL_LeaveApplyCriteria'
+                            name='hrmL_LeaveCreditFlg'
                             control={control}
-                            rules={MASTER_LEAVE_VALIDATION.hrmL_LeaveApplyCriteria}
                             render={({ field }) => (
-                                <div>
-                                    <label htmlFor='hrmL_LeaveApplyCriteria' className='mb-1.5 block font-medium text-sm'>
-                                        Apply Criteria <span className='text-destructive'>*</span>
+                                <div className='flex items-center gap-2'>
+                                    <Checkbox
+                                        id='hrmL_LeaveCreditFlg'
+                                        checked={Boolean(field.value)}
+                                        onCheckedChange={field.onChange}
+                                    />
+                                    <label
+                                        htmlFor='hrmL_LeaveCreditFlg'
+                                        className='cursor-pointer select-none text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
+                                    >
+                                        Leave Credit
                                     </label>
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger id='hrmL_LeaveApplyCriteria'>
-                                            <SelectValue placeholder='Select Criteria' />
-                                        </SelectTrigger>
-                                        <SelectContent side='top'>
-                                            <SelectItem value='Before'>Before</SelectItem>
-                                            <SelectItem value='After'>After</SelectItem>
-                                            <SelectItem value='Same Day'>Same Day</SelectItem>
-                                            <SelectItem value='Month'>Month</SelectItem>
-                                            <SelectItem value='Quarter'>Quarter</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.hrmL_LeaveApplyCriteria?.message && (
-                                        <p className='mt-1 text-xs text-destructive'>{errors.hrmL_LeaveApplyCriteria.message}</p>
-                                    )}
+                                    {errors.hrmL_LeaveCreditFlg?.message && <FormError>{errors.hrmL_LeaveCreditFlg.message}</FormError>}
                                 </div>
                             )}
                         />
-                        <InputText
-                            label='No of Days'
-                            required
-                            type='number'
-                            id='hrmL_DaysForApplyCriteria'
-                            {...register('hrmL_DaysForApplyCriteria', MASTER_LEAVE_VALIDATION.hrmL_DaysForApplyCriteria)}
-                            error={errors.hrmL_DaysForApplyCriteria?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                        <InputText
-                            label='Max Days for Apply'
-                            error={errors.hrmL_MaxDaysForApply?.message}
-                            placeholder='Enter max days'
-                            type='number'
+                        <Controller
+                            name='hrmL_LateDeductFlag'
+                            control={control}
+                            render={({ field }) => (
+                                <div className='flex items-center gap-2'>
+                                    <Checkbox
+                                        id='hrmL_LateDeductFlag'
+                                        checked={Boolean(field.value)}
+                                        onCheckedChange={field.onChange}
+                                    />
+                                    <label
+                                        htmlFor='hrmL_LateDeductFlag'
+                                        className='cursor-pointer select-none text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
+                                    >
+                                        Late Deduct
+                                    </label>
+                                    {errors.hrmL_LateDeductFlag?.message && <FormError>{errors.hrmL_LateDeductFlag.message}</FormError>}
+                                </div>
+                            )}
                         />
                     </div>
                 </div>
+
+                
                 <div className='flex justify-end gap-2'>
                     {onCancel && (
                         <Button type='button' variant='outline' onClick={onCancel} disabled={isPending || isSubmitting}>

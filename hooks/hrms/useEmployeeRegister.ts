@@ -914,13 +914,15 @@ export function useUpdateEmployeeSalaryDetailsByHead() {
 /**
  * Hook to save employee salary details
  */
-export function useSaveEmployeeSalaryDetails() {
+export function useSaveEmployeeSalaryDetails(options?: { suppressSuccessToast?: boolean }) {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: ({ hrme_id, MI_Id }: { hrme_id: number; MI_Id: number }) => saveEmployeeSalaryDetails(hrme_id, MI_Id),
         onSuccess: (response) => {
             if (response?.success) {
-                toast.success(response.message || 'Salary details saved successfully');
+                if (!options?.suppressSuccessToast) {
+                    toast.success(response.message || 'Salary details saved successfully');
+                }
                 queryClient.invalidateQueries({
                     queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
                 });

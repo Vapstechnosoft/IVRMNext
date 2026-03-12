@@ -74,7 +74,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { Check, ChevronLeft, ChevronRight, Plus, Save, Trash2, Upload, X } from 'lucide-react';
 import type React from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -658,7 +658,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     const { mutate: saveDocumentDetails, isPending: isSavingDocument } = useSaveEmployeeDocument();
     const { mutate: saveMedicalDetails, isPending: isSavingMedical } = useSaveEmployeeMedical();
     const { mutate: saveOtherDetails, isPending: isSavingOther } = useSaveEmployeeOtherDetails();
-    const { mutate: saveSalaryDetails, isPending: isSavingSalaryDetails } = useSaveEmployeeSalaryDetails();
+    const { mutate: saveSalaryDetails, isPending: isSavingSalaryDetails } = useSaveEmployeeSalaryDetails({ suppressSuccessToast: true });
     const savePersonalDetails = saveEmployeeMutation;
     const _saveBankDetails = saveEmployeeMutation;
     const isSavingBank = isPending;
@@ -699,7 +699,12 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     };
 
     // Helper to get current tab key from step
-    const getCurrentTabKey = () => steps.find((s) => s.id === currentStep)?.tabKey || 'employee';
+    // const getCurrentTabKey = () => steps.find((s) => s.id === currentStep)?.tabKey || 'employee';
+
+    const getCurrentTabKey = useCallback(
+        () => steps.find((s) => s.id === currentStep)?.tabKey || "employee",
+        [currentStep]
+    );
 
     // Function to go to previous step
     const prevStep = () => {
@@ -950,10 +955,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         console.log('✅ [DEBUG] Tab 1 - All key fields match between request and response!');
                     }
 
-                    // Show API response message
                     if (response?.success) {
-                        if (response.message) toast.success(response.message);
-
                         // API returns hrmE_Id (lowercase) in response
                         const employeeId =
                             response?.data?.hrmE_Id || response?.data?.HRME_Id || response?.hrmE_Id || response?.HRME_Id || 0;
@@ -969,15 +971,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         }
                     } else {
                         console.warn('⚠️ [DEBUG] Tab 1 - API returned success: false');
-                        toast.error(response?.message || 'Failed to save employee details');
                     }
                 },
                 onError: (error: any) => {
                     console.error('❌ [DEBUG] Tab 1 (Employee Information) - Save Error:', error);
                     console.error('❌ [DEBUG] Tab 1 - Error Details:', JSON.stringify(error, null, 2));
-                    // Show API error message
-                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save employee details';
-                    toast.error(errorMessage);
                 }
             });
         } else if (currentStepId === 2) {
@@ -1115,27 +1113,18 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         console.warn('⚠️ [DEBUG] Tab 2 - Other field mismatches:', otherFieldMismatches);
                     }
 
-                    // Show API response message
                     if (response?.success) {
-                        if (response.message) {
-                            if (addressMismatches.length > 0) {
-                                toast.warning(`${response.message} - But address fields may not have been saved.`);
-                            } else {
-                                toast.success(response.message);
-                            }
+                        if (addressMismatches.length > 0) {
+                            toast.warning(`Address fields may not have been saved completely. Please verify.`);
                         }
                         setCurrentStep(3);
                     } else {
                         console.warn('⚠️ [DEBUG] Tab 2 - API returned success: false');
-                        toast.error(response?.message || 'Failed to save address details');
                     }
                 },
                 onError: (error: any) => {
                     console.error('❌ [DEBUG] Tab 2 (Address Information) - Save Error:', error);
                     console.error('❌ [DEBUG] Tab 2 - Error Details:', JSON.stringify(error, null, 2));
-                    // Show API error message
-                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save address details';
-                    toast.error(errorMessage);
                 }
             });
         } else if (currentStepId === 3) {
@@ -1262,12 +1251,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         console.warn('⚠️ [DEBUG] Tab 3 - Response data is not an array or is missing');
                     }
 
-                    // Show API response message
-                    if (response?.success && response?.message) {
-                        toast.success(response.message);
-                    } else if (response?.message) {
-                        toast.info(response.message);
-                    } else if (response?.success === false) {
+                    if (response?.success === false && !response?.message) {
                         console.warn('⚠️ [DEBUG] Tab 3 - API returned success: false');
                         toast.warning('Qualification saved but API returned success: false. Please verify the data was saved.');
                     }
@@ -1277,11 +1261,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 onError: (error: any) => {
                     console.error('❌ [DEBUG] Tab 3 (Qualification) - Save Error:', error);
                     console.error('❌ [DEBUG] Tab 3 - Error Details:', JSON.stringify(error, null, 2));
-                    console.error('❌ [DEBUG] Tab 3 - Error Response:', error?.response);
-                    console.error('❌ [DEBUG] Tab 3 - Error Message:', error?.message);
-                    // Show API error message
-                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save qualification details';
-                    toast.error(errorMessage);
                 }
             });
         } else if (currentStepId === 4) {
@@ -1410,12 +1389,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             console.warn('⚠️ [DEBUG] Tab 4 - Response data is not an array or is missing');
                         }
 
-                        // Show API response message
-                        if (response?.success && response?.message) {
-                            toast.success(response.message);
-                        } else if (response?.message) {
-                            toast.info(response.message);
-                        } else if (response?.success === false) {
+                        if (response?.success === false && !response?.message) {
                             console.warn('⚠️ [DEBUG] Tab 4 - API returned success: false');
                             toast.warning('Experience saved but API returned success: false. Please verify the data was saved.');
                         }
@@ -1425,11 +1399,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     onError: (error: any) => {
                         console.error('❌ [DEBUG] Tab 4 (Experience) - Save Error:', error);
                         console.error('❌ [DEBUG] Tab 4 - Error Details:', JSON.stringify(error, null, 2));
-                        console.error('❌ [DEBUG] Tab 4 - Error Response:', error?.response);
-                        console.error('❌ [DEBUG] Tab 4 - Error Message:', error?.message);
-                        // Show API error message
-                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save experience details';
-                        toast.error(errorMessage);
                     }
                 });
             } catch (error) {
@@ -1499,17 +1468,13 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     onSuccess: (response: any) => {
                         console.log('✅ [API DEBUG] Tab 5 (Document) - Save Success Response:', response);
                         if (response?.success) {
-                            if (response.message) toast.success(response.message);
                             setCurrentStep(6);
                         } else {
                             console.error('❌ [API DEBUG] Tab 5 (Document) - API returned success: false', response);
-                            toast.error(response?.message || 'Failed to save document details');
                         }
                     },
                     onError: (error: any) => {
                         console.error('❌ [API DEBUG] Tab 5 (Document) - API Error:', error);
-                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save document details';
-                        toast.error(errorMessage);
                     }
                 });
             } catch (err) {
@@ -1530,17 +1495,13 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 onSuccess: (response: any) => {
                     console.log('✅ [API DEBUG] Tab 6 (Medical) - Save Success Response:', response);
                     if (response?.success) {
-                        toast.success(response.message || 'Medical details saved successfully');
                         setCurrentStep(7);
                     } else {
                         console.error('❌ [API DEBUG] Tab 6 (Medical) - API returned success: false', response);
-                        toast.error(response?.message || 'Failed to save medical details');
                     }
                 },
                 onError: (error: any) => {
                     console.error('❌ [API DEBUG] Tab 6 (Medical) - API Error:', error);
-                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save medical details';
-                    toast.error(errorMessage);
                 }
             });
         } else if (currentStepId === 7) {
@@ -1556,7 +1517,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 onSuccess: (response: any) => {
                     console.log('✅ [API DEBUG] Tab 7 (Other) - Save Success Response:', response);
                     if (response?.success) {
-                        toast.success(response.message || 'Other details saved successfully');
                         // Call salary details save API as requested by user
                         if (savedEmployeeId) {
                             saveSalaryDetails(
@@ -1580,13 +1540,10 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         }
                     } else {
                         console.error('❌ [API DEBUG] Tab 7 (Other) - API returned success: false', response);
-                        toast.error(response?.message || 'Failed to save other details');
                     }
                 },
                 onError: (error: any) => {
                     console.error('❌ [API DEBUG] Tab 7 (Other) - API Error:', error);
-                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save other details';
-                    toast.error(errorMessage);
                 }
             });
         } else {

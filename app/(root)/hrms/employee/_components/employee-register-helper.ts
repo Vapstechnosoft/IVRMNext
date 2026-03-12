@@ -943,8 +943,9 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
             ? mobileData.map((mobile: any, idx: number) => {
                 const rawFlag = getValue(mobile, 'hrmemnO_DeFaultFlag') || getValue(mobile, 'hrmemno_DeFaultFlag') || '';
                 const resolvedType = rawFlag === 'Y' ? 'Default' : (rawFlag || 'Default');
-                
+
                 const mapped = {
+                    hrmemnO_Id: getValue(mobile, 'hrmemnO_Id') || getValue(mobile, 'hrmemno_Id') || 0,
                     mobileNo: numToString(
                         getValue(mobile, 'hrmemno_MobileNo') ||
                         getValue(mobile, 'hrmemnO_MobileNo') ||
@@ -965,9 +966,9 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
         const primaryMobile = v('hrmE_MobileNo') || v('hrme_MobileNo') || v('MobileNo') || v('hrmE_Mobile_No') || v('hrmE_Phno');
         if (primaryMobile) {
             console.log('🔍 [DEBUG] Falling back to primary mobile number:', primaryMobile);
-            mobileDetails = [{ mobileNo: numToString(primaryMobile), type: 'Default' }];
+            mobileDetails = [{ hrmemnO_Id: 0, mobileNo: numToString(primaryMobile), type: 'Default' }];
         } else if (mobileDetails.length === 0) {
-            mobileDetails = [{ mobileNo: '', type: 'Default' }];
+            mobileDetails = [{ hrmemnO_Id: 0, mobileNo: '', type: 'Default' }];
         }
     }
     console.log('🔍 [DEBUG] final mobileDetails mapped:', mobileDetails);
@@ -978,13 +979,14 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
             ? emailData.map((email: any) => {
                 const rawEmailFlag = getValue(email, 'hrmem_DeFaultFlag') || '';
                 return {
+                    hrmeeM_Id: getValue(email, 'hrmeeM_Id') || getValue(email, 'hrmeM_Id') || 0,
                     emailId: getValue(email, 'hrmem_EmailId') || getValue(email, 'hrmeM_EmailId') || '',
                     type: rawEmailFlag === 'Y' ? 'Default' : (rawEmailFlag || 'Default')
                 };
             })
             : (v('hrmE_EmailId') || v('hrme_EmailId') || v('EmailId'))
-                ? [{ emailId: v('hrmE_EmailId') || v('hrme_EmailId') || v('EmailId'), type: 'Default' }]
-                : [{ emailId: '', type: 'Default' }];
+                ? [{ hrmeeM_Id: 0, emailId: v('hrmE_EmailId') || v('hrme_EmailId') || v('EmailId'), type: 'Default' }]
+                : [{ hrmeeM_Id: 0, emailId: '', type: 'Default' }];
 
     // Map spouse fields (if they exist in API)
     const spouseDetails = {
@@ -1332,12 +1334,13 @@ export function mapApiResponseToTab1Fields(apiData: any): Partial<FormFields> {
     const mobileDetails =
         Array.isArray(mobileData) && mobileData.length > 0
             ? mobileData.map((mobile: any) => ({
+                hrmemnO_Id: getValue(mobile, 'hrmemnO_Id') || getValue(mobile, 'hrmemno_Id') || 0, // ADDED: ID preservation
                 mobileNo: numToString(getValue(mobile, 'hrmemno_MobileNo') || getValue(mobile, 'hrmemnO_MobileNo')),
                 type: getValue(mobile, 'hrmemno_DeFaultFlag') || 'Default'
             }))
             : v('hrmE_MobileNo')
-                ? [{ mobileNo: numToString(v('hrmE_MobileNo')), type: 'Default' }]
-                : [{ mobileNo: '', type: 'Default' }];
+                ? [{ hrmemnO_Id: 0, mobileNo: numToString(v('hrmE_MobileNo')), type: 'Default' }]
+                : [{ hrmemnO_Id: 0, mobileNo: '', type: 'Default' }];
 
     // Map email details
     let emailData = v('selectedemail_list_dto');
@@ -1353,12 +1356,13 @@ export function mapApiResponseToTab1Fields(apiData: any): Partial<FormFields> {
     const emailDetails =
         Array.isArray(emailData) && emailData.length > 0
             ? emailData.map((email: any) => ({
+                hrmeeM_Id: getValue(email, 'hrmeeM_Id') || getValue(email, 'hrmeM_Id') || 0, // ADDED: ID preservation
                 emailId: getValue(email, 'hrmem_EmailId') || getValue(email, 'hrmeM_EmailId') || '',
                 type: getValue(email, 'hrmem_DeFaultFlag') || 'Default'
             }))
             : v('hrmE_EmailId')
-                ? [{ emailId: v('hrmE_EmailId'), type: 'Default' }]
-                : [{ emailId: '', type: 'Default' }];
+                ? [{ hrmeeM_Id: 0, emailId: v('hrmE_EmailId'), type: 'Default' }]
+                : [{ hrmeeM_Id: 0, emailId: '', type: 'Default' }];
 
     // Return only Tab 1 fields (Employee Information)
     return {
@@ -1415,7 +1419,15 @@ export function mapApiResponseToTab1Fields(apiData: any): Partial<FormFields> {
         // Documents (Tab 1)
         panCardNo: v('hrmE_PANCardNo') || '',
         aadharNo: numToString(v('hrmE_AadharCardNo')),
-        nationalSSN: v('hrmE_NationalSSN') || ''
+        nationalSSN: v('hrmE_NationalSSN') || '',
+        // Map bank details (ADDED) - CRITICAL for re-sync
+        bankDetails: (v('employeebankDetails') || []).map((bank: any) => ({
+            hrmeB_Id: getValue(bank, 'hrmeB_Id') || 0,
+            employerBankName: numToString(getValue(bank, 'hrmbD_Id')),
+            bankAccountNo: getValue(bank, 'hrmeB_AccountNo') || '',
+            accountType: '',
+            isActive: getValue(bank, 'hrmeB_ActiveFlag') === 'Y' || getValue(bank, 'hrmeB_ActiveFlag') === true
+        }))
     } as any;
 }
 
@@ -1672,6 +1684,7 @@ export function mapApiResponseToTab5Fields(apiData: any): Partial<FormFields> {
     }
     const documentList = Array.isArray(docData)
         ? docData.map((doc: any) => ({
+            hrmedS_Id: getValue(doc, 'hrmedS_Id') || 0, // RE-ADDED: ID for re-sync
             documentName: getValue(doc, 'hrmedS_DocumentName') || '',
             documentDescription: getValue(doc, 'hrmedS_DucumentDescription') || '',
             document: null, // File will be handled separately if needed

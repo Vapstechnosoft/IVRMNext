@@ -471,7 +471,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const { mutate: saveDocumentDetails, mutateAsync: saveDocumentDetailsAsync, isPending: isSavingDocument } = useSaveEmployeeDocument();
     const { mutate: saveMedicalDetails, isPending: isSavingMedical } = useSaveEmployeeMedical();
     const { mutate: saveOtherDetails, isPending: isSavingOther } = useSaveEmployeeOtherDetails();
-    const { mutate: saveSalaryDetails, isPending: isSavingSalaryDetails } = useSaveEmployeeSalaryDetails();
+    const { mutate: saveSalaryDetails, isPending: isSavingSalaryDetails } = useSaveEmployeeSalaryDetails({ suppressSuccessToast: true });
     const { mutate: uploadStaffPhoto, isPending: isUploadingPhoto } = useUploadStaffPhoto();
     const { mutate: saveBankDetails, isPending: isSavingBankDetails } = useSaveBankDetails();
 
