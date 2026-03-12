@@ -4798,7 +4798,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
+                }
                 // {
                 //     id: 14,
                 //     name: 'Lesson Planner',
@@ -5736,7 +5736,7 @@ export async function getUserAccessibleModules() {
                                             name: 'Homework Marks Update',
                                             icon: 'MessageSquare',
                                             url: '/StaffPortal/Upload/homework-marks-entry',
-                                            title: 'Home Work',
+                                            title: 'Home Work Marks Update',
                                             description: 'Homework Marks Update'
                                         },
                                         {
@@ -5744,26 +5744,26 @@ export async function getUserAccessibleModules() {
                                             name: 'Homework Upload Report',
                                             icon: 'MessageSquare',
                                             url: '/StaffPortal/Upload/homework-upload-report',
-                                            title: 'Home Work',
+                                            title: 'Home Work Upload Report',
                                             description: 'Homework Upload Report'
                                         },
-                                        {
-                                            id: 6,
-                                            name: 'Sport House Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportHouseReport',
-                                            title: 'Sport House Report',
-                                            description: 'Sport House Report'
-                                        },
+                                        // {
+                                        //     id: 6,
+                                        //     name: 'Sport House Report',
+                                        //     icon: 'FileText',
+                                        //     url: '/Sports/Reports/SportHouseReport',
+                                        //     title: 'Sport House Report',
+                                        //     description: 'Sport House Report'
+                                        // },
 
-                                        {
-                                            id: 11,
-                                            name: 'Venue Wise Participation',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/VenueWiseParticipationReport',
-                                            title: 'Venue Wise Participation',
-                                            description: 'View Venue Wise Participation Report'
-                                        },
+                                        // {
+                                        //     id: 11,
+                                        //     name: 'Venue Wise Participation',
+                                        //     icon: 'FileText',
+                                        //     url: '/Sports/Reports/VenueWiseParticipationReport',
+                                        //     title: 'Venue Wise Participation',
+                                        //     description: 'View Venue Wise Participation Report'
+                                        // },
                                         // {
                                         //     id: 7,
                                         //     name: 'Sport Student Participation Report',
@@ -5772,14 +5772,14 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Sport Student Participation Report',
                                         //     description: 'Sport Student Participation Report'
                                         // },
-                                        {
-                                            id: 8,
-                                            name: 'Sport Topper List Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportTopperListReport',
-                                            title: 'Sport Topper List Report',
-                                            description: 'Sport Topper List Report'
-                                        },
+                                        // {
+                                        //     id: 8,
+                                        //     name: 'Sport Topper List Report',
+                                        //     icon: 'FileText',
+                                        //     url: '/Sports/Reports/SportTopperListReport',
+                                        //     title: 'Sport Topper List Report',
+                                        //     description: 'Sport Topper List Report'
+                                        // },
                                         {
                                             id: 80013,
                                             name: 'Notice Board',
@@ -5800,7 +5800,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 80015,
                                             name: 'Classwork Marks Update',
-                                            icon: 'Classwork Marks Update',
+                                            icon: 'MessageSquare',
                                             url: '/StaffPortal/Upload/classwork-marks',
                                             title: 'Classwork Marks Update',
                                             description: 'Classwork Marks Update'

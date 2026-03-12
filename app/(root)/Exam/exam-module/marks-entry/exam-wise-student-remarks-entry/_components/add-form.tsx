@@ -178,6 +178,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                 // Fetch Students
                 setIsLoading(true);
                 const studentRes = await getStudentDetails(rowData.asmaY_Id, rowData.asmcL_Id, rowData.asmS_Id, rowData.emE_Id);
+                console.log('studentRes', studentRes);
                 const studentList = Array.isArray(studentRes.data)
                     ? studentRes.data.map((s: any) => ({ ...s, emeR_Remarks: s.emeR_Remarks || '' }))
                     : [];
@@ -353,6 +354,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
         try {
             const { data } = await getStudentDetails(asmaY_Id, asmcL_Id, asmS_Id, emE_Id);
             const studentList = Array.isArray(data) ? data.map((s: any) => ({ ...s, emeR_Remarks: s.emeR_Remarks || '' })) : [];
+            console.log('studentList', studentList);
 
             const preSelectedStudentIds = studentList.reduce<string[]>((acc, s, ind) => {
                 if (s.emeR_Remarks && s.emeR_Remarks.trim().length > 0) {
