@@ -544,13 +544,35 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     };
 
     const handleReset = () => {
-        reset();
+        reset({
+            pasR_FirstName: '',
+            pasR_MiddleName: '',
+            pasR_LastName: '',
+            asmcL_Id: 0,
+            pasR_emailId: '',
+            pasR_DOB: undefined,
+            pasR_MobileNo: '',
+            pasA_WillingToContributeFlg: 0,
+            pasR_UndertakingFlag: 0,
+            previousSchoolDetails: [
+                {
+                    pasrpS_PrvSchoolName: '',
+                    pasrpS_PreviousClass: '',
+                    pasrpS_Board: '',
+                    pasrpS_LeftYear: '',
+                    pasrpS_LeftReason: '',
+                    pasrpS_Address: ''
+                }
+            ],
+            siblingsDetails: []
+        });
         setCurrentStep(1);
         setSelectedSourceItems([]);
         setSelectedReferenceItems([]);
         setSameAsResidential(false);
-        // REMOVE: setPreviousSchool(...);
         setUploadedDocuments([]);
+        setFilteredClasses([]);
+        setIsClassDisabled(true);
         setStudentPhoto(null);
         setStudentPhotoError(null);
         setFatherPhoto(null);
@@ -558,6 +580,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         setMotherPhoto(null);
         setMotherPhotoError(null);
         setDocumentErrors({});
+        setPhoneValues({});
+        setPhoneExpectedInfo({});
+        clearErrors();
     };
 
     const handleSourceSelection = (selectedValues: string[]) => {
