@@ -469,7 +469,7 @@ export default function StudentsYearlyAttendenceReport(props: {
 
             toast.dismiss('report-loading');
             if (students.length > 0) {
-                toast.success(`Report generated with ${students.length} records`);
+                toast.success(`Report generated records`);
             } else {
                 toast.error('No records found');
             }
