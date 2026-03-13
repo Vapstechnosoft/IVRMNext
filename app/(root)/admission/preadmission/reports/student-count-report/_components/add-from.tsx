@@ -28,7 +28,7 @@ interface AddStudentCountReportFormProps {
     onSuccess?: () => void;
     className?: string;
     searchParams?: any;
-    onFilterChange?: (payload: any) => void;
+    onFilterChange?: (payload: any, reset?: boolean) => void;
 }
 
 export default function AddStudentCountReportForm({
@@ -138,6 +138,9 @@ export default function AddStudentCountReportForm({
         reset();
         setReportType('2');
         setRangeType('between');
+        if (onFilterChange) {
+            onFilterChange({}, true);
+        }
     };
     return (
         <div className={`${className}`}>
