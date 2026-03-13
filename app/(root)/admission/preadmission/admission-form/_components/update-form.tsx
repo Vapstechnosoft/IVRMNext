@@ -54,7 +54,7 @@ import { CalendarIcon, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { number, type z } from 'zod';
+import type { z } from 'zod';
 
 type FormFields = z.infer<typeof studentAdmissionFormSchema.add>;
 
@@ -4684,7 +4684,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                 key={`class_${field.value || 'empty'}_${admissionClass?.data?.length || 0}`}
                                                                 value={field.value?.toString() || ''}
                                                                 onValueChange={(value) => field.onChange(Number(value))}>
-                                                                <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
+                                                                <SelectTrigger disabled className={cn('w-full', error && 'border-red-500')}>
                                                                     <SelectValue
                                                                         placeholder={
                                                                             admissionClassLoading ? 'Loading classes...' : 'Select a class'
@@ -4736,7 +4736,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                             value={field.value?.toString() || ''}
                                                             onValueChange={(value) => field.onChange(Number(value))} // <-- SEND NUMBER
                                                             disabled={!classId || classId === 0 || sectionLoading}>
-                                                            <SelectTrigger className={cn(errors.asmS_Id && 'border-red-500')}>
+                                                            <SelectTrigger disabled className={cn(errors.asmS_Id && 'border-red-500')}>
                                                                 <SelectValue
                                                                     placeholder={sectionLoading ? 'Loading...' : 'Select section'}
                                                                 />
