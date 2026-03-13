@@ -558,13 +558,13 @@ export default function TotalStrengthPage() {
                                             <table className='w-full border-collapse border border-gray-300'>
                                                 <thead>
                                                     <tr className='bg-gray-100'>
-                                                        <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Sl.No</th>
-                                                        <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Class</th>
-                                                        <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Section</th>
-                                                        <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Boys</th>
-                                                        <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Girls</th>
+                                                        <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Sl.No</th>
+                                                        <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Class</th>
+                                                        <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Section</th>
+                                                        <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Boys</th>
+                                                        <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Girls</th>
 
-                                                        <th className='border border-gray-300 px-4 py-2 text-right font-semibold'>Total</th>
+                                                        <th className='border border-gray-300 px-4 py-2 text-right font-bold'>Total</th>
                                                         {/* <th className='border border-gray-300 px-4 py-2 text-right font-semibold'>
                                                             New Admission
                                                         </th> */}

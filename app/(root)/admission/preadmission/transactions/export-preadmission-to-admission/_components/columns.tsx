@@ -24,7 +24,7 @@ export const exportPreadmissionToAdmissionColumns: ColumnDef<IPreadmissionApplic
     },
     {
         accessorKey: 'pasr_id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -36,7 +36,7 @@ export const exportPreadmissionToAdmissionColumns: ColumnDef<IPreadmissionApplic
     },
     {
         accessorKey: 'pasR_RegistrationNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Application No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Application No' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('pasR_RegistrationNo') ?? 'N.A'}</div>,
         enableSorting: true,
         enableHiding: true,
@@ -46,7 +46,7 @@ export const exportPreadmissionToAdmissionColumns: ColumnDef<IPreadmissionApplic
     },
     {
         accessorKey: 'student_name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('student_name')}</div>,
         enableSorting: true,
         enableHiding: true,
@@ -56,7 +56,7 @@ export const exportPreadmissionToAdmissionColumns: ColumnDef<IPreadmissionApplic
     },
     {
         accessorKey: 'pasR_Sex',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Gender' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Gender' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('pasR_Sex')}</div>,
         enableSorting: true,
         enableHiding: true,
@@ -66,7 +66,7 @@ export const exportPreadmissionToAdmissionColumns: ColumnDef<IPreadmissionApplic
     },
     {
         accessorKey: 'applied_class_name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Applied Class' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Applied Class' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('applied_class_name')}</div>,
         enableSorting: true,
         enableHiding: true,
@@ -76,7 +76,7 @@ export const exportPreadmissionToAdmissionColumns: ColumnDef<IPreadmissionApplic
     },
     {
         accessorKey: 'applied_by',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='User Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='User Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('applied_by')}</div>,
         enableSorting: false,
         enableHiding: true

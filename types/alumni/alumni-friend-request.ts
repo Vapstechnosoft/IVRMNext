@@ -11,9 +11,13 @@ export interface IAlumniFriendRequest {
     // Backend returns lowercase (optional for mapping)
     student_id?: number;
     asmaY_Year?: string;
+    asmay_year?: string;
     alsfrnD_RequestDate?: string | null;
+    alsfrnd_requestdate?: string | null;
     alsfrnD_AcceptedDate?: string | null;
+    alsfrnd_accepteddate?: string | null;
     alsfrnD_AcceptFlag?: 'ACCEPT' | 'REJECT' | null;
+    alsfrnd_acceptflag?: 'ACCEPT' | 'REJECT' | null;
 }
 
 export interface IAlumniProfile {

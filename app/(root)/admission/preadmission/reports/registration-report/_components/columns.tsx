@@ -9,7 +9,7 @@ export const registrationColumns: ColumnDef<IRigistrationReportList>[] = [
     {
 
         id: 'sl_no',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row, table }) => {
             // Get the current page index and page size from the table state
             const pageIndex = table.getState().pagination.pageIndex;
@@ -25,7 +25,7 @@ export const registrationColumns: ColumnDef<IRigistrationReportList>[] = [
     },
     {
         accessorKey: 'user_Name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='User Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='User Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('user_Name')}</div>,
         enableSorting: true,
         enableHiding: true
@@ -33,28 +33,28 @@ export const registrationColumns: ColumnDef<IRigistrationReportList>[] = [
 
     {
         accessorKey: 'name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('name')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'email_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Email' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Email' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('email_Id')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'mob_No',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Mobile No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Mobile No' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('mob_No')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'created_Date',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Date' className='font-bold text-black' />,
         cell: ({ row }) => {
             const raw = row.getValue('created_Date');
             const dateStr = typeof raw === 'string' || typeof raw === 'number' ? raw : '';

@@ -40,7 +40,6 @@ export async function getStudyCertificateSearchFilter(data: any) {
 }
 
 export async function getStudyCertificateQR(data: any) {
-    const url = '/QRcodeStudentCertificate/QRCODECertificates';
-    // Using api.post directly with the payload as body
+    const url = '/StudyCertificate/QRCODECertificates';
     return await api.post<any>('admission', url, data);
 }

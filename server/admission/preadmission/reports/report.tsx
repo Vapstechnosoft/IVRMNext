@@ -102,7 +102,7 @@ export async function getCharacterCertficateReport(data: any) {
     return await api.post<any>('admission', url, data);
 }
 export async function generateQRCodeCertificate(data: any) {
-    const url = '/QRcodeStudentCertificate/QRCODECertificates';
+    const url = '/StudyCertificate/QRCODECertificates';
     return await api.post<any>('admission', url, data);
 }
 export async function getConcessionDropdown() {
@@ -121,10 +121,48 @@ export async function getclasswiseStudentDetails(
 
     return await api.post<any[]>('admission', url, payload);
 }
-export async function getAttendanceAbsentSmsReport(ASMAY_Id: number, from_date: string, frequency: string, searchParams?: ApiSearchparams) {
+export async function getAttendanceAbsentSmsReport(
+    ASMAY_Id: number,
+    from_date: string,
+    frequency: string,
+    amc_id: number = 0,
+    att_type: string = 'D',
+    searchParams?: ApiSearchparams
+) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');
-    const url = `/OveralldailyattendanceabsentsmsFacade/GetOverallDailyAbsentAttendance?${urlParams}&ASMAY_Id=${ASMAY_Id}&FromDate=${from_date}&Flag=${frequency}&AMC_Id=0&AttType=D`;
+    const url = `/OveralldailyattendanceabsentsmsFacade/GetOverallDailyAbsentAttendance?${urlParams}&ASMAY_Id=${ASMAY_Id}&FromDate=${from_date}&Flag=${frequency}&AMC_Id=${amc_id}&AttType=${att_type}`;
     return await api.post<any>('admission', url);
+}
+
+export async function sendAttendanceAbsentSms(data: any) {
+    const url = '/OveralldailyattendanceabsentsmsFacade/sendsms';
+    return await api.post<any>('admission', url, data);
+}
+
+export async function sendAttendanceAbsentEmail(data: any) {
+    const url = '/OveralldailyattendanceabsentsmsFacade/sendemail';
+    return await api.post<any>('admission', url, data);
+}
+
+export async function sendAttendanceAbsentNotice(data: any) {
+    const url = '/OveralldailyattendanceabsentsmsFacade/sendsms';
+    return await api.post<any>('admission', url, { ...data, flag: 'notice' });
+}
+
+export async function sendAttendanceAbsentOTP(data: any) {
+    const url = '/Login/ForgotOTPForEmailval';
+    return await api.post<any>('admission', url, data);
+}
+
+export async function verifyAttendanceAbsentOTP(data: any) {
+    const url = '/Login/VerifyEmailOtpgen';
+    const response = await api.post<any>('admission', url, data);
+    return response;
+}
+
+export async function getAttendanceAbsentInitialDetails() {
+    const url = '/OveralldailyattendanceabsentsmsFacade/getdetails/';
+    return await api.get<any>('admission', url);
 }
 export async function getAttendanceReport(ASMAY_Id: number, from_date: string, frequency: string, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');

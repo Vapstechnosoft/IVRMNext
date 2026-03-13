@@ -14,7 +14,7 @@ export interface Student {
 export const masterNewSectionColumns: ColumnDef<Student>[] = [
     {
         accessorKey: 'student_id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -26,28 +26,28 @@ export const masterNewSectionColumns: ColumnDef<Student>[] = [
     },
     {
         accessorKey: 'student_name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' className='font-bold text-black' />,
         cell: ({ row }) => <div className='font-medium'>{row.getValue('student_name')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'class_name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('class_name')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'section_name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Section Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Section Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('section_name')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'admission_no',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Adm. No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Adm. No' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('admission_no')}</div>,
         enableSorting: true,
         enableHiding: true

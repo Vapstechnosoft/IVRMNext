@@ -10,7 +10,7 @@ import { useCallback } from 'react';
 export const masterClassColumns: ColumnDef<IMasterDocumentList>[] = [
     {
         accessorKey: 'amsmD_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -22,28 +22,28 @@ export const masterClassColumns: ColumnDef<IMasterDocumentList>[] = [
     },
     {
         accessorKey: 'amsmD_DocumentName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('amsmD_DocumentName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'amsmD_Description',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('amsmD_Description')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'amsmD_FLAG',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Mandatory' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Mandatory' className='font-bold text-black' />,
         cell: ({ row }) => <div>{getStatusBadge((row.getValue('amsmD_FLAG') as boolean) === true ? 'yes' : 'no')}</div>,
         enableSorting: false,
         enableHiding: true
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
