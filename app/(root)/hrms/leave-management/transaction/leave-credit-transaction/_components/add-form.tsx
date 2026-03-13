@@ -383,7 +383,7 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                         <Label htmlFor='total-days-input'>
                             Total Days :<span className='text-red-500'>*</span>
                         </Label>
-                        <Input id='total-days-input' type='number' readOnly value={totalDays || 0} className='bg-muted' />
+                        <Input id='total-days-input' type='number' disabled = {true} readOnly value={totalDays || 0} className='bg-muted' />
                     </div>
                 </div>
                 {/* Loss of Pay Options and Calculated Field */}

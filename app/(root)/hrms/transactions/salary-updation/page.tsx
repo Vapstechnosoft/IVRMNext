@@ -603,7 +603,7 @@ function SalaryUpdationPageContent({
                                             <>
                                             <MultiSelect
                                                 options={[
-                                                    { label: 'All', value: 'All' },
+                                                
                                                     ...filteredHeads.map((h: any) => ({
                                                         label: h.HRMED_Name || '',
                                                         value: h.HRMED_Id?.toString() || ''

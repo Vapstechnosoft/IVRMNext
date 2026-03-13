@@ -683,12 +683,21 @@ export async function saveEmployeeOtherDetails(data: any) {
 
 /**
  * Upload Staff Photo
- * POST /api/EmployeeRegistration/UploadStaffPhoto
+ * POST /api/EmployeeRegistration/upload_staff_photo
  */
 export async function uploadStaffPhoto(formData: FormData) {
-    const url = '/api/EmployeeRegistration/upload-staff-photo';
+    const url = '/api/EmployeeRegistration/upload_staff_photo';
+    console.log('🟠 [SERVER] POST Request URL:', url);
     try {
-        return await api.post<any>('hrms', url, formData);
+        const response = await api.postMultipart<any>('hrms', url, formData);
+        const res = response as any;
+        const isSuccess = res.success === true || String(res.success) === 'true';
+
+        return {
+            success: isSuccess,
+            message: res.message || 'Photo uploaded successfully',
+            data: res.data || ''
+        };
     } catch (error: any) {
         console.error('❌ [API ERROR] uploadStaffPhoto:', error);
         return { success: false, message: error?.message || 'Failed to upload staff photo' };

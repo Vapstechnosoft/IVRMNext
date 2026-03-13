@@ -28,10 +28,10 @@ const LeaveHistoryTable = ({ historyData }: Props) => {
     const [searchTerm, setSearchTerm] = React.useState('');
 
     const filteredHistory = React.useMemo(() => {
-        const list = (historyData as any)?.employeeLeaveDetails || [];
+        const list = Array.isArray(historyData) ? historyData : (historyData as any)?.employeeLeaveDetails || [];
         return list.filter((item: ILeaveHistory) =>
-            item.hrmL_LeaveName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.hrelaP_LeaveReason.toLowerCase().includes(searchTerm.toLowerCase())
+            item.hrmL_LeaveName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.hrelaP_LeaveReason?.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [historyData, searchTerm]);
 
