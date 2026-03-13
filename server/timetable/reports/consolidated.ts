@@ -8,10 +8,10 @@ export const getConsolidatedReportDetails = async (data: any) => {
 };
 
 export const getConsolidatedReport = async (data: any) => {
-    return await api.post<any>('timetable', '/TTConsolidatedFacade/getrpt', data);
+    return await api.post<any>('timetable', '/TTConsolidatedFacade/GetConsoliDatedTT', data);
 };
 
-export async function getClassDetails() {
-    const url = '/TimeTableCommon/GetClassData';
-    return await api.get<any[]>('timetable', url);
-}
+// export async function getClassDetails() {
+//     const url = '/TimeTableCommon/GetClassData';
+//     return await api.get<any[]>('timetable', url);
+// }

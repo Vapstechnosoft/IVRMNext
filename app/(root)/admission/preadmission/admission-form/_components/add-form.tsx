@@ -1166,6 +1166,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         amsT_OtherPermanentAddr: formData.amsT_OtherPermanentAddr || '',
                         amsT_Domicile: formData.amsT_Domicile || '',
                         amsT_SecondLanguage: formData.amsT_SecondLanguage || '',
+                        amsT_UnderAge: formData.amsT_UnderAge || '',
+                        amsT_Boarding: formData.amsT_Boarding || '',
+                        amsT_LastPlayGrndAttnd: formData.amsT_LastPlayGrndAttnd || '',
+                        amsT_OverAge: formData.amsT_OverAge || '',
+                        amsT_MaritalStatus: formData.amsT_MaritalStatus || '',
                         amsT_TransferrableJobFlg: !!formData.amsT_TransferrableJobFlg,
                         amsT_VaccinatedFlg: !!formData.amsT_VaccinatedFlg,
                         amsT_Tcflag: !!formData.amsT_Tcflag
@@ -7398,7 +7403,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                 {/* <h3 className='font-semibold text-gray-800 text-lg'>Residential Address</h3> */}
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                     <InputText
-                                                        label='Student Health'
+                                                        label='Student Illness'
                                                         id='amsT_Studentillness'
                                                         placeholder='Enter Student Health'
                                                         {...register('amsT_Studentillness')}
@@ -7420,6 +7425,28 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     />
 
                                                     <InputText
+                                                        label='Under Age'
+                                                        id='amsT_UnderAge'
+                                                        placeholder='Enter Under Age'
+                                                        {...register('amsT_UnderAge')}
+                                                        error={errors.amsT_UnderAge?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Boarding'
+                                                        id='amsT_Boarding'
+                                                        placeholder='Enter Boarding'
+                                                        {...register('amsT_Boarding')}
+                                                        error={errors.amsT_Boarding?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Last Playground Attended'
+                                                        id='amsT_LastPlayGrndAttnd'
+                                                        placeholder='Enter Last Playground Attended'
+                                                        {...register('amsT_LastPlayGrndAttnd')}
+                                                        error={errors.amsT_LastPlayGrndAttnd?.message}
+                                                    />
+
+                                                    <InputText
                                                         label='School DISE Code'
                                                         id='amsT_SchoolDISECode'
                                                         placeholder='Enter School DISE Code'
@@ -7435,8 +7462,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     />
 
                                                     <InputText
-                                                        label='  Second Language'
-                                                        id=' amsT_SecondLanguage'
+                                                        label='Second Language'
+                                                        id='amsT_SecondLanguage'
                                                         placeholder='Enter Second Language'
                                                         {...register('amsT_SecondLanguage')}
                                                         error={errors.amsT_SecondLanguage?.message}
@@ -7466,6 +7493,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     />
 
                                                     <InputText
+                                                        label='Over Age'
+                                                        id='amsT_OverAge'
+                                                        placeholder='Enter Over Age'
+                                                        {...register('amsT_OverAge')}
+                                                        error={errors.amsT_OverAge?.message}
+                                                    />
+
+                                                    <InputText
                                                         label='Extra Activity'
                                                         id='amsT_ExtraActivity'
                                                         placeholder='Enter Extra Activity'
@@ -7487,6 +7522,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         placeholder='Enter Domicile'
                                                         {...register('amsT_Domicile')}
                                                         error={errors.amsT_Domicile?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='Marital Status'
+                                                        id='amsT_MaritalStatus'
+                                                        placeholder='Enter Marital Status'
+                                                        {...register('amsT_MaritalStatus')}
+                                                        error={errors.amsT_MaritalStatus?.message}
                                                     />
                                                     <InputTextarea
                                                         label='Other Residential Address'
@@ -7530,7 +7573,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     </div>
                                                     <div className='flex items-center space-x-2'>
                                                         <Checkbox
-                                                            id='amsT_Tcflag"'
+                                                            id='amsT_Tcflag'
                                                             checked={Boolean(watch('amsT_Tcflag'))}
                                                             onCheckedChange={(checked) => {
                                                                 setValue('amsT_Tcflag', checked === true);

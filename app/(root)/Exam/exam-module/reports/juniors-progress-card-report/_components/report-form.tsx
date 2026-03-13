@@ -8,13 +8,13 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type JuniorsProgressCardReportSchema, juniorsProgressCardReportSchema } from '@/schemas/exam/exam-module/reports';
-import { getClassDropDownByAcademicYearlist, getExamsDropDownByAcademicYearandClassandSectionlist, getSectionsDropDownByAcademicYearandClasslist, getStudentsDropDownByAcademicYearandClassandSectionlist } from '@/server/exam/exam-module/reports/cumulative-report';
 import {
-    getClasses,
-    getExamsAndStudents,
-    getReportDetails,
-    getSections
-} from '@/server/exam/exam-module/reports/juniors-progress-card-report';
+    getClassDropDownByAcademicYearlist,
+    getExamsDropDownByAcademicYearandClassandSectionlist,
+    getSectionsDropDownByAcademicYearandClasslist,
+    getStudentsDropDownByAcademicYearandClassandSectionlist
+} from '@/server/exam/exam-module/reports/cumulative-report';
+import { getReportDetails } from '@/server/exam/exam-module/reports/juniors-progress-card-report';
 import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
@@ -29,7 +29,7 @@ interface ReportFormProps {
 
 export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const { data: academicData, isLoading: academicYearLoading } = useAcademicYearDropdown();
-    console.log("Academic Data", academicData);
+    console.log('Academic Data', academicData);
     const academicYears = academicData?.data || [];
     const [classes, setClasses] = useState<any[]>([]);
     const [sections, setSections] = useState<any[]>([]);
@@ -93,7 +93,6 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 }
             })();
             setValue('ASMCL_Id', '');
-
         } else {
             setClasses([]);
         }
@@ -119,7 +118,6 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 }
             })();
             setValue('ASMS_Id', '');
-
         } else {
             setSections([]);
         }
@@ -130,19 +128,29 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         if (!watchYear || !watchClass || !watchSection) return;
         (async () => {
             try {
-
                 const { data } = await getStudentsDropDownByAcademicYearandClassandSectionlist(
                     Number(watchYear),
                     Number(watchClass),
                     Number(watchSection)
                 );
                 const valid = Array.isArray(data)
-                    ? (data as any[]).filter((s): s is { amsT_AdmNo: number; amsT_Id: number; studentName?: string, amsT_FirstName?: string, amsT_MiddleName?: string, amsT_LastName?: string } => !!s?.amsT_Id)
+                    ? (data as any[]).filter(
+                          (
+                              s
+                          ): s is {
+                              amsT_AdmNo: number;
+                              amsT_Id: number;
+                              studentName?: string;
+                              amsT_FirstName?: string;
+                              amsT_MiddleName?: string;
+                              amsT_LastName?: string;
+                          } => !!s?.amsT_Id
+                      )
                     : [];
 
                 // Map to consistent format if needed, but the cumulative report logic returns objects with amsT_Id and studentName/amsT_FirstName
                 // We'll map them to a structure suitable for the display
-                const mappedStudents = valid.map(s => ({
+                const mappedStudents = valid.map((s) => ({
                     amsT_Id: s.amsT_Id,
                     amsT_AdmNo: s.amsT_AdmNo,
                     studentName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
@@ -151,7 +159,6 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 setStudents(mappedStudents);
                 console.log('Students:', mappedStudents);
                 setValue('selectedStudents', []);
-
             } catch {
                 toast.error('Failed to load students');
             } finally {
@@ -202,11 +209,9 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const onSubmit = async (data: JuniorsProgressCardReportSchema) => {
         console.log('Juniors Progress Card Report payload:', data);
         try {
-            const [result, institutionRes] = await Promise.all([
-                getReportDetails(data),
-                getMasterInstitution()
-            ]);
-            onReportGenerated({ ...result, institution: institutionRes?.data });
+            const [result, institutionRes] = await Promise.all([getReportDetails(data), getMasterInstitution()]);
+            const instData = Array.isArray(institutionRes?.data) ? institutionRes.data[0] : institutionRes?.data;
+            onReportGenerated({ ...result, institution: instData, printLogo: data.printLogo });
         } catch (error) {
             console.error('Error:', error);
         }
@@ -237,41 +242,41 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                             {/* Left Column */}
                             <div className='space-y-4'>
-                                <div className='space-y-2'> 
+                                <div className='space-y-2'>
                                     <Label className='font-medium text-sm sm:w-32'>
                                         Academic Year <span className='text-red-500'>*</span>
                                     </Label>
                                     <Controller
                                         control={control}
                                         name='ASMAY_Id'
-                                        render={({ field, fieldState }) => (         
-                                                <div className='flex-1'>
-                                                    <Select
-                                                        key={field.value}
-                                                        onValueChange={field.onChange}
-                                                        value={field.value ? String(field.value) : ''}>
-                                                        <SelectTrigger className='w-full'>
-                                                            <SelectValue placeholder='Select Academic Year' />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {academicYearLoading ? (
-                                                                <SelectItem value='0' disabled>
-                                                                    Academic Years are loading...
+                                        render={({ field, fieldState }) => (
+                                            <div className='flex-1'>
+                                                <Select
+                                                    key={field.value}
+                                                    onValueChange={field.onChange}
+                                                    value={field.value ? String(field.value) : ''}>
+                                                    <SelectTrigger className='w-full'>
+                                                        <SelectValue placeholder='Select Academic Year' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {academicYearLoading ? (
+                                                            <SelectItem value='0' disabled>
+                                                                Academic Years are loading...
+                                                            </SelectItem>
+                                                        ) : academicYears.length === 0 ? (
+                                                            <SelectItem value='0' disabled>
+                                                                No Academic Years found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            academicYears.map((y: any) => (
+                                                                <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                                    {y.asmaY_Year}
                                                                 </SelectItem>
-                                                            ) : academicYears.length === 0 ? (
-                                                                <SelectItem value='0' disabled>
-                                                                    No Academic Years found
-                                                                </SelectItem>
-                                                            ) : (
-                                                                academicYears.map((y: any) => (
-                                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                                        {y.asmaY_Year}
-                                                                    </SelectItem>
-                                                                ))
-                                                            )}
-                                                        </SelectContent>
-                                                    </Select>
-                                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                            ))
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>
                                         )}
                                     />
@@ -479,7 +484,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                         </div>
 
                         <div className='mt-8 flex justify-center gap-4'>
-                            <Button type='submit' disabled={isSubmitting} isLoading = {isSubmitting}>
+                            <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting}>
                                 Report
                             </Button>
                             <Button type='button' variant='outline' onClick={handleClear} disabled={isSubmitting}>

@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
+import { useAcademicYearDropdown, useMasterCategoryDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useClassTeacherReport } from '@/hooks/admission/preadmission/useReports';
 import { getExcelClassTeacherReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { GetClassTeacherReport } from '@/server/admission/preadmission/reports/student_yearly_attendance';
@@ -29,8 +29,10 @@ export default function ClassTeacherReportPage(props: {
     const componentRef = useRef<HTMLDivElement>(null);
 
     const { data: academicYearOptions, isLoading: academicYearLoading, isError: academicYearError } = useAcademicYearDropdown();
+    const { data: categoryOptions, isLoading: categoryLoading, isError: categoryError } = useMasterCategoryDropdown();
 
     const [academicYearId, setAcademicYearId] = useState(0);
+    const [amcId, setAmcId] = useState(0);
     const [reportType, setReportType] = useState('class_teacher');
     const [showReport, setShowReport] = useState(false);
 
@@ -50,7 +52,7 @@ export default function ClassTeacherReportPage(props: {
         isLoading,
         error,
         refetch: refetchAdmissionStudents
-    } = useClassTeacherReport(academicYearId, Number(flag), searchParams);
+    } = useClassTeacherReport(academicYearId, Number(flag), amcId, searchParams);
 
     const columns = useMemo(() => getClassTeacherReportColumns(reportType), [reportType]);
 
@@ -68,6 +70,9 @@ export default function ClassTeacherReportPage(props: {
     const handleFilterChange = (filterType: string, value: number) => {
         if (filterType === 'academic_year') {
             setAcademicYearId(value);
+            setShowReport(false);
+        } else if (filterType === 'category') {
+            setAmcId(value);
             setShowReport(false);
         }
     };
@@ -88,7 +93,7 @@ export default function ClassTeacherReportPage(props: {
                 return;
             }
 
-            const response = await getExcelClassTeacherReport(academicYearId, Number(flag));
+            const response = await getExcelClassTeacherReport(academicYearId, Number(flag), amcId);
 
             // Ensure we have a Blob
             const blob =
@@ -125,6 +130,7 @@ export default function ClassTeacherReportPage(props: {
         } else {
             setAcademicYearId(0);
         }
+        setAmcId(0);
         setReportType('class_teacher');
         setSelectedStudents([]);
         setShowReport(false);
@@ -139,15 +145,34 @@ export default function ClassTeacherReportPage(props: {
         toast.info('Report cancelled');
     };
 
-    const handleReport = () => {
+    const handleReport = async () => {
         if (!academicYearId || academicYearId === 0) {
             toast.error('Please select Academic Year');
             return;
         }
 
+        if (amcId === undefined) {
+            toast.error('Please select Category');
+            return;
+        }
+
         setShowReport(true);
-        refetchAdmissionStudents();
-        toast.success('Generating report...');
+        toast.loading('Generating report...', { id: 'report-loading' });
+        try {
+            const result = await refetchAdmissionStudents();
+            const students = (result.data?.data as any)?.searchstudentDetails || [];
+
+            toast.dismiss('report-loading');
+            if (students.length > 0) {
+                toast.success(`Record Fetched Successfully`);
+            } else {
+                toast.error('No records found');
+            }
+        } catch (err) {
+            toast.dismiss('report-loading');
+            toast.error('Failed to generate report');
+            console.error('Report generation error:', err);
+        }
     };
 
     const handlePrintContent = useReactToPrint({
@@ -168,7 +193,7 @@ export default function ClassTeacherReportPage(props: {
         } else {
             try {
                 toast.loading('Fetching all records for print...', { id: 'print-fetch' });
-                const allDataResponse = await GetClassTeacherReport(academicYearId, Number(flag), { page_size: 100000 });
+                const allDataResponse = await GetClassTeacherReport(academicYearId, Number(flag), amcId, { page_size: 100000 });
                 const allData = (allDataResponse?.data as any)?.searchstudentDetails || [];
 
                 if (allData.length === 0) {
@@ -203,8 +228,8 @@ export default function ClassTeacherReportPage(props: {
                 size='md'
                 className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
                 <div className='space-y-6'>
-                    <div className='flex justify-center'>
-                        <div className='w-full max-w-xs space-y-2'>
+                    <div className='grid grid-cols-1 gap-6 sm:grid-cols-2'>
+                        <div className='space-y-2'>
                             <Label htmlFor='academic-year' className='font-medium text-gray-900 text-sm'>
                                 Academic Year <span className='text-red-500'>*</span>
                             </Label>
@@ -229,6 +254,39 @@ export default function ClassTeacherReportPage(props: {
                                         academicYearOptions?.data?.map((item) => (
                                             <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
                                                 {item.asmaY_Year}
+                                            </SelectItem>
+                                        ))
+                                    )}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className='space-y-2'>
+                            <Label htmlFor='category' className='font-medium text-gray-900 text-sm'>
+                                Category <span className='text-red-500'>*</span>
+                            </Label>
+
+                            <Select
+                                onValueChange={(value) => handleFilterChange('category', Number(value))}
+                                value={amcId?.toString()}>
+                                <SelectTrigger id='category' className='w-full'>
+                                    <SelectValue placeholder='--Select Category--' />
+                                </SelectTrigger>
+
+                                <SelectContent>
+                                    <SelectItem value='0'>All</SelectItem>
+                                    {categoryLoading ? (
+                                        <SelectItem value='loading' disabled>
+                                            Loading...
+                                        </SelectItem>
+                                    ) : categoryError ? (
+                                        <SelectItem value='error' disabled>
+                                            Error loading
+                                        </SelectItem>
+                                    ) : (
+                                        categoryOptions?.data?.map((item) => (
+                                            <SelectItem key={item.amC_Id} value={String(item.amC_Id)}>
+                                                {item.amC_Name}
                                             </SelectItem>
                                         ))
                                     )}
@@ -292,8 +350,7 @@ export default function ClassTeacherReportPage(props: {
                         </Button>
 
                         {showReport &&
-                            (response?.data as any)?.searchstudentDetails &&
-                            (response?.data as any)?.searchstudentDetails.length > 0 && (
+                            response && (
                                 <>
                                     <Button onClick={downloadExcel} className='w-fit'>
                                         Export to Excel
@@ -312,8 +369,7 @@ export default function ClassTeacherReportPage(props: {
             </CollapsibleSection>
 
             {showReport &&
-                (response?.data as any)?.searchstudentDetails &&
-                (response?.data as any)?.searchstudentDetails.length > 0 && (
+                response && (
                     <div id='printable-report'>
                         <CollapsibleSection
                             title='Class Teacher Report Results'

@@ -7,9 +7,9 @@ import type {
     Class,
     Section,
     Staff,
+    Subject,
     StaffReplacementExistingToNewMasters,
-    StaffReplacementGridData,
-    Subject
+    StaffReplacementGridData
 } from '@/types/timetable/Transaction/staff-replacement-existing-to-new';
 
 export async function getStaffReplacementExistingToNewMasters(): Promise<StaffReplacementExistingToNewMasters> {
@@ -44,6 +44,11 @@ export async function getSectionsByClass(asmcL_Id: number): Promise<Section[]> {
     }
 }
 
+export async function getSectionDropdown() {
+    const url = `/TimeTableCommon/section-details`;
+    return await api.get<any>('timetable', url);
+}
+
 export async function getStaffReplacementGridData(searchParams?: ApiSearchparams) {
     console.log('searchParams', searchParams);
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ttmD_DayName,ttmD_DayCode');
@@ -73,6 +78,7 @@ export async function saveStaffReplacementExistingToNew(payload: {
     try {
         const url = '/StaffReplacementFromExistingToNewFacade/savedetail';
         const data = {
+            asmaY_Id: 0, // Using default 0 as it's no longer a form field
             ttmC_Id: Number(payload.ttmC_Id),
             asmcL_Id: Number(payload.asmcL_Id || 0),
             asmS_Id: Number(payload.asms_Id || 0), // Mapping asms_Id to asmS_Id to match legacy
