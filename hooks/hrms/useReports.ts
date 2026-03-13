@@ -15,6 +15,14 @@ import {
     type CumulativeSalaryReportRequest
 } from '@/server/hrms/reports/cumulative-salary-report';
 import {
+    getEmployeesBankCashReport,
+    type BankCashReportRequest
+} from '@/server/hrms/reports/bank-cash-report';
+import {
+    getHeadWiseEmployeeDetails,
+    type HeadWiseReportRequest
+} from '@/server/hrms/reports/head-wise-report';
+import {
     getDepartmentSalaryReport,
     type DepartmentSalaryReportRequest
 } from '@/server/hrms/reports/department-salary-report';
@@ -94,6 +102,10 @@ import {
     filterEmployeeDetailsReport,
     type EmployeeDetailsReportRequest
 } from '@/server/hrms/reports/employee-details-report';
+import {
+    getMonthEndReport,
+    type MonthEndReportRequest
+} from '@/server/hrms/reports/month-end-report';
 
 export type { EmployeeDetailsReportRequest };
 
@@ -603,6 +615,41 @@ export function useEmployeeProfileReport() {
         mutationFn: (data: EmployeeProfileReportSearchRequest) => searchEmployeeProfileDetails(data),
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to fetch Employee Profile Report');
+        }
+    });
+}
+
+/**
+ * Hook for Bank Cash Report
+ */
+export function useBankCashReport() {
+    return useMutation({
+        mutationFn: (data: BankCashReportRequest) => getEmployeesBankCashReport(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch Bank Cash Report');
+        }
+    });
+}
+/**
+ * Hook for Head wise Report
+ */
+export function useHeadWiseReport() {
+    return useMutation({
+        mutationFn: (data: HeadWiseReportRequest) => getHeadWiseEmployeeDetails(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch Head wise Report');
+        }
+    });
+}
+
+/**
+ * Hook for Month End Report
+ */
+export function useMonthEndReport() {
+    return useMutation({
+        mutationFn: (data: MonthEndReportRequest) => getMonthEndReport(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch Month End Report');
         }
     });
 }
