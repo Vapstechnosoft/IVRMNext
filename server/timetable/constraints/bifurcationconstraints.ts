@@ -10,13 +10,6 @@ import type {
     bifurcationconstraints
 } from '@/types/timetable/constraints/bifurcationconstraints';
 
-// Load initial data (Grid and Dropdowns)
-// export async function getBifurcationConstraintsDetails(searchParams?: ApiSearchparams) {
-
-//     const url = '/BifurcationFacade/BifurcationConstraintsGridData';
-//     return await api.get<bifurcationconstraints>('timetable', url);
-// }
-
 export async function getBifurcationConstraintsDetails(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(
         searchParams ?? {},
@@ -100,4 +93,11 @@ export async function getSectioDropdownBifurcationConstraints() {
 export async function getSubjectDropdownBifurcationConstraints() {
     const url = '/BifurcationFacade/GetSubjectDropDownData';
     return await api.get<SubjectDropdownData[]>('timetable', url);
+}
+
+
+//toggle-button
+export async function toggleBifurcationConstraintsStatus(id: number) {
+    const url = `/BifurcationFacade/BifurcationConstraintsActivateDeactivate/${id}`;     
+    return await api.put<any>('timetable', url);
 }

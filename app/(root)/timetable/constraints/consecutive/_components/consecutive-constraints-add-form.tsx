@@ -181,47 +181,7 @@ export default function ConsecutiveConstraintsFormnew({ onSuccess, onCancel }: C
         setValue('TTC_NoOfPeriods', days * periods);
     }, [watchedConDays, watchedConPeriods, setValue]);
 
-    // // Edit Mode Data Fetching - Only for setting form values
-    // useEffect(() => {
-    //     const fetchEditDetails = async () => {
-    //         const editId = editData?.ttC_Id || (Array.isArray(editData) && editData[0]?.ttC_Id);
-    //         if (editId) {
-    //             try {
-    //                 const apiResponse = await getConsecutiveConstraintsEditDetails(editId);
-    //                 const editRecord = extractList(apiResponse, 'consecutivelstedit')?.[0];
-
-    //                 if (editRecord) {
-    //                     // 1. Set simple fields
-    //                     reset({
-    //                         TTC_Id: editRecord.ttC_Id,
-    //                         ASMAY_Id: editRecord.asmaY_Id,
-    //                         TTMC_Id: editRecord.ttmC_Id,
-    //                         ASMCL_Id: editRecord.asmcL_Id,
-    //                         ASMS_Id: editRecord.asmS_Id,
-    //                         HRME_Id: editRecord.hrmE_Id,
-    //                         ISMS_Id: editRecord.ismS_Id,
-    //                         TTC_NoOfConDays: editRecord.ttC_NoOfConDays,
-    //                         TTC_NoOfConPeriods: editRecord.ttC_NoOfConPeriods,
-    //                         TTC_NoOfPeriods: editRecord.ttC_NoOfConPeriods * editRecord.ttC_NoOfConDays, // Recalculate if not provided
-    //                         TTC_BefAftApplFlag: editRecord.ttC_BefAftApplFlag === 1,
-    //                         TTC_BefAftFalg: editRecord.ttC_BefAftFalg ? String(editRecord.ttC_BefAftFalg) : '', // Select expects string often
-    //                         TTC_BefAftPeriod: editRecord.ttC_BefAftPeriod
-    //                     });
-
-    //                     // Dropdowns are already pre-loaded or loaded from initialData
-    //                 }
-    //             } catch (err) {
-    //                 console.error('Failed to fetch edit details', err);
-    //                 toast.error('Failed to load record details');
-    //             }
-    //         }
-    //     };
-
-    //     if (editData) {
-    //         fetchEditDetails();
-    //     }
-    // }, [editData, reset]);
-
+    
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
