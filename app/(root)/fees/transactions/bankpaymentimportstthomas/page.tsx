@@ -90,67 +90,116 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
     //     return datanew;
     // };
     // Process Excel data using Angular logic
-    const processExcelData = (data: any[], headers: string[]) => {
+    // const processExcelData = (data: any[], headers: string[]) => {
+    //     const datanew: ProcessedData = [];
+
+    //     for (let i = 0; i < data.length; i++) {
+    //         // Check if NARRATION exists and contains "#"
+    //         if (data[i].NARRATION?.includes('#')) {
+    //             const split = data[i].NARRATION.split('#');
+
+    //             // Check if split has more than 2 elements (Angular logic)
+    //             if (split.length > 2) {
+    //                 // Extract data according to Angular logic
+    //                 const admissionNumber = split[1].slice(2); // Remove first 2 characters
+    //                 const studentName = split[2];
+
+    //                 // Process DEPOSIT amount - remove commas and convert to number
+    //                 let depositAmount = 0;
+    //                 if (data[i].DEPOSIT) {
+    //                     const depositStr = String(data[i].DEPOSIT).split(',').join('');
+    //                     depositAmount = Number(depositStr) || 0;
+    //                 }
+
+    //                 // Get the date - try multiple possible column names
+    //                 let dateValue = '';
+
+    //                 // First, try to find date in the row object
+    //                 if (data[i].__EMPTY || data[i].__EMPTY_1 || data[i]['']) {
+    //                     // For Excel files without proper headers, dates might be in __EMPTY columns
+    //                     dateValue = data[i].__EMPTY || data[i].__EMPTY_1 || data[i][''] || '';
+    //                 } else if (data[i].Date || data[i].DATE) {
+    //                     // Try common date column names
+    //                     dateValue = data[i].Date || data[i].DATE || '';
+    //                 } else if (headers[0] && data[i][headers[0]]) {
+    //                     // Try the first column header
+    //                     dateValue = data[i][headers[0]] || '';
+    //                 } else {
+    //                     // Check all properties in the row for a date-like value
+    //                     for (const key in data[i]) {
+    //                         const value = data[i][key];
+    //                         if (typeof value === 'string' && value.match(/\d{1,2}\/\d{1,2}\/\d{4}/)) {
+    //                             dateValue = value;
+    //                             break;
+    //                         }
+    //                     }
+    //                 }
+
+    //                 datanew.push({
+    //                     FYP_Date: dateValue,
+    //                     AMST_AdmNo: admissionNumber,
+    //                     Student_Name: studentName,
+    //                     FYP_Tot_Amount: depositAmount,
+    //                     FYP_Bank_Or_Cash: 'C' // Hardcoded as "C" per Angular logic
+    //                 });
+    //             }
+    //         }
+    //     }
+
+    //     // Sort by FYP_Tot_Amount in descending order (Angular logic)
+    //     datanew.sort((a, b) => b.FYP_Tot_Amount - a.FYP_Tot_Amount);
+
+    //     return datanew;
+    // };
+
+    const processExcelData = (data: any[]) => {
         const datanew: ProcessedData = [];
 
         for (let i = 0; i < data.length; i++) {
-            // Check if NARRATION exists and contains "#"
-            if (data[i].NARRATION?.includes('#')) {
-                const split = data[i].NARRATION.split('#');
+            const narration = data?.[i]?.NARRATION;
 
-                // Check if split has more than 2 elements (Angular logic)
+            if (narration?.includes('#')) {
+                const split = narration.split('#');
+
                 if (split.length > 2) {
-                    // Extract data according to Angular logic
-                    const admissionNumber = split[1].slice(2); // Remove first 2 characters
-                    const studentName = split[2];
-
-                    // Process DEPOSIT amount - remove commas and convert to number
                     let depositAmount = 0;
-                    if (data[i].DEPOSIT) {
-                        const depositStr = String(data[i].DEPOSIT).split(',').join('');
-                        depositAmount = Number(depositStr) || 0;
+
+                    if (data?.[i]?.DEPOSIT) {
+                        depositAmount = Number(String(data[i].DEPOSIT).replace(/,/g, ''));
                     }
 
-                    // Get the date - try multiple possible column names
-                    let dateValue = '';
+                    console.log('Excel Row:', data[i]);
 
-                    // First, try to find date in the row object
-                    if (data[i].__EMPTY || data[i].__EMPTY_1 || data[i]['']) {
-                        // For Excel files without proper headers, dates might be in __EMPTY columns
-                        dateValue = data[i].__EMPTY || data[i].__EMPTY_1 || data[i][''] || '';
-                    } else if (data[i].Date || data[i].DATE) {
-                        // Try common date column names
-                        dateValue = data[i].Date || data[i].DATE || '';
-                    } else if (headers[0] && data[i][headers[0]]) {
-                        // Try the first column header
-                        dateValue = data[i][headers[0]] || '';
-                    } else {
-                        // Check all properties in the row for a date-like value
-                        for (const key in data[i]) {
-                            const value = data[i][key];
-                            if (typeof value === 'string' && value.match(/\d{1,2}\/\d{1,2}\/\d{4}/)) {
-                                dateValue = value;
-                                break;
-                            }
+                    // ✅ Excel serial date from __EMPTY_1
+                    const excelDate = data?.[i]?.__EMPTY_1;
+
+                    let formattedDate = '';
+
+                    if (excelDate) {
+                        const parsed = XLSX.SSF.parse_date_code(excelDate);
+
+                        if (parsed) {
+                            formattedDate =
+                                `${String(parsed.d).padStart(2, '0')}/` + `${String(parsed.m).padStart(2, '0')}/` + `${parsed.y}`;
                         }
                     }
 
                     datanew.push({
-                        FYP_Date: dateValue,
-                        AMST_AdmNo: admissionNumber,
-                        Student_Name: studentName,
+                        FYP_Date: formattedDate,
+                        AMST_AdmNo: split?.[1]?.slice(2) ?? '',
+                        Student_Name: split?.[2] ?? '',
                         FYP_Tot_Amount: depositAmount,
-                        FYP_Bank_Or_Cash: 'C' // Hardcoded as "C" per Angular logic
+                        FYP_Bank_Or_Cash: 'C'
                     });
                 }
             }
         }
 
-        // Sort by FYP_Tot_Amount in descending order (Angular logic)
         datanew.sort((a, b) => b.FYP_Tot_Amount - a.FYP_Tot_Amount);
 
         return datanew;
     };
+
     // Handle Excel file upload
     const selectFileForUpload = (input: HTMLInputElement) => {
         if (!input.files || !input.files[0]) {
@@ -222,7 +271,9 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
             }
 
             // Set processed data using Angular logic
-            const processed = processExcelData(rawData, headerNames);
+            //  const processed = processExcelData(rawData, headerNames);
+
+            const processed = processExcelData(rawData);
             setProcessedData(processed);
             setFilteredData(processed);
 
@@ -447,9 +498,14 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
             // setTimeout(() => {
             //     window.location.reload();
             // }, 1000);
-        } catch (error) {
-            toast.error('Error processing data');
-            console.error('Processing error:', error);
+        } catch (error: any) {
+            console.error('FULL ERROR:', error);
+
+            if (error?.message) {
+                toast.error(error.message);
+            } else {
+                toast.error('Server error occurred');
+            }
         }
     };
 

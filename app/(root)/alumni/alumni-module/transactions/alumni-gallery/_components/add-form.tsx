@@ -140,7 +140,7 @@ export default function AddAlumniGalleryForm({ onSuccess, className = '' }: AddA
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    <InputText label='Gallery Name' required {...register('ALGA_GalleryName')} error={errors.ALGA_GalleryName?.message} />
+                    <InputText label='Gallery Name' required maxLength={25} {...register('ALGA_GalleryName')} error={errors.ALGA_GalleryName?.message} />
 
                     <Controller
                         control={control}

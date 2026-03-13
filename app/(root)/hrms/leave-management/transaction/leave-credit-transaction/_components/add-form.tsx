@@ -387,7 +387,7 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                     </div>
                 </div>
                 {/* Loss of Pay Options and Calculated Field */}
-                <div className='space-y-3'>
+                {/* <div className='space-y-3 '>
                     <Label>Loss Of Pay :</Label>
                     <Controller
                         name='lossOfPayType'
@@ -431,7 +431,7 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                             placeholder='Auto-calculated'
                         />
                     </div>
-                </div>
+                </div> */}
                 {/* Action Buttons */}
                 <div className='flex justify-center gap-4 pt-4'>
                     <Button type='submit' disabled={isPending || isSubmitting} variant='default'>

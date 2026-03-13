@@ -466,7 +466,7 @@ export async function getUserAccessibleModules() {
                             sub_menu: [
                                 {
                                     id: 5,
-                                    name: 'Application',
+                                    name: 'Admission Form',
                                     icon: 'Settings',
                                     pages: [
                                         {
@@ -2030,22 +2030,22 @@ export async function getUserAccessibleModules() {
                                             title: 'ESI Report',
                                             description: 'ESI Contribution Report'
                                         },
-                                        // {
-                                        //     id: 9,
-                                        //     name: 'Head Wise Report',
-                                        //     icon: 'List',
-                                        //     url: '/hrms/reports/head-wise-report',
-                                        //     title: 'Head Wise Report',
-                                        //     description: 'Head-wise Analysis Report'
-                                        // },
-                                        // {
-                                        //     id: 10,
-                                        //     name: 'Bank Cash Report',
-                                        //     icon: 'Banknote',
-                                        //     url: '/hrms/reports/bank-cash-report',
-                                        //     title: 'Bank Cash Report',
-                                        //     description: 'Bank & Cash Summary'
-                                        // },
+                                        {
+                                            id: 9,
+                                            name: 'Head Wise Report',
+                                            icon: 'FileText',
+                                            url: '/hrms/reports/head-wise-report',
+                                            title: 'Head Wise Report',
+                                            description: 'Head-wise Analysis Report'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'Bank Cash Report',
+                                            icon: 'Banknote',
+                                            url: '/hrms/reports/bank-cash-report',
+                                            title: 'Bank Cash Report',
+                                            description: 'Bank & Cash Summary'
+                                        },
                                         // {
                                         //     id: 11,
                                         //     name: 'Employee Service Report',
@@ -2103,14 +2103,14 @@ export async function getUserAccessibleModules() {
                                         //     title: 'PF Form3A',
                                         //     description: 'Provident Fund Form 3A'
                                         // },
-                                        // {
-                                        //     id: 18,
-                                        //     name: 'HRMS Monthend Report',
-                                        //     icon: 'CalendarCheck',
-                                        //     url: '/hrms/reports/hrms-monthend-report',
-                                        //     title: 'HRMS Monthend Report',
-                                        //     description: 'Monthly Closure Report'
-                                        // },
+                                        {
+                                            id: 18,
+                                            name: 'HRMS Monthend Report',
+                                            icon: 'CalendarCheck',
+                                            url: '/hrms/reports/hrms-monthend-report',
+                                            title: 'HRMS Monthend Report',
+                                            description: 'Monthly Closure Report'
+                                        },
                                         // {
                                         //     id: 19,
                                         //     name: 'Retirement Report',
@@ -2328,155 +2328,155 @@ export async function getUserAccessibleModules() {
                         //         }
                         //     ]
                         // },
-                        // {
-                        //     id: 3,
-                        //     name: 'Attendance Management',
-                        //     icon: 'Clock',
-                        //     sub_menu: [
-                        //         {
-                        //             id: 1,
-                        //             name: 'Masters',
-                        //             icon: 'Database',
-                        //             pages: [
-                        //                 // {
-                        //                 //     id: 1,
-                        //                 //     name: 'Master Shift',
-                        //                 //     icon: 'Clock',
-                        //                 //     url: '/hrms/attendance-management/masters/master-shift',
-                        //                 //     title: 'Master Shift',
-                        //                 //     description: 'Manage Shift Definitions'
-                        //                 // },
-                        //                 // {
-                        //                 //     id: 2,
-                        //                 //     name: 'Employee Missing Logs',
-                        //                 //     icon: 'AlertCircle',
-                        //                 //     url: '/hrms/attendance-management/masters/employee-missing-logs',
-                        //                 //     title: 'Employee Missing Logs',
-                        //                 //     description: 'Track Missing Attendance Logs'
-                        //                 // },
-                        //                 {
-                        //                     id: 3,
-                        //                     name: 'Employee Shift Mapping',
-                        //                     icon: 'UserCog',
-                        //                     url: '/hrms/attendance-management/masters/employee-shift-mapping',
-                        //                     title: 'Employee Shift Mapping',
-                        //                     description: 'Map Employees to Shifts'
-                        //                 },
-                        //                 {
-                        //                     id: 4,
-                        //                     name: 'Master Holiday',
-                        //                     icon: 'CalendarOff',
-                        //                     url: '/hrms/attendance-management/masters/master-holiday',
-                        //                     title: 'Master Holiday',
-                        //                     description: 'Manage Holiday Calendar'
-                        //                 },
-                        //                 // {
-                        //                 //     id: 5,
-                        //                 //     name: 'Master Driver Shift',
-                        //                 //     icon: 'Truck',
-                        //                 //     url: '/hrms/attendance-management/masters/master-driver-shift',
-                        //                 //     title: 'Master Driver Shift',
-                        //                 //     description: 'Manage Driver Shifts'
-                        //                 // },
-                        //                 {
-                        //                     id: 6,
-                        //                     name: 'Shift Setting Master',
-                        //                     icon: 'Settings',
-                        //                     url: '/hrms/attendance-management/masters/shift-setting-master',
-                        //                     title: 'Shift Setting Master',
-                        //                     description: 'Configure Shift Settings'
-                        //                 }
-                        //                 // {
-                        //                 //     id: 7,
-                        //                 //     name: 'GPS Location Attendance',
-                        //                 //     icon: 'MapPin',
-                        //                 //     url: '/hrms/attendance-management/masters/gps-location-attendance',
-                        //                 //     title: 'GPS Location Attendance',
-                        //                 //     description: 'GPS-based Attendance'
-                        //                 // }
-                        //             ]
-                        //         },
-                        //         {
-                        //             id: 2,
-                        //             name: 'Reports',
-                        //             icon: 'FileText',
-                        //             pages: [
-                        //                 {
-                        //                     id: 1,
-                        //                     name: 'Employee In/Out Report',
-                        //                     icon: 'ClipboardList',
-                        //                     url: '/hrms/attendance-management/reports/employee-inout-report',
-                        //                     title: 'Employee In/Out Report',
-                        //                     description: 'In/Out Timing Report'
-                        //                 },
-                        //                 {
-                        //                     id: 2,
-                        //                     name: 'Late In Early Out Report',
-                        //                     icon: 'Clock',
-                        //                     url: '/hrms/attendance-management/reports/employee-lateInEarlyOut-report',
-                        //                     title: 'Late In Early Out Report',
-                        //                     description: 'Track Late/Early Attendance'
-                        //                 },
-                        //                 {
-                        //                     id: 3,
-                        //                     name: 'Employee Log Report',
-                        //                     icon: 'FileSearch',
-                        //                     url: '/hrms/attendance-management/reports/employee-log-report',
-                        //                     title: 'Employee Log Report',
-                        //                     description: 'Detailed Log Report'
-                        //                 },
-                        //                 {
-                        //                     id: 4,
-                        //                     name: 'Employee Yearly Report',
-                        //                     icon: 'Calendar',
-                        //                     url: '/hrms/attendance-management/reports/employee-yearly-report',
-                        //                     title: 'Employee Yearly Report',
-                        //                     description: 'Annual Attendance Summary'
-                        //                 },
-                        //                 {
-                        //                     id: 5,
-                        //                     name: 'Employee Monthly Report',
-                        //                     icon: 'CalendarDays',
-                        //                     url: '/hrms/attendance-management/reports/employee-monthly-report',
-                        //                     title: 'Employee Monthly Report',
-                        //                     description: 'Monthly Attendance Report'
-                        //                 },
-                        //                 {
-                        //                     id: 6,
-                        //                     name: 'Month End Report',
-                        //                     icon: 'CalendarCheck',
-                        //                     url: '/hrms/attendance-management/reports/fo-monthend-report',
-                        //                     title: 'Month End Report',
-                        //                     description: 'Monthly Attendance Summary'
-                        //                 },
-                        //                 // {
-                        //                 //     id: 6,
-                        //                 //     name: 'GPS Location Report',
-                        //                 //     icon: 'MapPin',
-                        //                 //     url: '/hrms/attendance-management/reports/gps-location-report',
-                        //                 //     title: 'GPS Location Report',
-                        //                 //     description: 'GPS Attendance Report'
-                        //                 // },
-                        //                 {
-                        //                     id: 7,
-                        //                     name: 'Holiday Report',
-                        //                     icon: 'Calendar',
-                        //                     url: '/hrms/attendance-management/reports/holiday-report',
-                        //                     title: 'Holiday Report',
-                        //                     description: 'Holiday Report'
-                        //                 },
-                        //                 {
-                        //                     id: 8,
-                        //                     name: 'Employee Absent Report',
-                        //                     icon: 'UserX',
-                        //                     url: '/hrms/attendance-management/reports/employee-absent-report',
-                        //                     title: 'Employee Absent Report',
-                        //                     description: 'Employee Absent Detail Report'
-                        //                 }
-                        //             ]
-                        //         }
-                        //     ]
-                        // },
+                        {
+                            id: 3,
+                            name: 'Attendance Management',
+                            icon: 'Clock',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Masters',
+                                    icon: 'Database',
+                                    pages: [
+                                        // {
+                                        //     id: 1,
+                                        //     name: 'Master Shift',
+                                        //     icon: 'Clock',
+                                        //     url: '/hrms/attendance-management/masters/master-shift',
+                                        //     title: 'Master Shift',
+                                        //     description: 'Manage Shift Definitions'
+                                        // },
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Employee Missing Logs',
+                                        //     icon: 'AlertCircle',
+                                        //     url: '/hrms/attendance-management/masters/employee-missing-logs',
+                                        //     title: 'Employee Missing Logs',
+                                        //     description: 'Track Missing Attendance Logs'
+                                        // },
+                                        {
+                                            id: 3,
+                                            name: 'Employee Shift Mapping',
+                                            icon: 'UserCog',
+                                            url: '/hrms/attendance-management/masters/employee-shift-mapping',
+                                            title: 'Employee Shift Mapping',
+                                            description: 'Map Employees to Shifts'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Master Holiday',
+                                            icon: 'CalendarOff',
+                                            url: '/hrms/attendance-management/masters/master-holiday',
+                                            title: 'Master Holiday',
+                                            description: 'Manage Holiday Calendar'
+                                        },
+                                        // {
+                                        //     id: 5,
+                                        //     name: 'Master Driver Shift',
+                                        //     icon: 'Truck',
+                                        //     url: '/hrms/attendance-management/masters/master-driver-shift',
+                                        //     title: 'Master Driver Shift',
+                                        //     description: 'Manage Driver Shifts'
+                                        // },
+                                        {
+                                            id: 6,
+                                            name: 'Shift Setting Master',
+                                            icon: 'Settings',
+                                            url: '/hrms/attendance-management/masters/shift-setting-master',
+                                            title: 'Shift Setting Master',
+                                            description: 'Configure Shift Settings'
+                                        }
+                                        // {
+                                        //     id: 7,
+                                        //     name: 'GPS Location Attendance',
+                                        //     icon: 'MapPin',
+                                        //     url: '/hrms/attendance-management/masters/gps-location-attendance',
+                                        //     title: 'GPS Location Attendance',
+                                        //     description: 'GPS-based Attendance'
+                                        // }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Reports',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Employee In/Out Report',
+                                            icon: 'ClipboardList',
+                                            url: '/hrms/attendance-management/reports/employee-inout-report',
+                                            title: 'Employee In/Out Report',
+                                            description: 'In/Out Timing Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Late In Early Out Report',
+                                            icon: 'Clock',
+                                            url: '/hrms/attendance-management/reports/employee-lateInEarlyOut-report',
+                                            title: 'Late In Early Out Report',
+                                            description: 'Track Late/Early Attendance'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Employee Log Report',
+                                            icon: 'FileSearch',
+                                            url: '/hrms/attendance-management/reports/employee-log-report',
+                                            title: 'Employee Log Report',
+                                            description: 'Detailed Log Report'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Employee Yearly Report',
+                                            icon: 'Calendar',
+                                            url: '/hrms/attendance-management/reports/employee-yearly-report',
+                                            title: 'Employee Yearly Report',
+                                            description: 'Annual Attendance Summary'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Employee Monthly Report',
+                                            icon: 'CalendarDays',
+                                            url: '/hrms/attendance-management/reports/employee-monthly-report',
+                                            title: 'Employee Monthly Report',
+                                            description: 'Monthly Attendance Report'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Month End Report',
+                                            icon: 'CalendarCheck',
+                                            url: '/hrms/attendance-management/reports/fo-monthend-report',
+                                            title: 'Month End Report',
+                                            description: 'Monthly Attendance Summary'
+                                        },
+                                        // {
+                                        //     id: 6,
+                                        //     name: 'GPS Location Report',
+                                        //     icon: 'MapPin',
+                                        //     url: '/hrms/attendance-management/reports/gps-location-report',
+                                        //     title: 'GPS Location Report',
+                                        //     description: 'GPS Attendance Report'
+                                        // },
+                                        {
+                                            id: 7,
+                                            name: 'Holiday Report',
+                                            icon: 'Calendar',
+                                            url: '/hrms/attendance-management/reports/holiday-report',
+                                            title: 'Holiday Report',
+                                            description: 'Holiday Report'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Employee Absent Report',
+                                            icon: 'UserX',
+                                            url: '/hrms/attendance-management/reports/employee-absent-report',
+                                            title: 'Employee Absent Report',
+                                            description: 'Employee Absent Detail Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
 
                         // , {
                         //     id: 4,
@@ -5736,7 +5736,7 @@ export async function getUserAccessibleModules() {
                                             name: 'Homework Marks Update',
                                             icon: 'MessageSquare',
                                             url: '/StaffPortal/Upload/homework-marks-entry',
-                                            title: 'Home Work',
+                                            title: 'Home Work Marks Update',
                                             description: 'Homework Marks Update'
                                         },
                                         {
@@ -5744,26 +5744,26 @@ export async function getUserAccessibleModules() {
                                             name: 'Homework Upload Report',
                                             icon: 'MessageSquare',
                                             url: '/StaffPortal/Upload/homework-upload-report',
-                                            title: 'Home Work',
+                                            title: 'Home Work Upload Report',
                                             description: 'Homework Upload Report'
                                         },
-                                        {
-                                            id: 6,
-                                            name: 'Sport House Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportHouseReport',
-                                            title: 'Sport House Report',
-                                            description: 'Sport House Report'
-                                        },
+                                        // {
+                                        //     id: 6,
+                                        //     name: 'Sport House Report',
+                                        //     icon: 'FileText',
+                                        //     url: '/Sports/Reports/SportHouseReport',
+                                        //     title: 'Sport House Report',
+                                        //     description: 'Sport House Report'
+                                        // },
 
-                                        {
-                                            id: 11,
-                                            name: 'Venue Wise Participation',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/VenueWiseParticipationReport',
-                                            title: 'Venue Wise Participation',
-                                            description: 'View Venue Wise Participation Report'
-                                        },
+                                        // {
+                                        //     id: 11,
+                                        //     name: 'Venue Wise Participation',
+                                        //     icon: 'FileText',
+                                        //     url: '/Sports/Reports/VenueWiseParticipationReport',
+                                        //     title: 'Venue Wise Participation',
+                                        //     description: 'View Venue Wise Participation Report'
+                                        // },
                                         // {
                                         //     id: 7,
                                         //     name: 'Sport Student Participation Report',
@@ -5772,14 +5772,14 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Sport Student Participation Report',
                                         //     description: 'Sport Student Participation Report'
                                         // },
-                                        {
-                                            id: 8,
-                                            name: 'Sport Topper List Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportTopperListReport',
-                                            title: 'Sport Topper List Report',
-                                            description: 'Sport Topper List Report'
-                                        },
+                                        // {
+                                        //     id: 8,
+                                        //     name: 'Sport Topper List Report',
+                                        //     icon: 'FileText',
+                                        //     url: '/Sports/Reports/SportTopperListReport',
+                                        //     title: 'Sport Topper List Report',
+                                        //     description: 'Sport Topper List Report'
+                                        // },
                                         {
                                             id: 80013,
                                             name: 'Notice Board',
@@ -5800,7 +5800,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 80015,
                                             name: 'Classwork Marks Update',
-                                            icon: 'Classwork Marks Update',
+                                            icon: 'MessageSquare',
                                             url: '/StaffPortal/Upload/classwork-marks',
                                             title: 'Classwork Marks Update',
                                             description: 'Classwork Marks Update'
@@ -6108,37 +6108,38 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
-                        },
-                        {
-                            id: 8,
-                            name: 'User Password Creation',
-                            icon: 'MessageSquare',
-                            sub_menu: [
-                                {
-                                    id: 40010,
-                                    name: 'Transaction',
-                                    icon: 'List',
-                                    pages: [
-                                        {
-                                            id: 40012,
-                                            name: 'User Password Creation',
-                                            icon: 'KeyRound',
-                                            url: '/StudentPortal/transactions/user-password-creation',
-                                            title: 'User Password Creation',
-                                            description: 'Generate Usernames and Passwords'
-                                        },
-                                        {
-                                            id: 40013,
-                                            name: 'Student Password Creation',
-                                            icon: 'LockKeyhole',
-                                            url: '/StudentPortal/transactions/student-password-creation',
-                                            title: 'Student Password Creation',
-                                            description: 'Student Credentials Management'
-                                        }
-                                    ]
-                                }
-                            ]
                         }
+                        //,
+                        // {
+                        //     id: 8,
+                        //     name: 'User Password Creation',
+                        //     icon: 'MessageSquare',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 40010,
+                        //             name: 'Transaction',
+                        //             icon: 'List',
+                        //             pages: [
+                        //                 {
+                        //                     id: 40012,
+                        //                     name: 'User Password Creation',
+                        //                     icon: 'KeyRound',
+                        //                     url: '/StudentPortal/transactions/user-password-creation',
+                        //                     title: 'User Password Creation',
+                        //                     description: 'Generate Usernames and Passwords'
+                        //                 },
+                        //                 {
+                        //                     id: 40013,
+                        //                     name: 'Student Password Creation',
+                        //                     icon: 'LockKeyhole',
+                        //                     url: '/StudentPortal/transactions/student-password-creation',
+                        //                     title: 'Student Password Creation',
+                        //                     description: 'Student Credentials Management'
+                        //                 }
+                        //             ]
+                        //         }
+                        //     ]
+                        // }
                     ]
                 },
                 {
@@ -6157,18 +6158,10 @@ export async function getUserAccessibleModules() {
                                     icon: 'Database',
                                     pages: [
                                         {
-                                            id: 1,
-                                            name: 'Question Paper Generator',
-                                            icon: 'FileText',
-                                            url: '/iframe/ai-question-paper-generator',
-                                            title: 'AI Question Paper Generator',
-                                            description: 'Generate question papers from textbooks using AI'
-                                        },
-                                        {
                                             id: 2,
                                             name: 'AI Notemaker',
                                             icon: 'FileText',
-                                            url: '/iframe/ai-notemaker',
+                                            url: '/StudentPortal/ai-notemaker',
                                             title: 'AI Notemaker',
                                             description: 'Summarize and create structured notes from textbooks using AI'
                                         },
@@ -6176,7 +6169,7 @@ export async function getUserAccessibleModules() {
                                             id: 3,
                                             name: 'AI Performance Analysis',
                                             icon: 'BarChart',
-                                            url: '/Exam/exam-module/ai-performance-analysis',
+                                            url: '/StudentPortal/ai-performance-analysis',
                                             title: 'AI Performance Analysis',
                                             description: 'Analyze performance metrics and AI-driven insights'
                                         }

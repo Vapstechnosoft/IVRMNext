@@ -2,9 +2,9 @@
 
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { FileSpreadsheet, Printer } from 'lucide-react';
 import { useRef } from 'react';
 import * as XLSX from 'xlsx';
-import { Printer, Download, FileSpreadsheet } from 'lucide-react';
 
 interface ReportListProps {
     data: any;
@@ -74,13 +74,13 @@ export const ReportList = ({ data }: ReportListProps) => {
 
     return (
         <div className='space-y-4 bg-gray-200'>
-            <div className="flex justify-end gap-2 py-2">
-                <Button  onClick={handlePrint} className="hover:bg-orange-800 text-white flex w-fit">
-                    <Printer className="h-4 w-4" />
+            <div className='flex justify-end gap-2 py-2'>
+                <Button onClick={handlePrint} className='flex w-fit text-white hover:bg-orange-800'>
+                    <Printer className='h-4 w-4' />
                     <span>PRINT</span>
                 </Button>
 
-                <Button onClick={handleExport} className=' text-white w-fit'>
+                <Button onClick={handleExport} className=' w-fit text-white'>
                     <FileSpreadsheet className='h-4 w-4' />
                     Export to Excel
                 </Button>
@@ -90,14 +90,10 @@ export const ReportList = ({ data }: ReportListProps) => {
                     <div key={student.amsT_Id} className='page-break rounded-lg border bg-white p-6 shadow-sm'>
                         {/* Header */}
                         <div className='header'>
-                            {data.institution?.mI_Logo && (
-                                <img
-                                    src={data.institution.mI_Logo}
-                                    alt={data.institution.mI_Name}
-                                    className='mx-auto mb-2 h-16 w-auto'
-                                />
+                            {data.printLogo && data.institution?.mI_Logo && (
+                                <img src={data.institution.mI_Logo} alt={data.institution.mI_Name} className='mx-auto mb-2 h-50 w-full' />
                             )}
-                            <h2 className='font-bold text-xl uppercase'>{data.institution?.mI_Name || "ST. THOMAS SCHOOL, HOWRAH"}</h2>
+
                             <h3 className='font-semibold text-lg uppercase'>Progress Report</h3>
                             <p className='text-sm'>Academic Year: {data.year}</p>
                         </div>

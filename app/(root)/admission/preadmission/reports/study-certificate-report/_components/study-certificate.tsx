@@ -310,17 +310,10 @@ const StudyCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
 
                                         {/* Header */}
                                         <div className='flex items-center justify-between gap-4 mb-4 border-b-2 border-black pb-4'>
-                                            <div className='w-28'>
+                                            <div className='w-50'>
                                                 {logoBase64 && <img src={logoBase64} className='w-full h-auto object-contain' alt="Logo" />}
                                             </div>
-                                            <div className='flex-1 text-center'>
-                                                <h1 className='text-3xl font-bold mb-2 tracking-wide text-gray-800' style={{ fontFamily: "Arial, sans-serif" }}>
-                                                    {data.masterCompany?.[0]?.companyName || 'INSTITUTION NAME'}
-                                                </h1>
-                                                <p className='text-sm mb-1 whitespace-pre-line'>
-                                                    {data.masterCompany?.[0]?.companyAddress}
-                                                </p>
-                                            </div>
+
                                             <div className='w-28'></div> {/* Empty div to balance logo */}
                                         </div>
 
@@ -381,7 +374,7 @@ const StudyCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
                                         {/* Footer */}
                                         <div className='mt-auto pt-16 grid grid-cols-2 gap-8 items-end px-8'>
                                             <div className='space-y-4 font-bold italic text-[16px]'>
-                                                <div>Place : <span className='font-normal uppercase'>{student.IVRMMCT_Name || 'Udupi'}</span></div>
+                                                {/* <div>Place : <span className='font-normal uppercase'>{student.IVRMMCT_Name || 'Udupi'}</span></div> */}
                                                 <div>Date : <span className='font-normal'>{formattedDateLong}</span></div>
                                             </div>
                                             <div className='text-right flex flex-col items-end'>

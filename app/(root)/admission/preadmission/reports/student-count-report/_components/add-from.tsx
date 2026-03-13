@@ -77,6 +77,7 @@ export default function AddStudentCountReportForm({
                 asmcl_id: data.asmcL_Id || 0
             };
 
+            toast.loading('Searching...', { id: 'search-loading' });
             const response = await addOrUpdateStudentCountReport(payload, searchParams);
 
             // Update parent state with the current filter payload
@@ -84,9 +85,15 @@ export default function AddStudentCountReportForm({
                 onFilterChange(payload);
             }
 
+            toast.dismiss('search-loading');
             if (response.success) {
-                toast.success(response.message);
-                setResults(response.data || []);
+                const resultData = response.data || [];
+                if (resultData.length > 0) {
+                    toast.success(`Record Fetched Successfully`);
+                } else {
+                    toast.error('No records found');
+                }
+                setResults(resultData);
                 try {
                     // If API already returned pagination meta (total), use it directly
                     if (response?.total != null) {
@@ -117,13 +124,7 @@ export default function AddStudentCountReportForm({
                 } catch (e) {
                     // noop
                 }
-                reset();
-                setReportType('2');
-                setRangeType('between');
-                setFromDate('');
-                setToDate('');
-                refetchAcademicYear();
-                refetchMasterClass();
+                // Removed reset() and state resets to keep the selected filters
                 onSuccess?.();
             } else {
                 toast.error(response.message);
