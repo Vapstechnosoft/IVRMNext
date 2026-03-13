@@ -3,14 +3,14 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-//import { Combobox } from '@/components/ui/combobox';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { consolidatedReportSchema } from '@/schemas/timetable/reports';
+import { getConsolidatedReportDetails } from '@/server/timetable/reports/consolidated';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Search, X } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -27,14 +27,14 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
 
     // We use the data directly from initialData as per user request to integrate the facade API lists
     const academicList = initialData?.acayear || initialData?.academiclist || [];
-    const categoryList = initialData?.catelist || initialData?.categorylist || initialData?.cateoglst || []; // Added catelist/categorylist fallback
+    const categoryList = initialData?.cateoglst || initialData?.catelist || initialData?.categorylist || [];
     const staffList = initialData?.stafflst || initialData?.stafflist || [];
     const periodList = initialData?.periodslst || initialData?.periodlist || [];
     const daysList = initialData?.dayslst_fix || initialData?.daylist || [];
-    const sectionList = initialData?.sectionlists || initialData?.sectionlist || []; // Handles plural and singular
-    const classList = initialData?.classlists || initialData?.classlist || []; // Handles plural and singular
+    const sectionList = initialData?.sectionlists || initialData?.sectionlist || [];
 
-    // Mapping for better readability based on user request
+    const [classList, setClassList] = useState<any[]>([]);
+
     const mockReportTypes = [
         { id: 'ST', label: 'STAFF WISE DETAILS' },
         { id: 'STD', label: 'STAFF DAY WISE' },
@@ -48,9 +48,6 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
         { id: 'RMR', label: 'ROOM-WISE REPORT' },
         { id: 'ATG', label: 'STAFF WORKLOAD AFTER TIMETABLE GENERATION' },
     ];
-
-    // Initial lists from props
-    // List variables already defined above from initialData
 
     const form = useForm<FormFields>({
         resolver: zodResolver(consolidatedReportSchema.search),
@@ -75,33 +72,113 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
     const watchedAcademicYear = watch('asmaY_Id');
     const watchedCategory = watch('ttmC_Id');
 
-    // useEffect(() => {
-    //     if (academicList?.length > 0 && !watchedAcademicYear) {
-    //         setValue('asmaY_Id', academicList[0].asmaY_Id);
-    //     }
-    // }, [academicList, watchedAcademicYear, setValue]);
+    // Filter classes based on selected category from the initial classlists
+    useEffect(() => {
+        const allClassLists = initialData?.classlists || initialData?.classlist || [];
+        if (watchedCategory && allClassLists.length > 0) {
+            // Filter by category if the property exists, otherwise show all
+            const filtered = allClassLists.filter((c: any) =>
+                !c.ttmC_Id || c.ttmC_Id === watchedCategory
+            );
+            setClassList(filtered);
+            // Optionally clear class selection when category changes
+            // setValue('classId', []);
+        } else {
+            setClassList(allClassLists);
+        }
+    }, [watchedCategory, initialData]);
 
     const onFormSubmit = (data: FormFields) => {
-        const payload = {
-            ASMAY_Id: data.asmaY_Id,
-            TYPE: data.type,
-            TTMC_Id: data.ttmC_Id,
-            rpttyp: data.rpttyp,
-            rpttypairods: data.rpttypai,
-            // Map IDs to expected backend format (e.g. array of objects)
-            classdss: data.classId?.map((id) => ({ asmcL_Id: id, claslis: true })) || [],
-            sectiondss: data.sectionId?.map((id) => ({ asmS_Id: id, secs: true })) || [],
-            stfidss: data.staffId?.map((id) => ({ hrmE_Id: id, stf: true })) || [],
-            dayidss: data.dayId?.map((id) => ({ ttmD_Id: id, sayy: true })) || [],
-            periodidss: data.periodId?.map((id) => ({ ttmP_Id: id, ppr: true })) || [],
-            TTMD_Id: data.singleDayId,
-            TTMP_Id: data.singlePeriodId
+        const fullClassList = initialData?.classlists || initialData?.classlist || [];
+        const fullSectionList = initialData?.sectionlists || initialData?.sectionlist || [];
+        const fullStaffList = initialData?.stafflst || initialData?.stafflist || [];
+        const fullDayList = initialData?.dayslst_fix || initialData?.daylist || [];
+        const fullPeriodList = initialData?.periodslst || initialData?.periodlist || [];
+
+        // Map selections back to full objects and set the selection flags
+        const classdss = (data.classId || []).map(id => {
+            const obj = { ...fullClassList.find((c: any) => c.asmcL_Id === id) };
+            if (obj) obj.claslis = true;
+            return obj;
+        }).filter(o => o.asmcL_Id);
+
+        const sectiondss = (data.sectionId || []).map(id => {
+            const obj = { ...fullSectionList.find((s: any) => s.asmS_Id === id) };
+            if (obj) obj.secs = true;
+            return obj;
+        }).filter(o => o.asmS_Id);
+
+        const stfidss = (data.staffId || []).map(id => {
+            const obj = { ...fullStaffList.find((s: any) => s.hrmE_Id === id) };
+            if (obj) obj.stf = true;
+            return obj;
+        }).filter(o => o.hrmE_Id);
+
+        const dayidss = (data.dayId || []).map(id => {
+            const obj = { ...fullDayList.find((d: any) => d.ttmD_Id === id) };
+            if (obj) obj.sayy = true;
+            return obj;
+        }).filter(o => o.ttmD_Id);
+
+        const periodidss = (data.periodId || []).map(id => {
+            const obj = { ...fullPeriodList.find((p: any) => p.ttmP_Id === id) };
+            if (obj) obj.ppr = true;
+            return obj;
+        }).filter(o => o.ttmP_Id);
+
+        let payload: any = {
+            ASMAY_Id: String(data.asmaY_Id),
+            TYPE: data.type
         };
+
+        if (['CSUB', 'STSUB', 'SPW'].includes(data.type)) {
+            payload = { ...payload, stfidss, dayidss, periodidss };
+        } else if (data.type === 'PSTF') {
+            payload = {
+                ...payload,
+                TTMD_Id: data.singleDayId,
+                TTMP_Id: data.singlePeriodId,
+                rpttypairods: data.rpttypai,
+                stfidss, dayidss, periodidss
+            };
+        } else if (data.type === 'STFP') {
+            payload = {
+                ...payload,
+                TTMD_Id: data.singleDayId,
+                rpttypairods: data.rpttypai,
+                stfidss, dayidss, periodidss
+            };
+        } else if (data.type === 'RMR') {
+            payload.rpttyp = data.rpttyp;
+        } else if (data.type === 'STD') {
+            payload = {
+                ...payload,
+                stfidss,
+                dayidss
+            };
+        } else if (['ATG', 'SPC', 'CSPC'].includes(data.type)) {
+            // These types use minimal payload in original controller
+        } else {
+            // Default report type (e.g. ST)
+            payload = {
+                ...payload,
+                rpttypairods: data.rpttypai,
+                rpttyp: data.rpttyp,
+                TTMC_Id: data.ttmC_Id,
+                classdss,
+                sectiondss,
+                stfidss,
+                dayidss,
+                periodidss
+            };
+        }
+
         onSubmit(payload);
     };
 
     const handleClear = () => {
         reset();
+        onSubmit({ CLEAR: true });
     };
     return (
         <form onSubmit={handleSubmit(onFormSubmit)} className='space-y-6 rounded-lg border bg-white p-6 shadow-sm'>
