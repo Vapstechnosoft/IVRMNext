@@ -535,7 +535,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
         try {
             const trimmedRegNo = regNo.trim();
-            const currentAmsTId = Number(getValues('amsT_Id' as any));
+            const currentAmsTId = Number(getValues('amsT_Id' as any)) || savedAmsTId || 0;
 
             const response = await getAllAdmissionLists({
                 search_query: trimmedRegNo,
@@ -586,7 +586,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
         try {
             const trimmedAdmissionNo = admissionNo.trim();
-            const currentAmsTId = Number(getValues('amsT_Id' as any));
+            const currentAmsTId = Number(getValues('amsT_Id' as any)) || savedAmsTId || 0;
 
             const response = await getAllAdmissionLists({
                 search_query: trimmedAdmissionNo,
@@ -1338,7 +1338,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 }
             }
             // If validation passed for Step 1, run additional conditional checks then persist
-            if (isValid && Object.keys(errors).length === 0 && Number(currentStep) === 1) {
+            if (isValid && Number(currentStep) === 1) {
                 // Ensure student photo exists
                 if (!studentPhoto?.amsT_Photoname) {
                     toast.error('Please upload student photo');
