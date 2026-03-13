@@ -17,9 +17,39 @@ import {
 
 import {
     useSaveStaffReplacementExistingToNew,
-    useSectionsByClass,
+    useSectionDropdown,
     useStaffReplacementExistingToNewMasters
 } from '@/hooks/timetable/transaction/useStaff-replacement-existing-to-new';
+
+const extractList = (data: any, preferredKey?: string) => {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    const target = data?.data !== undefined ? data.data : data;
+    if (Array.isArray(target)) return target;
+    if (!target) return [];
+    if (preferredKey && Array.isArray(target[preferredKey])) return target[preferredKey];
+    const keys = [
+        'academiclist',
+        'catelist',
+        'classlist',
+        'sectionlist',
+        'stafflist',
+        'subjectlist',
+        'staffbyall',
+        'subjectbystaff',
+        'sectionbyclass',
+        'classbycategory',
+        'categorylist',
+        'classDrpDwn',
+        'sectDrpDwn',
+        'consecutivelstedit',
+        'get_period_section1'
+    ];
+    for (const key of keys) {
+        if (Array.isArray(target[key])) return target[key];
+    }
+    return [];
+};
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -38,6 +68,7 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
         handleSubmit,
         reset,
         watch,
+        setValue,
         formState: { errors }
     } = useForm<StaffReplacementExistingToNewValues>({
         resolver: zodResolver(StaffRepacementExistingToNewSchema),
@@ -51,8 +82,12 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
         }
     });
 
+    const watchCategory = watch('ttmC_Id');
     const watchClass = watch('asmcL_Id');
-    const { data: sections, isLoading: sectionsLoading } = useSectionsByClass(Number(watchClass || 0));
+
+    const { data: sectionsData, isLoading: sectionsLoading } = useSectionDropdown();
+
+    const sections = extractList(sectionsData);
 
     const onSubmit = async (data: StaffReplacementExistingToNewValues) => {
         if (data.hrmE_Id_From === data.hrmE_Id_To) {
@@ -112,6 +147,7 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
             <div className='rounded-lg border bg-white p-6 shadow-sm'>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-8'>
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+
                         <FormSelect
                             label='Category Name *'
                             name='ttmC_Id'
@@ -151,8 +187,8 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
                             placeholder='-- Select Section --'
                             control={control}
                             options={sections}
-                            valueKey='asms_Id'
-                            labelKey='asms_SectionName'
+                            valueKey='asmS_Id'
+                            labelKey='asmC_SectionName'
                             isLoading={sectionsLoading}
                             error={errors.asms_Id?.message}
                         />

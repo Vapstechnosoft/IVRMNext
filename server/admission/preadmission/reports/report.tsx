@@ -11,7 +11,7 @@ export async function getStudentTcReport(data: any, searchParams?: ApiSearchpara
     return await api.post<any>('admission', url, data);
 }
 export async function getMonthEndReport(data: any) {
-    const url = `/monthendreport/GetMonthEndReport?AcayId=${data.ASMAY_Id}&Month=${data.month}&Year=${data.year}`;
+    const url = `/monthendreport/GetMonthEndReport?AcayId=${data.ASMAY_Id}&Month=${data.month}&Year=${data.year}&AMC_Id=${data.AMC_Id}`;
     return await api.post<any>('admission', url, data);
 }
 
@@ -20,8 +20,9 @@ export async function getExcelMonthEndReport(data: {
     ASMAY_Id: number;
     month: string;
     year: number;
+    AMC_Id: number;
 }) {
-    const url = `/monthendreport/ExportMonthEndReportToExcel?AcayId=${data.ASMAY_Id}&Month=${data.month}&Year=${data.year}`;
+    const url = `/monthendreport/ExportMonthEndReportToExcel?AcayId=${data.ASMAY_Id}&Month=${data.month}&Year=${data.year}&AMC_Id=${data.AMC_Id}`;
 
     return api.post('admission', url, null, {
         responseType: 'blob'

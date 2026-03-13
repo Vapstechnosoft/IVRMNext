@@ -33,8 +33,9 @@ export async function getExcelMonthEndReport(data: {
     ASMAY_Id: number;
     month: string;
     year: number;
+    AMC_Id: number;
 }) {
-    const url = `/monthendreport/ExportMonthEndReportToExcel?AcayId=${data.ASMAY_Id}&Month=${data.month}&Year=${data.year}`;
+    const url = `/monthendreport/ExportMonthEndReportToExcel?AcayId=${data.ASMAY_Id}&Month=${data.month}&Year=${data.year}&AMC_Id=${data.AMC_Id}`;
 
     try {
         const responseData = await api.postBinary('admission', url);
@@ -44,10 +45,10 @@ export async function getExcelMonthEndReport(data: {
         throw error;
     }
 }
-export async function getExcelClassTeacherReport(ASMAY_Id: number, flag: number, searchParams?: ApiSearchparams) {
+export async function getExcelClassTeacherReport(ASMAY_Id: number, flag: number, amcId?: number, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
 
-    const url = `/ClassTeacherReportAttendance/ExportClassTeacherReportAttendanceToExcel?ASMAY_Id=${ASMAY_Id}&flag=${flag}&${urlParams}`;
+    const url = `/ClassTeacherReportAttendance/ExportClassTeacherReportAttendanceToExcel?ASMAY_Id=${ASMAY_Id}&Flag=${flag}&AMC_Id=${amcId || 0}&${urlParams}`;
 
     try {
         const responseData = await api.postBinary('admission', url);

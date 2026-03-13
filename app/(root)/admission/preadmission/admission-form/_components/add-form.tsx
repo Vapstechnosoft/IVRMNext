@@ -36,6 +36,7 @@ import { calculateAge, dateToWords } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { studentAdmissionFormSchema } from '@/schemas/admission/admission-form';
 import {
+    getAllAdmissionLists,
     saveFifthTabApi,
     saveFinalTabApi,
     saveFirstTabApi,
@@ -43,8 +44,7 @@ import {
     saveGaurdianApi,
     saveSecondTabApi,
     saveStudentPhotoApi,
-    saveThirdTabApi,
-    getAllAdmissionLists
+    saveThirdTabApi
 } from '@/server/admission/admission-form/admission';
 import { deleteDocument, uploadDocument } from '@/server/document_upload';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -530,12 +530,13 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             </>
         );
     };
-
     const handleCheckDuplicateRegNo = async (regNo: string): Promise<boolean> => {
         if (!regNo || regNo.trim() === '') return false;
 
         try {
             const trimmedRegNo = regNo.trim();
+            const currentAmsTId = Number(getValues('amsT_Id' as any)) || savedAmsTId || 0;
+
             const response = await getAllAdmissionLists({
                 search_query: trimmedRegNo,
                 search_columns: 'registrationNo'
@@ -543,13 +544,21 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
             interface AdmissionData {
                 registrationNo?: string;
+                amst_Id?: number;
+                amsT_Id?: number;
+                AMST_Id?: number;
+                amstId?: number;
             }
             const students = response?.data as AdmissionData[] | null;
 
             if (Array.isArray(students) && students.length > 0) {
-                const duplicateFound = students.some(
-                    (s: AdmissionData) => s.registrationNo?.toString().toLowerCase() === trimmedRegNo.toLowerCase()
-                );
+                const duplicateFound = students.some((s: AdmissionData) => {
+                    const studentRegNo = s.registrationNo?.toString().toLowerCase();
+                    const isSameRegNo = studentRegNo === trimmedRegNo.toLowerCase();
+                    const studentId = Number(s.amsT_Id ?? s.amst_Id ?? s.AMST_Id ?? s.amstId ?? 0);
+                    const isDifferentStudent = studentId !== currentAmsTId;
+                    return isSameRegNo && isDifferentStudent;
+                });
 
                 if (duplicateFound) {
                     toast.error(`Registration No. "${trimmedRegNo}" already exists`);
@@ -577,6 +586,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
         try {
             const trimmedAdmissionNo = admissionNo.trim();
+            const currentAmsTId = Number(getValues('amsT_Id' as any)) || savedAmsTId || 0;
+
             const response = await getAllAdmissionLists({
                 search_query: trimmedAdmissionNo,
                 search_columns: 'admissionNo'
@@ -584,13 +595,21 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
             interface AdmissionData {
                 admissionNo?: string;
+                amst_Id?: number;
+                amsT_Id?: number;
+                AMST_Id?: number;
+                amstId?: number;
             }
             const students = response?.data as AdmissionData[] | null;
 
             if (Array.isArray(students) && students.length > 0) {
-                const duplicateFound = students.some(
-                    (s: AdmissionData) => s.admissionNo?.toString().toLowerCase() === trimmedAdmissionNo.toLowerCase()
-                );
+                const duplicateFound = students.some((s: AdmissionData) => {
+                    const studentAdmissionNo = s.admissionNo?.toString().toLowerCase();
+                    const isSameAdmissionNo = studentAdmissionNo === trimmedAdmissionNo.toLowerCase();
+                    const studentId = Number(s.amsT_Id ?? s.amst_Id ?? s.AMST_Id ?? s.amstId ?? 0);
+                    const isDifferentStudent = studentId !== currentAmsTId;
+                    return isSameAdmissionNo && isDifferentStudent;
+                });
 
                 if (duplicateFound) {
                     toast.error(`Admission No. "${trimmedAdmissionNo}" already exists`);
@@ -612,7 +631,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             return false;
         }
     };
-
     const saveFirstTab = async (formData: any) => {
         try {
             // Guard: ensure minimal required fields are present before calling API
@@ -664,9 +682,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     throw new Error('Validation failed: missing ECS details');
                 }
             }
+            const amsTIdToUse = Number(formData.amsT_Id ?? getValues('amsT_Id' as any) ?? 0);
             // Build payload expected by server for first tab
             const payload = {
-                amsT_Id: 0,
+                amsT_Id: savedAmsTId ?? 0,
                 mI_Id: Number(formData.mI_Id ?? 30),
                 asmaY_Id: Number(formData.asmaY_Id ?? formData.asmaY_Year ?? 0),
                 asmcL_Id: Number(formData.asmcL_Id ?? 0),
@@ -747,7 +766,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 amsT_Nationality: Number(formData.amsT_Nationality ?? 0),
                 amsT_State: Number(formData.amsT_State ?? 0),
                 userId: Number(formData.userId ?? 0) || 21602,
-                editFlag: !!formData.editFlag,
+                editFlag: (savedAmsTId ?? 0) > 0,
                 returnVal: true
             };
 
@@ -790,7 +809,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             const formData = getValues();
 
             const payload = {
-                amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 15353,
+                //amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 15353,
+                amsT_Id: Number(getValues('amsT_Id' as any) ?? savedAmsTId ?? 0),
                 userId: 21602,
                 miId: 30,
                 amsT_FatherPassingYear: Number(formData.amsT_FatherPassingYear ?? 0) || 0,
@@ -1149,7 +1169,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     const formData = getValues();
 
                     const payload = {
-                        amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 15353,
+                        amsT_Id: Number(getValues('amsT_Id' as any) ?? savedAmsTId ?? 0),
                         mI_Id: 30,
                         userId: 1,
                         amsT_Studentillness: formData.amsT_Studentillness || '',
@@ -1166,6 +1186,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         amsT_OtherPermanentAddr: formData.amsT_OtherPermanentAddr || '',
                         amsT_Domicile: formData.amsT_Domicile || '',
                         amsT_SecondLanguage: formData.amsT_SecondLanguage || '',
+                        amsT_UnderAge: formData.amsT_UnderAge || '',
+                        amsT_Boarding: formData.amsT_Boarding || '',
+                        amsT_LastPlayGrndAttnd: formData.amsT_LastPlayGrndAttnd || '',
+                        amsT_OverAge: formData.amsT_OverAge || '',
+                        amsT_MaritalStatus: formData.amsT_MaritalStatus || '',
                         amsT_TransferrableJobFlg: !!formData.amsT_TransferrableJobFlg,
                         amsT_VaccinatedFlg: !!formData.amsT_VaccinatedFlg,
                         amsT_Tcflag: !!formData.amsT_Tcflag
@@ -1313,7 +1338,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 }
             }
             // If validation passed for Step 1, run additional conditional checks then persist
-            if (isValid && Object.keys(errors).length === 0 && Number(currentStep) === 1) {
+            if (isValid && Number(currentStep) === 1) {
                 // Ensure student photo exists
                 if (!studentPhoto?.amsT_Photoname) {
                     toast.error('Please upload student photo');
@@ -4115,7 +4140,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         error={errors.amsT_ConArea?.message}
                                                     />
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_ConCountry'>Country<span className='ml-1 text-red-500'>*</span></Label>
+                                                        <Label htmlFor='amsT_ConCountry'>
+                                                            Country<span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
                                                         <Controller
                                                             name='amsT_ConCountry'
                                                             control={control}
@@ -4152,7 +4179,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         {errors.amsT_ConCountry && <FormError>{errors.amsT_ConCountry.message}</FormError>}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='pasR_ConState'>State<span className='ml-1 text-red-500'>*</span></Label>
+                                                        <Label htmlFor='pasR_ConState'>
+                                                            State<span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
                                                         <Controller
                                                             name='amsT_ConState'
                                                             control={control}
@@ -4330,7 +4359,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         disabled={sameAsResidential}
                                                     />
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_PerCountry'>Country <span className='ml-1 text-red-500'>*</span></Label>
+                                                        <Label htmlFor='amsT_PerCountry'>
+                                                            Country <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
                                                         <Controller
                                                             name='amsT_PerCountry'
                                                             control={control}
@@ -4368,7 +4399,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         {errors.amsT_PerCountry && <FormError>{errors.amsT_PerCountry.message}</FormError>}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_PerState'>State <span className='ml-1 text-red-500'>*</span></Label>
+                                                        <Label htmlFor='amsT_PerState'>
+                                                            State <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
                                                         <Controller
                                                             name='amsT_PerState'
                                                             control={control}
@@ -6729,7 +6762,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 {phoneExpectedInfo?.[`guardian_${idx}_phone`]?.expected && (
                                                                                     <span className='mt-1 text-muted-foreground text-xs'>
                                                                                         {`Mobile number must be exactly ${phoneExpectedInfo[`guardian_${idx}_phone`]
-                                                                                            .expected
+                                                                                                .expected
                                                                                             } digits for ${phoneExpectedInfo[`guardian_${idx}_phone`]
                                                                                                 .name ?? 'selected country'
                                                                                             }`}
@@ -7398,7 +7431,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                 {/* <h3 className='font-semibold text-gray-800 text-lg'>Residential Address</h3> */}
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                     <InputText
-                                                        label='Student Health'
+                                                        label='Student Illness'
                                                         id='amsT_Studentillness'
                                                         placeholder='Enter Student Health'
                                                         {...register('amsT_Studentillness')}
@@ -7420,6 +7453,28 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     />
 
                                                     <InputText
+                                                        label='Under Age'
+                                                        id='amsT_UnderAge'
+                                                        placeholder='Enter Under Age'
+                                                        {...register('amsT_UnderAge')}
+                                                        error={errors.amsT_UnderAge?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Boarding'
+                                                        id='amsT_Boarding'
+                                                        placeholder='Enter Boarding'
+                                                        {...register('amsT_Boarding')}
+                                                        error={errors.amsT_Boarding?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Last Playground Attended'
+                                                        id='amsT_LastPlayGrndAttnd'
+                                                        placeholder='Enter Last Playground Attended'
+                                                        {...register('amsT_LastPlayGrndAttnd')}
+                                                        error={errors.amsT_LastPlayGrndAttnd?.message}
+                                                    />
+
+                                                    <InputText
                                                         label='School DISE Code'
                                                         id='amsT_SchoolDISECode'
                                                         placeholder='Enter School DISE Code'
@@ -7435,8 +7490,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     />
 
                                                     <InputText
-                                                        label='  Second Language'
-                                                        id=' amsT_SecondLanguage'
+                                                        label='Second Language'
+                                                        id='amsT_SecondLanguage'
                                                         placeholder='Enter Second Language'
                                                         {...register('amsT_SecondLanguage')}
                                                         error={errors.amsT_SecondLanguage?.message}
@@ -7466,6 +7521,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     />
 
                                                     <InputText
+                                                        label='Over Age'
+                                                        id='amsT_OverAge'
+                                                        placeholder='Enter Over Age'
+                                                        {...register('amsT_OverAge')}
+                                                        error={errors.amsT_OverAge?.message}
+                                                    />
+
+                                                    <InputText
                                                         label='Extra Activity'
                                                         id='amsT_ExtraActivity'
                                                         placeholder='Enter Extra Activity'
@@ -7487,6 +7550,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         placeholder='Enter Domicile'
                                                         {...register('amsT_Domicile')}
                                                         error={errors.amsT_Domicile?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='Marital Status'
+                                                        id='amsT_MaritalStatus'
+                                                        placeholder='Enter Marital Status'
+                                                        {...register('amsT_MaritalStatus')}
+                                                        error={errors.amsT_MaritalStatus?.message}
                                                     />
                                                     <InputTextarea
                                                         label='Other Residential Address'
@@ -7530,7 +7601,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     </div>
                                                     <div className='flex items-center space-x-2'>
                                                         <Checkbox
-                                                            id='amsT_Tcflag"'
+                                                            id='amsT_Tcflag'
                                                             checked={Boolean(watch('amsT_Tcflag'))}
                                                             onCheckedChange={(checked) => {
                                                                 setValue('amsT_Tcflag', checked === true);

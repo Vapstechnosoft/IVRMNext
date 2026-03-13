@@ -10,12 +10,13 @@ import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMaste
 import {
     useActivePreadmissionDetails,
     useDocumentView,
-    usePreadmissionClassDropdown
+    usePreadmissionClassDropdown,
+    usePreadmissionDocumentsDropdown
 } from '@/hooks/admission/preadmission/useTransactions';
 import type { IPreadmissionDocumentView } from '@/types/admission/preadmission/transactions';
 import { CheckSquare } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { use, useEffect, useRef, useState } from 'react';
+import { use, useEffect, useMemo, useRef, useState } from 'react';
 import { DocumentViewColoumn } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -30,6 +31,7 @@ export default function DocumentView(props: { searchParams: SearchParams }) {
     const { data: activePreadmission } = useActivePreadmissionDetails();
     const { data: classOptions, isLoading: classLoading, isError: classError } = usePreadmissionClassDropdown();
     const { data: academicYearOptions, isLoading: academicYearLoading, isError: academicYearError } = useAcademicYearDropdown();
+    const { data: masterDocs } = usePreadmissionDocumentsDropdown();
 
     // Filters
     const [classId, setClassId] = useState(0);
@@ -61,7 +63,53 @@ export default function DocumentView(props: { searchParams: SearchParams }) {
         }
     }, [academicYearId, refetchStudents]);
 
-    const tableProps = useDataTableProps(response);
+    const mergedData = useMemo(() => {
+        if (!response?.data) return [];
+
+        const { studentList, documentList } = response.data as any;
+        const students = Array.isArray(studentList) ? studentList : (studentList?.$values || []);
+        const docListGlobal = Array.isArray(documentList) ? documentList : (documentList?.$values || []);
+        const masterDocsList = masterDocs?.data || [];
+
+        return students.map((student: any) => {
+            const studentId = Number(student.pasr_id || student.pasR_Id || 0);
+
+            // Filter documents for this student
+            let studentDocs = docListGlobal.filter((doc: any) => {
+                const docStudentId = Number(doc.pasr_id || doc.pasR_Id || 0);
+                return docStudentId === studentId && studentId !== 0;
+            });
+
+            // If global doclist is empty for this student, check student-level properties
+            if (studentDocs.length === 0) {
+                studentDocs = student.doclist || student.documentList || student.$values || [];
+            }
+
+            // Ensure document names and paths are handled
+            studentDocs = studentDocs.map((doc: any) => {
+                const masterDoc = masterDocsList.find((md) => Number(md.amsmD_Id) === Number(doc.amsmD_Id));
+                return {
+                    ...doc,
+                    amsmD_DocumentName: doc.amsmD_DocumentName || masterDoc?.amsmD_DocumentName || 'Document',
+                    document_Path: doc.document_Path || doc.document_path || doc.path || ''
+                };
+            });
+
+            // Merge details if present to make photo access easier
+            const details = student.student_details || student.details || {};
+
+            return {
+                ...student,
+                ...details,
+                doclist: studentDocs
+            };
+        });
+    }, [response, masterDocs]);
+
+    const tableProps = {
+        ...useDataTableProps(response),
+        data: mergedData
+    };
 
     const handleSelectStudent = (selectedRows: IPreadmissionDocumentView[]) => {
         setSelectedStudents(selectedRows);

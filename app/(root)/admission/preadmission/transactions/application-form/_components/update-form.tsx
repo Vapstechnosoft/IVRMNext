@@ -596,6 +596,58 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         trigger(fieldName as any);
     };
 
+    const handleReset = () => {
+        reset({
+            pasR_FirstName: '',
+            pasR_MiddleName: '',
+            pasR_LastName: '',
+            asmcL_Id: 0,
+            pasR_emailId: '',
+            pasR_DOB: undefined,
+            pasR_MobileNo: '',
+            pasA_WillingToContributeFlg: 0,
+            pasR_UndertakingFlag: 0,
+            previousSchoolDetails: [
+                {
+                    pasrpS_PrvSchoolName: '',
+                    pasrpS_PreviousClass: '',
+                    pasrpS_Board: '',
+                    pasrpS_LeftYear: '',
+                    pasrpS_LeftReason: '',
+                    pasrpS_Address: ''
+                }
+            ],
+            siblingsDetails: []
+        });
+        setCurrentStep(1);
+        setSelectedSourceItems([]);
+        setSelectedReferenceItems([]);
+        setSameAsResidential(false);
+        setPreviousSchool({
+            pasrpS_Id: 0,
+            pasR_Id: 0,
+            pasrpS_PrvSchoolName: '',
+            pasrpS_PreviousClass: '',
+            pasrpS_Board: '',
+            pasrpS_LeftYear: '',
+            pasrpS_LeftReason: '',
+            pasrpS_Address: ''
+        });
+        setUploadedDocuments([]);
+        setFilteredClasses([]);
+        setIsClassDisabled(true);
+        setStudentPhoto(null);
+        setStudentPhotoError(null);
+        setFatherPhoto(null);
+        setFatherPhotoError(null);
+        setMotherPhoto(null);
+        setMotherPhotoError(null);
+        setDocumentErrors({});
+        setPhoneValues({});
+        setPhoneExpectedInfo({});
+        clearErrors();
+    };
+
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         if (data.pasR_UndertakingFlag === 0) {
             toast.error('Please accept undertaking');
@@ -716,25 +768,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         refetchDropdowns();
     };
 
-    const handleReset = () => {
-        reset();
-        setCurrentStep(1);
-        setSelectedSourceItems([]);
-        setSelectedReferenceItems([]);
-        setSameAsResidential(false);
-        setPreviousSchool({
-            pasrpS_Id: 0,
-            pasR_Id: 0,
-            pasrpS_PrvSchoolName: '',
-            pasrpS_PreviousClass: '',
-            pasrpS_Board: '',
-            pasrpS_LeftYear: '',
-            pasrpS_LeftReason: '',
-            pasrpS_Address: ''
-        });
-        setUploadedDocuments([]);
-        setDocumentErrors({});
-    };
+
 
     const handleSourceSelection = (selectedValues: string[]) => {
         const selectedSources = selectedValues.map((value) => {
@@ -1221,6 +1255,42 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         }
         prevPerCountryRef.current = perConuntryId;
     }, [perConuntryId, setValue]);
+
+    // Reactive address synchronization
+    const watchedConStreet = watch('pasR_ConStreet');
+    const watchedConArea = watch('pasR_ConArea');
+    const watchedConCountry = watch('pasR_ConCountry');
+    const watchedConState = watch('pasR_ConState');
+    const watchedConCity = watch('pasR_ConCity');
+    const watchedConPincode = watch('pasR_ConPincode');
+
+    useEffect(() => {
+        if (sameAsResidential) {
+            setValue('pasR_PerStreet', watchedConStreet);
+            setValue('pasR_PerArea', watchedConArea);
+            setValue('pasR_PerCountry', watchedConCountry);
+            setValue('pasR_PerState', watchedConState ? Number(watchedConState) : undefined);
+            setValue('pasR_PerCity', watchedConCity);
+
+            if (perZipLength && typeof watchedConPincode === 'string') {
+                setValue('pasR_PerPincode', watchedConPincode.slice(0, perZipLength));
+            } else if (perZipLength && typeof watchedConPincode === 'number') {
+                setValue('pasR_PerPincode', String(watchedConPincode).slice(0, perZipLength));
+            } else {
+                setValue('pasR_PerPincode', watchedConPincode);
+            }
+        }
+    }, [
+        sameAsResidential,
+        watchedConStreet,
+        watchedConArea,
+        watchedConCountry,
+        watchedConState,
+        watchedConCity,
+        watchedConPincode,
+        setValue,
+        perZipLength
+    ]);
 
     return (
         <>
@@ -3803,14 +3873,14 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
                             {/* Navigation Footer */}
                             <div className='flex items-center justify-end border-t bg-gray-50 px-6 py-4 md:px-8'>
-                                {/* <Button
+                                <Button
                                     type='button'
                                     variant='outline'
                                     onClick={handleReset}
                                     disabled={isSubmitting}
                                     className='w-fit transition-all duration-200 hover:scale-105'>
                                     Reset Form
-                                </Button> */}
+                                </Button>
 
                                 <div className='flex gap-3'>
                                     {currentStep > 1 && (

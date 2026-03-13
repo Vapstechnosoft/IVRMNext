@@ -544,13 +544,35 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     };
 
     const handleReset = () => {
-        reset();
+        reset({
+            pasR_FirstName: '',
+            pasR_MiddleName: '',
+            pasR_LastName: '',
+            asmcL_Id: 0,
+            pasR_emailId: '',
+            pasR_DOB: undefined,
+            pasR_MobileNo: '',
+            pasA_WillingToContributeFlg: 0,
+            pasR_UndertakingFlag: 0,
+            previousSchoolDetails: [
+                {
+                    pasrpS_PrvSchoolName: '',
+                    pasrpS_PreviousClass: '',
+                    pasrpS_Board: '',
+                    pasrpS_LeftYear: '',
+                    pasrpS_LeftReason: '',
+                    pasrpS_Address: ''
+                }
+            ],
+            siblingsDetails: []
+        });
         setCurrentStep(1);
         setSelectedSourceItems([]);
         setSelectedReferenceItems([]);
         setSameAsResidential(false);
-        // REMOVE: setPreviousSchool(...);
         setUploadedDocuments([]);
+        setFilteredClasses([]);
+        setIsClassDisabled(true);
         setStudentPhoto(null);
         setStudentPhotoError(null);
         setFatherPhoto(null);
@@ -558,6 +580,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         setMotherPhoto(null);
         setMotherPhotoError(null);
         setDocumentErrors({});
+        setPhoneValues({});
+        setPhoneExpectedInfo({});
+        clearErrors();
     };
 
     const handleSourceSelection = (selectedValues: string[]) => {
@@ -1053,6 +1078,42 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         // clear permanent pincode when permanent country changes
         setValue('pasR_PerPincode', '');
     }, [perConuntryId, setValue]);
+
+    // Reactive address synchronization
+    const watchedConStreet = watch('pasR_ConStreet');
+    const watchedConArea = watch('pasR_ConArea');
+    const watchedConCountry = watch('pasR_ConCountry');
+    const watchedConState = watch('pasR_ConState');
+    const watchedConCity = watch('pasR_ConCity');
+    const watchedConPincode = watch('pasR_ConPincode');
+
+    useEffect(() => {
+        if (sameAsResidential) {
+            setValue('pasR_PerStreet', watchedConStreet);
+            setValue('pasR_PerArea', watchedConArea);
+            setValue('pasR_PerCountry', watchedConCountry);
+            setValue('pasR_PerState', watchedConState);
+            setValue('pasR_PerCity', watchedConCity);
+
+            if (perZipLength && typeof watchedConPincode === 'string') {
+                setValue('pasR_PerPincode', watchedConPincode.slice(0, perZipLength));
+            } else if (perZipLength && typeof watchedConPincode === 'number') {
+                setValue('pasR_PerPincode', String(watchedConPincode).slice(0, perZipLength));
+            } else {
+                setValue('pasR_PerPincode', watchedConPincode);
+            }
+        }
+    }, [
+        sameAsResidential,
+        watchedConStreet,
+        watchedConArea,
+        watchedConCountry,
+        watchedConState,
+        watchedConCity,
+        watchedConPincode,
+        setValue,
+        perZipLength
+    ]);
 
     return (
         <>
