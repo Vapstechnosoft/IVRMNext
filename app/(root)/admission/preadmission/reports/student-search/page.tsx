@@ -24,14 +24,15 @@ type FormFields = z.infer<typeof studentSearchSchema>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 const FIELD_OPTIONS = [
-    { value: 'AMST_ClassName', label: 'Class Name' },
+    { value: 'ASMCL_ClassName', label: 'Class Name' },
     { value: 'AMST_FirstName', label: 'First Name' },
+    { value: 'AMST_RegistrationNo', label: 'Registration No' },
     { value: 'AMST_FatherName', label: 'Father Name' },
     { value: 'AMST_MotherName', label: 'Mother Name' },
     { value: 'AMST_emailId', label: 'Email' },
-    { value: 'AMST_MobileNo', label: 'Mobile Number' },
+    // { value: 'AMST_MobileNo', label: 'Mobile Number' },
     { value: 'AMST_AdmNo', label: 'Admission Number' },
-    { value: 'AMST_SectionName', label: 'Section' }
+    { value: 'ASMC_SectionName', label: 'Section' }
 ];
 
 const OPERATOR_OPTIONS = [
@@ -73,7 +74,7 @@ export default function StudentSearchPage(props: {
         resolver: zodResolver(studentSearchSchema),
         defaultValues: {
             status: 'all',
-            criteria: [{ field: '', operator: '', value: '', condition: '' }]
+            criteria: [{ field: '', operator: '', value: '', condition: 'AND' }]
         }
     });
 
@@ -84,8 +85,8 @@ export default function StudentSearchPage(props: {
         const operators = data.criteria.map((c) => c.operator).join(',');
         const values = data.criteria.map((c) => c.value).join(',');
         const conditions = data.criteria
-            .map((c) => c.condition || '')
-            .filter(Boolean)
+            .map((c) => c.condition || 'AND')
+            .filter((_, i) => i < data.criteria.length - 1 || data.criteria.length === 1)
             .join(',');
 
         return {
@@ -117,7 +118,7 @@ export default function StudentSearchPage(props: {
     });
 
     const addCriteria = () => {
-        setValue('criteria', [...criteria, { field: '', operator: '', value: '', condition: '' }]);
+        setValue('criteria', [...criteria, { field: '', operator: '', value: '', condition: 'AND' }]);
     };
 
     const removeCriteria = (index: number) => {
