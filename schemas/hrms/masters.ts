@@ -596,14 +596,21 @@ export const hrmsMasterSchemas = {
     // Attendance Management Masters
     masterHoliday: {
         add: z.object({
-            calendarYear: z.string().min(1, 'Calendar Year is required'),
-            fomhwD_Department: z.string().optional(),
-            fomhwD_HolidayType: z.string().min(1, 'Holiday Type is required'),
-            selectedDays: z.array(z.string()).optional(),
-            fomhwD_FromDate: z.string().optional(),
-            fomhwD_ToDate: z.string().optional(),
-            fomhwD_Name: z.string().optional(),
-            fomhwD_Remarks: z.string().optional()
+            day_flag: z.boolean().default(true),
+            selectedDaysDate: z.array(z.object({
+                date: z.string(),
+                dayname: z.string()
+            })).optional(),
+            fO_Start_Date: z.string().optional(),
+            fomhwdD_ToDate: z.string().optional(),
+            fomhwD_HolidayWDName: z.string().optional(),
+            fO_Remark: z.string().optional(),
+            fohwdT_Id: z.coerce.number().min(1, 'Holiday Type is required'),
+            hrmlY_Id: z.coerce.number().min(1, 'Leave Year is required'),
+            hrmD_Id: z.coerce.number().optional(),
+            // UI fields for form tracking
+            calendarYear: z.string().optional(),
+            selectedDays: z.array(z.string()).optional()
         }),
         update: z.object({
             fomhwD_Id: z.number(),
@@ -617,7 +624,7 @@ export const hrmsMasterSchemas = {
             fomhwD_Remarks: z.string().optional()
         }),
         delete: z.object({
-            fomhwdD_Id: z.number().int({ message: 'fomhwdD_Id is required' }).min(1, { message: 'fomhwdD_Id must be greater than 0' })
+            fomhwdD_Id: z.coerce.number().int({ message: 'fomhwdD_Id is required' }).min(1, { message: 'fomhwdD_Id must be greater than 0' })
         })
     },
     shiftSettingMaster: {
@@ -648,7 +655,7 @@ export const hrmsMasterSchemas = {
             fomsT_EarlyPerShiftHrMin: z.string().optional() // Early per shift
         }),
         delete: z.object({
-            fomsT_Id: z.number().int({ message: 'fomsT_Id is required' }).min(1, { message: 'fomsT_Id must be greater than 0' })
+            fomsT_Id: z.coerce.number().int({ message: 'fomsT_Id is required' }).min(1, { message: 'fomsT_Id must be greater than 0' })
         })
     },
     employeeShiftMapping: {
@@ -690,7 +697,7 @@ export const hrmsMasterSchemas = {
             foest_LunchHour: z.string().optional()
         }),
         delete: z.object({
-            foest_Id: z.number().int({ message: 'foest_Id is required' }).min(1, { message: 'foest_Id must be greater than 0' })
+            foest_Id: z.coerce.number().int({ message: 'foest_Id is required' }).min(1, { message: 'foest_Id must be greater than 0' })
         })
     }
 };
