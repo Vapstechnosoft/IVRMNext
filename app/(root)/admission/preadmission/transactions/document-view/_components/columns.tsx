@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react';
 export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
     {
         accessorKey: 'pasr_id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No' className='w-full pl-6 font-bold text-black' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -25,68 +25,31 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
         enableHiding: false
     },
     {
-        id: 'student_photo',
-        accessorKey: 'student_photo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Image' className='font-bold text-black' />,
-        cell: ({ row }) => {
-            const imageUrl: string = row.getValue('student_photo') || '/icons/user.png';
-            const [showImageModal, setShowImageModal] = useState(false);
-
-            return (
-                <>
-                    <button
-                        type='button'
-                        onClick={() => imageUrl && setShowImageModal(true)}
-                        className='flex h-[100px] w-[100px] cursor-pointer items-center justify-center overflow-hidden rounded-lg border bg-gray-100'>
-                        <Image
-                            src={imageUrl}
-                            alt='Preview'
-                            width={100}
-                            height={100}
-                            className='h-full w-full object-cover'
-                            onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                            }}
-                        />
-                    </button>
-
-                    {showImageModal && (
-                        <Dialog open={showImageModal} onOpenChange={setShowImageModal}>
-                            <DialogContent className='text max-w-3xl'>
-                                <DialogHeader>{/* <DialogTitle className='text-center'>Student Photo</DialogTitle> */}</DialogHeader>
-                                <div className='flex items-center justify-center p-4'>
-                                    <img
-                                        src={imageUrl}
-                                        alt={row.getValue('student_name') ?? `student-${row.original.pasr_id}`}
-                                        className='max-h-[80vh] max-w-full object-contain'
-                                    />
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-                    )}
-                </>
-            );
-        },
-        enableSorting: true,
-        enableHiding: false
-    },
-    {
         accessorKey: 'student_name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Name' className='font-bold text-black' />,
-        cell: ({ row }) => <div>{row.getValue('student_name')}</div>,
+        cell: ({ row }) => <div className='text-uppercase'>{row.getValue('student_name')}</div>,
         enableSorting: true
     },
     {
         accessorKey: 'pasR_RegistrationNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Registration No' className='font-bold text-black' />,
-        cell: ({ row }) => <div>{row.getValue('pasR_RegistrationNo') ?? 'N.A'}</div>,
+        cell: ({ row }) => {
+            const regNo = row.original.pasR_RegistrationNo ?? 'N.A';
+            const date = row.original.pasR_Date;
+            const formattedDate = date ? new Date(date).toLocaleDateString('en-GB') : ''; // dd/MM/yyyy
+            return (
+                <div className='flex flex-col gap-1'>
+                    <span>{regNo}</span>
+                    {formattedDate && <span className='text-sm text-gray-500'>{formattedDate}</span>}
+                </div>
+            );
+        },
         enableSorting: true
     },
     {
         accessorKey: 'applied_class_name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Class' className='font-bold text-black' />,
-        cell: ({ row }) => <div>{row.getValue('applied_class_name')}</div>,
+        cell: ({ row }) => <div>{row.original.applied_class_name || row.original.classname || 'N.A'}</div>,
         enableSorting: true
     },
     {
@@ -102,7 +65,6 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
 
             const handleViewClick = () => {
                 setShowPdfModal(true);
-                // Only fetch when user clicks
                 if (!pdfBase64) {
                     downloadDocument(appId, {
                         onSuccess: (data) => {
@@ -110,8 +72,8 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
                                 typeof data?.data === 'string'
                                     ? data.data
                                     : Array.isArray(data?.data)
-                                      ? ((data.data[0] as unknown as string) ?? null)
-                                      : null;
+                                        ? ((data.data[0] as unknown as string) ?? null)
+                                        : null;
                             setPdfBase64(base64);
                         },
                         onError: (error) => {
@@ -134,7 +96,13 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
             return (
                 <>
                     <Button variant='link' className='p-0 text-blue-600 hover:underline' onClick={handleViewClick}>
-                        View Application
+                        <div className='flex items-center gap-1'>
+                            <Image src='/icons/view.svg' alt='View' width={16} height={16} className='hidden' />
+                            {/* Falling back to text if icon not available, matching screenshot look */}
+                            <span className='flex items-center gap-1'>
+                                <i className='fa fa-eye' /> View Application
+                            </span>
+                        </div>
                     </Button>
 
                     {showPdfModal && (
@@ -157,21 +125,15 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
                                     </DialogTitle>
                                 </DialogHeader>
                                 <div className='relative min-h-0 flex-1 overflow-hidden'>
-                                    {/* Spinner while loading PDF */}
                                     {(isLoading || iframeLoading) && (
                                         <div className='absolute inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm'>
-                                            <div className='transition-all'>
-                                                <div className='flex flex-col items-center'>
-                                                    <Spinner size='lg' className='text-primary' />
-                                                    <p className='mt-3 font-medium text-gray-700 text-sm'>Loading document...</p>
-                                                </div>
+                                            <div className='flex flex-col items-center'>
+                                                <Spinner size='lg' className='text-primary' />
+                                                <p className='mt-3 font-medium text-gray-700 text-sm'>Loading document...</p>
                                             </div>
                                         </div>
                                     )}
-                                    {/* PDF Viewer */}
                                     <div className='relative h-full min-h-0 w-full'>
-                                        {pdfBase64 ? <div className='absolute top-3 right-3 z-30 flex gap-3' /> : null}
-
                                         {typeof pdfBase64 === 'string' && pdfBase64 ? (
                                             <iframe
                                                 src={
@@ -202,118 +164,255 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
         enableSorting: false
     },
     {
-        accessorKey: 'studentt_photo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Photo' className='font-bold text-black' />,
-
+        id: 'view',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='View' className='text-center font-bold text-black' />,
         cell: ({ row }) => {
-            const downloadUrl = row.getValue('student_photo');
-            const [isDownloadingPhoto, setIsDownloadingPhoto] = useState(false);
+            const data = row.original;
+            const studentPhoto = data.student_photo || data.pasR_Student_Pic_Path || (data as any).studentPhoto || (data as any).pasr_student_pic_path;
+            let fatherPhoto = data.pasR_FatherPhoto || (data as any).father_photo || (data as any).fatherPhoto || (data as any).pasr_father_photo || (data as any).pasR_Father_Photo;
+            let motherPhoto = data.pasR_MotherPhoto || (data as any).mother_photo || (data as any).motherPhoto || (data as any).pasr_mother_photo || (data as any).pasR_Mother_Photo;
+            const doclist = data.doclist || [];
 
-            const handleDownload = async (e: React.MouseEvent) => {
-                e.preventDefault();
-                if (!downloadUrl) return;
-                setIsDownloadingPhoto(true);
-                try {
-                    if (typeof downloadUrl === 'string' && downloadUrl.startsWith('data:')) {
-                        const link = document.createElement('a');
-                        link.href = downloadUrl;
-                        link.download = `student-photo-${row.original.pasr_id}.jpg`;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        return;
-                    }
+            // If not found in primary properties, try to find in doclist by name
+            if (!fatherPhoto && doclist.length > 0) {
+                fatherPhoto = doclist.find((d: any) => {
+                    const name = d.amsmD_DocumentName?.toLowerCase() || '';
+                    return name.includes('father photo') || name.includes('father_photo');
+                })?.document_Path;
+            }
+            if (!motherPhoto && doclist.length > 0) {
+                motherPhoto = doclist.find((d: any) => {
+                    const name = d.amsmD_DocumentName?.toLowerCase() || '';
+                    return name.includes('mother photo') || name.includes('mother_photo');
+                })?.document_Path;
+            }
 
-                    const resp = await fetch(downloadUrl as string);
-                    if (!resp.ok) throw new Error(`Failed to fetch image: ${resp.status}`);
-                    const blob = await resp.blob();
+            // Filter out primary photos from doclist to avoid double-showing them
+            const otherDocs = doclist.filter((doc: any) => {
+                const path = doc.document_Path;
+                if (!path) return false;
+                if (path === studentPhoto || path === fatherPhoto || path === motherPhoto) return false;
+                const name = doc.amsmD_DocumentName?.toLowerCase() || '';
+                if (name.includes('student photo') || name.includes('father photo') || name.includes('mother photo')) return false;
+                return true;
+            });
 
-                    let finalBlob: Blob = blob;
-                    if (blob.type?.startsWith('image/') && blob.type !== 'image/jpeg') {
-                        try {
-                            const convertToJpeg = async (input: Blob): Promise<Blob> => {
-                                return await new Promise<Blob>((resolve, reject) => {
-                                    const url = URL.createObjectURL(input);
-                                    const img = new (
-                                        window.Image as {
-                                            new (): HTMLImageElement;
-                                        }
-                                    )();
-                                    img.onload = () => {
-                                        try {
-                                            const canvas = document.createElement('canvas');
-                                            canvas.width = img.naturalWidth || img.width;
-                                            canvas.height = img.naturalHeight || img.height;
-                                            const ctx = canvas.getContext('2d');
-                                            if (!ctx) throw new Error('Canvas not supported');
-                                            ctx.drawImage(img, 0, 0);
-                                            canvas.toBlob(
-                                                (b) => {
-                                                    if (b) resolve(b);
-                                                    else reject(new Error('Conversion to JPEG failed'));
-                                                    URL.revokeObjectURL(url);
-                                                },
-                                                'image/jpeg',
-                                                0.92
-                                            );
-                                        } catch (err) {
-                                            URL.revokeObjectURL(url);
-                                            reject(err);
-                                        }
-                                    };
-                                    img.onerror = () => {
-                                        URL.revokeObjectURL(url);
-                                        reject(new Error('Image load error'));
-                                    };
-                                    // try to avoid tainting canvas
-                                    img.crossOrigin = 'anonymous';
-                                    img.src = url;
-                                });
-                            };
+            const [selectedDoc, setSelectedDoc] = useState<{ path: string; name: string; type: string } | null>(null);
 
-                            finalBlob = await convertToJpeg(blob);
-                        } catch (err) {
-                            console.warn('JPEG conversion failed, using original blob', err);
-                            finalBlob = blob;
-                        }
-                    }
+            const handleViewDoc = (path: string, name: string) => {
+                if (!path) return;
+                const extension = path.split('.').pop()?.toLowerCase() || '';
+                let type = 'other';
+                if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(extension)) type = 'image';
+                else if (extension === 'pdf') type = 'pdf';
 
-                    const objectUrl = URL.createObjectURL(finalBlob);
-
-                    const link = document.createElement('a');
-                    link.href = objectUrl;
-                    link.download = `student-photo-${row.original.pasr_id}.jpg`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
-                } catch (err) {
-                    console.error('Download failed', err);
-                } finally {
-                    setIsDownloadingPhoto(false);
+                if (type === 'image' || type === 'pdf') {
+                    setSelectedDoc({ path, name, type });
+                } else {
+                    window.open(path, '_blank');
                 }
             };
 
             return (
-                <div className='flex justify-center'>
-                    {downloadUrl ? (
-                        // biome-ignore lint/a11y/useButtonType: <explanation>
-                        <button
-                            onClick={handleDownload}
-                            className='text-blue-600 hover:text-blue-800'
-                            title='Download Student Photo'
-                            aria-label={`Download student photo ${row.original.pasr_id}`}
-                        >
-                            {isDownloadingPhoto ? <Spinner size='sm' /> : <Download className='h-5 w-5' />}
-                        </button>
-                    ) : (
-                        <span className='group relative'>
-                            <Download className='h-5 w-5 text-gray-400 opacity-40' />
-                            <span className='-translate-x-1/2 pointer-events-none absolute left-1/2 z-10 mt-1 rounded bg-gray-700 px-2 py-1 text-white text-xs opacity-0 group-hover:opacity-100'>
-                                No Photo Available
-                            </span>
-                        </span>
+                <div className='flex flex-col items-start gap-1 py-1'>
+                    {studentPhoto && (
+                        <Button
+                            variant='link'
+                            className='h-auto p-0 text-blue-600 hover:text-blue-800 hover:underline'
+                            onClick={() => handleViewDoc(studentPhoto, 'Student Photo')}>
+                            Student Photo
+                        </Button>
                     )}
+                    {fatherPhoto && (
+                        <Button
+                            variant='link'
+                            className='h-auto p-0 text-blue-600 hover:text-blue-800 hover:underline'
+                            onClick={() => handleViewDoc(fatherPhoto, 'Father Photo')}>
+                            Father Photo
+                        </Button>
+                    )}
+                    {motherPhoto && (
+                        <Button
+                            variant='link'
+                            className='h-auto p-0 text-blue-600 hover:text-blue-800 hover:underline'
+                            onClick={() => handleViewDoc(motherPhoto, 'Mother Photo')}>
+                            Mother Photo
+                        </Button>
+                    )}
+                    {otherDocs.map((doc: any, index: number) => {
+                        const path = doc.document_Path;
+                        if (!path) return null;
+                        const isPdf = path.toLowerCase().endsWith('.pdf');
+                        return (
+                            <Button
+                                key={`view-doc-${index}`}
+                                variant='link'
+                                className='h-auto p-0 text-blue-600 hover:text-blue-800 hover:underline'
+                                onClick={() => handleViewDoc(path, doc.amsmD_DocumentName || 'Document')}>
+                                {doc.amsmD_DocumentName || 'Document'}
+                                {isPdf && <span className='ml-1 font-bold text-orange-600'>(pdf)</span>}
+                            </Button>
+                        );
+                    })}
+
+                    {selectedDoc && (
+                        <Dialog open={!!selectedDoc} onOpenChange={(open) => !open && setSelectedDoc(null)}>
+                            <DialogContent className='flex h-[90vh] max-w-5xl flex-col p-4'>
+                                <DialogHeader>
+                                    <DialogTitle className='text-center font-bold text-lg'>{selectedDoc.name}</DialogTitle>
+                                </DialogHeader>
+                                <div className='relative mt-4 flex-1 overflow-hidden rounded-md border bg-gray-50'>
+                                    {selectedDoc.type === 'image' ? (
+                                        <div className='flex h-full items-center justify-center p-4'>
+                                            <img
+                                                src={selectedDoc.path}
+                                                alt={selectedDoc.name}
+                                                className='max-h-full max-w-full object-contain shadow-sm'
+                                            />
+                                        </div>
+                                    ) : (
+                                        <iframe
+                                            src={selectedDoc.path}
+                                            title={selectedDoc.name}
+                                            className='h-full w-full border-none'
+                                        />
+                                    )}
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                    )}
+                </div>
+            );
+        },
+        enableSorting: false
+    },
+    {
+        id: 'download',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Download' className='font-bold text-black' />,
+        cell: ({ row }) => {
+            const data = row.original;
+            const studentPhoto = data.student_photo || data.pasR_Student_Pic_Path || (data as any).studentPhoto || (data as any).pasr_student_pic_path;
+            let fatherPhoto = data.pasR_FatherPhoto || (data as any).father_photo || (data as any).fatherPhoto || (data as any).pasr_father_photo || (data as any).pasR_Father_Photo;
+            let motherPhoto = data.pasR_MotherPhoto || (data as any).mother_photo || (data as any).motherPhoto || (data as any).pasr_mother_photo || (data as any).pasR_Mother_Photo;
+            const doclist = data.doclist || [];
+
+            // If not found in primary properties, try to find in doclist by name
+            if (!fatherPhoto && doclist.length > 0) {
+                fatherPhoto = doclist.find((d: any) => {
+                    const name = d.amsmD_DocumentName?.toLowerCase() || '';
+                    return name.includes('father photo') || name.includes('father_photo');
+                })?.document_Path;
+            }
+            if (!motherPhoto && doclist.length > 0) {
+                motherPhoto = doclist.find((d: any) => {
+                    const name = d.amsmD_DocumentName?.toLowerCase() || '';
+                    return name.includes('mother photo') || name.includes('mother_photo');
+                })?.document_Path;
+            }
+
+            // Filter out primary photos from doclist to avoid double-showing them
+            const otherDocs = doclist.filter((doc: any) => {
+                const path = doc.document_Path;
+                if (!path) return false;
+                if (path === studentPhoto || path === fatherPhoto || path === motherPhoto) return false;
+                const name = doc.amsmD_DocumentName?.toLowerCase() || '';
+                if (name.includes('student photo') || name.includes('father photo') || name.includes('mother photo')) return false;
+                return true;
+            });
+
+            const [downloading, setDownloading] = useState<string | null>(null);
+
+            const handleDownload = async (url: string, filename: string, id: string) => {
+                if (!url) return;
+                setDownloading(id);
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    const blob = await response.blob();
+                    const objectUrl = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = objectUrl;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(objectUrl);
+                } catch (error) {
+                    console.error('Download failed:', error);
+                    window.open(url, '_blank');
+                } finally {
+                    setDownloading(null);
+                }
+            };
+
+            return (
+                <div className='flex flex-col items-start gap-1 py-1'>
+                    {studentPhoto && (
+                        <button
+                            type='button'
+                            className='flex items-center gap-2 text-blue-600 transition-colors hover:text-blue-800'
+                            onClick={() =>
+                                handleDownload(studentPhoto, `Student_Photo_${row.original.pasr_id}.jpg`, 'student')
+                            }>
+                            {downloading === 'student' ? (
+                                <Spinner size='sm' />
+                            ) : (
+                                <Download className='h-4 w-4' />
+                            )}
+                            <span className='text-sm'>Download</span>
+                        </button>
+                    )}
+                    {fatherPhoto && (
+                        <button
+                            type='button'
+                            className='flex items-center gap-2 text-blue-600 transition-colors hover:text-blue-800'
+                            onClick={() => handleDownload(fatherPhoto, `Father_Photo_${row.original.pasr_id}.jpg`, 'father')}>
+                            {downloading === 'father' ? (
+                                <Spinner size='sm' />
+                            ) : (
+                                <Download className='h-4 w-4' />
+                            )}
+                            <span className='text-sm'>Download</span>
+                        </button>
+                    )}
+                    {motherPhoto && (
+                        <button
+                            type='button'
+                            className='flex items-center gap-2 text-blue-600 transition-colors hover:text-blue-800'
+                            onClick={() => handleDownload(motherPhoto, `Mother_Photo_${row.original.pasr_id}.jpg`, 'mother')}>
+                            {downloading === 'mother' ? (
+                                <Spinner size='sm' />
+                            ) : (
+                                <Download className='h-4 w-4' />
+                            )}
+                            <span className='text-sm'>Download</span>
+                        </button>
+                    )}
+                    {otherDocs.map((doc: any, index: number) => {
+                        const path = doc.document_Path;
+                        if (!path) return null;
+                        const ext = path.split('.').pop() || 'file';
+                        return (
+                            <button
+                                key={`download-doc-${index}`}
+                                type='button'
+                                className='flex items-center gap-2 text-blue-600 transition-colors hover:text-blue-800'
+                                onClick={() =>
+                                    handleDownload(
+                                        path,
+                                        `${doc.amsmD_DocumentName || 'Document'}_${data.pasr_id || (data as any).pasR_Id}.${ext}`,
+                                        `doc-${index}`
+                                    )
+                                }>
+                                {downloading === `doc-${index}` ? (
+                                    <Spinner size='sm' />
+                                ) : (
+                                    <Download className='h-4 w-4' />
+                                )}
+                                <span className='text-sm'>Download {doc.amsmD_DocumentName}</span>
+                            </button>
+                        );
+                    })}
                 </div>
             );
         },

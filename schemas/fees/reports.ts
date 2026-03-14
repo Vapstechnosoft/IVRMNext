@@ -421,7 +421,12 @@ export const feesGroupwiseStudentReportSchema = z
         //     });
         // }
 
-        if (data.radio_val === 'individual' || data.radio_val === 'student_wise' || data.radio_val === 'admCat') {
+        if (
+            data.radio_val === 'individual' ||
+            data.radio_val === 'student_wise' ||
+            data.radio_val === 'admCat' ||
+            data.radio_val === 'Termwise'
+        ) {
             if (!data.classId || data.classId === 0) {
                 ctx.addIssue({
                     path: ['classId'],
@@ -458,7 +463,7 @@ export const feesGroupwiseStudentReportSchema = z
                 });
             }
         }
-        if (data.radio_val === 'student_wise') {
+        if (data.radio_val === 'student_wise' || data.radio_val === 'Termwise') {
             if (!data.studentids) {
                 ctx.addIssue({
                     path: ['studentids'],

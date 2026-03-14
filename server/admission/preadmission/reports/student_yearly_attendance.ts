@@ -75,7 +75,7 @@ export async function getStudentSearch(
     searchParams?: ApiSearchparams
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'amsT_RegistrationNo,amsT_FirstName,asmcL_ClassName');
-    const url = `/StudentSearch/GetStudentSearchData?stuStatus=${stuStatus}&field=${field}&Operator=${Operator}&value=${value}&condition=${condition}&${urlParams}`;
+    const url = `/StudentSearch/GetStudentSearchData?stuStatus=${stuStatus}&field=${field}&Operator=${Operator}&value=${value}&condition=${condition || 'AND'}&${urlParams}`;
 
     return await api.post<any[]>('admission', url);
 }

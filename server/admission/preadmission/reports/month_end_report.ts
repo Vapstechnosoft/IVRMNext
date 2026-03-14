@@ -33,8 +33,9 @@ export async function getExcelMonthEndReport(data: {
     ASMAY_Id: number;
     month: string;
     year: number;
+    AMC_Id: number;
 }) {
-    const url = `/monthendreport/ExportMonthEndReportToExcel?AcayId=${data.ASMAY_Id}&Month=${data.month}&Year=${data.year}`;
+    const url = `/monthendreport/ExportMonthEndReportToExcel?AcayId=${data.ASMAY_Id}&Month=${data.month}&Year=${data.year}&AMC_Id=${data.AMC_Id}`;
 
     try {
         const responseData = await api.postBinary('admission', url);

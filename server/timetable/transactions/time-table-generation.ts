@@ -90,3 +90,15 @@ export async function resetTT(payload: { asmaY_Id: number }) {
         throw error;
     }
 }
+
+export async function getGenerationCounts(payload: { asmaY_Id: number; ttmc_idslist: { ttmC_Id: number }[] }) {
+    const url = '/TimeTableGenerationFacade/get_count';
+    try {
+        const response = await api.post<any>('timetable', url, payload);
+        const data = response.data || response;
+        return data;
+    } catch (error) {
+        console.error('Error fetching generation counts:', error);
+        throw error;
+    }
+}
