@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { eligibilityCertificateReportSchema, type IEligibilityCertificateReport } from '@/types/sports/reports/eligibility-certificate-report';
 import { useEligibilityCertificateReport } from '@/hooks/sports/useEligibilityCertificateReport';
@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { DatePicker } from '@/components/ui/date-picker';
 import { toast } from 'sonner';
 import { FileText, X, Printer, FileSpreadsheet, Loader2 } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface ReportFormProps {
     onReport: (data: any) => void;
@@ -23,85 +24,169 @@ interface ReportFormProps {
 }
 
 export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasData }: ReportFormProps) {
-    const { data: loadGridData, getStudents, getAge, generateReport } = useEligibilityCertificateReport();
-    const [selectedStudent, setSelectedStudent] = useState<any>(null);
+    const {
+        data: loadGridData,
+        isLoading,
+        getClasses,
+        getSections,
+        getStudents,
+        getAge,
+        generateReport
+    } = useEligibilityCertificateReport();
+
+    const getUniqueListBy = (arr: any[], key: string) => {
+        return [...new Map(arr.map(item => [item[key], item])).values()];
+    };
 
     const { control, handleSubmit, watch, reset, setValue, formState: { errors } } = useForm<IEligibilityCertificateReport>({
         resolver: zodResolver(eligibilityCertificateReportSchema),
+        mode: 'onSubmit',
         defaultValues: {
             optionflag: 'SCHOOL',
             asmaY_Id: 0,
-            asmcL_Id: 0, // This is for student selection filter if needed, but here it seems read-only from student
+            asmcL_Id: 0,
             asmS_Id: 0,
+            amsT_Id: 0,
             spccmE_Id: 0,
             amsT_Date: new Date(),
             spccsH_Age: '',
-            studentList: []
+            spccmE_EventName: ''
         }
     });
 
+    const watchedOptionFlag = watch('optionflag');
     const watchedAsmaY_Id = watch('asmaY_Id');
+    const watchedAsmcL_Id = watch('asmcL_Id');
+    const watchedAsmS_Id = watch('asmS_Id');
+    const watchedAmsT_Id = watch('amsT_Id');
+    const watchedSpccmE_Id = watch('spccmE_Id');
     const watchedAmsT_Date = watch('amsT_Date');
 
-    // Load Students when Year changes
+    // Reset all fields when School/College option changes
+    useEffect(() => {
+        setValue('asmaY_Id', 0);
+        setValue('asmcL_Id', 0);
+        setValue('asmS_Id', 0);
+        setValue('amsT_Id', 0);
+        setValue('spccmE_Id', 0);
+        setValue('spccsH_Age', '');
+    }, [watchedOptionFlag]);
+
+    // Fetch Classes when Year or Option changes
+    useEffect(() => {
+        if (watchedAsmaY_Id && watchedAsmaY_Id !== 0) {
+            getClasses.mutateAsync({ asmaY_Id: watchedAsmaY_Id }).then(res => {
+                if (!res.success && !res.data) {
+                    toast.error(res.message || 'Error fetching classes');
+                }
+            });
+        }
+    }, [watchedAsmaY_Id, watchedOptionFlag]);
+
+    // Precise Resets
     useEffect(() => {
         if (watchedAsmaY_Id) {
-            getStudents.mutateAsync({ ASMAY_Id: watchedAsmaY_Id });
+            if (watchedAsmcL_Id !== 0) setValue('asmcL_Id', 0);
+            if (watchedAsmS_Id !== 0) setValue('asmS_Id', 0);
+            if (watchedAmsT_Id !== 0) setValue('amsT_Id', 0);
         }
-    }, [watchedAsmaY_Id]);
+    }, [watchedAsmaY_Id, watchedOptionFlag]);
 
-    // Handle Student Selection
-    const handleStudentChange = (amsT_Id: number) => {
-        const student = getStudents.data?.studentList?.find((s: any) => s.amsT_Id === amsT_Id);
-        if (student) {
-            setSelectedStudent(student);
-            setValue('asmcL_Id', student.asmcL_Id || 1); // Mock IDs
-            setValue('asmS_Id', student.asmS_Id || 1);
-            // In the JS, they fetch age when student is selected
-            fetchAge(amsT_Id, watchedAmsT_Date);
-        }
-    };
-
-    const fetchAge = async (amsT_Id: number, date: Date) => {
-        if (amsT_Id && date) {
-            const res = await getAge.mutateAsync({
-                AMST_Id: amsT_Id,
-                AMST_Date: date.toDateString()
-            });
-            if (res.age_tilldate?.[0]) {
-                setValue('spccsH_Age', res.age_tilldate[0].spccsH_Age);
-            }
-        }
-    };
-
-    // Refetch age if date changes
     useEffect(() => {
-        if (selectedStudent && watchedAmsT_Date) {
-            fetchAge(selectedStudent.amsT_Id, watchedAmsT_Date);
+        if (watchedAsmcL_Id) {
+            if (watchedAsmS_Id !== 0) setValue('asmS_Id', 0);
+            if (watchedAmsT_Id !== 0) setValue('amsT_Id', 0);
         }
-    }, [watchedAmsT_Date]);
+    }, [watchedAsmcL_Id]);
+
+    useEffect(() => {
+        if (watchedAsmS_Id) {
+            if (watchedAmsT_Id !== 0) setValue('amsT_Id', 0);
+        }
+    }, [watchedAsmS_Id]);
+
+    // Fetch Sections when Class changes
+    useEffect(() => {
+        if (watchedAsmcL_Id && watchedAsmcL_Id !== 0 && watchedAsmaY_Id) {
+            getSections.mutateAsync({
+                asmaY_Id: watchedAsmaY_Id,
+                asmcL_Id: watchedAsmcL_Id
+            }).then(res => {
+                if (!res.success && !res.data) {
+                    toast.error(res.message || 'Error fetching sections');
+                }
+            });
+        }
+    }, [watchedAsmcL_Id, watchedAsmaY_Id]);
+
+    // Fetch Students when Section changes
+    useEffect(() => {
+        if (watchedAsmS_Id && watchedAsmS_Id !== 0 && watchedAsmcL_Id && watchedAsmaY_Id) {
+            getStudents.mutateAsync({
+                asmaY_Id: watchedAsmaY_Id,
+                asmcL_Id: watchedAsmcL_Id,
+                asmS_Id: watchedAsmS_Id
+            }).then(res => {
+                if (!res.success && !res.data) {
+                    toast.error(res.message || 'Error fetching students');
+                }
+            });
+        }
+    }, [watchedAsmS_Id, watchedAsmcL_Id, watchedAsmaY_Id]);
+
+    // Fetch Age when Student, Date, or Event changes
+    useEffect(() => {
+        if (watchedAmsT_Id && watchedAmsT_Date && watchedSpccmE_Id) {
+            const event = loadGridData?.data?.eventList?.find((e: any) => e.spccmE_Id === watchedSpccmE_Id);
+            const eventName = event?.spccmE_EventName || '';
+            setValue('spccmE_EventName', eventName);
+
+            getAge.mutateAsync({
+                asmaY_Id: watchedAsmaY_Id,
+                asmcL_Id: watchedAsmcL_Id,
+                asmS_Id: watchedAsmS_Id,
+                amsT_Id: watchedAmsT_Id,
+                spccmE_Id: watchedSpccmE_Id,
+                amsT_Date: format(new Date(watchedAmsT_Date), 'yyyy-MM-dd'),
+                spccmE_EventName: eventName
+            }).then(res => {
+                if (res.success && res.data?.age_tilldate?.[0]) {
+                    setValue('spccsH_Age', res.data.age_tilldate[0].spccsH_Age);
+                }
+            });
+        }
+    }, [watchedAmsT_Id, watchedAmsT_Date, watchedSpccmE_Id]);
 
     const onSubmit = async (values: IEligibilityCertificateReport) => {
-        if (!selectedStudent) {
-            toast.error('Please select a student');
-            return;
-        }
-
-        const res = await generateReport.mutateAsync({
+        const year = loadGridData?.data?.yearlist?.find((y: any) => y.asmaY_Id === values.asmaY_Id);
+        const payload = {
             ...values,
-            studentList: [{ ...selectedStudent, Selected: true }]
-        });
+            asmaY_Year: year?.asmaY_Year || '',
+            amsT_Date: format(new Date(values.amsT_Date), 'yyyy-MM-dd')
+        };
+
+        const res = await generateReport.mutateAsync(payload);
 
         if (res.success) {
-            onReport(res);
+            onReport(res.data);
         } else {
             toast.error(res.message || 'No records found');
+            onReport([]);
         }
     };
 
     const handleCancel = () => {
-        reset();
-        setSelectedStudent(null);
+        reset({
+            optionflag: 'SCHOOL',
+            asmaY_Id: 0,
+            asmcL_Id: 0,
+            asmS_Id: 0,
+            amsT_Id: 0,
+            spccmE_Id: 0,
+            amsT_Date: new Date(),
+            spccsH_Age: '',
+            spccmE_EventName: ''
+        });
         onReset();
     };
 
@@ -142,12 +227,16 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
                                 name='asmaY_Id'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                    <Select
+                                        onValueChange={(val) => field.onChange(Number(val))}
+                                        value={field.value !== 0 ? field.value?.toString() : undefined}
+                                    >
                                         <SelectTrigger>
-                                            <SelectValue placeholder='Select Academic Year' />
+                                            <SelectValue placeholder={isLoading ? 'Loading Years...' : 'Select Academic Year'} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {loadGridData?.yearlist?.map((y: any) => (
+                                            <SelectItem value="0">Select Academic Year</SelectItem>
+                                            {getUniqueListBy(loadGridData?.data?.yearlist || [], 'asmaY_Id').map((y: any) => (
                                                 <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>{y.asmaY_Year}</SelectItem>
                                             ))}
                                         </SelectContent>
@@ -158,16 +247,59 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
                         </div>
                     </div>
 
-                    {/* Class (Read-only) */}
+                    {/* Class */}
                     <div className='grid grid-cols-4 items-center gap-4'>
                         <Label className='text-right'>Class <span className='text-destructive'>*</span></Label>
                         <div className='col-span-3'>
-                            <Input
-                                value={selectedStudent?.classname || ''}
-                                placeholder='Class Name'
-                                disabled
-                                className='bg-muted'
+                            <Controller
+                                name='asmcL_Id'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={(val) => field.onChange(Number(val))}
+                                        value={field.value !== 0 ? field.value?.toString() : undefined}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={getClasses.isPending ? 'Loading Classes...' : 'Select Class'} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="0">Select Class</SelectItem>
+                                            {getUniqueListBy(getClasses.data?.data?.classList?.result || getClasses.data?.data?.classList || getClasses.data?.data?.ClassList || [], 'asmcL_Id').map((c: any) => (
+                                                <SelectItem key={c.asmcL_Id} value={c.asmcL_Id.toString()}>{c.asmcL_ClassName}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
                             />
+                            {errors.asmcL_Id && <span className='text-xs text-destructive'>{errors.asmcL_Id.message}</span>}
+                        </div>
+                    </div>
+
+                    {/* Section */}
+                    <div className='grid grid-cols-4 items-center gap-4'>
+                        <Label className='text-right'>Section <span className='text-destructive'>*</span></Label>
+                        <div className='col-span-3'>
+                            <Controller
+                                name='asmS_Id'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={(val) => field.onChange(Number(val))}
+                                        value={field.value !== 0 ? field.value?.toString() : undefined}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={getSections.isPending ? 'Loading Sections...' : 'Select Section'} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="0">Select Section</SelectItem>
+                                            {getUniqueListBy(getSections.data?.data?.sectionList?.result || getSections.data?.data?.sectionList || [], 'asmS_Id').map((s: any) => (
+                                                <SelectItem key={s.asmS_Id} value={s.asmS_Id.toString()}>{s.asmC_SectionName}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.asmS_Id && <span className='text-xs text-destructive'>{errors.asmS_Id.message}</span>}
                         </div>
                     </div>
 
@@ -179,12 +311,16 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
                                 name='spccmE_Id'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                    <Select
+                                        onValueChange={(val) => field.onChange(Number(val))}
+                                        value={field.value !== 0 ? field.value?.toString() : undefined}
+                                    >
                                         <SelectTrigger>
-                                            <SelectValue placeholder='Select Event Name' />
+                                            <SelectValue placeholder={isLoading ? 'Loading Events...' : 'Select Event Name'} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {loadGridData?.eventList?.map((e: any) => (
+                                            <SelectItem value="0">Select Event Name</SelectItem>
+                                            {getUniqueListBy(loadGridData?.data?.eventList || [], 'spccmE_Id').map((e: any) => (
                                                 <SelectItem key={e.spccmE_Id} value={e.spccmE_Id.toString()}>{e.spccmE_EventName}</SelectItem>
                                             ))}
                                         </SelectContent>
@@ -192,6 +328,43 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
                                 )}
                             />
                             {errors.spccmE_Id && <span className='text-xs text-destructive'>{errors.spccmE_Id.message}</span>}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right Column */}
+                <div className='space-y-4'>
+                    {/* Student Name */}
+                    <div className='grid grid-cols-4 items-center gap-4'>
+                        <Label className='text-right'>Student Name <span className='text-destructive'>*</span></Label>
+                        <div className='col-span-3'>
+                            <Controller
+                                name='amsT_Id'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={(val) => field.onChange(Number(val))}
+                                        value={field.value !== 0 ? field.value?.toString() : undefined}
+                                        disabled={watchedAsmS_Id === 0 || getStudents.isPending}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={getStudents.isPending ? 'Loading Students...' : 'Select Student'} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="0">Select Student</SelectItem>
+                                            {getUniqueListBy(getStudents.data?.data?.studentList || getStudents.data?.data?.studentList1 || getStudents.data?.data?.pudatareport || [], 'amsT_Id').map((s: any) => {
+                                                const id = s.amsT_Id || s.amst_id;
+                                                return (
+                                                    <SelectItem key={id} value={id.toString()}>
+                                                        {s.studentname || s.amst_firstname}
+                                                    </SelectItem>
+                                                );
+                                            })}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.amsT_Id && <span className='text-xs text-destructive'>{errors.amsT_Id.message}</span>}
                         </div>
                     </div>
 
@@ -204,47 +377,12 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
                                 control={control}
                                 render={({ field }) => (
                                     <DatePicker
-                                        date={field.value}
+                                        date={field.value instanceof Date ? field.value : new Date(field.value)}
                                         setDate={field.onChange}
                                     />
                                 )}
                             />
                             {errors.amsT_Date && <span className='text-xs text-destructive'>{errors.amsT_Date.message}</span>}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Right Column */}
-                <div className='space-y-4'>
-                    {/* Student Name */}
-                    <div className='grid grid-cols-4 items-center gap-4'>
-                        <Label className='text-right'>Student Name <span className='text-destructive'>*</span></Label>
-                        <div className='col-span-3'>
-                            <Select onValueChange={(val) => handleStudentChange(Number(val))} value={selectedStudent?.amsT_Id?.toString()}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Student' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {getStudents.data?.studentList?.map((s: any) => (
-                                        <SelectItem key={s.amsT_Id} value={s.amsT_Id.toString()}>
-                                            {s.studentname} ({s.adm_no})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    {/* Section (Read-only) */}
-                    <div className='grid grid-cols-4 items-center gap-4'>
-                        <Label className='text-right'>Section <span className='text-destructive'>*</span></Label>
-                        <div className='col-span-3'>
-                            <Input
-                                value={selectedStudent?.sectionname || ''}
-                                placeholder='Section Name'
-                                disabled
-                                className='bg-muted'
-                            />
                         </div>
                     </div>
 
@@ -287,6 +425,6 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
                     Excel
                 </Button>
             </div>
-        </form>
+        </form >
     );
 }
