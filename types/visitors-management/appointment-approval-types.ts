@@ -1,3 +1,5 @@
+import { ApiResponse } from '@/lib/apiService';
+
 export interface AppointmentApprovalDTO {
     VMAP_Id: number;
     VMAP_VisitorName: string;

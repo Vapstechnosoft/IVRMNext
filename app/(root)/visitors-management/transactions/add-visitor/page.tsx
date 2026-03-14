@@ -8,7 +8,7 @@ import { useAddVisitor } from '@/hooks/visitors-management/transactions/useAddVi
 import { Plus, X } from 'lucide-react';
 import { visitorColumns } from './_components/columns';
 import VisitorForm from './_components/visitor-form';
-import type { VisitorTransactionData } from '@/types/visitors-management/transactions';
+import { VisitorTransactionData } from '@/types/visitors-management/transactions';
 
 // Type for the list data
 

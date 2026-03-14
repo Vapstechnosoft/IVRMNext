@@ -5010,7 +5010,7 @@ export async function getUserAccessibleModules() {
                 //             ]
                 //         }
                 //     ]
-                //}
+                // },
                 {
                     id: 11,
                     name: 'Sports Management',
@@ -5326,7 +5326,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                }
+                },
                 // {
                 //     id: 8,
                 //     name: 'Hostel Management',
@@ -6450,196 +6450,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Master School Type'
                                         }
                                     ]
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    id: 15,
-                    name: 'Visitor Management',
-                    icon: 'Users',
-                    menu: [
-                        {
-                            id: 1,
-                            name: 'Transactions',
-                            icon: 'FileText',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Transactions',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Add Visitor',
-                                            icon: 'UserPlus',
-                                            url: '/visitors-management/transactions/add-visitor',
-                                            title: 'Add Visitor',
-                                            description: 'Add New Visitor Transaction'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Visitor Appointment',
-                                            icon: 'CalendarDays',
-                                            url: '/visitors-management/transactions/visitor-appointment',
-                                            title: 'Visitor Appointment',
-                                            description: 'Schedule Visitor Appointment'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Inward Entry',
-                                            icon: 'ArrowDownLeft',
-                                            url: '/visitors-management/transactions/inward',
-                                            title: 'Inward Entry',
-                                            description: 'Manage Inward Entries'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Outward Entry',
-                                            icon: 'ArrowUpRight',
-                                            url: '/visitors-management/transactions/outward',
-                                            title: 'Outward Entry',
-                                            description: 'Manage Outward Entries'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Gate Pass',
-                                            icon: 'Ticket',
-                                            url: '/visitors-management/transactions/gate-pass',
-                                            title: 'Gate Pass',
-                                            description: 'Generate Gate Pass'
-                                        }
-
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            id: 2,
-                            name: 'Masters',
-                            icon: 'Database',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Masters',
-                                    icon: 'Database',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Master Location',
-                                            icon: 'MapPin',
-                                            url: '/visitors-management/masters/location',
-                                            title: 'Master Location',
-                                            description: 'Manage Visitor Locations'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                }
-
-                // {
-                //     id: 13,
-                //     name: 'Super Admin',
-                //     icon: 'Settings',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Super Admin Module',
-                //             icon: 'Settings',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Master Trust',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Master Trust',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/masters/trust-master',
-                //                             title: 'Master Trust',
-                //                             description: 'Manage Master Trust Details'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 2,
-                //                     name: 'Institution',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Master Institution',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/institution/master-institution',
-                //                             title: 'Master Institution',
-                //                             description: 'Manage Master Institution'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Institution Subscription',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/institution/institution-subscription',
-                //                             title: 'Institution Subscription',
-                //                             description: 'Manage Institution Subscription'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Auto Mapping',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/institution/auto-mapping',
-                //                             title: 'Auto Mapping',
-                //                             description: 'Manage Institution Auto Mapping'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 3,
-                //                     name: 'General Setting',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'General Setting Wizard',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/wizard',
-                //                             title: 'General Setting Wizard',
-                //                             description: 'General Setting Wizard'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Modules',
-                //                             icon: 'Settings',
-                //                             url: '/SuperAdmin/super-admin-module/general-setting/module',
-                //                             title: 'Modules',
-                //                             description: 'Manage Master Modules'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // }
-            ]
-        };
-    } else if (session?.role.toUpperCase() === 'STUDENT') {
-        response = {
-            success: true,
-            message: 'Data fetched successfully!!',
-            data: [
-                {
-                    id: 9,
-                    name: 'Student Portal',
-                    icon: 'Users',
-                    menu: [
-                        {
-                            id: 1,
-                            name: 'Home',
-                            icon: 'BookOpen',
-                            sub_menu: [
+                                },
                                 {
                                     id: 4,
                                     name: 'Configuration Setting',
@@ -6774,7 +6585,6 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 }
-
             ]
         };
     } else {
