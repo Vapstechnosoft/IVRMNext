@@ -1,25 +1,44 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { getPointsRecordReport, getPointsRecordReportDropdowns } from '@/server/sports/reports/points-record-report';
+import {
+    getPointsRecordReport,
+    getPointsRecordReportLoadData,
+    getClassesHousesEvents,
+    getSections
+} from '@/server/sports/reports/points-record-report';
 import { SportPointsAndRecordReportFormSchema } from '@/types/sports/reports/points-record-report';
+import { toast } from 'sonner';
 
 export const useSportPointsAndRecordReport = () => {
     const loadData = useQuery({
         queryKey: ['pointsRecordReportValues'],
-        queryFn: async () => {
-            const response = await getPointsRecordReportDropdowns();
-            return response.data;
+        queryFn: getPointsRecordReportLoadData,
+    });
+
+    const classHouseEventMutation = useMutation({
+        mutationFn: ({ asmaY_Id }: { asmaY_Id: number }) => getClassesHousesEvents(asmaY_Id),
+        onError: (error: any) => {
+            toast.error(error.message || 'Failed to fetch cascading data');
+        },
+    });
+
+    const sectionMutation = useMutation({
+        mutationFn: ({ asmaY_Id, asmcL_Id }: { asmaY_Id: number; asmcL_Id: number }) => getSections(asmaY_Id, asmcL_Id),
+        onError: (error: any) => {
+            toast.error(error.message || 'Failed to fetch sections');
         },
     });
 
     const generateReport = useMutation({
         mutationFn: async (data: SportPointsAndRecordReportFormSchema) => {
-            const response = await getPointsRecordReport(data);
-            return response.data;
+            const response = await getPointsRecordReport(data as any);
+            return response;
         },
     });
 
     return {
         loadData,
+        classHouseEventMutation,
+        sectionMutation,
         generateReport,
     };
 };
