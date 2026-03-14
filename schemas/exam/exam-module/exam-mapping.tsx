@@ -654,10 +654,19 @@ export const lifeSkillAreaMappingSchema = {
             .array(
                 z.object({
                     ecsaM_Id: z.number().default(0),
-                    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).int({ message: 'Academic Year must be integer' }).min(1, { message: 'Please select an Academic Year' }),
+                    asmaY_Id: z
+                        .number({ required_error: 'Academic Year is required' })
+                        .int({ message: 'Academic Year must be integer' })
+                        .min(1, { message: 'Please select an Academic Year' }),
                     mI_Id: z.number().optional(),
-                    ecS_Id: z.number({ required_error: 'Life Skill ID is required' }).int().min(1, { message: 'Please select a Life Skill' }),
-                    ecsA_Id: z.number({ required_error: 'Skill Area ID is required' }).int().min(1, { message: 'Please select a Skill Area' }),
+                    ecS_Id: z
+                        .number({ required_error: 'Life Skill ID is required' })
+                        .int()
+                        .min(1, { message: 'Please select a Life Skill' }),
+                    ecsA_Id: z
+                        .number({ required_error: 'Skill Area ID is required' })
+                        .int()
+                        .min(1, { message: 'Please select a Skill Area' }),
                     ecsaM_IndicatorDescription: createCustomStringSchema('Indicator Description', 1, 300),
                     emgR_Id: z.number({ required_error: 'Grade ID is required' }).int().min(1, { message: 'Please select a Grade' }),
                     ecsaM_ActiveFlag: z.boolean().default(true)

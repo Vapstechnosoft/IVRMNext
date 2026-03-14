@@ -443,7 +443,7 @@ export default function StudentsYearlyAttendenceReport(props: {
         }
     };
 
-    const handleReport = () => {
+    const handleReport = async () => {
         // Validate all dropdowns are selected
         if (!academicYearId || academicYearId === 0) {
             toast.error('Please select Academic Year');
@@ -461,7 +461,23 @@ export default function StudentsYearlyAttendenceReport(props: {
         }
 
         setShowReport(true);
-        toast.success('Generating report...');
+        toast.loading('Generating report...', { id: 'report-loading' });
+        try {
+            const result = await refetchAdmissionStudents();
+            const attendanceData = result.data?.data as any;
+            const students = attendanceData?.studentAttendanceList || attendanceData?.StudentAttendanceList || [];
+
+            toast.dismiss('report-loading');
+            if (students.length > 0) {
+                toast.success(`Report generated records`);
+            } else {
+                toast.error('No records found');
+            }
+        } catch (err) {
+            toast.dismiss('report-loading');
+            toast.error('Failed to generate report');
+            console.error('Report generation error:', err);
+        }
     };
 
     return (
@@ -550,9 +566,9 @@ export default function StudentsYearlyAttendenceReport(props: {
                                         <SelectValue placeholder='Select Section' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {/* <SelectItem key={0} value={'0'}>
+                                        <SelectItem key={0} value={'0'}>
                                             All
-                                        </SelectItem> */}
+                                        </SelectItem>
                                         {admissionSectionLoading ? (
                                             <SelectItem value='loading' disabled>
                                                 Loading...
@@ -589,7 +605,7 @@ export default function StudentsYearlyAttendenceReport(props: {
                                 <X className='mr-2 h-4 w-4' />
                                 Cancel
                             </Button>
-                            {showReport && transformedData && transformedData.length > 0 && (
+                            {showReport && response && (
                                 <>
                                     <Button onClick={downloadExcel} className='w-fit'>
                                         Export to Excel

@@ -471,7 +471,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const { mutate: saveDocumentDetails, mutateAsync: saveDocumentDetailsAsync, isPending: isSavingDocument } = useSaveEmployeeDocument();
     const { mutate: saveMedicalDetails, isPending: isSavingMedical } = useSaveEmployeeMedical();
     const { mutate: saveOtherDetails, isPending: isSavingOther } = useSaveEmployeeOtherDetails();
-    const { mutate: saveSalaryDetails, isPending: isSavingSalaryDetails } = useSaveEmployeeSalaryDetails();
+    const { mutate: saveSalaryDetails, isPending: isSavingSalaryDetails } = useSaveEmployeeSalaryDetails({ suppressSuccessToast: true });
     const { mutate: uploadStaffPhoto, isPending: isUploadingPhoto } = useUploadStaffPhoto();
     const { mutate: saveBankDetails, isPending: isSavingBankDetails } = useSaveBankDetails();
 
@@ -1888,6 +1888,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         }
     };
 
+    
+
     // Show loading for dropdowns or employee details
     if (
         isLoadingGrades ||
@@ -3117,6 +3119,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 fieldState={fieldState}
                                                                 label='Date Of Birth'
                                                                 placeholder='Pick date of birth'
+                                                                toDate={new Date()}
+                                                                restricted_tofieldName="Today's Date"
                                                             />
                                                         )}
                                                     />

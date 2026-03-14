@@ -8,12 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type ReportCardXXiiSchema, reportCardXXiiSchema } from '@/schemas/exam/exam-module/reports';
+import { getReportDetails } from '@/server/exam/exam-module/reports/Report_Card_X_XII';
 import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getReportDetails } from '@/server/exam/exam-module/reports/Report_Card_X_XII';
 import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
@@ -120,10 +120,21 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                     Number(watchSection)
                 );
                 const valid = Array.isArray(data)
-                    ? (data as any[]).filter((s): s is { amsT_AdmNo: number; amsT_Id: number; studentName?: string, amsT_FirstName?: string, amsT_MiddleName?: string, amsT_LastName?: string } => !!s?.amsT_Id)
+                    ? (data as any[]).filter(
+                          (
+                              s
+                          ): s is {
+                              amsT_AdmNo: number;
+                              amsT_Id: number;
+                              studentName?: string;
+                              amsT_FirstName?: string;
+                              amsT_MiddleName?: string;
+                              amsT_LastName?: string;
+                          } => !!s?.amsT_Id
+                      )
                     : [];
 
-                const mappedStudents = valid.map(s => ({
+                const mappedStudents = valid.map((s) => ({
                     amsT_Id: s.amsT_Id,
                     amsT_AdmNo: s.amsT_AdmNo,
                     studentName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
@@ -164,7 +175,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
             asmaY_Id: Number(data.ASMAY_Id),
             asmcL_Id: Number(data.ASMCL_Id),
             asmS_Id: Number(data.ASMS_Id),
-            temp_AmstIds: data.selectedStudents.map(id => ({
+            temp_AmstIds: data.selectedStudents.map((id) => ({
                 amsT_Id: Number(id)
             })),
             exmname: data.exmname,
@@ -173,10 +184,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
 
         console.log('Report Card X_XII payload:', payload);
         try {
-            const [result, institutionRes] = await Promise.all([
-                getReportDetails(payload),
-                getMasterInstitution()
-            ]);
+            const [result, institutionRes] = await Promise.all([getReportDetails(payload), getMasterInstitution()]);
             const enrichedParams = {
                 ...data,
                 ASMAY_Year: academicYears.find((y: any) => String(y.asmaY_Id) === data.ASMAY_Id)?.asmaY_Year,
@@ -258,7 +266,6 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     )}
                                 />
                             </div>
-
 
                             {/* Class */}
                             <div className='space-y-2'>

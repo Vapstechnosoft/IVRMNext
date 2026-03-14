@@ -16,11 +16,11 @@ import { getMasterLeave } from '@/server/hrms/leave-management/masters/master-le
 
 export function useOnlineLeave() {
     const queryClient = useQueryClient();
-
+    
     // 1. Queries
     const { data: initialData, isLoading: isInitLoading } = useQuery({
         queryKey: ['online-leave-initial'],
-        queryFn: () => getInitialLeaveData(1207), // Using 1207 as requested
+        queryFn: () => getInitialLeaveData(),
     });
 
     const { data: masterLeaveData, isLoading: isMasterLoading } = useQuery({
@@ -30,7 +30,7 @@ export function useOnlineLeave() {
 
     const { data: historyData, isLoading: isHistoryLoading } = useQuery({
         queryKey: ['online-leave-history'],
-        queryFn: () => getLeaveHistory(1207),
+        queryFn: () => getLeaveHistory(),
     });
 
     // 2. Mutations
@@ -62,12 +62,66 @@ export function useOnlineLeave() {
         onError: (err: any) => toast.error(err.message || 'An error occurred while cancelling leave'),
     });
 
+    // 3. States for Integrated Leave Card (copied from admin logic)
+    const [selectedLeave, setSelectedLeave] = useState<any>(null);
+    const [selectedFromDate, setSelectedFromDate] = useState<Date | undefined>(undefined);
+    const [selectedToDate, setSelectedToDate] = useState<Date | undefined>(undefined);
+    const [isHalfDay, setIsHalfDay] = useState<boolean>(false);
+
+    // Filtered History Data
+    const effectiveHistory = useMemo(() => {
+        if (!historyData) return [];
+        if (Array.isArray(historyData)) return historyData;
+        if ((historyData as any).employeeLeaveDetails) return (historyData as any).employeeLeaveDetails;
+        return [];
+    }, [historyData]);
+
+    // Combined Data for Grid 1 (Balance + Latest History)
+    const combinedBalanceData = useMemo(() => {
+        const balances = initialData?.employeeLeaveDetails || (Array.isArray(initialData) ? initialData : []);
+        if (!balances || !Array.isArray(balances)) return [];
+
+        return balances.map((balance: any) => {
+            // Find the most recent history record for this leave type
+            const latestHistory = effectiveHistory
+                ?.filter((h: any) => h.hrmL_Id === balance.hrmL_Id)
+                .sort((a: any, b: any) => new Date(b.hrelaP_FromDate).getTime() - new Date(a.hrelaP_FromDate).getTime())[0];
+
+            return {
+                ...balance,
+                latestFromDate: latestHistory?.hrelaP_FromDate || null,
+                latestToDate: latestHistory?.hrelaP_ToDate || null,
+                latestTotDays: latestHistory?.hreltD_TotDays || null
+            };
+        });
+    }, [initialData, effectiveHistory]);
+
+    // Calculate current selection total days for form
+    const currentTotalDays = useMemo(() => {
+        if (selectedFromDate && selectedToDate) {
+            const days = differenceInDays(selectedToDate, selectedFromDate) + 1;
+            return isHalfDay ? Math.max(0, days - 0.5) : days;
+        }
+        return undefined;
+    }, [selectedFromDate, selectedToDate, isHalfDay]);
+
     return {
         initialData,
         masterLeaveData,
-        historyData,
+        historyData: effectiveHistory,
+        combinedBalanceData,
         isLoading: isInitLoading || isHistoryLoading || isMasterLoading,
         applyMutation,
-        cancelMutation
+        cancelMutation,
+        // Card States
+        selectedLeave,
+        setSelectedLeave,
+        selectedFromDate,
+        setSelectedFromDate,
+        selectedToDate,
+        setSelectedToDate,
+        isHalfDay,
+        setIsHalfDay,
+        currentTotalDays
     };
 }

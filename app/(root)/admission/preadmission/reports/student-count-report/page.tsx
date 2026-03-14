@@ -27,8 +27,9 @@ export default function StudentCountReportPage(props: {
         asmay_id: 0,
         asmcl_id: 0
     });
+    const [isSearched, setIsSearched] = useState(false);
 
-    const { data: response, isLoading, error } = useStudentCountReport(filterPayload, searchParams);
+    const { data: response, isLoading, error } = useStudentCountReport(filterPayload, searchParams, isSearched);
 
     return (
         <FormProvider<IMasterStudentCountReportList>>
@@ -37,13 +38,21 @@ export default function StudentCountReportPage(props: {
                 isLoading={isLoading}
                 error={error}
                 searchParams={searchParams}
-                onFilterChange={setFilterPayload}
+                onFilterChange={(payload, reset) => {
+                    if (reset) {
+                        setIsSearched(false);
+                    } else {
+                        setFilterPayload(payload);
+                        setIsSearched(true);
+                    }
+                }}
+                isSearched={isSearched}
             />
         </FormProvider>
     );
 }
 
-function FormSections({ searchParams, onFilterChange }: { searchParams?: any; onFilterChange?: (payload: any) => void }) {
+function FormSections({ searchParams, onFilterChange }: { searchParams?: any; onFilterChange?: (payload: any, reset?: boolean) => void }) {
     const { closeAddForm, addFormRef } = useFormContext<IMasterStudentCountReportList>();
 
     return (
@@ -78,13 +87,15 @@ function StudentCountReportPageContent({
     isLoading,
     error,
     searchParams,
-    onFilterChange
+    onFilterChange,
+    isSearched
 }: {
     response: any;
     isLoading: boolean;
     error: any;
     searchParams?: any;
-    onFilterChange?: (payload: any) => void;
+    onFilterChange?: (payload: any, reset?: boolean) => void;
+    isSearched: boolean;
 }) {
     const tableProps = useDataTableProps(response);
 
@@ -98,27 +109,29 @@ function StudentCountReportPageContent({
                 <FormSections searchParams={searchParams} onFilterChange={onFilterChange} />
 
                 {/* Data Table Section */}
-                <CollapsibleSection
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IMasterStudentCountReportList>
-                        {...tableProps}
-                        columns={masterStudentCountReportColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        showViewOptions={false}
-                        isSearchRequired={true}
-                        // showSearchColumns={true}
-                        columnPinning={{ right: ['actions'] }}
-                        isPaginationRequired={true}
-                        loadingMessage='Loading  Student Count Reports...'
-                        noDataTitle='No  Student Count Reports Found'
-                        noDataDescription='Get started by creating your first Student Count Reports '
-                        errorTitle='Error Loading Student Count Reports'
-                    />
-                </CollapsibleSection>
+                {isSearched && (
+                    <CollapsibleSection
+                        defaultOpen={true}
+                        variant='default'
+                        size='lg'
+                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        <GenericDataTable<IMasterStudentCountReportList>
+                            {...tableProps}
+                            columns={masterStudentCountReportColumns}
+                            isLoading={isLoading}
+                            error={error}
+                            showViewOptions={false}
+                            isSearchRequired={true}
+                            // showSearchColumns={true}
+                            columnPinning={{ right: ['actions'] }}
+                            isPaginationRequired={true}
+                            loadingMessage='Loading  Student Count Reports...'
+                            noDataTitle='No  Student Count Reports Found'
+                            noDataDescription='Get started by creating your first Student Count Reports '
+                            errorTitle='Error Loading Student Count Reports'
+                        />
+                    </CollapsibleSection>
+                )}
             </div>
         </div>
     );

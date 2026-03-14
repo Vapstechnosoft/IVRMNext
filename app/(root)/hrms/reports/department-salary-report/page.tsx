@@ -205,7 +205,7 @@ export default function DepartmentSalaryReportPage() {
                             <Label>Department <span className='text-red-500'>*</span></Label>
                             <Controller name='department' control={control} render={({ field }) => (
                                 <MultiSelect
-                                    options={[{ label: 'All', value: 'All' }, ...(departmentsData?.data || []).map((d: any) => ({ label: d.HRMD_DepartmentName || d.hrmD_DepartmentName, value: d.HRMD_Id?.toString() || d.hrmD_Id?.toString() || '' }))]}
+                                    options={[ ...(departmentsData?.data || []).map((d: any) => ({ label: d.HRMD_DepartmentName || d.hrmD_DepartmentName, value: d.HRMD_Id?.toString() || d.hrmD_Id?.toString() || '' }))]}
                                     onValueChange={field.onChange}
                                     defaultValue={field.value}
                                     placeholder="Select Department"
@@ -219,7 +219,7 @@ export default function DepartmentSalaryReportPage() {
                             <Label>Designation <span className='text-red-500'>*</span></Label>
                             <Controller name='designation' control={control} render={({ field }) => (
                                 <MultiSelect
-                                    options={[{ label: 'All', value: 'All' }, ...(designationsData?.data || []).map((d: any) => ({ label: d.HRMDES_DesignationName || d.hrmdeS_DesignationName, value: d.HRMDES_Id?.toString() || d.hrmdeS_Id?.toString() || '' }))]}
+                                    options={[ ...(designationsData?.data || []).map((d: any) => ({ label: d.HRMDES_DesignationName || d.hrmdeS_DesignationName, value: d.HRMDES_Id?.toString() || d.hrmdeS_Id?.toString() || '' }))]}
                                     onValueChange={field.onChange}
                                     defaultValue={field.value}
                                     placeholder="Select Designation"

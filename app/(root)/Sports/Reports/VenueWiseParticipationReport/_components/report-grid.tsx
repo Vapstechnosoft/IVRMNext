@@ -1,6 +1,5 @@
 'use client';
 
-import type { IVenueWiseReportData } from "@/types/sports/reports/venue-wise-participation-report";
 import {
     Table,
     TableBody,
@@ -12,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 interface ReportGridProps {
-    data: IVenueWiseReportData[];
+    data: any[];
 }
 
 export const ReportGrid = ({ data }: ReportGridProps) => {
@@ -51,15 +50,15 @@ export const ReportGrid = ({ data }: ReportGridProps) => {
                         {data.map((row, index) => (
                             <TableRow key={index}>
                                 <TableCell className="text-center">{index + 1}</TableCell>
-                                <TableCell className="text-center">{row.SPCCMH_HouseName}</TableCell>
-                                <TableCell className="text-center">{row.SPCCMEV_EventVenue}</TableCell>
-                                <TableCell className="text-center">{row.AMST_Name}</TableCell>
-                                <TableCell className="text-center">{row.AMST_AdmNo}</TableCell>
-                                <TableCell className="text-center">{row.ASMCL_ClassName}</TableCell>
-                                <TableCell className="text-center">{row.ASMC_SectionName}</TableCell>
-                                <TableCell className="text-center">{row.SPCCME_EventName}</TableCell>
-                                <TableCell className="text-center">{row.SPCCMSCC_SportsCCName}</TableCell>
-                                <TableCell className="text-center">{new Date(row.SPCCE_StartDate).toLocaleDateString()}</TableCell>
+                                <TableCell className="text-center">{row.spccmH_HouseName}</TableCell>
+                                <TableCell className="text-center">{row.spccmeV_EventVenue}</TableCell>
+                                <TableCell className="text-center">{row.amsT_Name}</TableCell>
+                                <TableCell className="text-center">{row.amsT_AdmNo}</TableCell>
+                                <TableCell className="text-center">{row.asmcL_ClassName}</TableCell>
+                                <TableCell className="text-center">{row.asmC_SectionName}</TableCell>
+                                <TableCell className="text-center">{row.spccmE_EventName}</TableCell>
+                                <TableCell className="text-center">{row.spccmscc_SportsCCName}</TableCell>
+                                <TableCell className="text-center">{row.spccE_StartDate ? new Date(row.spccE_StartDate).toLocaleDateString() : ''}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

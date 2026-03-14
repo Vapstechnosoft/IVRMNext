@@ -53,19 +53,6 @@ export const columns: ColumnDef<IPeriodStaffList>[] = [
         )
     },
     {
-        accessorKey: 'ttrpS_ActiveFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-        cell: ({ row }) => (
-            <div>
-                {row.original.ttrpS_ActiveFlag ? (
-                    <span className='rounded bg-green-100 px-2 py-1 font-semibold text-green-800 text-xs'>Active</span>
-                ) : (
-                    <span className='rounded bg-red-100 px-2 py-1 font-semibold text-red-800 text-xs'>Inactive</span>
-                )}
-            </div>
-        )
-    },
-    {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
         accessorFn: (row) => row,

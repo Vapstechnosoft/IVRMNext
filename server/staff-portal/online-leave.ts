@@ -15,11 +15,10 @@ const BASE_URL = 'OnlineLeaveApplication';
  * Get initial leave data including employee profile and leave balances
  * GET /api/OnlineLeaveApplication/get_employee_leave_details
  */
-export async function getInitialLeaveData(hrmeId: number = 1207) {
+export async function getInitialLeaveData() {
     try {
-        console.log(`🔵 [SERVER] getInitialLeaveData for employee: ${hrmeId}`);
-        // Add HRME_Id and MI_Id params as they are often required for GET lists
-        const url = `/api/OnlineLeaveApplication/get_employee_leave_details?HRME_Id=${hrmeId}&MI_Id=${HRMS_MI_ID}`;
+        console.log("🔵 [SERVER] getInitialLeaveData");
+        const url = `/api/OnlineLeaveApplication/get_employee_leave_details?MI_Id=${HRMS_MI_ID}`;
 
         console.log(`🌐 [SERVER] Calling: GET ${url} on hmslms`);
         const response = await api.get<IOnlineLeaveInitialResponse>('hmslms', url);
@@ -43,10 +42,10 @@ export async function getInitialLeaveData(hrmeId: number = 1207) {
  * Get leave application history and status
  * GET /api/OnlineLeaveApplication/get_employee_leave_status_details
  */
-export async function getLeaveHistory(hrmeId: number = 1207) {
+export async function getLeaveHistory() {
     try {
-        console.log(`🔵 [SERVER] getLeaveHistory for employee: ${hrmeId}`);
-        const url = `/api/OnlineLeaveApplication/get_employee_leave_status_details?HRME_Id=${hrmeId}&MI_Id=${HRMS_MI_ID}`;
+        console.log("🔵 [SERVER] getLeaveHistory");
+        const url = `/api/OnlineLeaveApplication/get_employee_leave_status_details?MI_Id=${HRMS_MI_ID}`;
 
         console.log(`🌐 [SERVER] Calling: GET ${url} on hmslms`);
         const response = await api.get<IOnlineLeaveHistoryResponse>('hmslms', url);

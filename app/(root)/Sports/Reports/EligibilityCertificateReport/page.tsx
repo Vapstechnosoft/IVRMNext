@@ -7,39 +7,56 @@ import type { IEligibilityCertificateReportDetail } from '@/types/sports/reports
 import { useEffect, useState } from 'react';
 import { columns } from './_components/columns';
 import ReportForm from './_components/report-form';
+import { toast } from 'sonner';
 
 export default function EligibilityCertificateReportPage() {
     const { data: loadGridData, isLoading, error } = useEligibilityCertificateReport();
-    const [reportResponse, setReportResponse] = useState<any>(null);
+    const [reportData, setReportData] = useState<IEligibilityCertificateReportDetail[]>([]);
 
     // Initial load
     useEffect(() => {
-        if (loadGridData) {
-            setReportResponse({ ...loadGridData, data: [] });
+        if (loadGridData?.success && loadGridData?.data?.pudatareport) {
+            setReportData(loadGridData.data.pudatareport);
         }
     }, [loadGridData]);
 
     const handleReport = (data: any) => {
-        setReportResponse(data);
+        if (Array.isArray(data)) {
+            setReportData(data);
+        } else if (data?.pudatareport && Array.isArray(data.pudatareport)) {
+            setReportData(data.pudatareport);
+        } else if (data?.datareport && Array.isArray(data.datareport)) {
+            setReportData(data.datareport);
+        } else if (data?.data?.pudatareport && Array.isArray(data.data.pudatareport)) {
+            setReportData(data.data.pudatareport);
+        } else if (data?.data?.datareport && Array.isArray(data.data.datareport)) {
+            setReportData(data.data.datareport);
+        } else if (data?.data && Array.isArray(data.data)) {
+            setReportData(data.data);
+        } else {
+            setReportData([]);
+        }
     };
 
     const handleReset = () => {
-        if (loadGridData) {
-            setReportResponse({ ...loadGridData, data: [] });
+        if (loadGridData?.data?.pudatareport) {
+            setReportData(loadGridData.data.pudatareport);
+        } else {
+            setReportData([]);
         }
     };
 
     const handlePrint = () => {
         // Placeholder for print functionality
-        console.log('Print', reportResponse?.data);
+        //console.log('Print', reportResponse?.data);
     };
 
     const handleExcel = () => {
         // Placeholder for excel functionality
-        console.log('Excel', reportResponse?.data);
+        //console.log('Excel', reportResponse?.data);
     };
 
-    const tableProps = useDataTableProps(reportResponse);
+    const tableProps = useDataTableProps(reportData);
 
     return (
         <div className='min-h-screen'>
@@ -54,7 +71,7 @@ export default function EligibilityCertificateReportPage() {
                         onReset={handleReset}
                         onPrint={handlePrint}
                         onExcel={handleExcel}
-                        hasData={!!reportResponse?.data?.length}
+                        hasData={reportData.length > 0}
                     />
                 </CollapsibleSection>
 

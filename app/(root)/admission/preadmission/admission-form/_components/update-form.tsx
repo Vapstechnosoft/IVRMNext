@@ -37,6 +37,7 @@ import { getIconByName } from '@/lib/lucide-icon-registry';
 import { cn } from '@/lib/utils';
 import { studentAdmissionFormSchema } from '@/schemas/admission/admission-form';
 import {
+    getAllAdmissionLists,
     saveFifthTabApi,
     saveFinalTabApi,
     saveFirstTabApi,
@@ -44,8 +45,7 @@ import {
     saveGaurdianApi,
     saveSecondTabApi,
     saveStudentPhotoApi,
-    saveThirdTabApi,
-    getAllAdmissionLists
+    saveThirdTabApi
 } from '@/server/admission/admission-form/admission';
 import { deleteDocument, uploadDocument } from '@/server/document_upload';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -54,7 +54,7 @@ import { CalendarIcon, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import type { z } from 'zod';
+import { number, type z } from 'zod';
 
 type FormFields = z.infer<typeof studentAdmissionFormSchema.add>;
 
@@ -1331,7 +1331,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     data.ivrmmC_Id ??
                     data.fatherNationality ??
                     payload.fatherNationality;
-                if (fatherNationalityVal) setValue('fatherNationality', String(fatherNationalityVal));
+                if (fatherNationalityVal) setValue('fatherNationality', Number(fatherNationalityVal));
 
                 const motherNationalityVal =
                     data.motherNationalityId ??
@@ -1339,7 +1339,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     data.ivrmmC_Id ??
                     data.motherNationality ??
                     payload.motherNationality;
-                if (motherNationalityVal) setValue('motherNationality', String(motherNationalityVal));
+                if (motherNationalityVal) setValue('motherNationality', Number(motherNationalityVal));
 
                 // 7. PLACE OF BIRTH (COUNTRY -> STATE)
                 const pobCountryVal =
@@ -2075,15 +2075,15 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 asmaY_Id: Number(formData.asmaY_Id ?? formData.asmaY_Year ?? 0),
                 asmcL_Id: Number(formData.asmcL_Id ?? 0),
                 asmS_Id: Number(formData.asmS_Id ?? 0),
-                amsT_Date: formData.amsT_Date ? new Date(formData.amsT_Date).toISOString() : new Date().toISOString(),
+                amsT_Date: formData.amsT_Date ? format(new Date(formData.amsT_Date), "yyyy-MM-dd'T'00:00:00.000'Z'") : new Date().toISOString(),
                 amsT_RegistrationNo: String(formData.amsT_RegistrationNo ?? ''),
                 amsT_AdmissionNo: String(formData.amsT_AdmissionNo ?? ''),
-                amsT_DateOfAdmission: formData.amsT_Date ? new Date(formData.amsT_Date).toISOString() : new Date().toISOString(),
+                amsT_DateOfAdmission: formData.amsT_Date ? format(new Date(formData.amsT_Date), "yyyy-MM-dd'T'00:00:00.000'Z'") : new Date().toISOString(),
                 amsT_FirstName: formData.amsT_FirstName ?? '',
                 amsT_MiddleName: formData.amsT_MiddleName ?? '',
                 amsT_LastName: formData.amsT_LastName ?? '',
                 amsT_Sex: String(formData.amsT_Sex ?? ''),
-                amsT_DOB: formData.amsT_DOB ? new Date(formData.amsT_DOB).toISOString() : undefined,
+                amsT_DOB: formData.amsT_DOB ? format(new Date(formData.amsT_DOB), "yyyy-MM-dd'T'00:00:00.000'Z'") : undefined,
                 amsT_DOB_Words: formData.amsT_DOB_Words ?? dateToWords(formData.amsT_DOB) ?? '',
                 pasR_Age: Number(formData.pasR_Age ?? 0),
                 amsT_MotherTongue: formData.amsT_MotherTongue ?? '',
@@ -2577,6 +2577,11 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         amsT_OtherPermanentAddr: formData.amsT_OtherPermanentAddr || '',
                         amsT_Domicile: formData.amsT_Domicile || '',
                         amsT_SecondLanguage: formData.amsT_SecondLanguage || '',
+                        amsT_UnderAge: formData.amsT_UnderAge || '',
+                        amsT_Boarding: formData.amsT_Boarding || '',
+                        amsT_LastPlayGrndAttnd: formData.amsT_LastPlayGrndAttnd || '',
+                        amsT_OverAge: formData.amsT_OverAge || '',
+                        amsT_MaritalStatus: formData.amsT_MaritalStatus || '',
                         amsT_TransferrableJobFlg: !!formData.amsT_TransferrableJobFlg,
                         amsT_VaccinatedFlg: !!formData.amsT_VaccinatedFlg,
                         amsT_Tcflag: !!formData.amsT_Tcflag
@@ -2661,7 +2666,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                             const d = school.pasrpS_TcDate ?? school.tcDate;
                             if (!d) return null;
                             const parsed = d instanceof Date ? d : new Date(d);
-                            return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+                            return Number.isNaN(parsed.getTime()) ? null : format(parsed, "yyyy-MM-dd'T'00:00:00.000'Z'");
                         })()
                     }));
 
@@ -4679,7 +4684,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                 key={`class_${field.value || 'empty'}_${admissionClass?.data?.length || 0}`}
                                                                 value={field.value?.toString() || ''}
                                                                 onValueChange={(value) => field.onChange(Number(value))}>
-                                                                <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
+                                                                <SelectTrigger disabled className={cn('w-full', error && 'border-red-500')}>
                                                                     <SelectValue
                                                                         placeholder={
                                                                             admissionClassLoading ? 'Loading classes...' : 'Select a class'
@@ -4731,7 +4736,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                             value={field.value?.toString() || ''}
                                                             onValueChange={(value) => field.onChange(Number(value))} // <-- SEND NUMBER
                                                             disabled={!classId || classId === 0 || sectionLoading}>
-                                                            <SelectTrigger className={cn(errors.asmS_Id && 'border-red-500')}>
+                                                            <SelectTrigger disabled className={cn(errors.asmS_Id && 'border-red-500')}>
                                                                 <SelectValue
                                                                     placeholder={sectionLoading ? 'Loading...' : 'Select section'}
                                                                 />
@@ -5663,7 +5668,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         error={errors.amsT_ConArea?.message}
                                                     />
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_ConCountry'>Country <span className='ml-1 text-red-500'>*</span></Label>
+                                                        <Label htmlFor='amsT_ConCountry'>
+                                                            Country <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
                                                         <Controller
                                                             name='amsT_ConCountry'
                                                             control={control}
@@ -5849,7 +5856,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         disabled={sameAsResidential}
                                                     />
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_PerCountry'>Country <span className='ml-1 text-red-500'>*</span></Label>
+                                                        <Label htmlFor='amsT_PerCountry'>
+                                                            Country <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
                                                         <Controller
                                                             name='amsT_PerCountry'
                                                             control={control}
@@ -8227,7 +8236,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                 {phoneExpectedInfo?.[`guardian_${idx}_phone`]?.expected && (
                                                                                     <span className='mt-1 text-muted-foreground text-xs'>
                                                                                         {`Mobile number must be exactly ${phoneExpectedInfo[`guardian_${idx}_phone`]
-                                                                                            .expected
+                                                                                                .expected
                                                                                             } digits for ${phoneExpectedInfo[`guardian_${idx}_phone`]
                                                                                                 .name ?? 'selected country'
                                                                                             }`}
@@ -8896,7 +8905,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                 {/* <h3 className='font-semibold text-gray-800 text-lg'>Residential Address</h3> */}
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                     <InputText
-                                                        label='Student Health'
+                                                        label='Student Illness'
                                                         id='amsT_Studentillness'
                                                         placeholder='Enter Student Health'
                                                         {...register('amsT_Studentillness')}
@@ -8918,6 +8927,28 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     />
 
                                                     <InputText
+                                                        label='Under Age'
+                                                        id='amsT_UnderAge'
+                                                        placeholder='Enter Under Age'
+                                                        {...register('amsT_UnderAge')}
+                                                        error={errors.amsT_UnderAge?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Boarding'
+                                                        id='amsT_Boarding'
+                                                        placeholder='Enter Boarding'
+                                                        {...register('amsT_Boarding')}
+                                                        error={errors.amsT_Boarding?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Last Playground Attended'
+                                                        id='amsT_LastPlayGrndAttnd'
+                                                        placeholder='Enter Last Playground Attended'
+                                                        {...register('amsT_LastPlayGrndAttnd')}
+                                                        error={errors.amsT_LastPlayGrndAttnd?.message}
+                                                    />
+
+                                                    <InputText
                                                         label='School DISE Code'
                                                         id='amsT_SchoolDISECode'
                                                         placeholder='Enter School DISE Code'
@@ -8933,8 +8964,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     />
 
                                                     <InputText
-                                                        label='  Second Language'
-                                                        id=' amsT_SecondLanguage'
+                                                        label='Second Language'
+                                                        id='amsT_SecondLanguage'
                                                         placeholder='Enter Second Language'
                                                         {...register('amsT_SecondLanguage')}
                                                         error={errors.amsT_SecondLanguage?.message}
@@ -8964,6 +8995,14 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     />
 
                                                     <InputText
+                                                        label='Over Age'
+                                                        id='amsT_OverAge'
+                                                        placeholder='Enter Over Age'
+                                                        {...register('amsT_OverAge')}
+                                                        error={errors.amsT_OverAge?.message}
+                                                    />
+
+                                                    <InputText
                                                         label='Extra Activity'
                                                         id='amsT_ExtraActivity'
                                                         placeholder='Enter Extra Activity'
@@ -8985,6 +9024,14 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         placeholder='Enter Domicile'
                                                         {...register('amsT_Domicile')}
                                                         error={errors.amsT_Domicile?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='Marital Status'
+                                                        id='amsT_MaritalStatus'
+                                                        placeholder='Enter Marital Status'
+                                                        {...register('amsT_MaritalStatus')}
+                                                        error={errors.amsT_MaritalStatus?.message}
                                                     />
                                                     <InputTextarea
                                                         label='Other Residential Address'
@@ -9028,7 +9075,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     </div>
                                                     <div className='flex items-center space-x-2'>
                                                         <Checkbox
-                                                            id='amsT_Tcflag"'
+                                                            id='amsT_Tcflag'
                                                             checked={Boolean(watch('amsT_Tcflag'))}
                                                             onCheckedChange={(checked) => {
                                                                 setValue('amsT_Tcflag', checked === true);

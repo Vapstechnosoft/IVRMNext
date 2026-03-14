@@ -49,7 +49,7 @@ export default function BifurcationConstraintsForm({ onSuccess, onCancel }: Bifu
             ASMAY_Id: 0,
             TTMC_Id: 0,
             TTB_BifurcationName: '',
-            TTB_NoOfPeriods: 1,
+            TTB_NoOfPeriods: 0,
             TTB_BefAftApplFlag: false,
             TTB_BefAftFalg: '',
             TTMP_Id: 0,
@@ -102,6 +102,7 @@ export default function BifurcationConstraintsForm({ onSuccess, onCancel }: Bifu
         refetchAll: subjectdataRefetch
     } = useSubjectDropdownBifurcationConstraints();
 
+
     const {
         register,
         handleSubmit,
@@ -111,6 +112,11 @@ export default function BifurcationConstraintsForm({ onSuccess, onCancel }: Bifu
         reset,
         formState: { errors, isSubmitting }
     } = form;
+
+    const handleReset = () => {
+        reset();
+        setClassList([]);
+    };
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'combinationlist'
@@ -121,54 +127,6 @@ export default function BifurcationConstraintsForm({ onSuccess, onCancel }: Bifu
     const watchedCategory = watch('TTMC_Id');
     const watchedBefAftFlag = watch('TTB_BefAftApplFlag');
     const watchedConsecutiveFlag = watch('TTB_ConsecutiveFlag');
-
-    // // Fetch Edit Details
-    // useEffect(() => {
-    //     const fetchEditDetails = async () => {
-    //         if (Array.isArray(editData)) {
-    //             try {
-    //                 const apiResponse = await getBifurcationConstraintsEditDetails(editData[0].ttB_Id);
-
-    //                 const detailsList = (apiResponse.detailslist as any[]) || [];
-    //                 const editDetailsList = (apiResponse.editdetailslist as any[]) || [];
-
-    //                 if (detailsList.length > 0) {
-    //                     const mainRecord = detailsList[0];
-    //                     reset({
-    //                         TTB_ID: mainRecord.ttB_Id,
-    //                         ASMAY_Id: mainRecord.asmaY_Id,
-    //                         TTMC_Id: mainRecord.ttmC_Id,
-    //                         TTB_BifurcationName: mainRecord.ttB_BifurcationName,
-    //                         TTB_NoOfPeriods: mainRecord.ttB_NoOfPeriods,
-    //                         TTB_BefAftApplFlag: mainRecord.ttB_BefAftApplFlag === 1,
-    //                         TTB_BefAftFalg: mainRecord.ttB_BefAftFalg || '',
-    //                         TTMP_Id: mainRecord.ttmP_Id || 0,
-    //                         TTB_ConsecutiveFlag: mainRecord.ttB_ConsecutiveFlag === 1,
-    //                         TTB_NoOfConPeriods: mainRecord.ttB_NoOfConPeriods || 0,
-    //                         TTB_NoOfConDays: mainRecord.ttB_NoOfConDays || 0,
-    //                         combinationlist: editDetailsList.map((d: any) => ({
-    //                             ASMCL_Id: d.asmcL_Id || 0,
-    //                             ASMS_Id: d.asmS_Id || 0,
-    //                             HRME_Id: d.hrmE_Id || 0,
-    //                             ISMS_Id: d.ismS_Id || 0,
-    //                             className: d.className,
-    //                             sectioname: d.sectioname,
-    //                             staffname: d.staffname,
-    //                             subjectname: d.subjectname
-    //                         }))
-    //                     });
-    //                 }
-    //             } catch (err) {
-    //                 console.error('Failed to fetch edit details', err);
-    //                 toast.error('Failed to load record details');
-    //             }
-    //         }
-    //     };
-
-    //     if (editData) {
-    //         fetchEditDetails();
-    //     }
-    // }, [editData, reset]);
 
     // Fetch Classes on Year/Category Change
     useEffect(() => {
@@ -407,7 +365,10 @@ export default function BifurcationConstraintsForm({ onSuccess, onCancel }: Bifu
                                         control={control}
                                         name='TTB_BefAftFalg'
                                         render={({ field }) => (
-                                            <Select onValueChange={field.onChange} value={field.value}>
+                                            <Select
+                                                key={field.value || 'empty'}
+                                                onValueChange={field.onChange}
+                                                value={field.value || undefined}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='--Select--' />
                                                 </SelectTrigger>
@@ -474,7 +435,10 @@ export default function BifurcationConstraintsForm({ onSuccess, onCancel }: Bifu
                             control={control}
                             name='TTMC_Id'
                             render={({ field }) => (
-                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                <Select
+                                    key={field.value || 'empty'}
+                                    onValueChange={(val) => field.onChange(Number(val))}
+                                    value={field.value?.toString() || undefined}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
@@ -559,11 +523,12 @@ export default function BifurcationConstraintsForm({ onSuccess, onCancel }: Bifu
                             name='ASMCL_Id_temp'
                             render={({ field }) => (
                                 <Select
+                                    key={field.value || 'empty'}
                                     onValueChange={(val) => {
                                         field.onChange(Number(val));
                                         handleClassChange(Number(val));
                                     }}
-                                    value={field.value?.toString()}>
+                                    value={field.value?.toString() || undefined}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
@@ -587,11 +552,12 @@ export default function BifurcationConstraintsForm({ onSuccess, onCancel }: Bifu
                             name='ASMS_Id_temp'
                             render={({ field }) => (
                                 <Select
+                                    key={field.value || 'empty'}
                                     onValueChange={(val) => {
                                         field.onChange(Number(val));
                                         handleSectionChange(Number(val));
                                     }}
-                                    value={field.value?.toString()}>
+                                    value={field.value?.toString() || undefined}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
@@ -621,7 +587,10 @@ export default function BifurcationConstraintsForm({ onSuccess, onCancel }: Bifu
                             control={control}
                             name='HRME_Id_temp'
                             render={({ field }) => (
-                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                <Select
+                                    key={field.value || 'empty'}
+                                    onValueChange={(val) => field.onChange(Number(val))}
+                                    value={field.value?.toString() || undefined}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
@@ -654,7 +623,10 @@ export default function BifurcationConstraintsForm({ onSuccess, onCancel }: Bifu
                             control={control}
                             name='ISMS_Id_temp'
                             render={({ field }) => (
-                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                <Select
+                                    key={field.value || 'empty'}
+                                    onValueChange={(val) => field.onChange(Number(val))}
+                                    value={field.value?.toString() || undefined}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
@@ -723,7 +695,7 @@ export default function BifurcationConstraintsForm({ onSuccess, onCancel }: Bifu
                 <Button
                     type='button'
                     variant='outline'
-                    onClick={onCancel}
+                    onClick={handleReset}
                     disabled={isSubmitting}
                     className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                     Reset

@@ -24,7 +24,7 @@ interface AddMappingFormProps {
 }
 
 export default function EventsStudentMappingForm({ onSuccess }: AddMappingFormProps) {
-    const { dropdowns, fetchStudents, saveData } = useEventsStudentMapping();
+    const { dropdowns, fetchStudents, fetchClasses, saveData } = useEventsStudentMapping();
     const dropdownData = dropdowns.data;
 
     // Local state for the "Add" process
@@ -210,7 +210,13 @@ export default function EventsStudentMappingForm({ onSuccess }: AddMappingFormPr
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Academic Year <span className="text-destructive">*</span></FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+                                <Select onValueChange={(value) => {
+                                    field.onChange(value);
+                                    // Fetch classes when year changes
+                                    fetchClasses.mutate(Number(value));
+                                    // Reset dependent fields
+                                    form.setValue('selectedClasses', []);
+                                }} defaultValue={String(field.value)}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select Year" />
@@ -252,10 +258,46 @@ export default function EventsStudentMappingForm({ onSuccess }: AddMappingFormPr
                         />
                     )}
 
-                    {/* MultiSelects would go here using a proper MultiSelect component. 
-                        For now, simulating simpler selects or using the simulated logic. 
-                        In a real app, use the `components/ui/multi-select` if available.
-                    */}
+                    <FormField
+                        control={form.control}
+                        name="selectedHouses"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>House <span className="text-destructive">*</span></FormLabel>
+                                <FormControl>
+                                    <MultiSelect
+                                        options={dropdownData?.houseList.map(h => ({ label: h.spccmH_HouseName, value: String(h.spccmH_Id) })) || []}
+                                        defaultValue={field.value?.map(String) || []}
+                                        onValueChange={(vals) => field.onChange(vals.map(Number))}
+                                        placeholder="Select Houses"
+                                        variant="secondary"
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="selectedClasses"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Class <span className="text-destructive">*</span></FormLabel>
+                                <FormControl>
+                                    <MultiSelect
+                                        options={fetchClasses.data?.data?.map((c: any) => ({ label: c.asmcL_ClassName, value: String(c.asmcL_Id) })) || []}
+                                        defaultValue={field.value?.map(String) || []}
+                                        onValueChange={(vals) => field.onChange(vals.map(Number))}
+                                        placeholder="Select Classes"
+                                        variant="secondary"
+                                        disabled={fetchClasses.isPending}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                 </div>
 
                 <div className="flex justify-end">

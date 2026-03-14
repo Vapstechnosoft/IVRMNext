@@ -8,16 +8,15 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type ToppersListSchema, toppersListReportSchema } from '@/schemas/exam/exam-module/reports';
-import { getToppersReportDetails } from '@/server/exam/exam-module/reports/toppers-list-report';
 import {
     getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist,
-    getExamsDropDownByAcademicYearandClassandSectionlist
+    getExamsDropDownByAcademicYearandClassandSectionlist,
+    getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
+import { getToppersReportDetails } from '@/server/exam/exam-module/reports/toppers-list-report';
 import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -246,31 +245,21 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
             const payload = {
                 ASMAY_Id: Number.parseInt(formValues.ASMAY_Id) || 0,
                 ASMCL_Id: Number.parseInt(formValues.ASMCL_Id || '') || 0,
-                ASMS_Id:
-                    formValues.type === '1'
-                        ? 0
-                        : Number.parseInt(formValues.ASMS_Id || '') || 0,
+                ASMS_Id: formValues.type === '1' ? 0 : Number.parseInt(formValues.ASMS_Id || '') || 0,
                 EME_Id: Number.parseInt(formValues.EME_Id) || 0,
-                ISMS_Id:
-                    formValues.subjectwise
-                        ? Number.parseInt(formValues.ISMS_Id || '') || 0
-                        : 0,
+                ISMS_Id: formValues.subjectwise ? Number.parseInt(formValues.ISMS_Id || '') || 0 : 0,
                 report_type: formValues.type || '0',
 
                 sub_check_type: formValues.subjectwise ? '1' : '0',
 
-                exm_check_type:
-                    Number.parseInt(formValues.EME_Id) > 0 ? '1' : '0',
+                exm_check_type: Number.parseInt(formValues.EME_Id) > 0 ? '1' : '0',
 
                 topper: Number.parseInt(formValues.topper) || 0
             };
 
             console.log('Toppers List Report payload:', payload);
 
-            const [result, institutionRes] = await Promise.all([
-                getToppersReportDetails(payload),
-                getMasterInstitution()
-            ]);
+            const [result, institutionRes] = await Promise.all([getToppersReportDetails(payload), getMasterInstitution()]);
             console.log('toppers list response', result);
             if (!result?.data || (Array.isArray(result.data) && result.data.length === 0)) {
                 toast.info(result?.message || 'No records found');
@@ -373,7 +362,6 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                 {errors.ASMAY_Id && <FormError>{errors.ASMAY_Id.message}</FormError>}
                             </div>
 
-
                             {/* Class (Only for Individual type) */}
                             <div className='space-y-2'>
                                 <Label>
@@ -389,8 +377,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                                 // Trigger validation when changed
                                                 trigger('ASMCL_Id');
                                             }}
-                                            value={field.value || undefined}
-                                        >
+                                            value={field.value || undefined}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Class' />
                                             </SelectTrigger>
