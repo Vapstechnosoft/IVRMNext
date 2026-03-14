@@ -24,9 +24,7 @@ export async function saveConsecutiveConstraintsDetail(data: any) {
 
 // Get Details for Edit
 export async function getConsecutiveConstraintsEditDetails(id: number) {
-    const url = `/TT_ConsecutiveFacade/getdetails/${id}`; // Note: Legacy used Query string? Checking controller `getURI("Consecutive/getdetails", pageid)` - usually becomes path param in new arch if adapted.
-    // If standard REST in apiService: api.getURI usually appends ID.
-    // Assuming backend accepts /Consecutive/getdetails/123
+    const url = `/TT_ConsecutiveFacade/GetEditDataConsecutive/${id}`;
     const response = await api.get<any>('timetable', url);
     return response.data;
 }

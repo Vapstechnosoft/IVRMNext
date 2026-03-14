@@ -56,7 +56,7 @@ export const masterPeriodColumns: ColumnDef<IMasterPeriodDetailsList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterPeriodDetailsList }) {
-    const { openToggleForm } = useFormContext<IMasterPeriodDetailsList>();
+    const { openToggleForm, openDeleteForm, openEditForm } = useFormContext<IMasterPeriodDetailsList>();
 
     const handleToggle = useCallback(
         (data: IMasterPeriodDetailsList) => {
@@ -65,11 +65,27 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterPeriodDetailsList }) {
         [openToggleForm]
     );
 
+    const handleDelete = useCallback(
+        (data: IMasterPeriodDetailsList) => {
+            openDeleteForm(data);
+        },
+        [openDeleteForm]
+    );
+
+    const handleEdit = useCallback(
+        (data: IMasterPeriodDetailsList) => {
+            openEditForm(data);
+        },
+        [openEditForm]
+    );
+
     return (
         <ActionButtons
             rowData={rowData}
             buttons={{ toggle: false, delete: true, edit: true }}
             onToggle={handleToggle}
+            onDelete={handleDelete}
+            onEdit={handleEdit}
             toggleConditionKey='ttmP_ActiveFlag'
         />
     );

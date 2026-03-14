@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 export const masterCasteCategoryColumns: ColumnDef<IMasterCasteCategoryList>[] = [
     {
         accessorKey: 'imcC_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -21,21 +21,21 @@ export const masterCasteCategoryColumns: ColumnDef<IMasterCasteCategoryList>[] =
     },
     {
         accessorKey: 'imcC_CategoryCode',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Category Code' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Category Code' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('imcC_CategoryCode')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'imcC_CategoryName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Caste Category Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Caste Category Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('imcC_CategoryName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'imcC_CategoryDesc',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Caste Category Description' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Caste Category Description' className='font-bold text-black' />,
         cell: ({ row }) => (
             <div className='max-w-[200px] overflow-hidden truncate text-ellipsis'>
                 {row.getValue('imcC_CategoryDesc') === null || row.getValue('imcC_CategoryDesc') === undefined
@@ -48,7 +48,7 @@ export const masterCasteCategoryColumns: ColumnDef<IMasterCasteCategoryList>[] =
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

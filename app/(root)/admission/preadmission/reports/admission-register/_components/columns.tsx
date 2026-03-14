@@ -42,7 +42,7 @@ export const FIELD_CONFIG: Record<string, { label: string; isDate?: boolean }> =
 
 const serialNumberColumn: ColumnDef<any> = {
     accessorKey: 'AMST_Id',
-    header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6 font-bold text-black' />,
     cell: ({ row, table }) => {
         const pageIndex = table.getState().pagination.pageIndex;
         const pageSize = table.getState().pagination.pageSize;
@@ -59,7 +59,7 @@ const createDynamicColumn = (fieldId: string): ColumnDef<any> => {
     if (!config) {
         return {
             accessorKey: fieldId,
-            header: ({ column }) => <DataTableColumnHeader column={column} title={fieldId} />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title={fieldId} className='font-bold text-black' />,
             cell: ({ row }) => <div>{row.getValue(fieldId) || 'N/A'}</div>,
             enableSorting: true,
             enableHiding: true
@@ -68,7 +68,7 @@ const createDynamicColumn = (fieldId: string): ColumnDef<any> => {
 
     return {
         accessorKey: fieldId,
-        header: ({ column }) => <DataTableColumnHeader column={column} title={config.label} />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={config.label} className='font-bold text-black' />,
         cell: ({ row }) => {
             const value = row.getValue(fieldId);
 

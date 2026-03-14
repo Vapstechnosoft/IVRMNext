@@ -10,9 +10,18 @@ import {
     getDepartmentsByGroupType,
     getDesignationsByGroupAndDept,
     getEmployeesByDeptAndDesignation,
+    getEmployeesByGroupTypeDeptAndDesignation,
     getGroupTypes,
     type CumulativeSalaryReportRequest
 } from '@/server/hrms/reports/cumulative-salary-report';
+import {
+    getEmployeesBankCashReport,
+    type BankCashReportRequest
+} from '@/server/hrms/reports/bank-cash-report';
+import {
+    getHeadWiseEmployeeDetails,
+    type HeadWiseReportRequest
+} from '@/server/hrms/reports/head-wise-report';
 import {
     getDepartmentSalaryReport,
     type DepartmentSalaryReportRequest
@@ -43,6 +52,10 @@ import {
     getEmployeeStrengthReportOnload,
     searchEmployeeStrengthReport,
 } from '@/server/hrms/hrmsConfig/reports/employee-strength-report';
+import {
+    searchEmployeeProfileDetails,
+} from '@/server/hrms/hrmsConfig/reports/employee-profile-report';
+import type { EmployeeProfileReportSearchRequest } from '@/types/hrms/reports/employee-profile-report';
 import {
     getEmployeesByFilter,
     getEmployeeLetterDetails
@@ -89,6 +102,10 @@ import {
     filterEmployeeDetailsReport,
     type EmployeeDetailsReportRequest
 } from '@/server/hrms/reports/employee-details-report';
+import {
+    getMonthEndReport,
+    type MonthEndReportRequest
+} from '@/server/hrms/reports/month-end-report';
 
 export type { EmployeeDetailsReportRequest };
 
@@ -146,6 +163,19 @@ export function useReportEmployeesByDeptAndDesignation(deptIds: string, desigIds
     });
 }
 
+// Get EMployees by Group Type, Department and Designation
+
+export function useReportEmployeesByGroupTypeDeptAndDesignation( groupTypeIds: number[],
+    deptIds: number[],
+    desigIds: number[]) {
+    console.log('📡 [HOOK] Fetching employees with:', { groupTypeIds, deptIds, desigIds });
+    return useQuery({
+        queryKey: ['report-employees', groupTypeIds, deptIds, desigIds],
+        queryFn: () => getEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds),
+        enabled: !!groupTypeIds && !!deptIds && !!desigIds,
+        staleTime: 1000 * 60 * 5
+    });
+}
 
 export function useDepartmentSalaryReport() {
     return useMutation({
@@ -575,6 +605,51 @@ export function useLeaveStatusReport() {
         mutationFn: (data: LeaveStatusReportRequest) => getLeaveStatusReport(data),
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to fetch Leave Status Report');
+        }
+    });
+}
+
+// Get employees based on the hrmE_IdList
+export function useEmployeeProfileReport() {
+    return useMutation({
+        mutationFn: (data: EmployeeProfileReportSearchRequest) => searchEmployeeProfileDetails(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch Employee Profile Report');
+        }
+    });
+}
+
+/**
+ * Hook for Bank Cash Report
+ */
+export function useBankCashReport() {
+    return useMutation({
+        mutationFn: (data: BankCashReportRequest) => getEmployeesBankCashReport(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch Bank Cash Report');
+        }
+    });
+}
+/**
+ * Hook for Head wise Report
+ */
+export function useHeadWiseReport() {
+    return useMutation({
+        mutationFn: (data: HeadWiseReportRequest) => getHeadWiseEmployeeDetails(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch Head wise Report');
+        }
+    });
+}
+
+/**
+ * Hook for Month End Report
+ */
+export function useMonthEndReport() {
+    return useMutation({
+        mutationFn: (data: MonthEndReportRequest) => getMonthEndReport(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch Month End Report');
         }
     });
 }

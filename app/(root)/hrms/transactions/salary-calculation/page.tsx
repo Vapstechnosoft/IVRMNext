@@ -36,7 +36,7 @@ export default function SalaryCalculationPage() {
     const [fromDate, setFromDate] = useState<string>('');
     const [toDate, setToDate] = useState<string>('');
     const [currentSearchData, setCurrentSearchData] = useState<SearchForm | null>(null);
-    const { handleSubmit, reset, watch, control } = useForm<SearchForm>({
+    const { handleSubmit, reset, watch, setValue, control, formState: { isValid } } = useForm<SearchForm>({
         mode: 'onChange',
         defaultValues: {
             groupType: [],
@@ -49,6 +49,8 @@ export default function SalaryCalculationPage() {
     const watchedGroupType = watch('groupType');
     const watchedDepartment = watch('department');
     const watchedDesignation = watch('designation');
+    const watchedSalaryMonth = watch('salaryMonth');
+    const watchedSalaryYear = watch('salaryYear');
     const { data: monthOptionsData } = useMasterMonths();
     const { data: yearOptionsData } = useMasterYears();
     const searchMutation = useSearchEmployeesBySelection();
@@ -61,6 +63,9 @@ export default function SalaryCalculationPage() {
     const deptIds = watchedDepartment?.join(',') || '';
     const { data: designationsData } = useReportDesignations(groupTypeIds, deptIds);
 
+    useEffect(() => {
+        setHasSearched(false);
+    }, [watchedGroupType, watchedDepartment, watchedDesignation]);
     // Memoized options for Select/MultiSelect components
     const groupTypeOptions = useMemo(() => {
         return (
@@ -136,7 +141,12 @@ export default function SalaryCalculationPage() {
                     setFromDate(`01/${data.salaryMonth}/${data.salaryYear}`);
                     setToDate(`Last of ${data.salaryMonth}/${data.salaryYear}`);
                 }
-                toast.success(`Search completed successfully. Found ${employeesWithStatus.length} employees`);
+                if (employeesWithStatus.length === 0) {
+                    toast.info('No employees found matching criteria');
+                } else {
+
+                    toast.success(`Search completed successfully. Found ${employeesWithStatus.length} employees`);
+                }
             },
             onError: () => {
                 setEmployees([]);
@@ -203,6 +213,7 @@ export default function SalaryCalculationPage() {
                                 <Controller
                                     name='groupType'
                                     control={control}
+                                    rules={{ required: true }}
                                     render={({ field }) => (
                                         <MultiSelect
                                             options={groupTypeOptions}
@@ -221,6 +232,7 @@ export default function SalaryCalculationPage() {
                                 <Controller
                                     name='department'
                                     control={control}
+                                    rules={{ required: true }}
                                     render={({ field }) => (
                                         <MultiSelect
                                             options={departmentOptions}
@@ -239,6 +251,7 @@ export default function SalaryCalculationPage() {
                                 <Controller
                                     name='designation'
                                     control={control}
+                                    rules={{ required: true }}
                                     render={({ field }) => (
                                         <MultiSelect
                                             options={designationOptions}
@@ -257,8 +270,10 @@ export default function SalaryCalculationPage() {
                                 <Controller
                                     name='salaryMonth'
                                     control={control}
+                                    rules={{ required: true }}
                                     render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
+                                        <Select onValueChange={field.onChange} key={field.value || "empty"}
+                                            value={field.value || ""}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Month' />
                                             </SelectTrigger>
@@ -279,6 +294,7 @@ export default function SalaryCalculationPage() {
                                 <Controller
                                     name='salaryYear'
                                     control={control}
+                                    rules={{ required: true }}
                                     render={({ field }) => (
                                         <Select onValueChange={field.onChange} value={field.value}>
                                             <SelectTrigger>
@@ -298,7 +314,7 @@ export default function SalaryCalculationPage() {
                         </div>
                         {/* Search and Cancel Buttons */}
                         <div className='flex gap-2 pt-4'>
-                            <Button type='submit' className='w-fit transition-all duration-200 hover:scale-105'>
+                            <Button type='submit' disabled={!isValid} className='w-fit transition-all duration-200 hover:scale-105'>
                                 <RefreshCw className='mr-2 h-4 w-4' />
                                 SEARCH
                             </Button>
@@ -307,11 +323,17 @@ export default function SalaryCalculationPage() {
                                 variant='outline'
                                 className='w-fit transition-all duration-200 hover:scale-105'
                                 onClick={() => {
-                                    reset();
-                                    setHasSearched(false);
+                                    reset({
+                                        groupType: [],
+                                        department: [],
+                                        designation: [],
+                                        salaryMonth: '',
+                                        salaryYear: new Date().getFullYear().toString()
+                                    });
+
+                                    setEmployees([]);
                                     setSelectedEmployees([]);
-                                    setFromDate('');
-                                    setToDate('');
+                                    setHasSearched(false);
                                 }}>
                                 <X className='mr-2 h-4 w-4' />
                                 CANCEL
@@ -320,7 +342,7 @@ export default function SalaryCalculationPage() {
                     </form>
                 </CollapsibleSection>
                 {/* Employee List Table */}
-                {hasSearched && (
+                {hasSearched && employees.length > 0 && (
                     <CollapsibleSection
                         defaultOpen={true}
                         variant='default'

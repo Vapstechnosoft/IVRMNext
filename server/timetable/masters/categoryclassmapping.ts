@@ -43,3 +43,7 @@ export async function getuseTimeTableClassDropdownDataDetails() {
     console.info('MasterDayFacade', url);
     return await api.get<ITimeTableClassDropDownData[]>('timetable', url);
 }
+export async function getuseTimeTableClassDropdownDataDetailsNew(asmay_id: number, ttmc_id: number) {
+    const url = `/CategoryClassMappFacade/ClassDataByAcademicYearAndCategory/${asmay_id}/${ttmc_id}`;
+    return await api.get<any>('timetable', url);
+}

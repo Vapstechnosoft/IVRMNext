@@ -5,7 +5,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 
 const serialNumberColumn: ColumnDef<IClassTeacherReportList> = {
     accessorKey: 'RowNo',
-    header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6 font-bold text-black' />,
     cell: ({ row, table }) => {
         const pageIndex = table.getState().pagination.pageIndex;
         const pageSize = table.getState().pagination.pageSize;
@@ -18,25 +18,25 @@ const serialNumberColumn: ColumnDef<IClassTeacherReportList> = {
 
 const staffNameColumn: ColumnDef<IClassTeacherReportList> = {
     accessorKey: 'IVRMSTAUL_UserName',
-    header: ({ column }) => <DataTableColumnHeader column={column} title='Staff Name' />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Staff Name' className='font-bold text-black' />,
     cell: ({ row }) => <div>{row.getValue('IVRMSTAUL_UserName') || 'N.A'}</div>
 };
 
 const classNameColumn: ColumnDef<IClassTeacherReportList> = {
     accessorKey: 'ASMCL_ClassName',
-    header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' className='font-bold text-black' />,
     cell: ({ row }) => <div>{row.getValue('ASMCL_ClassName') || 'N.A'}</div>
 };
 
 const sectionColumn: ColumnDef<IClassTeacherReportList> = {
     accessorKey: 'ASMC_SectionName',
-    header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Section' className='font-bold text-black' />,
     cell: ({ row }) => <div>{row.getValue('ASMC_SectionName') || 'N.A'}</div>
 };
 
 const subjectColumn: ColumnDef<IClassTeacherReportList> = {
     accessorKey: 'PAMS_SubjectName',
-    header: ({ column }) => <DataTableColumnHeader column={column} title='Subject' />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Subject' className='font-bold text-black' />,
     cell: ({ row }) => <div>{row.getValue('PAMS_SubjectName') || 'N.A'}</div>
 };
 

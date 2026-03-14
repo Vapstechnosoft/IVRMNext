@@ -1,6 +1,8 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
     getEligibilityCertificateReport,
+    getClasses,
+    getSections,
     getStudents,
     getAge,
     generateEligibilityCertificateReport
@@ -8,9 +10,17 @@ import {
 import type { IEligibilityCertificateReport } from '@/types/sports/reports/eligibility-certificate-report';
 
 export const useEligibilityCertificateReport = () => {
-    const { data, isLoading, error } = useQuery({
+    const { data, isLoading, error, refetch } = useQuery({
         queryKey: ['eligibilityCertificateReport'],
         queryFn: () => getEligibilityCertificateReport()
+    });
+
+    const getClassesMutation = useMutation({
+        mutationFn: (data: any) => getClasses(data)
+    });
+
+    const getSectionsMutation = useMutation({
+        mutationFn: (data: any) => getSections(data)
     });
 
     const getStudentsMutation = useMutation({
@@ -29,6 +39,9 @@ export const useEligibilityCertificateReport = () => {
         data,
         isLoading,
         error,
+        refetch,
+        getClasses: getClassesMutation,
+        getSections: getSectionsMutation,
         getStudents: getStudentsMutation,
         getAge: getAgeMutation,
         generateReport: generateReportMutation

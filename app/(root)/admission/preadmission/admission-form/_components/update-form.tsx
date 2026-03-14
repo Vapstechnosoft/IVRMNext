@@ -37,6 +37,7 @@ import { getIconByName } from '@/lib/lucide-icon-registry';
 import { cn } from '@/lib/utils';
 import { studentAdmissionFormSchema } from '@/schemas/admission/admission-form';
 import {
+    getAllAdmissionLists,
     saveFifthTabApi,
     saveFinalTabApi,
     saveFirstTabApi,
@@ -53,7 +54,7 @@ import { CalendarIcon, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import type { z } from 'zod';
+import { number, type z } from 'zod';
 
 type FormFields = z.infer<typeof studentAdmissionFormSchema.add>;
 
@@ -1330,7 +1331,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     data.ivrmmC_Id ??
                     data.fatherNationality ??
                     payload.fatherNationality;
-                if (fatherNationalityVal) setValue('fatherNationality', String(fatherNationalityVal));
+                if (fatherNationalityVal) setValue('fatherNationality', Number(fatherNationalityVal));
 
                 const motherNationalityVal =
                     data.motherNationalityId ??
@@ -1338,7 +1339,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     data.ivrmmC_Id ??
                     data.motherNationality ??
                     payload.motherNationality;
-                if (motherNationalityVal) setValue('motherNationality', String(motherNationalityVal));
+                if (motherNationalityVal) setValue('motherNationality', Number(motherNationalityVal));
 
                 // 7. PLACE OF BIRTH (COUNTRY -> STATE)
                 const pobCountryVal =
@@ -1916,6 +1917,108 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         );
     };
 
+    const handleCheckDuplicateRegNo = async (regNo: string): Promise<boolean> => {
+        if (!regNo || regNo.trim() === '') return false;
+
+        try {
+            const trimmedRegNo = regNo.trim();
+            const currentAmsTId = Number(getValues('amsT_Id' as any));
+
+            const response = await getAllAdmissionLists({
+                search_query: trimmedRegNo,
+                search_columns: 'registrationNo'
+            });
+
+            interface AdmissionData {
+                registrationNo?: string;
+                amst_Id?: number;
+                amsT_Id?: number;
+                AMST_Id?: number;
+                amstId?: number;
+            }
+            const students = response?.data as AdmissionData[] | null;
+
+            if (Array.isArray(students) && students.length > 0) {
+                const duplicateFound = students.some((s: AdmissionData) => {
+                    const studentRegNo = s.registrationNo?.toString().toLowerCase();
+                    const isSameRegNo = studentRegNo === trimmedRegNo.toLowerCase();
+                    const studentId = Number(s.amsT_Id ?? s.amst_Id ?? s.AMST_Id ?? s.amstId ?? 0);
+                    const isDifferentStudent = studentId !== currentAmsTId;
+                    return isSameRegNo && isDifferentStudent;
+                });
+
+                if (duplicateFound) {
+                    toast.error(`Registration No. "${trimmedRegNo}" already exists`);
+                    setError('amsT_RegistrationNo', {
+                        type: 'manual',
+                        message: 'Duplicate Registration Number'
+                    });
+                    return true;
+                } else {
+                    clearErrors('amsT_RegistrationNo');
+                    return false;
+                }
+            } else {
+                clearErrors('amsT_RegistrationNo');
+                return false;
+            }
+        } catch (error) {
+            console.error('Error checking duplicate registration number:', error);
+            return false;
+        }
+    };
+
+    const handleCheckDuplicateAdmissionNo = async (admissionNo: string): Promise<boolean> => {
+        if (!admissionNo || admissionNo.trim() === '') return false;
+
+        try {
+            const trimmedAdmissionNo = admissionNo.trim();
+            const currentAmsTId = Number(getValues('amsT_Id' as any));
+
+            const response = await getAllAdmissionLists({
+                search_query: trimmedAdmissionNo,
+                search_columns: 'admissionNo'
+            });
+
+            interface AdmissionData {
+                admissionNo?: string;
+                amst_Id?: number;
+                amsT_Id?: number;
+                AMST_Id?: number;
+                amstId?: number;
+            }
+            const students = response?.data as AdmissionData[] | null;
+
+            if (Array.isArray(students) && students.length > 0) {
+                const duplicateFound = students.some((s: AdmissionData) => {
+                    const studentAdmissionNo = s.admissionNo?.toString().toLowerCase();
+                    const isSameAdmissionNo = studentAdmissionNo === trimmedAdmissionNo.toLowerCase();
+                    const studentId = Number(s.amsT_Id ?? s.amst_Id ?? s.AMST_Id ?? s.amstId ?? 0);
+                    const isDifferentStudent = studentId !== currentAmsTId;
+                    return isSameAdmissionNo && isDifferentStudent;
+                });
+
+                if (duplicateFound) {
+                    toast.error(`Admission No. "${trimmedAdmissionNo}" already exists`);
+                    setError('amsT_AdmissionNo', {
+                        type: 'manual',
+                        message: 'Duplicate Admission Number'
+                    });
+                    return true;
+                } else {
+                    clearErrors('amsT_AdmissionNo');
+                    return false;
+                }
+            } else {
+                clearErrors('amsT_AdmissionNo');
+                return false;
+            }
+        } catch (error) {
+            console.error('Error checking duplicate admission number:', error);
+            return false;
+        }
+    };
+
     const saveFirstTab = async (formData: any) => {
         try {
             const requiredFields = ['amsT_FirstName', 'asmcL_Id', 'amsT_Date', 'amsT_DOB'];
@@ -1972,15 +2075,15 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 asmaY_Id: Number(formData.asmaY_Id ?? formData.asmaY_Year ?? 0),
                 asmcL_Id: Number(formData.asmcL_Id ?? 0),
                 asmS_Id: Number(formData.asmS_Id ?? 0),
-                amsT_Date: formData.amsT_Date ? new Date(formData.amsT_Date).toISOString() : new Date().toISOString(),
+                amsT_Date: formData.amsT_Date ? format(new Date(formData.amsT_Date), "yyyy-MM-dd'T'00:00:00.000'Z'") : new Date().toISOString(),
                 amsT_RegistrationNo: String(formData.amsT_RegistrationNo ?? ''),
                 amsT_AdmissionNo: String(formData.amsT_AdmissionNo ?? ''),
-                amsT_DateOfAdmission: formData.amsT_Date ? new Date(formData.amsT_Date).toISOString() : new Date().toISOString(),
+                amsT_DateOfAdmission: formData.amsT_Date ? format(new Date(formData.amsT_Date), "yyyy-MM-dd'T'00:00:00.000'Z'") : new Date().toISOString(),
                 amsT_FirstName: formData.amsT_FirstName ?? '',
                 amsT_MiddleName: formData.amsT_MiddleName ?? '',
                 amsT_LastName: formData.amsT_LastName ?? '',
                 amsT_Sex: String(formData.amsT_Sex ?? ''),
-                amsT_DOB: formData.amsT_DOB ? new Date(formData.amsT_DOB).toISOString() : undefined,
+                amsT_DOB: formData.amsT_DOB ? format(new Date(formData.amsT_DOB), "yyyy-MM-dd'T'00:00:00.000'Z'") : undefined,
                 amsT_DOB_Words: formData.amsT_DOB_Words ?? dateToWords(formData.amsT_DOB) ?? '',
                 pasR_Age: Number(formData.pasR_Age ?? 0),
                 amsT_MotherTongue: formData.amsT_MotherTongue ?? '',
@@ -2234,7 +2337,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             let fieldsToValidate: any[] = [];
 
             if (currentStep === 1) {
-                fieldsToValidate = ['asmaY_Year', 'amsT_FirstName', 'asmcL_Id', 'amsT_Sex'];
+                fieldsToValidate = ['asmaY_Year', 'amsT_FirstName', 'amsT_RegistrationNo', 'asmcL_Id', 'amsT_Sex'];
                 // If EMIS checkbox is set, ensure the EMIS field is validated
                 if (Number(getValues('isEmisBpl') ?? 0) === 1) {
                     fieldsToValidate.push('amsT_BPLCardNo');
@@ -2312,9 +2415,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             }
 
             // First, trigger schema validation
-            // Clear any lingering errors from previous validations
-            clearErrors();
-
+            // We don't clearErrors here as it might clear manual errors from onBlur (like duplicate checks)
+            //clearErrors();
             let isValid: boolean;
             if (currentStep === 1) {
                 // For Step 1, validate ALL fields to show all errors at once
@@ -2375,8 +2477,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 }
             }
 
-            // Check if there are any validation errors (schema only — not custom setError leftovers)
-            const hasErrors = !isValid;
+            // Check if there are any validation errors (schema AND custom setError)
+            const hasErrors = !isValid || Object.keys(errors).length > 0;
 
             if (hasErrors) {
                 console.debug('[Admission] Validation errors detected, aborting API call', { isValid, errors: Object.keys(errors) });
@@ -2404,6 +2506,16 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 }
 
                 return;
+            }
+
+            // Reinforce duplication check explicitly for Step 1
+            if (currentStep === 1) {
+                const regNo = getValues('amsT_RegistrationNo');
+                const isDuplicate = await handleCheckDuplicateRegNo(String(regNo ?? ''));
+                if (isDuplicate) {
+                    setIsSavingStep(false);
+                    return;
+                }
             }
 
             // Set saving state to prevent multiple submissions
@@ -2465,6 +2577,11 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         amsT_OtherPermanentAddr: formData.amsT_OtherPermanentAddr || '',
                         amsT_Domicile: formData.amsT_Domicile || '',
                         amsT_SecondLanguage: formData.amsT_SecondLanguage || '',
+                        amsT_UnderAge: formData.amsT_UnderAge || '',
+                        amsT_Boarding: formData.amsT_Boarding || '',
+                        amsT_LastPlayGrndAttnd: formData.amsT_LastPlayGrndAttnd || '',
+                        amsT_OverAge: formData.amsT_OverAge || '',
+                        amsT_MaritalStatus: formData.amsT_MaritalStatus || '',
                         amsT_TransferrableJobFlg: !!formData.amsT_TransferrableJobFlg,
                         amsT_VaccinatedFlg: !!formData.amsT_VaccinatedFlg,
                         amsT_Tcflag: !!formData.amsT_Tcflag
@@ -2549,7 +2666,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                             const d = school.pasrpS_TcDate ?? school.tcDate;
                             if (!d) return null;
                             const parsed = d instanceof Date ? d : new Date(d);
-                            return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+                            return Number.isNaN(parsed.getTime()) ? null : format(parsed, "yyyy-MM-dd'T'00:00:00.000'Z'");
                         })()
                     }));
 
@@ -2604,7 +2721,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 }
             }
             // If validation passed for Step 1, save the data
-            if (isValid && Number(currentStep) === 1) {
+            if (isValid && Object.keys(errors).length === 0 && Number(currentStep) === 1) {
                 // All validations (including student photo, EMIS, ECS) have already been checked above
                 // If we reach here, all validations passed
                 try {
@@ -3076,6 +3193,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         } catch (err) {
             console.error('[Admission] nextStep top-level error:', err);
             throw err;
+        } finally {
+            setIsSavingStep(false);
         }
     };
 
@@ -3464,7 +3583,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 if (countryData?.dialCode === '91' && totalLength !== 12) {
                     setError(fieldName as any, {
                         type: 'manual',
-                        message: `Mobile number must be exactly 12 digits for India`
+                        message: 'Mobile number must be exactly 12 digits for India'
                     });
                 }
             }
@@ -4534,6 +4653,10 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                 id='amsT_RegistrationNo'
                                                 placeholder='Enter registration number'
                                                 {...register('amsT_RegistrationNo')}
+                                                onBlur={(e) => {
+                                                    register('amsT_RegistrationNo').onBlur(e);
+                                                    handleCheckDuplicateRegNo(e.target.value);
+                                                }}
                                                 error={errors.amsT_RegistrationNo?.message}
                                             />
                                             <InputText
@@ -4542,6 +4665,10 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                 id='amsT_AdmissionNo'
                                                 placeholder='Enter admission number'
                                                 {...register('amsT_AdmissionNo')}
+                                                onBlur={(e) => {
+                                                    register('amsT_AdmissionNo').onBlur(e);
+                                                    handleCheckDuplicateAdmissionNo(e.target.value);
+                                                }}
                                                 error={errors.amsT_AdmissionNo?.message}
                                             />
                                             <div className='flex flex-col gap-1.5'>
@@ -4557,7 +4684,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                 key={`class_${field.value || 'empty'}_${admissionClass?.data?.length || 0}`}
                                                                 value={field.value?.toString() || ''}
                                                                 onValueChange={(value) => field.onChange(Number(value))}>
-                                                                <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
+                                                                <SelectTrigger disabled className={cn('w-full', error && 'border-red-500')}>
                                                                     <SelectValue
                                                                         placeholder={
                                                                             admissionClassLoading ? 'Loading classes...' : 'Select a class'
@@ -4609,7 +4736,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                             value={field.value?.toString() || ''}
                                                             onValueChange={(value) => field.onChange(Number(value))} // <-- SEND NUMBER
                                                             disabled={!classId || classId === 0 || sectionLoading}>
-                                                            <SelectTrigger className={cn(errors.asmS_Id && 'border-red-500')}>
+                                                            <SelectTrigger disabled className={cn(errors.asmS_Id && 'border-red-500')}>
                                                                 <SelectValue
                                                                     placeholder={sectionLoading ? 'Loading...' : 'Select section'}
                                                                 />
@@ -5541,7 +5668,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         error={errors.amsT_ConArea?.message}
                                                     />
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_ConCountry'>Country</Label>
+                                                        <Label htmlFor='amsT_ConCountry'>
+                                                            Country <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
                                                         <Controller
                                                             name='amsT_ConCountry'
                                                             control={control}
@@ -5727,7 +5856,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         disabled={sameAsResidential}
                                                     />
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_PerCountry'>Country</Label>
+                                                        <Label htmlFor='amsT_PerCountry'>
+                                                            Country <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
                                                         <Controller
                                                             name='amsT_PerCountry'
                                                             control={control}
@@ -8774,7 +8905,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                 {/* <h3 className='font-semibold text-gray-800 text-lg'>Residential Address</h3> */}
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                     <InputText
-                                                        label='Student Health'
+                                                        label='Student Illness'
                                                         id='amsT_Studentillness'
                                                         placeholder='Enter Student Health'
                                                         {...register('amsT_Studentillness')}
@@ -8796,6 +8927,28 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     />
 
                                                     <InputText
+                                                        label='Under Age'
+                                                        id='amsT_UnderAge'
+                                                        placeholder='Enter Under Age'
+                                                        {...register('amsT_UnderAge')}
+                                                        error={errors.amsT_UnderAge?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Boarding'
+                                                        id='amsT_Boarding'
+                                                        placeholder='Enter Boarding'
+                                                        {...register('amsT_Boarding')}
+                                                        error={errors.amsT_Boarding?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Last Playground Attended'
+                                                        id='amsT_LastPlayGrndAttnd'
+                                                        placeholder='Enter Last Playground Attended'
+                                                        {...register('amsT_LastPlayGrndAttnd')}
+                                                        error={errors.amsT_LastPlayGrndAttnd?.message}
+                                                    />
+
+                                                    <InputText
                                                         label='School DISE Code'
                                                         id='amsT_SchoolDISECode'
                                                         placeholder='Enter School DISE Code'
@@ -8811,8 +8964,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     />
 
                                                     <InputText
-                                                        label='  Second Language'
-                                                        id=' amsT_SecondLanguage'
+                                                        label='Second Language'
+                                                        id='amsT_SecondLanguage'
                                                         placeholder='Enter Second Language'
                                                         {...register('amsT_SecondLanguage')}
                                                         error={errors.amsT_SecondLanguage?.message}
@@ -8842,6 +8995,14 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     />
 
                                                     <InputText
+                                                        label='Over Age'
+                                                        id='amsT_OverAge'
+                                                        placeholder='Enter Over Age'
+                                                        {...register('amsT_OverAge')}
+                                                        error={errors.amsT_OverAge?.message}
+                                                    />
+
+                                                    <InputText
                                                         label='Extra Activity'
                                                         id='amsT_ExtraActivity'
                                                         placeholder='Enter Extra Activity'
@@ -8863,6 +9024,14 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         placeholder='Enter Domicile'
                                                         {...register('amsT_Domicile')}
                                                         error={errors.amsT_Domicile?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='Marital Status'
+                                                        id='amsT_MaritalStatus'
+                                                        placeholder='Enter Marital Status'
+                                                        {...register('amsT_MaritalStatus')}
+                                                        error={errors.amsT_MaritalStatus?.message}
                                                     />
                                                     <InputTextarea
                                                         label='Other Residential Address'
@@ -8906,7 +9075,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     </div>
                                                     <div className='flex items-center space-x-2'>
                                                         <Checkbox
-                                                            id='amsT_Tcflag"'
+                                                            id='amsT_Tcflag'
                                                             checked={Boolean(watch('amsT_Tcflag'))}
                                                             onCheckedChange={(checked) => {
                                                                 setValue('amsT_Tcflag', checked === true);

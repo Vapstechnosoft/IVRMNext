@@ -11,12 +11,15 @@ import RequestAcceptList from './_components/request-accept-list';
 export default function AlumniFriendRequestAcceptPage() {
     const [requests, setRequests] = useState<IAlumniFriendRequest[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [totalItems, setTotalItems] = useState(0);
+    const [apiParams, setApiParams] = useState<any>({ page: 1, page_size: 10 });
 
-    const loadData = useCallback(async () => {
+    const loadData = useCallback(async (params = apiParams) => {
         setIsLoading(true);
         try {
             const res = await getAlumniFriendRequestReceivedData();
             if (res.success && res.data) {
+                setTotalItems(res.total || 0);
                 // Backend returns data in friendrequestlist array based on legacy code
                 // But let's check both response.data and response.friendrequestlist
                 const d = res.data as any;
@@ -29,10 +32,10 @@ export default function AlumniFriendRequestAcceptPage() {
                     // biome-ignore lint/style/useTemplate: <explanation>
                     studentname:
                         item.studentname || (item.ALMST_FirstName ? item.ALMST_FirstName + ' ' + (item.ALMST_LastName || '') : 'Unknown'),
-                    ASMAY_Year: item.asmaY_Year || item.ASMAY_Year,
-                    ALSFRND_RequestDate: item.alsfrnD_RequestDate || item.ALSFRND_RequestDate,
-                    ALSFRND_AcceptedDate: item.alsfrnD_AcceptedDate || item.ALSFRND_AcceptedDate,
-                    ALSFRND_AcceptFlag: item.alsfrnD_AcceptFlag || item.ALSFRND_AcceptFlag
+                    ASMAY_Year: item.asmay_year || item.asmaY_Year || item.ASMAY_Year,
+                    ALSFRND_RequestDate: item.alsfrnd_requestdate || item.alsfrnD_RequestDate || item.ALSFRND_RequestDate,
+                    ALSFRND_AcceptedDate: item.alsfrnd_accepteddate || item.alsfrnD_AcceptedDate || item.ALSFRND_AcceptedDate,
+                    ALSFRND_AcceptFlag: item.alsfrnd_acceptflag || item.alsfrnD_AcceptFlag || item.ALSFRND_AcceptFlag
                 }));
 
                 // De-duplicate by ALMST_Id
@@ -53,6 +56,11 @@ export default function AlumniFriendRequestAcceptPage() {
     useEffect(() => {
         loadData();
     }, [loadData]);
+
+    const handleSearchParamsChange = (newParams: any) => {
+        setApiParams(newParams);
+        loadData(newParams);
+    };
 
     return (
         <div className='container min-h-screen space-y-6 p-4'>
@@ -90,7 +98,14 @@ export default function AlumniFriendRequestAcceptPage() {
                 }
                 defaultOpen={true}
                 variant='default'>
-                <RequestAcceptList data={requests} isLoading={isLoading} onRefresh={loadData} />
+                <RequestAcceptList
+                    data={requests}
+                    isLoading={isLoading}
+                    onRefresh={loadData}
+                    totalItems={totalItems}
+                    currentApiParams={apiParams}
+                    onSearchParamsChange={handleSearchParamsChange}
+                />
             </CollapsibleSection>
         </div>
     );

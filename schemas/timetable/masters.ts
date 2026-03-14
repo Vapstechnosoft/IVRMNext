@@ -4,8 +4,8 @@ import { createOptionalNumberOnlyStringSchema, createStringOnlySchema, deleteIdS
 export const masterDaySchema = {
     addOrUpdate: z.object({
         ttmD_Id: z.number().optional(),
-        ttmD_DayName: createStringOnlySchema('Day Name', 1, 100),
-        ttmD_DayCode: createStringOnlySchema('Day Code', 1, 100)
+        ttmD_DayName: createStringOnlySchema('Day Name', 1, 50),
+        ttmD_DayCode: createStringOnlySchema('Day Code', 1, 10)
     }),
     delete: z.object({
         ttmD_Id: deleteIdSchema('ttmD_Id')
@@ -27,7 +27,7 @@ export const masterDayClasswiseSchema = {
 export const masterBuildingSchema = {
     addOrUpdate: z.object({
         ttmB_Id: number().optional(),
-        ttmB_BuildingName: createStringOnlySchema('Building Name', 1, 100)
+        ttmB_BuildingName: createStringOnlySchema('Building Name', 1, 30)
     }),
     delete: z.object({
         ttmB_Id: deleteIdSchema('ttmB_Id')
@@ -99,7 +99,7 @@ export const breakTimeSettingsSchema = {
 
 export const masterPeriodSchema = {
     save: z.object({
-        periodname: number().min(1, 'Please select Academic Year'),
+        periodname: number().min(1, 'Please select Period Name'),
         periodorder: number().min(1, 'Please enter Period Order'),
         categoryids: z.array(z.string()).nonempty('Please select at least one Category'),
         noOfPeriods: z.number().min(1, 'Enter at least 1 period').max(20, 'Max 20 periods allowed'),

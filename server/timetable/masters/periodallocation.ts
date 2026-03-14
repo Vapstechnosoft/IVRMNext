@@ -19,8 +19,10 @@ export async function savePeriodPeriodAllocation(data: any) {
     const url = '/TimeTableCommon/AddOrUpdateMasterPeriod';
     return await api.post<any>('timetable', url, data);
 }
+
+//Master Period Class save button
 export async function savePeriodClass(data: any) {
-    const url = '/PeriodAllocation/savedetail/';
+    const url = '/PeriodAllocationFacade/PeriodDistributionSavedetailClassWise';
     return await api.post<any>('timetable', url, data);
 }
 

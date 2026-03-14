@@ -24,7 +24,7 @@ export const activedeactiveColumns: ColumnDef<Student>[] = [
     },
     {
         accessorKey: 'student_id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -36,21 +36,21 @@ export const activedeactiveColumns: ColumnDef<Student>[] = [
     },
     {
         accessorKey: 'student_name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('student_name') ?? 'N.A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'registration_no',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Registration No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Registration No' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('registration_no')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'admission_no',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Application No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Application No' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('admission_no')}</div>,
         enableSorting: true,
         enableHiding: true

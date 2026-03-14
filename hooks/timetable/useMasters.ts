@@ -389,14 +389,15 @@ export const useAcademicYearDropDownMasterDayClasswise = (searchParams?: ApiSear
     };
 };
 
-export const useCategtoryDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
+export const useCategtoryDropDownMasterDayClasswise = (options?: { enabled?: boolean }) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [TIMETABLE_QUERY_KEYS.CATEGORY_DROPDOWN_MASTERDAYCLASSWISE, searchParams ?? {}],
+            queryKey: [TIMETABLE_QUERY_KEYS.CATEGORY_DROPDOWN_MASTERDAYCLASSWISE],
             queryFn: async () => getCategoryDropDownMasterDayClasswise(),
-            staleTime: 0
+            staleTime: 0,
+            enabled: options?.enabled
         }),
 
         refetchAll: () => {

@@ -499,3 +499,17 @@ export interface IFeeConcessionReport {
     classname: string;
     sectionname: string;
 }
+
+export interface IFeeGroupWiseStudentReport {
+    id: number;
+    amount: number;
+    amsT_SOL: string;
+    amsT_Id: number;
+    amsT_FirstName: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    amsT_RegistrationNo: string;
+    amsT_AdmNo: string;
+    fmG_GroupName: string;
+    amaY_RollNo: string;
+}
