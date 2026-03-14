@@ -5426,7 +5426,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-                  {
+                {
                     id: 15,
                     name: 'Visitor Management',
                     icon: 'Users',
@@ -5438,7 +5438,7 @@ export async function getUserAccessibleModules() {
                             sub_menu: [
                                 {
                                     id: 1,
-                                    name: 'Transactions',
+                                    name: 'Visitor Transactions',
                                     icon: 'FileText',
                                     pages: [
                                         {
@@ -5447,7 +5447,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'UserPlus',
                                             url: '/visitors-management/transactions/add-visitor',
                                             title: 'Add Visitor',
-                                            description: 'Add New Visitor Transaction'
+                                            description: 'Add New Visitor'
                                         },
                                         {
                                             id: 2,
@@ -5455,7 +5455,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'CalendarDays',
                                             url: '/visitors-management/transactions/visitor-appointment',
                                             title: 'Visitor Appointment',
-                                            description: 'Schedule Visitor Appointment' 
+                                            description: 'Schedule Visitor Appointment'
                                         },
                                         {
                                             id: 3,
@@ -5463,7 +5463,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'ArrowDownLeft',
                                             url: '/visitors-management/transactions/inward',
                                             title: 'Inward Entry',
-                                            description: 'Manage Inward Entries'
+                                            description: 'Manage Visitor Inward Entry'
                                         },
                                         {
                                             id: 4,
@@ -5471,7 +5471,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'ArrowUpRight',
                                             url: '/visitors-management/transactions/outward',
                                             title: 'Outward Entry',
-                                            description: 'Manage Outward Entries'
+                                            description: 'Manage Visitor Outward Entry'
                                         },
                                         {
                                             id: 5,
@@ -5479,13 +5479,13 @@ export async function getUserAccessibleModules() {
                                             icon: 'Ticket',
                                             url: '/visitors-management/transactions/gate-pass',
                                             title: 'Gate Pass',
-                                            description: 'Generate Gate Pass'
+                                            description: 'Generate Visitor Gate Pass'
                                         }
-
                                     ]
                                 }
                             ]
                         },
+
                         {
                             id: 2,
                             name: 'Masters',
@@ -5493,7 +5493,7 @@ export async function getUserAccessibleModules() {
                             sub_menu: [
                                 {
                                     id: 1,
-                                    name: 'Masters',
+                                    name: 'Visitor Masters',
                                     icon: 'Database',
                                     pages: [
                                         {
@@ -5507,10 +5507,40 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
+                        },
+
+                        {
+                            id: 3,
+                            name: 'Reports',
+                            icon: 'BarChart3',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Visitor Reports',
+                                    icon: 'BarChart3',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Visitor Report',
+                                            icon: 'FileBarChart',
+                                            url: '/visitors-management/reports/visitor-report',
+                                            title: 'Visitor Report',
+                                            description: 'View Visitor Reports'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Gate Pass Report',
+                                            icon: 'FileText',
+                                            url: '/visitors-management/reports/gate-pass-report',
+                                            title: 'Gate Pass Report',
+                                            description: 'View Gate Pass Reports'
+                                        }
+                                    ]
+                                }
+                            ]
                         }
                     ]
-                  }
-
+                }
                 //         //    ,
                 //         //        {
                 //         //         id: 8,
@@ -6421,7 +6451,6 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 }
-              
             ]
         };
     } else {

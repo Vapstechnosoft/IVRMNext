@@ -36,7 +36,7 @@ interface AppointmentStatusFormProps {
 }
 
 export default function AppointmentStatusForm({ onSuccess }: AppointmentStatusFormProps) {
-    const { formData } = useFormContext<AppointmentStatusVisitorData>();
+    const { selectedRow: formData } = useFormContext<AppointmentStatusVisitorData>();
     const { saveAppointmentStatus, isSaving, getEditData, isFetchingEdit } = useAppointmentStatus();
 
     const form = useForm<FormValues>({
@@ -124,7 +124,7 @@ export default function AppointmentStatusForm({ onSuccess }: AppointmentStatusFo
                                     <DatePicker
                                         date={field.value}
                                         setDate={field.onChange}
-                                        disabled
+                                    // disabled
                                     />
                                 </FormControl>
                                 <FormMessage />

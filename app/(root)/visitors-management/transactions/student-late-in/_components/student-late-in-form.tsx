@@ -40,7 +40,7 @@ interface StudentLateInFormProps {
 }
 
 export default function StudentLateInForm({ onSuccess, academicYears }: StudentLateInFormProps) {
-    const { formData } = useFormContext<StudentLateInData>();
+    const { selectedRow: formData } = useFormContext<StudentLateInData>();
     const { saveStudentLateIn, isSaving, getClasses, getSections, getStudents } = useStudentLateIn();
 
     const [classes, setClasses] = useState<any[]>([]);

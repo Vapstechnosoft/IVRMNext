@@ -10,6 +10,7 @@ const mockEmployees = [
     { hrmE_Id: 103, hrmE_EmployeeFirstName: 'Robert Johnson' },
 ];
 
+// biome-ignore lint/style/useConst: <explanation>
 let mockOutwardData: OutwardTransactionData[] = [
     {
         foouT_Id: 1,
