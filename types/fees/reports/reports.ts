@@ -513,3 +513,10 @@ export interface IFeeGroupWiseStudentReport {
     fmG_GroupName: string;
     amaY_RollNo: string;
 }
+
+export interface IFeeCategoryDropdown {
+    imcC_Id: number;
+    imcC_CategoryName: string;
+    imcC_CategoryDesc: string;
+    imcC_CategoryCode: string;
+}
