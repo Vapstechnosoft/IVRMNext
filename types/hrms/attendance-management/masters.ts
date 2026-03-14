@@ -24,14 +24,15 @@ export interface IMasterShiftSettingList {
 
 // Master Holiday Types
 export interface IMasterHolidayList {
-    FOHWDT_Id: number;
-    FOMHWDD_Id: number;
-    FOMHWDD_Name: string;
-    FOMHWDD_FromDate: string;
-    FOMHWDD_ToDate: string;
-    FOMHWDD_ActiveFlg: boolean;
-    FOMHWDD_HolidayWDType: string;
-    HRMD_DepartmentName: string;
+    fohwdT_Id: number;
+    fomhwdD_Id: number;
+    fomhwdD_Name: string;
+    fomhwdD_FromDate: string;
+    fomhwdD_ToDate: string;
+    fomhwD_ActiveFlg: boolean;
+    fohtwD_HolidayWDType: string;
+    hrmD_DepartmentName: string;
+    HRMD_DepartmentName?: string;
 }
 
 // Employee Shift Mapping Types
@@ -65,8 +66,10 @@ export interface IGroupType {
 }
 
 export interface IHolidayType {
-    Key: number;
-    Value: string;
+    key?: number;
+    value?: string;
+    Key?: number;
+    Value?: string;
 }
 
 export interface IShiftName {

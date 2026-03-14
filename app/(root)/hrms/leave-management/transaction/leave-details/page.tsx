@@ -245,7 +245,7 @@ function LeaveDetailsPageContent() {
         });
     };
     return (
-        <div className="p-4 space-y-6">
+        <div className="px-40 py-10 space-y-6">
             <CollapsibleSection title="Leave Details" defaultOpen>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
