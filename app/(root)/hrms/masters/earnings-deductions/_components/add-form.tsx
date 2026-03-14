@@ -220,12 +220,12 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                                                     return val != null && val !== '' && String(val).trim() !== '';
                                                 })
                                                 .map((item) => {
-                                                    const key = (item.value || item.key)?.toString().trim();
-                                                    const label = item.value || String(key);
+                                                    const key = item.key?.toString().trim();
+                                                    const value = item.value || String(key);
                                                     if (!key || key === '') return null;
                                                     return (
                                                         <SafeSelectItem key={key} value={key}>
-                                                            {label}
+                                                            {value}
                                                         </SafeSelectItem>
                                                     );
                                                 })
@@ -266,7 +266,7 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                                                     return key != null && key !== '' && String(key).trim() !== '';
                                                 })
                                                 .map((item) => {
-                                                    const key = (item.key || item.value)?.toString().trim();
+                                                    const key = item.key?.toString().trim();
                                                     const value = item.value || String(key);
                                                     if (!key || key === '') return null;
                                                     return (
@@ -312,7 +312,7 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                                                     return key != null && key !== '' && String(key).trim() !== '';
                                                 })
                                                 .map((item) => {
-                                                    const key = (item.key || item.value)?.toString().trim();
+                                                    const key = item.key?.toString().trim();
                                                     const value = item.value || String(key);
                                                     if (!key || key === '') return null;
                                                     return (
@@ -363,7 +363,7 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                                                     return key != null && key !== '' && String(key).trim() !== '';
                                                 })
                                                 .map((item) => {
-                                                    const key = (item.key || item.value)?.toString().trim();
+                                                    const key = item.key?.toString().trim();
                                                     const value = item.value || String(key);
                                                     if (!key || key === '') return null;
                                                     return (

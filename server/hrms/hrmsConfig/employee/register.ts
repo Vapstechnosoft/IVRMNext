@@ -42,14 +42,14 @@ import type { EmployeeRegisterOnloadResponse } from '@/types/hrms/employee-regis
  * Get Grade List for dropdowns
  * GET /api/MasterDropDown/GetGradeList
  */
-export async function getGradeDropdown() {
+export async function getGradeDropdown(): Promise<ApiResponse<IGradeDropdown[]>> {
     const url = '/api/MasterDropDown/GetGradeList';
     try {
         const response = await api.get<IGradeDropdown[]>('hrms', url);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Grade Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Grade Dropdown', data: [] };
     }
 }
 
@@ -57,16 +57,16 @@ export async function getGradeDropdown() {
  * Get Employee Type List for dropdowns
  * GET /api/MasterDropDown/GetEmployeeType
  */
-export async function getEmployeeTypeDropdown() {
+export async function getEmployeeTypeDropdown(): Promise<ApiResponse<IEmployeeTypeDropdown[]>> {
     const url = '/api/MasterEmployeeType';
     console.log('🔍 [API DEBUG] Fetching Employee Type Dropdown from:', url);
     try {
         const response = await api.get<IEmployeeTypeDropdown[]>('hrms', url);
         console.log('✅ [API DEBUG] Employee Type Dropdown Response:', JSON.stringify(response, null, 2));
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Employee Type Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Employee Type Dropdown', data: [] };
     }
 }
 
@@ -74,14 +74,14 @@ export async function getEmployeeTypeDropdown() {
  * Get Group Type List for dropdowns
  * GET /api/MasterDropDown/GroupType
  */
-export async function getGroupTypeDropdown() {
+export async function getGroupTypeDropdown(): Promise<ApiResponse<IGroupTypeDropdown[]>> {
     const url = '/api/MasterDropDown/GroupType';
     try {
         const response = await api.get<IGroupTypeDropdown[]>('hrms', url);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Group Type Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Group Type Dropdown', data: [] };
     }
 }
 
@@ -89,16 +89,16 @@ export async function getGroupTypeDropdown() {
  * Get Department List for dropdowns
  * GET /api/MasterDepartment
  */
-export async function getDepartmentDropdown() {
+export async function getDepartmentDropdown(): Promise<ApiResponse<IDepartmentDropdown[]>> {
     const url = '/api/MasterDropDown/GetDepartments';
     console.log('🔍 [API DEBUG] Fetching Departments from:', url);
     try {
         const response = await api.get<IDepartmentDropdown[]>('hrms', url);
         console.log('✅ [API DEBUG] Departments Response:', response);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Department Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Department Dropdown', data: [] };
     }
 }
 
@@ -106,14 +106,14 @@ export async function getDepartmentDropdown() {
  * Get Designation List for dropdowns
  * GET /api/MasterDropDown/GetDesignation
  */
-export async function getDesignationDropdown() {
+export async function getDesignationDropdown(): Promise<ApiResponse<IDesignationDropdown[]>> {
     const url = '/api/MasterDropDown/GetDesignation';
     try {
         const response = await api.get<IDesignationDropdown[]>('hrms', url);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Designation Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Designation Dropdown', data: [] };
     }
 }
 
@@ -121,14 +121,14 @@ export async function getDesignationDropdown() {
  * Get Gender List for dropdowns
  * GET /api/MasterDropDown/GetGenderList
  */
-export async function getGenderDropdown() {
+export async function getGenderDropdown(): Promise<ApiResponse<IGenderDropdown[]>> {
     const url = '/api/MasterDropDown/GetGenderList';
     try {
         const response = await api.get<IGenderDropdown[]>('hrms', url);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Gender Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Gender Dropdown', data: [] };
     }
 }
 
@@ -136,14 +136,14 @@ export async function getGenderDropdown() {
  * Get Marital Status List for dropdowns
  * GET /api/MasterDropDown/GetMaritalStateList
  */
-export async function getMaritalStatusDropdown() {
+export async function getMaritalStatusDropdown(): Promise<ApiResponse<IMaritalStatusDropdown[]>> {
     const url = '/api/MasterDropDown/GetMaritalStateList';
     try {
         const response = await api.get<IMaritalStatusDropdown[]>('hrms', url);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Marital Status Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Marital Status Dropdown', data: [] };
     }
 }
 
@@ -151,16 +151,16 @@ export async function getMaritalStatusDropdown() {
  * Get Religion List for dropdowns
  * GET /api/MasterDropDown/get_religion_drop_down
  */
-export async function getReligionDropdown() {
+export async function getReligionDropdown(): Promise<ApiResponse<IReligionDropdown[]>> {
     const url = '/api/MasterDropDown/get_religion_drop_down';
     console.log('🔍 [API DEBUG] Fetching Religions from:', url);
     try {
         const response = await api.get<IReligionDropdown[]>('hrms', url);
         console.log('✅ [API DEBUG] Religions Response:', response);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Religion Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Religion Dropdown', data: [] };
     }
 }
 
@@ -168,15 +168,15 @@ export async function getReligionDropdown() {
  * Get Caste Category List for dropdowns
  * GET /api/MasterDropDown/caste_category_drop_down_by_religion/{ivrmmr_ids}
  */
-export async function getCasteCategoryDropdown(religionIds: number | string) {
+export async function getCasteCategoryDropdown(religionIds: number | string): Promise<ApiResponse<ICasteCategoryDropdown[]>> {
     if (!religionIds) return { success: true, message: '', data: [] };
     const url = `/api/MasterDropDown/caste_category_drop_down_by_religion/${religionIds}`;
     try {
         const response = await api.get<ICasteCategoryDropdown[]>('hrms', url);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Caste Category Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Caste Category Dropdown', data: [] };
     }
 }
 
@@ -184,15 +184,15 @@ export async function getCasteCategoryDropdown(religionIds: number | string) {
  * Get Caste List for dropdowns
  * GET /api/MasterDropDown/caste_drop_down_by_caste_category/{imcc_ids}
  */
-export async function getCasteDropdown(casteCategoryIds: number | string) {
+export async function getCasteDropdown(casteCategoryIds: number | string): Promise<ApiResponse<ICasteDropdown[]>> {
     if (!casteCategoryIds) return { success: true, message: '', data: [] };
     const url = `/api/MasterDropDown/caste_drop_down_by_caste_category/${casteCategoryIds}`;
     try {
         const response = await api.get<ICasteDropdown[]>('hrms', url);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Caste Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Caste Dropdown', data: [] };
     }
 }
 
@@ -200,14 +200,14 @@ export async function getCasteDropdown(casteCategoryIds: number | string) {
  * Get Bank List for dropdowns
  * GET /api/MasterDropDown/GetBankList
  */
-export async function getBankDropdown() {
+export async function getBankDropdown(): Promise<ApiResponse<IBankDropdown[]>> {
     const url = '/api/MasterDropDown/GetBankList';
     try {
         const response = await api.get<IBankDropdown[]>('hrms', url);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Bank Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Bank Dropdown', data: [] };
     }
 }
 
@@ -215,14 +215,14 @@ export async function getBankDropdown() {
  * Get Country List for dropdowns
  * GET /api/MasterDropDown/GetCountryList
  */
-export async function getCountryDropdown() {
+export async function getCountryDropdown(): Promise<ApiResponse<ICountryDropdown[]>> {
     const url = '/api/MasterDropDown/GetCountryList';
     try {
         const response = await api.get<ICountryDropdown[]>('hrms', url);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Country Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Country Dropdown', data: [] };
     }
 }
 
@@ -230,14 +230,14 @@ export async function getCountryDropdown() {
  * Get State List for dropdowns by country ID
  * GET /api/MasterDropDown/GetStateList?CountryId={country_id}
  */
-export async function getStateDropdown(country_id: number) {
+export async function getStateDropdown(country_id: number): Promise<ApiResponse<IStateDropdown[]>> {
     const url = `/api/MasterDropDown/GetStateList?CountryId=${country_id}`;
     try {
         const response = await api.get<IStateDropdown[]>('hrms', url);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch State Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch State Dropdown', data: [] };
     }
 }
 
@@ -245,14 +245,14 @@ export async function getStateDropdown(country_id: number) {
  * Get Course List for dropdowns
  * GET /api/MasterDropDown/GetCourseList
  */
-export async function getCourseDropdown() {
+export async function getCourseDropdown(): Promise<ApiResponse<ICourseDropdown[]>> {
     const url = '/api/MasterDropDown/GetCourseList';
     try {
         const response = await api.get<ICourseDropdown[]>('hrms', url);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Course Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Course Dropdown', data: [] };
     }
 }
 
@@ -260,16 +260,16 @@ export async function getCourseDropdown() {
  * Get Specialisation List for dropdowns
  * GET /api/MasterDropDown/GetSpecialisationList
  */
-export async function getSpecializationDropdown() {
+export async function getSpecializationDropdown(): Promise<ApiResponse<ISpecializationDropdown[]>> {
     const url = '/api/MasterSpecialisation';
     console.log('🔍 [API DEBUG] Fetching Specializations from:', url);
     try {
         const response = await api.get<ISpecializationDropdown[]>('hrms', url);
         console.log('✅ [API DEBUG] Specializations Response:', response);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Specializations:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Specializations', data: [] };
     }
 }
 
@@ -277,14 +277,14 @@ export async function getSpecializationDropdown() {
  * Get Institution List for dropdowns
  * GET /api/MasterDropDown/GetInstitutionList
  */
-export async function getInstitutionDropdown() {
+export async function getInstitutionDropdown(): Promise<ApiResponse<IInstitutionDropdown[]>> {
     const url = '/api/MasterDropDown/GetInstitutionList';
     try {
         const response = await api.get<IInstitutionDropdown[]>('hrms', url);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Institution Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Institution Dropdown', data: [] };
     }
 }
 
@@ -292,14 +292,14 @@ export async function getInstitutionDropdown() {
  * Get Payment Mode List for dropdowns
  * GET /api/MasterDropDown/GetPaymentModeList
  */
-export async function getPaymentModeDropdown() {
+export async function getPaymentModeDropdown(): Promise<ApiResponse<IPaymentModeDropdown[]>> {
     const url = '/api/MasterDropDown/GetPaymentModeList';
     try {
         const response = await api.get<IPaymentModeDropdown[]>('hrms', url);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Payment Mode Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Payment Mode Dropdown', data: [] };
     }
 }
 
@@ -307,14 +307,14 @@ export async function getPaymentModeDropdown() {
  * Get Leave Reason List for dropdowns
  * GET /api/MasterDropDown/GetLeaveReasonList
  */
-export async function getLeaveReasonDropdown() {
+export async function getLeaveReasonDropdown(): Promise<ApiResponse<ILeaveReasonDropdown[]>> {
     const url = '/api/MasterDropDown/GetLeaveReasonList';
     try {
         const response = await api.get<ILeaveReasonDropdown[]>('hrms', url);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Leave Reason Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Leave Reason Dropdown', data: [] };
     }
 }
 
@@ -322,14 +322,14 @@ export async function getLeaveReasonDropdown() {
  * Get Blood Group List for dropdowns
  * GET /api/MasterDropDown/GetBloodGroupList
  */
-export async function getBloodGroupDropdown() {
+export async function getBloodGroupDropdown(): Promise<ApiResponse<IBloodGroupDropdown[]>> {
     const url = '/api/MasterDropDown/GetBloodGroupList';
     try {
         const response = await api.get<IBloodGroupDropdown[]>('hrms', url);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Blood Group Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Blood Group Dropdown', data: [] };
     }
 }
 
@@ -337,14 +337,14 @@ export async function getBloodGroupDropdown() {
  * Get Salary Type List for dropdowns
  * GET /api/MasterDropDown/GetSalaryTypeList
  */
-export async function getSalaryTypeDropdown() {
+export async function getSalaryTypeDropdown(): Promise<ApiResponse<ISalaryTypeDropdown[]>> {
     const url = '/api/MasterDropDown/GetSalaryTypeList';
     try {
         const response = await api.get<ISalaryTypeDropdown[]>('hrms', url);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Salary Type Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Salary Type Dropdown', data: [] };
     }
 }
 
@@ -352,14 +352,14 @@ export async function getSalaryTypeDropdown() {
  * Get Teaching Type List for dropdowns
  * GET /api/MasterDropDown/GetTeachingTypeList
  */
-export async function getTeachingTypeDropdown() {
+export async function getTeachingTypeDropdown(): Promise<ApiResponse<ITeachingTypeDropdown[]>> {
     const url = '/api/MasterDropDown/GetTeachingTypeList';
     try {
         const response = await api.get<ITeachingTypeDropdown[]>('hrms', url);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Teaching Type Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Teaching Type Dropdown', data: [] };
     }
 }
 
@@ -367,14 +367,14 @@ export async function getTeachingTypeDropdown() {
  * Get Score Type List for dropdowns (CGPA Or Percentage)
  * GET /api/MasterDropDown/ScoreTypeList
  */
-export async function getScoreTypeDropdown() {
+export async function getScoreTypeDropdown(): Promise<ApiResponse<IScoreTypeDropdown[]>> {
     const url = '/api/MasterDropDown/ScoreTypeList';
     try {
         const response = await api.get<IScoreTypeDropdown[]>('hrms', url);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Score Type Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Score Type Dropdown', data: [] };
     }
 }
 
@@ -382,14 +382,14 @@ export async function getScoreTypeDropdown() {
  * Get Contact Type List for dropdowns (Default/Alternate for mobile, email, bank)
  * GET /api/MasterDropDown/GetContactType
  */
-export async function getContactTypeDropdown() {
+export async function getContactTypeDropdown(): Promise<ApiResponse<IContactTypeDropdown[]>> {
     const url = '/api/MasterDropDown/GetContactType';
     try {
         const response = await api.get<IContactTypeDropdown[]>('hrms', url);
-        return response || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Contact Type Dropdown:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Contact Type Dropdown', data: [] };
     }
 }
 
@@ -397,14 +397,14 @@ export async function getContactTypeDropdown() {
  * Get Earning List
  * GET /api/MasterDropDown/GetEarningList
  */
-export async function getEarningList() {
+export async function getEarningList(): Promise<ApiResponse<any[]>> {
     const url = '/api/MasterDropDown/GetEarningList';
     try {
         const response = await api.getArray<any>('hrms', url);
-        return response.data || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Earning List:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Earning List', data: [] };
     }
 }
 
@@ -412,14 +412,14 @@ export async function getEarningList() {
  * Get Deduction List
  * GET /api/MasterDropDown/GetDeductionList
  */
-export async function getDeductionList() {
+export async function getDeductionList(): Promise<ApiResponse<any[]>> {
     const url = '/api/MasterDropDown/GetDeductionList';
     try {
         const response = await api.getArray<any>('hrms', url);
-        return response.data || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Deduction List:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Deduction List', data: [] };
     }
 }
 
@@ -427,14 +427,14 @@ export async function getDeductionList() {
  * Get Arrears List
  * GET /api/MasterDropDown/GetArrearsList
  */
-export async function getArrearsList() {
+export async function getArrearsList(): Promise<ApiResponse<any[]>> {
     const url = '/api/MasterDropDown/GetArrearsList';
     try {
         const response = await api.getArray<any>('hrms', url);
-        return response.data || [];
+        return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Arrear List:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch Arrear List', data: [] };
     }
 }
 
@@ -809,16 +809,24 @@ export async function saveEmployeeSalaryDetails(hrme_id: number, MI_Id: number) 
  * Get Employee Earnings and Deduction Details
  * GET /api/EmployeeRegistration/get_employee_earnings_deduction_details/{hrme_id}
  */
-export async function getEmployeeEarningsDeductions(hrme_id: number) {
+export async function getEmployeeEarningsDeductions(hrme_id: number): Promise<ApiResponse<any[]>> {
     const url = `/api/EmployeeRegistration/get_employee_earnings_deduction_details/${hrme_id}`;
     try {
         console.log('📡 [API DEBUG] Calling getEmployeeEarningsDeductions (GET):', url);
         const response = await api.get<any>('hrms', url);
         console.log('✅ [API DEBUG] getEmployeeEarningsDeductions Response:', response);
         // The API returns { success, data: [...] }
-        return response?.data || [];
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            return response as ApiResponse<any[]>;
+        }
+        const res = response as any;
+        return {
+            success: true,
+            data: res?.data || res || [],
+            message: 'Data fetched successfully'
+        };
     } catch (error: any) {
         console.error('❌ [API ERROR] getEmployeeEarningsDeductions:', error);
-        return [];
+        return { success: false, message: 'Failed to fetch earnings/deductions', data: [] };
     }
 }

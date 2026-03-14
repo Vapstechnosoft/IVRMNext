@@ -3046,6 +3046,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 fieldState={fieldState}
                                                                 label='Date Of Birth'
                                                                 placeholder='Pick date of birth'
+                                                                toDate={new Date()}
+                                                                restricted_tofieldName="Today's Date"
                                                             />
                                                         )}
                                                     />

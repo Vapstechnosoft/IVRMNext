@@ -2799,6 +2799,14 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/leave-management/transaction/online-admin-leave',
                                             title: 'Online Admin Leave',
                                             description: 'Apply for On Duty Leave'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Leave Details',
+                                            icon: 'info',
+                                            url: '/hrms/leave-management/transaction/leave-details',
+                                            title: 'Leave Details',
+                                            description: 'Leave Details'
                                         }
                                     ]
                                 },
