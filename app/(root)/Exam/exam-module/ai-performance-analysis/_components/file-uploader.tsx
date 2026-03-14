@@ -39,7 +39,8 @@ export function FileUploader({ onFileSelect, isLoading }: FileUploaderProps) {
                     <Button size='sm' disabled={isLoading} onClick={() => document.getElementById('file-upload')?.click()}>
                         Select File
                     </Button>
-                    {isLoading && <p className='animate-pulse text-muted-foreground text-[10px]'>Processing...</p>}
+                    {/* biome-ignore lint/nursery/useSortedClasses: <explanation> */}
+{isLoading && <p className='animate-pulse text-muted-foreground text-[10px]'>Processing...</p>}
                 </div>
             </CardContent>
         </Card>
