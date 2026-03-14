@@ -36,6 +36,7 @@ import { calculateAge, dateToWords } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { studentAdmissionFormSchema } from '@/schemas/admission/admission-form';
 import {
+    getAllAdmissionLists,
     saveFifthTabApi,
     saveFinalTabApi,
     saveFirstTabApi,
@@ -529,7 +530,107 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             </>
         );
     };
+    const handleCheckDuplicateRegNo = async (regNo: string): Promise<boolean> => {
+        if (!regNo || regNo.trim() === '') return false;
 
+        try {
+            const trimmedRegNo = regNo.trim();
+            const currentAmsTId = Number(getValues('amsT_Id' as any)) || savedAmsTId || 0;
+
+            const response = await getAllAdmissionLists({
+                search_query: trimmedRegNo,
+                search_columns: 'registrationNo'
+            });
+
+            interface AdmissionData {
+                registrationNo?: string;
+                amst_Id?: number;
+                amsT_Id?: number;
+                AMST_Id?: number;
+                amstId?: number;
+            }
+            const students = response?.data as AdmissionData[] | null;
+
+            if (Array.isArray(students) && students.length > 0) {
+                const duplicateFound = students.some((s: AdmissionData) => {
+                    const studentRegNo = s.registrationNo?.toString().toLowerCase();
+                    const isSameRegNo = studentRegNo === trimmedRegNo.toLowerCase();
+                    const studentId = Number(s.amsT_Id ?? s.amst_Id ?? s.AMST_Id ?? s.amstId ?? 0);
+                    const isDifferentStudent = studentId !== currentAmsTId;
+                    return isSameRegNo && isDifferentStudent;
+                });
+
+                if (duplicateFound) {
+                    toast.error(`Registration No. "${trimmedRegNo}" already exists`);
+                    setError('amsT_RegistrationNo', {
+                        type: 'manual',
+                        message: 'Duplicate Registration Number'
+                    });
+                    return true;
+                } else {
+                    clearErrors('amsT_RegistrationNo');
+                    return false;
+                }
+            } else {
+                clearErrors('amsT_RegistrationNo');
+                return false;
+            }
+        } catch (error) {
+            console.error('Error checking duplicate registration number:', error);
+            return false;
+        }
+    };
+
+    const handleCheckDuplicateAdmissionNo = async (admissionNo: string): Promise<boolean> => {
+        if (!admissionNo || admissionNo.trim() === '') return false;
+
+        try {
+            const trimmedAdmissionNo = admissionNo.trim();
+            const currentAmsTId = Number(getValues('amsT_Id' as any)) || savedAmsTId || 0;
+
+            const response = await getAllAdmissionLists({
+                search_query: trimmedAdmissionNo,
+                search_columns: 'admissionNo'
+            });
+
+            interface AdmissionData {
+                admissionNo?: string;
+                amst_Id?: number;
+                amsT_Id?: number;
+                AMST_Id?: number;
+                amstId?: number;
+            }
+            const students = response?.data as AdmissionData[] | null;
+
+            if (Array.isArray(students) && students.length > 0) {
+                const duplicateFound = students.some((s: AdmissionData) => {
+                    const studentAdmissionNo = s.admissionNo?.toString().toLowerCase();
+                    const isSameAdmissionNo = studentAdmissionNo === trimmedAdmissionNo.toLowerCase();
+                    const studentId = Number(s.amsT_Id ?? s.amst_Id ?? s.AMST_Id ?? s.amstId ?? 0);
+                    const isDifferentStudent = studentId !== currentAmsTId;
+                    return isSameAdmissionNo && isDifferentStudent;
+                });
+
+                if (duplicateFound) {
+                    toast.error(`Admission No. "${trimmedAdmissionNo}" already exists`);
+                    setError('amsT_AdmissionNo', {
+                        type: 'manual',
+                        message: 'Duplicate Admission Number'
+                    });
+                    return true;
+                } else {
+                    clearErrors('amsT_AdmissionNo');
+                    return false;
+                }
+            } else {
+                clearErrors('amsT_AdmissionNo');
+                return false;
+            }
+        } catch (error) {
+            console.error('Error checking duplicate admission number:', error);
+            return false;
+        }
+    };
     const saveFirstTab = async (formData: any) => {
         try {
             // Guard: ensure minimal required fields are present before calling API
@@ -581,22 +682,23 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     throw new Error('Validation failed: missing ECS details');
                 }
             }
+            const amsTIdToUse = Number(formData.amsT_Id ?? getValues('amsT_Id' as any) ?? 0);
             // Build payload expected by server for first tab
             const payload = {
-                amsT_Id: 0,
+                amsT_Id: savedAmsTId ?? 0,
                 mI_Id: Number(formData.mI_Id ?? 30),
                 asmaY_Id: Number(formData.asmaY_Id ?? formData.asmaY_Year ?? 0),
                 asmcL_Id: Number(formData.asmcL_Id ?? 0),
                 asmS_Id: Number(formData.asmS_Id ?? 0),
-                amsT_Date: formData.amsT_Date ? new Date(formData.amsT_Date).toISOString() : new Date().toISOString(),
+                amsT_Date: formData.amsT_Date ? format(new Date(formData.amsT_Date), "yyyy-MM-dd'T'00:00:00.000'Z'") : new Date().toISOString(),
                 amsT_RegistrationNo: String(formData.amsT_RegistrationNo ?? ''),
                 amsT_AdmissionNo: String(formData.amsT_AdmissionNo ?? ''),
-                amsT_DateOfAdmission: formData.amsT_Date ? new Date(formData.amsT_Date).toISOString() : new Date().toISOString(),
+                amsT_DateOfAdmission: formData.amsT_Date ? format(new Date(formData.amsT_Date), "yyyy-MM-dd'T'00:00:00.000'Z'") : new Date().toISOString(),
                 amsT_FirstName: formData.amsT_FirstName ?? '',
                 amsT_MiddleName: formData.amsT_MiddleName ?? '',
                 amsT_LastName: formData.amsT_LastName ?? '',
                 amsT_Sex: String(formData.amsT_Sex ?? ''),
-                amsT_DOB: formData.amsT_DOB ? new Date(formData.amsT_DOB).toISOString() : undefined,
+                amsT_DOB: formData.amsT_DOB ? format(new Date(formData.amsT_DOB), "yyyy-MM-dd'T'00:00:00.000'Z'") : undefined,
                 amsT_DOB_Words: formData.amsT_DOB_Words ?? dateToWords(formData.amsT_DOB) ?? '',
                 pasR_Age: Number(formData.pasR_Age ?? 0),
                 amsT_MotherTongue: formData.amsT_MotherTongue ?? '',
@@ -664,7 +766,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 amsT_Nationality: Number(formData.amsT_Nationality ?? 0),
                 amsT_State: Number(formData.amsT_State ?? 0),
                 userId: Number(formData.userId ?? 0) || 21602,
-                editFlag: !!formData.editFlag,
+                editFlag: (savedAmsTId ?? 0) > 0,
                 returnVal: true
             };
 
@@ -707,7 +809,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             const formData = getValues();
 
             const payload = {
-                amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 15353,
+                //amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 15353,
+                amsT_Id: Number(getValues('amsT_Id' as any) ?? savedAmsTId ?? 0),
                 userId: 21602,
                 miId: 30,
                 amsT_FatherPassingYear: Number(formData.amsT_FatherPassingYear ?? 0) || 0,
@@ -721,18 +824,18 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 fatherMonthlyIncome: 0,
                 fatherMobileNumbers: Array.isArray(formData.fatherMobileNumbers as unknown as any[])
                     ? (formData.fatherMobileNumbers as unknown as any[]).map((m: any) => ({
-                          mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m)
-                      }))
+                        mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m)
+                    }))
                     : formData.fatherMobileNumbers
-                      ? [{ mobileNo: String(formData.fatherMobileNumbers) }]
-                      : [],
+                        ? [{ mobileNo: String(formData.fatherMobileNumbers) }]
+                        : [],
                 fatherEmailIds: Array.isArray(formData.fatherEmailIds as unknown as any[])
                     ? (formData.fatherEmailIds as unknown as any[]).map((e: any) => ({
-                          emailId: String(e.emailId ?? e.amsT_emailId ?? e)
-                      }))
+                        emailId: String(e.emailId ?? e.amsT_emailId ?? e)
+                    }))
                     : formData.fatherEmailIds
-                      ? [{ emailId: String(formData.fatherEmailIds) }]
-                      : [],
+                        ? [{ emailId: String(formData.fatherEmailIds) }]
+                        : [],
                 fatherHomePhone: formData.fatherHomePhone || formData.fatherHomePhone || '',
                 fatherNationality: Number(formData.fatherNationality ?? 0) || 0,
                 fatherEducation: formData.FatherEducation || '',
@@ -777,18 +880,18 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 motherMaritalStatus: formData.motherMaritalStatus ?? '',
                 motherMobileNumbers: Array.isArray(formData.motherMobileNumbers as unknown as any[])
                     ? (formData.motherMobileNumbers as unknown as any[]).map((m: any) => ({
-                          mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m)
-                      }))
+                        mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m)
+                    }))
                     : formData.motherMobileNumbers
-                      ? [{ mobileNo: String(formData.motherMobileNumbers) }]
-                      : [],
+                        ? [{ mobileNo: String(formData.motherMobileNumbers) }]
+                        : [],
                 motherEmailIds: Array.isArray(formData.motherEmailIds as unknown as any[])
                     ? (formData.motherEmailIds as unknown as any[]).map((e: any) => ({
-                          emailId: String(e.emailId ?? e.amsT_emailId ?? e)
-                      }))
+                        emailId: String(e.emailId ?? e.amsT_emailId ?? e)
+                    }))
                     : formData.motherEmailIds
-                      ? [{ emailId: String(formData.motherEmailIds) }]
-                      : [],
+                        ? [{ emailId: String(formData.motherEmailIds) }]
+                        : [],
                 motherHomePhone: formData.motherHomePhone || '',
                 motherNationality: Number(formData.motherNationality ?? 0) || 0,
                 motherQualification: formData.motherQualification || '',
@@ -855,9 +958,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     const g = currentGuardians[i] || {};
                     const hasContent = Boolean(
                         String(g.guardianName || '').trim() ||
-                            String(g.guardianPhone || '').trim() ||
-                            String(g.guardianEmail || '').trim() ||
-                            String(g.guardianAddress || '').trim()
+                        String(g.guardianPhone || '').trim() ||
+                        String(g.guardianEmail || '').trim() ||
+                        String(g.guardianAddress || '').trim()
                     );
                     if (hasContent && !savedGuardianSaved[i]) {
                         toast.error('Please save guardian details before proceeding.');
@@ -1002,6 +1105,21 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 console.error('========================');
             }
 
+            // Reinforce duplication check explicitly for Step 1
+            if (currentStep === 1) {
+                const regNo = getValues('amsT_RegistrationNo');
+                const isRegDuplicate = await handleCheckDuplicateRegNo(String(regNo ?? ''));
+                if (isRegDuplicate) {
+                    return;
+                }
+
+                const admissionNo = getValues('amsT_AdmissionNo');
+                const isAdmDuplicate = await handleCheckDuplicateAdmissionNo(String(admissionNo ?? ''));
+                if (isAdmDuplicate) {
+                    return;
+                }
+            }
+
             // Check if there are any validation errors on the current form state
             if (!isValid) {
                 console.debug('[Admission] Validation errors detected, aborting API call', { isValid, errors: Object.keys(errors) });
@@ -1051,7 +1169,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     const formData = getValues();
 
                     const payload = {
-                        amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 15353,
+                        amsT_Id: Number(getValues('amsT_Id' as any) ?? savedAmsTId ?? 0),
                         mI_Id: 30,
                         userId: 1,
                         amsT_Studentillness: formData.amsT_Studentillness || '',
@@ -1068,6 +1186,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         amsT_OtherPermanentAddr: formData.amsT_OtherPermanentAddr || '',
                         amsT_Domicile: formData.amsT_Domicile || '',
                         amsT_SecondLanguage: formData.amsT_SecondLanguage || '',
+                        amsT_UnderAge: formData.amsT_UnderAge || '',
+                        amsT_Boarding: formData.amsT_Boarding || '',
+                        amsT_LastPlayGrndAttnd: formData.amsT_LastPlayGrndAttnd || '',
+                        amsT_OverAge: formData.amsT_OverAge || '',
+                        amsT_MaritalStatus: formData.amsT_MaritalStatus || '',
                         amsT_TransferrableJobFlg: !!formData.amsT_TransferrableJobFlg,
                         amsT_VaccinatedFlg: !!formData.amsT_VaccinatedFlg,
                         amsT_Tcflag: !!formData.amsT_Tcflag
@@ -1099,21 +1222,21 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         selectedActivityItems && selectedActivityItems.length > 0
                             ? selectedActivityItems.map((id) => ({ activityId: Number(id) || 0, isSelected: true }))
                             : Array.isArray(formData.activities)
-                              ? formData.activities.map((a: any) => ({ activityId: Number(a) || 0, isSelected: true }))
-                              : [];
+                                ? formData.activities.map((a: any) => ({ activityId: Number(a) || 0, isSelected: true }))
+                                : [];
 
                     const sourceDetails =
                         selectedSourceItems && selectedSourceItems.length > 0
                             ? selectedSourceItems.map((s) => ({
-                                  sourceId: Number(s.pamS_Id) || 0,
-                                  isSelected: true
-                              }))
+                                sourceId: Number(s.pamS_Id) || 0,
+                                isSelected: true
+                            }))
                             : Array.isArray(formData.sourceDetails)
-                              ? formData.sourceDetails.map((s: any) => ({
+                                ? formData.sourceDetails.map((s: any) => ({
                                     sourceId: Number(s) || 0,
                                     isSelected: true
                                 }))
-                              : [];
+                                : [];
 
                     const guardiansSource = formData.guardian || [];
                     const _guardians = (Array.isArray(guardiansSource) ? guardiansSource : []).map((g: any) => ({
@@ -1141,10 +1264,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                 ? school.schoolTypeId === 1
                                     ? 'Pre-Primary School'
                                     : school.schoolTypeId === 2
-                                      ? 'Primary School'
-                                      : school.schoolTypeId === 3
-                                        ? 'High School'
-                                        : String(school.schoolTypeId)
+                                        ? 'Primary School'
+                                        : school.schoolTypeId === 3
+                                            ? 'High School'
+                                            : String(school.schoolTypeId)
                                 : ''),
                         class: String(school.pasrpS_PreviousClass || school.classId || ''),
                         percentage: school.pasrpS_PreviousPer || school.percentage || '',
@@ -1154,7 +1277,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                             school.country ||
                             (school.countryId
                                 ? country?.data?.find((c: any) => Number(c.ivrmmC_Id) === Number(school.countryId))?.ivrmmC_CountryName ||
-                                  ''
+                                ''
                                 : ''),
                         state: school.state || '',
                         address: school.pasrpS_Address || school.address || '',
@@ -1165,7 +1288,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                             const d = school.pasrpS_TcDate ?? school.tcDate;
                             if (!d) return null;
                             const parsed = d instanceof Date ? d : new Date(d);
-                            return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+                            return Number.isNaN(parsed.getTime()) ? null : format(parsed, "yyyy-MM-dd'T'00:00:00.000'Z'");
                         })()
                     }));
 
@@ -1269,11 +1392,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     const returnedId =
                         Number(
                             res?.data?.amsT_Id ??
-                                res?.data?.AMST_Id ??
-                                res?.data?.amst_Id ??
-                                res?.data?.amstId ??
-                                getValues('amsT_Id' as any) ??
-                                0
+                            res?.data?.AMST_Id ??
+                            res?.data?.amst_Id ??
+                            res?.data?.amstId ??
+                            getValues('amsT_Id' as any) ??
+                            0
                         ) || 0;
                     if (returnedId > 0) {
                         setValue('amsT_Id' as any, returnedId);
@@ -1468,10 +1591,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                     const returnedId =
                                         Number(
                                             saveRes?.data?.amsT_Id ??
-                                                saveRes?.data?.AMST_Id ??
-                                                saveRes?.data?.amst_Id ??
-                                                saveRes?.data?.amstId ??
-                                                0
+                                            saveRes?.data?.AMST_Id ??
+                                            saveRes?.data?.amst_Id ??
+                                            saveRes?.data?.amstId ??
+                                            0
                                         ) || 0;
                                     if (returnedId > 0) {
                                         setValue('amsT_Id' as any, returnedId);
@@ -1609,21 +1732,21 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                             selectedActivityItems && selectedActivityItems.length > 0
                                 ? selectedActivityItems.map((id) => ({ activityId: Number(id) || 0, isSelected: true }))
                                 : Array.isArray(formData.activities)
-                                  ? formData.activities.map((a: any) => ({ activityId: Number(a) || 0, isSelected: true }))
-                                  : [];
+                                    ? formData.activities.map((a: any) => ({ activityId: Number(a) || 0, isSelected: true }))
+                                    : [];
 
                         const sourceDetails =
                             selectedSourceItems && selectedSourceItems.length > 0
                                 ? selectedSourceItems.map((s) => ({
-                                      sourceId: Number(s.pamS_Id) || 0,
-                                      isSelected: true
-                                  }))
+                                    sourceId: Number(s.pamS_Id) || 0,
+                                    isSelected: true
+                                }))
                                 : Array.isArray(formData.sourceDetails)
-                                  ? formData.sourceDetails.map((s: any) => ({
+                                    ? formData.sourceDetails.map((s: any) => ({
                                         sourceId: Number(s) || 0,
                                         isSelected: true
                                     }))
-                                  : [];
+                                    : [];
 
                         const guardiansSource = formData.guardian || [];
                         const guardians = (Array.isArray(guardiansSource) ? guardiansSource : []).map((g: any) => ({
@@ -2773,8 +2896,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         currentStep === step.id
                                                             ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                              ? 'border-green-500 bg-green-500 text-white'
-                                                              : 'border-gray-300 bg-white text-gray-400'
+                                                                ? 'border-green-500 bg-green-500 text-white'
+                                                                : 'border-gray-300 bg-white text-gray-400'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-5 w-5' />
@@ -2823,8 +2946,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         currentStep === step.id
                                                             ? 'border-secondary bg-secondary text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                              ? 'border-green-500 bg-green-500 text-white'
-                                                              : 'border-gray-300 bg-white text-gray-500'
+                                                                ? 'border-green-500 bg-green-500 text-white'
+                                                                : 'border-gray-300 bg-white text-gray-500'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-6 w-6' />
@@ -3044,6 +3167,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                 id='amsT_RegistrationNo'
                                                 placeholder='Enter registration number'
                                                 {...register('amsT_RegistrationNo')}
+                                                onBlur={(e) => {
+                                                    register('amsT_RegistrationNo').onBlur(e);
+                                                    handleCheckDuplicateRegNo(e.target.value);
+                                                }}
                                                 error={errors.amsT_RegistrationNo?.message}
                                             />
                                             <InputText
@@ -3052,6 +3179,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                 id='amsT_AdmissionNo'
                                                 placeholder='Enter admission number'
                                                 {...register('amsT_AdmissionNo')}
+                                                onBlur={(e) => {
+                                                    register('amsT_AdmissionNo').onBlur(e);
+                                                    handleCheckDuplicateAdmissionNo(e.target.value);
+                                                }}
                                                 error={errors.amsT_AdmissionNo?.message}
                                             />
                                             <div className='flex flex-col gap-1.5'>
@@ -3565,9 +3696,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             />
                                                             {phoneExpectedInfo.amsT_MobileNo?.expected && (
                                                                 <span className='mt-1 text-muted-foreground text-xs'>
-                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.amsT_MobileNo.expected} digits for ${
-                                                                        phoneExpectedInfo.amsT_MobileNo.name ?? 'selected country'
-                                                                    }`}
+                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.amsT_MobileNo.expected} digits for ${phoneExpectedInfo.amsT_MobileNo.name ?? 'selected country'
+                                                                        }`}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -4010,7 +4140,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         error={errors.amsT_ConArea?.message}
                                                     />
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_ConCountry'>Country</Label>
+                                                        <Label htmlFor='amsT_ConCountry'>
+                                                            Country<span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
                                                         <Controller
                                                             name='amsT_ConCountry'
                                                             control={control}
@@ -4047,7 +4179,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         {errors.amsT_ConCountry && <FormError>{errors.amsT_ConCountry.message}</FormError>}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='pasR_ConState'>State</Label>
+                                                        <Label htmlFor='pasR_ConState'>
+                                                            State<span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
                                                         <Controller
                                                             name='amsT_ConState'
                                                             control={control}
@@ -4134,15 +4268,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             rules={
                                                                 conZipLength
                                                                     ? {
-                                                                          minLength: {
-                                                                              value: conZipLength,
-                                                                              message: `Pin code must be ${conZipLength} digits`
-                                                                          },
-                                                                          maxLength: {
-                                                                              value: conZipLength,
-                                                                              message: `Pin code must be ${conZipLength} digits`
-                                                                          }
-                                                                      }
+                                                                        minLength: {
+                                                                            value: conZipLength,
+                                                                            message: `Pin code must be ${conZipLength} digits`
+                                                                        },
+                                                                        maxLength: {
+                                                                            value: conZipLength,
+                                                                            message: `Pin code must be ${conZipLength} digits`
+                                                                        }
+                                                                    }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -4225,7 +4359,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         disabled={sameAsResidential}
                                                     />
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_PerCountry'>Country</Label>
+                                                        <Label htmlFor='amsT_PerCountry'>
+                                                            Country <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
                                                         <Controller
                                                             name='amsT_PerCountry'
                                                             control={control}
@@ -4263,7 +4399,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         {errors.amsT_PerCountry && <FormError>{errors.amsT_PerCountry.message}</FormError>}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_PerState'>State</Label>
+                                                        <Label htmlFor='amsT_PerState'>
+                                                            State <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
                                                         <Controller
                                                             name='amsT_PerState'
                                                             control={control}
@@ -4353,15 +4491,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             rules={
                                                                 perZipLength
                                                                     ? {
-                                                                          minLength: {
-                                                                              value: perZipLength,
-                                                                              message: `Pin code must be ${perZipLength} digits`
-                                                                          },
-                                                                          maxLength: {
-                                                                              value: perZipLength,
-                                                                              message: `Pin code must be ${perZipLength} digits`
-                                                                          }
-                                                                      }
+                                                                        minLength: {
+                                                                            value: perZipLength,
+                                                                            message: `Pin code must be ${perZipLength} digits`
+                                                                        },
+                                                                        maxLength: {
+                                                                            value: perZipLength,
+                                                                            message: `Pin code must be ${perZipLength} digits`
+                                                                        }
+                                                                    }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -4572,10 +4710,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     />
                                                                     {phoneExpectedInfo.fatherMobileNumbers?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.fatherMobileNumbers.expected} digits for ${
-                                                                                phoneExpectedInfo.fatherMobileNumbers.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.fatherMobileNumbers.expected} digits for ${phoneExpectedInfo.fatherMobileNumbers.name ??
                                                                                 'selected country'
-                                                                            }`}
+                                                                                }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -4652,10 +4789,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         />
                                                         {(errors.fatherNationality ||
                                                             (fatherAlive && showStep3Errors && !watch('fatherNationality'))) && (
-                                                            <FormError>
-                                                                {errors.fatherNationality?.message ?? 'Country is required'}
-                                                            </FormError>
-                                                        )}
+                                                                <FormError>
+                                                                    {errors.fatherNationality?.message ?? 'Country is required'}
+                                                                </FormError>
+                                                            )}
                                                     </div>
                                                     <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
                                                         <h3 className='font-semibold text-gray-800 text-lg'>Education Details</h3>
@@ -4788,15 +4925,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     rules={
                                                                         fatherZipLength
                                                                             ? {
-                                                                                  minLength: {
-                                                                                      value: fatherZipLength,
-                                                                                      message: `Pin code must be ${fatherZipLength} digits`
-                                                                                  },
-                                                                                  maxLength: {
-                                                                                      value: fatherZipLength,
-                                                                                      message: `Pin code must be ${fatherZipLength} digits`
-                                                                                  }
-                                                                              }
+                                                                                minLength: {
+                                                                                    value: fatherZipLength,
+                                                                                    message: `Pin code must be ${fatherZipLength} digits`
+                                                                                },
+                                                                                maxLength: {
+                                                                                    value: fatherZipLength,
+                                                                                    message: `Pin code must be ${fatherZipLength} digits`
+                                                                                }
+                                                                            }
                                                                             : undefined
                                                                     }
                                                                     render={({ field }) => (
@@ -4979,15 +5116,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     rules={
                                                                         fatherZipLength
                                                                             ? {
-                                                                                  minLength: {
-                                                                                      value: fatherZipLength,
-                                                                                      message: `Pin code must be ${fatherZipLength} digits`
-                                                                                  },
-                                                                                  maxLength: {
-                                                                                      value: fatherZipLength,
-                                                                                      message: `Pin code must be ${fatherZipLength} digits`
-                                                                                  }
-                                                                              }
+                                                                                minLength: {
+                                                                                    value: fatherZipLength,
+                                                                                    message: `Pin code must be ${fatherZipLength} digits`
+                                                                                },
+                                                                                maxLength: {
+                                                                                    value: fatherZipLength,
+                                                                                    message: `Pin code must be ${fatherZipLength} digits`
+                                                                                }
+                                                                            }
                                                                             : undefined
                                                                     }
                                                                     render={({ field }) => (
@@ -5121,10 +5258,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                             />
                                                                             {phoneExpectedInfo.fatherOfficePhone?.expected && (
                                                                                 <span className='mt-1 text-muted-foreground text-xs'>
-                                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.fatherOfficePhone.expected} digits for ${
-                                                                                        phoneExpectedInfo.fatherOfficePhone.name ??
+                                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.fatherOfficePhone.expected} digits for ${phoneExpectedInfo.fatherOfficePhone.name ??
                                                                                         'selected country'
-                                                                                    }`}
+                                                                                        }`}
                                                                                 </span>
                                                                             )}
                                                                         </div>
@@ -5446,10 +5582,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     />
                                                                     {phoneExpectedInfo.motherMobileNumbers?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.motherMobileNumbers.expected} digits for ${
-                                                                                phoneExpectedInfo.motherMobileNumbers.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.motherMobileNumbers.expected} digits for ${phoneExpectedInfo.motherMobileNumbers.name ??
                                                                                 'selected country'
-                                                                            }`}
+                                                                                }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -5518,10 +5653,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         />
                                                         {(errors.motherNationality ||
                                                             (motherAlive && showStep3Errors && !watch('motherNationality'))) && (
-                                                            <FormError>
-                                                                {errors.motherNationality?.message ?? 'Country is required'}
-                                                            </FormError>
-                                                        )}
+                                                                <FormError>
+                                                                    {errors.motherNationality?.message ?? 'Country is required'}
+                                                                </FormError>
+                                                            )}
                                                     </div>
 
                                                     {/* Education Details */}
@@ -5662,15 +5797,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     rules={
                                                                         motherZipLength
                                                                             ? {
-                                                                                  minLength: {
-                                                                                      value: motherZipLength,
-                                                                                      message: `Pin code must be ${motherZipLength} digits`
-                                                                                  },
-                                                                                  maxLength: {
-                                                                                      value: motherZipLength,
-                                                                                      message: `Pin code must be ${motherZipLength} digits`
-                                                                                  }
-                                                                              }
+                                                                                minLength: {
+                                                                                    value: motherZipLength,
+                                                                                    message: `Pin code must be ${motherZipLength} digits`
+                                                                                },
+                                                                                maxLength: {
+                                                                                    value: motherZipLength,
+                                                                                    message: `Pin code must be ${motherZipLength} digits`
+                                                                                }
+                                                                            }
                                                                             : undefined
                                                                     }
                                                                     render={({ field }) => (
@@ -5863,15 +5998,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     rules={
                                                                         motherZipLength
                                                                             ? {
-                                                                                  minLength: {
-                                                                                      value: motherZipLength,
-                                                                                      message: `Pin code must be ${motherZipLength} digits`
-                                                                                  },
-                                                                                  maxLength: {
-                                                                                      value: motherZipLength,
-                                                                                      message: `Pin code must be ${motherZipLength} digits`
-                                                                                  }
-                                                                              }
+                                                                                minLength: {
+                                                                                    value: motherZipLength,
+                                                                                    message: `Pin code must be ${motherZipLength} digits`
+                                                                                },
+                                                                                maxLength: {
+                                                                                    value: motherZipLength,
+                                                                                    message: `Pin code must be ${motherZipLength} digits`
+                                                                                }
+                                                                            }
                                                                             : undefined
                                                                     }
                                                                     render={({ field }) => (
@@ -6004,10 +6139,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                             />
                                                                             {phoneExpectedInfo.motherOfficePhone?.expected && (
                                                                                 <span className='mt-1 text-muted-foreground text-xs'>
-                                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.motherOfficePhone.expected} digits for ${
-                                                                                        phoneExpectedInfo.motherOfficePhone.name ??
+                                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.motherOfficePhone.expected} digits for ${phoneExpectedInfo.motherOfficePhone.name ??
                                                                                         'selected country'
-                                                                                    }`}
+                                                                                        }`}
                                                                                 </span>
                                                                             )}
                                                                         </div>
@@ -6408,7 +6542,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                             Loading...
                                                                                         </SelectItem>
                                                                                     ) : academicYears?.data &&
-                                                                                      academicYears.data.length > 0 ? (
+                                                                                        academicYears.data.length > 0 ? (
                                                                                         academicYears.data.map((y: any) => (
                                                                                             <SelectItem
                                                                                                 key={String(y.asmaY_Id)}
@@ -6480,9 +6614,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                         )}>
                                                                                         <CalendarIcon className='mr-2 h-4 w-4' />
                                                                                         {field.value &&
-                                                                                        Object.prototype.toString.call(field.value) ===
+                                                                                            Object.prototype.toString.call(field.value) ===
                                                                                             '[object Date]' &&
-                                                                                        field.value.getTime()
+                                                                                            field.value.getTime()
                                                                                             ? format(field.value, 'dd/MM/yyyy')
                                                                                             : 'Select TC date'}
                                                                                     </Button>
@@ -6627,13 +6761,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
                                                                                 {phoneExpectedInfo?.[`guardian_${idx}_phone`]?.expected && (
                                                                                     <span className='mt-1 text-muted-foreground text-xs'>
-                                                                                        {`Mobile number must be exactly ${
-                                                                                            phoneExpectedInfo[`guardian_${idx}_phone`]
+                                                                                        {`Mobile number must be exactly ${phoneExpectedInfo[`guardian_${idx}_phone`]
                                                                                                 .expected
-                                                                                        } digits for ${
-                                                                                            phoneExpectedInfo[`guardian_${idx}_phone`]
+                                                                                            } digits for ${phoneExpectedInfo[`guardian_${idx}_phone`]
                                                                                                 .name ?? 'selected country'
-                                                                                        }`}
+                                                                                            }`}
                                                                                     </span>
                                                                                 )}
                                                                             </div>
@@ -7043,7 +7175,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                             Error loading classes
                                                                                         </SelectItem>
                                                                                     ) : Array.isArray(admissionClass?.data) &&
-                                                                                      admissionClass.data.length > 0 ? (
+                                                                                        admissionClass.data.length > 0 ? (
                                                                                         admissionClass.data.map((classItem: any) => (
                                                                                             <SelectItem
                                                                                                 key={classItem.asmcL_Id}
@@ -7299,7 +7431,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                 {/* <h3 className='font-semibold text-gray-800 text-lg'>Residential Address</h3> */}
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                     <InputText
-                                                        label='Student Health'
+                                                        label='Student Illness'
                                                         id='amsT_Studentillness'
                                                         placeholder='Enter Student Health'
                                                         {...register('amsT_Studentillness')}
@@ -7321,6 +7453,28 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     />
 
                                                     <InputText
+                                                        label='Under Age'
+                                                        id='amsT_UnderAge'
+                                                        placeholder='Enter Under Age'
+                                                        {...register('amsT_UnderAge')}
+                                                        error={errors.amsT_UnderAge?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Boarding'
+                                                        id='amsT_Boarding'
+                                                        placeholder='Enter Boarding'
+                                                        {...register('amsT_Boarding')}
+                                                        error={errors.amsT_Boarding?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Last Playground Attended'
+                                                        id='amsT_LastPlayGrndAttnd'
+                                                        placeholder='Enter Last Playground Attended'
+                                                        {...register('amsT_LastPlayGrndAttnd')}
+                                                        error={errors.amsT_LastPlayGrndAttnd?.message}
+                                                    />
+
+                                                    <InputText
                                                         label='School DISE Code'
                                                         id='amsT_SchoolDISECode'
                                                         placeholder='Enter School DISE Code'
@@ -7336,8 +7490,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     />
 
                                                     <InputText
-                                                        label='  Second Language'
-                                                        id=' amsT_SecondLanguage'
+                                                        label='Second Language'
+                                                        id='amsT_SecondLanguage'
                                                         placeholder='Enter Second Language'
                                                         {...register('amsT_SecondLanguage')}
                                                         error={errors.amsT_SecondLanguage?.message}
@@ -7367,6 +7521,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     />
 
                                                     <InputText
+                                                        label='Over Age'
+                                                        id='amsT_OverAge'
+                                                        placeholder='Enter Over Age'
+                                                        {...register('amsT_OverAge')}
+                                                        error={errors.amsT_OverAge?.message}
+                                                    />
+
+                                                    <InputText
                                                         label='Extra Activity'
                                                         id='amsT_ExtraActivity'
                                                         placeholder='Enter Extra Activity'
@@ -7388,6 +7550,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         placeholder='Enter Domicile'
                                                         {...register('amsT_Domicile')}
                                                         error={errors.amsT_Domicile?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='Marital Status'
+                                                        id='amsT_MaritalStatus'
+                                                        placeholder='Enter Marital Status'
+                                                        {...register('amsT_MaritalStatus')}
+                                                        error={errors.amsT_MaritalStatus?.message}
                                                     />
                                                     <InputTextarea
                                                         label='Other Residential Address'
@@ -7431,7 +7601,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     </div>
                                                     <div className='flex items-center space-x-2'>
                                                         <Checkbox
-                                                            id='amsT_Tcflag"'
+                                                            id='amsT_Tcflag'
                                                             checked={Boolean(watch('amsT_Tcflag'))}
                                                             onCheckedChange={(checked) => {
                                                                 setValue('amsT_Tcflag', checked === true);

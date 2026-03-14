@@ -11,7 +11,13 @@ import {
     getStudyCertficateReport,
     getCharacterCertficateReport,
     generateQRCodeCertificate,
-    getclasswiseStudentDetails
+    getclasswiseStudentDetails,
+    getAttendanceAbsentInitialDetails,
+    sendAttendanceAbsentSms,
+    sendAttendanceAbsentEmail,
+    sendAttendanceAbsentNotice,
+    sendAttendanceAbsentOTP,
+    verifyAttendanceAbsentOTP
 } from '@/server/admission/preadmission/reports/report';
 import { addOrUpdateStudentCountReport, getParentDashboardDetails } from '@/server/admission/preadmission/reports/student_count_report';
 import {
@@ -27,9 +33,9 @@ import {
 } from '@/server/admission/preadmission/reports/student_yearly_attendance';
 import { getStudyCertificateAcademicYearChange, getStudyCertificateConductDetails, getStudyCertificateDetails, getStudyCertificateLoadData, getStudyCertificateSearchFilter, getStudyCertificateSearchFilterSRKVS, getStudyCertificateStudentList, getStudyCertificateQR } from '@/server/admission/preadmission/reports/study_certificate';
 import type { ApiSearchparams } from '@/types';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-export const useStudentCountReport = (filterPayload?: any, searchParams?: ApiSearchparams) => {
+export const useStudentCountReport = (filterPayload?: any, searchParams?: ApiSearchparams, enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
@@ -47,7 +53,8 @@ export const useStudentCountReport = (filterPayload?: any, searchParams?: ApiSea
                     },
                     searchParams
                 ),
-            staleTime: 0
+            staleTime: 0,
+            enabled: enabled
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -216,13 +223,13 @@ export const useStudentYearlyAttendance = (ASMAY_Id: number, ASMCL_Id: number, A
     };
 };
 
-export const useClassTeacherReport = (ASMAY_Id: number, flag: number, searchParams?: ApiSearchparams) => {
+export const useClassTeacherReport = (ASMAY_Id: number, flag: number, amcId?: number, searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_CLASS_TEACHER_REPORT, ASMAY_Id, flag, searchParams ?? {}],
-            queryFn: async () => GetClassTeacherReport(ASMAY_Id, flag, searchParams),
+            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_CLASS_TEACHER_REPORT, ASMAY_Id, flag, amcId, searchParams ?? {}],
+            queryFn: async () => GetClassTeacherReport(ASMAY_Id, flag, amcId, searchParams),
             staleTime: 0,
             enabled: !!ASMAY_Id
         }),
@@ -422,13 +429,20 @@ export const useadmissionStudentsDropdown = (ASMAY_Id?: number, ASMCL_Id?: numbe
         }
     };
 };
-export const useAttendanceAbsentSmsReport = (asmaY_Id: number, from_date: string, frequency: string, searchParams?: ApiSearchparams) => {
+export const useAttendanceAbsentSmsReport = (
+    asmaY_Id: number,
+    from_date: string,
+    frequency: string,
+    amc_id: number = 0,
+    att_type: string = 'D',
+    searchParams?: ApiSearchparams
+) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [ADMISSION_QUERY_KEYS.ATTENDANCE_ABSENT_REPORT, asmaY_Id, from_date, frequency, searchParams ?? {}],
-            queryFn: async () => getAttendanceAbsentSmsReport(asmaY_Id, from_date, frequency, searchParams),
+            queryKey: [ADMISSION_QUERY_KEYS.ATTENDANCE_ABSENT_REPORT, asmaY_Id, from_date, frequency, amc_id, att_type, searchParams ?? {}],
+            queryFn: async () => getAttendanceAbsentSmsReport(asmaY_Id, from_date, frequency, amc_id, att_type, searchParams),
             staleTime: 0,
             enabled: !!asmaY_Id
         }),
@@ -437,6 +451,44 @@ export const useAttendanceAbsentSmsReport = (asmaY_Id: number, from_date: string
                 queryKey: [ADMISSION_QUERY_KEYS.ATTENDANCE_ABSENT_REPORT]
             });
         }
+    };
+};
+
+export const useAttendanceAbsentInitialDetails = () => {
+    return useQuery({
+        queryKey: [ADMISSION_QUERY_KEYS.ATTENDANCE_ABSENT_REPORT, 'initial-details'],
+        queryFn: async () => getAttendanceAbsentInitialDetails(),
+        staleTime: Infinity
+    });
+};
+
+export const useAttendanceAbsentCommunication = () => {
+    const sendSmsMutation = useMutation({
+        mutationFn: sendAttendanceAbsentSms
+    });
+
+    const sendEmailMutation = useMutation({
+        mutationFn: sendAttendanceAbsentEmail
+    });
+
+    const sendNoticeMutation = useMutation({
+        mutationFn: sendAttendanceAbsentNotice
+    });
+
+    const sendOtpMutation = useMutation({
+        mutationFn: sendAttendanceAbsentOTP
+    });
+
+    const verifyOtpMutation = useMutation({
+        mutationFn: verifyAttendanceAbsentOTP
+    });
+
+    return {
+        sendSms: sendSmsMutation,
+        sendEmail: sendEmailMutation,
+        sendNotice: sendNoticeMutation,
+        sendOtp: sendOtpMutation,
+        verifyOtp: verifyOtpMutation
     };
 };
 export const useAttendanceReport = (asmaY_Id: number, from_date: string, frequency: string, searchParams?: ApiSearchparams) => {
@@ -691,4 +743,8 @@ export const useStudyCertificateQR = (data: any, enabled: boolean = true) => {
             });
         }
     };
+}; export const useStudyCertificateQRMutation = () => {
+    return useMutation({
+        mutationFn: getStudyCertificateQR
+    });
 };

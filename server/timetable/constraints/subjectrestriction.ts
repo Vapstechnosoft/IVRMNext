@@ -47,6 +47,18 @@ export async function ToggleSubjectDayPeriod(ttrdP_Id: number) {
     return await api.put<any>('timetable', url);
 }
 
+export async function getSubjectRestrictionDayPeriodDetails(id: number) {
+    try {
+        const url = `/RestrictionFacade/DayPeriodEdit/${id}`;
+        console.info('Fetching Subject Restriction Day Period details:', url);
+        const res = await api.get<any>('timetable', url);
+        return res;
+    } catch (e) {
+        console.error('Error in getSubjectRestrictionDayPeriodDetails:', e);
+        throw e;
+    }
+}
+
 // --- Tab 2: Day Staff ---
 //for daystaff and period staff and period subject
 export async function getAcademicYearDayStaff() {

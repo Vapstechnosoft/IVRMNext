@@ -41,6 +41,8 @@ export function useLeaveHistoryByEmployeeId(hrmeId: number | null) {
         queryFn: async () => {
             console.log(hrmeId);
             if (!hrmeId) return [];
+            // Delay to bypass Next.js soft navigation AbortError (nuqs state update)
+            await new Promise((resolve) => setTimeout(resolve, 150));
             const response = await getLeaveDetailsGridByEmployeeId(hrmeId);
             if (!response.success) {
                 throw new Error(response.message);
@@ -59,6 +61,8 @@ export function useLeaveBalanceByEmployeeId(hrmeId: number | null) {
         queryKey: hrmeId ? ONLINE_ADMIN_LEAVE_KEYS.LEAVE_BALANCE(hrmeId) : [],
         queryFn: async () => {
             if (!hrmeId) return null;
+            // Delay to bypass Next.js soft navigation AbortError (nuqs state update)
+            await new Promise((resolve) => setTimeout(resolve, 150));
             const response = await getEmployeeLeavesByEmployeeId(hrmeId);
             if (!response.success) {
                 throw new Error(response.message);

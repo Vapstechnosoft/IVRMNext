@@ -291,8 +291,10 @@ export default function DailyFeeCollectionReportForm() {
         // }
         if (rpttyp === 'Individual') {
             if (enableAllClasses === true) {
-                toast.error('Please select Class');
-                return;
+                if (asmcL_Id === 0 || asmcL_Id === null || asmcL_Id === undefined) {
+                    toast.error('Please select Class');
+                    return;
+                }
             }
         }
 
@@ -410,6 +412,7 @@ export default function DailyFeeCollectionReportForm() {
                 }));
                 payload = {
                     AsmayId: asmaY_Id,
+                    classid: asmcL_Id ?? 0,
                     FromDate: formatDate(fromDate),
                     ToDate: formatDate(toDate),
                     regornamedetails: report,
@@ -886,10 +889,16 @@ export default function DailyFeeCollectionReportForm() {
 
                         {/* SPECIAL CHECKBOXES */}
                         <div className='space-y-3 text-sm'>
-                            <div className='flex items-center gap-2'>
+                            {reportdate !== 'SettledOnline' && reportdate !== 'settdate' && (
+                                <div className='flex items-center gap-2'>
+                                    <Checkbox id='acdmyr-1' checked={chequeDate} onCheckedChange={(v) => setValue('chequeDate', !!v)} />
+                                    <Label htmlFor='acdmyr-1'>Cheque Date</Label>
+                                </div>
+                            )}
+                            {/* <div className='flex items-center gap-2'>
                                 <Checkbox id='acdmyr-1' checked={chequeDate} onCheckedChange={(v) => setValue('chequeDate', !!v)} />
                                 <Label htmlFor='acdmyr-1'>Cheque Date</Label>
-                            </div>
+                            </div> */}
 
                             <div className='flex items-center gap-2'>
                                 <Checkbox id='acdmyr-2' checked={acdmyr} onCheckedChange={(v) => setValue('acdmyr', !!v)} />

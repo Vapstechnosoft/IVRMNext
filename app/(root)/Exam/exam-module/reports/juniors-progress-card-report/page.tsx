@@ -1,42 +1,42 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import { ReportForm } from './_components/report-form';
 import { ReportList } from './_components/report-list';
 
 export default function JuniorsProgressCardReportPage() {
     const [reportData, setReportData] = useState<any>(null);
+    const [reportParams, setReportParams] = useState<any>(null);
     const listRef = useRef<HTMLDivElement>(null);
 
-    const handleReportGenerated = (data: any) => {
-        console.log('Juniors Progress Card Report data:', data);
+    const handleReportGenerated = (data: any, params: any) => {
         setReportData(data);
+        setReportParams(params);
     };
 
     const handleReset = () => {
-        if (reportData) {
-            setReportData(null);
-        }
+        setReportData(null);
+        setReportParams(null);
     };
 
-    // Auto-scroll effect
+    // Auto-scroll when data loads
     useEffect(() => {
         if (reportData && listRef.current) {
-            const timer = setTimeout(() => {
+            setTimeout(() => {
                 listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
-            return () => clearTimeout(timer);
         }
     }, [reportData]);
 
     return (
-        <div className='container mx-auto space-y-6 py-6 transition-all duration-500 ease-in-out'>
-            <ReportForm onReportGenerated={handleReportGenerated} onReset={handleReset} />
+        <div className="container mx-auto py-8 space-y-8">
+            <div className="no-print">
+                <ReportForm onReportGenerated={handleReportGenerated} onReset={handleReset} />
+            </div>
 
-            <div ref={listRef} className='mt-6 duration-300 ease-in-out'>
+            <div ref={listRef} className="transition-all duration-300">
                 {reportData && (
-                    <div className='fade-in slide-in-from-bottom-4 animate-in duration-500'>
-                        <ReportList data={reportData} />
-                    </div>
+                    <ReportList data={reportData} params={reportParams} />
                 )}
             </div>
         </div>

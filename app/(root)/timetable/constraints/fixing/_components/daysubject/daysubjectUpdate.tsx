@@ -1,0 +1,430 @@
+'use client';
+
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { DataTable } from '@/components/ui/data-table/data-table';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { type FixingDaySubjectSchema, fixingDaySubjectSchema } from '@/schemas/timetable/constraints/fixing';
+import { getFixingClassSectionStaffsBySubject, saveFixingDaySubject, getFixingDaySubjectDetails } from '@/server/timetable/constraints/fixing';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { ColumnDef } from '@tanstack/react-table';
+import { Save } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+
+interface DaySubjectUpdateProps {
+    academicList: any[];
+    dayList: any[];
+    subjectList: any[];
+    selectedRow: any;
+    onSuccess: () => void;
+    onCancel: () => void;
+}
+
+export default function DaySubjectUpdate({ academicList, dayList, subjectList, selectedRow, onSuccess, onCancel }: DaySubjectUpdateProps) {
+    const [classList, setClassList] = useState<any[]>([]);
+    const [sectionList, setSectionList] = useState<any[]>([]);
+    const [subStaffList, setSubStaffList] = useState<any[]>([]);
+    const [isClassLoading, setIsClassLoading] = useState(false);
+
+    const [selectedClass, setSelectedClass] = useState<number | undefined>();
+    const [selectedSection, setSelectedSection] = useState<number | undefined>();
+    const [selectedStaff, setSelectedStaff] = useState<number | undefined>();
+    const [nop, setNop] = useState<string>('');
+
+    const form = useForm<FixingDaySubjectSchema>({
+        resolver: zodResolver(fixingDaySubjectSchema),
+        defaultValues: {
+            ttfdsU_Id: 0,
+            asmaY_Id: undefined,
+            ttmD_Id: undefined,
+            ismS_Id: undefined,
+            ttfdsU_SUbSelcFlag: false,
+            tempararyArrayList: []
+        }
+    });
+
+    const { setValue, watch, handleSubmit, formState: { isSubmitting }, control, reset } = form;
+    const asmaY_Id = watch('asmaY_Id');
+    const ttfdsU_SUbSelcFlag = watch('ttfdsU_SUbSelcFlag');
+
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: 'tempararyArrayList'
+    });
+
+    useEffect(() => {
+        const loadEditData = async () => {
+            try {
+                let d = selectedRow;
+                const id = d?.ttfdsU_Id || d?.TTFDSU_Id || d?.ttfdS_Id || d?.TTFDS_Id;
+                let fullRes = null;
+                if (id) {
+                    fullRes = await getFixingDaySubjectDetails(id);
+                    const editData = fullRes?.data?.fix_day_subject_edit || fullRes?.fix_day_subject_edit || (Array.isArray(fullRes?.data) ? fullRes.data : undefined) || fullRes?.data;
+                    if (editData && Array.isArray(editData) && editData.length > 0) {
+                        d = editData[0];
+                    } else if (editData && !Array.isArray(editData)) {
+                        d = editData;
+                    }
+                }
+
+                if (d) {
+                    const normalizedData = {
+                        ttfdsU_Id: d.ttfdsU_Id ?? d.TTFDSU_Id ?? 0,
+                        asmaY_Id: d.asmaY_Id ?? d.ASMAY_Id,
+                        ttmD_Id: d.ttmD_Id ?? d.TTMD_Id,
+                        ismS_Id: d.ismS_Id ?? d.ISMS_Id,
+                        ttfdsU_SUbSelcFlag: d.ttfdsU_SUbSelcFlag ?? d.TTFDSU_SUbSelcFlag ?? false
+                    };
+
+                    if (normalizedData.ismS_Id) {
+                        await handleSubjectChange(normalizedData.ismS_Id, normalizedData.asmaY_Id);
+                    }
+
+                    reset({
+                        ttfdsU_Id: normalizedData.ttfdsU_Id,
+                        asmaY_Id: normalizedData.asmaY_Id,
+                        ttmD_Id: normalizedData.ttmD_Id,
+                        ismS_Id: normalizedData.ismS_Id,
+                        ttfdsU_SUbSelcFlag: normalizedData.ttfdsU_SUbSelcFlag,
+                        tempararyArrayList: []
+                    });
+
+                    const subDetails = fullRes?.data?.fix_day_subject__classecedit || fullRes?.fix_day_subject__classecedit || selectedRow?.data?.fix_day_subject__classecedit || selectedRow?.fix_day_subject__classecedit;
+
+                    if (normalizedData.ttfdsU_SUbSelcFlag && subDetails && Array.isArray(subDetails)) {
+                        subDetails.forEach((sub: any) => {
+                            append({
+                                asmcL_Id: sub.asmcL_Id ?? sub.ASMCL_Id,
+                                asmS_Id: sub.asmS_Id ?? sub.ASMS_Id ?? sub.asmC_Id ?? sub.ASMC_Id,
+                                hrmE_Id: sub.hrmE_Id ?? sub.HRME_Id,
+                                nop: sub.ttfdsucC_Periods ?? sub.ttscC_Periods ?? sub.nop ?? sub.TTFDSUCC_Periods,
+                                clsDisplay: sub.asmcL_ClassName ?? sub.ASMCL_ClassName,
+                                sectDisplay: sub.asmC_SectionName ?? sub.ASMC_SectionName ?? sub.asmS_SectionName ?? sub.ASMS_SectionName,
+                                staffDisplay: sub.staffName ?? sub.staffname ?? sub.HRME_EmployeeFirstName
+                            });
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error processing edit data:', error);
+                toast.error('Failed to load edit details');
+            }
+        };
+
+        if (selectedRow) loadEditData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedRow]);
+
+    const handleAcademicYearChange = (yearId: number) => {
+        setValue('asmaY_Id', yearId);
+        setSelectedClass(undefined);
+        setSelectedSection(undefined);
+        setSelectedStaff(undefined);
+        setClassList([]);
+        setSectionList([]);
+        setSubStaffList([]);
+    };
+
+    const handleClassChange = (classId: number) => {
+        setSelectedClass(classId);
+    };
+
+    const handleSectionChange = (sectionId: number) => {
+        setSelectedSection(sectionId);
+    };
+
+    const handleSubjectChange = async (subjectId: number, asmayIdOverride?: number) => {
+        setValue('ismS_Id', subjectId);
+        setSelectedClass(undefined);
+        setSelectedSection(undefined);
+        setSelectedStaff(undefined);
+
+        const activeYearId = asmayIdOverride || asmaY_Id;
+
+        if (activeYearId && subjectId) {
+            try {
+                const res = await getFixingClassSectionStaffsBySubject(activeYearId, subjectId);
+                const classes = res?.data?.clssbysub || res?.clssbysub || [];
+                const sections = res?.data?.secsbysub || res?.secsbysub || [];
+                const staff = res?.data?.staffbysub || res?.staffbysub || [];
+
+                setClassList(classes);
+                setSectionList(sections);
+                setSubStaffList(staff);
+            } catch (error) {
+                console.error('Error fetching subject detail bindings:', error);
+                toast.error('Failed to load subject configurations.');
+            }
+        }
+    };
+
+    const addToGrid = () => {
+        if (!selectedClass || !selectedSection || !selectedStaff || !nop) {
+            toast.warning('Please select all fields');
+            return;
+        }
+
+        const clsObj = classList.find((c) => c.asmcL_Id === selectedClass);
+        const secObj = sectionList.find((s) => s.asmS_Id === selectedSection);
+        const staffObj = subStaffList.find((s) => s.hrmE_Id === selectedStaff);
+
+        const exists = fields.some(
+            (f: any) => f.asmcL_Id === Number(selectedClass) && f.asmS_Id === Number(selectedSection) && f.hrmE_Id === Number(selectedStaff)
+        );
+        if (exists) {
+            toast.warning('Already Exists');
+            return;
+        }
+
+        append({
+            asmcL_Id: selectedClass,
+            asmS_Id: selectedSection,
+            hrmE_Id: selectedStaff,
+            nop: Number(nop),
+            clsDisplay: clsObj?.asmcL_ClassName || clsObj?.asmcL_Classname,
+            sectDisplay: secObj?.asmC_SectionName || secObj?.asmC_Sectionname || secObj?.asmS_SectionName,
+            staffDisplay: staffObj?.staffName
+        });
+    };
+
+    const subColumns: ColumnDef<any>[] = useMemo(
+        () => [
+            { accessorKey: 'clsDisplay', header: 'Class' },
+            { accessorKey: 'sectDisplay', header: 'Section' },
+            { accessorKey: 'staffDisplay', header: 'Staff' },
+            { accessorKey: 'nop', header: 'No Of Periods' },
+            {
+                id: 'actions',
+                header: 'Actions',
+                cell: ({ row }) => (
+                    <Button type='button' variant='ghost' size='sm' onClick={() => remove(row.index)}>
+                        <span className='text-red-500'>Delete</span>
+                    </Button>
+                )
+            }
+        ],
+        [remove]
+    );
+
+    const onSubmit = async (data: FixingDaySubjectSchema) => {
+        try {
+            if (!data.ttfdsU_SUbSelcFlag) {
+                data.tempararyArrayList = [];
+            } else {
+                if (!data.tempararyArrayList || data.tempararyArrayList.length === 0) {
+                    toast.warning('Please add at least one Class-Section details');
+                    return;
+                }
+            }
+            const res = await saveFixingDaySubject(data);
+            if (res?.returnval === true || res?.success === true) {
+                toast.success(res?.message || 'Record Updated Successfully');
+                reset();
+                onSuccess();
+            } else {
+                toast.error(res?.message || 'Failed to update');
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error('An error occurred');
+        }
+    };
+
+    return (
+        <Form {...form}>
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 bg-white p-4 shadow-sm'>
+                <FormField
+                    control={form.control}
+                    name='ttfdsU_Id'
+                    render={({ field }) => <Input type='hidden' {...field} value={field.value || 0} />}
+                />
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                    <FormField
+                        control={form.control}
+                        name='asmaY_Id'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Academic Year</FormLabel>
+                                <Select
+                                    key={field.value?.toString() || 'empty'}
+                                    onValueChange={(v) => handleAcademicYearChange(Number(v))}
+                                    value={field.value?.toString()}>
+                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                    <SelectContent>
+                                        {academicList?.map((item: any) => (
+                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id?.toString()}>
+                                                {item.asmaY_Year}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name='ttmD_Id'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Day</FormLabel>
+                                <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                    <SelectContent>
+                                        {dayList.map((item: any) => {
+                                            const id = item.ttmD_Id ?? item.ttmd_id ?? item.TTMD_Id;
+                                            return (
+                                                <SelectItem key={id} value={id?.toString()}>
+                                                    {item.ttmD_DayName || item.ttmD_Dayname || item.ttmd_dayname}
+                                                </SelectItem>
+                                            );
+                                        })}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name='ismS_Id'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Subject</FormLabel>
+                                <Select
+                                    key={field.value?.toString() || 'empty'}
+                                    onValueChange={(v) => handleSubjectChange(Number(v))}
+                                    value={field.value?.toString()}>
+                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                    <SelectContent>
+                                        {subjectList
+                                            .filter((item: any) => item.ismS_Id || item.isms_id || item.ISMS_Id)
+                                            .map((item: any) => {
+                                                const id = item.ismS_Id ?? item.isms_id ?? item.ISMS_Id;
+                                                return (
+                                                    <SelectItem key={id} value={id?.toString()}>
+                                                        {item.ismS_SubjectName || item.isms_subjectname || item.subjectName}
+                                                    </SelectItem>
+                                                );
+                                            })}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                <div className='flex items-center space-x-2'>
+                    <FormField
+                        control={form.control}
+                        name='ttfdsU_SUbSelcFlag'
+                        render={({ field }) => (
+                            <FormItem className='flex flex-row items-start space-x-3 space-y-0 p-4'>
+                                <FormControl>
+                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                </FormControl>
+                                <div className='space-y-1 leading-none'>
+                                    <FormLabel>Fixing Class-Section Wise</FormLabel>
+                                </div>
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                {ttfdsU_SUbSelcFlag && (
+                    <div className='space-y-4 rounded-md border bg-gray-50 p-4'>
+                        <h4 className='font-semibold'>Add Class Details</h4>
+                        <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-5'>
+                            <div className='space-y-2'>
+                                <FormLabel>Class</FormLabel>
+                                <Select
+                                    key={selectedClass?.toString() || 'empty'}
+                                    onValueChange={(v) => handleClassChange(Number(v))}
+                                    value={selectedClass?.toString()}>
+                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectContent>
+                                        {isClassLoading ? (
+                                            <SelectItem value='loading'>Loading...</SelectItem>
+                                        ) : (
+                                            classList.map((item: any) => {
+                                                const id = item.asmcL_Id ?? item.asmcl_id ?? item.ASMCL_Id;
+                                                return (
+                                                    <SelectItem key={id} value={id?.toString()}>
+                                                        {item.asmcL_ClassName}
+                                                    </SelectItem>
+                                                );
+                                            })
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className='space-y-2'>
+                                <FormLabel>Section</FormLabel>
+                                <Select
+                                    key={selectedSection?.toString() || 'empty'}
+                                    onValueChange={(v) => handleSectionChange(Number(v))}
+                                    value={selectedSection?.toString()}>
+                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectContent>
+                                        {sectionList.map((item: any) => {
+                                            const id = item.asmS_Id ?? item.asms_id ?? item.ASMS_Id;
+                                            return (
+                                                <SelectItem key={id} value={id?.toString()}>
+                                                    {item.asmC_SectionName || item.asmS_SectionName || item.sectionName}
+                                                </SelectItem>
+                                            );
+                                        })}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className='space-y-2'>
+                                <FormLabel>Staff</FormLabel>
+                                <Select
+                                    key={selectedStaff?.toString() || 'empty'}
+                                    onValueChange={(v) => setSelectedStaff(Number(v))}
+                                    value={selectedStaff?.toString()}>
+                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectContent>
+                                        {subStaffList.map((item: any) => {
+                                            const id = item.hrmE_Id ?? item.hrme_id ?? item.HRME_Id;
+                                            return (
+                                                <SelectItem key={id} value={id?.toString()}>
+                                                    {item.staffName?.replace(/\n/g, ' ').trim()}
+                                                </SelectItem>
+                                            );
+                                        })}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className='space-y-2'>
+                                <FormLabel>Periods</FormLabel>
+                                <Input type='number' value={nop} onChange={(e) => setNop(e.target.value)} />
+                            </div>
+                        </div>
+                        <Button type='button' onClick={addToGrid}>
+                            Add
+                        </Button>
+                        {fields.length > 0 && <DataTable data={fields} columns={subColumns} totalItems={fields.length} />}
+                    </div>
+                )}
+
+                <div className='flex justify-center gap-4 pt-4'>
+                    <Button type='submit' disabled={isSubmitting}>
+                        <Save className='mr-2 h-4 w-4' /> Update
+                    </Button>
+                    <Button type='button' variant='outline' onClick={onCancel}>
+                        Cancel
+                    </Button>
+                </div>
+            </form>
+        </Form>
+    );
+}

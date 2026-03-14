@@ -78,20 +78,12 @@ function ActionButtonsCell({ rowData }: { rowData: IPeriodSubjectList }) {
         [openToggleForm]
     );
 
-    const handleDelete = useCallback(
-        (data: IPeriodSubjectList) => {
-            if (openDeleteForm) openDeleteForm(data);
-        },
-        [openDeleteForm]
-    );
-
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: true }}
+            buttons={{ edit: true, toggle: true }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            onDelete={handleDelete}
             toggleConditionKey='ttrpsU_ActiveFlag'
         />
     );

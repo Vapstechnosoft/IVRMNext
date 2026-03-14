@@ -1,19 +1,20 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
-import { ApiSearchparams } from '@/types';
+import type { ApiSearchparams } from '@/types';
 import type {
     Category,
     Class,
     Section,
     Staff,
+    Subject,
     StaffReplacementExistingToNewMasters,
-    StaffReplacementGridData,
-    Subject
+    StaffReplacementGridData
 } from '@/types/timetable/Transaction/staff-replacement-existing-to-new';
 
 export async function getStaffReplacementExistingToNewMasters(): Promise<StaffReplacementExistingToNewMasters> {
     try {
+        console.log('getStaffReplacementExistingToNewMasters');
         const [categories, classes, staff, subjects] = await Promise.all([
             api.get<Category[]>('timetable', '/TimeTableCommon/GetCategoryDetails'),
             api.get<Class[]>('timetable', '/TimeTableCommon/GetClassData'),
@@ -43,63 +44,53 @@ export async function getSectionsByClass(asmcL_Id: number): Promise<Section[]> {
     }
 }
 
-/**
- * Fetches initial grid data for staff replacement existing to new
- */
-// export async function getStaffReplacementGridData(): Promise<StaffReplacementGridData[]> {
-//     try {
-//         const response = await api.get<any>('timetable', '/StaffReplacementForClassSectionFacade/GetstaffreplacementfromexistingtonewGrid');
-
-//         // Check for specific response structure provided by user
-//         if (response?.data && Array.isArray(response.data)) {
-//             return response.data;
-//         }
-
-//         return [];
-//     } catch (error) {
-//         console.error('Error fetching staff replacement grid data:', error);
-//         return [];
-//     }
-// }
-
+export async function getSectionDropdown() {
+    const url = `/TimeTableCommon/section-details`;
+    return await api.get<any>('timetable', url);
+}
 
 export async function getStaffReplacementGridData(searchParams?: ApiSearchparams) {
+    console.log('searchParams', searchParams);
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ttmD_DayName,ttmD_DayCode');
     const url = `/StaffReplacementForClassSectionFacade/GetstaffreplacementfromexistingtonewGrid?${urlParams}`;
-    console.info('MasterDayFacade', url);
     return await api.get<StaffReplacementGridData[]>('timetable', url);
 }
 
-export async function getTimetableData(payload: {
+export async function getStaffReplacementInitialData() {
+    const url = '/StaffReplacementFromExistingToNewFacade';
+    return await api.get<any>('timetable', url);
+}
+
+export async function getStaffReplacementInitialDetails(id = 0) {
+    console.log('id', id);
+    const url = `/StaffReplacementFromExistingToNewFacade/getdetails/${id}`;
+    return await api.get<any>('timetable', url);
+}
+
+export async function saveStaffReplacementExistingToNew(payload: {
     ttmC_Id: string;
-    hrmE_Id_From: string;
-    hrmE_Id_To: string;
     asmcL_Id?: string;
     asms_Id?: string;
+    hrmE_Id_From: string;
+    hrmE_Id_To: string;
     ismS_Id?: string;
-}) {
+}): Promise<{ returnval: boolean; returnduplicatestatus?: string }> {
     try {
-        const { ttmC_Id, hrmE_Id_From, asmcL_Id, asms_Id, ismS_Id } = payload;
+        const url = '/StaffReplacementFromExistingToNewFacade/savedetail';
+        const data = {
+            asmaY_Id: 0, // Using default 0 as it's no longer a form field
+            ttmC_Id: Number(payload.ttmC_Id),
+            asmcL_Id: Number(payload.asmcL_Id || 0),
+            asmS_Id: Number(payload.asms_Id || 0), // Mapping asms_Id to asmS_Id to match legacy
+            staf_from: Number(payload.hrmE_Id_From),
+            staf_to: Number(payload.hrmE_Id_To),
+            ismS_Id: Number(payload.ismS_Id || 0)
+        };
 
-        // Construct URL with optional parameters
-        // Adjust this endpoint based on your actual API
-        const url = `StaffReplacementFacade/GetTimetableData/${ttmC_Id}/${hrmE_Id_From}/${asmcL_Id || 0}/${asms_Id || 0}/${ismS_Id || 0}`;
-
-        const response = await api.get<any>('timetable', url);
-
-        // Handle different response structures
-        if (response?.data && response.data && Array.isArray(response.data)) {
-            return response.data;
-        }
-
-        if (response.data && response.data && Array.isArray(response.data.data)) {
-            return response.data.data;
-        }
-
-        // Return empty array if no data
-        return [];
+        const response = await api.post<any>('timetable', url, data);
+        return (response.data ?? response) as unknown as { returnval: boolean; returnduplicatestatus?: string };
     } catch (error) {
-        console.error('Error fetching timetable data:', error);
-        return [];
+        console.error('Error saving staff replacement:', error);
+        return { returnval: false };
     }
 }

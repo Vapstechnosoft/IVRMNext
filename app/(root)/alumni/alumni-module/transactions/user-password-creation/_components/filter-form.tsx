@@ -16,7 +16,7 @@ interface FilterFormProps {
     years: IYear[];
     classes: IClass[];
     sections: ISection[];
-    onSuccess: (data: any, filterdata: string) => void;
+    onSuccess: (data: any, filterdata: string, total?: number) => void;
     onReset: () => void;
     onLoading: (isLoading: boolean) => void;
 }
@@ -53,10 +53,10 @@ export default function FilterForm({ years, classes, sections, onSuccess, onRese
 
             const res = await getReportDetails(payload);
             if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-                onSuccess(res.data, values.filterdata);
+                onSuccess(res.data, values.filterdata, res.total);
             } else {
                 toast.error(res.message || 'No Records Found');
-                onSuccess([], values.filterdata);
+                onSuccess([], values.filterdata, 0);
             }
         } catch (error: any) {
             toast.error(error.message || 'Failed to fetch report');
