@@ -9,7 +9,7 @@ import { categoryClassMappingSchema } from '@/schemas/exam/exam-module/masters';
 import {
     addOrUpdateCategoryClassMapping,
     getCategories,
-    getClassMappedSections
+    getUnMappedSections
 } from '@/server/exam/exam-module/masters/category-class-mapping';
 import { getOpeningClassDropdownData } from '@/server/fees/trasactions/fee_opening_balance';
 import type { ICategory, IClass } from '@/types/exam/exam-module/masters';
@@ -115,7 +115,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
 
             try {
                 setLoadingSections(true);
-                const res = await getClassMappedSections(Number(watchedYear), Number(watchedClass));
+                const res = await getUnMappedSections(Number(watchedYear), Number(watchedClass));
                 const sectionData = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
 
                 setSections(sectionData);
