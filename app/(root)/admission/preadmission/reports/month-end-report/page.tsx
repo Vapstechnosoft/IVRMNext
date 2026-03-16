@@ -103,7 +103,7 @@ export default function MonthendreportPage() {
 
             if (reportList?.length) {
                 const r = reportList[0];
-                const fetchedLogo = instDetails[0]?.mI_Logo || monthEndResponse?.amC_logo?.[0] || r.MI_Logo || r.mI_Logo || r.mi_logo;
+                const fetchedLogo = res?.data?.data?.amC_logo?.[0] || r.MI_Logo || r.mI_Logo || r.mi_logo || '/school-logo.png';
                 setLogo(fetchedLogo);
                 setInstitutionDetails(instDetails);
 
