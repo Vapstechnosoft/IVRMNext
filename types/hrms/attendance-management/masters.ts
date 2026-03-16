@@ -92,3 +92,20 @@ export interface IEmployee {
     Key: number;
     Value: string;
 }
+
+export interface IMasterTimeSetting {
+    fomtS_Id: number;
+    mI_Id: number;
+    fomtS_FDWHrMin: string;
+    fomtS_HDWHrMin: string;
+    fomtS_IHalfLoginTime: string;
+    fomtS_IhalfLogoutTime: string;
+    fomtS_IIHalfLoginTime: string;
+    fomtS_IIHalfLogoutTime: string;
+    fomtS_DelayPerShiftHrMin: string;
+    fomtS_EarlyPerShiftHrMin: string;
+    fomtS_LunchHoursDuration: string;
+    fomtS_BlockAttendance: string;
+    fomtS_FixTimings: string;
+    fomhwD_ActiveFlg: boolean;
+}

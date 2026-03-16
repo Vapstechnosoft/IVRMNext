@@ -2385,7 +2385,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/attendance-management/masters/shift-setting-master',
                                             title: 'Shift Setting Master',
                                             description: 'Configure Shift Settings'
-                                        }
+                                        },
                                         // {
                                         //     id: 7,
                                         //     name: 'GPS Location Attendance',
@@ -2393,7 +2393,15 @@ export async function getUserAccessibleModules() {
                                         //     url: '/hrms/attendance-management/masters/gps-location-attendance',
                                         //     title: 'GPS Location Attendance',
                                         //     description: 'GPS-based Attendance'
-                                        // }
+                                        // },
+                                        {
+                                            id: 8,
+                                            name: 'Master Time Setting',
+                                            icon: 'Clock',
+                                            url: '/hrms/attendance-management/masters/master-time-setting',
+                                            title: 'Master Time Setting',
+                                            description: 'Configure Time Settings'
+                                        }
                                     ]
                                 },
                                 {

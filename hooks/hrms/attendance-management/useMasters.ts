@@ -37,6 +37,11 @@ import {
     deleteShiftSettingMaster,
     getShiftSettingMaster
 } from '@/server/hrms/attendance-management/masters/shift-setting-master';
+import {
+    addOrUpdateMasterTimeSetting,
+    deleteMasterTimeSetting,
+    getMasterTimeSettings
+} from '@/server/hrms/attendance-management/masters/master-time-setting';
 import type { ApiSearchparams } from '@/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -471,6 +476,62 @@ export const useDeleteEmployeeMissingLog = () => {
         },
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to delete employee missing log');
+        }
+    });
+};
+
+export const useMasterTimeSetting = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_TIME_SETTING, searchParams ?? {}],
+            queryFn: async () => getMasterTimeSettings(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_TIME_SETTING]
+            });
+        }
+    };
+};
+
+export const useSaveMasterTimeSetting = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: Parameters<typeof addOrUpdateMasterTimeSetting>[0]) => addOrUpdateMasterTimeSetting(data),
+        onSuccess: (response) => {
+            if (response.success) {
+                toast.success(response.message);
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.MASTER_TIME_SETTING]
+                });
+            } else {
+                toast.error(response.message);
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to save master time setting');
+        }
+    });
+};
+
+export const useDeleteMasterTimeSetting = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: number) => deleteMasterTimeSetting(id),
+        onSuccess: (response) => {
+            if (response.success) {
+                toast.success(response.message);
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.MASTER_TIME_SETTING]
+                });
+            } else {
+                toast.error(response.message);
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to delete master time setting');
         }
     });
 };
