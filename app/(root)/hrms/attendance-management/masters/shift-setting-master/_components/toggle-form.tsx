@@ -21,7 +21,7 @@ interface ToggleShiftSettingMasterFormProps {
 
 export default function ToggleShiftSettingMasterForm({ rowData, onClose }: ToggleShiftSettingMasterFormProps) {
     const { refetchAll } = useShiftSettingMaster();
-    const isActive = rowData.FOMS_ActiveFlg;
+    const isActive = rowData.fomS_ActiveFlg;
 
     const {
         register,
@@ -32,7 +32,7 @@ export default function ToggleShiftSettingMasterForm({ rowData, onClose }: Toggl
         resolver: zodResolver(hrmsMasterSchemas.shiftSettingMaster.delete),
         mode: 'onChange',
         defaultValues: {
-            fomsT_Id: Number(rowData.FOMST_Id) || 0
+            fomsT_Id: Number(rowData.fomsT_Id) || 0
         }
     });
 
@@ -43,7 +43,7 @@ export default function ToggleShiftSettingMasterForm({ rowData, onClose }: Toggl
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleShiftSettingMaster(Number(rowData.FOMS_Id));
+            const response = await toggleShiftSettingMaster(Number(rowData.fomsT_Id));
 
             if (response.success) {
                 toast.success(response.message);
@@ -65,11 +65,11 @@ export default function ToggleShiftSettingMasterForm({ rowData, onClose }: Toggl
                         type='hidden'
                         {...register('fomsT_Id', {
                             valueAsNumber: true,
-                            value: Number(rowData.FOMST_Id) || 0
+                            value: Number(rowData.fomsT_Id) || 0
                         })}
                     />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.FOMS_ShiftName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.fomS_ShiftName}</strong>?
                     </p>
                     <FormError>{errors.fomsT_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>

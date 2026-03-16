@@ -35,7 +35,7 @@ import { getStudyCertificateAcademicYearChange, getStudyCertificateConductDetail
 import type { ApiSearchparams } from '@/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-export const useStudentCountReport = (filterPayload?: any, searchParams?: ApiSearchparams) => {
+export const useStudentCountReport = (filterPayload?: any, searchParams?: ApiSearchparams, enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
@@ -53,7 +53,8 @@ export const useStudentCountReport = (filterPayload?: any, searchParams?: ApiSea
                     },
                     searchParams
                 ),
-            staleTime: 0
+            staleTime: 0,
+            enabled: enabled
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({

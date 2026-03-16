@@ -1,25 +1,49 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { getPointsRecordReport, getPointsRecordReportDropdowns } from '@/server/sports/reports/points-record-report';
-import { PointsRecordReportFormSchema } from '@/types/sports/reports/points-record-report';
+import {
+    getPointsRecordReportInitialData,
+    getPointsRecordReportClasses,
+    getPointsRecordReportSections,
+    getPointsReport
+} from '@/server/sports/reports/points-record-report';
+import { toast } from 'sonner';
 
 export const usePointsRecordReport = () => {
+
+    // Initial Data
     const loadData = useQuery({
-        queryKey: ['pointsRecordReportValues'],
-        queryFn: async () => {
-            const response = await getPointsRecordReportDropdowns();
-            return response.data;
+        queryKey: ['pointsRecordReportInitial'],
+        queryFn: () => getPointsRecordReportInitialData(),
+        staleTime: Number.POSITIVE_INFINITY,
+    });
+
+    // Cascading: Fetch Classes, Houses, Events
+    const classHouseEventMutation = useMutation({
+        mutationFn: ({ asmaY_Id }: { asmaY_Id: number }) => getPointsRecordReportClasses(asmaY_Id),
+        onError: (error) => {
+            toast.error(error.message || 'Failed to fetch cascading data');
         },
     });
 
+    // Cascading: Fetch Sections
+    const sectionMutation = useMutation({
+        mutationFn: ({ asmaY_Id, asmcL_Id }: { asmaY_Id: number; asmcL_Id: number }) => getPointsRecordReportSections(asmaY_Id, asmcL_Id),
+        onError: (error) => {
+            toast.error(error.message || 'Failed to fetch sections');
+        },
+    });
+
+    // Generate Report
     const generateReport = useMutation({
-        mutationFn: async (data: PointsRecordReportFormSchema) => {
-            const response = await getPointsRecordReport(data);
-            return response.data;
+        mutationFn: getPointsReport,
+        onError: (error) => {
+            toast.error(error.message || 'Failed to generate report');
         },
     });
 
     return {
         loadData,
+        classHouseEventMutation,
+        sectionMutation,
         generateReport,
     };
 };
