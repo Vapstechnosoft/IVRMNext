@@ -10,9 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useSportVenuewiseParticipationReport } from '@/hooks/sports/useSportVenuewiseParticipationReport';
 import {
     type SportVenuewiseParticipationReportFormData,
-    type SportVenuewiseReportData,
     sportVenuewiseParticipationReportSchema
 } from '@/schemas/sports/transactions/sport-venuewise-participation-report';
+import { type ISportVenueWiseParticipationReportPayload, type SportVenuewiseReportData } from '@/types/sports/reports/venue-wise-participation-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Loader2 } from 'lucide-react';
@@ -54,13 +54,13 @@ export default function SportVenuewiseParticipationReportPage() {
     useEffect(() => {
         if (watchAcademicYear) {
             detailsData.mutate(
-                { ASMAY_Id: watchAcademicYear },
+                { asmaY_Id: watchAcademicYear },
                 {
                     onSuccess: (res) => {
                         if (res.success && res.data) {
-                            setClassOptions(res.data.classes.map((c) => ({ label: c.label, value: c.id.toString() })));
-                            setHouseOptions(res.data.houses.map((h) => ({ label: h.label, value: h.id.toString() })));
-                            setVenueOptions(res.data.venues.map((v) => ({ label: v.label, value: v.id.toString() })));
+                            setClassOptions(res.data.classList?.map((c) => ({ label: c.asmcL_ClassName, value: c.asmcL_Id.toString() })) || []);
+                            setHouseOptions(res.data.houseList?.map((h) => ({ label: h.spccmH_HouseName, value: h.spccmH_Id.toString() })) || []);
+                            setVenueOptions(res.data.venueList?.map((v) => ({ label: v.spccmeV_EventVenue, value: v.spccmeV_Id.toString() })) || []);
                         }
                     }
                 }
@@ -76,11 +76,11 @@ export default function SportVenuewiseParticipationReportPage() {
     useEffect(() => {
         if (watchAcademicYear && watchClass) {
             sectionsData.mutate(
-                { ASMAY_Id: watchAcademicYear, asmcL_Id: watchClass },
+                { asmaY_Id: watchAcademicYear, asmcL_Id: watchClass },
                 {
                     onSuccess: (res) => {
-                        if (res.success && res.data) {
-                            setSectionOptions(res.data.map((s) => ({ label: s.label, value: s.id.toString() })));
+                        if (res.success && res.data?.sectionList) {
+                            setSectionOptions(res.data.sectionList.map((s) => ({ label: s.asmC_SectionName, value: s.asmS_Id.toString() })));
                         }
                     }
                 }
@@ -91,7 +91,13 @@ export default function SportVenuewiseParticipationReportPage() {
     }, [watchAcademicYear, watchClass]);
 
     const onSubmit = (data: SportVenuewiseParticipationReportFormData) => {
-        reportData.mutate(data, {
+        const payload: ISportVenueWiseParticipationReportPayload = {
+            ...data,
+            selectedVenuelist: data.spccmeV_Id.map(id => ({ spccmeV_Id: id })),
+            selectedhouselist: data.spccmH_Id.map(id => ({ spccmH_Id: id })),
+            selectedSectionlist: data.asmS_Id?.map(id => ({ asmS_Id: id }))
+        };
+        reportData.mutate(payload, {
             onSuccess: (res) => {
                 if (res.success) {
                     setShowReport(true);
@@ -130,7 +136,10 @@ export default function SportVenuewiseParticipationReportPage() {
         );
     }
 
-    const academicYears = initialData.data?.data?.academicYears || [];
+    const academicYears = initialData.data?.data?.yearlist?.map(y => ({
+        id: y.asmaY_Id,
+        label: y.asmaY_Year
+    })) || [];
 
     return (
         <div className='space-y-6'>
@@ -303,7 +312,7 @@ export default function SportVenuewiseParticipationReportPage() {
                             columns={columns}
                             data={reportData.data?.data || []}
                             totalItems={reportData.data?.data?.length || 0}
-                            //manualPagination={false}
+                        //manualPagination={false}
                         />
                         <div className='mt-4 flex justify-end space-x-2'>
                             <Button onClick={() => window.print()}>Print</Button>

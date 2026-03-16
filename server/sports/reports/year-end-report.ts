@@ -1,212 +1,56 @@
 'use server';
 
-import { type ApiResponse } from '@/lib/apiService';
-import { IYearEndReport, YearEndReportFormSchema } from '@/types/sports/reports/year-end-report';
+import { api } from '@/lib/apiService';
+import {
+    ISportsYearEndReportClassData,
+    ISportsYearEndReportData,
+    ISportsYearEndReportLoadData,
+    ISportsYearEndReportRequest,
+    ISportsYearEndReportSectionData
+} from '@/app/(root)/Sports/Reports/SportsYearEndReport/types';
 
-export async function getYearEndReportDropdowns() {
-    const response: ApiResponse<{
-        academicYear: { asmaY_Id: number; asmaY_Year: string }[];
-        classList: { asmcL_Id: number; asmcL_ClassName: string }[];
-        sectionList: { asmS_Id: number; asmC_SectionName: string }[];
-    }> = {
-        success: true,
-        message: 'Dropdowns fetched successfully',
-        data: {
-            academicYear: [
-                { asmaY_Id: 1, asmaY_Year: '2023-2024' },
-                { asmaY_Id: 2, asmaY_Year: '2024-2025' },
-            ],
-            classList: [
-                { asmcL_Id: 1, asmcL_ClassName: 'Class 1' },
-                { asmcL_Id: 2, asmcL_ClassName: 'Class 2' },
-                { asmcL_Id: 3, asmcL_ClassName: 'Class 3' },
-                { asmcL_Id: 4, asmcL_ClassName: 'Class 4' },
-                { asmcL_Id: 5, asmcL_ClassName: 'Class 5' },
-            ],
-            sectionList: [
-                { asmS_Id: 1, asmC_SectionName: 'A' },
-                { asmS_Id: 2, asmC_SectionName: 'B' },
-                { asmS_Id: 3, asmC_SectionName: 'C' },
-            ],
-        },
-    };
-    return response;
+export async function getSportsYearEndReportLoadData(): Promise<ISportsYearEndReportLoadData> {
+    try {
+        const response = await api.post<ISportsYearEndReportLoadData>('sports', 'StudentAgeCalcReport/Getdetails', {});
+        return response.data || { yearlist: [], houseList: [] };
+    } catch (error) {
+        console.error("Error fetching load data:", error);
+        return { yearlist: [], houseList: [] };
+    }
 }
 
-export async function getYearEndReport(data: YearEndReportFormSchema) {
-    const dummyData: IYearEndReport[] = [
-        {
-            id: 1,
-            asmaY_Year: '2023-2024',
-            houseName: 'Red House',
-            studentName: 'John Doe',
-            admNo: 'ADM001',
-            className: 'Class 1',
-            sectionName: 'A',
-            spccmE_EventName: '100m Dash',
-            spccmeV_EventVenue: 'Main Stadium',
-            spccmscC_SportsCCName: 'Athletics',
-            spccE_StartDate: '2024-01-15T00:00:00',
-            points: 10,
-            spccestR_Rank: '1st',
-        },
-        {
-            id: 2,
-            asmaY_Year: '2023-2024',
-            houseName: 'Blue House',
-            studentName: 'Jane Smith',
-            admNo: 'ADM002',
-            className: 'Class 2',
-            sectionName: 'B',
-            spccmE_EventName: 'Long Jump',
-            spccmeV_EventVenue: 'Sports Complex',
-            spccmscC_SportsCCName: 'Athletics',
-            spccE_StartDate: '2024-01-16T00:00:00',
-            points: 8,
-            spccestR_Rank: '2nd',
-        },
-        {
-            id: 3,
-            asmaY_Year: '2023-2024',
-            houseName: 'Green House',
-            studentName: 'Mike Ross',
-            admNo: 'ADM003',
-            className: 'Class 3',
-            sectionName: 'A',
-            spccmE_EventName: 'Chess',
-            spccmeV_EventVenue: 'Auditorium',
-            spccmscC_SportsCCName: 'Indoor Games',
-            spccE_StartDate: '2024-02-10T00:00:00',
-            points: 10,
-            spccestR_Rank: '1st',
-        },
-        {
-            id: 4,
-            asmaY_Year: '2023-2024',
-            houseName: 'Yellow House',
-            studentName: 'Rachel Zane',
-            admNo: 'ADM004',
-            className: 'Class 4',
-            sectionName: 'C',
-            spccmE_EventName: 'Swimming',
-            spccmeV_EventVenue: 'Pool',
-            spccmscC_SportsCCName: 'Aquatics',
-            spccE_StartDate: '2024-03-05T00:00:00',
-            points: 6,
-            spccestR_Rank: '3rd',
-        },
-        {
-            id: 5,
-            asmaY_Year: '2023-2024',
-            houseName: 'Red House',
-            studentName: 'Harvey Specter',
-            admNo: 'ADM005',
-            className: 'Class 5',
-            sectionName: 'A',
-            spccmE_EventName: 'Debate',
-            spccmeV_EventVenue: 'Conference Hall',
-            spccmscC_SportsCCName: 'Literary',
-            spccE_StartDate: '2024-04-12T00:00:00',
-            points: 10,
-            spccestR_Rank: 'Winner',
-        },
-        {
-            id: 6,
-            asmaY_Year: '2023-2024',
-            houseName: 'Blue House',
-            studentName: 'Louis Litt',
-            admNo: 'ADM006',
-            className: 'Class 1',
-            sectionName: 'B',
-            spccmE_EventName: 'Running',
-            spccmeV_EventVenue: 'Track',
-            spccmscC_SportsCCName: 'Athletics',
-            spccE_StartDate: '2024-01-15T00:00:00',
-            points: 4,
-            spccestR_Rank: 'Participant',
-        },
-        {
-            id: 7,
-            asmaY_Year: '2023-2024',
-            houseName: 'Green House',
-            studentName: 'Donna Paulsen',
-            admNo: 'ADM007',
-            className: 'Class 2',
-            sectionName: 'A',
-            spccmE_EventName: 'High Jump',
-            spccmeV_EventVenue: 'Sports Complex',
-            spccmscC_SportsCCName: 'Athletics',
-            spccE_StartDate: '2024-01-17T00:00:00',
-            points: 8,
-            spccestR_Rank: '2nd',
-        },
-        {
-            id: 8,
-            asmaY_Year: '2023-2024',
-            houseName: 'Yellow House',
-            studentName: 'Jessica Pearson',
-            admNo: 'ADM008',
-            className: 'Class 3',
-            sectionName: 'C',
-            spccmE_EventName: 'Badminton',
-            spccmeV_EventVenue: 'Indoor Court',
-            spccmscC_SportsCCName: 'Indoor Games',
-            spccE_StartDate: '2024-02-15T00:00:00',
-            points: 10,
-            spccestR_Rank: '1st',
-        },
-        {
-            id: 9,
-            asmaY_Year: '2023-2024',
-            houseName: 'Red House',
-            studentName: 'Alex Williams',
-            admNo: 'ADM009',
-            className: 'Class 4',
-            sectionName: 'B',
-            spccmE_EventName: 'Table Tennis',
-            spccmeV_EventVenue: 'Indoor Hall',
-            spccmscC_SportsCCName: 'Indoor Games',
-            spccE_StartDate: '2024-02-16T00:00:00',
-            points: 6,
-            spccestR_Rank: '3rd',
-        },
-        {
-            id: 10,
-            asmaY_Year: '2023-2024',
-            houseName: 'Blue House',
-            studentName: 'Samantha Wheeler',
-            admNo: 'ADM010',
-            className: 'Class 5',
-            sectionName: 'A',
-            spccmE_EventName: 'Soccer',
-            spccmeV_EventVenue: 'Field',
-            spccmscC_SportsCCName: 'Team Sports',
-            spccE_StartDate: '2024-05-20T00:00:00',
-            points: 10,
-            spccestR_Rank: 'Winner',
-        },
-        {
-            id: 11,
-            asmaY_Year: '2023-2024',
-            houseName: 'Green House',
-            studentName: 'Katrina Bennett',
-            admNo: 'ADM011',
-            className: 'Class 1',
-            sectionName: 'C',
-            spccmE_EventName: 'Volleyball',
-            spccmeV_EventVenue: 'Court 1',
-            spccmscC_SportsCCName: 'Team Sports',
-            spccE_StartDate: '2024-05-22T00:00:00',
-            points: 8,
-            spccestR_Rank: 'Runner-up',
-        }
-    ];
+export async function getSportsYearEndReportClasses(asmaY_Id: number): Promise<ISportsYearEndReportClassData> {
+    try {
+        const response = await api.post<ISportsYearEndReportClassData>('sports', 'StudentAgeCalcReport/get_class', { asmaY_Id });
+        return response.data || { classList: [] };
+    } catch (error) {
+        console.error("Error fetching classes:", error);
+        return { classList: [] };
+    }
+}
 
-    const response: ApiResponse<IYearEndReport[]> = {
-        success: true,
-        message: 'Report generated successfully',
-        data: dummyData,
-    };
+export async function getSportsYearEndReportSections(asmaY_Id: number, asmcL_Id: number): Promise<ISportsYearEndReportSectionData> {
+    try {
+        const response = await api.post<ISportsYearEndReportSectionData>('sports', 'StudentAgeCalcReport/get_section', { asmaY_Id, asmcL_Id });
+        return response.data || { sectionList: [] };
+    } catch (error) {
+        console.error("Error fetching sections:", error);
+        return { sectionList: [] };
+    }
+}
 
-    return response;
+export async function getSportsYearEndReport(data: ISportsYearEndReportRequest): Promise<ISportsYearEndReportData[]> {
+    try {
+        const response = await api.post<any>('sports', 'YearEndReport/getReport', data);
+
+        // Handle different response structures gracefully
+        if (response.data?.reportList) return response.data.reportList;
+        if (Array.isArray(response.data)) return response.data;
+        if (response.data) return [response.data]; // fallback if single object
+
+        return [];
+    } catch (error) {
+        console.error("Error generating report:", error);
+        return [];
+    }
 }
