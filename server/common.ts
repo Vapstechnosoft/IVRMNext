@@ -4360,8 +4360,7 @@ export async function getUserAccessibleModules() {
                 //             ]
                 //         }
                 //     ]
-                // },
-
+                // }
                 {
                     id: 10,
                     name: 'Inventory Management',
