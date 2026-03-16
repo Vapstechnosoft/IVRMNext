@@ -20,7 +20,7 @@ import type { IInvMasterUserGroup } from '@/types/inventory/masters/inv-master-g
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { Save } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -33,6 +33,7 @@ interface UserGroupFormProps {
 
 function UserGroupForm({ onSuccess, initialData, mode, mainGroupOptions }: UserGroupFormProps) {
     const queryClient = useQueryClient();
+    const [resetKey, setResetKey] = useState(0);
 
     const {
         control,
@@ -96,6 +97,7 @@ function UserGroupForm({ onSuccess, initialData, mode, mainGroupOptions }: UserG
         } else {
             reset();
         }
+        setResetKey((prev) => prev + 1);
     };
 
     return (
@@ -109,7 +111,7 @@ function UserGroupForm({ onSuccess, initialData, mode, mainGroupOptions }: UserG
                         name='invmG_ParentId'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                            <Select key={resetKey} onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
                                 <SelectTrigger className={errors.invmG_ParentId ? 'border-destructive' : ''}>
                                     <SelectValue placeholder='Select Main Group' />
                                 </SelectTrigger>
