@@ -5,6 +5,8 @@ import DaySubjectTab from './_components/daysubject/daysubjectTab';
 import PeriodStaffTab from './_components/periodstaff/periodstaffTab';
 import PeriodSubjectTab from './_components/periodsubject/periodsubjectTab';
 
+export const dynamic = 'force-dynamic';
+
 import { getdetailsAllFixing } from '@/server/timetable/constraints/fixing';
 import { use } from 'react';
 

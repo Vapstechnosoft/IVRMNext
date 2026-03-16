@@ -23,21 +23,31 @@ export const masterHolidayColumns: ColumnDef<IMasterHolidayList>[] = [
     {
         accessorKey: 'fomhwdD_Name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Name' />,
-        cell: ({ row }) => <div>{row.getValue('fomhwdD_Name')}</div>,
+        cell: ({ row }) => {
+            const data = row.original as any;
+            return <div>{data.fomhwdD_Name || data.FOMHWDD_Name || '-'}</div>;
+        },
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'fohtwD_HolidayWDType',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Holiday Type' />,
-        cell: ({ row }) => <div>{row.getValue('fohtwD_HolidayWDType')}</div>,
+        cell: ({ row }) => {
+            const data = row.original as any;
+            return <div>{data.fohtwD_HolidayWDType || data.FOHTWD_HolidayWDType || '-'}</div>;
+        },
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'hrmD_DepartmentName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
-        cell: ({ row }) => <div>{row.getValue('hrmD_DepartmentName')}</div>,
+        cell: ({ row }) => {
+            const data = row.original as any;
+            const deptName = data.hrmD_DepartmentName || data.HRMD_DepartmentName || data.hrm_DepartmentName || data.hrmd_DepartmentName;
+            return <div>{deptName || '-'}</div>;
+        },
         enableSorting: true,
         enableHiding: true
     },
@@ -45,7 +55,8 @@ export const masterHolidayColumns: ColumnDef<IMasterHolidayList>[] = [
         accessorKey: 'fomhwdD_FromDate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='From Date' />,
         cell: ({ row }) => {
-            const date = row.getValue('fomhwdD_FromDate') as string;
+            const data = row.original as any;
+            const date = data.fomhwdD_FromDate || data.FOMHWDD_FromDate;
             return <div>{date ? new Date(date).toLocaleDateString() : '-'}</div>;
         },
         enableSorting: true,
@@ -55,28 +66,19 @@ export const masterHolidayColumns: ColumnDef<IMasterHolidayList>[] = [
         accessorKey: 'fomhwdD_ToDate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='To Date' />,
         cell: ({ row }) => {
-            const date = row.getValue('fomhwdD_ToDate') as string;
+            const data = row.original as any;
+            const date = data.fomhwdD_ToDate || data.FOMHWDD_ToDate;
             return <div>{date ? new Date(date).toLocaleDateString() : '-'}</div>;
         },
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'fomhwD_ActiveFlg',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-        cell: ({ row }) => {
-            const isActive = row.getValue('fomhwD_ActiveFlg') as boolean;
-            return <div>{getStatusBadge(isActive ? 'active' : 'inactive')}</div>;
-        },
-        enableSorting: false,
-        enableHiding: true
-    },
-    {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
-        accessorFn: (row: any) => row,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Action' className='text-center' />,
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
         enableSorting: false,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
+        enableHiding: false
     }
 ];
 
@@ -90,5 +92,9 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterHolidayList }) {
         [openDeleteForm]
     );
 
-    return <ActionButtons rowData={rowData} buttons={{ edit: false, toggle: false, delete: true }} onDelete={handleDelete} />;
+    return (
+        <div className='flex justify-center'>
+            <ActionButtons rowData={rowData} buttons={{ edit: false, toggle: false, delete: true }} onDelete={handleDelete} />
+        </div>
+    );
 }
